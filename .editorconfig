@@ -1,0 +1,23 @@
+# [http://editorconfig.org]
+# [https://github.com/sindresorhus/editorconfig-sublime#readme]
+
+root = true
+
+# All files.
+[*]
+indent_style = tab
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# Set default displayed tab size for repository.
+# [https://stackoverflow.com/a/33831598]
+[*.{js,jsx,html,sass}]
+indent_size = 4
+
+# Override and allow for Markdown files.
+[*.md]
+trim_trailing_whitespace = false
+indent_style = space
+indent_size = 2

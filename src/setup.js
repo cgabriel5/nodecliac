@@ -2,14 +2,13 @@
 
 // Needed modules.
 const fs = require("fs");
-const path = require("path");
 const chalk = require("chalk");
 const log = require("fancy-log");
 const mkdirp = require("mkdirp");
 const fe = require("file-exists");
 const { paths } = require("./utils.js");
 
-module.exports = args => {
+module.exports = () => {
 	/**
 	 * Generate bash script from source file and remove comments/empty lines.
 	 *
@@ -37,13 +36,9 @@ module.exports = args => {
 
 	// Get needed paths.
 	let {
-		homedir,
-		cdirname,
-		customdir,
 		bashrcpath,
 		mainscriptname,
 		mscriptpath,
-		acscriptname,
 		acscriptpath,
 		acmapspath
 	} = paths;

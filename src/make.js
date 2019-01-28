@@ -4,16 +4,13 @@
 const fs = require("fs");
 const path = require("path");
 const chalk = require("chalk");
-const slash = require("slash");
 const log = require("fancy-log");
-const mkdirp = require("mkdirp");
 const fe = require("file-exists");
-const pe = require("path-exists");
 const { fileinfo, exit, paths } = require("./utils.js");
 
 module.exports = args => {
 	// Get needed paths.
-	let { homedir, cdirname, acmapspath } = paths;
+	let { acmapspath } = paths;
 
 	// Get CLI args.
 	let { source, print, add } = args;

@@ -8,9 +8,9 @@ const log = require("fancy-log");
 const de = require("directory-exists");
 const { paths } = require("./utils.js");
 
-module.exports = args => {
+module.exports = () => {
 	// Get needed paths.
-	let { homedir, cdirname, acmapspath } = paths;
+	let { acmapspath } = paths;
 
 	// Maps path needs to exist to list acmapfiles.
 	de(acmapspath, (err, exists) => {

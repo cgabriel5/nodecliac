@@ -2,7 +2,6 @@
 
 // Needed modules.
 const fs = require("fs");
-const path = require("path");
 const chalk = require("chalk");
 const log = require("fancy-log");
 const rimraf = require("rimraf");
@@ -10,9 +9,9 @@ const fe = require("file-exists");
 const de = require("directory-exists");
 const { paths } = require("./utils.js");
 
-module.exports = args => {
+module.exports = () => {
 	// Get needed paths.
-	let { homedir, cdirname, customdir, bashrcpath } = paths;
+	let { customdir, bashrcpath } = paths;
 
 	// Custom dir needs to exist to completely remove.
 	de(customdir, (err, exists) => {
@@ -51,7 +50,7 @@ module.exports = args => {
 						fs.writeFileSync(
 							bashrcpath,
 							contents.replace(
-								/\n?\#\s*\[nodecliac\][\s\S]*\[\/nodecliac\]\s*\#\n?$/m,
+								/\n?#\s*\[nodecliac\][\s\S]*\[\/nodecliac\]\s*#\n?$/m,
 								""
 							)
 						);

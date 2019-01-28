@@ -25,13 +25,13 @@ module.exports = args => {
 	}
 	// Check path for file name and extension.
 	let fi = fileinfo(source);
-	if (!/^[a-z][a-z0-9-_]{2,}\.acmapfile$/i.test(fi.name)) {
+	if (!/^[a-z][a-z0-9-_]{2,}\.acmap$/i.test(fi.name)) {
 		exit([
 			`File name must follow format: ${chalk.bold.blue(
-				"<cli-command-name>.acmapfile"
+				"<cli-command-name>.acmap"
 			)}.`,
-			`Examples: ${chalk.bold("prettier.acmapfile")}, ${chalk.bold(
-				"prettier-cli-watcher.acmapfile"
+			`Examples: ${chalk.bold("prettier.acmap")}, ${chalk.bold(
+				"prettier-cli-watcher.acmap"
 			)}.`
 		]);
 	}
@@ -57,10 +57,7 @@ module.exports = args => {
 		let acmap = parser(fs.readFileSync(source).toString());
 
 		// Save ac definitions file to source location.
-		fs.writeFileSync(
-			path.join(fi.dirname, `${commandname}.acdeffile`),
-			acmap
-		);
+		fs.writeFileSync(path.join(fi.dirname, `${commandname}.acdef`), acmap);
 
 		// Add to maps location if add flag provided.
 		if (add) {
@@ -68,14 +65,12 @@ module.exports = args => {
 			if (!fe.sync(commandpath) || args.force) {
 				// Save file to map location.
 				fs.writeFileSync(commandpath, acmap);
-				log(`${chalk.bold(commandname)} acmapfile added.`);
+				log(`${chalk.bold(commandname)} acmap added.`);
 			} else {
 				log(
-					`acmapfile ${chalk.bold(
-						commandname
-					)} exists (use ${chalk.bold(
+					`acmap ${chalk.bold(commandname)} exists (use ${chalk.bold(
 						"--force"
-					)} to overwrite current acmapfile).`
+					)} to overwrite current acmap).`
 				);
 			}
 		}

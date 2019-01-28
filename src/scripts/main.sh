@@ -4,7 +4,7 @@ if [[ -f "$acscript" ]]; then
 	# [https://stackoverflow.com/a/43606356]
 	for filepath in ~/.nodecliac/maps/*; do
 		# Get dir and filename.
-		# dir=${filepath%/*}
+		for filepath in ~/.nodecliac/defs/*; do
 		# Get filename from file path.
 		filename="${filepath##*/}"
 		# Get command name (everything up to first period).

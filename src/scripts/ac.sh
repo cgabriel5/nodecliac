@@ -26,7 +26,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		local cline="$COMP_LINE" # Full CLI input.
 		local cpoint="$COMP_POINT" # Caret index when [tab] key was pressed.
 		# Get the acmap definitions file.
-		local acmap="$(<~/.nodecliac/maps/$maincommand)"
+		local acmap="$(<~/.nodecliac/defs/$maincommand*)"
 # [https://serverfault.com/questions/72476/clean-way-to-write-complex-multi-line-string-to-a-variable/424601#424601]
 # local acmap=`cat <<EOF
 # # [[__acmap__]]

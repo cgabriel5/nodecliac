@@ -2,6 +2,7 @@
 
 // Needed modules.
 const fs = require("fs");
+const path = require("path");
 const chalk = require("chalk");
 const log = require("fancy-log");
 const mkdirp = require("mkdirp");
@@ -21,7 +22,7 @@ module.exports = () => {
 			output,
 			fs
 				// Get source file.
-				.readFileSync(source)
+				.readFileSync(path.join(__dirname, source))
 				.toString()
 				// Inject acmap.
 				// .replace(/# \[\[__acmap__\]\]/, acmap)
@@ -77,8 +78,8 @@ module.exports = () => {
 			}
 
 			// Generate main and completion scripts.
-			script("./src/scripts/ac.sh", acscriptpath);
-			script("./src/scripts/main.sh", mscriptpath);
+			script("scripts/ac.sh", acscriptpath);
+			script("scripts/main.sh", mscriptpath);
 
 			// Give success message.
 			log(chalk.green("Setup successful."));

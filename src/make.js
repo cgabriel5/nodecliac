@@ -55,13 +55,15 @@ module.exports = args => {
 
 		// Generate acmap.
 		let acmap = parser(fs.readFileSync(source).toString());
+		let savename = `${commandname}.acdef`;
 
 		// Save ac definitions file to source location.
 		fs.writeFileSync(path.join(fi.dirname, `${commandname}.acdef`), acmap);
+			fs.writeFileSync(path.join(fi.dirname, savename), acmap);
 
 		// Add to maps location if add flag provided.
 		if (add) {
-			let commandpath = path.join(acmapspath, commandname);
+			let commandpath = path.join(acmapspath, savename);
 			if (!fe.sync(commandpath) || args.force) {
 				// Save file to map location.
 				fs.writeFileSync(commandpath, acmap);

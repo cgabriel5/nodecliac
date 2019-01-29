@@ -12,7 +12,7 @@ module.exports = () => {
 	// Get needed paths.
 	let { acmapspath } = paths;
 
-	// Maps path needs to exist to list acmapfiles.
+	// Maps path needs to exist to list acdef files.
 	de(acmapspath, (err, exists) => {
 		if (err) {
 			console.error(err);
@@ -25,7 +25,7 @@ module.exports = () => {
 			process.exit();
 		}
 
-		// Get acmapfiles list.
+		// Get acdef files list.
 		fs.readdir(acmapspath, function(err, files) {
 			if (err) {
 				console.error(err);
@@ -39,7 +39,7 @@ module.exports = () => {
 
 			// List commands if any exist.
 			if (files.length) {
-				log(chalk.bold(`acmapfiles: (${files.length})`));
+				log(chalk.bold(`.acdef files: (${files.length})`));
 
 				files
 					.sort(function(a, b) {
@@ -49,7 +49,7 @@ module.exports = () => {
 						log(` ─ ${chalk.bold.blue(command)}`);
 					});
 			} else {
-				log(chalk.bold("No acmapfiles found."));
+				log(chalk.bold("No .acdef files found."));
 			}
 		});
 	});

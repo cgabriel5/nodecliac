@@ -41,6 +41,15 @@ module.exports = args => {
 	// Turn source path to absolute path.
 	source = path.join(process.cwd(), source);
 
+	// Also requires one of the following flags to do anything.
+	if (!(save || add || print)) {
+		exit([
+			`Must also provide one of the following flags: ${chalk.bold(
+				"--save"
+			)}, ${chalk.bold("--add")}, ${chalk.bold("--print")}.`
+		]);
+	}
+
 	// Check that the source path exists.
 	fe(source, (err, exists) => {
 		if (err) {

@@ -13,7 +13,7 @@ module.exports = args => {
 	let { acmapspath } = paths;
 
 	// Get CLI args.
-	let { source, print, add } = args;
+	let { source, print, add, save } = args;
 	let parser = require("./parser.js");
 
 	// Source must be provided.
@@ -57,9 +57,10 @@ module.exports = args => {
 		let acmap = parser(fs.readFileSync(source).toString());
 		let savename = `${commandname}.acdef`;
 
-		// Save ac definitions file to source location.
-		fs.writeFileSync(path.join(fi.dirname, `${commandname}.acdef`), acmap);
+		// Save definitions file to source location when flag is provided.
+		if (save) {
 			fs.writeFileSync(path.join(fi.dirname, savename), acmap);
+		}
 
 		// Add to maps location if add flag provided.
 		if (add) {

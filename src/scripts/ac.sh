@@ -131,12 +131,16 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 
 			# Loop over every input char: [https://stackoverflow.com/a/10552175]
 			for ((i = 0; i < "${#cline}"; i++ )); do
-				# Cache current/previous chars.
+				# Cache current/previous/next chars.
 				local c="${cline:$i:1}"
 				local p="${cline:$i - 1:1}"
+				local n="${cline:$i + 1:1}"
 				# Reset prev word for 1st char as bash gets the last char.
 				if [[ "$i" == 0 ]]; then
 					p=""
+				# Reset next word for last char as bash gets the first char.
+				elif [[ "$i" == $(( $cline_length - 1  )) ]]; then
+					n=""
 				fi
 
 				# Stop loop once it hits the caret position character.
@@ -162,7 +166,15 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 				# Non space chars.
 				elif [ "$c" == '"' -o "$c" == "'" ] && [ "$p" != "\\" ]; then
 					if [[ "$quote_char"  != "" ]]; then
-						if [[ "$quote_char" == "$c" ]]; then
+						# To end the current string encapsulation, the next
+						# char must be a space or nothing (meaning) the end
+						# if the input string. This is done to prevent
+						# this edge case: 'myapp run "some"--'. Without this
+						# check the following args get parsed:
+						# args=(myapp run "some" --). What we actually want
+						# is args=(myapp run "some"--).
+						#
+						if [[ "$quote_char" == "$c" ]] && [[ "$n" == "" || "$n" == " " ]]; then
 							current+="$c"
 							args+=("$current")
 							quote_char=""

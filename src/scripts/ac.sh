@@ -123,6 +123,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			local current=""
 			local input="$1"
 			local quote_char=""
+			local l="${#input}" # Input length.
 
 			# Return empty array when input is empty.
 			if [[ -z "$input" ]]; then
@@ -130,7 +131,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			fi
 
 			# Loop over every input char: [https://stackoverflow.com/a/10552175]
-			for ((i = 0; i < "${#cline}"; i++ )); do
+			for ((i = 0; i < "$cline_length"; i++ )); do
 				# Cache current/previous/next chars.
 				local c="${cline:$i:1}"
 				local p="${cline:$i - 1:1}"
@@ -144,7 +145,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 				fi
 
 				# Stop loop once it hits the caret position character.
-				if [[ "$i" -ge $(( ${#input} - 1 )) ]]; then
+				if [[ "$i" -ge $(( $l - 1 )) ]]; then
 					# Only add if not a space character.
 					if [[ "$c" != " " ]]; then
 						current+="$c"
@@ -396,7 +397,8 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 				# is a value of the flag.
 				local slast="${args[${#args[@]}-2]}"
 				local flast="${args[${#args[@]}-1]}"
-				if [[ -z "$last" && "$flast" == -* && "$flast" != *"="* ]] || [[ "$slast" == -* && "$slast" != *"="* && "$usedflags" == *" $slast=$last "* ]]; then
+				if [[ -z "$last" && "$flast" == -* && "$flast" != *"="* ]] ||
+					[[ "$slast" == -* && "$slast" != *"="* && "$usedflags" == *" $slast=$last "* ]]; then
 					return
 				fi
 

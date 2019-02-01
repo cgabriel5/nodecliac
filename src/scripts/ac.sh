@@ -19,12 +19,17 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		local args=()
 		local last=""
 		local type=""
-		local lastchar=
+
 		local usedflags=""
 		local completions=()
 		local commandchain=""
-		local cline="$COMP_LINE" # Full CLI input.
+		local cline="$COMP_LINE" # Original (complete) CLI input.
 		local cpoint="$COMP_POINT" # Caret index when [tab] key was pressed.
+		local lastchar="${cline:$cpoint-1:1}" # Character before caret.
+		local nextchar="${cline:$cpoint:1}" # Character after caret.
+		local cline_length="${#cline}" # Original input's length.
+		local isquoted=false
+
 		# Get the acmap definitions file.
 		local acmap="$(<~/.nodecliac/defs/$maincommand*)"
 # [https://serverfault.com/questions/72476/clean-way-to-write-complex-multi-line-string-to-a-variable/424601#424601]
@@ -39,9 +44,9 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# # @return {string} - The joined string.
 		# #
 		# # @resource [https://stackoverflow.com/a/17841619]
-		# function __join() {
-		# 	local IFS="$1"; shift; echo "$*"
-		# }
+		function __join() {
+			local IFS="$1"; shift; echo "$*"
+		}
 
 		# # Trim left/right whitespace from string.
 		# #
@@ -58,6 +63,33 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# function __retval() {
 		# 	echo "$1"
 		# }
+
+		# # Log local variables and their values.
+		# #
+		# function __debug() {
+		# 	local inp="${cline:0:$cpoint}"
+		# 	echo ""
+		# 	echo "commandchain: '$commandchain'"
+		# 	echo "   usedflags: '$usedflags'"
+		# 	echo "        last: '$last'"
+		# 	echo "       input: '$inp'"
+		# 	echo "input length: '$cline_length'"
+		# 	echo " caret index: '$cpoint'"
+		# 	echo "    lastchar: '$lastchar'"
+		# 	echo "    nextchar: '$nextchar'"
+		# 	echo "    isquoted: '$isquoted'"
+		# }
+
+		# Get last command in chain: 'mc.sc1.sc2' → 'sc2'
+		#
+		# @param {string} 1) - The row to extract command from.
+		# @return {string} - The last command in chain.
+		function __last_command() {
+			# Extract command chain from row.
+			local row="${1%% *}"
+			# Extract last command from chain and return.
+			echo "${row##*.}"
+		}
 
 		# Parses CLI input. Returns input similar to that of process.argv.slice(2).
 		#     Adapted from argsplit module.
@@ -81,7 +113,8 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			# [https://stackoverflow.com/questions/10528695/how-to-reset-comp-wordbreaks-without-affecting-other-completion-script/12495480#12495480]
 			# [https://github.com/npm/npm/commit/7e4d15f3039ae5bd6f659fb9ec684621f25e13f0]
 			# [https://github.com/npm/npm/commit/d7271b8226712479cdd339bf85faf7e394923e0d]
-			# _get_comp_words_by_ref -n = -n @ -n : -w words -i cword
+			# _get_comp_words_by_ref -n = -n @ -n : -w completions -i last
+			# _get_comp_words_by_ref -n = -n @ -n : -i last
 			# ^^Parse CLI to circumvent COMP_WORDBREAKS issues. This also allows
 			# one to have total control how the CLI input is parsed. CLI parsing
 			# is meant to mimic that of Node.js CLI input parsing.
@@ -107,7 +140,11 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 				fi
 
 				# Stop loop once it hits the caret position character.
-				if [[ "$i" -ge "${#input}" ]]; then
+				if [[ "$i" -ge $(( ${#input} - 1 )) ]]; then
+					# Only add if not a space character.
+					if [[ "$c" != " " ]]; then
+						current+="$c"
+					fi
 					lastchar="$c"
 					break
 				fi
@@ -140,29 +177,6 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 						current+="$c"
 						quote_char="$c"
 					fi
-				# # End parsing at "--"??
-				# elif [[ "$c" == "-" ]]; then
-				# 	if [[ "$quote_char"  == "" ]]; then
-				# 		# Prev char must be a space. With the next two chars
-				# 		# need to be a a hyphen and a space or just a hyphen
-				# 		# ending the string.
-				# 		# if [[ "$p" == " " && "${cline:$i + 1:1}" == "-" &&  ]]; then
-				# 		if [[ "${cline:$i - 1:4}" =~ " "?"--"" " ]]; then
-				# 			# # Reset vars.
-				# 			# cline="$COMP_LINE"
-				# 			# cpoint="$COMP_POINT"
-				# 			# cline="$cline"
-
-				# 			# echo "Reset mane"
-
-				# 			lastchar="$c"
-				# 			break
-				# 		else
-				# 			current+="$c"
-				# 		fi
-				# 	else
-				# 		current+="$c"
-				# 	fi
 				else
 					current+="$c"
 				fi
@@ -176,90 +190,99 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 
 		# Lookup command/subcommand/flag definitions from the acmap to return
 		#     possible completions list.
+		#
+		# Test input:
+		# myapp run example go --global-flag value
+		# myapp run example go --global-flag value subcommand
+		# myapp run example go --global-flag value --flag2
+		# myapp run example go --global-flag value --flag2 value
+		# myapp run example go --global-flag value --flag2 value subcommand
+		# myapp run example go --global-flag value --flag2 value subcommand --flag3
+		# myapp run example go --global-flag --flag2
+		# myapp run example go --global-flag --flag value subcommand
+		# myapp run example go --global-flag --flag value subcommand --global-flag --flag value
+		# myapp run example go --global-flag value subcommand
 		function __extracter() {
+			# Vars.
 			local l="${#args[@]}"
-			local stopflags=false
+			local oldchains=()
+			local foundflags=()
 
-			for ((i = "${#args[@]}" - 1 ; i >= 0 ; i--)) ; do
+			# Loop over CLI arguments.
+			for ((i = 1; i < "${#args[@]}"; i++)); do
 				# Cache current loop item.
 				local item="${args[i]}"
-				local pitem="${args[i - 1]}"
+				local nitem="${args[i + 1]}"
 
-				# Once we hit the last item (the main command) stop loop.
-				if [[ "$i" == 0 ]]; then
-					# Prepend main command to chain.
-					if [[ -z "$commandchain" ]]; then
-						commandchain="$maincommand"
-					else
-						commandchain="$maincommand.$commandchain"
-					fi
-
-					# Stop loop.
-					break
+				if [[ "$item" =~ ^(\"|\') ]]; then
+					continue
 				fi
 
-				# Current word is a flag.
-				if [[ "$item" == -* ]]; then
+				# Reset next item if it's the last iteration.
+				if [[ "$i" == $(( $l - 1 )) ]]; then
+					nitem=
+				fi
 
-					# Store the flag.
-					if [[ "$stopflags" == false ]]; then
-						usedflags+=" $item "
+				# If a command.
+				if [[ "$item" != -* ]]; then
+					# Store command.
+					commandchain+=".$item"
+					# Reset used flags.
+					foundflags=()
+				else # We have a flag.
+					# Store commandchain to revert to it if needed.
+					oldchains+=("$commandchain")
+					commandchain=""
+
+					# If the flag contains a n eq sign don't look ahead.
+					if [[ "$item" == *"="* ]]; then
+						foundflags+=("$item")
+						continue
 					fi
 
-				else
-				# Current word is not a flag.
+					# Look ahead to check if next item exists. If a word
+					# exists then we need to check whether is a value option
+					# for the current flag or if it's another flag and do
+					# the proper actions for both.
+					if [[ ! -z "$nitem" ]]; then
+						# If the next word is a value...
+						if [[ "$nitem" != -* ]]; then
+							foundflags+=("$item=$nitem")
 
-					# If the previous word is a flag
-					if [[ "$pitem" == -* ]]; then
-						# Check if flag contains "="
-						if [[ "$pitem" == *"="* ]]; then
-							# If the previous word contains an "=" then the current
-							# word is not a value to the previous flag word.
-
-							# Word must be a command/subcommand.
-							if [[ -z "$commandchain" ]]; then
-								commandchain="$item"
-							else
-								commandchain="$item.$commandchain"
-							fi
-
-							# Stop loop.
-							# break
-							stopflags=true
-						else
-							# cur + prev = --flag=value
-
-							# Store the flag.
-							# if [[ -z "$stopflags" ]]; then
-							if [[ "$stopflags" == false ]]; then
-								usedflags+=" $pitem=$item "
-							fi
-
-							# If previous word does not contain a "=" then the current
-							# word is the value to the previous word (flag).
-							# Reset the index to skip the next word.
-							(( i-- ))
+							# Increase index to skip added flag value.
+							(( i++ ))
+						else # The next word is a another flag.
+							foundflags+=("$item")
 						fi
+
 					else
-						# If the previous word is not a hyphen then the current word
-						# is a command and the cur/prev words have no flag relation.
-
-						# Word must be a command/subcommand.
-						if [[ -z "$commandchain" ]]; then
-							# Set flag to stop collecting used flags. As the used
-							# flags should only pertain to highest level command.
-							stopflags=true
-
-							commandchain="$item"
-						else
-							commandchain="$item.$commandchain"
-						fi
+						foundflags+=("$item")
 					fi
+				fi
+
+			done
+
+			# Get the first non empty command chain.
+			local oldchain=
+			for ((i = "${#oldchains[@]}" - 1 ; i >= 0 ; i--)) ; do
+				local chain="${oldchains[i]}"
+				if [[ ! -z "$chain" ]]; then
+					oldchain="$chain"
+					break
 				fi
 			done
 
-			# Set last word.
-			last="${args[${#args[@]}-1]}"
+			# Revert commandchain to old chain if empty.
+			commandchain="${maincommand}$([[ -z "$commandchain" ]] && echo "$oldchain" || echo "$commandchain")"
+			# Build used flags strings.
+			usedflags="$([[ "${#foundflags[@]}" -eq 0 ]] && echo "" || echo " `__join " " "${foundflags[@]}"` ")"
+
+			# Set last word. If the last char is a space then the last word
+			# will be empty. Else set it to the last word.
+			last=`[[ "$lastchar" == " " ]] && echo "" || echo "${args[${#args[@]}-1]}"`
+
+			# Check whether the last word is quoted or not.
+			isquoted=`[[ "$last" =~ ^(\"|\') ]] && echo "true" || echo "false"`
 		}
 
 		# Lookup command/subcommand/flag definitions from the acmap to return
@@ -271,7 +294,11 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			# Regex → "--flag=value"
 			local flgoptvalue="^\-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\-]{1,})?=[^*]{1,}$"
 
-			# If current word starts with a hyphen lookup flag completions.
+			# If the last word is quoted we don't do any completions.
+			if [[ "$isquoted" == true ]]; then return; fi
+
+			# If current word starts with a hyphen and the character before
+			# the caret is not a space lookup flag completions.
 			if [[ "$last" == -* ]]; then
 				# Set type to flag.
 				type="flag"
@@ -279,51 +306,38 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 				# Lookup flag definitions from acmap.
 				local rows=`grep "^$commandchain[[:space:]]\-\-" <<< "$acmap"`
 
-				# If no rows, reset values.
-				if [[ -z "$rows" ]]; then
-					completions=()
-					rows=()
-				else
+				# Continue if rows exist.
+				if [[ ! -z "$rows" ]]; then
+					local used=()
+
 					# Split rows by lines: [https://stackoverflow.com/a/11746174]
-					local list=()
-					while read -r row; do list+=("$row"); done <<< "$rows"
-
-					# Loop over rows to get the flags.
-					for ((i = 0; i < "${#list[@]}"; i++)); do
-						# Cache current line match.
-						local line="${list[i]}"
-
-						# Get flags from pattern. Get substring after space.
-						local flags="${line#* }"
+					while read -r row; do
+						# Extract flags (everything after space) from row.
+						local flags="${row#* }"
 
 						# If no flags exist skip line.
-						if [[ "$flags" == "--" ]]; then
-							continue
-						fi
+						if [[ "$flags" == "--" ]]; then continue; fi
 
-						# Get individual flags.
+						# Get individual flags and turn to an array.
 						IFS=$'|' read -ra flags <<< "$flags"
 
-						# Loop over and process flags. Remove used flags and keep
-						# stared-multi "--flag=*".
-						for ((j = 0; j < "${#flags[@]}"; j++)); do
+						# Loop over flags to process.
+						for ((i = 0; i < "${#flags[@]}"; i++)); do
 							# Cache current flag.
-							local flag="${flags[j]}"
+							local flag="${flags[i]}"
 
 							# Flag must start with the last word.
 							if [[ "$flag" == "$last"* ]]; then
 
-								# Note: If the last word is "--" or if the last word
-								# is not in the form "--form= + a character", don't
-								# showing flags with values like "--flag=value".
+								# Note: If the last word is "--" or if the last
+								# word is not in the form "--form= + a character",
+								# don't show flags with values (--flag=value).
 								if [[ "$last" != *"="* && "$flag" =~ $flgoptvalue ]]; then
 									continue
 								fi
 
-								# Flag cannot be used already. Or it must be a multi-
-								# starred flag.
-								if [[ ! "$usedflags" =~ "$flag"(=| ) || "$flag" == *"*"* ]]; then
-
+								# No dupes unless it's a multi-starred flag.
+								if [[ ! "$usedflags" =~ "${flag/\=/}"(=| ) || "$flag" == *"*"* ]]; then
 									# Remove "*" multi-flag marker from flag.
 									flag="${flag//\*/}"
 
@@ -348,70 +362,96 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 									if [[ "$flag" != "$last" ]]; then
 										completions+=("$flag")
 									fi
+								else
+									# If flag exits and is already used then add a space after it.
+									if [[ "$last" != *"="* && "$flag" == "$last" ]]; then
+										used+="$last"
+									fi
 								fi
 							fi
 						done
-					done
+					done <<< "$rows"
+
+					if [[ "${#completions[@]}" == 0 && "${#used[@]}" == 1 ]]; then
+						completions+=("${used[0]}")
+					fi
 				fi
 			else
 				# Last word is a command.
 				type="command"
 
-				# Get the character before the caret.
-				local char_b4_caret="${cline:$cpoint-1:1}"
-
-				# Make sure the command tree exists.
-				local row=`grep "^$commandchain " <<< "$acmap"`
-
-				# Get the second to last argument.
+				# If prev word is a flag skip auto completions as the word
+				# is a value of the flag.
 				local slast="${args[${#args[@]}-2]}"
-
-				# If the second to last word is a flag and it does not end
-				# with an eq sign...we skip completions as the current word
-				# is a value of the flag. So no completions necessary.
-				if [[ "$slast" == -* && "$slast" != *= ]]; then
-					completions=()
+				local flast="${args[${#args[@]}-1]}"
+				if [[ -z "$last" && "$flast" == -* && "$flast" != *"="* ]] || [[ "$slast" == -* && "$slast" != *"="* && "$usedflags" == *" $slast=$last "* ]]; then
 					return
 				fi
 
-				# When user decides to type in a command, this will ensure
-				# that hitting tab after said command will add a space.
-				if [[ "$char_b4_caret" != " " && ! -z "$row" ]]; then
-					# Get last command in command tree.
-					# i.e "maincommand.subcomm1.subcomm2" → "subcomm2"
-					row="${row%% *}"
-					# Get next level in command chain.
-					row="${row##*.}"
-					completions=("$row")
-				else
-					# Lookup command tree rows from acmap.
-					local rows=`grep "^$commandchain.[a-z\-]* " <<< "$acmap"`
+				# If a command chain exits + there are used flags then we
+				# dont complete.
+				if [[ ! -z "$usedflags" && ! -z "$commandchain" ]]; then
+					# Reset commandchain and usedflags.
+					commandchain="$maincommand.$last"
+					usedflags=""
+				fi
+				# myapp run example go --global-flag sime ne
 
-					# If no rows, reset values.
-					if [[ -z "$rows" ]]; then
-						completions=()
-						rows=()
+				# Lookup command tree rows from acmap.
+				local rows=`grep "^$commandchain.[-:a-zA-Z0-9]* " <<< "$acmap"`
+
+				# If no upper level exists for the commandchain check that
+				# the current chain is valid. If valid, add the last command
+				# to the completions array to bash can append a space when
+				# the user presses the [tab] key to show the completion is
+				# complete for that word.
+				if [[ -z "$rows" ]]; then
+					local row=`grep "^$commandchain " <<< "$acmap"`
+					if [[ ! -z "$row" && "$lastchar" != " " ]]; then
+						# Add last command in chain.
+						completions=(`__last_command "$row"`)
+					fi
+				else
+					# If caret is in the last position, the command tree
+					# exists, and the command tree does not contains any
+					# upper levels then we simply add the last word so
+					# that bash can add a space to it.
+					if [[ ! -z `grep -m1 "^$commandchain " <<< "$acmap"`
+						&& -z `grep -m1 "^$commandchain[-:a-zA-Z0-9]* " <<< "$rows"`
+						&& "$lastchar" != " " ]]; then
+						completions=("$last")
 					else
 						# Split rows by lines: [https://stackoverflow.com/a/11746174]
-						local list=()
-						while read -r row; do list+=("$row"); done <<< "$rows"
+						while read -r row; do
+							# Get last command in chain.
+							row=`__last_command "$row"`
 
-						# Loop over rows to get the last commands.
-						for ((i = 0; i < "${#list[@]}"; i++)); do
-							# Cache current line.
-							local row="${list[i]}"
-
-							# Get last command in command tree.
-							# i.e "maincommand.subcomm1.subcomm2" → "subcomm2"
-							row="${row%% *}"
-							# Get next level in command chain.
-							row="${row##*.}"
-							completions+=("$row")
-						done
+							# Add last command if it exists.
+							if [[ ! -z "$row" ]]; then
+								# If the character before the caret is not a
+								# space then we assume we are completing a
+								# command. (should we check that the character
+								# is one of the allowed command chars,
+								# i.e. [a-zA-Z-:]).
+								if [[ "$lastchar" != " " ]]; then
+									# Since we are completing a command we only
+									# want words that start with the current
+									# command we are trying to complete.
+									if [[ "$row" == "$last"* ]]; then
+										completions+=("$row")
+									fi
+								else
+									# If we are not completing a command then
+									# we return all possible word completions.
+									completions+=("$row")
+								fi
+							fi
+						done <<< "$rows"
 					fi
 				fi
 			fi
 		}
+
 
 		# Send all possible completions to bash.
 		function __printer() {
@@ -426,11 +466,37 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			for ((i = 0; i < "${#completions[@]}"; i++)); do
 				local word="${completions[i]}"
 
+				# Note: bash-completion handles colons in a weird manner.
+				# When a word completion contains a colon it will append
+				# the current completion word with the last word. For,
+				# example: say the last word is "js:" and the completion
+				# word is "js:bundle". Bash will output to console:
+				# "js:js:bundle". Therefore, we need to left trim the
+				# 'coloned' part of the completion word. In other words,
+				# we turn the completion word, for example, "js:bundle" to
+				# "bundle" so that bash could then properly complete the word.
+				# [https://github.com/scop/bash-completion/blob/master/bash_completion#L498]
+				# local ll=`__join ' ' "${completions[@]}"`
+				# COMPREPLY=($(compgen -W  "$ll" -- "$last"))
+				# __ltrim_colon_completions "$last"
+				if [[ "$word" == *":"* ]]; then
+					# Remove colon-word prefix from COMPREPLY items
+					# word="js:build"
+					colon_prefix=${word%"${word##*:}"} # js:
+					word="${word#"$colon_prefix"}" # build
+
+					# # Add colon if the last word does not contain it to give
+					# # user colon completion context.
+					# if [[ "${last:${#last} - 1:1}" != ":" ]]; then
+					# 	word=":$word"
+					# fi
+				fi
+
 				# Add trailing space to all completions except to flag
 				# completions that end with a trailing eq sign and commands
 				# that have trailing characters (commands that are being
 				# completed in the middle).
-				if [[ "$word" != *"=" && -z "$lastchar" ]]; then
+				if [[ "$word" != *"=" && -z "$nextchar" ]]; then
 					word+=" "
 				fi
 
@@ -447,5 +513,6 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 	}
 
 	# complete -d -X '.[^./]*' -F _nodecliac "$1"
-	complete -o default -F _nodecliac "$1"
+	# complete -o default -F _nodecliac "$1"
+	complete -F _nodecliac "$1"
 fi

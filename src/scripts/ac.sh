@@ -284,16 +284,41 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			done
 
 			# Revert commandchain to old chain if empty.
-			commandchain="${maincommand}$([[ -z "$commandchain" ]] && echo "$oldchain" || echo "$commandchain")"
+			if [[ -z "$commandchain" ]]; then
+				commandchain="$oldchain"
+			else
+				commandchain="$commandchain"
+			fi
+			# Prepend main command to chain.
+			commandchain="$maincommand$commandchain"
+
 			# Build used flags strings.
-			usedflags="$([[ "${#foundflags[@]}" -eq 0 ]] && echo "" || echo " `__join " " "${foundflags[@]}"` ")"
+			# Switch statement: [https://stackoverflow.com/a/22575299]
+			case "${#foundflags[@]}" in
+			0)
+				usedflags=""
+				;;
+			*)
+				usedflags=" `__join " " "${foundflags[@]}"` "
+				;;
+			esac
 
 			# Set last word. If the last char is a space then the last word
 			# will be empty. Else set it to the last word.
-			last=`[[ "$lastchar" == " " ]] && echo "" || echo "${args[${#args[@]}-1]}"`
+			# Switch statement: [https://stackoverflow.com/a/22575299]
+			case "$lastchar" in
+			' ')
+				last=""
+				;;
+			*)
+				last="${args[${#args[@]}-1]}"
+				;;
+			esac
 
-			# Check whether the last word is quoted or not.
-			isquoted=`[[ "$last" =~ ^(\"|\') ]] && echo "true" || echo "false"`
+			# Check whether last word is quoted or not.
+			if [[ "$last" =~ ^(\"|\') ]]; then
+				isquoted=true
+			fi
 		}
 
 		# Lookup command/subcommand/flag definitions from the acmap to return

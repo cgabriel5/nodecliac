@@ -18,8 +18,6 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# Vars.
 		local args=()
 		local last=""
-		local type=""
-
 		local usedflags=""
 		local completions=()
 		local commandchain=""
@@ -313,9 +311,6 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			# If current word starts with a hyphen and the character before
 			# the caret is not a space lookup flag completions.
 			if [[ "$last" == -* ]]; then
-				# Set type to flag.
-				type="flag"
-
 				# Lookup flag definitions from acmap.
 				local rows=`grep "^$commandchain[[:space:]]\-\-" <<< "$acmap"`
 
@@ -390,9 +385,6 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 					fi
 				fi
 			else
-				# Last word is a command.
-				type="command"
-
 				# If prev word is a flag skip auto completions as the word
 				# is a value of the flag.
 				local slast="${args[${#args[@]}-2]}"

@@ -27,6 +27,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		local nextchar="${cline:$cpoint:1}" # Character after caret.
 		local cline_length="${#cline}" # Original input's length.
 		local isquoted=false
+		local autocompletion=true
 
 		# Get the acmap definitions file.
 		local acmap="$(<~/.nodecliac/defs/$maincommand*)"
@@ -67,15 +68,16 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# function __debug() {
 		# 	local inp="${cline:0:$cpoint}"
 		# 	echo ""
-		# 	echo "commandchain: '$commandchain'"
-		# 	echo "   usedflags: '$usedflags'"
-		# 	echo "        last: '$last'"
-		# 	echo "       input: '$inp'"
-		# 	echo "input length: '$cline_length'"
-		# 	echo " caret index: '$cpoint'"
-		# 	echo "    lastchar: '$lastchar'"
-		# 	echo "    nextchar: '$nextchar'"
-		# 	echo "    isquoted: '$isquoted'"
+		# 	echo "  commandchain: '$commandchain'"
+		# 	echo "     usedflags: '$usedflags'"
+		# 	echo "          last: '$last'"
+		# 	echo "         input: '$inp'"
+		# 	echo "  input length: '$cline_length'"
+		# 	echo "   caret index: '$cpoint'"
+		# 	echo "      lastchar: '$lastchar'"
+		# 	echo "      nextchar: '$nextchar'"
+		# 	echo "      isquoted: '$isquoted'"
+		# 	echo "autocompletion: '$autocompletion'"
 		# }
 
 		# Get last command in chain: 'mc.sc1.sc2' → 'sc2'
@@ -213,6 +215,8 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# myapp run example go --global-flag --flag value subcommand
 		# myapp run example go --global-flag --flag value subcommand --global-flag --flag value
 		# myapp run example go --global-flag value subcommand
+		# myapp run "some" --flagsin command1 sub1 --flag1 val
+		# myapp run -rd '' -a config
 		function __extracter() {
 			# Vars.
 			local l="${#args[@]}"
@@ -225,6 +229,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 				local item="${args[i]}"
 				local nitem="${args[i + 1]}"
 
+				# Skip quoted (string) items.
 				if [[ "$item" =~ ^(\"|\') ]]; then
 					continue
 				fi
@@ -258,16 +263,74 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 					if [[ ! -z "$nitem" ]]; then
 						# If the next word is a value...
 						if [[ "$nitem" != -* ]]; then
-							foundflags+=("$item=$nitem")
+							# Check whether flag is a boolean:
+							# Get the first non empty command chain.
+							local oldchain=
+							local skipflagval=false
+							for ((j = "${#oldchains[@]}" - 1 ; j >= 0 ; j--)) ; do
+								local chain="${oldchains[j]}"
+								if [[ ! -z "$chain" ]]; then
+									oldchain="$chain"
 
-							# Increase index to skip added flag value.
-							(( i++ ))
+									# Lookup flag definitions from acmap.
+									local rows=`grep "^$maincommand$oldchain[[:space:]]\-\-" <<< "$acmap"`
+									local flags="${rows#* }"
+
+									if [[ "$flags" =~ "${item}?"(\||$) ]]; then
+										skipflagval=true
+									fi
+
+									break
+								fi
+							done
+
+							# If the flag is not found then simply add the
+							# next item as its value.
+							if [[ "$skipflagval" == false ]]; then
+								foundflags+=("$item=$nitem")
+
+								# Increase index to skip added flag value.
+								(( i++ ))
+							else
+								# It's a boolean flag. Add boolean marker (?).
+								args[$i]="${args[i]}?"
+
+								foundflags+=("$item")
+							fi
+
 						else # The next word is a another flag.
 							foundflags+=("$item")
 						fi
 
 					else
-						foundflags+=("$item")
+						# Check whether flag is a boolean
+						# Get the first non empty command chain.
+						local oldchain=
+						local skipflagval=false
+						for ((j = "${#oldchains[@]}" - 1 ; j >= 0 ; j--)) ; do
+							local chain="${oldchains[j]}"
+							if [[ ! -z "$chain" ]]; then
+								oldchain="$chain"
+
+								# Lookup flag definitions from acmap.
+								local rows=`grep "^$maincommand$oldchain[[:space:]]\-\-" <<< "$acmap"`
+								local flags="${rows#* }"
+
+								if [[ "$flags" =~ "${item}?"(\||$) ]]; then
+									skipflagval=true
+								fi
+
+								break
+							fi
+						done
+
+						# If the flag is found then add marker to item.
+						if [[ "$skipflagval" != false ]]; then
+							# It's a boolean flag. Add boolean marker (?).
+							args[$i]="${args[i]}?"
+							foundflags+=("$item")
+						fi
+
 					fi
 				fi
 
@@ -303,6 +366,40 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 				;;
 			esac
 
+			# Determine whether to turn off autocompletion or not.
+			# Get the last word item.
+			local lword="${args[${#args[@]}-1]}"
+			if [[ "$lastchar" == " " ]]; then
+				if [[ "$lword" == -* ]]; then
+					if [[ "$lword" == *"?"* || "$lword" == *"="* ]]; then
+						autocompletion=true
+					else
+						autocompletion=false
+					fi
+				fi
+			else
+				if [[ "$lword" != -* ]]; then
+					# Check if the second to last word is a flag.
+					local sword="${args[${#args[@]}-2]}"
+					if [[ "$sword" == -* ]]; then
+						if [[ "$sword" == *"?"* || "$sword" == *"="* ]]; then
+							autocompletion=true
+						else
+							autocompletion=false
+						fi
+					fi
+				fi
+			fi
+
+			# Remove boolean indicator from flags.
+			for ((i = 0; i < "${#args[@]}"; i++)); do
+				# Check for valid flag pattern?
+				if [[ "${args[i]}" == -* ]]; then
+					# Add boolean marker to flag item.
+					args[$i]="${args[i]//\?/}"
+				fi
+			done
+
 			# Set last word. If the last char is a space then the last word
 			# will be empty. Else set it to the last word.
 			# Switch statement: [https://stackoverflow.com/a/22575299]
@@ -330,11 +427,12 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			# Regex → "--flag=value"
 			local flgoptvalue="^\-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\-]{1,})?=[^*]{1,}$"
 
-			# If the last word is quoted we don't do any completions.
-			if [[ "$isquoted" == true ]]; then return; fi
+			# Skip logic if last word is quoted or completion variable is off.
+			if [[ "$isquoted" == true || "$autocompletion" == false ]]; then
+				return
+			fi
 
-			# If current word starts with a hyphen and the character before
-			# the caret is not a space lookup flag completions.
+			# Flag completion (last word starts with a hyphen):
 			if [[ "$last" == -* ]]; then
 				# Lookup flag definitions from acmap.
 				local rows=`grep "^$commandchain[[:space:]]\-\-" <<< "$acmap"`
@@ -357,7 +455,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 						# Loop over flags to process.
 						for ((i = 0; i < "${#flags[@]}"; i++)); do
 							# Cache current flag.
-							local flag="${flags[i]}"
+							local flag="${flags[i]//\?/}"
 
 							# Flag must start with the last word.
 							if [[ "$flag" == "$last"* ]]; then
@@ -409,24 +507,14 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 						completions+=("${used[0]}")
 					fi
 				fi
-			else
-				# If prev word is a flag skip auto completions as the word
-				# is a value of the flag.
-				local slast="${args[${#args[@]}-2]}"
-				local flast="${args[${#args[@]}-1]}"
-				if [[ -z "$last" && "$flast" == -* && "$flast" != *"="* ]] ||
-					[[ "$slast" == -* && "$slast" != *"="* && "$usedflags" == *" $slast=$last "* ]]; then
-					return
-				fi
+			else # Command completion:
 
-				# If a command chain exits + there are used flags then we
-				# dont complete.
+				# If command chain and used flags exits, don't complete.
 				if [[ ! -z "$usedflags" && ! -z "$commandchain" ]]; then
 					# Reset commandchain and usedflags.
 					commandchain="$maincommand.$last"
 					usedflags=""
 				fi
-				# myapp run example go --global-flag sime ne
 
 				# Lookup command tree rows from acmap.
 				local rows=`grep "^$commandchain.[-:a-zA-Z0-9]* " <<< "$acmap"`

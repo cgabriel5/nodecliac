@@ -328,8 +328,8 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 						if [[ "$skipflagval" != false ]]; then
 							# It's a boolean flag. Add boolean marker (?).
 							args[$i]="${args[i]}?"
-							foundflags+=("$item")
 						fi
+						foundflags+=("$item")
 
 					fi
 				fi

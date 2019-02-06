@@ -88,6 +88,7 @@ module.exports = contents => {
 					/^(\s*)(-{1,2}[a-z][a-z0-9-]*)\s*=\s*\(([\s\S]*?)\)/im
 				);
 
+				// Turn options list into an array.
 				options = options.trim().split(lb_regexp);
 
 				// Remove duplicate option values.
@@ -96,6 +97,9 @@ module.exports = contents => {
 				for (let i = 0, l = options.length; i < l; i++) {
 					// Cache current loop item.
 					let option = options[i].trim();
+
+					// Remove flag multi-line option/value marker ('- ').
+					option = option.replace(/^-\s*/, "");
 
 					// Filter out duplicate option values.
 					if (-~options_list.indexOf(option)) {

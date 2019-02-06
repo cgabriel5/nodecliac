@@ -48,6 +48,16 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			local IFS="$1"; shift; echo "$*"
 		}
 
+		# Remove array item by its index.
+		#
+		# @param {array} 1) - The array to remove item from.
+		# @return {undefined} - Noting is returned.
+		#
+		# @resource [https://stackoverflow.com/a/25436989]
+		function __rm_aitem() {
+			eval "$1=( \"\${$1[@]:0:$2}\" \"\${$1[@]:$(($2+1))}\" )"
+		}
+
 		# # Trim left/right whitespace from string.
 		# #
 		# # @param {string} 1) - String to trim.
@@ -517,6 +527,31 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 						done
 					done <<< "$rows"
 
+					# Note: If the last word (the flag in this case) is an
+					# options flag (i.e. --flag=val) we need to remove the
+					# possible already used value. For example take the
+					# following scenario. Say we are completing the following
+					# flag '--flag=7' and our two options are '7' and '77'.
+					# Since '7' is already used we remove that value to leave
+					# '77' so that on the next tab it can be completed to
+					# '--flag=77'.
+					local l="${#completions[@]}"
+					# Get the value from the last word.
+					local val="${last#*=}"
+					if [[ "$last" == *"="* && ! -z "$val" && "$l" -ge 2 ]]; then
+						for ((i = l - 1 ; i >= 0 ; i--)) ; do
+							if [[ "${#completions[i]}" == "${#val}" ]]; then
+								# Remove item from array.
+								unset "completions[i]"
+								__rm_aitem completions $i
+							fi
+						done
+					fi
+
+					# Note: If there are no completions but there is a single
+					# used flag, this means no completions exist and the
+					# current flag exist. Therefore, add the current word (the
+					# used flag) so that bash appends a space to it.
 					if [[ "${#completions[@]}" == 0 && "${#used[@]}" == 1 ]]; then
 						completions+=("${used[0]}")
 					fi

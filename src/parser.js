@@ -1,6 +1,9 @@
 "use strict";
 
-module.exports = contents => {
+// Needed modules.
+const chalk = require("chalk");
+const { exit } = require("./utils.js");
+
 module.exports = (contents, source) => {
 	// Vars.
 	let newlines = [
@@ -9,6 +12,8 @@ module.exports = (contents, source) => {
 		`# nodecliac definition mapfiles: ~/.nodecliac/defs/\n\n`
 	];
 	let placeholders = [];
+	let lookup = {};
+
 	/**
 	 * Checks whether braces are balanced.
 	 *
@@ -388,6 +393,34 @@ module.exports = (contents, source) => {
 		}));
 	};
 
+	/**
+	 * Create a lookup table to remove duplicate command chains. Duplicate
+	 *     chains will have all their respective flag sets combined as well.
+	 *
+	 * @param  {string} line - The line do check.
+	 * @return {undefined} - Nothing is returned.
+	 */
+	let dupecheck = line => {
+		// Extract commandchain and flags.
+		let sepindex = line.indexOf(" ");
+		let commandchain = line.substring(0, sepindex);
+		let flags = line.substring(sepindex + 1);
+
+		// Check whether flag set is empty.
+		let flags_empty = flags === "--";
+
+		// Store in lookup table.
+		if (!lookup[commandchain]) {
+			lookup[commandchain] = flags_empty ? [] : [flags];
+		} else {
+			if (!flags_empty) {
+				lookup[commandchain].push(
+					`${lookup[commandchain].length ? "|" : ""}${flags}`
+				);
+			}
+		}
+	};
+
 	// Exit if file is empty.
 	if (!contents.trim().length) {
 		exit([`Action aborted. ${chalk.bold(source)} is empty.`]);
@@ -430,13 +463,49 @@ module.exports = (contents, source) => {
 		if (/{.*?}/.test(line)) {
 			let lines = expand_shortcuts(line);
 			for (let i = 0, l = lines.length; i < l; i++) {
-				newlines.push(lines[i]);
+				// Dupe check line.
+				dupecheck(lines[i]);
 			}
 		} else {
-			// Else, simply add the line.
-			newlines.push(line);
+			// No shortcuts, just dupe check.
+			dupecheck(line);
 		}
 	}
 
+	// Create final contents by combining duplicate command chains with
+	// all their flag sets.
+	for (let commandchain in lookup) {
+		if (lookup.hasOwnProperty(commandchain)) {
+			// Get flags array.
+			let flags = lookup[commandchain];
+			let fcount = flags.length;
+
+			// No flags...
+			if (!fcount) {
+				flags = ["--"];
+			} else {
+				// Join (flatten) all flag sets:
+				// [https://www.jstips.co/en/javascript/flattening-multidimensional-arrays-in-javascript/]
+				flags = flags.reduce(function(prev, curr) {
+					return prev.concat(curr);
+				});
+
+				// Sort flags is multiple sets exist.
+				if (fcount) {
+					flags = flags
+						.split("|")
+						// [https://stackoverflow.com/a/16481400]
+						.sort(function(a, b) {
+							return a.localeCompare(b);
+						})
+						.join("|");
+				}
+			}
+
+			newlines.push(`${commandchain} ${flags}`);
+		}
+	}
+
+	// Return generated acdef file contents.
 	return newlines.join("\n");
 };

@@ -63,7 +63,7 @@ module.exports = args => {
 		}
 
 		// Generate acmap.
-		let acmap = parser(fs.readFileSync(source).toString());
+		let acmap = parser(fs.readFileSync(source).toString(), source);
 		let savename = `${commandname}.acdef`;
 
 		// Save definitions file to source location when flag is provided.

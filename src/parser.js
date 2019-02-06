@@ -1,6 +1,7 @@
 "use strict";
 
 module.exports = contents => {
+module.exports = (contents, source) => {
 	// Vars.
 	let newlines = [
 		// acmap file header.
@@ -386,6 +387,11 @@ module.exports = contents => {
 			return flags;
 		}));
 	};
+
+	// Exit if file is empty.
+	if (!contents.trim().length) {
+		exit([`Action aborted. ${chalk.bold(source)} is empty.`]);
+	}
 
 	// Braces must be balanced.
 	is_balanced(contents);

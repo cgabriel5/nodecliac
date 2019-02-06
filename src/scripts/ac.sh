@@ -18,6 +18,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# Vars.
 		local args=()
 		local last=""
+		local type=""
 		local usedflags=""
 		local completions=()
 		local commandchain=""
@@ -226,6 +227,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# myapp run example go --global-flag value subcommand
 		# myapp run "some" --flagsin command1 sub1 --flag1 val
 		# myapp run -rd '' -a config
+		# myapp --Wno-strict-overflow= config
 		function __extracter() {
 			# Vars.
 			local l="${#args[@]}"
@@ -450,6 +452,9 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 				if [[ ! -z "$rows" ]]; then
 					local used=()
 
+					# Set completion type:
+					type="flag"
+
 					# Split rows by lines: [https://stackoverflow.com/a/11746174]
 					while read -r row; do
 						# Extract flags (everything after space) from row.
@@ -517,6 +522,9 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 					fi
 				fi
 			else # Command completion:
+
+				# Set completion type:
+				type="command"
 
 				# If command chain and used flags exits, don't complete.
 				if [[ ! -z "$usedflags" && ! -z "$commandchain" ]]; then
@@ -596,55 +604,54 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 
 		# Send all possible completions to bash.
 		function __printer() {
-			# Note: Disable bash's default behavior of adding a trailing space
-			# to completions when hitting the [tab] key. This will be handle
-			# manually.
-			# [https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html]
-			# [https://github.com/llvm-mirror/clang/blob/master/utils/bash-autocomplete.sh#L59]
-			compopt -o nospace 2> /dev/null
+			if [[ "$type" == "command" ]]; then
+				COMPREPLY=($(compgen -W  "`__join ' ' "${completions[@]}"`" -- ""))
+				__ltrim_colon_completions "$last"
+			elif [[ "$type" == "flag" ]]; then
+				# Note: Disable bash's default behavior of adding a trailing space
+				# to completions when hitting the [tab] key. This will be handle
+				# manually.
+				# [https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html]
+				# [https://github.com/llvm-mirror/clang/blob/master/utils/bash-autocomplete.sh#L59]
+				compopt -o nospace 2> /dev/null
 
-			# Print and add right pad spacing to possibilities where necessary.
-			for ((i = 0; i < "${#completions[@]}"; i++)); do
-				local word="${completions[i]}"
+				# Print and add right pad spacing to possibilities where necessary.
+				for ((i = 0; i < "${#completions[@]}"; i++)); do
+					local word="${completions[i]}"
 
-				# Note: bash-completion handles colons in a weird manner.
-				# When a word completion contains a colon it will append
-				# the current completion word with the last word. For,
-				# example: say the last word is "js:" and the completion
-				# word is "js:bundle". Bash will output to console:
-				# "js:js:bundle". Therefore, we need to left trim the
-				# 'coloned' part of the completion word. In other words,
-				# we turn the completion word, for example, "js:bundle" to
-				# "bundle" so that bash could then properly complete the word.
-				# [https://github.com/scop/bash-completion/blob/master/bash_completion#L498]
-				# local ll=`__join ' ' "${completions[@]}"`
-				# COMPREPLY=($(compgen -W  "$ll" -- "$last"))
-				# __ltrim_colon_completions "$last"
-				if [[ "$word" == *":"* ]]; then
-					# Remove colon-word prefix from COMPREPLY items
-					# word="js:build"
-					colon_prefix=${word%"${word##*:}"} # js:
-					word="${word#"$colon_prefix"}" # build
+					# # Note: bash-completion handles colons in a weird manner.
+					# # When a word completion contains a colon it will append
+					# # the current completion word with the last word. For,
+					# # example: say the last word is "js:" and the completion
+					# # word is "js:bundle". Bash will output to console:
+					# # "js:js:bundle". Therefore, we need to left trim the
+					# # 'coloned' part of the completion word. In other words,
+					# # we turn the completion word, for example, "js:bundle" to
+					# # "bundle" so that bash could then properly complete the word.
+					# # [https://github.com/scop/bash-completion/blob/master/bash_completion#L498]
+					# if [[ "$word" == *":"* ]]; then
+					# 	# Remove colon-word prefix from COMPREPLY items
+					# 	# Example: 'js:build'
+					# 	colon_prefix=${word%"${word##*:}"} # 'js:'
+					# 	word="${word#"$colon_prefix"}" # 'build'
 
-					# # Add colon if the last word does not contain it to give
-					# # user colon completion context.
-					# if [[ "${last:${#last} - 1:1}" != ":" ]]; then
-					# 	word=":$word"
+					# 	# # Remove colon-word prefix from COMPREPLY items
+					# 	# local colon_word=${word%"${word##*:}"}
+					# 	# word="${word#"$colon_word"}"
 					# fi
-				fi
 
-				# Add trailing space to all completions except to flag
-				# completions that end with a trailing eq sign and commands
-				# that have trailing characters (commands that are being
-				# completed in the middle).
-				if [[ "$word" != *"=" && -z "$nextchar" ]]; then
-					word+=" "
-				fi
+					# Add trailing space to all completions except to flag
+					# completions that end with a trailing eq sign and commands
+					# that have trailing characters (commands that are being
+					# completed in the middle).
+					if [[ "$word" != *"=" && -z "$nextchar" ]]; then
+						word+=" "
+					fi
 
-				# Log possibility for bash.
-				# COMPREPLY=($(compgen -W "$completions" -- "$last"))
-				COMPREPLY+=("$word")
-			done
+					# Log possibility for bash.
+					COMPREPLY+=("$word")
+				done
+			fi
 		}
 
 		# Completion logic:
@@ -654,6 +661,6 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 	}
 
 	# complete -d -X '.[^./]*' -F _nodecliac "$1"
-	# complete -o default -F _nodecliac "$1"
-	complete -F _nodecliac "$1"
+	complete -o default -F _nodecliac "$1"
+	# complete -F _nodecliac "$1"
 fi

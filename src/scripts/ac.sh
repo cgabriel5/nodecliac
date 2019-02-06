@@ -83,12 +83,21 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# Get last command in chain: 'mc.sc1.sc2' → 'sc2'
 		#
 		# @param {string} 1) - The row to extract command from.
+		# @param {number} 2) - The chain replacement type.
 		# @return {string} - The last command in chain.
 		function __last_command() {
 			# Extract command chain from row.
 			local row="${1%% *}"
-			# Extract last command from chain and return.
-			echo "${row##*.}"
+
+			# Chain replacement depends on completion type.
+			if [[ "$2" -eq 1 ]]; then
+				row="${row/$commandchain\./}"
+			else
+				row="${row/"${row%.*}"\./}"
+			fi
+
+			# Extract next command in chain.
+			echo "${row%%.*}"
 		}
 
 		# Parses CLI input. Returns input similar to that of process.argv.slice(2).
@@ -517,7 +526,20 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 				fi
 
 				# Lookup command tree rows from acmap.
-				local rows=`grep "^$commandchain.[-:a-zA-Z0-9]* " <<< "$acmap"`
+				local rows=
+				# Replacement type.
+				local rtype=
+				# Switch statement: [https://stackoverflow.com/a/22575299]
+				case "$lastchar" in
+				' ')
+					rows=`grep "^$commandchain\." <<< "$acmap"`
+					rtype=1
+					;;
+				*)
+					rows=`grep "^$commandchain.[-:a-zA-Z0-9]* " <<< "$acmap"`
+					rtype=2
+					;;
+				esac
 
 				# If no upper level exists for the commandchain check that
 				# the current chain is valid. If valid, add the last command
@@ -528,7 +550,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 					local row=`grep "^$commandchain " <<< "$acmap"`
 					if [[ ! -z "$row" && "$lastchar" != " " ]]; then
 						# Add last command in chain.
-						completions=(`__last_command "$row"`)
+						completions=(`__last_command "$row" "$rtype"`)
 					fi
 				else
 					# If caret is in the last position, the command tree
@@ -543,7 +565,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 						# Split rows by lines: [https://stackoverflow.com/a/11746174]
 						while read -r row; do
 							# Get last command in chain.
-							row=`__last_command "$row"`
+							row=`__last_command "$row" "$rtype"`
 
 							# Add last command if it exists.
 							if [[ ! -z "$row" ]]; then

@@ -16,7 +16,7 @@ module.exports = contents => {
 	 * @param  {string} line - The line with shortcuts to expand.
 	 * @return {array} - Array containing the expand lines.
 	 */
-	let expand_shortcuts = function(line) {
+	let expand_shortcuts = line => {
 		let flines = [];
 
 		if (/{.*?}/.test(line)) {
@@ -59,9 +59,9 @@ module.exports = contents => {
 	 * Unexpand multi-line flag options.
 	 *
 	 * @param  {string} contents - The multi-line flag to unexpand.
-	 * @return {string} - The flag unexpand.
+	 * @return {string} - The flag unexpanded.
 	 */
-	let unexpand_mf_options = function(contents) {
+	let unexpand_mf_options = contents => {
 		return (contents = contents.replace(
 			/^\s*-{1,2}[a-z][a-z0-9-]*\s*=\s*\([\s\S]*?\)/gim,
 			function(match) {
@@ -124,7 +124,7 @@ module.exports = contents => {
 	 * @param  {string} contents - The line to with possible placeholders.
 	 * @return {string} - The filled line with collapsed and formatted flags.
 	 */
-	let fillin_ph_lf_flags = function(contents) {
+	let fillin_ph_lf_flags = contents => {
 		// Place hold long-form flags.
 		let r = /--LFFPH#\d{1,}/g;
 

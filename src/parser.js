@@ -408,6 +408,17 @@ module.exports = (contents, source) => {
 		let commandchain = line.substring(0, sepindex);
 		let flags = line.substring(sepindex + 1);
 
+		// Note: Create needed parent commandchain(s). For example, if the
+		// current commandchain is 'a.b.c' we create the chains: 'a.b' and
+		// 'a' if they do not exist. Kind of like 'mkdir -p'.
+		let ppath = commandchain.substring(0, commandchain.lastIndexOf("."));
+		while (ppath.includes(".")) {
+			if (!lookup[ppath]) {
+				lookup[ppath] = [];
+			}
+			ppath = ppath.substring(0, ppath.lastIndexOf("."));
+		}
+
 		// Check whether flag set is empty.
 		let flags_empty = flags === "--";
 

@@ -262,17 +262,19 @@ module.exports = (contents, source) => {
 				// [https://stackoverflow.com/a/18515993]
 				let lb_regexp = /\r?\n/;
 
-				// If the match does not have line breaks leave it alone. For
-				// example, "--Wno-strict-overflow=(2 5)" normalize it.
+				// If the match does not have line breaks, for example,
+				// "--Wno-strict-overflow=(2 5)", normalize it.
 				if (!lb_regexp.test(match)) {
 					let eq_index = match.indexOf("=");
 					let flag = match.substring(0, eq_index);
-					let options = match.substring(
-						eq_index + 2,
-						match.length - 1
+					// Get individual value options.
+					let options = argparser(
+						match.substring(eq_index + 2, match.length - 1)
 					);
+					options = options.length ? options.join("\n") : "";
 
-					match = `${flag}=(\n${options.replace(/\s{1,}/g, "\n")}\n)`;
+					// Normalize to match long-form syntax.
+					match = `${flag}=(\n${options}\n)`;
 				}
 
 				// Get flag name.

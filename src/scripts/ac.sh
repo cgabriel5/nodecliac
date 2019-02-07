@@ -473,13 +473,10 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 						# If no flags exist skip line.
 						if [[ "$flags" == "--" ]]; then continue; fi
 
-						# Get individual flags and turn to an array.
-						IFS=$'|' read -ra flags <<< "$flags"
-
 						# Loop over flags to process.
-						for ((i = 0; i < "${#flags[@]}"; i++)); do
+						while IFS= read -r flag; do
 							# Cache current flag.
-							local flag="${flags[i]//\?/}"
+							local flag="${flag//\?/}"
 
 							# Flag must start with the last word.
 							if [[ "$flag" == "$last"* ]]; then
@@ -524,7 +521,9 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 									fi
 								fi
 							fi
-						done
+						# Split by unescaped pipe '|' characters:
+						# [https://stackoverflow.com/a/37270949]
+						done < <(sed 's/\([^\]\)|/\1\n/g' <<< "$flags")
 					done <<< "$rows"
 
 					# Note: If the last word (the flag in this case) is an

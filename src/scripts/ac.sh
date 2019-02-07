@@ -675,10 +675,13 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 					# fi
 
 					# Add trailing space to all completions except to flag
-					# completions that end with a trailing eq sign and commands
+					# completions that end with a trailing eq sign, commands
 					# that have trailing characters (commands that are being
-					# completed in the middle).
-					if [[ "$word" != *"=" && -z "$nextchar" ]]; then
+					# completed in the middle), and flag string completions
+					# (i.e. --flag="some-word...).
+					if [[ "$word" != *"="
+						&& ! "$word" =~ ^(\'|\")
+						&& -z "$nextchar" ]]; then
 						word+=" "
 					fi
 

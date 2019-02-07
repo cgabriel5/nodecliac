@@ -519,6 +519,12 @@ module.exports = (contents, source) => {
 		}
 	}
 
-	// Return generated acdef file contents.
-	return newlines.join("\n");
+	// Return generated acdef file contents and sort chains.
+	return header
+		.concat(
+			newlines.sort(function(a, b) {
+				return a.localeCompare(b);
+			})
+		)
+		.join("\n");
 };

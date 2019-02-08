@@ -523,6 +523,8 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 							fi
 						# Split by unescaped pipe '|' characters:
 						# [https://stackoverflow.com/a/37270949]
+						# [https://stackoverflow.com/a/2376059]
+						# [https://unix.stackexchange.com/a/17111]
 						done < <(sed 's/\([^\]\)|/\1\n/g' <<< "$flags")
 					done <<< "$rows"
 

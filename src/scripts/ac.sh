@@ -700,6 +700,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 	}
 
 	# complete -d -X '.[^./]*' -F _nodecliac "$1"
+	# [https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html]
 	complete -o default -F _nodecliac "$1"
 	# complete -F _nodecliac "$1"
 fi

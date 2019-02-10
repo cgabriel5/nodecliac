@@ -102,7 +102,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# 	echo "autocompletion: '$autocompletion'"
 		# }
 
-		# Unescape all backslash escaped characters.
+		# Unescape all backslash escaped characters in double quotes flags.
 		#
 		# @param {string} 1) - The string to unescape.
 		# @return {string} - The unescaped string.
@@ -117,33 +117,36 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			if [[ -z "$s" ]]; then echo ""; fi
 
 			# Regex → --flag="
-			local flgoptvalue="^\-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\-]{1,})?=(\"|\')[^*]{1,}$"
+			local r="^\-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\-]{1,})?=\"{1,}$"
 
 			# Only unescape if string is in the format --flag=".
-			if [[ "$s" =~ $flgoptvalue ]]; then
+			if [[ "$s" =~ $r ]]; then
 				# Backslash regex.
-				local r='^(.*)\\(.)(.*)$'
+				r='^(.*)\\(.)(.*)$'
 
 				# Replace all until no more backslashes exist.
 				while [[ "$s" =~ $r ]]; do
 				  s="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
 				done
-			fi
 
-			# Remove all singleton backslashes.
-			s="${s//\\/}"
+				# Finally, remove any leftover singleton backslashes.
+				s="${s//\\/}"
+			fi
 
 			# Return string.
 			echo "$s"
 		}
 
-		# Escape special characters in string.
+		# Escape special characters in double quoted strings.
 		#
 		# @param {string} 1) - The string to escape.
 		# @return {string} - The escaped string.
 		#
 		# @resource [https://unix.stackexchange.com/a/170168]
 		# @resource [https://unix.stackexchange.com/a/141323]
+		# @resource [https://stackoverflow.com/a/6697781]
+		# @resource [https://stackoverflow.com/a/42082956]
+		# @resource [https://scriptingosx.com/2017/08/special-characters/]
 		function __escape() {
 			# Get provided string.
 			local s="$1"
@@ -151,17 +154,14 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			# String cannot be empty.
 			if [[ -z "$s" ]]; then echo ""; fi
 
-			# Only escape if string starts with a quote.
-			if [[ "$s" =~ ^(\'|\") ]]; then
-				# Get the quote (i.e. " or ').
-				local quote="${s:0:1}"
-
+			# Only escape if string starts with double quote.
+			if [[ "$s" =~ ^\" ]]; then
 				# Remove the starting quote from value.
 				s="${s:1}"
 
 				local ending_quote=false
 				# Check for ending quote.
-				if [[ "$s" =~ "$quote"$ ]]; then
+				if [[ "$s" =~ \"$ ]]; then
 					# Remove ending character from value.
 					# [https://unix.stackexchange.com/a/170168]
 					s="${s%?}"
@@ -170,15 +170,15 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 					ending_quote=true
 				fi
 
-				# Escape value: [https://unix.stackexchange.com/a/141323]
+				# Escape string: [https://unix.stackexchange.com/a/141323]
 				s="`printf '%q\n' "$s"`"
 
 				# Rebuild string with escaped value.
-				s="${quote}${s}"
+				s="\"${s}"
 
 				# If ending quote existed, re-add it.
 				if [[ "$ending_quote" == true ]]; then
-					s+="${quote}"
+					s+="\""
 				fi
 			fi
 

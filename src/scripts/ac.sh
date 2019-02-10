@@ -627,8 +627,10 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			for ((i = 0; i < "${#args[@]}"; i++)); do
 				# Check for valid flag pattern?
 				if [[ "${args[i]}" == -* ]]; then
-					# Add boolean marker to flag item.
-					args[$i]="${args[i]//\?/}"
+					# Remove boolean marker from flag.
+					if [[ "${args[i]}" == *\? ]]; then
+						args[$i]="${args[i]%?}"
+					fi
 				fi
 			done
 
@@ -686,8 +688,10 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 
 						# Loop over flags to process.
 						while IFS= read -r flag; do
-							# Cache current flag.
-							local flag="${flag//\?/}"
+							# Remove boolean indicator from flag if present.
+							if [[ "$flag" =~ \?$ ]]; then
+								flag="${flag/\?/}"
+							fi
 
 							# Flag must start with the last word.
 							if [[ "$flag" == "$last"* ]]; then
@@ -702,7 +706,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 								# No dupes unless it's a multi-starred flag.
 								if [[ `__dupecheck "$flag"` == false ]]; then
 									# Remove "*" multi-flag marker from flag.
-									flag="${flag//\*/}"
+									flag="${flag/\=\*/=}"
 
 									# If last word is in the form → "--flag=" then we
 									# need to remove the last word from the flag to

@@ -370,15 +370,20 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 				# Stop loop once it hits the caret position character.
 				if [[ "$i" -ge $(( $l - 1 )) ]]; then
 					# Only add if not a space character.
-					if [[ "$c" != " " ]]; then
+					if [[ "$c" != " " ]] || [[ "$c" == " " && "$p" == "\\" ]]; then
 						current+="$c"
 					fi
+
+					# Store last char.
 					lastchar="$c"
+					# If last char is an escaped space then reset lastchar.
+					if [[ "$c" == " " && "$p" == "\\" ]]; then lastchar=""; fi
+
 					break
 				fi
 
 				# If char is a space.
-				if [[ "$c" == " " ]]; then
+				if [[ "$c" == " " && "$p" != "\\" ]]; then
 					if [[ "${#quote_char}" != "0" ]]; then
 						current+="$c"
 					else

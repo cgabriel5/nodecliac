@@ -393,7 +393,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 						fi
 					fi
 				# Non space chars.
-				elif [ "$c" == '"' -o "$c" == "'" ] && [ "$p" != "\\" ]; then
+				elif [[ "$c" == '"' || "$c" == "'" ]] && [[ "$p" != "\\" ]]; then
 					if [[ "$quote_char"  != "" ]]; then
 						# To end the current string encapsulation, the next
 						# char must be a space or nothing (meaning) the end
@@ -408,7 +408,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 							args+=("$current")
 							quote_char=""
 							current=""
-						elif [ "$quote_char" == '"' -o "$quote_char" == "'" ] && [ "$p" != "\\" ]; then
+						elif [[ "$quote_char" == '"' || "$quote_char" == "'" ]] && [[ "$p" != "\\" ]]; then
 							current+="$c"
 						else
 							current+="$c"

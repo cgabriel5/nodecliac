@@ -280,18 +280,21 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# 	done
 		# }; __escaped_chars # Immediately run function.
 
-		# # Check whether provided string is quoted (i.e. starts with a quote).
+		# # Check whether string is left quoted (i.e. starts with a quote).
 		# #
 		# # @param {string} 1) - The string to check.
-		# # @return {boolean} - True means it's quoted.
-		# function is_quoted() {
-		# 	# Check whether string word is quoted.
+		# # @return {boolean} - True means it's left quoted.
+		# function __is_lquoted() {
+		# 	# Default to false.
+		# 	check=false
+
+		# 	# Check for left quote.
 		# 	if [[ "$1" =~ ^(\"|\') ]]; then
-		# 		echo "true"
+		# 		check=true
 		# 	fi
 
-		# 	# Return false if check fails.
-		# 	echo "false"
+		# 	# Return check output.
+		# 	echo "$check"
 		# }
 
 		# Get last command in chain: 'mc.sc1.sc2' → 'sc2'

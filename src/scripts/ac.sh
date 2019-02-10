@@ -591,7 +591,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 				usedflags=""
 				;;
 			*)
-				usedflags=" `__join " " "${foundflags[@]}"` "
+				usedflags="`__join $'\n' "${foundflags[@]}"`"
 				;;
 			esac
 
@@ -697,7 +697,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 								fi
 
 								# No dupes unless it's a multi-starred flag.
-								if [[ ! "$usedflags" =~ "${flag/\=/}"(=| ) || "$flag" == *"*"* ]]; then
+								if [[ `__dupecheck "$flag"` == false ]]; then
 									# Remove "*" multi-flag marker from flag.
 									flag="${flag//\*/}"
 
@@ -724,8 +724,13 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 									fi
 								else
 									# If flag exits and is already used then add a space after it.
-									if [[ "$last" != *"="* && "$flag" == "$last" ]]; then
-										used+="$last"
+									# if [[ "$last" != *"="* && "$flag" == "$last" ]]; then
+									if [[ "$flag" == "$last" ]]; then
+										if [[ "$last" != *"="* ]]; then
+											used+="$last"
+										else
+											completions+=("${flag#*=}")
+										fi
 									fi
 								fi
 							fi

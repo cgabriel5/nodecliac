@@ -45,7 +45,18 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# #
 		# # @resource [https://stackoverflow.com/a/17841619]
 		function __join() {
-			local IFS="$1"; shift; echo "$*"
+			# Delimiter type is based on the provided delimiters
+			# character length.
+			# 1 - Single Character Delimiter
+			# 2 - Multi Character Delimiter
+
+			# Use a single char delimiter.
+			if [[ "${#1}" == 1 ]]; then
+				local IFS="$1"; shift; echo "$*"
+			# Use multiple char delimiter method.
+			else
+				local d=$1; shift; echo -n "$1"; shift; printf "%s" "${@/#/$d}"
+			fi
 		}
 
 		# Remove array item by its index.

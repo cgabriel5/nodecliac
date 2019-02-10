@@ -742,6 +742,10 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 					local l="${#completions[@]}"
 					# Get the value from the last word.
 					local val="${last#*=}"
+
+					# If the last word contains an eq sign, it has a value
+					# option, and there are more than 2 possible completions
+					# we remove the already used option.
 					if [[ "$last" == *"="* && ! -z "$val" && "$l" -ge 2 ]]; then
 						for ((i = l - 1 ; i >= 0 ; i--)) ; do
 							if [[ "${#completions[i]}" == "${#val}" ]]; then

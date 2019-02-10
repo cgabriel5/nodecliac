@@ -102,6 +102,198 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# 	echo "autocompletion: '$autocompletion'"
 		# }
 
+		# Unescape all backslash escaped characters.
+		#
+		# @param {string} 1) - The string to unescape.
+		# @return {string} - The unescaped string.
+		#
+		# @resource [https://stackoverflow.com/a/22261454]
+		# @resource [https://stackoverflow.com/a/5659672]
+		function __unescape() {
+			# Get provided string.
+			local s="$1"
+
+			# String cannot be empty.
+			if [[ -z "$s" ]]; then echo ""; fi
+
+			# Regex → --flag="
+			local flgoptvalue="^\-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\-]{1,})?=(\"|\')[^*]{1,}$"
+
+			# Only unescape if string is in the format --flag=".
+			if [[ "$s" =~ $flgoptvalue ]]; then
+				# Backslash regex.
+				local r='^(.*)\\(.)(.*)$'
+
+				# Replace all until no more backslashes exist.
+				while [[ "$s" =~ $r ]]; do
+				  s="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
+				done
+			fi
+
+			# Remove all singleton backslashes.
+			s="${s//\\/}"
+
+			# Return string.
+			echo "$s"
+		}
+
+		# Escape special characters in string.
+		#
+		# @param {string} 1) - The string to escape.
+		# @return {string} - The escaped string.
+		#
+		# @resource [https://unix.stackexchange.com/a/170168]
+		# @resource [https://unix.stackexchange.com/a/141323]
+		function __escape() {
+			# Get provided string.
+			local s="$1"
+
+			# String cannot be empty.
+			if [[ -z "$s" ]]; then echo ""; fi
+
+			# Only escape if string starts with a quote.
+			if [[ "$s" =~ ^(\'|\") ]]; then
+				# Get the quote (i.e. " or ').
+				local quote="${s:0:1}"
+
+				# Remove the starting quote from value.
+				s="${s:1}"
+
+				local ending_quote=false
+				# Check for ending quote.
+				if [[ "$s" =~ "$quote"$ ]]; then
+					# Remove ending character from value.
+					# [https://unix.stackexchange.com/a/170168]
+					s="${s%?}"
+
+					# Set flag.
+					ending_quote=true
+				fi
+
+				# Escape value: [https://unix.stackexchange.com/a/141323]
+				s="`printf '%q\n' "$s"`"
+
+				# Rebuild string with escaped value.
+				s="${quote}${s}"
+
+				# If ending quote existed, re-add it.
+				if [[ "$ending_quote" == true ]]; then
+					s+="${quote}"
+				fi
+			fi
+
+			# Return string.
+			echo "$s";
+		}
+
+		# Global flag only to be used for __dupecheck function.
+		local __dc_usedflags=""
+
+		# Check whether provided flag is already used or not.
+		#
+		# @param {string} 1) - The flag to check.
+		# @return {boolean} - True means it's a duplicate.
+		function __dupecheck() {
+			# Get provided flag arg.
+			local flag="$1"
+
+			# Var boolean.
+			local dupe=false
+
+			# No dupes unless it's a multi-starred flag.
+			# Split rows by lines: [https://stackoverflow.com/a/11746174]
+			# [https://stackoverflow.com/a/10929511]
+			while read -r uflag; do
+				# If flag has an asterisk break from loop
+				# as this means it's a multi-flag.
+				if [[ "$flag" == *"*"* ]]; then continue; fi
+
+				# Get individual components from used flag.
+				local ukey="${uflag%%=*}"
+				local uval=""
+				if [[ "$uflag" == *"="* ]]; then uval="${uflag#*=}"; fi
+
+				# Get individual components from flag.
+				local ckey="${flag%%=*}"
+				local cval=""
+				if [[ "$flag" == *"="* ]]; then cval="${flag#*=}"; fi
+
+				# Start duplicate flag checks:
+				if [[
+					# If flag is already used skip.
+					"$__dc_usedflags" == *" $ckey "* ||
+					# Simple valueless flag check.
+					"$uflag" != *"="* && "$flag" == "$uflag" ]]; then
+					dupe=true
+
+				# Flag with value checks.
+				elif [[ "$ukey" == "$ckey" ]]; then
+					if [[ "${ckey}=" == "$uflag" ]]; then continue; fi
+
+					# Check whether value is present. Keep
+					# in mind though, that the value may
+					# also be empty (i.e. '--flag=').
+					if [[ ! -z "$uval" ]]; then
+						if [[ "$uval" == "$cval" ]]; then dupe=true; fi
+					else
+						# If the uflag does not have an
+						# eq sign and the cflag does
+						# then let it through.
+						if [[ "$uflag" == *"="* && "$flag" != *"="* ]]; then
+							dupe=true
+						fi
+					fi
+				fi
+
+				# Add flag key to usedflags.
+				__dc_usedflags+=" $ukey "
+			done <<< "$usedflags"
+
+			# Return dupe boolean result.
+			echo "$dupe"
+		}
+
+		# Global flag only to be used for __escaped_chars function.
+		# local escape_chars=""
+
+		# # Get list of characters that need escaping.
+		# #
+		# # @return {string} - Nothing is returned.
+		# #
+		# # @resource [https://stackoverflow.com/a/44581064]
+		# function __escaped_chars() {
+		# 	# Character list.
+		# 	local chars=$'~`!@#$%^&*()-_+={}|[]\\;\':",.<>/? '
+
+		# 	# Loop over each character to see whether it needs escaping.
+		# 	for ((i=0; i < ${#chars}; i++)); do
+		# 		# Get current iteration char.
+		# 		local char="${chars:i:1}"
+
+		# 		# Use printf to determine character escaping.
+		# 		printf -v q_char '%q' "$char"
+
+		# 		# Store chars needed escaping.
+		# 		if [[ "$char" != "$q_char" ]]; then
+		# 			escape_chars+=" $char "
+		# 		fi
+		# 	done
+		# }; __escaped_chars # Immediately run function.
+
+		# # Check whether provided string is quoted (i.e. starts with a quote).
+		# #
+		# # @param {string} 1) - The string to check.
+		# # @return {boolean} - True means it's quoted.
+		# function is_quoted() {
+		# 	# Check whether string word is quoted.
+		# 	if [[ "$1" =~ ^(\"|\') ]]; then
+		# 		echo "true"
+		# 	fi
+
+		# 	# Return false if check fails.
+		# 	echo "false"
+		# }
+
 		# Get last command in chain: 'mc.sc1.sc2' → 'sc2'
 		#
 		# @param {string} 1) - The row to extract command from.

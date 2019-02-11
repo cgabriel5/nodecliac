@@ -1,5 +1,14 @@
+# Get version information.
+vmajor=${BASH_VERSINFO[0]}
+vminor=${BASH_VERSINFO[1]}
+
 # Bash version must be 4.3+ to register completion scripts to commands.
-if [[ ${BASH_VERSINFO[0]} -ge 4 && ${BASH_VERSINFO[1]} -ge 3 ]]; then
+if [[ vmajor -ge 4 ]]; then
+	# If bash is version 4 then it must be at least 4.3.
+	if [[ vmajor -eq 4 && vminor -le 2 ]]; then return; fi
+
+	# Continue if version is at least 4.3...
+
 	acscript="$HOME/.nodecliac/ac.sh"
 	if [[ -f "$acscript" ]]; then
 		# Loop over map definition files to source them.

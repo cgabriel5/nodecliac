@@ -280,22 +280,22 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# 	done
 		# }; __escaped_chars # Immediately run function.
 
-		# # Check whether string is left quoted (i.e. starts with a quote).
-		# #
-		# # @param {string} 1) - The string to check.
-		# # @return {boolean} - True means it's left quoted.
-		# function __is_lquoted() {
-		# 	# Default to false.
-		# 	check=false
+		# Check whether string is left quoted (i.e. starts with a quote).
+		#
+		# @param {string} 1) - The string to check.
+		# @return {boolean} - True means it's left quoted.
+		function __is_lquoted() {
+			# Default to false.
+			check=false
 
-		# 	# Check for left quote.
-		# 	if [[ "$1" =~ ^(\"|\') ]]; then
-		# 		check=true
-		# 	fi
+			# Check for left quote.
+			if [[ "$1" =~ ^(\"|\') ]]; then
+				check=true
+			fi
 
-		# 	# Return check output.
-		# 	echo "$check"
-		# }
+			# Return check output.
+			echo "$check"
+		}
 
 		# Get last command in chain: 'mc.sc1.sc2' → 'sc2'
 		#
@@ -462,7 +462,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 				local nitem="${args[i + 1]}"
 
 				# Skip quoted (string) items.
-				if [[ "$item" =~ ^(\"|\') ]]; then
+				if [[ `__is_lquoted "$item"` == true ]]; then
 					continue
 				fi
 
@@ -647,7 +647,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			esac
 
 			# Check whether last word is quoted or not.
-			if [[ "$last" =~ ^(\"|\') ]]; then
+			if [[ `__is_lquoted "$last"` == true ]]; then
 				isquoted=true
 			fi
 		}
@@ -906,7 +906,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 					# completed in the middle), and flag string completions
 					# (i.e. --flag="some-word...).
 					if [[ "$word" != *"="
-						&& ! "$word" =~ ^(\'|\")
+						&& `__is_lquoted "$word"` == false
 						&& -z "$nextchar" ]]; then
 						word+=" "
 					fi

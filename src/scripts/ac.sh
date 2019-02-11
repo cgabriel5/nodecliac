@@ -391,7 +391,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 						current+="$c"
 					else
 						if [[ "$current" != "" ]]; then
-							args+=("$current")
+							args+=("`__unescape "$current"`")
 							current=""
 						fi
 					fi
@@ -408,7 +408,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 						#
 						if [[ "$quote_char" == "$c" ]] && [[ "$n" == "" || "$n" == " " ]]; then
 							current+="$c"
-							args+=("$current")
+							args+=("`__unescape "$current"`")
 							quote_char=""
 							current=""
 						elif [[ "$quote_char" == '"' || "$quote_char" == "'" ]] && [[ "$p" != "\\" ]]; then
@@ -428,7 +428,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 
 			# Add the remaining word.
 			if [[ "$current" != "" ]]; then
-				args+=("$current")
+				args+=("`__unescape "$current"`")
 			fi
 		}
 
@@ -693,6 +693,9 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 								flag="${flag/\?/}"
 							fi
 
+							# Unescape flag.
+							flag="`__unescape "$flag"`"
+
 							# Flag must start with the last word.
 							if [[ "$flag" == "$last"* ]]; then
 
@@ -725,8 +728,24 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 										fi
 									fi
 
+									# Note: This is more of a hack check.
+									# Values with special characters will
+									# sometime by-pass the previous checks
+									# so do one file check. If the flag
+									# is in the following form:
+									# ----flags="value-string" then we do
+									# not add is to the completions list.
+									# Final option/value check.
+									local __isquoted=false
+									if [[ "$flag" == *"="* ]]; then
+										local ff="${flag#*=}"
+										if [[ `__is_lquoted "${ff:0:1}"` == true ]]; then
+											__isquoted=true
+										fi
+									fi
+
 									# Add flag/options if all checks pass.
-									if [[ "$flag" != "$last" ]]; then
+									if [[ "$__isquoted" == false && "$flag" != "$last" ]]; then
 										completions+=("$flag")
 									fi
 								else
@@ -759,6 +778,29 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 					local l="${#completions[@]}"
 					# Get the value from the last word.
 					local val="${last#*=}"
+
+					# Note: Account for quoted strings. If the last value is
+					# quoted, then add closing quote.
+					if [[ `__is_lquoted "$val"` == true ]]; then
+						local ll="${#val}"
+						# Get starting quote (i.e. " or ').
+						quote="${val:0:1}"
+						if [[ "${val:ll-1:1}" != "$quote" ]]; then
+							val+="${val:0:1}"
+						fi
+
+						# Escape for double quoted strings.
+						type="flag;quoted"
+						if [[ "$quote" == "\"" ]]; then
+							type+=";noescape"
+						fi
+
+						# If the value is empty return.
+						if [[ "${#val}" -eq 2 ]]; then
+							completions+=("${quote}${quote}")
+							return
+						fi
+					fi
 
 					# If the last word contains an eq sign, it has a value
 					# option, and there are more than 2 possible completions
@@ -861,23 +903,30 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			fi
 		}
 
-
 		# Send all possible completions to bash.
 		function __printer() {
 			if [[ "$type" == "command" ]]; then
 				COMPREPLY=($(compgen -W  "`__join ' ' "${completions[@]}"`" -- ""))
 				__ltrim_colon_completions "$last"
-			elif [[ "$type" == "flag" ]]; then
+			elif [[ "$type" == *"flag"* ]]; then
 				# Note: Disable bash's default behavior of adding a trailing space
 				# to completions when hitting the [tab] key. This will be handle
-				# manually.
+				# manually. Unless completing a quoted flag value. Then it is
+				# left on.
 				# [https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html]
 				# [https://github.com/llvm-mirror/clang/blob/master/utils/bash-autocomplete.sh#L59]
-				compopt -o nospace 2> /dev/null
+				if [[ "$type" != *"quoted"* ]]; then
+					compopt -o nospace 2> /dev/null
+				fi
 
 				# Print and add right pad spacing to possibilities where necessary.
 				for ((i = 0; i < "${#completions[@]}"; i++)); do
 					local word="${completions[i]}"
+
+					if [[ "$type" != *"noescape"* ]]; then
+						# Escape word.
+						word="`__escape "$word"`"
+					fi
 
 					# # Note: bash-completion handles colons in a weird manner.
 					# # When a word completion contains a colon it will append

@@ -183,7 +183,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			fi
 
 			# Return string.
-			echo "$s";
+			echo "$s"
 		}
 
 		# Global flag only to be used for __dupecheck function.

@@ -593,11 +593,9 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			# Switch statement: [https://stackoverflow.com/a/22575299]
 			case "${#foundflags[@]}" in
 			0)
-				usedflags=""
-				;;
+				usedflags="" ;;
 			*)
-				usedflags="`__join $' }|{ ' "${foundflags[@]}"`"
-				;;
+				usedflags="`__join $' }|{ ' "${foundflags[@]}"`" ;;
 			esac
 
 			# Determine whether to turn off autocompletion or not.
@@ -641,11 +639,9 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			# Switch statement: [https://stackoverflow.com/a/22575299]
 			case "$lastchar" in
 			' ')
-				last=""
-				;;
+				last="" ;;
 			*)
-				last="${args[${#args[@]}-1]}"
-				;;
+				last="${args[${#args[@]}-1]}" ;;
 			esac
 
 			# Check whether last word is quoted or not.

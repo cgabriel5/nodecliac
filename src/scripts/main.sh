@@ -1,16 +1,32 @@
-# Get platform information: [https://stackoverflow.com/a/18434831]
-platform=
-case "$OSTYPE" in
-  solaris*) platform="solaris" ;;
-  darwin*)  platform="osx" ;;
-  linux*)   platform="linux" ;;
-  bsd*)     platform="bsd" ;;
-  msys*)    platform="windows" ;;
-  *)        platform="unknown" ;;
-esac
+# Get platform name.
+#
+# @return {string} - User's platform.
+#
+# @resource [https://stackoverflow.com/a/18434831]
+function __platform() {
+	case "$OSTYPE" in
+	  solaris*) echo "solaris" ;;
+	  darwin*)  echo "osx" ;;
+	  linux*)   echo "linux" ;;
+	  bsd*)     echo "bsd" ;;
+	  msys*)    echo "windows" ;;
+	  *)        echo "unknown" ;;
+	esac
+}
 
-# Get default sed path.
-sed_command=`command -v sed`
+# Checks whether command exists.
+#
+# @param {string} 1) - Command name.
+# @return {string} - Command path if exists.
+#
+# @resource [https://stackoverflow.com/a/677212]
+function __exists() {
+	echo `command -v "$1"`
+}
+
+# Get default sed path + platform.
+sed_command=`__exists sed`
+platform=`__platform`
 
 # If on macOS/OS X check for sed version. Must have GNU version.
 if [[ "$platform" == "osx" ]]; then

@@ -676,104 +676,108 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 					# Set completion type:
 					type="flag"
 
-					# Split rows by lines: [https://stackoverflow.com/a/11746174]
-					while read -r row; do
-						# Extract flags (everything after space) from row.
-						local flags="${row#* }"
+					# # Split rows by lines: [https://stackoverflow.com/a/11746174]
+					# while read -r row; do
+					# # ^ Note: Since there is to be only a single row for
+					# # a command which includes all it's flags, looping over
+					# # the found 'rows' is not really needed. Leave/remove??
 
-						# If no flags exist skip line.
-						if [[ "$flags" == "--" ]]; then continue; fi
+					# Extract flags (everything after space) from row.
+					local flags="${rows#* }"
 
-						# Loop over flags to process.
-						while IFS= read -r flag; do
-							# Remove boolean indicator from flag if present.
-							if [[ "$flag" =~ \?$ ]]; then
-								flag="${flag/\?/}"
+					# If no flags exist skip line.
+					if [[ "$flags" == "--" ]]; then continue; fi
+
+					# Loop over flags to process.
+					while IFS= read -r flag; do
+						# Remove boolean indicator from flag if present.
+						if [[ "$flag" =~ \?$ ]]; then
+							flag="${flag/\?/}"
+						fi
+
+						# Track multi-starred flags.
+						if [[ "$flag" == *\=\* ]]; then
+							__dc_multiflags+=" ${flag/\=\*/} "
+						fi
+
+						# Unescape flag.
+						flag="`__unescape "$flag"`"
+
+						# Flag must start with the last word.
+						if [[ "$flag" == "$last"* ]]; then
+
+							# Note: If the last word is "--" or if the last
+							# word is not in the form "--form= + a character",
+							# don't show flags with values (--flag=value).
+							if [[ "$last" != *"="* && "$flag" =~ $flgoptvalue && "$flag" != *\* ]]; then
+								continue
 							fi
 
-							# Track multi-starred flags.
-							if [[ "$flag" == *\=\* ]]; then
-								__dc_multiflags+=" ${flag/\=\*/} "
-							fi
+							# No dupes unless it's a multi-starred flag.
+							if [[ `__dupecheck "$flag"` == false ]]; then
+								# Remove "*" multi-flag marker from flag.
+								flag="${flag/\=\*/=}"
 
-							# Unescape flag.
-							flag="`__unescape "$flag"`"
+								# If last word is in the form → "--flag=" then we
+								# need to remove the last word from the flag to
+								# only return its options/values.
+								if [[ "$last" =~ $flgopt ]]; then
+									# Copy flag to later reset flag key if no
+									# option was provided for it.
+									flagcopy="$flag"
 
-							# Flag must start with the last word.
-							if [[ "$flag" == "$last"* ]]; then
-
-								# Note: If the last word is "--" or if the last
-								# word is not in the form "--form= + a character",
-								# don't show flags with values (--flag=value).
-								if [[ "$last" != *"="* && "$flag" =~ $flgoptvalue && "$flag" != *\* ]]; then
-									continue
+									# Reset flag to its option. If option is empty
+									# (no option) then default to flag's key.
+									# flag+="value"
+									flag="${flag#*=}"
+									if [[ -z "$flag" ]]; then
+										flag="$flagcopy"
+									fi
 								fi
 
-								# No dupes unless it's a multi-starred flag.
-								if [[ `__dupecheck "$flag"` == false ]]; then
-									# Remove "*" multi-flag marker from flag.
-									flag="${flag/\=\*/=}"
+								# Note: This is more of a hack check.
+								# Values with special characters will
+								# sometime by-pass the previous checks
+								# so do one file check. If the flag
+								# is in the following form:
+								# ----flags="value-string" then we do
+								# not add is to the completions list.
+								# Final option/value check.
+								local __isquoted=false
+								if [[ "$flag" == *"="* ]]; then
+									local ff="${flag#*=}"
+									if [[ `__is_lquoted "${ff:0:1}"` == true ]]; then
+										__isquoted=true
+									fi
+								fi
 
-									# If last word is in the form → "--flag=" then we
-									# need to remove the last word from the flag to
-									# only return its options/values.
-									if [[ "$last" =~ $flgopt ]]; then
-										# Copy flag to later reset flag key if no
-										# option was provided for it.
-										flagcopy="$flag"
-
-										# Reset flag to its option. If option is empty
-										# (no option) then default to flag's key.
-										# flag+="value"
+								# Add flag/options if all checks pass.
+								if [[ "$__isquoted" == false && "$flag" != "$last" ]]; then
+									if [[ ! -z "$flag" ]]; then
+										completions+=("$flag")
+									fi
+								fi
+							else
+								# If flag exits and is already used then add a space after it.
+								# if [[ "$last" != *"="* && "$flag" == "$last" ]]; then
+								if [[ "$flag" == "$last" ]]; then
+									if [[ "$last" != *"="* ]]; then
+										used+="$last"
+									else
 										flag="${flag#*=}"
-										if [[ -z "$flag" ]]; then
-											flag="$flagcopy"
-										fi
-									fi
-
-									# Note: This is more of a hack check.
-									# Values with special characters will
-									# sometime by-pass the previous checks
-									# so do one file check. If the flag
-									# is in the following form:
-									# ----flags="value-string" then we do
-									# not add is to the completions list.
-									# Final option/value check.
-									local __isquoted=false
-									if [[ "$flag" == *"="* ]]; then
-										local ff="${flag#*=}"
-										if [[ `__is_lquoted "${ff:0:1}"` == true ]]; then
-											__isquoted=true
-										fi
-									fi
-
-									# Add flag/options if all checks pass.
-									if [[ "$__isquoted" == false && "$flag" != "$last" ]]; then
 										if [[ ! -z "$flag" ]]; then
 											completions+=("$flag")
 										fi
 									fi
-								else
-									# If flag exits and is already used then add a space after it.
-									# if [[ "$last" != *"="* && "$flag" == "$last" ]]; then
-									if [[ "$flag" == "$last" ]]; then
-										if [[ "$last" != *"="* ]]; then
-											used+="$last"
-										else
-											flag="${flag#*=}"
-											if [[ ! -z "$flag" ]]; then
-												completions+=("$flag")
-											fi
-										fi
-									fi
 								fi
 							fi
-						# Split by unescaped pipe '|' characters:
-						# [https://stackoverflow.com/a/37270949]
-						# [https://stackoverflow.com/a/2376059]
-						# [https://unix.stackexchange.com/a/17111]
-						done < <(sed 's/\([^\]\)|/\1\n/g' <<< "$flags")
-					done <<< "$rows"
+						fi
+					# Split by unescaped pipe '|' characters:
+					# [https://stackoverflow.com/a/37270949]
+					# [https://stackoverflow.com/a/2376059]
+					# [https://unix.stackexchange.com/a/17111]
+					done < <(sed 's/\([^\]\)|/\1\n/g' <<< "$flags")
+					# done <<< "$rows"
 
 					# Note: If the last word (the flag in this case) is an
 					# options flag (i.e. --flag=val) we need to remove the

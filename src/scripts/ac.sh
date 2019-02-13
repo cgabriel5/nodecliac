@@ -30,6 +30,11 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		local isquoted=false
 		local autocompletion=true
 
+		# Boolean indicating whether to escape/unescape flags. Setting it to
+		# true does incur a performance hit. As a result, completions might
+		# not 'feel' as fast.
+		local cleaninput=false
+
 		# Get the acmap definitions file.
 		local acmap="$(<~/.nodecliac/defs/$maincommand*)"
 # [https://serverfault.com/questions/72476/clean-way-to-write-complex-multi-line-string-to-a-variable/424601#424601]
@@ -113,24 +118,27 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			# Get provided string.
 			local s="$1"
 
-			# String cannot be empty.
-			if [[ -z "$s" ]]; then echo ""; fi
+			# Only continue if flag is set to true.
+			if [[ "$cleaninput" == true ]]; then
+				# String cannot be empty.
+				if [[ -z "$s" ]]; then echo ""; fi
 
-			# Regex → --flag="
-			local r="^\-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\-]{1,})?=\"{1,}$"
+				# Regex → --flag="
+				local r="^\-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\-]{1,})?=\"{1,}$"
 
-			# Only unescape if string is in the format --flag=".
-			if [[ "$s" =~ $r ]]; then
-				# Backslash regex.
-				r='^(.*)\\(.)(.*)$'
+				# Only unescape if string is in the format --flag=".
+				if [[ "$s" =~ $r ]]; then
+					# Backslash regex.
+					r='^(.*)\\(.)(.*)$'
 
-				# Replace all until no more backslashes exist.
-				while [[ "$s" =~ $r ]]; do
-				  s="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
-				done
+					# Replace all until no more backslashes exist.
+					while [[ "$s" =~ $r ]]; do
+					  s="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
+					done
 
-				# Finally, remove any leftover singleton backslashes.
-				s="${s//\\/}"
+					# Finally, remove any leftover singleton backslashes.
+					s="${s//\\/}"
+				fi
 			fi
 
 			# Return string.
@@ -151,34 +159,37 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			# Get provided string.
 			local s="$1"
 
-			# String cannot be empty.
-			if [[ -z "$s" ]]; then echo ""; fi
+			# Only continue if flag is set to true.
+			if [[ "$cleaninput" == true ]]; then
+				# String cannot be empty.
+				if [[ -z "$s" ]]; then echo ""; fi
 
-			# Only escape if string starts with double quote.
-			if [[ "$s" =~ ^\" ]]; then
-				# Remove the starting quote from value.
-				s="${s:1}"
+				# Only escape if string starts with double quote.
+				if [[ "$s" =~ ^\" ]]; then
+					# Remove the starting quote from value.
+					s="${s:1}"
 
-				local ending_quote=false
-				# Check for ending quote.
-				if [[ "$s" =~ \"$ ]]; then
-					# Remove ending character from value.
-					# [https://unix.stackexchange.com/a/170168]
-					s="${s%?}"
+					local ending_quote=false
+					# Check for ending quote.
+					if [[ "$s" =~ \"$ ]]; then
+						# Remove ending character from value.
+						# [https://unix.stackexchange.com/a/170168]
+						s="${s%?}"
 
-					# Set flag.
-					ending_quote=true
-				fi
+						# Set flag.
+						ending_quote=true
+					fi
 
-				# Escape string: [https://unix.stackexchange.com/a/141323]
-				s="`printf '%q\n' "$s"`"
+					# Escape string: [https://unix.stackexchange.com/a/141323]
+					s="`printf '%q\n' "$s"`"
 
-				# Rebuild string with escaped value.
-				s="\"${s}"
+					# Rebuild string with escaped value.
+					s="\"${s}"
 
-				# If ending quote existed, re-add it.
-				if [[ "$ending_quote" == true ]]; then
-					s+="\""
+					# If ending quote existed, re-add it.
+					if [[ "$ending_quote" == true ]]; then
+						s+="\""
+					fi
 				fi
 			fi
 

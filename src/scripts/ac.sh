@@ -7,6 +7,10 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# Get command name from sourced passed-in argument.
 		local maincommand="$1"
 
+		# Get nodecliac environment variable.
+		# platform="${__nodecliac_env%%:*}"
+		sed_command="${__nodecliac_env#*:}"
+
 		# Built-in auto completion vars.
 		# local cur="${COMP_WORDS[COMP_CWORD]}" # Currently typed in word.
 		# local prev="${COMP_WORDS[COMP_CWORD-1]}" # Word before current word.
@@ -776,7 +780,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 					# [https://stackoverflow.com/a/37270949]
 					# [https://stackoverflow.com/a/2376059]
 					# [https://unix.stackexchange.com/a/17111]
-					done < <(sed 's/\([^\]\)|/\1\n/g' <<< "$flags")
+					done < <("$sed_command" 's/\([^\]\)|/\1\n/g' <<< "$flags")
 					# done <<< "$rows"
 
 					# Note: If the last word (the flag in this case) is an

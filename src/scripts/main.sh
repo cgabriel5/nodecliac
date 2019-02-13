@@ -1,3 +1,44 @@
+# Get platform information: [https://stackoverflow.com/a/18434831]
+platform=
+case "$OSTYPE" in
+  solaris*) platform="solaris" ;;
+  darwin*)  platform="osx" ;;
+  linux*)   platform="linux" ;;
+  bsd*)     platform="bsd" ;;
+  msys*)    platform="windows" ;;
+  *)        platform="unknown" ;;
+esac
+
+# Get default sed path.
+sed_command=`command -v sed`
+
+# If on macOS/OS X check for sed version. Must have GNU version.
+if [[ "$platform" == "osx" ]]; then
+	# Check manual for sed flavor.
+	# [https://unix.stackexchange.com/a/27111]
+	sed_flavor="$(grep -o -m1 -e "BSD" -e "GNU" <<< `man sed` | head -1)"
+	if [[ "$sed_flavor" == "BSD" ]]; then
+		# Check for GNU version.
+		gnu_sed="/usr/local/bin/gsed"
+		if [[ ! -f "$gnu_sed" ]]; then
+			hdr="[nodecliac]:" # Line decor header.
+			# No GNU sed command found so return.
+			echo "${hdr}: BSD sed version found but GNU version required."
+			echo "${hdr}: -- Script registration aborted."
+			echo "${hdr}: GNU sed can be installed with homebrew like so:"
+			echo "${hdr}: $ brew install coreutils gnu-sed"
+			return
+		else
+			# Reset command to use gsed.
+			sed_command="$gnu_sed"
+		fi
+	fi
+fi
+
+# Export needed data to access in completion script.
+# [https://stackoverflow.com/a/9772093]
+export __nodecliac_env="$platform:$sed_command"
+
 # Get version information.
 vmajor=${BASH_VERSINFO[0]}
 vminor=${BASH_VERSINFO[1]}

@@ -686,7 +686,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 					local flags="${rows#* }"
 
 					# If no flags exist skip line.
-					if [[ "$flags" == "--" ]]; then continue; fi
+					if [[ "$flags" == "--" ]]; then return; fi
 
 					# Loop over flags to process.
 					while IFS= read -r flag; do

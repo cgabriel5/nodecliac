@@ -187,67 +187,54 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		}
 
 		# Global flag only to be used for __dupecheck function.
-		local __dc_usedflags=""
+		local __dc_multiflags=""
 
 		# Check whether provided flag is already used or not.
 		#
 		# @param {string} 1) - The flag to check.
-		# @return {boolean} - True means it's a duplicate.
+		# @return {boolean} - True if duplicate. Else false.
 		function __dupecheck() {
 			# Get provided flag arg.
 			local flag="$1"
 
 			# Var boolean.
 			local dupe=false
+			local d="}|{" # Delimiter.
 
-			# No dupes unless it's a multi-starred flag.
-			# Split rows by lines: [https://stackoverflow.com/a/11746174]
-			# [https://stackoverflow.com/a/10929511]
-			while read -r uflag; do
-				# If flag has an asterisk break from loop
-				# as this means it's a multi-flag.
-				if [[ "$flag" == *"*"* ]]; then continue; fi
+			# Get individual components from flag.
+			local ckey="${flag%%=*}"
 
-				# Get individual components from used flag.
-				local ukey="${uflag%%=*}"
-				local uval=""
-				if [[ "$uflag" == *"="* ]]; then uval="${uflag#*=}"; fi
+			# If its a multi-flag then let it through.
+			if [[ "$__dc_multiflags" == *" $ckey "* ]]; then
+				dupe=false
 
-				# Get individual components from flag.
-				local ckey="${flag%%=*}"
-				local cval=""
-				if [[ "$flag" == *"="* ]]; then cval="${flag#*=}"; fi
-
-				# Start duplicate flag checks:
-				if [[
-					# If flag is already used skip.
-					"$__dc_usedflags" == *" $ckey "* ||
-					# Simple valueless flag check.
-					"$uflag" != *"="* && "$flag" == "$uflag" ]]; then
+			# Valueless flag dupe check.
+			elif [[ "$flag" != *"="* ]]; then
+				if [[ " ${d} $usedflags " =~ " ${d} ${ckey} " ]]; then
 					dupe=true
-
-				# Flag with value checks.
-				elif [[ "$ukey" == "$ckey" ]]; then
-					if [[ "${ckey}=" == "$uflag" ]]; then continue; fi
-
-					# Check whether value is present. Keep
-					# in mind though, that the value may
-					# also be empty (i.e. '--flag=').
-					if [[ ! -z "$uval" ]]; then
-						if [[ "$uval" == "$cval" ]]; then dupe=true; fi
-					else
-						# If the uflag does not have an
-						# eq sign and the cflag does
-						# then let it through.
-						if [[ "$uflag" == *"="* && "$flag" != *"="* ]]; then
-							dupe=true
-						fi
-					fi
 				fi
 
-				# Add flag key to usedflags.
-				__dc_usedflags+=" $ukey "
-			done <<< "$usedflags"
+			# Flag with value dupe check.
+			else
+				# Count substring occurrences:
+				# [https://unix.stackexchange.com/a/442353]
+				ckey+="="
+				remove=${usedflags//"$ckey"}
+				count="$(((${#usedflags} - ${#remove}) / ${#ckey}))"
+
+				# More than 1 occurrence flag has been used.
+				if [[ $count -ge 1 ]]; then
+				# if [[ $count -ge 1 && "$rows" != *"${ckey}*|"* ]]; then
+					dupe=true
+				fi
+
+				# If there is exactly 1 occurrence and the flag matches the
+				# ReGex pattern we undupe flag as the 1 occurrence is being
+				# completed (i.e. a value is being completed).
+				if [[ $count -eq 1 && "$flag" =~ $flgoptvalue ]]; then
+					dupe=false
+				fi
+			fi
 
 			# Return dupe boolean result.
 			echo "$dupe"
@@ -594,7 +581,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 				usedflags=""
 				;;
 			*)
-				usedflags="`__join $'\n' "${foundflags[@]}"`"
+				usedflags="`__join $' }|{ ' "${foundflags[@]}"`"
 				;;
 			esac
 
@@ -659,7 +646,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			# Regex → "--flag="
 			local flgopt="--?[a-z0-9-]*="
 			# Regex → "--flag=value"
-			local flgoptvalue="^\-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\-]{1,})?=[^*]{1,}$"
+			local flgoptvalue="^\-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\-]{1,})?\=\*?.{1,}$"
 
 			# Skip logic if last word is quoted or completion variable is off.
 			if [[ "$isquoted" == true || "$autocompletion" == false ]]; then
@@ -693,6 +680,11 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 								flag="${flag/\?/}"
 							fi
 
+							# Track multi-starred flags.
+							if [[ "$flag" == *\=\* ]]; then
+								__dc_multiflags+=" ${flag/\=\*/} "
+							fi
+
 							# Unescape flag.
 							flag="`__unescape "$flag"`"
 
@@ -702,7 +694,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 								# Note: If the last word is "--" or if the last
 								# word is not in the form "--form= + a character",
 								# don't show flags with values (--flag=value).
-								if [[ "$last" != *"="* && "$flag" =~ $flgoptvalue ]]; then
+								if [[ "$last" != *"="* && "$flag" =~ $flgoptvalue && "$flag" != *\* ]]; then
 									continue
 								fi
 
@@ -746,7 +738,9 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 
 									# Add flag/options if all checks pass.
 									if [[ "$__isquoted" == false && "$flag" != "$last" ]]; then
-										completions+=("$flag")
+										if [[ ! -z "$flag" ]]; then
+											completions+=("$flag")
+										fi
 									fi
 								else
 									# If flag exits and is already used then add a space after it.
@@ -755,7 +749,10 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 										if [[ "$last" != *"="* ]]; then
 											used+="$last"
 										else
-											completions+=("${flag#*=}")
+											flag="${flag#*=}"
+											if [[ ! -z "$flag" ]]; then
+												completions+=("$flag")
+											fi
 										fi
 									fi
 								fi

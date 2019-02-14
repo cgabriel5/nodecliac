@@ -137,7 +137,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 
 					# Replace all until no more backslashes exist.
 					while [[ "$s" =~ $r ]]; do
-					  s="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
+						s="${BASH_REMATCH[1]}${BASH_REMATCH[2]}${BASH_REMATCH[3]}"
 					done
 
 					# Finally, remove any leftover singleton backslashes.
@@ -368,7 +368,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 				if [[ "$i" == 0 ]]; then
 					p=""
 				# Reset next word for last char as bash gets the first char.
-				elif [[ "$i" == $(( $cline_length - 1  )) ]]; then
+				elif [[ "$i" == $(( $cline_length - 1 )) ]]; then
 					n=""
 				fi
 
@@ -399,7 +399,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 					fi
 				# Non space chars.
 				elif [[ "$c" == '"' || "$c" == "'" ]] && [[ "$p" != "\\" ]]; then
-					if [[ "$quote_char"  != "" ]]; then
+					if [[ "$quote_char" != "" ]]; then
 						# To end the current string encapsulation, the next
 						# char must be a space or nothing (meaning) the end
 						# if the input string. This is done to prevent
@@ -484,7 +484,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 					oldchains+=("$commandchain")
 					commandchain=""
 
-					# If the flag contains a n eq sign don't look ahead.
+					# If the flag contains an eq sign don't look ahead.
 					if [[ "$item" == *"="* ]]; then
 						foundflags+=("$item")
 						continue
@@ -918,7 +918,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# Send all possible completions to bash.
 		function __printer() {
 			if [[ "$type" == "command" ]]; then
-				COMPREPLY=($(compgen -W  "`__join ' ' "${completions[@]}"`" -- ""))
+				COMPREPLY=($(compgen -W "`__join ' ' "${completions[@]}"`" -- ""))
 				__ltrim_colon_completions "$last"
 			elif [[ "$type" == *"flag"* ]]; then
 				# Note: Disable bash's default behavior of adding a trailing space

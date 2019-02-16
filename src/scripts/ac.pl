@@ -274,8 +274,7 @@ sub __extracter {
 						$i++;
 					} else {
 						# It's a boolean flag. Add boolean marker (?).
-						my $oldval=$args[$i];
-						$args[$i]="${oldval}?";
+						$args[$i] = $args[$i] . "?";
 
 						push(@foundflags, $item);
 					}
@@ -310,8 +309,7 @@ sub __extracter {
 				# If the flag is found then add marker to item.
 				if ($skipflagval != 0) {
 					# It's a boolean flag. Add boolean marker (?).
-					my $oldval=$args[$i];
-					$args[$i]="${oldval}?";
+					$args[$i] = $args[$i] . "?";
 				}
 				push(@foundflags, $item);
 

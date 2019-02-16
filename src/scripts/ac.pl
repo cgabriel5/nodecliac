@@ -2,51 +2,47 @@
 use strict;
 use warnings;
 
-my $cline = $ARGV[0];
-my $cpoint = int($ARGV[1]);
-my $input = substr($cline, 0, $cpoint);
-
+# Get command name from sourced passed-in argument.
 my $maincommand= $ARGV[2];
-my $acmap= $ARGV[3];
 
 # Vars.
-my $current="";
-my $quote_char="";
-# my $l=length($input); # Input length.
-my $cline_length=length($cline); # Input length.
-
-my $lastchar="";
 my @args=();
-
-# -----
 my $last="";
 my $type="";
 my $usedflags="";
 my @completions=();
 my $commandchain="";
-# my cline="$COMP_LINE" # Original (complete) CLI input.
-# my cpoint="$COMP_POINT" # Caret index when [tab] key was pressed.
-# my lastchar="${cline:$cpoint-1:1}" # Character before caret.
-# my nextchar="${cline:$cpoint:1}" # Character after caret.
-# my cline_length="${#cline}" # Original input's length.
+my $cline = $ARGV[0]; # Original (complete) CLI input.
+my $cpoint = int($ARGV[1]); # Caret index when [tab] key was pressed.
+my $lastchar=substr($cline, $cpoint - 1, 1); # Character before caret.
+my $nextchar=substr($cline, $cpoint, 1); # Character after caret.
+my $cline_length=length($cline); # Original input's length.
 my $isquoted=0;
 my $autocompletion=1;
 
+# Get the acmap definitions file.
+my $acmap= $ARGV[3];
+
+# Log local variables and their values.
 sub __debug {
-	# my $inp="${cline:0:$cpoint}"
+	my $inp=substr($cline, 0, $cpoint);
 	print "\n";
 	print "  commandchain: '$commandchain'\n";
 	print "     usedflags: '$usedflags'\n";
 	print "          last: '$last'\n";
-	print "         input: '$input'\n";
+	print "         input: '$inp'\n";
 	print "  input length: '$cline_length'\n";
 	print "   caret index: '$cpoint'\n";
 	print "      lastchar: '$lastchar'\n";
-	# print "      nextchar: '$nextchar'\n";
+	print "      nextchar: '$nextchar'\n";
 	print "      isquoted: '$isquoted'\n";
 	print "autocompletion: '$autocompletion'\n";
 }
 
+# Check whether string is left quoted (i.e. starts with a quote).
+#
+# @param {string} 1) - The string to check.
+# @return {boolean} - True means it's left quoted.
 sub __is_lquoted {
 	# Get arguments.
 	my ($string) = @_;
@@ -63,101 +59,144 @@ sub __is_lquoted {
 	return $check;
 }
 
-# Parser function.
-sub __parser {
+# Get last command in chain: 'mc.sc1.sc2' → 'sc2'
+#
+# @param {string} 1) - The row to extract command from.
+# @param {number} 2) - The chain replacement type.
+# @return {string} - The last command in chain.
+sub __last_command {
 	# Get arguments.
-	# my ($parameter_name, $parameter_name ...) = @_;
-	my ($input) = @_;
+	my ($row, $type) = @_;
 
+	# Extract command chain from row.
+	($row) = $row =~ /^[^ ]*/g;
+
+	# Chain replacement depends on completion type.
+	if ($type == 1) {
+		$row = $row =~ s/$commandchain\.//r;
+	} else {
+		my $nrow=substr($row, 0, rindex($row, "."));
+		$row = $row =~ s/$nrow\.//r;
+	}
+
+	# Extract next command in chain.
+	my ($lastcommand) = $row =~ /^[^.]*/g;
+
+	return $lastcommand;
+}
+# Parses CLI input. Returns input similar to that of process.argv.slice(2).
+#     Adapted from argsplit module.
+#
+# @param {string} 1) - The string to parse.
+# @return {undefined} - Noting is returned.
+sub __parser {
+	# Vars.
+	my $current="";
+	my ($input) = @_;
+	my $quote_char="";
 	my $l=length($input); # Input length.
 
 	# Input must not be empty.
-	if ($input) {
-		# Loop over every input char: [https://stackoverflow.com/a/10552175]
+	if (!$input) {
+		return;
+	}
 
-		for my $i (0 .. ($cline_length - 1)) {
-			# Cache current/previous/next chars.
-			my $c = substr($input, $i, 1);
-			my $p = substr($input, $i - 1, 1);
-			my $n = substr($input, $i + 1, 1);
+	# Loop over every input char: [https://stackoverflow.com/q/10487316]
+	for my $i (0 .. ($cline_length - 1)) {
+		# Cache current/previous/next chars.
+		my $c = substr($input, $i, 1);
+		my $p = substr($input, $i - 1, 1);
+		my $n = substr($input, $i + 1, 1);
 
-			# Reset prev word for 1st char as bash gets the last char.
-			if ($i == 0) {
-				$p=""
-			# Reset next word for last char as bash gets the first char.
-			} elsif ($i == ($cline_length - 1)) {
-				$n=""
+		# Reset prev word for 1st char as bash gets the last char.
+		if ($i == 0) {
+			$p="";
+		# Reset next word for last char as bash gets the first char.
+		} elsif ($i == ($cline_length - 1)) {
+			$n="";
+		}
+
+		# Stop loop once it hits the caret position character.
+		if ($i >= ($l - 1)) {
+			# Only add if not a space character.
+			if ($c ne " " || $c eq " " && $p eq "\\") {
+				$current.="$c";
 			}
 
-			# Stop loop once it hits the caret position character.
-			if ($i >= ($l - 1)) {
-				# Only add if not a space character.
-				if ($c ne " " || $c eq " " && $p eq "\\") {
-					$current.="$c";
-				}
+			# Store last char.
+			$lastchar="$c";
+			# If last char is an escaped space then reset lastchar.
+			if ($c eq " " && $p eq "\\") { $lastchar=""; }
 
-				# Store last char.
-				$lastchar="$c";
-				# If last char is an escaped space then reset lastchar.
-				if ($c eq " " && $p eq "\\") {
-					$lastchar="";
-				}
+			last;
+		}
 
-				last;
+		# If char is a space.
+		if ($c eq " " && $p ne "\\") {
+			if (length($quote_char) != 0) {
+				$current.="$c";
+			} else {
+				if ($current ne "") {
+					push(@args, $current);
+					$current="";
+				}
 			}
-
-			# If char is a space.
-			if ($c eq " " && $p ne "\\") {
-				if (length($quote_char) != 0) {
+		# Non space chars.
+		} elsif (($c eq '"' || $c eq "'") && $p ne "\\") {
+			if ($quote_char ne "") {
+				# To end the current string encapsulation, the next
+				# char must be a space or nothing (meaning) the end
+				# if the input string. This is done to prevent
+				# this edge case: 'myapp run "some"--'. Without this
+				# check the following args get parsed:
+				# args=(myapp run "some" --). What we actually want
+				# is args=(myapp run "some"--).
+				#
+				if ($quote_char eq $c && ($n eq "" || $n eq " ")) {
 					$current.="$c";
-				} else {
-					if ($current ne "") {
-						push @args, $current;
-						$current="";
-					}
-				}
-			# Non space chars.
-			} elsif (($c eq '"' || $c eq "'") && $p ne "\\") {
-				if ($quote_char ne "") {
-					# To end the current string encapsulation, the next
-					# char must be a space or nothing (meaning) the end
-					# if the input string. This is done to prevent
-					# this edge case: 'myapp run "some"--'. Without this
-					# check the following args get parsed:
-					# args=(myapp run "some" --). What we actually want
-					# is args=(myapp run "some"--).
-					#
-					if ($quote_char eq $c && ($n eq "" || $n eq " ")) {
-						$current.="$c";
-						push @args, $current;
-						$quote_char="";
-						$current="";
-					} elsif (($quote_char eq '"' || $quote_char eq "'") && $p ne "\\") {
-						$current.="$c";
-					} else {
-						$current.="$c";
-						$quote_char="$c";
-					}
+					push(@args, $current);
+					$quote_char="";
+					$current="";
+				} elsif (($quote_char eq '"' || $quote_char eq "'") && $p ne "\\") {
+					$current.="$c";
 				} else {
 					$current.="$c";
 					$quote_char="$c";
 				}
 			} else {
 				$current.="$c";
+				$quote_char="$c";
 			}
-		}
-
-		# Add the remaining word.
-		if ($current ne "") {
-			push @args, $current;
+		} else {
+			$current.="$c";
 		}
 	}
 
+	# Add the remaining word.
+	if ($current ne "") {
+		push(@args, $current);
+	}
 }
 
+# Lookup command/subcommand/flag definitions from the acmap to return
+#     possible completions list.
+#
+# Test input:
+# myapp run example go --global-flag value
+# myapp run example go --global-flag value subcommand
+# myapp run example go --global-flag value --flag2
+# myapp run example go --global-flag value --flag2 value
+# myapp run example go --global-flag value --flag2 value subcommand
+# myapp run example go --global-flag value --flag2 value subcommand --flag3
+# myapp run example go --global-flag --flag2
+# myapp run example go --global-flag --flag value subcommand
+# myapp run example go --global-flag --flag value subcommand --global-flag --flag value
+# myapp run example go --global-flag value subcommand
+# myapp run "some" --flagsin command1 sub1 --flag1 val
+# myapp run -rd '' -a config
+# myapp --Wno-strict-overflow= config
 sub __extracter {
 	# Vars.
-	# my $l= scalar @args;
 	my $l=$#args;
 	my @oldchains=();
 	my @foundflags=();
@@ -188,12 +227,12 @@ sub __extracter {
 			@foundflags=();
 		} else { # We have a flag.
 			# Store commandchain to revert to it if needed.
-			push @oldchains, $commandchain;
+			push(@oldchains, $commandchain);
 			$commandchain="";
 
 			# If the flag contains an eq sign don't look ahead.
 			if (index($item, "=") != -1) {
-				push @foundflags, $item;
+				push(@foundflags, $item);
 				next;
 			}
 
@@ -238,11 +277,11 @@ sub __extracter {
 						my $oldval=$args[$i];
 						$args[$i]="${oldval}?";
 
-						push @foundflags, $item;
+						push(@foundflags, $item);
 					}
 
 				} else { # The next word is a another flag.
-					push @foundflags, $item;
+					push(@foundflags, $item);
 				}
 
 			} else {
@@ -274,7 +313,7 @@ sub __extracter {
 					my $oldval=$args[$i];
 					$args[$i]="${oldval}?";
 				}
-				push @foundflags, $item;
+				push(@foundflags, $item);
 
 			}
 		}
@@ -360,27 +399,6 @@ sub __extracter {
 	}
 }
 
-sub __last_command {
-	# Get arguments.
-	my ($row, $type) = @_;
-
-	# Extract command chain from row.
-	($row) = $row =~ /^[^ ]*/g;
-
-	# Chain replacement depends on completion type.
-	if ($type == 1) {
-		$row = $row =~ s/$commandchain\.//r;
-	} else {
-		my $nrow=substr($row, 0, rindex($row, "."));
-		$row = $row =~ s/$nrow\.//r;
-	}
-
-	# Extract next command in chain.
-	my ($lastcommand) = $row =~ /^[^.]*/g;
-
-	return $lastcommand;
-}
-
 # Global flag only to be used for __dupecheck function.
 my $__dc_multiflags="";
 
@@ -438,6 +456,8 @@ sub __dupecheck {
 	return "$dupe";
 }
 
+# Lookup command/subcommand/flag definitions from the acmap to return
+#     possible completions list.
 sub __lookup {
 	# Flag ReGex test patterns.
 	# Regex → "--flag="
@@ -544,18 +564,18 @@ sub __lookup {
 							# Add flag/options if all checks pass.
 							if ($__isquoted == 0 && $flag ne $last) {
 								if ($flag) {
-									push @completions, $flag;
+									push(@completions, $flag);
 								}
 							}
 						} else {
 							# If flag exits and is already used then add a space after it.
 							if ($flag eq $last) {
 								if (index($last, "=") == -1) {
-									push @used, $last;
+									push(@used, $last);
 								} else {
 									($flag) = $flag=~ /=(.*)$/;
 									if ($flag) {
-										push @completions, $flag;
+										push(@completions, $flag);
 									}
 								}
 							}
@@ -668,9 +688,8 @@ sub __lookup {
 			my @row = $acmap =~ /$pattern/mg;
 			my $check1 = scalar(@row);
 
-			$pattern='^' . "$commandchain" . '[-:a-zA-Z0-9]* ';
-			my $rowdata=join "\n", @row;
-			@row = $rowdata =~ /$pattern/m;
+			$pattern='^' . "$commandchain" . '[-:a-zA-Z0-9]+ ';
+			@row = $acmap =~ /$pattern/mg;
 			my $check2 = scalar(@row);
 
 			if ($check1 > 0 && $check2 == 0 && $lastchar ne " ") {
@@ -694,12 +713,12 @@ sub __lookup {
 							# command we are trying to complete.
 							my $pattern= '^' . "$last";
 							if ($row =~ /$pattern/) {
-								push @completions, $row;
+								push(@completions, $row);
 							}
 						} else {
 							# If we are not completing a command then
 							# we return all possible word completions.
-							push @completions, $row;
+							push(@completions, $row);
 						}
 					}
 				}
@@ -708,16 +727,22 @@ sub __lookup {
 	}
 }
 
-# Run parser.
-__parser($input);
-__extracter();
-__lookup();
-# __debug();
+# Send all possible completions to bash.
+sub __printer {
+	# Build and contains all completions in a string.
+	my $lines = "$type:$last";
+	# ^ The first line will contain meta information about the completion.
 
-my $lines = "$type:$last";
-for my $i (0 .. $#completions) {
-	my $completion=$completions[$i];
-	$lines.="\n$completion";
+	# Loop over completions and append to list.
+	for my $i (0 .. $#completions) {
+		$lines.="\n" . $completions[$i];
+	}
 
+	# Return data.
+	print $lines;
 }
-print $lines;
+
+# Completion logic:
+# <cli_input> → parser → extracter → lookup → printer
+# Note: Supply CLI input from start to caret index.
+__parser(substr($cline, 0, $cpoint));__extracter();__lookup();__printer();

@@ -99,7 +99,6 @@ sub starts_with_hyphen {
 	return ord($string) == 45;
 }
 
-
 # Check whether string contains provided substring.
 #
 # @param {string} 1) - The string to check.

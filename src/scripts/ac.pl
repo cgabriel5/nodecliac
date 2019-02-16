@@ -268,7 +268,7 @@ sub __extracter {
 					# If the flag is not found then simply add the
 					# next item as its value.
 					if ($skipflagval == 0) {
-						push @foundflags, "$item = $nitem";
+						push(@foundflags, "$item = $nitem");
 
 						# Increase index to skip added flag value.
 						$i++;
@@ -375,9 +375,9 @@ sub __extracter {
 		# Check for valid flag pattern?
 		if (ord($args[$i]) == 45) {
 			# Remove boolean marker from flag.
-			my $lastc =substr $args[$i], -1;
+			my $lastc = substr($args[$i], -1);
 			if ($lastc eq "?") {
-				$args[$i] =substr $args[$i], 0, -1;
+				$args[$i] = substr($args[$i], 0, -1);
 			}
 		}
 	}
@@ -612,7 +612,7 @@ sub __lookup {
 
 					# If the value is empty return.
 					if (length($val) == 2) {
-						push @completions, "${quote}${quote}";
+						push(@completions, "${quote}${quote}");
 						return;
 					}
 				}
@@ -634,7 +634,7 @@ sub __lookup {
 				# current flag exist. Therefore, add the current word (the
 				# used flag) so that bash appends a space to it.
 				if (scalar(@completions) == 0 && scalar(@used) == 1) {
-					push @completions, $used[0];
+					push(@completions, $used[0]);
 				}
 			}
 		}

@@ -3,29 +3,29 @@ use strict;
 use warnings;
 
 # Get command name from sourced passed-in argument.
-my $maincommand= $ARGV[2];
+my $maincommand = $ARGV[2];
 
 # Vars.
-my @args=();
-my $last="";
-my $type="";
-my $usedflags="";
-my @completions=();
-my $commandchain="";
+my @args = ();
+my $last = "";
+my $type = "";
+my $usedflags = "";
+my @completions = ();
+my $commandchain = "";
 my $cline = $ARGV[0]; # Original (complete) CLI input.
 my $cpoint = int($ARGV[1]); # Caret index when [tab] key was pressed.
-my $lastchar=substr($cline, $cpoint - 1, 1); # Character before caret.
-my $nextchar=substr($cline, $cpoint, 1); # Character after caret.
-my $cline_length=length($cline); # Original input's length.
-my $isquoted=0;
-my $autocompletion=1;
+my $lastchar = substr($cline, $cpoint - 1, 1); # Character before caret.
+my $nextchar = substr($cline, $cpoint, 1); # Character after caret.
+my $cline_length = length($cline); # Original input's length.
+my $isquoted = 0;
+my $autocompletion = 1;
 
 # Get the acmap definitions file.
-my $acmap= $ARGV[3];
+my $acmap = $ARGV[3];
 
 # Log local variables and their values.
 sub __debug {
-	my $inp=substr($cline, 0, $cpoint);
+	my $inp = substr($cline, 0, $cpoint);
 	print "\n";
 	print "  commandchain: '$commandchain'\n";
 	print "     usedflags: '$usedflags'\n";
@@ -48,11 +48,11 @@ sub __is_lquoted {
 	my ($string) = @_;
 
 	# Default to false.
-	my $check=0;
+	my $check = 0;
 
 	# Check for left quote.
 	if ($string =~ /^(\"|\')/) {
-		$check=1;
+		$check = 1;
 	}
 
 	# Return check output.
@@ -75,7 +75,7 @@ sub __last_command {
 	if ($type == 1) {
 		$row = $row =~ s/$commandchain\.//r;
 	} else {
-		my $nrow=substr($row, 0, rindex($row, "."));
+		my $nrow = substr($row, 0, rindex($row, "."));
 		$row = $row =~ s/$nrow\.//r;
 	}
 
@@ -91,10 +91,10 @@ sub __last_command {
 # @return {undefined} - Noting is returned.
 sub __parser {
 	# Vars.
-	my $current="";
+	my $current = "";
 	my ($input) = @_;
-	my $quote_char="";
-	my $l=length($input); # Input length.
+	my $quote_char = "";
+	my $l = length($input); # Input length.
 
 	# Input must not be empty.
 	if (!$input) {
@@ -110,23 +110,23 @@ sub __parser {
 
 		# Reset prev word for 1st char as bash gets the last char.
 		if ($i == 0) {
-			$p="";
+			$p = "";
 		# Reset next word for last char as bash gets the first char.
 		} elsif ($i == ($cline_length - 1)) {
-			$n="";
+			$n = "";
 		}
 
 		# Stop loop once it hits the caret position character.
 		if ($i >= ($l - 1)) {
 			# Only add if not a space character.
 			if ($c ne " " || $c eq " " && $p eq "\\") {
-				$current.="$c";
+				$current .= "$c";
 			}
 
 			# Store last char.
-			$lastchar="$c";
+			$lastchar = "$c";
 			# If last char is an escaped space then reset lastchar.
-			if ($c eq " " && $p eq "\\") { $lastchar=""; }
+			if ($c eq " " && $p eq "\\") { $lastchar = ""; }
 
 			last;
 		}
@@ -134,11 +134,11 @@ sub __parser {
 		# If char is a space.
 		if ($c eq " " && $p ne "\\") {
 			if (length($quote_char) != 0) {
-				$current.="$c";
+				$current .= "$c";
 			} else {
 				if ($current ne "") {
 					push(@args, $current);
-					$current="";
+					$current = "";
 				}
 			}
 		# Non space chars.
@@ -153,22 +153,22 @@ sub __parser {
 				# is args=(myapp run "some"--).
 				#
 				if ($quote_char eq $c && ($n eq "" || $n eq " ")) {
-					$current.="$c";
+					$current .= "$c";
 					push(@args, $current);
-					$quote_char="";
-					$current="";
+					$quote_char = "";
+					$current = "";
 				} elsif (($quote_char eq '"' || $quote_char eq "'") && $p ne "\\") {
-					$current.="$c";
+					$current .= "$c";
 				} else {
-					$current.="$c";
-					$quote_char="$c";
+					$current .= "$c";
+					$quote_char = "$c";
 				}
 			} else {
-				$current.="$c";
-				$quote_char="$c";
+				$current .= "$c";
+				$quote_char = "$c";
 			}
 		} else {
-			$current.="$c";
+			$current .= "$c";
 		}
 	}
 
@@ -197,15 +197,15 @@ sub __parser {
 # myapp --Wno-strict-overflow= config
 sub __extracter {
 	# Vars.
-	my $l=$#args;
-	my @oldchains=();
-	my @foundflags=();
+	my $l = $#args;
+	my @oldchains = ();
+	my @foundflags = ();
 
 	# Loop over CLI arguments.
 	for my $i (1 .. $l) {
 		# Cache current loop item.
-		my $item=$args[$i];
-		my $nitem=$args[$i + 1];
+		my $item = $args[$i];
+		my $nitem = $args[$i + 1];
 
 		# Skip quoted (string) items.
 		if (__is_lquoted($item) == 1) {
@@ -214,7 +214,7 @@ sub __extracter {
 
 		# Reset next item if it's the last iteration.
 		if ($i == $l) {
-			$nitem="";
+			$nitem = "";
 		}
 
 		# If a command (does not start with a hyphen.)
@@ -222,13 +222,13 @@ sub __extracter {
 		# [https://www.thoughtco.com/perl-chr-ord-functions-quick-tutorial-2641190]
 		if (ord($item) != 45) {
 			# Store command.
-			$commandchain.=".$item";
+			$commandchain .= ".$item";
 			# Reset used flags.
-			@foundflags=();
+			@foundflags = ();
 		} else { # We have a flag.
 			# Store commandchain to revert to it if needed.
 			push(@oldchains, $commandchain);
-			$commandchain="";
+			$commandchain = "";
 
 			# If the flag contains an eq sign don't look ahead.
 			if (index($item, "=") != -1) {
@@ -245,19 +245,19 @@ sub __extracter {
 				if (ord($nitem) != 45) {
 					# Check whether flag is a boolean:
 					# Get the first non empty command chain.
-					my $oldchain="";
-					my $skipflagval=0;
-					for (my $j=($#oldchains); $j >= 0; $j--) {
-						my $chain=$oldchains[$j];
+					my $oldchain = "";
+					my $skipflagval = 0;
+					for (my $j = ($#oldchains); $j >= 0; $j--) {
+						my $chain = $oldchains[$j];
 						if ($chain) {
-							$oldchain="$chain";
+							$oldchain = "$chain";
 
 							# Lookup flag definitions from acmap.
-							my $pattern= '^' . "$maincommand$oldchain" . ' (\\-\\-.*)$';
+							my $pattern = '^' . "$maincommand$oldchain" . ' (\\-\\-.*)$';
 							if ($acmap =~ /$pattern/m) {
-								my $pattern="${item}\\?" . '(\\||$)';
+								my $pattern = "${item}\\?" . '(\\||$)';
 								if ($1 =~ /$pattern/) {
-									$skipflagval=1;
+									$skipflagval = 1;
 								}
 							}
 
@@ -268,7 +268,7 @@ sub __extracter {
 					# If the flag is not found then simply add the
 					# next item as its value.
 					if ($skipflagval == 0) {
-						push @foundflags, "$item=$nitem";
+						push @foundflags, "$item = $nitem";
 
 						# Increase index to skip added flag value.
 						$i++;
@@ -287,19 +287,19 @@ sub __extracter {
 			} else {
 				# Check whether flag is a boolean
 				# Get the first non empty command chain.
-				my $oldchain="";
-				my $skipflagval=0;
-				for (my $j=($#oldchains); $j >= 0; $j--) {
-					my $chain=$oldchains[$j];
+				my $oldchain = "";
+				my $skipflagval = 0;
+				for (my $j = ($#oldchains); $j >= 0; $j--) {
+					my $chain = $oldchains[$j];
 					if ($chain) {
-						$oldchain="$chain";
+						$oldchain = "$chain";
 
 						# Lookup flag definitions from acmap.
-						my $pattern= '^' . "$maincommand$oldchain" . ' (\\-\\-.*)$';
+						my $pattern = '^' . "$maincommand$oldchain" . ' (\\-\\-.*)$';
 						if ($acmap =~ /$pattern/m) {
-							my $pattern="${item}\\?" . '(\\||$)';
+							my $pattern = "${item}\\?" . '(\\||$)';
 							if ($1 =~ /$pattern/) {
-								$skipflagval=1;
+								$skipflagval = 1;
 							}
 						}
 
@@ -321,52 +321,52 @@ sub __extracter {
 	}
 
 	# Get the first non empty command chain.
-	my $oldchain="";
-	for (my $i=($#oldchains); $i >= 0; $i--) {
-		my $chain=$oldchains[$i];
+	my $oldchain = "";
+	for (my $i = ($#oldchains); $i >= 0; $i--) {
+		my $chain = $oldchains[$i];
 		if ($chain) {
-			$oldchain="$chain";
+			$oldchain = "$chain";
 			last;
 		}
 	}
 
 	# Revert commandchain to old chain if empty.
 	if (!$commandchain) {
-		$commandchain="$oldchain";
+		$commandchain = "$oldchain";
 	} else {
-		$commandchain="$commandchain";
+		$commandchain = "$commandchain";
 	}
 	# Prepend main command to chain.
-	$commandchain="$maincommand$commandchain";
+	$commandchain = "$maincommand$commandchain";
 
 	# Build used flags strings.
 	# Switch statement: [https://stackoverflow.com/a/22575299]
 	if (scalar(@foundflags) == 0) {
-		$usedflags="";
+		$usedflags = "";
 	} else {
-		$usedflags=join ' }|{ ', @foundflags;
+		$usedflags = join ' }|{ ', @foundflags;
 	}
 
 	# Determine whether to turn off autocompletion or not.
 	# Get the last word item.
-	my $lword=$args[-1];
+	my $lword = $args[-1];
 	if ($lastchar eq " ") {
 		if (ord($lword) == 45) {
 			if (index($lword, "?") != -1 || index($lword, "=") != -1) {
-				$autocompletion=1;
+				$autocompletion = 1;
 			} else {
-				$autocompletion=0;
+				$autocompletion = 0;
 			}
 		}
 	} else {
 		if (ord($lword) != 45) {
 			# Check if the second to last word is a flag.
-			my $sword=$args[-2];
+			my $sword = $args[-2];
 			if (ord($sword) == 45) {
 				if (index($sword, "?") != -1 || index($sword, "=") != -1) {
-					$autocompletion=1;
+					$autocompletion = 1;
 				} else {
-					$autocompletion=0;
+					$autocompletion = 0;
 				}
 			}
 		}
@@ -377,9 +377,9 @@ sub __extracter {
 		# Check for valid flag pattern?
 		if (ord($args[$i]) == 45) {
 			# Remove boolean marker from flag.
-			my $lastc=substr $args[$i], -1;
+			my $lastc =substr $args[$i], -1;
 			if ($lastc eq "?") {
-				$args[$i]=substr $args[$i], 0, -1;
+				$args[$i] =substr $args[$i], 0, -1;
 			}
 		}
 	}
@@ -388,19 +388,19 @@ sub __extracter {
 	# will be empty. Else set it to the last word.
 	# Switch statement: [https://stackoverflow.com/a/22575299]
 	if ($lastchar eq " ") {
-		$last="";
+		$last = "";
 	} else {
-		$last=$args[-1];
+		$last = $args[-1];
 	}
 
 	# Check whether last word is quoted or not.
 	if (__is_lquoted($last) == 1) {
-		$isquoted=1;
+		$isquoted = 1;
 	}
 }
 
 # Global flag only to be used for __dupecheck function.
-my $__dc_multiflags="";
+my $__dc_multiflags = "";
 
 # Check whether provided flag is already used or not.
 #
@@ -411,44 +411,44 @@ sub __dupecheck {
 	my ($flag) = @_;
 
 	# Var boolean.
-	my $dupe=0;
-	my $d="}|{"; # Delimiter.
+	my $dupe = 0;
+	my $d = "}|{"; # Delimiter.
 
 	# # Get individual components from flag.
-	my ($ckey) = $flag=~ /^([^=]*)/;
+	my ($ckey) = $flag =~ /^([^=]*)/;
 
 	# Regex → "--flag=value"
-	my $flgoptvalue="^\\-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\\-]{1,})?\\=\\*?.{1,}\$";
+	my $flgoptvalue = "^\\-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\\-]{1,})?\\=\\*?.{1,}\$";
 
 	# If its a multi-flag then let it through.
 	if (index($__dc_multiflags, " $ckey ") != -1) {
-		$dupe=0;
+		$dupe = 0;
 
 	# Valueless flag dupe check.
 	} elsif (index($flag, "=") == -1) {
 		if (index(" ${d} $usedflags ", " ${d} ${ckey} ") != -1) {
-			$dupe=1;
+			$dupe = 1;
 		}
 
 	# Flag with value dupe check.
 	} else {
 		# Count substring occurrences:
 		# [https://stackoverflow.com/a/9538604]
-		$ckey.="=";
+		$ckey .= "=";
 		my @c = $usedflags =~ /$ckey/g;
-		my $count= scalar(@c);
+		my $count = scalar(@c);
 
 		# More than 1 occurrence flag has been used.
 		if ($count >= 1) {
 		# if [[ $count -ge 1 && "$rows" != *"${ckey}*|"* ]]; then
-			$dupe=1;
+			$dupe = 1;
 		}
 
 		# If there is exactly 1 occurrence and the flag matches the
 		# ReGex pattern we undupe flag as the 1 occurrence is being
 		# completed (i.e. a value is being completed).
 		if ($count == 1 && $flag =~ /$flgoptvalue/) {
-			$dupe=0;
+			$dupe = 0;
 		}
 	}
 
@@ -461,9 +461,9 @@ sub __dupecheck {
 sub __lookup {
 	# Flag ReGex test patterns.
 	# Regex → "--flag="
-	my $flgopt= '--?[a-z0-9-]*=';
+	my $flgopt = '--?[a-z0-9-]*=';
 	# Regex → "--flag=value"
-	my $flgoptvalue= '^\-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\-]{1,})?\=\*?.{1,}$';
+	my $flgoptvalue = '^\-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\-]{1,})?\=\*?.{1,}$';
 
 	# Skip logic if last word is quoted or completion variable is off.
 	if ($isquoted == 1 || $autocompletion == 0) {
@@ -473,14 +473,14 @@ sub __lookup {
 	# Flag completion (last word starts with a hyphen):
 	if (ord($last) == 45) {
 		# Lookup flag definitions from acmap.
-		my $pattern= '^' . "$commandchain" . ' (\\-\\-.*)$';
+		my $pattern = '^' . "$commandchain" . ' (\\-\\-.*)$';
 		if ($acmap =~ /$pattern/m) {
 			# Continue if rows exist.
 			if ($1) {
-				my @used=();
+				my @used = ();
 
 				# Set completion type:
-				$type="flag";
+				$type = "flag";
 
 				# # Split rows by lines: [https://stackoverflow.com/a/11746174]
 				# while read -r row; do
@@ -500,20 +500,20 @@ sub __lookup {
 				foreach my $flag (@flags) {
 					# Remove boolean indicator from flag if present.
 					if ($flag =~ /\?$/) {
-						$flag=substr($flag, 0, -1);
+						$flag = substr($flag, 0, -1);
 					}
 
 					# Track multi-starred flags.
 					if ($flag =~ /\=\*/) {
 						my $rpl = $flag =~ s/\=\*//r;
-						$__dc_multiflags.=" $rpl ";
+						$__dc_multiflags .= " $rpl ";
 					}
 
 					# Unescape flag.
-					# $flag=__unescape($flag);
+					# $flag = __unescape($flag);
 
 					# Flag must start with the last word.
-					my $pattern= '^' . "$last";
+					my $pattern = '^' . "$last";
 					if ($flag =~ /$pattern/) {
 
 						# Note: If the last word is "--" or if the last
@@ -526,7 +526,7 @@ sub __lookup {
 						# No dupes unless it's a multi-starred flag.
 						if (__dupecheck($flag) == 0) {
 							# Remove "*" multi-flag marker from flag.
-							$flag=~ s/\=\*/=/;
+							$flag =~ s/\=\*/=/;
 
 							# If last word is in the form → "--flag=" then we
 							# need to remove the last word from the flag to
@@ -534,14 +534,14 @@ sub __lookup {
 							if ($last =~ /$flgopt/) {
 								# Copy flag to later reset flag key if no
 								# option was provided for it.
-								my $flagcopy="$flag";
+								my $flagcopy = "$flag";
 
 								# Reset flag to its option. If option is empty
 								# (no option) then default to flag's key.
 								# flag+="value"
-								($flag) = $flag=~ /=(.*)$/;
+								($flag) = $flag =~ /=(.*)$/;
 								if (!$flag) {
-									$flag="$flagcopy";
+									$flag = "$flagcopy";
 								}
 							}
 
@@ -553,11 +553,11 @@ sub __lookup {
 							# ----flags="value-string" then we do
 							# not add is to the completions list.
 							# Final option/value check.
-							my $__isquoted=0;
+							my $__isquoted = 0;
 							if (index($flag, "=") != -1) {
-								my ($ff) = $flag=~ /=(.*)$/;
+								my ($ff) = $flag =~ /=(.*)$/;
 								if (__is_lquoted(substr($ff || "", 0, 1)) == 1) {
-									$__isquoted=1;
+									$__isquoted = 1;
 								}
 							}
 
@@ -573,7 +573,7 @@ sub __lookup {
 								if (index($last, "=") == -1) {
 									push(@used, $last);
 								} else {
-									($flag) = $flag=~ /=(.*)$/;
+									($flag) = $flag =~ /=(.*)$/;
 									if ($flag) {
 										push(@completions, $flag);
 									}
@@ -592,24 +592,24 @@ sub __lookup {
 				# Since '7' is already used we remove that value to leave
 				# '77' so that on the next tab it can be completed to
 				# '--flag=77'.
-				my $l=$#completions;
+				my $l = $#completions;
 				# Get the value from the last word.
-				my ($val) = $last=~ /=(.*)$/;
+				my ($val) = $last =~ /=(.*)$/;
 				$val = $val || "";
 
 				# Note: Account for quoted strings. If the last value is
 				# quoted, then add closing quote.
 				if (__is_lquoted($val) == 1) {
 					# Get starting quote (i.e. " or ').
-					my $quote=substr($val, 0, 1);
+					my $quote = substr($val, 0, 1);
 					if (substr($val, -1) ne "$quote") {
-						$val.="$quote";
+						$val .= "$quote";
 					}
 
 					# Escape for double quoted strings.
-					$type="flag;quoted";
+					$type = "flag;quoted";
 					if ($quote eq "\"") {
-						$type.=";noescape";
+						$type .= ";noescape";
 					}
 
 					# If the value is empty return.
@@ -623,7 +623,7 @@ sub __lookup {
 				# option, and there are more than 2 possible completions
 				# we remove the already used option.
 				if (index($last, "=") != -1 && $val && $l >= 2) {
-					for (my $i=$l; $i >= 0; $i--) {
+					for (my $i = $l; $i >= 0; $i--) {
 						if (length($completions[$i]) == length($val)) {
 							# Remove item from array.
 							splice(@completions, $i, 1);
@@ -643,28 +643,28 @@ sub __lookup {
 	} else { # Command completion:
 
 		# Set completion type:
-		$type="command";
+		$type = "command";
 
 		# If command chain and used flags exits, don't complete.
 		if ($usedflags && $commandchain) {
 			# Reset commandchain and usedflags.
-			$commandchain="$maincommand.$last";
-			$usedflags="";
+			$commandchain = "$maincommand.$last";
+			$usedflags = "";
 		}
 
 		# Lookup command tree rows from acmap.
-		my @rows=();
+		my @rows = ();
 		# Replacement type.
-		my $rtype="";
+		my $rtype = "";
 		# Switch statement: [https://stackoverflow.com/a/22575299]
 		if ($lastchar eq " ") {
-			my $pattern= '^(' . "$commandchain" . '\\..*)$';
+			my $pattern = '^(' . "$commandchain" . '\\..*)$';
 			@rows = $acmap =~ /$pattern/mg;
-			$rtype=1;
+			$rtype = 1;
 		} else {
-			my $pattern='^' . "$commandchain" . '.[-:a-zA-Z0-9]* ';
+			my $pattern = '^' . "$commandchain" . '.[-:a-zA-Z0-9]* ';
 			@rows = $acmap =~ /$pattern/mg;
-			$rtype=2;
+			$rtype = 2;
 		}
 
 		# If no upper level exists for the commandchain check that
@@ -673,32 +673,32 @@ sub __lookup {
 		# the user presses the [tab] key to show the completion is
 		# complete for that word.
 		if (scalar(@rows) == 0) {
-			my $pattern='^' . "$commandchain" . ' ';
+			my $pattern = '^' . "$commandchain" . ' ';
 			@rows = $acmap =~ /$pattern/mg;
 			if (scalar(@rows) && $lastchar ne " ") {
 				# Add last command in chain.
-				@completions=(__last_command($rows[0], $rtype));
+				@completions = (__last_command($rows[0], $rtype));
 			}
 		} else {
 			# If caret is in the last position, the command tree
 			# exists, and the command tree does not contains any
 			# upper levels then we simply add the last word so
 			# that bash can add a space to it.
-			my $pattern='^' . "$commandchain" . ' ';
+			my $pattern = '^' . "$commandchain" . ' ';
 			my @row = $acmap =~ /$pattern/mg;
 			my $check1 = scalar(@row);
 
-			$pattern='^' . "$commandchain" . '[-:a-zA-Z0-9]+ ';
+			$pattern = '^' . "$commandchain" . '[-:a-zA-Z0-9]+ ';
 			@row = $acmap =~ /$pattern/mg;
 			my $check2 = scalar(@row);
 
 			if ($check1 > 0 && $check2 == 0 && $lastchar ne " ") {
-				@completions=($last);
+				@completions = ($last);
 			} else {
 				# Split rows by lines: [https://stackoverflow.com/a/11746174]
 				foreach my $row (@rows) {
 					# Get last command in chain.
-					$row=__last_command($row, $rtype);
+					$row = __last_command($row, $rtype);
 
 					# Add last command if it exists.
 					if ($row) {
@@ -711,7 +711,7 @@ sub __lookup {
 							# Since we are completing a command we only
 							# want words that start with the current
 							# command we are trying to complete.
-							my $pattern= '^' . "$last";
+							my $pattern = '^' . "$last";
 							if ($row =~ /$pattern/) {
 								push(@completions, $row);
 							}
@@ -735,7 +735,7 @@ sub __printer {
 
 	# Loop over completions and append to list.
 	for my $i (0 .. $#completions) {
-		$lines.="\n" . $completions[$i];
+		$lines .= "\n" . $completions[$i];
 	}
 
 	# Return data.

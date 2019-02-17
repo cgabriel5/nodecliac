@@ -937,10 +937,10 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 				for ((i = 0; i < "${#completions[@]}"; i++)); do
 					local word="${completions[i]}"
 
-					if [[ "$type" != *"noescape"* ]]; then
-						# Escape word.
-						word="`__escape "$word"`"
-					fi
+					# if [[ "$type" != *"noescape"* ]]; then
+					# 	# Escape word.
+					# 	word="`__escape "$word"`"
+					# fi
 
 					# # Note: bash-completion handles colons in a weird manner.
 					# # When a word completion contains a colon it will append

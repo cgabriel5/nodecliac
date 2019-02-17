@@ -92,7 +92,7 @@ sub __dupecheck {
 	}
 
 	# Return dupe boolean result.
-	return "$dupe";
+	return $dupe;
 }
 
 # Check whether string is left quoted (i.e. starts with a quote).
@@ -202,11 +202,11 @@ sub __parser {
 		if ($i >= ($l - 1)) {
 			# Only add if not a space character.
 			if ($c ne " " || $c eq " " && $p eq "\\") {
-				$current .= "$c";
+				$current .= $c;
 			}
 
 			# Store last char.
-			$lastchar = "$c";
+			$lastchar = $c;
 			# If last char is an escaped space then reset lastchar.
 			if ($c eq " " && $p eq "\\") { $lastchar = ""; }
 
@@ -216,7 +216,7 @@ sub __parser {
 		# If char is a space.
 		if ($c eq " " && $p ne "\\") {
 			if (length($quote_char) != 0) {
-				$current .= "$c";
+				$current .= $c;
 			} else {
 				if ($current ne "") {
 					push(@args, $current);
@@ -235,22 +235,22 @@ sub __parser {
 				# is args=(myapp run "some"--).
 				#
 				if ($quote_char eq $c && ($n eq "" || $n eq " ")) {
-					$current .= "$c";
+					$current .= $c;
 					push(@args, $current);
 					$quote_char = "";
 					$current = "";
 				} elsif (($quote_char eq '"' || $quote_char eq "'") && $p ne "\\") {
-					$current .= "$c";
+					$current .= $c;
 				} else {
-					$current .= "$c";
-					$quote_char = "$c";
+					$current .= $c;
+					$quote_char = $c;
 				}
 			} else {
-				$current .= "$c";
-				$quote_char = "$c";
+				$current .= $c;
+				$quote_char = $c;
 			}
 		} else {
-			$current .= "$c";
+			$current .= $c;
 		}
 	}
 
@@ -332,7 +332,7 @@ sub __extracter {
 					for (my $j = ($#oldchains); $j >= 0; $j--) {
 						my $chain = $oldchains[$j];
 						if ($chain) {
-							$oldchain = "$chain";
+							$oldchain = $chain;
 
 							# Lookup flag definitions from acmap.
 							my $pattern = '^' . "$maincommand$oldchain" . ' (\\-\\-.*)$';
@@ -373,7 +373,7 @@ sub __extracter {
 				for (my $j = ($#oldchains); $j >= 0; $j--) {
 					my $chain = $oldchains[$j];
 					if ($chain) {
-						$oldchain = "$chain";
+						$oldchain = $chain;
 
 						# Lookup flag definitions from acmap.
 						my $pattern = '^' . "$maincommand$oldchain" . ' (\\-\\-.*)$';
@@ -405,16 +405,16 @@ sub __extracter {
 	for (my $i = ($#oldchains); $i >= 0; $i--) {
 		my $chain = $oldchains[$i];
 		if ($chain) {
-			$oldchain = "$chain";
+			$oldchain = $chain;
 			last;
 		}
 	}
 
 	# Revert commandchain to old chain if empty.
 	if (!$commandchain) {
-		$commandchain = "$oldchain";
+		$commandchain = $oldchain;
 	} else {
-		$commandchain = "$commandchain";
+		$commandchain = $commandchain;
 	}
 	# Prepend main command to chain.
 	$commandchain = "$maincommand$commandchain";
@@ -495,7 +495,7 @@ sub __lookup {
 	# Flag completion (last word starts with a hyphen):
 	if (starts_with_hyphen($last)) {
 		# Lookup flag definitions from acmap.
-		my $pattern = '^' . "$commandchain" . ' (\\-\\-.*)$';
+		my $pattern = '^' . $commandchain . ' (\\-\\-.*)$';
 		if ($acmap =~ /$pattern/m) {
 			# Continue if rows exist.
 			if ($1) {
@@ -551,14 +551,14 @@ sub __lookup {
 							if ($last =~ /$flgopt/) {
 								# Copy flag to later reset flag key if no
 								# option was provided for it.
-								my $flagcopy = "$flag";
+								my $flagcopy = $flag;
 
 								# Reset flag to its option. If option is empty
 								# (no option) then default to flag's key.
 								# flag+="value"
 								($flag) = $flag =~ /=(.*)$/;
 								if (!$flag) {
-									$flag = "$flagcopy";
+									$flag = $flagcopy;
 								}
 							}
 
@@ -620,7 +620,7 @@ sub __lookup {
 					# Get starting quote (i.e. " or ').
 					my $quote = substr($val, 0, 1);
 					if (substr($val, -1) ne $quote) {
-						$val .= "$quote";
+						$val .= $quote;
 					}
 
 					# Escape for double quoted strings.
@@ -675,11 +675,11 @@ sub __lookup {
 		my $rtype = "";
 		# Switch statement: [https://stackoverflow.com/a/22575299]
 		if ($lastchar eq " ") {
-			my $pattern = '^(' . "$commandchain" . '\\..*)$';
+			my $pattern = '^(' . $commandchain . '\\..*)$';
 			@rows = $acmap =~ /$pattern/mg;
 			$rtype = 1;
 		} else {
-			my $pattern = '^' . "$commandchain" . '.[-:a-zA-Z0-9]* ';
+			my $pattern = '^' . $commandchain . '.[-:a-zA-Z0-9]* ';
 			@rows = $acmap =~ /$pattern/mg;
 			$rtype = 2;
 		}
@@ -690,7 +690,7 @@ sub __lookup {
 		# the user presses the [tab] key to show the completion is
 		# complete for that word.
 		if (scalar(@rows) == 0) {
-			my $pattern = '^' . "$commandchain" . ' ';
+			my $pattern = '^' . $commandchain . ' ';
 			@rows = $acmap =~ /$pattern/mg;
 			if (scalar(@rows) && $lastchar ne " ") {
 				# Add last command in chain.
@@ -701,11 +701,11 @@ sub __lookup {
 			# exists, and the command tree does not contains any
 			# upper levels then we simply add the last word so
 			# that bash can add a space to it.
-			my $pattern = '^' . "$commandchain" . ' ';
+			my $pattern = '^' . $commandchain . ' ';
 			my @row = $acmap =~ /$pattern/mg;
 			my $check1 = scalar(@row);
 
-			$pattern = '^' . "$commandchain" . '[-:a-zA-Z0-9]+ ';
+			$pattern = '^' . $commandchain . '[-:a-zA-Z0-9]+ ';
 			@row = $acmap =~ /$pattern/mg;
 			my $check2 = scalar(@row);
 
@@ -728,7 +728,7 @@ sub __lookup {
 							# Since we are completing a command we only
 							# want words that start with the current
 							# command we are trying to complete.
-							my $pattern = '^' . "$last";
+							my $pattern = '^' . $last;
 							if ($row =~ /$pattern/) {
 								push(@completions, $row);
 							}

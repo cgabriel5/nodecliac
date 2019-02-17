@@ -619,7 +619,7 @@ sub __lookup {
 				if (__is_lquoted($val)) {
 					# Get starting quote (i.e. " or ').
 					my $quote = substr($val, 0, 1);
-					if (substr($val, -1) ne "$quote") {
+					if (substr($val, -1) ne $quote) {
 						$val .= "$quote";
 					}
 

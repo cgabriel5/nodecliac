@@ -39,6 +39,62 @@ sub __debug {
 	print "autocompletion: '$autocompletion'\n";
 }
 
+# Global flag only to be used for __dupecheck function.
+my $__dc_multiflags = "";
+
+# Check whether provided flag is already used or not.
+#
+# @param {string} 1) - The flag to check.
+# @return {boolean} - True if duplicate. Else false.
+sub __dupecheck {
+	# Get provided flag arg.
+	my ($flag) = @_;
+
+	# Var boolean.
+	my $dupe = 0;
+	my $d = "}|{"; # Delimiter.
+
+	# Get individual components from flag.
+	my ($ckey) = $flag =~ /^([^=]*)/;
+
+	# Regex → "--flag=value"
+	my $flgoptvalue = "^\\-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\\-]{1,})?\\=\\*?.{1,}\$";
+
+	# If its a multi-flag then let it through.
+	if (includes($__dc_multiflags, " $ckey ")) {
+		$dupe = 0;
+
+	# Valueless flag dupe check.
+	} elsif (!includes($flag, "=")) {
+		if (includes(" ${d} $usedflags ", " ${d} ${ckey} ")) {
+			$dupe = 1;
+		}
+
+	# Flag with value dupe check.
+	} else {
+		# Count substring occurrences:
+		# [https://stackoverflow.com/a/9538604]
+		$ckey .= "=";
+		my @c = $usedflags =~ /$ckey/g;
+		my $count = scalar(@c);
+
+		# More than 1 occurrence flag has been used.
+		if ($count >= 1) {
+			$dupe = 1;
+		}
+
+		# If there is exactly 1 occurrence and the flag matches the
+		# ReGex pattern we undupe flag as the 1 occurrence is being
+		# completed (i.e. a value is being completed).
+		if ($count == 1 && $flag =~ /$flgoptvalue/) {
+			$dupe = 0;
+		}
+	}
+
+	# Return dupe boolean result.
+	return "$dupe";
+}
+
 # Check whether string is left quoted (i.e. starts with a quote).
 #
 # @param {string} 1) - The string to check.
@@ -421,63 +477,6 @@ sub __extracter {
 	if (__is_lquoted($last) == 1) {
 		$isquoted = 1;
 	}
-}
-
-# Global flag only to be used for __dupecheck function.
-my $__dc_multiflags = "";
-
-# Check whether provided flag is already used or not.
-#
-# @param {string} 1) - The flag to check.
-# @return {boolean} - True if duplicate. Else false.
-sub __dupecheck {
-	# Get provided flag arg.
-	my ($flag) = @_;
-
-	# Var boolean.
-	my $dupe = 0;
-	my $d = "}|{"; # Delimiter.
-
-	# # Get individual components from flag.
-	my ($ckey) = $flag =~ /^([^=]*)/;
-
-	# Regex → "--flag=value"
-	my $flgoptvalue = "^\\-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\\-]{1,})?\\=\\*?.{1,}\$";
-
-	# If its a multi-flag then let it through.
-	if (includes($__dc_multiflags, " $ckey ")) {
-		$dupe = 0;
-
-	# Valueless flag dupe check.
-	} elsif (!includes($flag, "=")) {
-		if (includes(" ${d} $usedflags ", " ${d} ${ckey} ")) {
-			$dupe = 1;
-		}
-
-	# Flag with value dupe check.
-	} else {
-		# Count substring occurrences:
-		# [https://stackoverflow.com/a/9538604]
-		$ckey .= "=";
-		my @c = $usedflags =~ /$ckey/g;
-		my $count = scalar(@c);
-
-		# More than 1 occurrence flag has been used.
-		if ($count >= 1) {
-		# if [[ $count -ge 1 && "$rows" != *"${ckey}*|"* ]]; then
-			$dupe = 1;
-		}
-
-		# If there is exactly 1 occurrence and the flag matches the
-		# ReGex pattern we undupe flag as the 1 occurrence is being
-		# completed (i.e. a value is being completed).
-		if ($count == 1 && $flag =~ /$flgoptvalue/) {
-			$dupe = 0;
-		}
-	}
-
-	# Return dupe boolean result.
-	return "$dupe";
 }
 
 # Lookup command/subcommand/flag definitions from the acmap to return

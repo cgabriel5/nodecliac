@@ -536,7 +536,7 @@ sub __lookup {
 						# Note: If the last word is "--" or if the last
 						# word is not in the form "--form= + a character",
 						# don't show flags with values (--flag=value).
-						if (!includes($last, "=") && $flag =~ /$flgoptvalue/ && substr($flag, -1) ne "\*") {
+						if (!includes($last, "=") && $flag =~ /$flgoptvalue/ && !($flag =~ m/\*$/)) {
 							next;
 						}
 

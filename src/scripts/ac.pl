@@ -457,8 +457,7 @@ sub __extracter {
 		# Check for valid flag pattern?
 		if (starts_with_hyphen($args[$i])) {
 			# Remove boolean marker from flag.
-			my $lastc = substr($args[$i], -1);
-			if ($lastc eq "?") {
+			if (substr($args[$i], -1) eq "?") {
 				$args[$i] = substr($args[$i], 0, -1);
 			}
 		}

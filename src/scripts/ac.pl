@@ -504,18 +504,12 @@ sub __lookup {
 				# Set completion type:
 				$type = "flag";
 
-				# # Split rows by lines: [https://stackoverflow.com/a/11746174]
-				# while read -r row; do
-				# # ^ Note: Since there is to be only a single row for
-				# # a command which includes all it's flags, looping over
-				# # the found 'rows' is not really needed. Leave/remove??
-
 				# If no flags exist skip line.
 				if ($1 eq "--") { return; }
 
-				# # Split by unescaped pipe '|' characters:
+				# Split by unescaped pipe '|' characters:
 				# [https://www.perlmonks.org/bare/?node_id=319761]
-				# my @ff = split(/(?<!\\)\|/, $ss);
+				# my @flags = split(/(?<!\\)\|/, $1);
 				my @flags = split(/(?:\\\\\|)|(?:(?<!\\)\|)/, $1);
 
 				# Loop over flags to process.
@@ -606,7 +600,6 @@ sub __lookup {
 						}
 					}
 				}
-				# done <<< "$rows"
 
 				# Note: If the last word (the flag in this case) is an
 				# options flag (i.e. --flag=val) we need to remove the

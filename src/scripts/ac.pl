@@ -535,7 +535,9 @@ sub __lookup {
 					# $flag = __unescape($flag);
 
 					# Flag must start with the last word.
-					my $pattern = '^' . "$last";
+					# Escape special chars: [https://stackoverflow.com/a/576459]
+					# [http://perldoc.perl.org/functions/quotemeta.html]
+					my $pattern = '^' . quotemeta($last);
 					if ($flag =~ /$pattern/) {
 
 						# Note: If the last word is "--" or if the last

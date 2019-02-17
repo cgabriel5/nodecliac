@@ -239,7 +239,6 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 
 				# More than 1 occurrence flag has been used.
 				if [[ $count -ge 1 ]]; then
-				# if [[ $count -ge 1 && "$rows" != *"${ckey}*|"* ]]; then
 					dupe=true
 				fi
 
@@ -321,6 +320,9 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 
 		# Parses CLI input. Returns input similar to that of process.argv.slice(2).
 		#     Adapted from argsplit module.
+		#
+		# @param {string} 1) - The string to parse.
+		# @return {undefined} - Noting is returned.
 		#
 		# @resource [https://github.com/evanlucas/argsplit]
 		# @resource - Other CLI input parsers:
@@ -473,7 +475,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 					nitem=
 				fi
 
-				# If a command.
+				# If a command (does not start with a hyphen.)
 				if [[ "$item" != -* ]]; then
 					# Store command.
 					commandchain+=".$item"

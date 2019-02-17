@@ -521,8 +521,7 @@ sub __lookup {
 
 					# Track multi-starred flags.
 					if ($flag =~ /\=\*/) {
-						my $rpl = $flag =~ s/\=\*//r;
-						$__dc_multiflags .= " $rpl ";
+						$__dc_multiflags .= " " . $flag =~ s/\=\*//r . " ";
 					}
 
 					# Unescape flag.

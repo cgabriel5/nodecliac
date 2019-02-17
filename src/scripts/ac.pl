@@ -424,7 +424,7 @@ sub __extracter {
 	if (scalar(@foundflags) == 0) {
 		$usedflags = "";
 	} else {
-		$usedflags = join ' }|{ ', @foundflags;
+		$usedflags = join(' }|{ ', @foundflags);
 	}
 
 	# Determine whether to turn off autocompletion or not.

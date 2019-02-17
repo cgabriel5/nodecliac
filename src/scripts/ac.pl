@@ -290,7 +290,7 @@ sub __extracter {
 		my $nitem = $args[$i + 1];
 
 		# Skip quoted (string) items.
-		if (__is_lquoted($item) == 1) {
+		if (__is_lquoted($item)) {
 			next;
 		}
 
@@ -473,7 +473,7 @@ sub __extracter {
 	}
 
 	# Check whether last word is quoted or not.
-	if (__is_lquoted($last) == 1) {
+	if (__is_lquoted($last)) {
 		$isquoted = 1;
 	}
 }
@@ -488,7 +488,7 @@ sub __lookup {
 	my $flgoptvalue = '^\-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\-]{1,})?\=\*?.{1,}$';
 
 	# Skip logic if last word is quoted or completion variable is off.
-	if ($isquoted == 1 || $autocompletion == 0) {
+	if ($isquoted || !$autocompletion) {
 		return;
 	}
 
@@ -546,7 +546,7 @@ sub __lookup {
 						}
 
 						# No dupes unless it's a multi-starred flag.
-						if (__dupecheck($flag) == 0) {
+						if (!__dupecheck($flag)) {
 							# Remove "*" multi-flag marker from flag.
 							$flag =~ s/\=\*/=/;
 
@@ -578,7 +578,7 @@ sub __lookup {
 							my $__isquoted = 0;
 							if (includes($flag, "=")) {
 								my ($ff) = $flag =~ /=(.*)$/;
-								if (__is_lquoted(substr($ff || "", 0, 1)) == 1) {
+								if (__is_lquoted(substr($ff || "", 0, 1))) {
 									$__isquoted = 1;
 								}
 							}
@@ -621,7 +621,7 @@ sub __lookup {
 
 				# Note: Account for quoted strings. If the last value is
 				# quoted, then add closing quote.
-				if (__is_lquoted($val) == 1) {
+				if (__is_lquoted($val)) {
 					# Get starting quote (i.e. " or ').
 					my $quote = substr($val, 0, 1);
 					if (substr($val, -1) ne "$quote") {
@@ -714,7 +714,7 @@ sub __lookup {
 			@row = $acmap =~ /$pattern/mg;
 			my $check2 = scalar(@row);
 
-			if ($check1 > 0 && $check2 == 0 && $lastchar ne " ") {
+			if ($check1 && !$check2 && $lastchar ne " ") {
 				@completions = ($last);
 			} else {
 				# Split rows by lines: [https://stackoverflow.com/a/11746174]

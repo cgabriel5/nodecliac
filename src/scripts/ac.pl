@@ -611,7 +611,8 @@ sub __lookup {
 				my $l = $#completions;
 				# Get the value from the last word.
 				my ($val) = $last =~ /=(.*)$/;
-				$val = $val || "";
+				# [https://perlmaven.com/how-to-set-default-values-in-perl]
+				$val //= "";
 
 				# Note: Account for quoted strings. If the last value is
 				# quoted, then add closing quote.

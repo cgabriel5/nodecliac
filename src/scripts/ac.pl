@@ -277,7 +277,7 @@ sub __parser {
 # myapp run "some" --flagsin command1 sub1 --flag1 val
 # myapp run -rd '' -a config
 # myapp --Wno-strict-overflow= config
-sub __extracter {
+sub __extractor {
 	# Vars.
 	my $l = $#args;
 	my @oldchains = ();
@@ -760,6 +760,6 @@ sub __printer {
 }
 
 # Completion logic:
-# <cli_input> → parser → extracter → lookup → printer
+# <cli_input> → parser → extractor → lookup → printer
 # Note: Supply CLI input from start to caret index.
-__parser(substr($cline, 0, $cpoint));__extracter();__lookup();__printer();
+__parser(substr($cline, 0, $cpoint));__extractor();__lookup();__printer();

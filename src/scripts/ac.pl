@@ -644,7 +644,7 @@ sub __lookup {
 				# If the last word contains an eq sign, it has a value
 				# option, and there are more than 2 possible completions
 				# we remove the already used option.
-				if (includes($last, "=") && $val && $l >= 2) {
+				if (includes($last, "=") && $val && ($l + 1) >= 2) {
 					for (my $i = $l; $i >= 0; $i--) {
 						if (length($completions[$i]) == length($val)) {
 							# Remove item from array.

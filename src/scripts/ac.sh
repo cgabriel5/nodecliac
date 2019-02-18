@@ -989,7 +989,30 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# Completion logic:
 		# <cli_input> → parser → extractor → lookup → printer
 		# Note: Supply CLI input from start to caret index.
-		__parser "${cline:0:$cpoint}";__extractor;__lookup;__printer
+		# __parser "${cline:0:$cpoint}";__extractor;__lookup;__printer
+
+		# Run ac perl script to get completions.
+		completion_scriptpath=~/.nodecliac/ac.pl
+		# Run completion script if it exists.
+		if [[ -f "$completion_scriptpath" ]]; then
+			output=`"$completion_scriptpath" "$cline" "$cpoint" "$maincommand" "$acmap"`
+			# "$completion_scriptpath" "$cline" "$cpoint" "$maincommand" "$acmap"
+
+			# Split rows by lines: [https://stackoverflow.com/a/11746174]
+			# [https://stackoverflow.com/a/10929511]
+			local i=0
+			while IFS='' read -r line || [[ -n "$line" ]]; do
+				# First line is meta info (completion type, last word, etc.).
+				if [[ "$i" == 0 ]]; then
+					type="${line%%:*}"
+					last="${line#*:}"
+				# Lines after the first are completion words.
+				else completions+=("$line"); fi
+				(( i++ ))
+			done <<< "$output"
+
+			__printer
+		fi
 	}
 
 	# complete -d -X '.[^./]*' -F _nodecliac "$1"

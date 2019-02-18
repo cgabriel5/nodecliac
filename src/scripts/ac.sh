@@ -453,7 +453,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# myapp run "some" --flagsin command1 sub1 --flag1 val
 		# myapp run -rd '' -a config
 		# myapp --Wno-strict-overflow= config
-		function __extracter() {
+		function __extractor() {
 			# Vars.
 			local l="${#args[@]}"
 			local oldchains=()
@@ -981,9 +981,9 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		}
 
 		# Completion logic:
-		# <cli_input> → parser → extracter → lookup → printer
+		# <cli_input> → parser → extractor → lookup → printer
 		# Note: Supply CLI input from start to caret index.
-		__parser "${cline:0:$cpoint}";__extracter;__lookup;__printer
+		__parser "${cline:0:$cpoint}";__extractor;__lookup;__printer
 	}
 
 	# complete -d -X '.[^./]*' -F _nodecliac "$1"

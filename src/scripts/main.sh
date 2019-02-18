@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # # Get platform name.
 # #
 # # @return {string} - User's platform.

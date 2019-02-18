@@ -223,9 +223,15 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			if [[ "$__dc_multiflags" == *" $ckey "* ]]; then
 				dupe=false
 
+				# Although a multi-starred flag, check if value has been
+				# used or not.
+				if [[ " $d $usedflags " =~ " $d $flag " ]]; then
+					dupe=true
+				fi
+
 			# Valueless flag dupe check.
 			elif [[ "$flag" != *"="* ]]; then
-				if [[ " ${d} $usedflags " =~ " ${d} ${ckey} " ]]; then
+				if [[ " $d $usedflags " =~ " $d $ckey " ]]; then
 					dupe=true
 				fi
 

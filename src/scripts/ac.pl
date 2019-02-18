@@ -64,9 +64,14 @@ sub __dupecheck {
 	if (includes($__dc_multiflags, " $ckey ")) {
 		$dupe = 0;
 
+		# Although a multi-starred flag, check if value has been used or not.
+		if (includes(" $d $usedflags ", " $d $flag ")) {
+			$dupe = 1;
+		}
+
 	# Valueless flag dupe check.
 	} elsif (!includes($flag, "=")) {
-		if (includes(" ${d} $usedflags ", " ${d} ${ckey} ")) {
+		if (includes(" $d $usedflags ", " $d $ckey ")) {
 			$dupe = 1;
 		}
 

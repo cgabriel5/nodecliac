@@ -26,8 +26,8 @@ module.exports = () => {
 				.toString()
 				// Inject acmap.
 				// .replace(/# \[\[__acmap__\]\]/, acmap)
-				// Remove comments/empty lines.
-				.replace(/^\s*#.*?$/gm, "")
+				// Remove comments/empty lines but leave sha-bang comment.
+				.replace(/^\s*#(?!\!).*?$/gm, "")
 				.replace(/\s{1,}#\s{1,}.+$/gm, "")
 				// .replace(/(^\s*#.*?$|\s{1,}#\s{1,}.*$)/gm, "")
 				.replace(/(\r\n\t|\n|\r\t){1,}/gm, "\n")

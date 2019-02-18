@@ -1,59 +1,59 @@
-# Get platform name.
-#
-# @return {string} - User's platform.
-#
-# @resource [https://stackoverflow.com/a/18434831]
-function __platform() {
-	case "$OSTYPE" in
-	  solaris*) echo "solaris" ;;
-	  darwin*)  echo "osx" ;;
-	  linux*)   echo "linux" ;;
-	  bsd*)     echo "bsd" ;;
-	  msys*)    echo "windows" ;;
-	  *)        echo "unknown" ;;
-	esac
-}
+# # Get platform name.
+# #
+# # @return {string} - User's platform.
+# #
+# # @resource [https://stackoverflow.com/a/18434831]
+# function __platform() {
+# 	case "$OSTYPE" in
+# 	  solaris*) echo "solaris" ;;
+# 	  darwin*)  echo "osx" ;;
+# 	  linux*)   echo "linux" ;;
+# 	  bsd*)     echo "bsd" ;;
+# 	  msys*)    echo "windows" ;;
+# 	  *)        echo "unknown" ;;
+# 	esac
+# }
 
-# Checks whether command exists.
-#
-# @param {string} 1) - Command name.
-# @return {string} - Command path if exists.
-#
-# @resource [https://stackoverflow.com/a/677212]
-function __exists() {
-	echo `command -v "$1"`
-}
+# # Checks whether command exists.
+# #
+# # @param {string} 1) - Command name.
+# # @return {string} - Command path if exists.
+# #
+# # @resource [https://stackoverflow.com/a/677212]
+# function __exists() {
+# 	echo `command -v "$1"`
+# }
 
-# Get default sed path + platform.
-sed_command=`__exists sed`
-platform=`__platform`
+# # Get default sed path + platform.
+# sed_command=`__exists sed`
+# platform=`__platform`
 
-# If on macOS/OS X check for sed version. Must have GNU version.
-if [[ "$platform" == "osx" ]]; then
-	# Check manual for sed flavor.
-	# [https://unix.stackexchange.com/a/27111]
-	sed_flavor="$(grep -o -m1 -e "BSD" -e "GNU" <<< `man sed` | head -1)"
-	if [[ "$sed_flavor" == "BSD" ]]; then
-		# Check for GNU version.
-		gnu_sed="/usr/local/bin/gsed"
-		if [[ ! -f "$gnu_sed" ]]; then
-			hdr="[nodecliac]:" # Line decor header.
-			# No GNU sed command found so return.
-			echo "${hdr}: BSD sed version found but GNU version required."
-			echo "${hdr}: -- Script registration aborted."
-			echo "${hdr}: GNU sed can be installed with homebrew like so:"
-			echo "${hdr}: $ brew install coreutils gnu-sed"
-			return
-		else
-			# Reset command to use gsed.
-			sed_command="$gnu_sed"
-		fi
-	fi
-fi
+# # If on macOS/OS X check for sed version. Must have GNU version.
+# if [[ "$platform" == "osx" ]]; then
+# 	# Check manual for sed flavor.
+# 	# [https://unix.stackexchange.com/a/27111]
+# 	sed_flavor="$(grep -o -m1 -e "BSD" -e "GNU" <<< `man sed` | head -1)"
+# 	if [[ "$sed_flavor" == "BSD" ]]; then
+# 		# Check for GNU version.
+# 		gnu_sed="/usr/local/bin/gsed"
+# 		if [[ ! -f "$gnu_sed" ]]; then
+# 			hdr="[nodecliac]:" # Line decor header.
+# 			# No GNU sed command found so return.
+# 			echo "${hdr}: BSD sed version found but GNU version required."
+# 			echo "${hdr}: -- Script registration aborted."
+# 			echo "${hdr}: GNU sed can be installed with homebrew like so:"
+# 			echo "${hdr}: $ brew install coreutils gnu-sed"
+# 			return
+# 		else
+# 			# Reset command to use gsed.
+# 			sed_command="$gnu_sed"
+# 		fi
+# 	fi
+# fi
 
-# Export needed data to access in completion script.
-# [https://stackoverflow.com/a/9772093]
-export __nodecliac_env="$platform:$sed_command"
+# # Export needed data to access in completion script.
+# # [https://stackoverflow.com/a/9772093]
+# export __nodecliac_env="$platform:$sed_command"
 
 # Get version information.
 vmajor=${BASH_VERSINFO[0]}

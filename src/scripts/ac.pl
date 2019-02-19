@@ -284,12 +284,12 @@ sub __parser {
 # myapp --Wno-strict-overflow= config
 sub __extractor {
 	# Vars.
-	my $l = $#args;
+	my $l = scalar(@args);
 	my @oldchains = ();
 	my @foundflags = ();
 
 	# Loop over CLI arguments.
-	for my $i (1 .. $l) {
+	for (my $i = 1; $i < $l; $i++) {
 		# Cache current loop item.
 		my $item = $args[$i];
 		my $nitem = $args[$i + 1];
@@ -300,7 +300,7 @@ sub __extractor {
 		}
 
 		# Reset next item if it's the last iteration.
-		if ($i == $l) {
+		if ($i == $l - 1) {
 			$nitem = "";
 		}
 

@@ -355,7 +355,7 @@ sub __extractor {
 					# If the flag is not found then simply add the
 					# next item as its value.
 					if ($skipflagval == 0) {
-						push(@foundflags, "$item = $nitem");
+						push(@foundflags, "$item=$nitem");
 
 						# Increase index to skip added flag value.
 						$i++;

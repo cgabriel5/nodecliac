@@ -61,23 +61,23 @@ sub __dupecheck {
 	my $flgoptvalue = "^\\-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\\-]{1,})?\\=\\*?.{1,}\$";
 
 	# If its a multi-flag then let it through.
-	if (includes($__dc_multiflags, " $ckey ")) {
+	if (__includes($__dc_multiflags, " $ckey ")) {
 		$dupe = 0;
 
 		# Although a multi-starred flag, check if value has been used or not.
-		if (includes(" $d $usedflags ", " $d $flag ")) {
+		if (__includes(" $d $usedflags ", " $d $flag ")) {
 			$dupe = 1;
 		}
 
 	# Valueless flag dupe check.
-	} elsif (!includes($flag, "=")) {
-		if (includes(" $d $usedflags ", " $d $ckey ") ||
+	} elsif (!__includes($flag, "=")) {
+		if (__includes(" $d $usedflags ", " $d $ckey ") ||
 			# Check is used as a flag with a value. This happens due
 			# to how the extractor is implemented. For example, the
 			# following flags in 'myapp --SOMETING value --' will be
 			# turned into ' }|{ --SOMETING=value }|{ -- '. Therefore,
 			# check if the flag was was actually used with a value.
-			includes(" $d $usedflags ", " $d $ckey=")) {
+			__includes(" $d $usedflags ", " $d $ckey=")) {
 			$dupe = 1;
 		}
 
@@ -159,7 +159,7 @@ sub __last_command {
 #
 # @resource [https://stackoverflow.com/a/34951053]
 # @resource [https://www.thoughtco.com/perl-chr-ord-functions-quick-tutorial-2641190]
-sub starts_with_hyphen {
+sub __starts_with_hyphen {
 	# Get arguments.
 	my ($string) = @_;
 
@@ -170,7 +170,7 @@ sub starts_with_hyphen {
 #
 # @param {string} 1) - The string to check.
 # @return {boolean} - 1 means substring is found in string.
-sub includes {
+sub __includes {
 	# Get arguments.
 	my ($string, $needle) = @_;
 
@@ -313,7 +313,7 @@ sub __extractor {
 		# If a command (does not start with a hyphen.)
 		# [https://stackoverflow.com/a/34951053]
 		# [https://www.thoughtco.com/perl-chr-ord-functions-quick-tutorial-2641190]
-		if (!starts_with_hyphen($item)) {
+		if (!__starts_with_hyphen($item)) {
 			# Store command.
 			$commandchain .= ".$item";
 			# Reset used flags.
@@ -324,7 +324,7 @@ sub __extractor {
 			$commandchain = "";
 
 			# If the flag contains an eq sign don't look ahead.
-			if (includes($item, "=")) {
+			if (__includes($item, "=")) {
 				push(@foundflags, $item);
 				next;
 			}
@@ -335,7 +335,7 @@ sub __extractor {
 			# the proper actions for both.
 			if ($nitem) {
 				# If the next word is a value...
-				if (!starts_with_hyphen($nitem)) {
+				if (!__starts_with_hyphen($nitem)) {
 					# Check whether flag is a boolean:
 					# Get the first non empty command chain.
 					my $oldchain = "";
@@ -442,19 +442,19 @@ sub __extractor {
 	# Get the last word item.
 	my $lword = $args[-1];
 	if ($lastchar eq " ") {
-		if (starts_with_hyphen($lword)) {
-			if (includes($lword, "?") || includes($lword, "=")) {
+		if (__starts_with_hyphen($lword)) {
+			if (__includes($lword, "?") || __includes($lword, "=")) {
 				$autocompletion = 1;
 			} else {
 				$autocompletion = 0;
 			}
 		}
 	} else {
-		if (!starts_with_hyphen($lword)) {
+		if (!__starts_with_hyphen($lword)) {
 			# Check if the second to last word is a flag.
 			my $sword = $args[-2];
-			if (starts_with_hyphen($sword)) {
-				if (includes($sword, "?") || includes($sword, "=")) {
+			if (__starts_with_hyphen($sword)) {
+				if (__includes($sword, "?") || __includes($sword, "=")) {
 					$autocompletion = 1;
 				} else {
 					$autocompletion = 0;
@@ -466,7 +466,7 @@ sub __extractor {
 	# Remove boolean indicator from flags.
 	for my $i (0 .. $#args) {
 		# Check for valid flag pattern?
-		if (starts_with_hyphen($args[$i])) {
+		if (__starts_with_hyphen($args[$i])) {
 			# Remove boolean marker from flag.
 			if (substr($args[$i], -1) eq "?") {
 				$args[$i] = substr($args[$i], 0, -1);
@@ -504,7 +504,7 @@ sub __lookup {
 	}
 
 	# Flag completion (last word starts with a hyphen):
-	if (starts_with_hyphen($last)) {
+	if (__starts_with_hyphen($last)) {
 		# Lookup flag definitions from acmap.
 		my $pattern = '^' . $commandchain . ' (\\-\\-.*)$';
 		if ($acmap =~ /$pattern/m) {
@@ -547,7 +547,7 @@ sub __lookup {
 						# Note: If the last word is "--" or if the last
 						# word is not in the form "--form= + a character",
 						# don't show flags with values (--flag=value).
-						if (!includes($last, "=") && $flag =~ /$flgoptvalue/ && !($flag =~ m/\*$/)) {
+						if (!__includes($last, "=") && $flag =~ /$flgoptvalue/ && !($flag =~ m/\*$/)) {
 							next;
 						}
 
@@ -582,7 +582,7 @@ sub __lookup {
 							# not add is to the completions list.
 							# Final option/value check.
 							my $__isquoted = 0;
-							if (includes($flag, "=")) {
+							if (__includes($flag, "=")) {
 								my ($ff) = $flag =~ /=(.*)$/;
 								if (__is_lquoted(substr($ff || "", 0, 1))) {
 									$__isquoted = 1;
@@ -598,7 +598,7 @@ sub __lookup {
 						} else {
 							# If flag exits and is already used then add a space after it.
 							if ($flag eq $last) {
-								if (!includes($last, "=")) {
+								if (!__includes($last, "=")) {
 									push(@used, $last);
 								} else {
 									($flag) = $flag =~ /=(.*)$/;
@@ -650,7 +650,7 @@ sub __lookup {
 				# If the last word contains an eq sign, it has a value
 				# option, and there are more than 2 possible completions
 				# we remove the already used option.
-				if (includes($last, "=") && $val && ($l + 1) >= 2) {
+				if (__includes($last, "=") && $val && ($l + 1) >= 2) {
 					for (my $i = $l; $i >= 0; $i--) {
 						if (length($completions[$i]) == length($val)) {
 							# Remove item from array.

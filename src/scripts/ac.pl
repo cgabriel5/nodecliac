@@ -210,7 +210,7 @@ sub __parser {
 	}
 
 	# Loop over every input char: [https://stackoverflow.com/q/10487316]
-	for my $i (0 .. ($cline_length - 1)) {
+	for (my $i = 0; $i < $cline_length; $i++) {
 		# Cache current/previous/next chars.
 		my $c = substr($input, $i, 1);
 		my $p = substr($input, $i - 1, 1);

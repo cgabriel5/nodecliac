@@ -695,20 +695,21 @@ sub __lookup {
 			$usedflags = "";
 		}
 
-		# Lookup command tree rows from acmap.
-		my @rows = ();
-		# Replacement type.
-		my $rtype = "";
-		# Switch statement: [https://stackoverflow.com/a/22575299]
-		if ($lastchar eq " ") {
-			my $pattern = '^(' . $commandchain . '\\..*)$';
-			@rows = $acmap =~ /$pattern/mg;
-			$rtype = 1;
-		} else {
-			my $pattern = '^' . $commandchain . '.[-:a-zA-Z0-9]* ';
-			@rows = $acmap =~ /$pattern/mg;
+		# Lookup all command tree rows from acmap once and store.
+		my $pattern = '^' . $commandchain . '.*$';
+		my @data = $acmap =~ /$pattern/mg;
+		my @rows = (); # Store filtered data.
+		my $lastchar_notspace = ($lastchar ne " ");
+
+		# Determine last command replacement type and initial data filter.
+		$pattern = '^(' . $commandchain . '\\..*)$';
+		my $rtype = 1; # Replacement type.
+		if ($lastchar_notspace) {
+			$pattern = '^' . $commandchain . '.[-:a-zA-Z0-9]* ';
 			$rtype = 2;
 		}
+		# Filter rows instead of looking up entire file again.
+		@rows = grep(/$pattern/, @data);
 
 		# If no upper level exists for the commandchain check that
 		# the current chain is valid. If valid, add the last command
@@ -717,25 +718,29 @@ sub __lookup {
 		# complete for that word.
 		if (scalar(@rows) == 0) {
 			my $pattern = '^' . $commandchain . ' ';
-			@rows = $acmap =~ /$pattern/mg;
-			if (scalar(@rows) && $lastchar ne " ") {
+			# Filter rows instead of looking up entire file again.
+			@rows = grep(/$pattern/, @data);
+
+			if (scalar(@rows) && $lastchar_notspace) {
 				# Add last command in chain.
 				@completions = (__last_command($rows[0], $rtype));
 			}
 		} else {
-			# If caret is in the last position, the command tree
-			# exists, and the command tree does not contains any
-			# upper levels then we simply add the last word so
-			# that bash can add a space to it.
-			my $pattern = '^' . $commandchain . ' ';
-			my @row = $acmap =~ /$pattern/mg;
-			my $check1 = scalar(@row);
+			# Last word checks:
+			$pattern = '^' . $commandchain . ' ';
+			# Filter rows instead of looking up entire file again.
+			my $check1 = scalar(grep(/$pattern/, @data));
 
 			$pattern = '^' . $commandchain . '[-:a-zA-Z0-9]+ ';
-			@row = $acmap =~ /$pattern/mg;
-			my $check2 = scalar(@row);
+			# Filter rows instead of looking up entire file again.
+			my $check2 = scalar(grep(/$pattern/, @data));
 
-			if ($check1 && !$check2 && $lastchar ne " ") {
+			# If caret is in the last position (not a space), the
+			# command tree exists, and the command tree does not
+			# contain any upper levels then we simply add the last
+			# word so that bash can add a space to it.
+			if ($check1 && !$check2 && $lastchar_notspace) {
+				# Add last command in chain.
 				@completions = ($last);
 			} else {
 				# Split rows by lines: [https://stackoverflow.com/a/11746174]
@@ -750,7 +755,7 @@ sub __lookup {
 						# command. (should we check that the character
 						# is one of the allowed command chars,
 						# i.e. [a-zA-Z-:]).
-						if ($lastchar ne " ") {
+						if ($lastchar_notspace) {
 							# Since we are completing a command we only
 							# want words that start with the current
 							# command we are trying to complete.

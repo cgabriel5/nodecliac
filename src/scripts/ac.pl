@@ -1,6 +1,10 @@
 #!/usr/bin/perl
-use strict;
-use warnings;
+
+# [https://stackoverflow.com/questions/8023959/why-use-strict-and-warnings]
+# [http://perldoc.perl.org/functions/use.html]
+# use strict;
+# use warnings;
+# use diagnostics;
 
 # Get command name from sourced passed-in argument.
 my $maincommand = $ARGV[2];

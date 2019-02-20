@@ -181,6 +181,17 @@ sub __includes {
 	return (index($string, $needle) == -1) ? 0 : 1;
 }
 
+# Removes duplicate values from provided array.
+#
+# @param {string} 1) - The provided array.
+# @return {undefined} - Nothing is returned.
+#
+# @resource [https://stackoverflow.com/a/7657]
+sub __unique {
+	my %seen;
+	grep(!$seen{$_}++, @_);
+}
+
 # Parses CLI input. Returns input similar to that of process.argv.slice(2).
 #     Adapted from argsplit module.
 #
@@ -756,6 +767,9 @@ sub __lookup {
 				}
 			}
 		}
+
+		# Remove duplicate completion values.
+		@completions = __unique(@completions);
 	}
 }
 

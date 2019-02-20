@@ -71,7 +71,13 @@ sub __dupecheck {
 
 	# Valueless flag dupe check.
 	} elsif (!includes($flag, "=")) {
-		if (includes(" $d $usedflags ", " $d $ckey ")) {
+		if (includes(" $d $usedflags ", " $d $ckey ") ||
+			# Check is used as a flag with a value. This happens due
+			# to how the extractor is implemented. For example, the
+			# following flags in 'myapp --SOMETING value --' will be
+			# turned into ' }|{ --SOMETING=value }|{ -- '. Therefore,
+			# check if the flag was was actually used with a value.
+			includes(" $d $usedflags ", " $d $ckey=")) {
 			$dupe = 1;
 		}
 

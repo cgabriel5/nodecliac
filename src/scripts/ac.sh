@@ -231,7 +231,13 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 
 			# Valueless flag dupe check.
 			elif [[ "$flag" != *"="* ]]; then
-				if [[ " $d $usedflags " =~ " $d $ckey " ]]; then
+				if [[ " $d $usedflags " =~ " $d $ckey "
+					# Check is used as a flag with a value. This happens due
+					# to how the extractor is implemented. For example, the
+					# following flags in 'myapp --SOMETING value --' will be
+					# turned into ' }|{ --SOMETING=value }|{ -- '. Therefore,
+					# check if the flag was was actually used with a value.
+					|| " $d $usedflags " =~ " $d $ckey=" ]]; then
 					dupe=true
 				fi
 

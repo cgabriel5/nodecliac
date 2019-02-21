@@ -32,7 +32,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		local nextchar="${cline:$cpoint:1}" # Character after caret.
 		local cline_length="${#cline}" # Original input's length.
 		local isquoted=false
-		local autocompletion=true
+		local output=""
 
 		# Boolean indicating whether to escape/unescape flags. Setting it to
 		# true does incur a performance hit. As a result, completions might
@@ -932,8 +932,12 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# Send all possible completions to bash.
 		function __printer() {
 			if [[ "$type" == "command" ]]; then
-				COMPREPLY=($(compgen -W "`__join ' ' "${completions[@]}"`" -- ""))
-				__ltrim_colon_completions "$last"
+				# Set completions string.
+				while IFS='' read -r line || [[ -n "$line" ]]; do
+					COMPREPLY=($(compgen -W "$line" -- ""))
+					__ltrim_colon_completions "$last"
+					break
+				done < <(tail -n +2 <<< "$output")
 			elif [[ "$type" == *"flag"* ]]; then
 				# Note: Disable bash's default behavior of adding a trailing space
 				# to completions when hitting the [tab] key. This will be handle
@@ -945,50 +949,59 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 					compopt -o nospace 2> /dev/null
 				fi
 
-				# Print and add right pad spacing to possibilities where necessary.
-				for ((i = 0; i < "${#completions[@]}"; i++)); do
-					local word="${completions[i]}"
+				# Split rows by lines: [https://stackoverflow.com/a/11746174]
+				# [https://stackoverflow.com/a/10929511]
+				while IFS='' read -r line || [[ -n "$line" ]]; do
+					COMPREPLY+=("$line")
+				# Start reading at second line: [https://askubuntu.com/a/289235]
+				# [https://stackoverflow.com/a/24894628]
+				done < <(tail -n +2 <<< "$output")
+				# done <<< "$output"
 
-					# if [[ "$type" != *"noescape"* ]]; then
-					# 	# Escape word.
-					# 	word="`__escape "$word"`"
-					# fi
+				# # Print and add right pad spacing to possibilities where necessary.
+				# for ((i = 0; i < "${#completions[@]}"; i++)); do
+				# 	local word="${completions[i]}"
 
-					# # Note: bash-completion handles colons in a weird manner.
-					# # When a word completion contains a colon it will append
-					# # the current completion word with the last word. For,
-					# # example: say the last word is "js:" and the completion
-					# # word is "js:bundle". Bash will output to console:
-					# # "js:js:bundle". Therefore, we need to left trim the
-					# # 'coloned' part of the completion word. In other words,
-					# # we turn the completion word, for example, "js:bundle" to
-					# # "bundle" so that bash could then properly complete the word.
-					# # [https://github.com/scop/bash-completion/blob/master/bash_completion#L498]
-					# if [[ "$word" == *":"* ]]; then
-					# 	# Remove colon-word prefix from COMPREPLY items
-					# 	# Example: 'js:build'
-					# 	colon_prefix=${word%"${word##*:}"} # 'js:'
-					# 	word="${word#"$colon_prefix"}" # 'build'
+				# 	# if [[ "$type" != *"noescape"* ]]; then
+				# 	# 	# Escape word.
+				# 	# 	word="`__escape "$word"`"
+				# 	# fi
 
-					# 	# # Remove colon-word prefix from COMPREPLY items
-					# 	# local colon_word=${word%"${word##*:}"}
-					# 	# word="${word#"$colon_word"}"
-					# fi
+				# 	# # Note: bash-completion handles colons in a weird manner.
+				# 	# # When a word completion contains a colon it will append
+				# 	# # the current completion word with the last word. For,
+				# 	# # example: say the last word is "js:" and the completion
+				# 	# # word is "js:bundle". Bash will output to console:
+				# 	# # "js:js:bundle". Therefore, we need to left trim the
+				# 	# # 'coloned' part of the completion word. In other words,
+				# 	# # we turn the completion word, for example, "js:bundle" to
+				# 	# # "bundle" so that bash could then properly complete the word.
+				# 	# # [https://github.com/scop/bash-completion/blob/master/bash_completion#L498]
+				# 	# if [[ "$word" == *":"* ]]; then
+				# 	# 	# Remove colon-word prefix from COMPREPLY items
+				# 	# 	# Example: 'js:build'
+				# 	# 	colon_prefix=${word%"${word##*:}"} # 'js:'
+				# 	# 	word="${word#"$colon_prefix"}" # 'build'
 
-					# Add trailing space to all completions except to flag
-					# completions that end with a trailing eq sign, commands
-					# that have trailing characters (commands that are being
-					# completed in the middle), and flag string completions
-					# (i.e. --flag="some-word...).
-					if [[ "$word" != *"="
-						&& `__is_lquoted "$word"` == false
-						&& -z "$nextchar" ]]; then
-						word+=" "
-					fi
+				# 	# 	# # Remove colon-word prefix from COMPREPLY items
+				# 	# 	# local colon_word=${word%"${word##*:}"}
+				# 	# 	# word="${word#"$colon_word"}"
+				# 	# fi
 
-					# Log possibility for bash.
-					COMPREPLY+=("$word")
-				done
+				# 	# # Add trailing space to all completions except to flag
+				# 	# # completions that end with a trailing eq sign, commands
+				# 	# # that have trailing characters (commands that are being
+				# 	# # completed in the middle), and flag string completions
+				# 	# # (i.e. --flag="some-word...).
+				# 	# if [[ "$word" != *"="
+				# 	# 	&& `__is_lquoted "$word"` == false
+				# 	# 	&& -z "$nextchar" ]]; then
+				# 	# 	word+=" "
+				# 	# fi
+
+				# 	# Log possibility for bash.
+				# 	COMPREPLY+=("$word")
+				# done
 			fi
 		}
 
@@ -1004,19 +1017,13 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			output=`"$completion_scriptpath" "$cline" "$cpoint" "$maincommand" "$acmap"`
 			# "$completion_scriptpath" "$cline" "$cpoint" "$maincommand" "$acmap"
 
-			# Split rows by lines: [https://stackoverflow.com/a/11746174]
-			# [https://stackoverflow.com/a/10929511]
-			local i=0
-			while IFS='' read -r line || [[ -n "$line" ]]; do
-				# First line is meta info (completion type, last word, etc.).
-				if [[ "$i" == 0 ]]; then
-					type="${line%%:*}"
-					last="${line#*:}"
-				# Lines after the first are completion words.
-				else completions+=("$line"); fi
-				(( i++ ))
-			done <<< "$output"
+			# First line is meta info (completion type, last word, etc.).
+			# [https://stackoverflow.com/a/2440685]
+			read -r firstline <<< "$output"
+			type="${firstline%%:*}"
+			last="${firstline#*:}"
 
+			# Finally, add words to COMPREPLY.
 			__printer
 		fi
 	}

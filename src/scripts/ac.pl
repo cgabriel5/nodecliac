@@ -784,9 +784,36 @@ sub __printer {
 	my $lines = "$type:$last";
 	# ^ The first line will contain meta information about the completion.
 
+	# Check whether completing a command.
+	my $iscommand = $type eq "command";
+	# Add new line if completing a command.
+	if ($iscommand) { $lines .= "\n"; }
+
+	# Determine what list delimiter to use.
+	my $sep = ($iscommand) ? " " : "\n";
+	# Check completing flags.
+	my $isflag_type = __includes($type, "flag");
+
 	# Loop over completions and append to list.
 	for my $i (0 .. $#completions) {
-		$lines .= "\n" . $completions[$i];
+		# Cache completion.
+		my $completion = $completions[$i];
+
+		# Append completion line.
+		$lines .= "$sep$completion";
+
+		# Add trailing space to all completions except to flag
+		# completions that end with a trailing eq sign, commands
+		# that have trailing characters (commands that are being
+		# completed in the middle), and flag string completions
+		# (i.e. --flag="some-word...).
+		if ($isflag_type
+			&& !__includes($completion, "=")
+			&& !__is_lquoted($completion)
+			&& !$nextchar
+		) {
+			$lines .= " ";
+		}
 	}
 
 	# Return data.

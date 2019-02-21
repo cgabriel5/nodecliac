@@ -1011,11 +1011,11 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# __parser "${cline:0:$cpoint}";__extractor;__lookup;__printer
 
 		# Run ac perl script to get completions.
-		completion_scriptpath=~/.nodecliac/ac.pl
+		acpl_script=~/.nodecliac/ac.pl
 		# Run completion script if it exists.
-		if [[ -f "$completion_scriptpath" ]]; then
-			output=`"$completion_scriptpath" "$cline" "$cpoint" "$maincommand" "$acmap"`
-			# "$completion_scriptpath" "$cline" "$cpoint" "$maincommand" "$acmap"
+		if [[ -f "$acpl_script" ]]; then
+			output=`"$acpl_script" "$cline" "$cpoint" "$maincommand" "$acmap"`
+			# "$acpl_script" "$cline" "$cpoint" "$maincommand" "$acmap"
 
 			# First line is meta info (completion type, last word, etc.).
 			# [https://stackoverflow.com/a/2440685]

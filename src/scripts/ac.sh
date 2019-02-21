@@ -40,7 +40,20 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		local cleaninput=false
 
 		# Get the acmap definitions file.
-		local acmap="$(<~/.nodecliac/defs/$maincommand*)"
+		local acmappath="$HOME/.nodecliac/defs/$maincommand"
+		local acmapexists=false
+		# Find acmap file: [https://stackoverflow.com/a/6364244]
+		for f in ~/.nodecliac/defs/*; do
+			# If file matches file pattern then acmap file exists.
+			if [[ "$f" == "$acmappath."* ]]; then
+				acmappath="$f"; acmapexists=true; break
+			fi
+		done
+		# Return if definitions file does not exist.
+		if [[ "$acmapexists" == false ]]; then return; fi
+
+		# Get acmap file contents.
+		local acmap="$(<$acmappath)"
 # [https://serverfault.com/questions/72476/clean-way-to-write-complex-multi-line-string-to-a-variable/424601#424601]
 # local acmap=`cat <<EOF
 # # [[__acmap__]]

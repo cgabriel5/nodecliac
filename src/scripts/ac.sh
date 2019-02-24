@@ -32,28 +32,30 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		local nextchar="${cline:$cpoint:1}" # Character after caret.
 		local cline_length="${#cline}" # Original input's length.
 		local isquoted=false
+		# local autocompletion=true
 		local output=""
 
-		# Boolean indicating whether to escape/unescape flags. Setting it to
-		# true does incur a performance hit. As a result, completions might
-		# not 'feel' as fast.
-		local cleaninput=false
+		# # Boolean indicating whether to escape/unescape flags. Setting it to
+		# # true does incur a performance hit. As a result, completions might
+		# # not 'feel' as fast.
+		# local cleaninput=false
 
-		# Get the acmap definitions file.
-		local acmappath="$HOME/.nodecliac/defs/$maincommand"
-		local acmapexists=false
-		# Find acmap file: [https://stackoverflow.com/a/6364244]
-		for f in ~/.nodecliac/defs/*; do
-			# If file matches file pattern then acmap file exists.
-			if [[ "$f" == "$acmappath."* ]]; then
-				acmappath="$f"; acmapexists=true; break
-			fi
-		done
-		# Return if definitions file does not exist.
-		if [[ "$acmapexists" == false ]]; then return; fi
+		# # Get the acmap definitions file.
+		# local acmappath="$HOME/.nodecliac/defs/$maincommand"
+		# local acmapexists=false
+		# # Find acmap file: [https://stackoverflow.com/a/6364244]
+		# for f in ~/.nodecliac/defs/*; do
+		# 	# If file matches file pattern then acmap file exists.
+		# 	if [[ "$f" == "$acmappath."* ]]; then
+		# 		acmappath="$f"; acmapexists=true; break
+		# 	fi
+		# done
+		# # Return if definitions file does not exist.
+		# if [[ "$acmapexists" == false ]]; then return; fi
 
 		# Get acmap file contents.
-		local acmap="$(<$acmappath)"
+		# local acmap="$(<~/.nodecliac/defs/$maincommand*)"
+		local acmap="$(<~/.nodecliac/defs/$maincommand.acdef)"
 # [https://serverfault.com/questions/72476/clean-way-to-write-complex-multi-line-string-to-a-variable/424601#424601]
 # local acmap=`cat <<EOF
 # # [[__acmap__]]

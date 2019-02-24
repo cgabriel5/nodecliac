@@ -63,20 +63,27 @@ module.exports = args => {
 		}
 
 		// Generate acmap.
-		let acmap = parser(fs.readFileSync(source).toString(), source);
+		let { acdef: acmap, config } = parser(
+			fs.readFileSync(source).toString(),
+			source
+		);
 		let savename = `${commandname}.acdef`;
+		let saveconfigname = `.${commandname}.config.acdef`;
 
 		// Save definitions file to source location when flag is provided.
 		if (save) {
 			fs.writeFileSync(path.join(fi.dirname, savename), acmap);
+			fs.writeFileSync(path.join(fi.dirname, saveconfigname), config);
 		}
 
 		// Add to maps location if add flag provided.
 		if (add) {
 			let commandpath = path.join(acmapspath, savename);
+			let commandconfigpath = path.join(acmapspath, saveconfigname);
 			if (!fe.sync(commandpath) || args.force) {
 				// Save file to map location.
 				fs.writeFileSync(commandpath, acmap);
+				fs.writeFileSync(commandconfigpath, config);
 				log(`${chalk.bold(commandname)} acmap added.`);
 			} else {
 				log(
@@ -89,7 +96,10 @@ module.exports = args => {
 
 		// Log acmap file contents if print flag provided.
 		if (print) {
+			console.log("[ACMAP_FILE]\n");
 			console.log(acmap);
+			console.log("\n[ACMAP_CONFIG]\n");
+			console.log(config);
 		}
 	});
 };

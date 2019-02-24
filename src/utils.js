@@ -62,6 +62,11 @@ let paths = (function(os, path) {
 	let acscriptpath = path.join(homedir, `.${cdirname}/${acscriptname}`);
 	let acplscriptname = "ac.pl";
 	let acplscriptpath = path.join(homedir, `.${cdirname}/${acplscriptname}`);
+	let acplscriptconfigname = "config.pl";
+	let acplscriptconfigpath = path.join(
+		homedir,
+		`.${cdirname}/${acplscriptconfigname}`
+	);
 	let acmapspath = path.join(homedir, `.${cdirname}/defs`);
 
 	return {
@@ -75,6 +80,7 @@ let paths = (function(os, path) {
 		acscriptpath,
 		acplscriptname,
 		acplscriptpath,
+		acplscriptconfigpath,
 		acmapspath
 	};
 })(os, path);

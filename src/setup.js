@@ -42,6 +42,7 @@ module.exports = () => {
 		mscriptpath,
 		acscriptpath,
 		acplscriptpath,
+		acplscriptconfigpath,
 		acmapspath
 	} = paths;
 
@@ -82,8 +83,10 @@ module.exports = () => {
 			script("scripts/ac.sh", acscriptpath);
 			script("scripts/main.sh", mscriptpath);
 			script("scripts/ac.pl", acplscriptpath);
-			// Make perl ac script executable.
+			script("scripts/config.pl", acplscriptconfigpath);
+			// Make perl scripts executable.
 			fs.chmodSync(acplscriptpath, "775");
+			fs.chmodSync(acplscriptconfigpath, "775");
 
 			// Give success message.
 			log(chalk.green("Setup successful."));

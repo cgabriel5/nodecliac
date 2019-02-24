@@ -12,7 +12,15 @@ const args = minimist(process.argv.slice(2));
 // Get the provided action to run.
 const [action] = args._;
 // Allowed actions.
-const actions = ["setup", "uninstall", "list", "make", "remove", "add"];
+const actions = [
+	"setup",
+	"uninstall",
+	"list",
+	"make",
+	"remove",
+	"add",
+	"status"
+];
 
 // Run action's respective file if provided.
 if (action) {

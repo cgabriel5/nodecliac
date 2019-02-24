@@ -7,9 +7,11 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# Get command name from sourced passed-in argument.
 		local maincommand="$1"
 
-		# Get nodecliac environment variable.
-		# platform="${__nodecliac_env%%:*}"
-		sed_command="${__nodecliac_env#*:}"
+		# Return if nodecliac is disabled but allow nodecliac completions.
+		if [[ -f "$HOME/.nodecliac/.disable"
+			&& "$maincommand" != "nodecliac" ]]; then
+			return
+		fi
 
 		# Built-in auto completion vars.
 		# local cur="${COMP_WORDS[COMP_CWORD]}" # Currently typed in word.

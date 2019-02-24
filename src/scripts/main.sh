@@ -57,6 +57,9 @@
 # # [https://stackoverflow.com/a/9772093]
 # export __nodecliac_env="$platform:$sed_command"
 
+# # Return if nodecliac is disabled.
+# if [[ -f "$HOME/.nodecliac/.disable" ]]; then return; fi
+
 # Get version information.
 vmajor=${BASH_VERSINFO[0]}
 vminor=${BASH_VERSINFO[1]}

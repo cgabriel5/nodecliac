@@ -25,6 +25,9 @@ module.exports = () => {
 			process.exit();
 		}
 
+		// Store config files.
+		let configs = [];
+
 		// Get acdef files list.
 		fs.readdir(acmapspath, function(err, files) {
 			if (err) {
@@ -34,7 +37,17 @@ module.exports = () => {
 
 			// Only get files.
 			files = files.filter(function(p) {
-				return !fs.lstatSync(path.join(acmapspath, p)).isDirectory();
+				let is_configfile = p.includes(".config.acdef");
+				// Store config files.
+				if (is_configfile) {
+					configs.push(p);
+				}
+
+				return !(
+					is_configfile || // No .config.acdef files.
+					// Cannot be a directory.
+					fs.lstatSync(path.join(acmapspath, p)).isDirectory()
+				);
 			});
 
 			// List commands if any exist.
@@ -46,7 +59,13 @@ module.exports = () => {
 						return a.localeCompare(b);
 					})
 					.forEach(function(command) {
-						log(` ─ ${chalk.bold.blue(command)}`);
+						// Check if config file exists.
+						let config_marker = configs.includes(
+							`.${command.replace(".acdef", ".config.acdef")}`
+						)
+							? "*"
+							: "";
+						log(` ─ ${chalk.bold.blue(command)}${config_marker}`);
 					});
 			} else {
 				log(chalk.bold("No .acdef files found."));

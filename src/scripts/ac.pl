@@ -502,6 +502,50 @@ sub __extractor {
 	if (__is_lquoted($last)) {
 		$isquoted = 1;
 	}
+
+	# Note: If autocompletion is off check whether we have one of the
+	# following cases: '$ maincommand --flag ' or '$ maincommand --flag val'.
+	# If we do then we show the possible value options for the flag or
+	# try and complete the currently started value option.
+	if (!$autocompletion && $nextchar ne "-") {
+		my $islast_aspace = ($lastchar eq " ");
+		# Get correct last word.
+		my $nlast = $args[($islast_aspace ? -1 : -2)];
+		# acmap commandchain lookup Regex.
+		my $pattern = '^' . $commandchain . ' (\\-\\-.*)$';
+
+		# The last word (either last or second last word) must be a flag
+		# and cannot have contain an eq sign.
+		if (__starts_with_hyphen($nlast) && !__includes($nlast, "=")) {
+			# Show all available flag option values.
+			if ($islast_aspace) {
+				# Check if the flag exists in the following format: '--flag='
+				if ($acmap =~ /$pattern/m) {
+					# Check if flag exists with option(s).
+					my $pattern = $nlast . '=(?!\*).*?(\||$)';
+					if ($1 && $1 =~ /$pattern/) {
+						# Reset needed data.
+						$usedflags .= "=";
+						$last = $nlast . "=";
+						$lastchar = "=";
+						$autocompletion = 1;
+					}
+				}
+			} else { # Complete currently started value option.
+				# Check if the flag exists in the following format: '--flag='
+				if ($acmap =~ /$pattern/m) {
+					# Check if flag exists with option(s).
+					my $pattern = $nlast . '=' . $last . '.*?(\||$)';
+					if ($1 && $1 =~ /$pattern/) {
+						# Reset needed data.
+						$last = $nlast . "=" . $last;
+						$lastchar = substr($last, -1);
+						$autocompletion = 1;
+					}
+				}
+			}
+		}
+	}
 }
 
 # Lookup command/subcommand/flag definitions from the acmap to return

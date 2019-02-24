@@ -1043,8 +1043,53 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		fi
 	}
 
-	# complete -d -X '.[^./]*' -F _nodecliac "$1"
-	# [https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html]
-	complete -o default -F _nodecliac "$1"
-	# complete -F _nodecliac "$1"
+	# Extract setting value from values strings.
+	#
+	# @param {string} 1) - The index of the value to extract.
+	# @return {string} - The value at the provided index.
+	#
+	# @resource [https://github.com/evanlucas/argsplit]
+	function __setting() {
+		# Template setting string.
+		t="\[$1\][[:space:]]=>[[:space:]]([^;]*);[[:space:]]"
+
+		# Get setting value.
+		[[ "$settings" =~ $t ]]
+
+		# Return value.
+		echo "${BASH_REMATCH[1]}"
+	}
+
+	# Register autocompletion script to command.
+	acdef_configpath="$HOME/.nodecliac/defs/.$1.config.acdef"
+	if [[ -f "$acdef_configpath" ]]; then
+		# Get acdef config file contents.
+		config="$(<"$acdef_configpath")"
+
+		# Check whether a comp-option was provided. If so set use that.
+		acpl_script=~/.nodecliac/config.pl
+		# Run config.pl to get default value.
+		settings=`"$acpl_script" "$config" "default;disable"`
+		# `"$acpl_script" "$config" "default;disable"`
+
+		# Don't register script to command if disable setting set to true.
+		if [[ "`__setting 1`" == "true" ]]; then return; fi
+
+		# Get setting values.
+		defaultval=`__setting 0`
+
+		# Register autocompletion script with command.
+		if [[ "$defaultval" == "false" ]]; then
+			# Disable bash defaults when no completions are provided.
+			complete -F _nodecliac "$1"
+		else
+			complete -o "$defaultval" -F _nodecliac "$1"
+		fi
+	else
+		# The default registration.
+		complete -o default -F _nodecliac "$1"
+
+		# [https://www.linuxjournal.com/content/more-using-bash-complete-command]
+		# complete -d -X '.[^./]*' -F _nodecliac "$1"
+	fi
 fi

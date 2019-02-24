@@ -73,6 +73,9 @@ if [[ vmajor -ge 4 ]]; then
 		# Loop over map definition files to source them.
 		# [https://stackoverflow.com/a/43606356]
 		for filepath in ~/.nodecliac/defs/*; do
+			# # Ignore config files.
+			# if [[ "$filepath" == *".config.acdef" ]]; then continue; fi
+
 			# Get dir and filename.
 			# dir=${filepath%/*}
 			# Get filename from file path.

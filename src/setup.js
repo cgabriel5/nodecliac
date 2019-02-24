@@ -79,9 +79,9 @@ module.exports = () => {
 
 				// Check for nodecliac marker.
 				if (!contents.includes("[nodecliac]")) {
-					let decor_top = "#".repeat(84);
+					let decor_top = "#".repeat(88);
 					let decor_bottom = decor_top.slice(1);
-					let bash_edit = `# [nodecliac] ${decor_top}\nnodecliacpath=~/.nodecliac/${mainscriptname}; if [ -f "$nodecliacpath" ]; then source "$nodecliacpath"; fi #\n${decor_bottom} [/nodecliac] #`;
+					let bash_edit = `# [nodecliac] ${decor_top}\nnodecliacpath=~/.nodecliac/src/${mainscriptname}; if [ -f "$nodecliacpath" ]; then source "$nodecliacpath"; fi #\n${decor_bottom} [/nodecliac] #`;
 
 					// Edit .bashrc file to "include" nodecliac main script file.
 					fs.writeFileSync(bashrcpath, `${contents}\n${bash_edit}`);

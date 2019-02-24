@@ -1026,7 +1026,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# __parser "${cline:0:$cpoint}";__extractor;__lookup;__printer
 
 		# Run ac perl script to get completions.
-		acpl_script=~/.nodecliac/ac.pl
+		acpl_script=~/.nodecliac/src/ac.pl
 		# Run completion script if it exists.
 		if [[ -f "$acpl_script" ]]; then
 			output=`"$acpl_script" "$cline" "$cpoint" "$maincommand" "$acmap"`
@@ -1067,7 +1067,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		config="$(<"$acdef_configpath")"
 
 		# Check whether a comp-option was provided. If so set use that.
-		acpl_script=~/.nodecliac/config.pl
+		acpl_script=~/.nodecliac/src/config.pl
 		# Run config.pl to get default value.
 		settings=`"$acpl_script" "$config" "default;disable"`
 		# `"$acpl_script" "$config" "default;disable"`

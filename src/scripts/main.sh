@@ -68,7 +68,7 @@ if [[ vmajor -ge 4 ]]; then
 
 	# Continue if version is at least 4.3...
 
-	acscript="$HOME/.nodecliac/ac.sh"
+	acscript="$HOME/.nodecliac/src/ac.sh"
 	if [[ -f "$acscript" ]]; then
 		# Loop over map definition files to source them.
 		# [https://stackoverflow.com/a/43606356]

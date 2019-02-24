@@ -43,7 +43,8 @@ module.exports = () => {
 		acscriptpath,
 		acplscriptpath,
 		acplscriptconfigpath,
-		acmapspath
+		acmapspath,
+		acmapssource
 	} = paths;
 
 	// .bashrc file needs to exist to do anything.
@@ -59,37 +60,45 @@ module.exports = () => {
 			process.exit();
 		}
 
-		// Create custom paths.
+		// Create ~/.nodecliac/defs/ path.
 		mkdirp(acmapspath, function(err) {
 			if (err) {
 				console.error(err);
 				process.exit();
 			}
 
-			// Get .bashrc script contents.
-			let contents = fs.readFileSync(bashrcpath).toString();
+			// Create ~/.nodecliac/src/ path.
+			mkdirp(acmapssource, function(err) {
+				if (err) {
+					console.error(err);
+					process.exit();
+				}
 
-			// Check for nodecliac marker.
-			if (!contents.includes("[nodecliac]")) {
-				let decor_top = "#".repeat(84);
-				let decor_bottom = decor_top.slice(1);
-				let bash_edit = `# [nodecliac] ${decor_top}\nnodecliacpath=~/.nodecliac/${mainscriptname}; if [ -f "$nodecliacpath" ]; then source "$nodecliacpath"; fi #\n${decor_bottom} [/nodecliac] #`;
+				// Get .bashrc script contents.
+				let contents = fs.readFileSync(bashrcpath).toString();
 
-				// Edit .bashrc file to "include" nodecliac main script file.
-				fs.writeFileSync(bashrcpath, `${contents}\n${bash_edit}`);
-			}
+				// Check for nodecliac marker.
+				if (!contents.includes("[nodecliac]")) {
+					let decor_top = "#".repeat(84);
+					let decor_bottom = decor_top.slice(1);
+					let bash_edit = `# [nodecliac] ${decor_top}\nnodecliacpath=~/.nodecliac/${mainscriptname}; if [ -f "$nodecliacpath" ]; then source "$nodecliacpath"; fi #\n${decor_bottom} [/nodecliac] #`;
 
-			// Generate main and completion scripts.
-			script("scripts/ac.sh", acscriptpath);
-			script("scripts/main.sh", mscriptpath);
-			script("scripts/ac.pl", acplscriptpath);
-			script("scripts/config.pl", acplscriptconfigpath);
-			// Make perl scripts executable.
-			fs.chmodSync(acplscriptpath, "775");
-			fs.chmodSync(acplscriptconfigpath, "775");
+					// Edit .bashrc file to "include" nodecliac main script file.
+					fs.writeFileSync(bashrcpath, `${contents}\n${bash_edit}`);
+				}
 
-			// Give success message.
-			log(chalk.green("Setup successful."));
+				// Generate main and completion scripts.
+				script("scripts/ac.sh", acscriptpath);
+				script("scripts/main.sh", mscriptpath);
+				script("scripts/ac.pl", acplscriptpath);
+				script("scripts/config.pl", acplscriptconfigpath);
+				// Make perl scripts executable.
+				fs.chmodSync(acplscriptpath, "775");
+				fs.chmodSync(acplscriptconfigpath, "775");
+
+				// Give success message.
+				log(chalk.green("Setup successful."));
+			});
 		});
 	});
 };

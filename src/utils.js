@@ -54,20 +54,22 @@ let paths = (function(os, path) {
 	// [https://stackoverflow.com/a/9081436]
 	let homedir = os.homedir();
 	let cdirname = "nodecliac"; // Custom directory name.
+	let cdirssrc = `${cdirname}/src`; // Source scripts.
 	let customdir = path.join(homedir, `.${cdirname}`);
 	let bashrcpath = path.join(homedir, ".bashrc");
 	let mainscriptname = "main.sh";
-	let mscriptpath = path.join(homedir, `.${cdirname}/${mainscriptname}`);
+	let mscriptpath = path.join(homedir, `.${cdirssrc}/${mainscriptname}`);
 	let acscriptname = "ac.sh";
-	let acscriptpath = path.join(homedir, `.${cdirname}/${acscriptname}`);
+	let acscriptpath = path.join(homedir, `.${cdirssrc}/${acscriptname}`);
 	let acplscriptname = "ac.pl";
-	let acplscriptpath = path.join(homedir, `.${cdirname}/${acplscriptname}`);
+	let acplscriptpath = path.join(homedir, `.${cdirssrc}/${acplscriptname}`);
 	let acplscriptconfigname = "config.pl";
 	let acplscriptconfigpath = path.join(
 		homedir,
-		`.${cdirname}/${acplscriptconfigname}`
+		`.${cdirssrc}/${acplscriptconfigname}`
 	);
 	let acmapspath = path.join(homedir, `.${cdirname}/defs`);
+	let acmapssource = path.join(homedir, `.${cdirssrc}`);
 
 	return {
 		homedir,
@@ -81,7 +83,8 @@ let paths = (function(os, path) {
 		acplscriptname,
 		acplscriptpath,
 		acplscriptconfigpath,
-		acmapspath
+		acmapspath,
+		acmapssource
 	};
 })(os, path);
 

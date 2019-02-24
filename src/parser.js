@@ -15,6 +15,35 @@ module.exports = (contents, source) => {
 	let newlines = [];
 	let placeholders = [];
 	let lookup = {};
+	// Store extracted settings in acmap file.
+	let settings = {};
+
+	/**
+	 * Build acdef config file contents from extracted settings.
+	 *
+	 * @param  {object} settings - The settings object.
+	 * @return {string} - The config file contents string.
+	 */
+	let config = settings => {
+		// Store lines.
+		let lines = [];
+
+		// Loop over settings to build config.
+		for (let setting in settings) {
+			if (settings.hasOwnProperty(setting)) {
+				lines.push(`${setting} = ${settings[setting]}`);
+			}
+		}
+
+		// Add header to lines and return final lines.
+		return header
+			.concat(
+				lines.sort(function(a, b) {
+					return a.localeCompare(b);
+				})
+			)
+			.join("\n");
+	};
 
 	/**
 	 * Parse string by spaces. Takes into account quotes strings with spaces.
@@ -546,6 +575,21 @@ module.exports = (contents, source) => {
 		// Cache current loop item.
 		let line = lines[i].trim();
 
+		// Check for settings lines.
+		if (line.charAt(0) === "@") {
+			// Parse line to get setting name and value.
+			let eq_index = line.indexOf("=");
+			let sname = line.substring(0, eq_index).trim();
+			// Unquote values?
+			let svalue = line.substring(eq_index + 1).trim();
+
+			// Add to lookup table.
+			settings[sname] = svalue;
+
+			// Skip further logic to prevent from storing line.
+			continue;
+		}
+
 		// Check whether flags were provided.
 		if (!line.includes(" --")) {
 			line += " --";
@@ -602,12 +646,15 @@ module.exports = (contents, source) => {
 		}
 	}
 
-	// Return generated acdef file contents and sort chains.
-	return header
-		.concat(
-			newlines.sort(function(a, b) {
-				return a.localeCompare(b);
-			})
-		)
-		.join("\n");
+	// Return generated acdef/config file contents.
+	return {
+		acdef: header
+			.concat(
+				newlines.sort(function(a, b) {
+					return a.localeCompare(b);
+				})
+			)
+			.join("\n"),
+		config: config(settings)
+	};
 };

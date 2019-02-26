@@ -192,6 +192,28 @@ sub __unique {
 	grep(!$seen{$_}++, @_);
 }
 
+# Validates whether command/flag (--flag) only contain valid characters.
+#     If word command/flag contains invalid characters the script will
+#     exit. In turn, terminating auto completion.
+#
+# @param {string} 1) - The word to check.
+# @return {string} - The validated argument.
+sub __validate {
+	# Get arguments.
+	my ($arg, $type) = @_;
+
+	# Determine what matching pattern to use (command/flag).
+	my $pattern = ($type eq "command") ? '[^-_.:a-z0-9]+' : '[^-_a-z0-9]+';
+
+	# Exit script if invalid characters are found (failed RegExp).
+	if ($arg =~ /$pattern/i) {
+		exit;
+	}
+
+	# Return word.
+	return $arg;
+}
+
 # Parses CLI input. Returns input similar to that of process.argv.slice(2).
 #     Adapted from argsplit module.
 #
@@ -303,6 +325,8 @@ sub __parser {
 # myapp run "some" --flagsin command1 sub1 --flag1 val
 # myapp run -rd '' -a config
 # myapp --Wno-strict-overflow= config
+# myapp run -u $(id -u $USER):$(id -g $USER\ )
+# myapp run -u $(id -u $USER):$(id -g $USER )
 sub __extractor {
 	# Vars.
 	my $l = scalar(@args);
@@ -330,7 +354,7 @@ sub __extractor {
 		# [https://www.thoughtco.com/perl-chr-ord-functions-quick-tutorial-2641190]
 		if (!__starts_with_hyphen($item)) {
 			# Store command.
-			$commandchain .= ".$item";
+			$commandchain .= __validate(".$item", "command");
 			# Reset used flags.
 			@foundflags = ();
 		} else { # We have a flag.
@@ -376,7 +400,7 @@ sub __extractor {
 					# If the flag is not found then simply add the
 					# next item as its value.
 					if ($skipflagval == 0) {
-						push(@foundflags, "$item=$nitem");
+						push(@foundflags, __validate($item, "flag") . "=$nitem");
 
 						# Increase index to skip added flag value.
 						$i++;
@@ -384,11 +408,11 @@ sub __extractor {
 						# It's a boolean flag. Add boolean marker (?).
 						$args[$i] = $args[$i] . "?";
 
-						push(@foundflags, $item);
+						push(@foundflags, __validate($item, "flag"));
 					}
 
 				} else { # The next word is a another flag.
-					push(@foundflags, $item);
+					push(@foundflags, __validate($item, "flag"));
 				}
 
 			} else {
@@ -419,7 +443,7 @@ sub __extractor {
 					# It's a boolean flag. Add boolean marker (?).
 					$args[$i] = $args[$i] . "?";
 				}
-				push(@foundflags, $item);
+				push(@foundflags, __validate($item, "flag"));
 
 			}
 		}
@@ -443,7 +467,7 @@ sub __extractor {
 		$commandchain = $commandchain;
 	}
 	# Prepend main command to chain.
-	$commandchain = "$maincommand$commandchain";
+	$commandchain = __validate("$maincommand$commandchain", "command");
 
 	# Build used flags strings.
 	# Switch statement: [https://stackoverflow.com/a/22575299]

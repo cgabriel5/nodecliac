@@ -534,8 +534,11 @@ sub __extractor {
 			} else { # Complete currently started value option.
 				# Check if the flag exists in the following format: '--flag='
 				if ($acmap =~ /$pattern/m) {
+					# Escape special chars: [https://stackoverflow.com/a/576459]
+					# [http://perldoc.perl.org/functions/quotemeta.html]
+					my $pattern = $nlast . '=' . quotemeta($last) . '.*?(\||$)';
+
 					# Check if flag exists with option(s).
-					my $pattern = $nlast . '=' . $last . '.*?(\||$)';
 					if ($1 && $1 =~ /$pattern/) {
 						# Reset needed data.
 						$last = $nlast . "=" . $last;

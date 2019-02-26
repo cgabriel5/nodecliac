@@ -181,16 +181,16 @@ sub __includes {
 	return (index($string, $needle) == -1) ? 0 : 1;
 }
 
-# Removes duplicate values from provided array.
-#
-# @param {string} 1) - The provided array.
-# @return {undefined} - Nothing is returned.
-#
-# @resource [https://stackoverflow.com/a/7657]
-sub __unique {
-	my %seen;
-	grep(!$seen{$_}++, @_);
-}
+# # Removes duplicate values from provided array.
+# #
+# # @param {string} 1) - The provided array.
+# # @return {undefined} - Nothing is returned.
+# #
+# # @resource [https://stackoverflow.com/a/7657]
+# sub __unique {
+# 	my %seen;
+# 	grep(!$seen{$_}++, @_);
+# }
 
 # Validates whether command/flag (--flag) only contain valid characters.
 #     If word command/flag contains invalid characters the script will
@@ -759,6 +759,12 @@ sub __lookup {
 		# Set completion type:
 		$type = "command";
 
+		# Store command completions in a hash to only keep unique entries.
+		# [https://stackoverflow.com/a/15894780]
+		# [https://stackoverflow.com/a/3810548]
+		# [https://stackoverflow.com/a/11437184]
+		my %lookup;
+
 		# If command chain and used flags exits, don't complete.
 		if ($usedflags && $commandchain) {
 			# Reset commandchain and usedflags.
@@ -794,7 +800,7 @@ sub __lookup {
 
 			if (scalar(@rows) && $lastchar_notspace) {
 				# Add last command in chain.
-				@completions = (__last_command($rows[0], $rtype));
+				$lookup{__last_command($rows[0], $rtype)} = 1
 			}
 		} else {
 			# Last word checks:
@@ -812,7 +818,7 @@ sub __lookup {
 			# word so that bash can add a space to it.
 			if ($check1 && !$check2 && $lastchar_notspace) {
 				# Add last command in chain.
-				@completions = ($last);
+				$lookup{$last} = 1
 			} else {
 				# Split rows by lines: [https://stackoverflow.com/a/11746174]
 				foreach my $row (@rows) {
@@ -832,20 +838,26 @@ sub __lookup {
 							# command we are trying to complete.
 							my $pattern = '^' . $last;
 							if ($row =~ /$pattern/) {
-								push(@completions, $row);
+								$lookup{$row} = 1
 							}
 						} else {
 							# If we are not completing a command then
 							# we return all possible word completions.
-							push(@completions, $row);
+							$lookup{$row} = 1
 						}
 					}
 				}
 			}
 		}
 
-		# Remove duplicate completion values.
-		@completions = __unique(@completions);
+		# Get hash values as an array.
+		# [https://stackoverflow.com/a/2907303]
+		# @completions = values %lookup;
+		# Use a loop for better compatibility.
+		# [https://stackoverflow.com/a/3360]
+		foreach my $key (keys %lookup) {
+			push(@completions, $key);
+		}
 	}
 }
 

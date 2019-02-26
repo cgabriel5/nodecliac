@@ -732,12 +732,12 @@ sub __lookup {
 		# Set completion type:
 		$type = "command";
 
-		# # If command chain and used flags exits, don't complete.
-		# if ($usedflags && $commandchain) {
-		# 	# Reset commandchain and usedflags.
-		# 	$commandchain = "$maincommand.$last";
-		# 	$usedflags = "";
-		# }
+		# If command chain and used flags exits, don't complete.
+		if ($usedflags && $commandchain) {
+			# Reset commandchain and usedflags.
+			$commandchain = "$maincommand" . (!$last ? "" : $last);
+			$usedflags = "";
+		}
 
 		# Lookup all command tree rows from acmap once and store.
 		my $pattern = '^' . $commandchain . '.*$';

@@ -858,6 +858,16 @@ sub __lookup {
 		foreach my $key (keys %lookup) {
 			push(@completions, $key);
 		}
+
+		# Note: If there is only one command in the command completions
+		# array, check whether the command is already in the commandchain.
+		# If so, empty completions array as it has already been used.
+		if ($nextchar && scalar(@completions) == 1) {
+			my $pattern = '.' . $completions[0] . '(\\.|$)';
+			if ($commandchain =~ /$pattern/) {
+				@completions = ();
+			}
+		}
 	}
 }
 

@@ -255,6 +255,7 @@ module.exports = (contents, source) => {
 					flines.push(line.replace(/{.*?}/, sc));
 				}
 
+				// Remove shortcut from line by returning anonymous placeholder.
 				return "--PL";
 			});
 		}

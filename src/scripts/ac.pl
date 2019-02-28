@@ -579,10 +579,14 @@ sub __extractor {
 #     possible completions list.
 sub __lookup {
 	# Flag ReGex test patterns.
-	# Regex → "--flag="
+	# ReGex → "--flag="
 	my $flgopt = '--?[a-z0-9-]*=';
-	# Regex → "--flag=value"
-	my $flgoptvalue = '^\-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\-]{1,})?\=\*?.{1,}$';
+	# ReGex → "--flag=*"
+	my $flagstartr = '^\-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\-]{1,})?\=\*?';
+	# ReGex → "--flag=value"
+	my $flgoptvalue = $flagstartr . '.{1,}$';
+	# ReGex → "--flag=$("<COMMAND-STRING>")"
+	my $flagcommand = $flagstartr . '\$\((.{1,})\)$';
 
 	# Skip logic if last word is quoted or completion variable is off.
 	if ($isquoted || !$autocompletion) {
@@ -623,6 +627,82 @@ sub __lookup {
 
 					# Unescape flag.
 					# $flag = __unescape($flag);
+
+					# If a command-flag: --flag=$("<COMMAND-STRING>"), run
+					# command and add returned words to completion options.
+					if (__includes($last, "=")) {
+						# Get flag portion from --flag=value.
+						my $fkey = substr($last, 0, index($last, "="));
+						# If fkey starts witht flag and is a command flag.
+						if (index($flag, $fkey) == 0 && $flag =~ /$flagcommand/) {
+							# Cache captured string command.
+							my $command = $2;
+							# By default command output will be split lines.
+							my $delimiter = "\$";
+
+							# command-flag syntax: "COMMAND-STRING"[, "<DELIMITER>"]?
+							$pattern = '^(.*?)(,(.*?))?$';
+							# Check whether a delimiter was provided.
+							if ($command =~ /$pattern/) {
+								# Use provided delimiter if provided.
+								if ($3) {
+									# [https://stackoverflow.com/a/5745667]
+									$delimiter = substr($3, 1, -1);
+								}
+								# Reset command to exclude delimiter.
+								$command = $1;
+							}
+
+							# Run command. Add an or logical statement in case
+							# the command returns nothing or an error is return.
+							# [https://stackoverflow.com/a/3854742]
+							# [https://stackoverflow.com/a/15678831]
+							# [https://stackoverflow.com/a/9784016]
+							# [https://stackoverflow.com/a/3201234]
+							# [https://stackoverflow.com/a/3374285]
+							# [https://stackoverflow.com/a/11231972]
+							# Suppress any/all errors.
+							# my $lines = `"$command" 2> /dev/null`;
+							my $lines = `bash -c $command 2> /dev/null`;
+							# Note: $2 (the provided command string) will be
+							# injected as is. Meaning it will be provided to
+							# 'bash' with the provided surrounding quotes. User
+							# needs to make sure to properly use and escape
+							# quotes as needed. ' 2> /dev/null' will suppress
+							# all errors in the event the command fails.
+
+							# By default if the command generates output split
+							# it by lines. Unless a delimiter was provided.
+							# Then split by custom delimiter to then add to
+							# flags array.
+							if ($lines) {
+								# Trim string if using custom delimiter.
+								if ($delimiter ne "\$") {
+									# [https://perlmaven.com/trim]
+									$lines =~ s/^\s+|\s+$//g;
+								}
+
+								# Split output by lines.
+								# [https://stackoverflow.com/a/4226362]
+								my @lines = split(/$delimiter/m, $lines);
+
+								# Add each line to flags array.
+								foreach my $line (@lines) {
+									# Remove starting left line break in line,
+									# if it exists, before adding to flags.
+									if ($delimiter eq "\$") {
+										$line = $line =~ s/^\n//r;
+									}
+
+									# Finally, add to flags array.
+									push(@flags, $fkey . "=$line");
+								}
+							}
+
+							# Skip flag to not add literal command to completions.
+							next;
+						}
+					}
 
 					# Flag must start with the last word.
 					# Escape special chars: [https://stackoverflow.com/a/576459]

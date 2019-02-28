@@ -284,9 +284,14 @@ module.exports = (contents, source) => {
 	 */
 	let unexpand_mf_options = contents => {
 		return (contents = contents.replace(
-			/^\s*-{1,2}[a-z][a-z0-9-]*\s*=\s*\([\s\S]*?\)/gim,
+			/^\s*-{1,2}[a-z][a-z0-9-]*\s*=\*?\s*\([\s\S]*?\)/gim,
 			function(match) {
 				// Format options.
+
+				// Check for multi-starred flag.
+				let multiflag = match.includes("=*")
+					? match.substring(0, match.indexOf("=*"))
+					: "";
 
 				// [https://stackoverflow.com/a/18515993]
 				let lb_regexp = /\r?\n/;
@@ -308,15 +313,16 @@ module.exports = (contents, source) => {
 
 				// Get flag name.
 				let [, indentation, flag, options] = match.match(
-					/^(\s*)(-{1,2}[a-z][a-z0-9-]*)\s*=\s*\(([\s\S]*?)\)/im
+					/^(\s*)(-{1,2}[a-z][a-z0-9-]*)\s*=\*?\s*\(([\s\S]*?)\)/im
 				);
 
 				// Turn options list into an array.
 				options = options.trim().split(lb_regexp);
 
-				// Remove duplicate option values.
-				let options_list = [];
-				// Loop over options.
+				// Store options. Add multi-flag if it exists.
+				let options_list = multiflag ? [`${multiflag}=*`] : [];
+
+				// Loop over options to remove duplicate option values.
 				for (let i = 0, l = options.length; i < l; i++) {
 					// Cache current loop item.
 					let option = options[i].trim();
@@ -328,7 +334,7 @@ module.exports = (contents, source) => {
 					if (-~options_list.indexOf(option)) {
 						continue;
 					}
-					options_list.push(option);
+					options_list.push(`${indentation}${flag}=${option.trim()}`);
 				}
 
 				// Sort the options and return.

@@ -343,12 +343,36 @@ module.exports = (contents, source) => {
 					.sort(function(a, b) {
 						return a.localeCompare(b);
 					})
-					.map(function(option) {
-						return `${indentation}${flag}=${option.trim()}`;
-					})
 					.join("\n");
 			}
 		));
+	};
+
+	/**
+	 * Fill-in placeholded command flags with their original content.
+	 *
+	 * @param  {string} contents - The line with possible placeholders.
+	 * @return {string} - The line with filled in command-flags.
+	 */
+	let fillin_ph_cmd_flags = contents => {
+		// Place hold long-form flags.
+		let r = /\!CMDFLGS#\d{1,}/g;
+
+		// If line does not contain placeholders skip it.
+		if (!r.test(contents)) {
+			return contents;
+		}
+
+		return (contents = contents.replace(r, function(match) {
+			// Get command-string from placeholders array.
+			match = placeholders[match.match(/\d+/g) * 1 - 1];
+
+			// Get command/delimiter.
+			let [, command, , del] = match.match(/^\$\((.*?)(,\s*(.*?))?\)$/);
+
+			// Build command-string and return.
+			return `\$\(${command}${del ? `,${del}` : ""}\)`;
+		}));
 	};
 
 	/**
@@ -568,6 +592,31 @@ module.exports = (contents, source) => {
 		// Remove empty lines and collapse trailing line white space.
 		.replace(/(^\s*|^\s*$)/gm, "")
 		.replace(/\s*$/, "")
+		// Place hold command-flags.
+		// RegExp Look-around assertions: [https://stackoverflow.com/a/3926546]
+		// .replace(/(?<=[^\\])\$\([\s\S]*?[^\\]\)/g, function(match) {
+		.replace(/.?\$\([\s\S]*?[^\\]\)/g, function(match) {
+			// If first char is a slash, exit script and give warning.
+			let fchar = match.charAt(0);
+			if (fchar === "\\") {
+				// Invalid escaped command-flag found.
+				exit([
+					`${chalk.bold("Invalid:")} command-flag '${match}' found.`,
+					"Unescape command-flag or remove all together to successfully parse acmap file."
+				]);
+			}
+
+			// If the first character is not '$' then remove it before
+			// storing it in placeholders array.
+			if (fchar !== "$") {
+				match = match.substring(1);
+			}
+
+			// Process and store flag placeholders.
+			placeholders.push(match);
+			// Return placeholder marker.
+			return `${fchar}!CMDFLGS#${placeholders.length}`;
+		})
 		// Place hold long-form flags.
 		.replace(/\[[\s\S]*?\]/g, function(match) {
 			// Process and store flag placeholders.
@@ -605,6 +654,8 @@ module.exports = (contents, source) => {
 		line = line.replace(/\s{1,}=\s*/g, " ");
 		// Fill back in long form flag placeholders.
 		line = fillin_ph_lf_flags(line);
+		// Fill back in command flags placeholders.
+		line = fillin_ph_cmd_flags(line);
 
 		// Expand any shortcuts.
 		if (/{.*?}/.test(line)) {

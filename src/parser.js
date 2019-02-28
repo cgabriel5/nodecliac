@@ -379,7 +379,7 @@ module.exports = (contents, source) => {
 	 * Fill-in placeholded long-form flags with collapsed single line
 	 *     containing the formated flags.
 	 *
-	 * @param  {string} contents - The line to with possible placeholders.
+	 * @param  {string} contents - The line with possible placeholders.
 	 * @return {string} - The filled line with collapsed and formatted flags.
 	 */
 	let fillin_ph_lf_flags = contents => {

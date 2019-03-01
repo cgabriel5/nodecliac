@@ -880,7 +880,7 @@ sub __lookup {
 
 			if (scalar(@rows) && $lastchar_notspace) {
 				# Add last command in chain.
-				$lookup{__last_command($rows[0], $rtype)} = 1
+				$lookup{__last_command($rows[0], $rtype)} = 1;
 			}
 		} else {
 			# Last word checks:

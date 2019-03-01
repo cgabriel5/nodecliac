@@ -898,7 +898,7 @@ sub __lookup {
 			# word so that bash can add a space to it.
 			if ($check1 && !$check2 && $lastchar_notspace) {
 				# Add last command in chain.
-				$lookup{$last} = 1
+				$lookup{$last} = 1;
 			} else {
 				# Split rows by lines: [https://stackoverflow.com/a/11746174]
 				foreach my $row (@rows) {
@@ -918,12 +918,12 @@ sub __lookup {
 							# command we are trying to complete.
 							my $pattern = '^' . $last;
 							if ($row =~ /$pattern/) {
-								$lookup{$row} = 1
+								$lookup{$row} = 1;
 							}
 						} else {
 							# If we are not completing a command then
 							# we return all possible word completions.
-							$lookup{$row} = 1
+							$lookup{$row} = 1;
 						}
 					}
 				}

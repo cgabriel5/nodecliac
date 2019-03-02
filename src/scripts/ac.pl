@@ -23,6 +23,7 @@ my $nextchar = substr($cline, $cpoint, 1); # Character after caret.
 my $cline_length = length($cline); # Original input's length.
 my $isquoted = 0;
 my $autocompletion = 1;
+my $inp = substr($cline, 0, $cpoint); # CLI input from start to caret index.
 
 # Get the acmap definitions file.
 my $acmap = $ARGV[3];
@@ -661,6 +662,20 @@ sub __lookup {
 							# [https://stackoverflow.com/a/3201234]
 							# [https://stackoverflow.com/a/3374285]
 							# [https://stackoverflow.com/a/11231972]
+
+							# Set environment vars so command has access.
+							my $prefix = "NODECLIAC_";
+							$ENV{"${prefix}COMP_LINE"} = $cline;
+							$ENV{"${prefix}COMP_POINT"} = $cpoint;
+							$ENV{"${prefix}MAIN_COMMAND"} = $maincommand;
+							$ENV{"${prefix}COMMAND_CHAIN"} = $commandchain;
+							$ENV{"${prefix}USED_FLAGS"} = $usedflags;
+							$ENV{"${prefix}LAST"} = $last;
+							$ENV{"${prefix}INPUT"} = $inp;
+							$ENV{"${prefix}LAST_CHAR"} = $lastchar;
+							$ENV{"${prefix}NEXT_CHAR"} = $nextchar;
+							$ENV{"${prefix}COMP_LINE_LENGTH"} = $cline_length;
+
 							# Suppress any/all errors.
 							# my $lines = `"$command" 2> /dev/null`;
 							my $lines = `bash -c $command 2> /dev/null`;
@@ -670,6 +685,20 @@ sub __lookup {
 							# needs to make sure to properly use and escape
 							# quotes as needed. ' 2> /dev/null' will suppress
 							# all errors in the event the command fails.
+
+							# Unset environment vars once command is ran.
+							# [https://stackoverflow.com/a/8770380]
+							# Is this needed?
+							# delete $ENV{"${prefix}COMP_LINE"};
+							# delete $ENV{"${prefix}COMP_POINT"};
+							# delete $ENV{"${prefix}MAIN_COMMAND"};
+							# delete $ENV{"${prefix}COMMAND_CHAIN"};
+							# delete $ENV{"${prefix}USED_FLAGS"};
+							# delete $ENV{"${prefix}LAST"};
+							# delete $ENV{"${prefix}INPUT"};
+							# delete $ENV{"${prefix}LAST_CHAR"};
+							# delete $ENV{"${prefix}NEXT_CHAR"};
+							# delete $ENV{"${prefix}COMP_LINE_LENGTH"};
 
 							# By default if the command generates output split
 							# it by lines. Unless a delimiter was provided.
@@ -996,4 +1025,4 @@ sub __printer {
 # Completion logic:
 # <cli_input> → parser → extractor → lookup → printer
 # Note: Supply CLI input from start to caret index.
-__parser(substr($cline, 0, $cpoint));__extractor();__lookup();__printer();
+__parser($inp);__extractor();__lookup();__printer();

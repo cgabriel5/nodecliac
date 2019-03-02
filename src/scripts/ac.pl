@@ -30,7 +30,6 @@ my $acmap = $ARGV[3];
 
 # Log local variables and their values.
 sub __debug {
-	my $inp = substr($cline, 0, $cpoint);
 	print "\n";
 	print "  commandchain: '$commandchain'\n";
 	print "     usedflags: '$usedflags'\n";

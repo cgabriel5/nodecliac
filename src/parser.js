@@ -749,7 +749,7 @@ module.exports = (contents, source) => {
 	// Create final contents by combining duplicate command chains with
 	// all their flag sets.
 	for (let commandchain in lookup) {
-		if (lookup.hasOwnProperty(commandchain)) {
+		if (commandchain && lookup.hasOwnProperty(commandchain)) {
 			// Get flags array.
 			let flags = lookup[commandchain];
 			let fcount = flags.length;

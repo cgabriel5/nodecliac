@@ -1,6 +1,7 @@
 "use strict";
 
 // Needed modules.
+const path = require("path");
 const chalk = require("chalk");
 const { exit } = require("./utils.js");
 
@@ -656,7 +657,11 @@ module.exports = (contents, source) => {
 
 	// Exit if file is empty.
 	if (!contents.trim().length) {
-		exit([`Action aborted. ${chalk.bold(source)} is empty.`]);
+		exit([
+			`Action aborted. ${chalk.bold(
+				path.relative(process.cwd(), source)
+			)} is empty.`
+		]);
 	}
 
 	// Braces must be balanced.
@@ -701,6 +706,15 @@ module.exports = (contents, source) => {
 			// Return placeholder marker.
 			return `--LFFPH#${placeholders.length}`;
 		});
+
+	// Exit if file is empty.
+	if (!contents.trim().length) {
+		exit([
+			`Action aborted. ${chalk.bold(
+				path.relative(process.cwd(), source)
+			)} is empty.`
+		]);
+	}
 
 	// Go line by line:
 	let lines = contents.split("\n");

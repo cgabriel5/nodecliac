@@ -718,10 +718,15 @@ module.exports = (contents, source) => {
 	}
 
 	// Go line by line:
-	let lines = contents.split("\n");
+	let lines = contents.split(/$\r?\n/gm);
 	for (let i = 0, l = lines.length; i < l; i++) {
 		// Cache current loop item.
 		let line = lines[i].trim();
+
+		// Line cannot be empty.
+		if (!line) {
+			continue;
+		}
 
 		// Check for settings lines.
 		if (line.charAt(0) === "@") {

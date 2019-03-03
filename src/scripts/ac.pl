@@ -660,7 +660,7 @@ sub __lookup {
 							# Cache captured string command.
 							my $command = $2;
 							# By default command output will be split lines.
-							my $delimiter = "\$";
+							my $delimiter = "\$\\r\?\\n";
 
 							# command-flag syntax: "COMMAND-STRING"[, "<DELIMITER>"]?
 							$pattern = '^(.*?)(,(.*?))?$';
@@ -730,7 +730,7 @@ sub __lookup {
 							# flags array.
 							if ($lines) {
 								# Trim string if using custom delimiter.
-								if ($delimiter ne "\$") {
+								if ($delimiter ne "\$\\r\?\\n") {
 									# [https://perlmaven.com/trim]
 									$lines =~ s/^\s+|\s+$//g;
 								}
@@ -741,14 +741,17 @@ sub __lookup {
 
 								# Add each line to flags array.
 								foreach my $line (@lines) {
-									# Remove starting left line break in line,
-									# if it exists, before adding to flags.
-									if ($delimiter eq "\$") {
-										$line = $line =~ s/^\n//r;
-									}
+									# # Remove starting left line break in line,
+									# # if it exists, before adding to flags.
+									# if ($delimiter eq "\$") {
+									# 	$line = $line =~ s/^\n//r;
+									# }
 
-									# Finally, add to flags array.
-									push(@flags, $fkey . "=$line");
+									# Line cannot be empty.
+									if ($line) {
+										# Finally, add to flags array.
+										push(@flags, $fkey . "=$line");
+									}
 								}
 							}
 

@@ -551,6 +551,46 @@ module.exports = (contents, source) => {
 		let commandchain = line.substring(0, sepindex);
 		let flags = line.substring(sepindex + 1);
 
+		// Check if command chain contains invalid characters.
+		let r = /[^-\._:a-zA-Z0-9\\\/]/;
+		if (r.test(commandchain)) {
+			// Loop over command chain to highlight invalid character.
+			let chars = [];
+			let invalid_char_count = 0;
+			for (let i = 0, l = commandchain.length; i < l; i++) {
+				// Cache current loop item.
+				let char = commandchain[i];
+
+				// If an invalid character highlight.
+				if (r.test(char)) {
+					chars.push(chalk.bold.red(char));
+					invalid_char_count++;
+				} else {
+					chars.push(char);
+				}
+			}
+
+			// Plural output character string.
+			let char_string = `character${invalid_char_count > 1 ? "s" : ""}`;
+
+			// Invalid escaped command-flag found.
+			exit([
+				`${chalk.bold(
+					"Invalid:"
+				)} ${char_string} in command: ${chars.join("")}`,
+				`Remove invalid ${char_string} to successfully parse acmap file.`
+			]);
+		}
+		// Command must start with letters.
+		if (!/^\w/.test(commandchain)) {
+			exit([
+				`${chalk.bold(
+					"Invalid:"
+				)} command '${commandchain}' must start with a letter.`,
+				`Fix issue to successfully parse acmap file.`
+			]);
+		}
+
 		// Normalize command chain. Replace unescaped '/' with '.' dots.
 		commandchain = commandchain.replace(/([^\\]|^)\//g, "$1.");
 

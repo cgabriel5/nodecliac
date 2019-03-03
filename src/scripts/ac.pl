@@ -146,12 +146,16 @@ sub __last_command {
 	if ($type == 1) {
 		$row = $row =~ s/$commandchain\.//r;
 	} else {
-		my $nrow = substr($row, 0, rindex($row, "."));
-		$row = $row =~ s/$nrow\.//r;
+		my @cparts = split(/(?<!\\)\./, $row);
+		$row = pop(@cparts);
 	}
 
 	# Extract next command in chain.
-	my ($lastcommand) = $row =~ /^[^.]*/g;
+	my ($lastcommand) = $row =~ /^.*?(?=(?<!\\)\.)/g;
+	if (!$lastcommand) { $lastcommand = $row; }
+
+	# Remove any slashes from command.
+	$lastcommand = $lastcommand =~ s/\\//r;
 
 	return $lastcommand;
 }
@@ -192,6 +196,24 @@ sub __includes {
 # 	grep(!$seen{$_}++, @_);
 # }
 
+# Escape '\' characters and replace unescaped slashes '/' with '.' (dots)
+#     command strings
+#
+# @param {string} 1) - The command string to escape.
+# @return {string} - The escaped command string.
+sub __normalize_command {
+	# Get arguments.
+	my ($command) = @_;
+
+	# Escape dots.
+	$command = $command =~ s/\./\\\\./r;
+	# Replace unescaped '/' with '.' dots.
+	$command = $command =~ s/([^\\]|^)\//$1\./r;
+
+	# Returned normalized command string.
+	return $command;
+}
+
 # Validates whether command/flag (--flag) only contain valid characters.
 #     If word command/flag contains invalid characters the script will
 #     exit. In turn, terminating auto completion.
@@ -203,7 +225,7 @@ sub __validate {
 	my ($arg, $type) = @_;
 
 	# Determine what matching pattern to use (command/flag).
-	my $pattern = ($type eq "command") ? '[^-_.:a-z0-9]+' : '[^-_a-z0-9]+';
+	my $pattern = ($type eq "command") ? '[^-_.:a-zA-Z0-9\\\/]+' : '[^-_a-zA-Z0-9]+';
 
 	# Exit script if invalid characters are found (failed RegExp).
 	if ($arg =~ /$pattern/i) {
@@ -354,7 +376,7 @@ sub __extractor {
 		# [https://www.thoughtco.com/perl-chr-ord-functions-quick-tutorial-2641190]
 		if (!__starts_with_hyphen($item)) {
 			# Store command.
-			$commandchain .= __validate(".$item", "command");
+			$commandchain .= __validate("." . __normalize_command($item), "command");
 			# Reset used flags.
 			@foundflags = ();
 		} else { # We have a flag.
@@ -890,7 +912,13 @@ sub __lookup {
 		$pattern = '^(' . $commandchain . '\\..*)$';
 		my $rtype = 1; # Replacement type.
 		if ($lastchar_notspace) {
-			$pattern = '^' . $commandchain . '.[-:a-zA-Z0-9]* ';
+			# [https://stackoverflow.com/questions/15573652/regex-to-exclude-unless-preceded-by]
+			# [https://stackoverflow.com/a/7124976]
+			# [https://stackoverflow.com/a/9306228]
+			# [https://stackoverflow.com/a/11819111]
+			# [https://stackoverflow.com/a/6464500]
+			# [https://stackoverflow.com/a/6525975]
+			$pattern = '^' . $commandchain . '[^\.]([^\\.]|(?<=\\\\)\\.)* ';
 			$rtype = 2;
 		}
 		# Filter rows instead of looking up entire file again.
@@ -916,7 +944,13 @@ sub __lookup {
 			# Filter rows instead of looking up entire file again.
 			my $check1 = scalar(grep(/$pattern/, @data));
 
-			$pattern = '^' . $commandchain . '[-:a-zA-Z0-9]+ ';
+			# [https://stackoverflow.com/questions/15573652/regex-to-exclude-unless-preceded-by]
+			# [https://stackoverflow.com/a/7124976]
+			# [https://stackoverflow.com/a/9306228]
+			# [https://stackoverflow.com/a/11819111]
+			# [https://stackoverflow.com/a/6464500]
+			# [https://stackoverflow.com/a/6525975]
+			$pattern = '^' . $commandchain . '([^\\.]|(?<=\\\\)\\.)+ ';
 			# Filter rows instead of looking up entire file again.
 			my $check2 = scalar(grep(/$pattern/, @data));
 

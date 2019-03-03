@@ -65,7 +65,11 @@ module.exports = () => {
 						)
 							? "*"
 							: "";
-						log(` ─ ${chalk.bold.blue(command)}${config_marker}`);
+						log(
+							` ─ ${chalk[config_marker ? "bold" : "black"](
+								chalk[config_marker ? "blue" : "black"](command)
+							)}${config_marker}`
+						);
 					});
 			} else {
 				log(chalk.bold("No .acdef files found."));

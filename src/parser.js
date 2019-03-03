@@ -551,16 +551,52 @@ module.exports = (contents, source) => {
 		let commandchain = line.substring(0, sepindex);
 		let flags = line.substring(sepindex + 1);
 
+		// Normalize command chain. Replace unescaped '/' with '.' dots.
+		commandchain = commandchain.replace(/([^\\]|^)\//g, "$1.");
+
 		// Note: Create needed parent commandchain(s). For example, if the
 		// current commandchain is 'a.b.c' we create the chains: 'a.b' and
 		// 'a' if they do not exist. Kind of like 'mkdir -p'.
-		let ppath = commandchain.substring(0, commandchain.lastIndexOf("."));
-		while (ppath.includes(".")) {
-			if (!lookup[ppath]) {
-				lookup[ppath] = [];
+		// Parse command chain for individual commands.
+		let cparts = [];
+		let command = "";
+		let command_string = "";
+		let command_count = 0;
+		for (let i = 0, l = commandchain.length; i < l; i++) {
+			// Cache current loop characters.
+			let char = commandchain.charAt(i);
+			let pchar = commandchain.charAt(i - 1);
+			let nchar = commandchain.charAt(i + 1);
+
+			// If a dot or slash and it's not escaped.
+			if (/(\.|\/)/.test(char) && pchar !== "\\") {
+				// Push current command to parts array.
+				cparts.push(command);
+
+				// Track command path.
+				command_string += command_count ? `.${command}` : command;
+				// Add command path to lookup.
+				if (!lookup[command_string]) {
+					lookup[command_string] = [];
+				}
+
+				// Clear current command.
+				command = "";
+				command_count++;
+				continue;
+			} else if (char === "\\" && /(\.|\/)/.test(nchar)) {
+				// Add separator to current command since it's used as
+				// an escape sequence.
+				command += `\\${nchar}`;
+				i++;
+				continue;
 			}
-			ppath = ppath.substring(0, ppath.lastIndexOf("."));
+
+			// Append current char to current command string.
+			command += char;
 		}
+		// // Add remaining command if string is not empty.
+		// if (command) { cparts.push(command); }
 
 		// Check whether flag set is empty.
 		let flags_empty = flags === "--";

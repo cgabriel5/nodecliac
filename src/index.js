@@ -19,7 +19,8 @@ const actions = [
 	"make",
 	"remove",
 	"add",
-	"status"
+	"status",
+	"print"
 ];
 
 // Run action's respective file if provided.

@@ -79,15 +79,16 @@ module.exports = (contents, source) => {
 			// Cache current/previous/next chars.
 			let c = input.charAt(i);
 			let p = input.charAt(i - 1);
-			let n = input.charAt(i + 1);
+			// let n = input.charAt(i + 1);
 
 			// Reset prev word for 1st char as bash gets the last char.
 			if (i === 0) {
 				p = "";
-			} else if (i === l - 1) {
-				// Reset next word for last char as bash gets the first char.
-				n = "";
 			}
+			// else if (i === l - 1) {
+			// 	// Reset next word for last char as bash gets the first char.
+			// 	n = "";
+			// }
 
 			// If char is a space.
 			if (c === " " && p !== "\\") {
@@ -358,7 +359,7 @@ module.exports = (contents, source) => {
 	 */
 	let fillin_ph_cmd_flags = contents => {
 		// Place hold long-form flags.
-		let r = /\!CMDFLGS#\d{1,}/g;
+		let r = /!CMDFLGS#\d{1,}/g;
 
 		// If line does not contain placeholders skip it.
 		if (!r.test(contents)) {
@@ -373,7 +374,7 @@ module.exports = (contents, source) => {
 			let [, command, , del] = match.match(/^\$\((.*?)(,\s*(.*?))?\)$/);
 
 			// Build command-string and return.
-			return `\$\(${command}${del ? `,${del}` : ""}\)`;
+			return `$(${command}${del ? `,${del}` : ""})`;
 		}));
 	};
 
@@ -554,7 +555,7 @@ module.exports = (contents, source) => {
 		let flags = line.substring(sepindex + 1);
 
 		// Check if command chain contains invalid characters.
-		let r = /[^-\._:a-zA-Z0-9\\\/]/;
+		let r = /[^-._:a-zA-Z0-9\\/]/;
 		if (r.test(commandchain)) {
 			// Loop over command chain to highlight invalid character.
 			let chars = [];

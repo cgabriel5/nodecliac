@@ -697,6 +697,9 @@ sub __lookup {
 							$ENV{"${prefix}NEXT_CHAR"} = $nextchar;
 							$ENV{"${prefix}COMP_LINE_LENGTH"} = $cline_length;
 
+							# Unescape pipe characters.
+							$command = $command =~ s/\\\|/\|/r;
+
 							# Suppress any/all errors.
 							# my $lines = `"$command" 2> /dev/null`;
 							my $lines = `bash -c $command 2> /dev/null`;

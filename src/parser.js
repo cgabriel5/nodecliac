@@ -42,7 +42,8 @@ module.exports = (contents, source) => {
 					return a.localeCompare(b);
 				})
 			)
-			.join("\n");
+			.join("\n")
+			.replace(/\s*$/, "");
 	};
 
 	/**
@@ -788,7 +789,8 @@ module.exports = (contents, source) => {
 					return a.localeCompare(b);
 				})
 			)
-			.join("\n"),
+			.join("\n")
+			.replace(/\s*$/, ""),
 		config: config(settings)
 	};
 };

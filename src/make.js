@@ -96,9 +96,9 @@ module.exports = args => {
 
 		// Log acmap file contents if print flag provided.
 		if (print) {
-			console.log("[ACMAP_FILE]\n");
+			console.log(`[${chalk.bold(`${commandname}.acdef`)}]\n`);
 			console.log(acmap);
-			console.log("\n[ACMAP_CONFIG]\n");
+			console.log(`\n[${chalk.bold(`.${commandname}.config.acdef`)}]\n`);
 			console.log(config);
 		}
 	});

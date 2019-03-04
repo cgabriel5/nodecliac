@@ -788,7 +788,10 @@ module.exports = (contents, source) => {
 				// Sort flags is multiple sets exist.
 				if (fcount) {
 					flags = flags
-						.split("|")
+						// Parse on unescaped '|' characters:
+						// [https://stackoverflow.com/a/25895905]
+						// [https://stackoverflow.com/a/12281034]
+						.split(/(?<=[^\\]|^|$)\|/)
 						// [https://stackoverflow.com/a/16481400]
 						.sort(function(a, b) {
 							return a.localeCompare(b);

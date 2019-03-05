@@ -65,6 +65,7 @@ module.exports = args => {
 		// Generate acmap.
 		let { acdef: acmap, config } = parser(
 			fs.readFileSync(source).toString(),
+			commandname,
 			source
 		);
 		let savename = `${commandname}.acdef`;

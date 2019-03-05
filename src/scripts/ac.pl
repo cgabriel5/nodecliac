@@ -410,7 +410,7 @@ sub __extractor {
 							$oldchain = $chain;
 
 							# Lookup flag definitions from acmap.
-							my $pattern = '^' . "$maincommand$oldchain" . ' (\\-\\-.*)$';
+							my $pattern = '^' . "$oldchain" . ' (\\-\\-.*)$';
 							if ($acmap =~ /$pattern/m) {
 								my $pattern = "${item}\\?" . '(\\||$)';
 								if ($1 =~ /$pattern/) {
@@ -451,7 +451,7 @@ sub __extractor {
 						$oldchain = $chain;
 
 						# Lookup flag definitions from acmap.
-						my $pattern = '^' . "$maincommand$oldchain" . ' (\\-\\-.*)$';
+						my $pattern = '^' . "$oldchain" . ' (\\-\\-.*)$';
 						if ($acmap =~ /$pattern/m) {
 							my $pattern = "${item}\\?" . '(\\||$)';
 							if ($1 =~ /$pattern/) {
@@ -492,7 +492,7 @@ sub __extractor {
 		$commandchain = $commandchain;
 	}
 	# Prepend main command to chain.
-	$commandchain = __validate("$maincommand$commandchain", "command");
+	$commandchain = __validate("$commandchain", "command");
 
 	# Build used flags strings.
 	# Switch statement: [https://stackoverflow.com/a/22575299]
@@ -897,7 +897,7 @@ sub __lookup {
 		# If command chain and used flags exits, don't complete.
 		if ($usedflags && $commandchain) {
 			# Reset commandchain and usedflags.
-			$commandchain = "$maincommand" . (!$last ? "" : $last);
+			$commandchain = "" . (!$last ? "" : $last);
 			$usedflags = "";
 		}
 

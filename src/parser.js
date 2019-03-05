@@ -5,7 +5,7 @@ const path = require("path");
 const chalk = require("chalk");
 const { exit } = require("./utils.js");
 
-module.exports = (contents, source) => {
+module.exports = (contents, commandname, source) => {
 	// Vars.
 	// acmap file header.
 	let header = [
@@ -833,7 +833,12 @@ module.exports = (contents, source) => {
 				}
 			}
 
-			newlines.push(`${commandchain} ${flags}`);
+			newlines.push(
+				`${commandchain.replace(
+					new RegExp(`^${commandname}`, "gm"),
+					""
+				)} ${flags}`
+			);
 		}
 	}
 

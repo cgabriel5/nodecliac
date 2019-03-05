@@ -932,7 +932,14 @@ sub __lookup {
 		}
 
 		# Lookup all command tree rows from acmap once and store.
-		my $pattern = '^' . $commandchain . '.*$';
+		# my $pattern = '^' . $commandchain . '.*$'; # Original.
+		# my $pattern = '^' . substr($commandchain, 0, 2) . '.*$'; # 2 char RegExp pattern.
+		# The following RegExp does not seem to work:
+		# my $pattern = '^(?!(\\#|\\s))' . quotemeta(substr($commandchain, 0, 2)) . '.*$';
+		# Make initial acdef file lookup. Ignore comments/empty lines.
+		# my $pattern = '^(?![#|\n])' . quotemeta(substr($commandchain, 0, 2)) . '.*$';
+		# my $pattern = '^(?![#|\n])' . $commandchain . '.+$';
+		my $pattern = '^(?![#|\n])' . substr($commandchain, 0, 2) . '.+$';
 		my @data = $acmap =~ /$pattern/mg;
 		my @rows = (); # Store filtered data.
 		my $lastchar_notspace = ($lastchar ne " ");

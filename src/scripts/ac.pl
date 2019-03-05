@@ -58,17 +58,21 @@ my $__dc_multiflags = "";
 # @return {boolean} - True if duplicate. Else false.
 sub __dupecheck {
 	# Get provided flag arg.
-	my ($flag) = @_;
+	my (
+		$flag,
+		$flag_fkey,
+		$flag_isbool,
+		$flag_eqsign,
+		$flag_multif,
+		$flag_value
+	) = @_;
 
 	# Var boolean.
 	my $dupe = 0;
 	my $d = "}|{"; # Delimiter.
 
-	# Get individual components from flag.
-	my ($ckey) = $flag =~ /^([^=]*)/;
-
 	# If its a multi-flag then let it through.
-	if (__includes($__dc_multiflags, " $ckey ")) {
+	if (__includes($__dc_multiflags, " $flag_fkey ")) {
 		$dupe = 0;
 
 		# Although a multi-starred flag, check if value has been used or not.
@@ -77,14 +81,14 @@ sub __dupecheck {
 		}
 
 	# Valueless flag dupe check.
-	} elsif (!__includes($flag, "=")) {
-		if (__includes(" $d $usedflags ", " $d $ckey ") ||
+	} elsif (!$flag_eqsign) {
+		if (__includes(" $d $usedflags ", " $d $flag_fkey ") ||
 			# Check is used as a flag with a value. This happens due
 			# to how the extractor is implemented. For example, the
 			# following flags in 'myapp --SOMETING value --' will be
 			# turned into ' }|{ --SOMETING=value }|{ -- '. Therefore,
 			# check if the flag was was actually used with a value.
-			__includes(" $d $usedflags ", " $d $ckey=")) {
+			__includes(" $d $usedflags ", " $d $flag_fkey=")) {
 			$dupe = 1;
 		}
 
@@ -92,8 +96,8 @@ sub __dupecheck {
 	} else {
 		# Count substring occurrences:
 		# [https://stackoverflow.com/a/9538604]
-		$ckey .= "=";
-		my @c = $usedflags =~ /$ckey/g;
+		$flag_fkey .= "=";
+		my @c = $usedflags =~ /$flag_fkey/g;
 		my $count = scalar(@c);
 
 		# More than 1 occurrence flag has been used.
@@ -102,7 +106,7 @@ sub __dupecheck {
 		}
 
 		# If there is exactly 1 occurrence and the flag matches the
-		# ReGex pattern we undupe flag as the 1 occurrence is being
+		# RegExp pattern we undupe flag as the 1 occurrence is being
 		# completed (i.e. a value is being completed).
 		if ($count == 1 && $flag =~ /$flgoptvalue/) {
 			$dupe = 0;
@@ -628,28 +632,64 @@ sub __lookup {
 				# my @flags = split(/(?<!\\)\|/, $1);
 				my @flags = split(/(?:\\\\\|)|(?:(?<!\\)\|)/, $1);
 
+				# Breakup last word into flag/value.
+				my @matches = $last =~ /^(.*?)((=)(\*)?(.*?))?$/;
+				# Default to empty string if no match.
+				# [https://perlmaven.com/how-to-set-default-values-in-perl]
+				my $last_fkey = $matches[0] // "";
+				my $last_eqsign = $matches[2] // "";
+				my $last_multif = $matches[3] // "";
+				my $last_value = $matches[4] // "";
+				my $nohyphen_last = $last =~ s/^\-*//r;
+				my $last_fletter = substr($nohyphen_last, 0, 1);
+				my $last_val_quoted = __is_lquoted($last_value);
+
 				# Loop over flags to process.
 				foreach my $flag (@flags) {
-					# Remove boolean indicator from flag if present.
-					if ($flag =~ /\?$/) {
-						$flag = substr($flag, 0, -1);
-					}
+					# Breakup flag into its components (flag/value/etc.).
+					my @matches = $flag =~ /^(.*?)(\?)?((=)(\*)?(.*?))?$/;
+					# Default to empty string if no match.
+					# [https://perlmaven.com/how-to-set-default-values-in-perl]
+					my $flag_fkey = $matches[0] // "";
+					my $flag_isbool = $matches[1] // "";
+					my $flag_eqsign = $matches[3] // "";
+					my $flag_multif = $matches[4] // "";
+					my $flag_value = $matches[5] // "";
+					my $nohyphen_flag = $flag =~ s/^\-*//r;
+					my $flag_fletter = substr($nohyphen_flag, 0, 1);
+					my $flag_val_quoted = __is_lquoted($flag_value);
+
+					# Preliminary checks:
+					if (
+					# Before continuing with full on flag logic checks, check
+					# whether the flag even starts with the same character. If
+					# the last word is only made up of hyphens then let it
+					# through.
+						$nohyphen_last && $last_fletter ne $flag_fletter ||
+					# Flag must start with the last word. Escape special chars:
+					# [https://stackoverflow.com/a/576459]
+					# [http://perldoc.perl.org/functions/quotemeta.html]
+					# $pattern = '^' . $last_fkey;
+					# if (!($flag_fkey =~ /$pattern/)) { next; }
+						index($flag_fkey, $last_fkey) != 0
+					) { next; }
+
+					# Reset flag to only include flag key and possible value.
+					$flag = $flag_fkey .
+						# Check for value.
+						($flag_eqsign ? ($flag_value) ? "=$flag_value" : "=" : "");
 
 					# Track multi-starred flags.
-					if ($flag =~ /\=\*/) {
-						$__dc_multiflags .= " " . $flag =~ s/\=\*//r . " ";
-					}
+					if ($flag_multif) { $__dc_multiflags .= " $flag_fkey "; }
 
 					# Unescape flag.
 					# $flag = __unescape($flag);
 
 					# If a command-flag: --flag=$("<COMMAND-STRING>"), run
 					# command and add returned words to completion options.
-					if (__includes($last, "=")) {
-						# Get flag portion from --flag=value.
-						my $fkey = substr($last, 0, index($last, "="));
-						# If fkey starts witht flag and is a command flag.
-						if (index($flag, $fkey) == 0 && $flag =~ /$flagcommand/) {
+					if ($last_eqsign) {
+						# If fkey starts with flag and is a command flag.
+						if (index($flag, $last_fkey) == 0 && $flag =~ /$flagcommand/) {
 							# Cache captured string command.
 							my $command = $2;
 							# By default command output will be split lines.
@@ -743,7 +783,7 @@ sub __lookup {
 									# Line cannot be empty.
 									if ($line) {
 										# Finally, add to flags array.
-										push(@flags, $fkey . "=$line");
+										push(@flags, $last_fkey . "=$line");
 									}
 								}
 							}
@@ -758,19 +798,21 @@ sub __lookup {
 					# [http://perldoc.perl.org/functions/quotemeta.html]
 					my $pattern = '^' . quotemeta($last);
 					if ($flag =~ /$pattern/) {
-
 						# Note: If the last word is "--" or if the last
 						# word is not in the form "--form= + a character",
 						# don't show flags with values (--flag=value).
-						if (!__includes($last, "=") && $flag =~ /$flgoptvalue/ && !($flag =~ /\*$/)) {
+						if (!$last_eqsign && $flag =~ /$flgoptvalue/ && !$flag_multif) {
 							next;
 						}
 
 						# No dupes unless it's a multi-starred flag.
-						if (!__dupecheck($flag)) {
-							# Remove "*" multi-flag marker from flag.
-							$flag =~ s/\=\*/=/;
-
+						if (!__dupecheck($flag,
+							$flag_fkey,
+							$flag_isbool,
+							$flag_eqsign,
+							$flag_multif,
+							$flag_value)
+						) {
 							# If last word is in the form → "--flag=" then we
 							# need to remove the last word from the flag to
 							# only return its options/values.
@@ -782,41 +824,30 @@ sub __lookup {
 								# Reset flag to its option. If option is empty
 								# (no option) then default to flag's key.
 								# flag+="value"
-								($flag) = $flag =~ /=(.*)$/;
-								if (!$flag) {
-									$flag = $flagcopy;
-								}
+								$flag = $flag_value ? $flag_value : $flagcopy;
 							}
 
-							# Note: This is more of a hack check.
-							# Values with special characters will
-							# sometime by-pass the previous checks
-							# so do one file check. If the flag
-							# is in the following form:
-							# ----flags="value-string" then we do
-							# not add is to the completions list.
-							# Final option/value check.
-							my $__isquoted = 0;
-							if (__includes($flag, "=")) {
-								my ($ff) = $flag =~ /=(.*)$/;
-								if (__is_lquoted(substr($ff || "", 0, 1))) {
-									$__isquoted = 1;
-								}
-							}
+							# Note: This is more of a hack check. Values with
+							# special characters will sometime by-pass the
+							# previous checks so do one file check. If the
+							# flag is in the following form:
+							# --flags="value-string" then we do not add is to
+							# the completions list. Final option/value check.
+							# my $__isquoted = ($flag_eqsign && $flag_val_quoted);
 
 							# Add flag/options if all checks pass.
-							if ($__isquoted == 0 && $flag ne $last) {
-								if ($flag) {
-									push(@completions, $flag);
-								}
+							# if (!$__isquoted && $flag ne $last) {
+							if ($flag && $flag ne $last) {
+								push(@completions, $flag);
 							}
 						} else {
-							# If flag exits and is already used then add a space after it.
+							# If flag exits and is already used then add a
+							# space after it.
 							if ($flag eq $last) {
-								if (!__includes($last, "=")) {
+								if (!$last_eqsign) {
 									push(@used, $last);
 								} else {
-									($flag) = $flag =~ /=(.*)$/;
+									$flag = $flag_value;
 									if ($flag) {
 										push(@completions, $flag);
 									}
@@ -835,29 +866,28 @@ sub __lookup {
 				# '77' so that on the next tab it can be completed to
 				# '--flag=77'.
 				my $l = $#completions;
-				# Get the value from the last word.
-				my ($val) = $last =~ /=(.*)$/;
-				# [https://perlmaven.com/how-to-set-default-values-in-perl]
-				$val //= "";
 
 				# Note: Account for quoted strings. If the last value is
 				# quoted, then add closing quote.
-				if (__is_lquoted($val)) {
+				if ($last_val_quoted) {
 					# Get starting quote (i.e. " or ').
-					my $quote = substr($val, 0, 1);
-					if (substr($val, -1) ne $quote) {
-						$val .= $quote;
+					my $quote = substr($last_value, 0, 1);
+
+					# Close string with matching quote if not already.
+					if (substr($last_value, -1) ne $quote) {
+						$last_value .= $quote;
 					}
 
-					# Escape for double quoted strings.
+					# Add quoted indicator to type string to later escape
+					# for double quoted strings.
 					$type = "flag;quoted";
 					if ($quote eq "\"") {
 						$type .= ";noescape";
 					}
 
 					# If the value is empty return.
-					if (length($val) == 2) {
-						push(@completions, "${quote}${quote}");
+					if (length($last_value) == 2) {
+						push(@completions, "$quote$quote");
 						return;
 					}
 				}
@@ -865,9 +895,9 @@ sub __lookup {
 				# If the last word contains an eq sign, it has a value
 				# option, and there are more than 2 possible completions
 				# we remove the already used option.
-				if (__includes($last, "=") && $val && ($l + 1) >= 2) {
+				if ($last_value && ($l + 1) >= 2) {
 					for (my $i = $l; $i >= 0; $i--) {
-						if (length($completions[$i]) == length($val)) {
+						if (length($completions[$i]) == length($last_value)) {
 							# Remove item from array.
 							splice(@completions, $i, 1);
 						}

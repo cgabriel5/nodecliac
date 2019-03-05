@@ -28,6 +28,12 @@ my $inp = substr($cline, 0, $cpoint); # CLI input from start to caret index.
 # Get the acmap definitions file.
 my $acmap = $ARGV[3];
 
+# RegExp Patterns:
+my $flgopt = '--?[a-z0-9-]*='; # "--flag="
+my $flagstartr = '^\-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\-]{1,})?\=\*?'; #"--flag=*"
+my $flgoptvalue = $flagstartr . '.{1,}$'; # "--flag=value"
+my $flagcommand = $flagstartr . '\$\((.{1,})\)$'; # "--flag=$("<COMMAND-STRING>")"
+
 # Log local variables and their values.
 sub __debug {
 	print "\n";
@@ -60,9 +66,6 @@ sub __dupecheck {
 
 	# Get individual components from flag.
 	my ($ckey) = $flag =~ /^([^=]*)/;
-
-	# Regex → "--flag=value"
-	my $flgoptvalue = "^\\-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\\-]{1,})?\\=\\*?.{1,}\$";
 
 	# If its a multi-flag then let it through.
 	if (__includes($__dc_multiflags, " $ckey ")) {
@@ -600,16 +603,6 @@ sub __extractor {
 # Lookup command/subcommand/flag definitions from the acmap to return
 #     possible completions list.
 sub __lookup {
-	# Flag ReGex test patterns.
-	# ReGex → "--flag="
-	my $flgopt = '--?[a-z0-9-]*=';
-	# ReGex → "--flag=*"
-	my $flagstartr = '^\-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\-]{1,})?\=\*?';
-	# ReGex → "--flag=value"
-	my $flgoptvalue = $flagstartr . '.{1,}$';
-	# ReGex → "--flag=$("<COMMAND-STRING>")"
-	my $flagcommand = $flagstartr . '\$\((.{1,})\)$';
-
 	# Skip logic if last word is quoted or completion variable is off.
 	if ($isquoted || !$autocompletion) {
 		return;

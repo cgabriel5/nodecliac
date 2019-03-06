@@ -78,13 +78,12 @@ module.exports = () => {
 				let contents = fs.readFileSync(bashrcpath).toString();
 
 				// Check for nodecliac marker.
-				if (!contents.includes("[nodecliac]")) {
-					let decor_top = "#".repeat(88);
-					let decor_bottom = decor_top.slice(1);
-					let bash_edit = `# [nodecliac] ${decor_top}\nnodecliacpath=~/.nodecliac/src/${mainscriptname}; if [ -f "$nodecliacpath" ]; then source "$nodecliacpath"; fi #\n${decor_bottom} [/nodecliac] #`;
-
+				if (!/^ncliac=~/m.test(contents)) {
 					// Edit .bashrc file to "include" nodecliac main script file.
-					fs.writeFileSync(bashrcpath, `${contents}\n${bash_edit}`);
+					fs.writeFileSync(
+						bashrcpath,
+						`${contents}\nncliac=~/.nodecliac/src/${mainscriptname};if [ -f "$ncliac" ];then source "$ncliac";fi;`
+					);
 				}
 
 				// Generate main and completion scripts.

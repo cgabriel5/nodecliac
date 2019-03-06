@@ -45,12 +45,12 @@ module.exports = () => {
 					let contents = fs.readFileSync(bashrcpath).toString();
 
 					// Check for nodecliac marker.
-					if (contents.includes("[nodecliac]")) {
+					if (/^ncliac=~/m.test(contents)) {
 						// Remove marker.
 						fs.writeFileSync(
 							bashrcpath,
 							contents.replace(
-								/\n?#\s*\[nodecliac\][\s\S]*\[\/nodecliac\]\s*#\n?$/m,
+								/ncliac=~[\s\S]*?"\$ncliac";\s*fi;/g,
 								""
 							)
 						);

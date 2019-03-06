@@ -61,7 +61,13 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 
 		# Get acmap file contents.
 		# local acmap="$(<~/.nodecliac/defs/$maincommand*)"
-		local acmap="$(<~/.nodecliac/defs/$maincommand.acdef)"
+		local acmappath=~/.nodecliac/defs/$maincommand.acdef
+		# Check once more if the acdef file exists for the following case:
+		# If in the incident that nodecliac gets deleted (i.e. like running
+		# '$ nodecliac uninstall'), if the acmap file does not exist bash
+		# will output an error. Therefore, return when file is not found.
+		if [[ ! -f "$acmappath" ]]; then return; fi;
+		local acmap="$(<$acmappath)"
 # [https://serverfault.com/questions/72476/clean-way-to-write-complex-multi-line-string-to-a-variable/424601#424601]
 # local acmap=`cat <<EOF
 # # [[__acmap__]]

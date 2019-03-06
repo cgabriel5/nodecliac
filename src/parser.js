@@ -237,17 +237,18 @@ module.exports = (contents, commandname, source) => {
 	 * Expand shortcuts. For example, command.{cmd1|cmd2} will expand
 	 *     to command.cmd1 and command.cmd2.
 	 *
-	 * @param  {string} line - The line with shortcuts to expand.
+	 * @param  {string} commandchain - The commandchain with shortcuts to
+	 *     expand.
 	 * @return {array} - Array containing the expand lines.
 	 */
-	let expand_shortcuts = line => {
+	let expand_shortcuts = commandchain => {
 		let flines = [];
 
-		if (/{.*?}/.test(line)) {
+		if (/{.*?}/.test(commandchain)) {
 			let shortcuts;
 
 			// Place hold shortcuts.
-			line = line.replace(/{.*?}/, function(match) {
+			commandchain = commandchain.replace(/{.*?}/, function(match) {
 				// Remove syntax decorations + whitespace.
 				shortcuts = match.replace(/^{|}$/gm, "").split("|");
 
@@ -255,10 +256,10 @@ module.exports = (contents, commandname, source) => {
 					// Cache current loop item.
 					let sc = shortcuts[i];
 
-					flines.push(line.replace(/{.*?}/, sc));
+					flines.push(commandchain.replace(/{.*?}/, sc));
 				}
 
-				// Remove shortcut from line by returning anonymous placeholder.
+				// Remove shortcut from command by returning anonymous placeholder.
 				return "--PL";
 			});
 		}
@@ -268,9 +269,11 @@ module.exports = (contents, commandname, source) => {
 		if (/{.*?}/.test(flines[0])) {
 			for (let i = 0, l = flines.length; i < l; i++) {
 				// Cache current loop item.
-				let line = flines[i];
+				let commandchain = flines[i];
 
-				recursion = recursion.concat(expand_shortcuts(line, true));
+				recursion = recursion.concat(
+					expand_shortcuts(commandchain, true)
+				);
 			}
 		}
 		if (recursion.length) {
@@ -546,14 +549,11 @@ module.exports = (contents, commandname, source) => {
 	 *     chains will have all their respective flag sets combined as well.
 	 *
 	 * @param  {string} line - The line do check.
+	 * @param  {string} commandchain - The line's command chain.
+	 * @param  {string} flags - The line's flag set.
 	 * @return {undefined} - Nothing is returned.
 	 */
-	let dupecheck = line => {
-		// Extract commandchain and flags.
-		let sepindex = line.indexOf(" ");
-		let commandchain = line.substring(0, sepindex);
-		let flags = line.substring(sepindex + 1);
-
+	let dupecheck = (line, commandchain, flags) => {
 		// Check if command chain contains invalid characters.
 		let r = /[^-._:a-zA-Z0-9\\/]/;
 		if (r.test(commandchain)) {
@@ -789,16 +789,20 @@ module.exports = (contents, commandname, source) => {
 		// Fill back in command flags placeholders.
 		line = fillin_ph_cmd_flags(line);
 
+		// Expand any command shortcuts.
+		// Break apart line into its components (command/flags).
+		let [, commandchain = "", flags = ""] = line.match(/^([^ ]*) (.*?)$/);
+
 		// Expand any shortcuts.
-		if (/{.*?}/.test(line)) {
-			let lines = expand_shortcuts(line);
+		if (/{.*?}/.test(commandchain)) {
+			let lines = expand_shortcuts(commandchain);
 			for (let i = 0, l = lines.length; i < l; i++) {
 				// Dupe check line.
-				dupecheck(lines[i]);
+				dupecheck(line, lines[i], flags);
 			}
 		} else {
 			// No shortcuts, just dupe check.
-			dupecheck(line);
+			dupecheck(line, commandchain, flags);
 		}
 	}
 

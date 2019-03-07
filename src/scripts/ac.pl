@@ -243,6 +243,109 @@ sub __validate {
 	return $arg;
 }
 
+# Parse string command flag ($("")) arguments.
+#
+# @param  {string} 1) input - The string command-flag to parse.
+# @return {string} - The cleaned command-flag string.
+sub __paramparse {
+	# Get arguments.
+	my ($input) = @_;
+
+	# Parse command string to get individual arguments. Things to note: each
+	# argument is to be encapsulated with strings. User can decide which to
+	# use, either single or double. As long as their contents are properly
+	# escaped.
+	my @arguments = ();
+	my $argument = "";
+	my $cmdstr_length = length($input);
+	my $state = "closed";
+	my $quote_type = "";
+	my $args_count = 0;
+
+	# Return empty string when input is empty.
+	if (!$input || !$cmdstr_length) {
+		# Push 0 for arg count to array.
+		push(@arguments, 0);
+
+		return @arguments;
+	}
+
+	# Command flag syntax:
+	# $("COMMAND-STRING" [, [<ARG1>, <ARGN> [, "<DELIMITER>"]]])
+
+	# Loop over every input char: [https://stackoverflow.com/q/10487316]
+	# [https://stackoverflow.com/q/18906514]
+	# [https://stackoverflow.com/q/13952870]
+	# [https://stackoverflow.com/q/1007981]
+	for (my $i = 0; $i < $cmdstr_length; $i++) {
+		# Cache current/previous/next chars.
+		my $char = substr($input, $i, 1);
+		my $pchar = substr($input, $i - 1, 1);
+		my $nchar = substr($input, $i + 1, 1);
+
+		# If character is an unescaped quote.
+		if ($char =~ /["']/ && $pchar ne "\\" && $state eq "closed") {
+			# Set state to open.
+			$state = "open";
+			# Set quote type.
+			$quote_type = $char;
+			# Store the character.
+			$argument .= $char;
+
+		# If char is an unescaped quote + status is open...reset.
+		} elsif (
+			$char =~ /["']/ &&
+			$pchar ne "\\" &&
+			$state eq "open" &&
+			$quote_type eq $char
+		) {
+			# Set state to close.
+			$state = "closed";
+			# Reset quote type.
+			$quote_type = "";
+			# Store the character.
+			$argument .= $char;
+
+		# Handle escaped characters.
+		} elsif ($char eq "\\") {
+			if ($nchar) {
+				# Store the character.
+				$argument .= "$char$nchar";
+				$i++;
+			} else {
+				# Store the character.
+				$argument .= $char;
+			}
+
+		# For anything that is not a quote char.
+		} elsif ($char =~ /[^"']/) {
+			# If we hit a comma and the state is closed.
+			# We store the current argument and reset
+			# everything.
+			if ($state eq "closed" && $char eq ",") {
+				push(@arguments, $argument);
+				$args_count++;
+				$argument = "";
+			} elsif ($state eq "open") {
+				# Store the character.
+				$argument .= $char;
+			}
+		}
+	}
+	# Add remaining argument if string is not empty.
+	if ($argument) {
+		push(@arguments, $argument);
+		$args_count++;
+	}
+
+	# Push arg count to array.
+	push(@arguments, $args_count);
+
+	# Return arguments array.
+	# [https://stackoverflow.com/a/11303607]
+	return @arguments;
+}
+
 # Parses CLI input. Returns input similar to that of process.argv.slice(2).
 #     Adapted from argsplit module.
 #
@@ -691,22 +794,55 @@ sub __lookup {
 						# If fkey starts with flag and is a command flag.
 						if (index($flag, $last_fkey) == 0 && $flag =~ /$flagcommand/) {
 							# Cache captured string command.
-							my $command = $2;
+							my @arguments = __paramparse($2);
+							my $args_count = pop(@arguments);
+
+							# Set defaults.
+							my $command = $arguments[0];
 							# By default command output will be split lines.
 							my $delimiter = "\$\\r\?\\n";
 
-							# command-flag syntax: "COMMAND-STRING"[, "<DELIMITER>"]?
-							$pattern = '^(.*?)(,(.*?))?$';
-							# Check whether a delimiter was provided.
-							if ($command =~ /$pattern/) {
-								# Use provided delimiter if provided.
-								if ($3) {
+							# 'bash -c' with arguments documentation:
+							# [https://stackoverflow.com/q/26167803]
+							# [https://unix.stackexchange.com/a/144519]
+							# [https://stackoverflow.com/a/1711985]
+
+							# Start creating command string. Will take the
+							# following form: `bash -c $command 2> /dev/null`
+							my $cmd = "bash -c $arguments[0]";
+
+							# Only command and delimiter.
+							if ($args_count > 1) {
+								# print last element
+								# $cdelimiter = $arguments[-1];
+								my $cdelimiter = pop(@arguments);
+
+								# Set custom delimiter if provided.
+								if ($cdelimiter) {
 									# [https://stackoverflow.com/a/5745667]
-									$delimiter = substr($3, 1, -1);
+									$delimiter = substr($cdelimiter, 1, -1);
 								}
-								# Reset command to exclude delimiter.
-								$command = $1;
+
+								# Set command.
+								$command = $arguments[0];
+								# Unescape pipe characters.
+								$command = $command =~ s/\\\|/\|/r;
+
+								# Reduce arguments count by one since we
+								# popped off the last item (the delimiter).
+								$args_count -= 1;
+
+								# Add arguments to command string.
+								for (my $i = 1; $i < $args_count; $i++) {
+									$cmd .= " $arguments[$i]";
+								}
 							}
+
+							# Close command string. Suppress any/all errors.
+							$cmd .= " 2> /dev/null";
+
+							# Reset command string.
+							$command = $cmd;
 
 							# Run command. Add an or logical statement in case
 							# the command returns nothing or an error is return.
@@ -730,12 +866,8 @@ sub __lookup {
 							$ENV{"${prefix}NEXT_CHAR"} = $nextchar;
 							$ENV{"${prefix}COMP_LINE_LENGTH"} = $cline_length;
 
-							# Unescape pipe characters.
-							$command = $command =~ s/\\\|/\|/r;
-
-							# Suppress any/all errors.
-							# my $lines = `"$command" 2> /dev/null`;
-							my $lines = `bash -c $command 2> /dev/null`;
+							# Run the command.
+							my $lines = `$command`;
 							# Note: $2 (the provided command string) will be
 							# injected as is. Meaning it will be provided to
 							# 'bash' with the provided surrounding quotes. User

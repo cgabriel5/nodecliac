@@ -838,8 +838,12 @@ module.exports = (contents, commandname, source) => {
 			}
 
 			newlines.push(
+				// Remove the main command from the command chain. However,
+				// when the command name is not the main command in (i.e.
+				// when running on a test file) just remove the first command
+				// name in the chain.
 				`${commandchain.replace(
-					new RegExp(`^${commandname}`, "gm"),
+					new RegExp(`^(${commandname}|[-_a-zA-Z0-9]+)`, "gm"),
 					""
 				)} ${flags}`
 			);

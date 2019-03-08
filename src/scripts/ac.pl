@@ -820,8 +820,10 @@ sub __lookup {
 								# $cdelimiter = $arguments[-1];
 								my $cdelimiter = pop(@arguments);
 
-								# Set custom delimiter if provided.
-								if ($cdelimiter) {
+								# Set custom delimiter if provided. To be
+								# provided it must be more than 2 characters.
+								# Meaning more than the 2 quotes.
+								if (length($cdelimiter) >= 2) {
 									# [https://stackoverflow.com/a/5745667]
 									$delimiter = substr($cdelimiter, 1, -1);
 								}

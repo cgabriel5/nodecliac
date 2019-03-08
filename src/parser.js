@@ -169,6 +169,11 @@ module.exports = (contents, commandname, source) => {
 
 			// If char is an unescaped quote.
 			if (/["']/.test(char) && pchar !== "\\" && state === "closed") {
+				// Check if the previous character is a dollar sign. This
+				// means the command should run as a command.
+				if (pchar && pchar === "$") {
+					argument += "$";
+				}
 				// Set state to open.
 				state = "open";
 				// Set quote type.

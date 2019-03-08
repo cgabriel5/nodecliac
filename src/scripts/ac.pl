@@ -285,6 +285,9 @@ sub __paramparse {
 
 		# If character is an unescaped quote.
 		if ($char =~ /["']/ && $pchar ne "\\" && $state eq "closed") {
+			# Check if the previous character is a dollar sign. This
+			# means the command should run as a command.
+			if ($pchar && $pchar eq "\$") { $argument .= "\$"; }
 			# Set state to open.
 			$state = "open";
 			# Set quote type.
@@ -834,7 +837,30 @@ sub __lookup {
 
 								# Add arguments to command string.
 								for (my $i = 1; $i < $args_count; $i++) {
-									$cmd .= " $arguments[$i]";
+									# Cache argument.
+									my $arg = $arguments[$i];
+
+									# Run command if '$' is prefix to string.
+									if ($arg =~ /^\$/) {
+										# Remove '$' command indicator.
+										$arg = substr($arg, 1);
+										# Get the used quote type.
+										my $quote_char =  substr($arg, 0, 1);
+
+										# Run command and append result to
+										# command string.
+										my $cmdarg = "bash -c $arg 2> /dev/null";
+										$cmd .= "$quote_char" . `$cmdarg` . "$quote_char";
+
+										# # If the result is empty after
+										# # trimming then do not append?
+										# my $result = `$cmdarg`;
+										# if ($result =~ s/^\s*|\s*$//rg) {}
+									} else {
+										# Append non-command argument to
+										# command string.
+										$cmd .= " $arg";
+									}
 								}
 							}
 

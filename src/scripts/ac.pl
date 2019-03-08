@@ -746,7 +746,7 @@ sub __lookup {
 				my $last_eqsign = $matches[2] // "";
 				my $last_multif = $matches[3] // "";
 				my $last_value = $matches[4] // "";
-				my $nohyphen_last = $last =~ s/^\-*//r;
+				my $nohyphen_last = $last =~ s/^-*//r;
 				my $last_fletter = substr($nohyphen_last, 0, 1);
 				my $last_val_quoted = __is_lquoted($last_value);
 
@@ -761,7 +761,7 @@ sub __lookup {
 					my $flag_eqsign = $matches[3] // "";
 					my $flag_multif = $matches[4] // "";
 					my $flag_value = $matches[5] // "";
-					my $nohyphen_flag = $flag =~ s/^\-*//r;
+					my $nohyphen_flag = $flag =~ s/^-*//r;
 					my $flag_fletter = substr($nohyphen_flag, 0, 1);
 					my $flag_val_quoted = __is_lquoted($flag_value);
 

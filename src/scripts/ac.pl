@@ -29,8 +29,8 @@ my $inp = substr($cline, 0, $cpoint); # CLI input from start to caret index.
 my $acmap = $ARGV[3];
 
 # RegExp Patterns:
-my $flgopt = '--?[a-z0-9-]*='; # "--flag="
-my $flagstartr = '^\-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\-]{1,})?\=\*?'; #"--flag=*"
+my $flgopt = '-{1,2}[a-z0-9-]*='; # "--flag/-flag="
+my $flagstartr = '^-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\-]{1,})?\=\*?'; #"--flag/-flag=*"
 my $flgoptvalue = $flagstartr . '.{1,}$'; # "--flag=value"
 my $flagcommand = $flagstartr . '\$\((.{1,})\)$'; # "--flag=$("<COMMAND-STRING>")"
 
@@ -520,7 +520,7 @@ sub __extractor {
 							$oldchain = $chain;
 
 							# Lookup flag definitions from acmap.
-							my $pattern = '^' . "$oldchain" . ' (\\-\\-.*)$';
+							my $pattern = '^' . "$oldchain" . ' (-{1,2}.*)$';
 							if ($acmap =~ /$pattern/m) {
 								my $pattern = "${item}\\?" . '(\\||$)';
 								if ($1 =~ /$pattern/) {
@@ -561,7 +561,7 @@ sub __extractor {
 						$oldchain = $chain;
 
 						# Lookup flag definitions from acmap.
-						my $pattern = '^' . "$oldchain" . ' (\\-\\-.*)$';
+						my $pattern = '^' . "$oldchain" . ' (-{1,2}.*)$';
 						if ($acmap =~ /$pattern/m) {
 							my $pattern = "${item}\\?" . '(\\||$)';
 							if ($1 =~ /$pattern/) {
@@ -671,7 +671,7 @@ sub __extractor {
 		# Get correct last word.
 		my $nlast = $args[($islast_aspace ? -1 : -2)];
 		# acmap commandchain lookup Regex.
-		my $pattern = '^' . $commandchain . ' (\\-\\-.*)$';
+		my $pattern = '^' . $commandchain . ' (-{1,2}.*)$';
 
 		# The last word (either last or second last word) must be a flag
 		# and cannot have contain an eq sign.
@@ -721,7 +721,7 @@ sub __lookup {
 	# Flag completion (last word starts with a hyphen):
 	if (__starts_with_hyphen($last)) {
 		# Lookup flag definitions from acmap.
-		my $pattern = '^' . $commandchain . ' (\\-\\-.*)$';
+		my $pattern = '^' . $commandchain . ' (-{1,2}.*)$';
 		if ($acmap =~ /$pattern/m) {
 			# Continue if rows exist.
 			if ($1) {

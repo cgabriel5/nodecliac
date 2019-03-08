@@ -29,10 +29,10 @@ my $inp = substr($cline, 0, $cpoint); # CLI input from start to caret index.
 my $acmap = $ARGV[3];
 
 # RegExp Patterns:
-my $flgopt = '-{1,2}[a-z0-9-]*='; # "--flag/-flag="
-my $flagstartr = '^-{1,2}[a-zA-Z0-9]([a-zA-Z0-9\-]{1,})?\=\*?'; #"--flag/-flag=*"
-my $flgoptvalue = $flagstartr . '.{1,}$'; # "--flag=value"
-my $flagcommand = $flagstartr . '\$\((.{1,})\)$'; # "--flag=$("<COMMAND-STRING>")"
+my $flgopt = '-{1,2}[-.a-zA-Z0-9]*='; # "--flag/-flag="
+my $flagstartr = '^-{1,2}[a-zA-Z0-9]([-.a-zA-Z0-9]{1,})?\=\*?'; #"--flag/-flag=*"
+my $flgoptvalue = $flagstartr . '.{1,}$'; # "--flag/-flag=value"
+my $flagcommand = $flagstartr . '\$\((.{1,})\)$'; # "--flag/-flag=$("<COMMAND-STRING>")"
 
 # Log local variables and their values.
 sub __debug {

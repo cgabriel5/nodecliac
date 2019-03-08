@@ -390,7 +390,7 @@ module.exports = (contents, commandname, source) => {
 	 */
 	let unexpand_mf_options = contents => {
 		return (contents = contents.replace(
-			/^\s*-{1,2}[a-z][a-z0-9-]*\s*=\*?\s*\([\s\S]*?\)/gim,
+			/^\s*-{1,2}[a-z][-.a-z0-9]*\s*=\*?\s*\([\s\S]*?\)/gim,
 			function(match) {
 				// Format options.
 
@@ -419,7 +419,7 @@ module.exports = (contents, commandname, source) => {
 
 				// Get flag name.
 				let [, indentation, flag, options] = match.match(
-					/^(\s*)(-{1,2}[a-z][a-z0-9-]*)\s*=\*?\s*\(([\s\S]*?)\)/im
+					/^(\s*)(-{1,2}[a-z][-.a-z0-9]*)\s*=\*?\s*\(([\s\S]*?)\)/im
 				);
 
 				// Turn options list into an array.
@@ -544,7 +544,7 @@ module.exports = (contents, commandname, source) => {
 
 					// If in form → --flag=/--flag=*, add to list if not already.
 					if (
-						/^-{1,2}[a-z][a-z0-9-]*=\*?$/i.test(flag) &&
+						/^-{1,2}[a-z][-.a-z0-9]*=\*?$/i.test(flag) &&
 						!-~t2list.indexOf(flag)
 					) {
 						if (flag.endsWith("*")) {

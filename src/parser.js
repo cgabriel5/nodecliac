@@ -390,9 +390,12 @@ module.exports = (contents, commandname, source) => {
 	 */
 	let unexpand_mf_options = contents => {
 		return (contents = contents.replace(
-			/^\s*-{1,2}[a-z][-.a-z0-9]*\s*=\*?\s*\([\s\S]*?\)/gim,
+			/(?!(^|\[))\s*-{1,2}[a-z][-.a-z0-9]*\s*=\*?\s*\([\s\S]*?\)(?=($|\]))/gim,
 			function(match) {
 				// Format options.
+
+				// Trim match before using.
+				match = match.trim();
 
 				// Check for multi-starred flag.
 				let multiflag = match.includes("=*")
@@ -418,8 +421,8 @@ module.exports = (contents, commandname, source) => {
 				}
 
 				// Get flag name.
-				let [, indentation, flag, options] = match.match(
-					/^(\s*)(-{1,2}[a-z][-.a-z0-9]*)\s*=\*?\s*\(([\s\S]*?)\)/im
+				let [, , indentation, flag, options] = match.match(
+					/(?:(^|\[))(\s*)(-{1,2}[a-zA-Z][-.a-zA-Z0-9]*)\s*=\*?\s*\(([\s\S]*?)\)(?=($|\]))/im
 				);
 
 				// Turn options list into an array.
@@ -444,11 +447,14 @@ module.exports = (contents, commandname, source) => {
 				}
 
 				// Sort the options and return.
-				return options_list
-					.sort(function(a, b) {
-						return a.localeCompare(b);
-					})
-					.join("\n");
+				return (
+					"\n" +
+					options_list
+						.sort(function(a, b) {
+							return a.localeCompare(b);
+						})
+						.join("\n")
+				);
 			}
 		));
 	};

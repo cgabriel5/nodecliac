@@ -14,7 +14,7 @@ module.exports = args => {
 
 	// Get CLI args.
 	let { source, print, add, save } = args;
-	let parser = require("./parser.js");
+	let parser = require("./parser/main.js");
 
 	// Source must be provided.
 	if (!source) {

@@ -56,22 +56,6 @@ module.exports = (contents, commandname, source) => {
 		// Remove starting/trailing whitespace?
 		line = line.trim();
 
-		// Ignore comments/empty lines.
-		if (line.charAt(0) === "#" || !line) return;
-
-		// Check if settings line.
-		if (/^@/.test(line)) {
-			// Extract setting name/value.
-			let [, setting, value] = line.match(
-				/(@[-_:a-zA-Z0-9]{1,})\s*=\s*(.{1,})?$/
-			);
-			// Store setting/value in settings object.
-			settings[setting] = value;
-
-			// Return to not store line.
-			return;
-		}
-
 		// Extract command chain and flags.
 		let [, commandchain = "", , flaglist = ""] = line.match(
 			/^(.*?)(?:(\s*=?\s*))((-|\[)[\s\S]*?)?$/
@@ -170,6 +154,24 @@ module.exports = (contents, commandname, source) => {
 		if ((char === "\r" && nchar === "\n") || char === "\n") {
 			line_count++;
 
+			// Skip comments/empty lines.
+			if (!line.length || /^\s*#/.test(line)) {
+				line = "";
+				continue;
+			}
+			// Check if settings line.
+			else if (/^\s*@/.test(line)) {
+				// Extract setting name/value.
+				let [, setting, value] = line.match(
+					/^\s*(@[-_:a-zA-Z0-9]{1,})\s*=\s*(.{1,})?$/
+				);
+				// Store setting/value in settings object.
+				settings[setting] = value;
+
+				line = "";
+				continue;
+			}
+
 			// Append normalized newline char.
 			line += "\n";
 
@@ -191,76 +193,71 @@ module.exports = (contents, commandname, source) => {
 				// Remove starting/trailing whitespace?
 				let tline = line.trim();
 
-				// Ignore comments/empty lines.
-				if (tline && tline.charAt(0) !== "#") {
-					// Add line to sublines.
-					sublines.push(line);
+				// Add line to sublines.
+				sublines.push(line);
 
-					// Multi-flag checks:
-					// If line ends with '(' (disregarding space)...
-					if (/\(\s*$/.test(line)) {
-						last_multif_flag = [line];
-						if (!sublines_flag) {
-							sublines_flag = [];
-						}
-						sublines_flag.push(last_multif_flag);
-
-						ismultilineflag = true;
-						// Keep track of where the multiflag line starts.
-						multiline_start_flag = line_count;
+				// Multi-flag checks:
+				// If line ends with '(' (disregarding space)...
+				if (/\(\s*$/.test(line)) {
+					last_multif_flag = [line];
+					if (!sublines_flag) {
+						sublines_flag = [];
 					}
-					// If line ends with ')' (disregarding space)...
-					else if (
-						/\)\s*$/.test(line) &&
-						// // Cannot be a command-flag.
-						!/^\s*-\s*\$\(.*\)\s*$/.test(line) &&
-						ismultilineflag
-					) {
-						ismultilineflag = false;
-						// Push last line to sublines.
-						last_multif_flag.push(
-							line,
-							[multiline_start_flag, line_count],
-							1
-						);
-						// Reset flag line number.
-						multiline_start_flag = 0;
+					sublines_flag.push(last_multif_flag);
+
+					ismultilineflag = true;
+					// Keep track of where the multiflag line starts.
+					multiline_start_flag = line_count;
+				}
+				// If line ends with ')' (disregarding space)...
+				else if (
+					/\)\s*$/.test(line) &&
+					// // Cannot be a command-flag.
+					!/^\s*-\s*\$\(.*\)\s*$/.test(line) &&
+					ismultilineflag
+				) {
+					ismultilineflag = false;
+					// Push last line to sublines.
+					last_multif_flag.push(
+						line,
+						[multiline_start_flag, line_count],
+						1
+					);
+					// Reset flag line number.
+					multiline_start_flag = 0;
+				}
+				// Flag option.
+				else if (/^\s*-\s/.test(tline)) {
+					// last_multif_flag.push(line.replace(/^\s*-\s*/, ""));
+					last_multif_flag.push(line);
+				}
+				// Flag form: --flag=(val1 val2)
+				else if (/^-{1,2}.*?=\*?\(.*?\)$/.test(tline)) {
+					last_multif_flag = [line];
+					if (!sublines_flag) {
+						sublines_flag = [];
 					}
-					// Flag option.
-					else if (/^\s*-\s/.test(tline)) {
-						// last_multif_flag.push(line.replace(/^\s*-\s*/, ""));
-						last_multif_flag.push(line);
+
+					// Push last line to sublines.
+					last_multif_flag.push([line_count], 2);
+
+					sublines_flag.push(last_multif_flag);
+
+					// Keep track of where the multiflag line starts.
+					multiline_start_flag = line_count;
+				} else if (ismultiline && /^-/.test(tline)) {
+					last_multif_flag = [line];
+					if (!sublines_flag) {
+						sublines_flag = [];
 					}
-					// Flag form: --flag=(val1 val2)
-					else if (/^-{1,2}.*?=\*?\(.*?\)$/.test(tline)) {
-						last_multif_flag = [line];
-						if (!sublines_flag) {
-							sublines_flag = [];
-						}
 
-						// Push last line to sublines.
-						last_multif_flag.push([line_count], 2);
+					// Push last line to sublines.
+					last_multif_flag.push([line_count], 3);
 
-						sublines_flag.push(last_multif_flag);
+					sublines_flag.push(last_multif_flag);
 
-						// ismultilineflag = true;
-						// Keep track of where the multiflag line starts.
-						multiline_start_flag = line_count;
-					} else if (ismultiline && /^-/.test(tline)) {
-						last_multif_flag = [line];
-						if (!sublines_flag) {
-							sublines_flag = [];
-						}
-
-						// Push last line to sublines.
-						last_multif_flag.push([line_count], 3);
-
-						sublines_flag.push(last_multif_flag);
-
-						// ismultilineflag = true;
-						// Keep track of where the multiflag line starts.
-						multiline_start_flag = line_count;
-					}
+					// Keep track of where the multiflag line starts.
+					multiline_start_flag = line_count;
 				}
 
 				// Clear line.

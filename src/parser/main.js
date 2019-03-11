@@ -85,7 +85,7 @@ module.exports = (contents, commandname, source) => {
 					let fkey = set[0].trim().replace(/\(\s*$/, "");
 					// Store flag before removing possible multi-flag indicator.
 					flags.push(fkey);
-					// Check if it's a multiflag.
+					// Check if it's a multi-flag.
 					if (fkey.endsWith("=*")) {
 						fkey = fkey.replace(/=\*/, "=");
 					}
@@ -180,7 +180,7 @@ module.exports = (contents, commandname, source) => {
 			// If line ends with '[' (disregarding space)...
 			if (/\[\s*$/.test(line)) {
 				ismultiline = true;
-				// Keep track of where the multiflag line starts.
+				// Keep track of where the multi-flag line starts.
 				multiline_start = line_count;
 			}
 			// If line ends with ']' (disregarding space)...
@@ -207,7 +207,7 @@ module.exports = (contents, commandname, source) => {
 					sublines_flag.push(last_multif_flag);
 
 					ismultilineflag = true;
-					// Keep track of where the multiflag line starts.
+					// Keep track of where the multi-flag line starts.
 					multiline_start_flag = line_count;
 				}
 				// If line ends with ')' (disregarding space)...
@@ -244,7 +244,7 @@ module.exports = (contents, commandname, source) => {
 
 					sublines_flag.push(last_multif_flag);
 
-					// Keep track of where the multiflag line starts.
+					// Keep track of where the multi-flag line starts.
 					multiline_start_flag = line_count;
 				} else if (ismultiline && /^-/.test(tline)) {
 					last_multif_flag = [line];
@@ -257,7 +257,7 @@ module.exports = (contents, commandname, source) => {
 
 					sublines_flag.push(last_multif_flag);
 
-					// Keep track of where the multiflag line starts.
+					// Keep track of where the multi-flag line starts.
 					multiline_start_flag = line_count;
 				}
 

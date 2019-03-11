@@ -83,11 +83,12 @@ module.exports = (contents, commandname, source) => {
 
 					// Get the flag key.
 					let fkey = set[0].trim().replace(/\(\s*$/, "");
+					// Store flag before removing possible multi-flag indicator.
+					flags.push(fkey);
 					// Check if it's a multiflag.
 					if (fkey.endsWith("=*")) {
 						fkey = fkey.replace(/=\*/, "=");
 					}
-					flags.push(fkey);
 
 					for (let j = 1, ll = set.length; j < ll; j++) {
 						// Cache current loop item.

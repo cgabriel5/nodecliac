@@ -31,6 +31,7 @@ const merge = require("./merge.js");
 module.exports = (contents, commandname, source) => {
 	// Vars - General.
 	let line = "";
+	let bline = ""; // Backtrack line.
 	let line_count = 0;
 	let lookup = {};
 	let settings = {};
@@ -151,9 +152,18 @@ module.exports = (contents, commandname, source) => {
 		// let pchar = contents.charAt(i - 1);
 		let nchar = contents.charAt(i + 1);
 
-		// Check for \r\n newline sequence OR check for regular \n newline char.
-		if ((char === "\r" && nchar === "\n") || char === "\n") {
+		// Check if \r?\n newline sequence or if backtrack flag is set.
+		if ((char === "\r" && nchar === "\n") || char === "\n" || bline) {
 			line_count++;
+
+			// If a backtrack line exists rerun previous loop but reset the
+			// line to the value of the backtracked line.
+			if (bline) {
+				// Resets.
+				line = bline;
+				line_count--;
+				bline = "";
+			}
 
 			// Skip comments/empty lines.
 			if (!line.length || /^\s*#/.test(line)) {
@@ -169,6 +179,7 @@ module.exports = (contents, commandname, source) => {
 				// Store setting/value in settings object.
 				settings[setting] = value;
 
+				// Reset line.
 				line = "";
 				continue;
 			}
@@ -177,19 +188,70 @@ module.exports = (contents, commandname, source) => {
 			line += "\n";
 
 			// Multi-flag checks:
-			// If line ends with '[' (disregarding space)...
-			if (/\[\s*$/.test(line)) {
+			// If line contains '= [' (disregarding space)...
+			if (/=\s*\[/.test(line)) {
 				ismultiline = true;
 				// Keep track of where the multi-flag line starts.
 				multiline_start = line_count;
+
+				// Edge case: [one-liner] → 'chain: [--flag=(val valN)]'.
+				if (/^.*?\s*=\s*\[.*?\]\s*$/.test(line)) {
+					ismultiline = false;
+					let [, chain, flagset] = line.match(
+						/^(.*?)\s*=\s*\[\s*(.*?)\s*\]\s*$/
+					);
+
+					// Split line into commandchain/flags.
+					prepline(line, [line_count], [[flagset, [line_count], 2]]);
+
+					// Reset line.
+					line = "";
+					continue;
+				}
+				// Edge case: one-liner/line ending mix: → '[--flag=(val valN)'.
+				else if (
+					!/\]\s*$/.test(line) &&
+					/\s*=\s*\[ *-.*?\s*$/.test(line)
+				) {
+					// Extract flagset.
+					let [, chain, flagset] = line.match(
+						/^(.*?)\s*=\s*\[ *(-.*?)\s*$/
+					);
+					// Reset line to chain.
+					line = `${chain} = [`;
+
+					// Set backtrack line to the flag set.
+					bline = flagset;
+					i--;
+				}
 			}
 			// If line ends with ']' (disregarding space)...
 			else if (/\]\s*$/.test(line)) {
-				ismultiline = false;
-				// Push last line to sublines.
-				sublines.push(line);
+				// Edge case: [end-on-flagset] → '--flag=(val valN)]'.
+				// If line starts with flag set but ends with ']' then
+				// separate flag set and line ending character ']'. Set
+				// the bline flag to contains the line ending character.
+				// When the bline flag is set it will run next loop as
+				// an extension of this current iteration to append the
+				// ']' to the overall line.
+				if (/^\s*-/.test(line)) {
+					// Extract flagset.
+					let [, flagset] = line.match(/^(.*?)\][\s\S]*$/);
+					// Reset line to flagset.
+					line = flagset;
+
+					// Set backtrack line to the flag set.
+					bline = "]";
+				}
+				// Else proceed as normal multi-flag line ending: ']'.
+				else {
+					ismultiline = false;
+					// Push last line to sublines.
+					sublines.push(line);
+				}
 			}
 
+			// Multi-flag line checks.
 			if (ismultiline || ismultilineflag) {
 				// Remove starting/trailing whitespace?
 				let tline = line.trim();
@@ -229,7 +291,6 @@ module.exports = (contents, commandname, source) => {
 				}
 				// Flag option.
 				else if (/^\s*-\s/.test(tline)) {
-					// last_multif_flag.push(line.replace(/^\s*-\s*/, ""));
 					last_multif_flag.push(line);
 				}
 				// Flag form: --flag=(val1 val2)

@@ -20,6 +20,10 @@ module.exports = input => {
 	let quote_char = "";
 	let args = [];
 
+	// Vars - Flags.
+	let isquoted = false;
+	let iscommandflag = false;
+
 	// Return empty array when input is empty.
 	if (!input || !input.length) {
 		return args;
@@ -30,52 +34,100 @@ module.exports = input => {
 		// Cache current/previous/next chars.
 		let c = input.charAt(i);
 		let p = input.charAt(i - 1);
-		// let n = input.charAt(i + 1);
+		let n = input.charAt(i + 1);
 
-		// Reset prev word for 1st char as bash gets the last char.
-		if (i === 0) {
-			p = "";
+		// If char is a '$' (and is unescaped) check if the next
+		// char is a '('...
+		if (!current && c === "$" && n === "(" && p !== "\\") {
+			// Store command-flag opening syntax.
+			current = "$(";
+			iscommandflag = true;
+
+			// Increment index to skip '(' since we already added it.
+			i++;
+			// Skip further loop logic.
+			continue;
 		}
-		// else if (i === l - 1) {
-		// 	// Reset next word for last char as bash gets the first char.
-		// 	n = "";
-		// }
+		// If command flag is set, there is no actually quoted string,
+		// and the current character is ')'...
+		else if (iscommandflag && c === ")" && !isquoted) {
+			// Add command-flag closing syntax.
+			current += ")";
+			// Finally, store command-flag string.
+			args.push(current);
+
+			// Reset values/flags.
+			current = "";
+			quote_char = "";
+			iscommandflag = false;
+			// Skip further loop logic.
+			continue;
+		}
 
 		// If char is a space.
 		if (c === " " && p !== "\\") {
-			if (quote_char.length !== 0) {
+			// If quote char exists then we are still building a string
+			// so the current space character is part of the string.
+			if (quote_char) {
+				// Ignore unquoted white space for command flags.
+				if (iscommandflag && !isquoted) {
+					continue;
+				}
+
 				current += c;
-			} else {
-				if (current !== "") {
+			}
+			// When the quote char is not set then we are not building a
+			// string the current space character is not part of any string
+			// any can be ignored.
+			else {
+				// If not building a command flag string and string exists
+				// store it and reset string value.
+				if (!iscommandflag && current) {
 					args.push(current);
 					current = "";
 				}
 			}
-			// Non space chars.
-		} else if ((c === '"' || c === "'") && p !== "\\") {
-			if (quote_char !== "") {
-				if (quote_char === c) {
+		}
+		// If char is an unescaped quote.
+		else if ((c === '"' || c === "'") && p !== "\\") {
+			// If a quote char exists...
+			if (quote_char) {
+				// Store built string.
+				if (!iscommandflag && quote_char === c) {
 					current += c;
 					args.push(current);
 					quote_char = "";
 					current = "";
-				} else {
+				}
+				// Quoted string has been built.
+				else {
 					current += c;
 					quote_char = c;
+
+					// Set flag: close quote.
+					isquoted = false;
 				}
-			} else {
+			}
+			// Else set opening quote.
+			else {
 				current += c;
 				quote_char = c;
+
+				// Set flag: open quote.
+				isquoted = true;
 			}
-		} else {
+		}
+		// Append all other characters to current string.
+		else {
 			current += c;
 		}
 	}
 
 	// Add the remaining word.
-	if (current !== "") {
+	if (current) {
 		args.push(current);
 	}
 
+	// Return parsed arguments list.
 	return args;
 };

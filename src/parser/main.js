@@ -37,15 +37,12 @@ module.exports = (contents, commandname, source) => {
 	let settings = {};
 	let newlines = [];
 
-	let open_bracket = false;
-	let open_parenth = false;
+	// let open_bracket = false;
+	// let open_parenth = false;
 
-	// let cc_name = "";
-	// let cc_flags = [];
 	let commandchain;
 	let mflag;
 	let mcommand;
-
 	let line_type;
 
 	// acmap file header.
@@ -122,12 +119,10 @@ module.exports = (contents, commandname, source) => {
 			"",
 			`${chalk.bold.red("Error")} → ${chalk.bold(
 				"Syntax"
-			)}: ${message} on line ${line_count + 1}:${index}.`,
+			)}: ${message} (line ${line_count + 1}${index ? `:${index}` : ""})`,
 			""
 		]);
 	};
-
-	let p = console.log;
 
 	// Main loop. Loops over each character in acmap.
 	for (let i = 0, l = contents.length; i < l; i++) {
@@ -149,7 +144,7 @@ module.exports = (contents, commandname, source) => {
 		// All other characters.
 		else {
 			// If line is empty look for allowed character.
-			if (!line) {
+			if (!line_type) {
 				// If the current character is a space then continue.
 				if (isspace(char)) {
 					indentation += char;
@@ -185,11 +180,26 @@ module.exports = (contents, commandname, source) => {
 				// Set line start type.
 				if (char === "@") {
 					line_type = "setting";
+
+					if (/\r?\n/.test(nchar)) {
+						// The setting name is missing.
+						error("Dangling '@' setting identifier.");
+					}
 				} else if (char === "#") {
 					line_type = "comment";
+
+					if (/\r?\n/.test(nchar)) {
+						// The setting name is missing.
+						error("Dangling '#' comment identifier.");
+					}
 				} else if (/[a-zA-Z]/.test(char)) {
 					line_type = "command";
 				} else if (char === "-") {
+					if (/\r?\n/.test(nchar)) {
+						// The setting name is missing.
+						error("Dangling '-' flag/option identifier.");
+					}
+
 					// If mflag is set we are getting flag options.
 					line_type = mflag ? "flag_option" : "flag_set";
 
@@ -233,17 +243,54 @@ module.exports = (contents, commandname, source) => {
 
 					// Get all setting line chars.
 					let lchars = xchars.join("");
+					let sline = `@${lchars}`;
 
-					// Check if setting syntax is valid give general error.
-					if (!r.test(`@${lchars}`)) {
-						// Further breakdown exact syntax error?
-						// - setting name check?
-						// - value check (if quoted is it properly quoted.)
+					// Checks:
+					// - Empty setting.
+					// - Invalid characters.
+					// - Improperly quoted value.
+
+					// Breakdown setting (setting name/value).
+					let matches = sline.match(r);
+					// If matches are not returned then the setting
+					// name contains invalid characters.
+					if (!matches) {
+						// let setting_name = sline.match(/^[^ =]*/)[0];
+						error(
+							`Setting '${chalk.bold(
+								sline.replace(
+									/([^@a-zA-Z])/g,
+									`${chalk.bold.red("$1")}`
+								)
+							)}' contains invalid characters.`
+						);
+					}
+					// Check that if value is quoted is quoted properly.
+					if (sline.includes("=")) {
+						let [, value] = sline.match(/^.*?=[ \t*](.*?)$/);
+						let val_fchar = value.charAt(0);
+						var val_lchar = value.charAt(value.length - 1);
+						if (/"|'/.test(val_fchar)) {
+							// Check that the last char is a matching quote.
+							if (val_fchar !== val_lchar) {
+								error(`Improperly quoted setting value.`);
+							}
+						} else if (/"|'/.test(val_lchar)) {
+							// Check that the last char is a matching quote.
+							if (val_lchar !== val_fchar) {
+								error(`Improperly quoted setting value.`);
+							}
+						}
+					} else {
+						error(`Setting not assigned a value.`);
+					}
+					// Check if setting syntax is valid or give general error.
+					if (!r.test(sline)) {
 						error(`Invalid setting`, indices[0]);
 					}
 
-					// Else it's a valid setting so reset vars.
-					// Reset index to be at the end of the line.
+					// Else, checks passed so reset vars. Reset index to be
+					// at the end of the line.
 					i = indices[0] - 1;
 
 					// Store line.
@@ -253,7 +300,7 @@ module.exports = (contents, commandname, source) => {
 					let { chars: fchars, xchars, indices } = lookahead(
 						i,
 						contents,
-						new RegExp(`[-_.a-zA-Z\\/]`),
+						new RegExp(`[-_.:a-zA-Z0-9\\\\\/{}\|]`),
 						Infinity
 					);
 
@@ -275,22 +322,66 @@ module.exports = (contents, commandname, source) => {
 
 					commandchain = line;
 				} else if (line_type === "command_setter") {
+					// Setting syntax:
+					let r = /^[ \t]*=[ \t]*\[$/;
+
 					// Look ahead to grab command chain.
-					let { chars: fchars, xchars, indices } = lookahead(
+					let indices_o = lookahead(
 						i,
 						contents,
 						new RegExp(`[ \t=]`),
 						Infinity
+					).indices;
+
+					// Look ahead to grab command chain.
+					let { chars: fchars, xchars, indices } = lookahead(
+						i,
+						contents,
+						new RegExp(`(\\r?\\n)`),
+						1
 					);
 
+					// Get all setting line chars.
+					let lchars = xchars.join("");
+
+					// Check if has invalid character.
+					// Highlight multiple '=' and '[' characters?
+					if (!r.test(`${lchars}`)) {
+						if (!lchars.includes("=")) {
+							error(`Missing '='.`, indices[0]);
+						}
+						if (!lchars.includes("[")) {
+							error(`Missing '['.`, indices[0]);
+						}
+
+						// Check for possible invalid characters.
+						if (/([^ \t=\[\]])/.test(lchars)) {
+							error(
+								`Invalid characters '${chalk.bold(
+									lchars.replace(
+										/([^ \t=\[])/g,
+										`${chalk.bold.red("$1")}`
+									)
+								)}'.`,
+								indices[0]
+							);
+						} else {
+							// Must be '=[' or '=[]' once spaces are removed.
+							if (!/=\[\]?/.test(lchars.replace(/\s/g, ""))) {
+								error(
+									`Use command setter sequence '${chalk.bold(
+										"= ["
+									)}' instead (spaces optional).`
+								);
+							}
+						}
+					}
+
 					// Reset index to be at the end of the line.
-					i = indices[1];
+					i = indices_o[1];
 
 					// Next look for command open bracket. ('[' → ignore quotes).
 					line_type = "command_open_bracket";
-
-					// Store chars.
-					// line += " = ";
 				} else if (line_type === "command_open_bracket") {
 					let chars, fchars, xchars, indices, la;
 
@@ -304,12 +395,6 @@ module.exports = (contents, commandname, source) => {
 
 					// Reset index to be at the end of the line.
 					i = open_index;
-
-					// // Next look for command open bracket. ('[' → ignore quotes).
-					// line_type = "command_open_bracket";
-
-					// Store chars.
-					// line += "[";
 
 					// Look ahead once more. We can only have 3 situations:
 					// 1 - There are no more characters (excluding spaces).
@@ -339,12 +424,10 @@ module.exports = (contents, commandname, source) => {
 						i = indices[0] - 1;
 					} else {
 						// Set type to flags.
-						// line_type = "";
 						mcommand = true;
 					}
 
 					// Store line.
-					// newlines.push((line += lchars));
 					newlines.push(line);
 				} else if (line_type === "flag_set") {
 					// Setting syntax:
@@ -368,10 +451,6 @@ module.exports = (contents, commandname, source) => {
 						// - value check (if quoted is it properly quoted.)
 						error(`Invalid flag`, indices[0]);
 					}
-
-					// Add flag to commandchain.
-					// if (lchars.includes("*")) {
-					// }
 
 					let chain = lookup[commandchain];
 					if (chain) {
@@ -523,13 +602,21 @@ module.exports = (contents, commandname, source) => {
 		}
 	}
 
+	// Need to get line numbers.
+	if (mcommand) {
+		error(`Unclosed '['.`);
+	}
+	if (mflag) {
+		error(`Unclosed '('.`);
+	}
+
 	console.log(lookup);
 
 	// for (let i = 0, l = newlines.length; i < l; i++) {
 	// 	// Cache current loop item.
 	// 	let line = newlines[i];
 
-	// 	p(line);
+	// 	console.log(line);
 	// }
 
 	exit([]);

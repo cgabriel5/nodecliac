@@ -15,7 +15,7 @@
 // ✖ validate characters for command chains
 // ✖ account for line numbers/errors
 
-// // Needed modules.
+// Needed modules.
 // const path = require("path");
 const chalk = require("chalk");
 const { exit } = require("../utils.js");
@@ -136,38 +136,18 @@ module.exports = (contents, commandname, source) => {
 		let pchar = contents.charAt(i - 1);
 		let nchar = contents.charAt(i + 1);
 
-		// p(i, char);
-
 		// Check if \r?\n newline sequence.
 		if ((char === "\r" && nchar === "\n") || char === "\n") {
 			// Increment line counter.
 			line_count++;
 
-			// console.log(line_type);
-
-			// if (pchar === ")") {
-			// console.log(">>>>>", contents.substring(i, i + 1));
-			// }
-
-			// p(444, line);
-			// Store line.
-
+			// Reset vars.
 			line = "";
 			line_type = null;
 			indentation = "";
 		}
 		// All other characters.
 		else {
-			// Special characters to look out for:
-			// @
-			// $(
-			// )
-			// ""
-			// ''
-			// = [
-			// ]
-			// -
-
 			// If line is empty look for allowed character.
 			if (!line) {
 				// If the current character is a space then continue.
@@ -185,6 +165,9 @@ module.exports = (contents, commandname, source) => {
 				//     '- '   → flag option (ignore quotes)
 				//     )      → closing flag set
 				//     ]      → closing long-flag form
+				// -------------------------------------------------------------
+				// Special flag characters to look out for:
+				// $(, "", ''
 
 				// // Look ahead for the first non space char.
 				// let { chars: fchars, indices } = lookahead(
@@ -194,8 +177,6 @@ module.exports = (contents, commandname, source) => {
 				// 	1
 				// );
 
-				// let fchar = fchars[0];
-
 				// Char must be an allowed starting char.
 				if (!/[-@a-z\)\]#]/i.test(char)) {
 					error(`Invalid starting line character '${char}'`, i);
@@ -204,28 +185,18 @@ module.exports = (contents, commandname, source) => {
 				// Set line start type.
 				if (char === "@") {
 					line_type = "setting";
-				} else if (/#/.test(char)) {
+				} else if (char === "#") {
 					line_type = "comment";
 				} else if (/[a-zA-Z]/.test(char)) {
 					line_type = "command";
 				} else if (char === "-") {
-					// Default to flag set
-					line_type = "flag_set";
+					// If mflag is set we are getting flag options.
+					line_type = mflag ? "flag_option" : "flag_set";
 
-					if (nchar === " " && mflag) {
-						line_type = "flag_option";
-					}
-
-					// empty flag option
+					// Empty flag option check.
 					if (mflag && (nchar === "\n" || nchar === "\r")) {
 						error(`Empty flag option`, 0);
 					}
-
-					// console.log(
-					// 	">>>>",
-					// 	line_type,
-					// 	contents.substring(i, i + 5)
-					// );
 				} else if (char === ")") {
 					if (!mflag) {
 						error(`Unmatched closing parentheses`, 0);
@@ -233,7 +204,6 @@ module.exports = (contents, commandname, source) => {
 
 					line_type = "close_parenthesis";
 					line += char;
-					// console.log("paramparse.js");
 					i--;
 					continue;
 				} else if (char === "]") {
@@ -243,25 +213,9 @@ module.exports = (contents, commandname, source) => {
 
 					line_type = "close_bracket";
 					line += char;
-					// console.log("paramparse.js");
 					i--;
 					continue;
 				}
-				// console.log("3405930-90-39-5", char);
-
-				// // Check for unopened parentheses.
-				// if (open_parenth && char === ")") {
-				// 	error(`Invalid '('`, 0);
-				// }
-
-				// else if (/\)/.test(char)) {
-				// 	line_type = "closing_flagset";
-				// } else if (/\]/.test(char)) {
-				// 	line_type = "closing_long_flag";
-				// }
-
-				// Reset index to fchars index.
-				// i = indices[0];
 
 				line += char;
 			} else {
@@ -269,7 +223,7 @@ module.exports = (contents, commandname, source) => {
 					// Setting syntax:
 					let r = /^(@[a-zA-Z][_a-zA-Z]*)[ \t]*(=[ \t]*(.*?))?$/;
 
-					// Look ahead to grab setting.
+					// Look ahead to grab setting line.
 					let { chars: fchars, xchars, indices } = lookahead(
 						i,
 						contents,
@@ -279,11 +233,6 @@ module.exports = (contents, commandname, source) => {
 
 					// Get all setting line chars.
 					let lchars = xchars.join("");
-
-					// p(lchars);
-					// p(indices);
-					// p(fchars);
-					// p(xchars);
 
 					// Check if setting syntax is valid give general error.
 					if (!r.test(`@${lchars}`)) {
@@ -319,21 +268,12 @@ module.exports = (contents, commandname, source) => {
 					// Store chars.
 					line += fchars.join("");
 
-					// console.log(65656565, line);
-
 					// Store command chain.
 					if (!lookup[line]) {
 						lookup[line] = [];
 					}
 
 					commandchain = line;
-
-					// p("commandname", commandchain);
-					// p(indices);
-					// p(fchars);
-					// p(xchars);
-					// p("^^^^^^^^^^^^");
-					// p();
 				} else if (line_type === "command_setter") {
 					// Look ahead to grab command chain.
 					let { chars: fchars, xchars, indices } = lookahead(
@@ -351,11 +291,6 @@ module.exports = (contents, commandname, source) => {
 
 					// Store chars.
 					// line += " = ";
-
-					// p(indices);
-					// p(fchars);
-					// p(xchars);
-					// p();
 				} else if (line_type === "command_open_bracket") {
 					let chars, fchars, xchars, indices, la;
 
@@ -376,15 +311,6 @@ module.exports = (contents, commandname, source) => {
 					// Store chars.
 					// line += "[";
 
-					// p(indices);
-					// p(fchars);
-					// p(xchars);
-					// p("^^^^^^^^^^^^", line_count + 1);
-					// p();
-
-					// p("^^^^^command_open_bracket");
-					// p(line);
-
 					// Look ahead once more. We can only have 3 situations:
 					// 1 - There are no more characters (excluding spaces).
 					// 2 - There is a closing bracket ']'.
@@ -400,7 +326,6 @@ module.exports = (contents, commandname, source) => {
 
 					// Remaining chars after open bracket '['.
 					let rchars = xchars.join("").trim();
-					// console.log(rchars);
 					if (/[^\]]/.test(rchars)) {
 						error(
 							`Invalid characters after open bracket '['`,
@@ -411,16 +336,12 @@ module.exports = (contents, commandname, source) => {
 					if (rchars === "]") {
 						line += " --";
 						// Reset index to be at the end of the line.
-						// console.log(34054309, i);
 						i = indices[0] - 1;
-						// console.log(34054309, i);
 					} else {
 						// Set type to flags.
-						// console.log("sfsdfsd", line);
 						// line_type = "";
 						mcommand = true;
 					}
-					// console.log(`>${line}<`);
 
 					// Store line.
 					// newlines.push((line += lchars));
@@ -440,11 +361,6 @@ module.exports = (contents, commandname, source) => {
 					// Get all setting line chars.
 					let lchars = xchars.join("");
 
-					// p(`-${lchars}`, 555555555555555);
-					// p(indices);
-					// p(fchars);
-					// p(xchars);
-
 					// Check if setting syntax is valid give general error.
 					if (!r.test(`-${lchars}`)) {
 						// Further breakdown exact syntax error?
@@ -455,7 +371,6 @@ module.exports = (contents, commandname, source) => {
 
 					// Add flag to commandchain.
 					// if (lchars.includes("*")) {
-					// console.log(111111, lchars, commandchain);
 					// }
 
 					let chain = lookup[commandchain];
@@ -489,11 +404,6 @@ module.exports = (contents, commandname, source) => {
 
 					// Get all setting line chars.
 					let lchars = xchars.join("");
-
-					// p(`-${lchars}`, 555555555555555);
-					// p(indices);
-					// p(fchars);
-					// p(xchars);
 
 					// Check if setting syntax is valid give general error.
 					if (!r.test(`-${lchars}`)) {
@@ -538,11 +448,6 @@ module.exports = (contents, commandname, source) => {
 					// Get all setting line chars.
 					let lchars = xchars.join("");
 
-					// p(`${lchars}`, 55555490860869080);
-					// p(indices);
-					// p(fchars);
-					// p(xchars);
-
 					// Check if setting syntax is valid give general error.
 					if (!r.test(`${lchars}`)) {
 						// Further breakdown exact syntax error?
@@ -574,11 +479,6 @@ module.exports = (contents, commandname, source) => {
 
 					// Get all setting line chars.
 					let lchars = xchars.join("");
-
-					// p(`${lchars}`, 55555490860869080);
-					// p(indices);
-					// p(fchars);
-					// p(xchars);
 
 					// Check if setting syntax is valid give general error.
 					if (!r.test(`${lchars}`)) {

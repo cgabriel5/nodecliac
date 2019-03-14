@@ -33,7 +33,7 @@ let fileinfo = filepath => {
  * @param  {array} message - List of messages to log.
  * @return {undefined} - Nothing.
  */
-let exit = messages => {
+let exit = (messages, stop) => {
 	// Log all provided messages.
 	for (let i = 0, l = messages.length; i < l; i++) {
 		// Cache current loop item.
@@ -41,7 +41,10 @@ let exit = messages => {
 
 		log(message);
 	}
-	process.exit();
+
+	if (stop === undefined) {
+		process.exit();
+	}
 };
 
 /**

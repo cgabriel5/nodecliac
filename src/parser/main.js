@@ -37,9 +37,6 @@ module.exports = (contents, commandname, source) => {
 	let settings = {};
 	let newlines = [];
 
-	// let open_bracket = false;
-	// let open_parenth = false;
-
 	let commandchain;
 	let mflag;
 	let mcommand;
@@ -57,71 +54,149 @@ module.exports = (contents, commandname, source) => {
 		return /[ \t]/.test(char);
 	};
 
-	// The index, source input, regexp, return character count.
+	/**
+	 * Does 1 of two things. Either looks ahead and captures all characters
+	 *     until provided RegExp fails or captures all characters until
+	 *     RegExp passed. The latter method may be used to capture all
+	 *     characters for a line, for example.
+	 *
+	 * @param  {number} index - The index offset to start capturing/testing.
+	 * @param  {string} input - The string to test.
+	 * @param  {regexp} r - The RegExp object to test characters against.
+	 * @param  {number} rcount - Optional amount of characters to capture.
+	 * @return {object} - Object containing passing/failing chars and
+	 *     starting/ending capture indices.
+	 *
+	 * Examples:
+	 * - Return all chars until RegExp is matched. Example will return all
+	 *     characters until newline char is found.
+	 * lookahead(2, "Some text.", new RegExp("\\r?\\n"));
+	 * - Return n chars (in this case 1) that match RegExp.
+	 * lookahead(2, "Some text.", new RegExp("[a-zA-Z]"), 1);
+	 */
 	let lookahead = (index, input, r, rcount) => {
-		let passed = false;
-		let chars = [];
-		let xchars = [];
-		let indices = [];
-		let sindex;
-		let eindex;
+		let chars = []; // RegExp passing chars.
+		let chars_str = ""; // chars in string form.
+		let xchars = []; // RegExp excluded chars.
+		let xchars_str = ""; // xchars in string form.
+		let sindex, eindex;
 
-		if (rcount === Infinity) {
-			for (let i = index, l = input.length; i < l; i++) {
-				// Cache current loop item.
-				let char = input[i];
+		// Check if return character count was provided.
+		let rexists = rcount !== undefined;
 
+		// Start looping string at provided index offset.
+		for (let i = index, l = input.length; i < l; i++) {
+			// Cache current loop item.
+			let char = input[i];
+
+			if (rexists) {
+				// Once counter hits 0 all needed characters were captured.
+				if (!rcount) {
+					break;
+				}
+
+				// Test current character against provided RegExp.
 				if (r.test(char)) {
-					if (sindex === undefined) {
+					// Set starting match index if not already set.
+					if (!sindex) {
 						sindex = i;
 					}
 
+					// If character passes RegExp then add to passed array.
 					chars.push(char);
-				} else {
-					eindex = i - 1;
-					// Stop loop as all needed chars have been retrieved.
-					break;
-				}
-			}
-		} else {
-			for (let i = index, l = input.length; i < l; i++) {
-				// Cache current loop item.
-				let char = input[i];
+					// Append to string.
+					chars_str += char;
 
-				if ((r.test(char) || passed) && rcount) {
-					if (sindex === undefined) {
+					// Decrease counter.
+					if (rexists) {
+						rcount--;
+
+						// Set ending match index.
+						eindex = i;
+					}
+				} else {
+					// Set starting match index if not already set.
+					if (!sindex) {
 						sindex = i;
 					}
 
-					passed = true;
-					chars.push(char);
-					rcount--;
-				} else if (!rcount) {
-					eindex = i - 1;
-					// Stop loop as all needed chars have been retrieved.
-					break;
-				} else {
+					// Set ending match index.
+					eindex = i;
+
+					// Store failing characters.
 					xchars.push(char);
+					// Append to string.
+					xchars_str += char;
+
+					// Exit loop once RegExp fails.
+					break;
+				}
+			} else {
+				// This will capture all chars until RegExp matches.
+
+				// Test current character against provided RegExp.
+				if (!r.test(char)) {
+					// Set starting match index if not already set.
+					if (!sindex) {
+						sindex = i;
+					}
+
+					// If character fails RegExp add to passed array.
+					chars.push(char);
+					// Append to string.
+					chars_str += char;
+				} else {
+					// Set ending match index.
+					eindex = i;
+
+					// Store passing match.
+					xchars.push(char);
+					// Append to string.
+					xchars_str += char;
+
+					// Once RegExp passes we break.
+					break;
 				}
 			}
 		}
 
-		if (sindex) {
-			indices.push(sindex, eindex);
+		// If glob until method was used and the contents does not contain
+		// the ending character then we set the end index to that of the
+		// input's length.
+		if (!eindex && !rexists) {
+			eindex = input.length;
 		}
 
-		return { chars, xchars, indices };
+		return {
+			chars,
+			xchars,
+			indices: [sindex, eindex],
+			chars_str,
+			xchars_str
+		};
 	};
 
 	// The index, source input, regexp, return character count.
 	let error = (message, index) => {
 		exit([
-			"",
-			`${chalk.bold.red("Error")} → ${chalk.bold(
-				"Syntax"
-			)}: ${message} (line ${line_count + 1}${index ? `:${index}` : ""})`,
-			""
+			`[${chalk.bold.red("error")}] ${message} (line ${line_count + 1}${
+				index ? `:${index}` : ""
+			})`
 		]);
+	};
+
+	// The index, source input, regexp, return character count.
+	let warning = (message, index) => {
+		exit(
+			[
+				`[${chalk.bold.yellow(
+					"warning"
+				)}] ${message} (line ${line_count + 1}${
+					index ? `:${index}` : ""
+				})`
+			],
+			false
+		);
 	};
 
 	// Main loop. Loops over each character in acmap.
@@ -140,484 +215,396 @@ module.exports = (contents, commandname, source) => {
 			line = "";
 			line_type = null;
 			indentation = "";
+
+			continue;
 		}
-		// All other characters.
-		else {
-			// If line is empty look for allowed character.
-			if (!line_type) {
-				// If the current character is a space then continue.
-				if (isspace(char)) {
-					indentation += char;
-					continue;
+
+		// If a line type has not been defined yet.
+		if (!line_type) {
+			// If the current character is a space then continue.
+			if (isspace(char)) {
+				indentation += char;
+				continue;
+			}
+
+			// If not a space character, look for an allowed character.
+			// Lines can start with following chars/char sets.
+			// @      → setting
+			// #      → comment
+			// a-zA-Z → command chain
+			//     -      → flag
+			//     '- '   → flag option (ignore quotes)
+			//     )      → closing flag set
+			//     ]      → closing long-flag form
+			// -------------------------------------------------------------
+			// Special flag characters to look out for:
+			// $(, "", ''
+
+			// // Look ahead for the first non space char.
+			// let { chars: fchars, indices } = lookahead(
+			// 	i,
+			// 	contents,
+			// 	new RegExp(`([^ \t]|\\r?\\n)`),
+			// 	1
+			// );
+
+			// Char must be an allowed starting char.
+			if (!/[-@a-z\)\]#]/i.test(char)) {
+				error(`Invalid starting line character '${char}'`, i);
+			}
+
+			// Set line start type.
+			if (char === "@") {
+				line_type = "setting";
+			} else if (char === "#") {
+				line_type = "comment";
+			} else if (/[a-zA-Z]/.test(char)) {
+				line_type = "command";
+			} else if (char === "]") {
+				line_type = "close_bracket";
+			} else if (char === "-") {
+				// If flag is set we are getting flag options.
+				line_type = mflag ? "flag_option" : "flag_set";
+			} else if (char === ")") {
+				line_type = "close_parenthesis";
+			}
+
+			// line += char;
+		}
+
+		if (line_type) {
+			if (line_type === "setting") {
+				// Look ahead to grab setting line.
+				let { indices, chars_str } = lookahead(
+					i,
+					contents,
+					new RegExp(`(\\r?\\n)`)
+				);
+
+				// Checks:
+				// - Empty setting.
+				// - Invalid characters.
+				// - Duplicate settings.
+				// - Dangling setting symbol.
+				// - Improperly quoted value.
+
+				// Setting syntax:
+				let r = /^(@[a-zA-Z][_a-zA-Z]*)[ \t]*(=[ \t]*(.*?))?$/;
+
+				// Check for dandling setting symbol.
+				if (chars_str === "@") {
+					error("Dangling '@' setting symbol.");
+				}
+				// Breakdown setting (setting name/value).
+				let matches = chars_str.match(r);
+				// No matches means setting name contains invalid characters.
+				if (!matches) {
+					error(
+						// `Invalid setting '${chalk.bold(chars_str.replace(/([^@a-zA-Z])/g, `${chalk.bold.red("$1")}`))}'.`
+						`Invalid setting name '${chalk.bold(chars_str)}'.`
+					);
+				}
+				// Check that value if quoted is quoted properly.
+				let name = matches[1];
+				let value = matches[3];
+				if (value) {
+					let vfchar = value.charAt(0);
+					var vlchar = value.charAt(value.length - 1);
+					// Check that the last char is a matching quote.
+					if (/"|'/.test(vfchar) && vfchar !== vlchar) {
+						error(`Improperly quoted setting value.`);
+					}
+					// Check that the last char is a matching quote.
+					else if (/"|'/.test(vlchar) && vlchar !== vfchar) {
+						error(`Improperly quoted setting value.`);
+					}
+				} else {
+					error(`Valueless setting '${chalk.bold(matches[0])}'`);
+				}
+				// Check if setting syntax is valid or give general error.
+				if (!r.test(chars_str)) {
+					error(`Invalid setting`, indices[0]);
 				}
 
-				// If not a space character, look for an allowed character.
-				// Lines can start with following chars/char sets.
-				// @      → setting
-				// #      → comment
-				// a-zA-Z → command chain
-				//     -      → flag
-				//     '- '   → flag option (ignore quotes)
-				//     )      → closing flag set
-				//     ]      → closing long-flag form
-				// -------------------------------------------------------------
-				// Special flag characters to look out for:
-				// $(, "", ''
+				// Else, checks passed so reset vars. Reset index to continue
+				// loop at newline character on next iteration.
+				i = indices[1] - 1;
 
-				// // Look ahead for the first non space char.
-				// let { chars: fchars, indices } = lookahead(
-				// 	i,
-				// 	contents,
-				// 	new RegExp(`([^ \t]|\\r?\\n)`),
-				// 	1
-				// );
+				// Store line.
+				newlines.push((line += chars_str));
 
-				// Char must be an allowed starting char.
-				if (!/[-@a-z\)\]#]/i.test(char)) {
-					error(`Invalid starting line character '${char}'`, i);
+				// If the setting already exists give an override warning.
+				if (settings[name]) {
+					warning(`Duplicate '${chalk.bold(name)}' setting.`, 0);
 				}
 
-				// Set line start type.
-				if (char === "@") {
-					line_type = "setting";
+				// Store setting/value in settings object.
+				settings[name] = value;
+			} else if (line_type === "command") {
+				// Look ahead to grab command chain.
+				let { chars_str, indices } = lookahead(
+					i,
+					contents,
+					new RegExp(`[-_.:a-zA-Z0-9\\\\\/{}\|]`),
+					Infinity
+				);
 
-					if (/\r?\n/.test(nchar)) {
-						// The setting name is missing.
-						error("Dangling '@' setting identifier.");
-					}
-				} else if (char === "#") {
-					line_type = "comment";
+				// Reset index to be at the end of the line.
+				i = indices[1] - 1;
 
-					if (/\r?\n/.test(nchar)) {
-						// The setting name is missing.
-						error("Dangling '#' comment identifier.");
-					}
-				} else if (/[a-zA-Z]/.test(char)) {
-					line_type = "command";
-				} else if (char === "-") {
-					if (/\r?\n/.test(nchar)) {
-						// The setting name is missing.
-						error("Dangling '-' flag/option identifier.");
-					}
+				// Next look for command setter (' = ' → ignore quotes).
+				line_type = "command_setter";
 
-					// If mflag is set we are getting flag options.
-					line_type = mflag ? "flag_option" : "flag_set";
+				// Store chars.
+				line += chars_str;
 
-					// Empty flag option check.
-					if (mflag && (nchar === "\n" || nchar === "\r")) {
-						error(`Empty flag option`, 0);
-					}
-				} else if (char === ")") {
-					if (!mflag) {
-						error(`Unmatched closing parentheses`, 0);
-					}
+				// Store command chain.
+				if (!lookup[line]) {
+					lookup[line] = [];
+				}
+				commandchain = line;
+			}
+			//
+			else if (line_type === "command_setter") {
+				// Look ahead to grab command chain.
+				let { chars_str, indices } = lookahead(
+					i,
+					contents,
+					new RegExp(`(\\r?\\n)`)
+				);
 
-					line_type = "close_parenthesis";
-					line += char;
-					i--;
-					continue;
-				} else if (char === "]") {
-					if (!mcommand) {
-						error(`Unmatched closing bracket`, 0);
-					}
+				// Checks:
+				// - Check if has invalid character.
+				// - Highlight multiple '=' and '[' characters?
+				// - Check for possible invalid characters.
 
-					line_type = "close_bracket";
-					line += char;
-					i--;
-					continue;
+				// RegExp pattern.
+				let r = /^[ \t]*=[ \t]*\[/;
+
+				// Must pass RegExp pattern.
+				if (!r.test(chars_str)) {
+					error(
+						`Expected ' = [' but saw '${chalk.bold(
+							chars_str
+						)}' instead.`
+					);
 				}
 
-				line += char;
-			} else {
-				if (line_type === "setting") {
-					// Setting syntax:
-					let r = /^(@[a-zA-Z][_a-zA-Z]*)[ \t]*(=[ \t]*(.*?))?$/;
+				// Look ahead to grab command chain.
+				let { chars_str: chars_str2, indices: indices2 } = lookahead(
+					0,
+					chars_str,
+					new RegExp(`\\[`)
+				);
 
-					// Look ahead to grab setting line.
-					let { chars: fchars, xchars, indices } = lookahead(
-						i,
-						contents,
-						new RegExp(`(\\r?\\n)`),
-						1
-					);
+				// Reset index to be at the end of the line.
+				i = i + indices2[1] - 1;
 
-					// Get all setting line chars.
-					let lchars = xchars.join("");
-					let sline = `@${lchars}`;
+				// Next look for command open bracket. ('[' → ignore quotes).
+				line_type = "command_open_bracket";
+			}
+			// //
+			else if (line_type === "command_open_bracket") {
+				// Look ahead to grab command chain.
+				let { chars_str, indices } = lookahead(
+					i,
+					contents,
+					new RegExp(`(\\r?\\n)`)
+				);
 
-					// Checks:
-					// - Empty setting.
-					// - Invalid characters.
-					// - Improperly quoted value.
+				let r = /^\[\]?$/;
+				let stripped = chars_str.replace(/[ \t]/g, "");
 
-					// Breakdown setting (setting name/value).
-					let matches = sline.match(r);
-					// If matches are not returned then the setting
-					// name contains invalid characters.
-					if (!matches) {
-						// let setting_name = sline.match(/^[^ =]*/)[0];
-						error(
-							`Setting '${chalk.bold(
-								sline.replace(
-									/([^@a-zA-Z])/g,
-									`${chalk.bold.red("$1")}`
-								)
-							)}' contains invalid characters.`
-						);
-					}
-					// Check that if value is quoted is quoted properly.
-					if (sline.includes("=")) {
-						let [, value] = sline.match(/^.*?=[ \t*](.*?)$/);
-						let val_fchar = value.charAt(0);
-						var val_lchar = value.charAt(value.length - 1);
-						if (/"|'/.test(val_fchar)) {
-							// Check that the last char is a matching quote.
-							if (val_fchar !== val_lchar) {
-								error(`Improperly quoted setting value.`);
-							}
-						} else if (/"|'/.test(val_lchar)) {
-							// Check that the last char is a matching quote.
-							if (val_lchar !== val_fchar) {
-								error(`Improperly quoted setting value.`);
-							}
-						}
-					} else {
-						error(`Setting not assigned a value.`);
-					}
-					// Check if setting syntax is valid or give general error.
-					if (!r.test(sline)) {
-						error(`Invalid setting`, indices[0]);
-					}
-
-					// Else, checks passed so reset vars. Reset index to be
-					// at the end of the line.
-					i = indices[0] - 1;
-
-					// Store line.
-					newlines.push((line += lchars));
-				} else if (line_type === "command") {
-					// Look ahead to grab command chain.
-					let { chars: fchars, xchars, indices } = lookahead(
-						i,
-						contents,
-						new RegExp(`[-_.:a-zA-Z0-9\\\\\/{}\|]`),
-						Infinity
-					);
-
-					// Command length checks?
-
-					// Reset index to be at the end of the line.
-					i = indices[1];
-
-					// Next look for command setter (' = ' → ignore quotes).
-					line_type = "command_setter";
-
-					// Store chars.
-					line += fchars.join("");
-
-					// Store command chain.
-					if (!lookup[line]) {
-						lookup[line] = [];
-					}
-
-					commandchain = line;
-				} else if (line_type === "command_setter") {
-					// Setting syntax:
-					let r = /^[ \t]*=[ \t]*\[$/;
-
-					// Look ahead to grab command chain.
-					let indices_o = lookahead(
-						i,
-						contents,
-						new RegExp(`[ \t=]`),
-						Infinity
-					).indices;
-
-					// Look ahead to grab command chain.
-					let { chars: fchars, xchars, indices } = lookahead(
-						i,
-						contents,
-						new RegExp(`(\\r?\\n)`),
-						1
-					);
-
-					// Get all setting line chars.
-					let lchars = xchars.join("");
-
-					// Check if has invalid character.
-					// Highlight multiple '=' and '[' characters?
-					if (!r.test(`${lchars}`)) {
-						if (!lchars.includes("=")) {
-							error(`Missing '='.`, indices[0]);
-						}
-						if (!lchars.includes("[")) {
-							error(`Missing '['.`, indices[0]);
-						}
-
-						// Check for possible invalid characters.
-						if (/([^ \t=\[\]])/.test(lchars)) {
-							error(
-								`Invalid characters '${chalk.bold(
-									lchars.replace(
-										/([^ \t=\[])/g,
-										`${chalk.bold.red("$1")}`
-									)
-								)}'.`,
-								indices[0]
-							);
-						} else {
-							// Must be '=[' or '=[]' once spaces are removed.
-							if (!/=\[\]?/.test(lchars.replace(/\s/g, ""))) {
-								error(
-									`Use command setter sequence '${chalk.bold(
-										"= ["
-									)}' instead (spaces optional).`
-								);
-							}
-						}
-					}
-
-					// Reset index to be at the end of the line.
-					i = indices_o[1];
-
-					// Next look for command open bracket. ('[' → ignore quotes).
-					line_type = "command_open_bracket";
-				} else if (line_type === "command_open_bracket") {
-					let chars, fchars, xchars, indices, la;
-
-					// Look ahead to grab command chain.
-					la = lookahead(i, contents, new RegExp(`\\[`), 1);
-					fchars = la.chars;
-					xchars = la.xchars;
-					indices = la.indices;
-
-					let open_index = indices[1];
-
-					// Reset index to be at the end of the line.
-					i = open_index;
-
-					// Look ahead once more. We can only have 3 situations:
+				// Must pass RegExp pattern.
+				if (!r.test(stripped)) {
+					// [TODO] Further breakdown error:
+					// We can only have 3 situations:
 					// 1 - There are no more characters (excluding spaces).
 					// 2 - There is a closing bracket ']'.
 					// 3 - There are other chars unallowed chars.
+					// 		- Trailing in-line comments?
 
-					// Look ahead to grab...
-					la = lookahead(i + 1, contents, new RegExp(`(\\r?\\n)`), 1);
-					fchars = la.chars;
-					xchars = la.xchars;
-					indices = la.indices;
-
-					let close_index = indices[1];
-
-					// Remaining chars after open bracket '['.
-					let rchars = xchars.join("").trim();
-					if (/[^\]]/.test(rchars)) {
-						error(
-							`Invalid characters after open bracket '['`,
-							indices[0]
-						);
-					}
-
-					if (rchars === "]") {
-						line += " --";
-						// Reset index to be at the end of the line.
-						i = indices[0] - 1;
-					} else {
-						// Set type to flags.
-						mcommand = true;
-					}
-
-					// Store line.
-					newlines.push(line);
-				} else if (line_type === "flag_set") {
-					// Setting syntax:
-					let r = /^-{1,2}([a-zA-Z][-_:a-zA-Z0-9]*)[ \t]*(=\*?[ \t]*(\(|\(\))?)?$/;
-
-					// Look ahead to grab setting.
-					let { chars: fchars, xchars, indices } = lookahead(
-						i,
-						contents,
-						new RegExp(`(\\r?\\n)`),
-						1
+					// General error.
+					error(
+						`Expected '[' or '[]' but saw '${chalk.bold(
+							chars_str
+						)}' instead.`
 					);
-
-					// Get all setting line chars.
-					let lchars = xchars.join("");
-
-					// Check if setting syntax is valid give general error.
-					if (!r.test(`-${lchars}`)) {
-						// Further breakdown exact syntax error?
-						// - setting name check?
-						// - value check (if quoted is it properly quoted.)
-						error(`Invalid flag`, indices[0]);
-					}
-
-					let chain = lookup[commandchain];
-					if (chain) {
-						// chain.push(`-${lchars}`);
-						chain.push(`-${lchars.replace(/[\(\)]/g, "")}`);
-					}
-
-					if (lchars.includes("(") && !lchars.includes(")")) {
-						// open_parenth = true;
-						mflag = `-${lchars.replace(/[\=\*\(]/g, "")}`;
-					}
-
-					// Else it's a valid setting so reset vars.
-					// Reset index to be at the end of the line.
-					i = indices[0] - 1;
-
-					// Store line.
-					newlines.push((line += lchars));
-				} else if (line_type === "flag_option") {
-					// Flag option syntax:
-					let r = /^[ \t]*-[ \t]*(.{2,})$/;
-
-					// Look ahead to grab setting.
-					let { chars: fchars, xchars, indices } = lookahead(
-						i,
-						contents,
-						new RegExp(`(\\r?\\n)`),
-						1
-					);
-
-					// Get all setting line chars.
-					let lchars = xchars.join("");
-
-					// Check if setting syntax is valid give general error.
-					if (!r.test(`-${lchars}`)) {
-						// Further breakdown exact syntax error?
-						// - setting name check?
-						// - value check (if quoted is it properly quoted.)
-						error(`Invalid flag option`, indices[0]);
-					}
-
-					let chain = lookup[commandchain];
-					if (chain) {
-						chain.push(`${mflag}=${lchars.trim()}`);
-					}
-
-					// if (lchars.includes("(") && !lchars.includes(")")) {
-					// 	// open_parenth = true;
-					// 	mflag = `-${lchars.replace(/[\=\*\(]/g, "")}`;
-					// }
-
-					// Else it's a valid setting so reset vars.
-					// Reset index to be at the end of the line.
-					i = indices[0] - 1;
-
-					// Store line.
-					newlines.push((line += lchars));
-				} else if (line_type === "close_parenthesis") {
-					// Flag option syntax:
-					let r = /^[ \t]*\)[ \t]*$/;
-
-					// if (mflag) {
-					// 	error(`Unmatched closing parentheses`, 0);
-					// }
-
-					// Look ahead to grab setting.
-					let { chars: fchars, xchars, indices } = lookahead(
-						i,
-						contents,
-						new RegExp(`(\\r?\\n)`),
-						1
-					);
-
-					// Get all setting line chars.
-					let lchars = xchars.join("");
-
-					// Check if setting syntax is valid give general error.
-					if (!r.test(`${lchars}`)) {
-						// Further breakdown exact syntax error?
-						// - setting name check?
-						// - value check (if quoted is it properly quoted.)
-						error(`Invalid closing parentheses.`, indices[0]);
-					}
-
-					// Reset flags.
-					mflag = null;
-
-					// Else it's a valid setting so reset vars.
-					// Reset index to be at the end of the line.
-					i = indices[0] - 1;
-
-					// Store line.
-					newlines.push(line);
-				} else if (line_type === "close_bracket") {
-					// Flag option syntax:
-					let r = /^[ \t]*\][ \t]*$/;
-
-					// Look ahead to grab setting.
-					let { chars: fchars, xchars, indices } = lookahead(
-						i,
-						contents,
-						new RegExp(`(\\r?\\n)`),
-						1
-					);
-
-					// Get all setting line chars.
-					let lchars = xchars.join("");
-
-					// Check if setting syntax is valid give general error.
-					if (!r.test(`${lchars}`)) {
-						// Further breakdown exact syntax error?
-						// - setting name check?
-						// - value check (if quoted is it properly quoted.)
-						error(`Invalid closing bracket.`, indices[0]);
-					}
-
-					// Reset flags.
-					mcommand = null;
-
-					// Else it's a valid setting so reset vars.
-					// Reset index to be at the end of the line.
-					i = indices[0] - 1;
-
-					// Store line.
-					newlines.push(line);
-				} else if (line_type === "comment") {
-					// Get all line characters and rest index.
-
-					// Comment syntax:
-					let r = /^#.*?$/;
-
-					// Look ahead to grab comment ending.
-					let { xchars, indices } = lookahead(
-						i,
-						contents,
-						new RegExp(`(\\r?\\n)`),
-						1
-					);
-
-					// Get all comment line chars.
-					let lchars = xchars.join("");
-
-					// Reset index to be at the end of the line.
-					i = indices[0] - 1;
-
-					// Don't store line.
 				}
+
+				// If bracket is unclosed then set flag.
+				if (stripped === "[") {
+					mcommand = true;
+				}
+
+				// Reset index to be at the end of the line.
+				i = indices[1] - 1;
+			}
+			//
+			else if (line_type === "flag_set") {
+				// Look ahead to grab setting.
+				let { chars_str, indices } = lookahead(
+					i,
+					contents,
+					new RegExp(`(\\r?\\n)`)
+				);
+
+				// Setting syntax:
+				let r = /^-{1,2}([a-zA-Z][-_:a-zA-Z0-9]*)[ \t]*(=\*?[ \t]*(\(|\(\))?)?$/;
+
+				// Check if setting syntax is valid give general error.
+				if (!r.test(chars_str)) {
+					// Further breakdown exact syntax error?
+					// - setting name check?
+					// - value check (if quoted is it properly quoted.)
+
+					// General error.
+					error(`Invalid flag`, indices[1]);
+				}
+
+				// Add to lookup table if not already.
+				let chain = lookup[commandchain];
+				if (chain) {
+					chain.push(chars_str.replace(/[\(\)]/g, ""));
+				}
+
+				if (chars_str.includes("(") && !chars_str.includes(")")) {
+					mflag = chars_str.replace(/[\=\*\(]/g, "");
+				}
+
+				// Else it's a valid setting so reset vars.
+				// Reset index to be at the end of the line.
+				i = indices[1] - 1;
+			}
+			//
+			else if (line_type === "flag_option") {
+				// Look ahead to grab setting.
+				let { chars_str, indices } = lookahead(
+					i,
+					contents,
+					new RegExp(`(\\r?\\n)`)
+				);
+
+				// Flag option syntax:
+				let r = /^[ \t]*-[ \t]*(.{2,})$/;
+
+				// Check if setting syntax is valid give general error.
+				if (!r.test(chars_str)) {
+					// Further breakdown exact syntax error?
+					// - setting name check?
+					// - value check (if quoted is it properly quoted.)
+
+					// General error.
+					error(`Invalid flag option`, indices[1]);
+				}
+
+				let chain = lookup[commandchain];
+				if (chain) {
+					chain.push(
+						// Trim, remove option syntax, and store.
+						`${mflag}=${chars_str.replace(
+							/^[ \t]*-[ \t]*|[ \t]*$/g,
+							""
+						)}`
+					);
+				}
+
+				// Reset index to be at the end of the line.
+				i = indices[1] - 1;
+			}
+			//
+			else if (line_type === "close_parenthesis") {
+				if (!mflag) {
+					error(`Unmatched closing parentheses`, 0);
+				}
+
+				// Look ahead to grab setting.
+				let { chars_str, indices } = lookahead(
+					i,
+					contents,
+					new RegExp(`(\\r?\\n)`)
+				);
+
+				// Flag option syntax:
+				let r = /^[ \t]*\)[ \t]*$/;
+
+				// Check if setting syntax is valid give general error.
+				if (!r.test(chars_str)) {
+					// Further breakdown exact syntax error?
+					// - setting name check?
+					// - value check (if quoted is it properly quoted.)
+
+					// General error.
+					error(`Invalid closing parentheses.`, indices[1]);
+				}
+
+				// Reset flags.
+				mflag = null;
+
+				// Else it's a valid setting so reset vars.
+				// Reset index to be at the end of the line.
+				i = indices[1] - 1;
+			}
+			//
+			else if (line_type === "close_bracket") {
+				// Unmatched ']'.
+				if (!mcommand) {
+					error(`Unmatched closing bracket`, 0);
+				}
+
+				// Look ahead to grab setting.
+				let { chars_str, indices } = lookahead(
+					i,
+					contents,
+					new RegExp(`(\\r?\\n)`)
+				);
+
+				// Flag option syntax:
+				let r = /^[ \t]*\][ \t]*$/;
+
+				// Check if setting syntax is valid give general error.
+				if (!r.test(chars_str)) {
+					// [TODO] Further breakdown exact syntax error?
+					// Check for remaining chars.
+					// Trailing in-line comments?
+
+					// General error.
+					error(`Invalid closing bracket.`, indices[0]);
+				}
+
+				// Reset flags.
+				mcommand = null;
+
+				// Else it's a valid setting so reset vars.
+				// Reset index to be at the end of the line.
+				i = indices[1] - 1;
+			}
+
+			//
+			else if (line_type === "comment") {
+				// Reset index to comment ending newline index.
+				let la = lookahead(i, contents, new RegExp(`(\\r?\\n)`));
+				i = la.indices[1] - 1;
 			}
 		}
 	}
 
-	// Need to get line numbers.
-	if (mcommand) {
-		error(`Unclosed '['.`);
-	}
-	if (mflag) {
-		error(`Unclosed '('.`);
-	}
-
+	console.log("");
+	console.log(chalk.bold.blue("LOOKUP:"));
 	console.log(lookup);
+	console.log("");
+	console.log(chalk.bold.blue("SETTINGS:"));
+	console.log(settings);
+	console.log("");
+	console.log(chalk.bold.blue("NEWLINES:"));
 
-	// for (let i = 0, l = newlines.length; i < l; i++) {
-	// 	// Cache current loop item.
-	// 	let line = newlines[i];
+	for (let i = 0, l = newlines.length; i < l; i++) {
+		// Cache current loop item.
+		let line = newlines[i];
 
-	// 	console.log(line);
-	// }
+		console.log(line);
+	}
+	console.log("");
 
 	exit([]);
 

@@ -25,6 +25,7 @@ const config = require("./config.js");
 const shortcuts = require("./shortcuts.js");
 const dedupe = require("./dedupe.js");
 const argparser = require("./argparser.js");
+const paramparse = require("./paramparse.js");
 const formatflags = require("./formatflags.js");
 const merge = require("./merge.js");
 
@@ -41,6 +42,7 @@ module.exports = (contents, commandname, source) => {
 	let mflag;
 	let mcommand;
 	let line_type;
+	let flag_set_oneline;
 
 	let last_open_br = [];
 	let last_open_pr = [];
@@ -61,7 +63,7 @@ module.exports = (contents, commandname, source) => {
 	// Starting line character.
 	let r_start_line_char = /[-@a-zA-Z\)\]#]/;
 	// Command setter.
-	let r_command_setter = /^[ \t]*=[ \t]*\[/;
+	let r_command_setter = /^[ \t]*=[ \t]*(\[|-{1,2})/;
 	// Flag option.
 	let r_flag_option = /^[ \t]*-[ \t]{1,}([^\s]{1,}.*?)$/;
 	// Command.
@@ -69,7 +71,7 @@ module.exports = (contents, commandname, source) => {
 	// Setting syntax.
 	let r_setting = /^(@[a-zA-Z][_a-zA-Z]*)[ \t]*(=[ \t]*(.*?))?$/;
 	// Flag set.
-	let r_flag_set = /^-{1,2}([a-zA-Z][-._:a-zA-Z0-9]*)[ \t]*(=\*?[ \t]*(\(|\(\)|.*?)?)?$/;
+	let r_flag_set = /^(-{1,2})([a-zA-Z][-._:a-zA-Z0-9]*)[ \t]*((=\*?)[ \t]*(\(|\(\)|.*?)?)?$/;
 
 	// acmap file header.
 	let header = [
@@ -495,31 +497,56 @@ module.exports = (contents, commandname, source) => {
 
 				// Must pass RegExp pattern.
 				if (!r_command_setter.test(chars_str)) {
+					// Check if setter was even provider.
+					if (!stripped.startsWith("=")) {
+						error("Missing '=' after command chain.", cline.length);
+					}
+					// Check if assignment is empty. Give warning for now
+					// or be more strict and give error.
+					else if (stripped === "=") {
+						warning(`Empty assignment after '='.`);
+						i = indices[1] - 1;
+						continue;
+					}
 					// Check for missing '[' character?
-					if (!stripped.includes("[")) {
-						error(
-							`Missing flags. Remove '=' if not setting flags.`
-						);
+					else if (!stripped.includes("[")) {
+						error(`Illegal assignment after '='.`, cline.length);
 					}
 
-					// Give general error.
-					error(
-						`Expected ' = [' but saw '${chars_str}' instead.`,
-						cline.length
-					);
+					// // Give general error.
+					// error(
+					// 	`Expected ' = [' but saw '${chars_str}' instead.`,
+					// 	cline.length
+					// );
 				}
 
 				// Store chars.
 				line += chars_str;
 
-				// Look ahead to grab '[' index.
-				let la = lookahead(0, chars_str, new RegExp(`\\[`));
+				// Lookup RegExp char.
+				let rchar;
+
+				// Get setter type. Either [ or '--' for single line flags
+				// to start a single line definition string.
+				if (/^-/.test(chars_str.match(r_command_setter)[1])) {
+					// Look ahead to grab '[' index.
+					rchar = "-";
+
+					line_type = "flag_set_oneline";
+					flag_set_oneline = [chars_str, indices];
+				} else {
+					// Look ahead to grab '[' index.
+					rchar = "\\[";
+
+					// Next look for command open bracket. ('[' → ignore quotes).
+					line_type = "command_open_bracket";
+				}
+
+				// Look ahead to grab lookup character index.
+				let la = lookahead(0, chars_str, new RegExp(rchar));
 
 				// Reset index to be at the end of the line.
 				i = i + la.indices[1] - 1;
-
-				// Next look for command open bracket. ('[' → ignore quotes).
-				line_type = "command_open_bracket";
 			} else if (line_type === "command_open_bracket") {
 				// Unclosed '['.
 				if (last_open_br.length) {
@@ -566,23 +593,90 @@ module.exports = (contents, commandname, source) => {
 
 				// Reset index to be at the end of the line.
 				i = indices[1] - 1;
-			} else if (line_type === "flag_set") {
-				// Look ahead to grab setting.
-				let { chars_str, indices } = lookahead(i, contents, r_nl);
+			} else if (line_type === "flag_set_oneline") {
+				// Get information stored from command_setter.
+				let [chars_str, indices] = flag_set_oneline;
 
-				// Check if setting syntax is valid give general error.
-				if (!r_flag_set.test(chars_str)) {
-					// General error.
-					error(`Invalid flag.`);
-				}
+				// Remove setter syntax.
+				chars_str = chars_str.replace(/^[ \t]*=[ \t]*/, "");
+
+				let flags = chars_str
+					// Parse on unescaped '|' characters:
+					// [https://stackoverflow.com/a/25895905]
+					// [https://stackoverflow.com/a/12281034]
+					.split(/(?<=[^\\]|^|$)\|/);
 
 				// Add to lookup table if not already.
 				let chain = lookup[commandchain];
 				if (chain) {
-					chain.push(chars_str.replace(/[\(\)]/g, ""));
+					for (let i = 0, l = flags.length; i < l; i++) {
+						// Cache current loop item.
+						let flag = flags[i].trim();
+
+						// Skip empty flags.
+						if (!/^-{1,}$/.test(flag)) {
+							chain.push(flag);
+						}
+					}
 				}
 
-				if (chars_str.includes("(") && !chars_str.includes(")")) {
+				// Clear values.
+				commandchain = "";
+				flag_set_oneline = null;
+
+				// Reset index to be at the end of the line.
+				i = indices[1] - 1;
+			} else if (line_type === "flag_set") {
+				// Look ahead to grab setting.
+				let { chars_str, chars, indices } = lookahead(
+					i,
+					contents,
+					r_nl
+				);
+
+				// Must pass RegExp pattern.
+				if (!r_flag_set.test(chars_str)) {
+					// Check if it's a flag option. If so the option is not
+					// being assigned to a flag.
+					if (r_flag_option.test(chars_str)) {
+						error(`Unassigned flag option.`);
+					}
+
+					// General error.
+					error(`Invalid flag.`);
+				}
+
+				// Breakdown flag.
+				let [
+					,
+					hyphens,
+					flag,
+					,
+					setter = "",
+					value = ""
+				] = chars_str.match(r_flag_set);
+
+				// If value is a command-flag or an options value list
+				// make sure both cases are properly enclosed with ')'.
+				if (
+					value &&
+					/^\$?\(/.test(value) &&
+					value
+						.substring(value.indexOf("(") + 1, value.length)
+						.replace(/\s/g, "").length &&
+					chars[chars.length - 1] !== ")"
+				) {
+					if (value.charAt(0) === "$") {
+						error("Unclosed command-flag. Add ')' to close line.");
+					} else {
+						error("Unclosed options flag. Add ')' to close line.");
+					}
+				}
+
+				// If we have a flag like '--flag=(' we have a long-form
+				// flag list opening. Store line for later use in case
+				// the parentheses is not closed.
+				if (value === "(") {
 					// Unclosed '('.
 					if (last_open_pr.length) {
 						line_count = last_open_pr[0];
@@ -591,7 +685,53 @@ module.exports = (contents, commandname, source) => {
 
 					// Store line of open bracket for later use in error.
 					last_open_pr = [line_count];
-					mflag = chars_str.replace(/[\=\*\(]/g, "");
+					mflag = `${hyphens}${flag}`;
+				}
+
+				// Add to lookup table if not already.
+				let chain = lookup[commandchain];
+				if (chain) {
+					// Starts with '$(' or '(' and ends with ')'.
+					if (/^\$?\(/.test(value) && /\)$/.test(value)) {
+						// [TODO] Check for empty command-flag/list.
+
+						// Clean command-flag string.
+						if (value.charAt(0) === "$") {
+							value = paramparse(value);
+							chain.push(`${hyphens}${flag}${setter}${value}`);
+						}
+						// Options value list starts with '(' and ends with ')'.
+						else {
+							// Remove wrapping '(' and ')'.
+							value = value.replace(/^\(|\)$/g, "");
+
+							// Parse flag option list into individual items.
+							let args = argparser(value);
+
+							// If list is empty give error.
+							if (!value.replace(/[ \t]/g, "")) {
+								warning(`Empty '()' (no flag options).`);
+							}
+
+							// Add main flag to list
+							chain.push(`${hyphens}${flag}${setter}`);
+
+							// Normalize setter.
+							setter = setter.replace("*", "");
+
+							// Add each value with its flag.
+							for (let i = 0, l = args.length; i < l; i++) {
+								// Cache current loop item.
+								let arg = args[i];
+								// Add to flags list.
+								chain.push(`${hyphens}${flag}${setter}${arg}`);
+							}
+						}
+					}
+					// Multi-flags, normal flags (w/ or w/ out setter/value).
+					else {
+						chain.push(`${hyphens}${flag}${setter}`);
+					}
 				}
 
 				// Else it's a valid setting so reset vars.

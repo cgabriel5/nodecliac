@@ -26,6 +26,14 @@ module.exports = input => {
 	// Remove '$()' syntax.
 	input = input.replace(/^\$\(|\)$/g, "").trim();
 
+	// Check for trailing comma (empty argument).
+	if (/,$/.test(input)) {
+		return {
+			char: ",",
+			pos: input.length - 1
+		};
+	}
+
 	// Command flag syntax:
 	// $("COMMAND-STRING" [, [<ARG1>, <ARGN> [, "<DELIMITER>"]]])
 
@@ -77,12 +85,37 @@ module.exports = input => {
 
 			// If we hit a comma and the state is closed. We store the
 			// current argument and reset everything.
-			if (state === "closed" && char === ",") {
-				args.push(argument);
-				// args_count++;
-				argument = "";
+			if (state === "closed") {
+				if (char === ",") {
+					args.push(argument);
+
+					// If arg is empty return an error.
+					if (!argument) {
+						return {
+							char,
+							pos: i
+						};
+					}
+
+					// args_count++;
+					argument = "";
+				} else {
+					// The only allowed characters when not in a closed
+					// state are spaced/tabs (whitespace), ans commas (,).
+					// Any other character is not allowed and should cause
+					// an error.
+					if (!/[ \t,]/.test(char)) {
+						return {
+							// Return offending character and its index.
+							char,
+							pos: i
+						};
+					}
+				}
 			} else if (state === "open") {
-				// Store the character.
+				// Store the character. Any characters are allowed as long
+				// as its quoted. Any characters with special meaning must
+				// be properly escaped.
 				argument += char;
 			}
 		}
@@ -90,6 +123,15 @@ module.exports = input => {
 	// Add remaining argument if string is not empty.
 	if (argument) {
 		args.push(argument);
+
+		// If arg is empty return an error.
+		if (!argument) {
+			return {
+				char,
+				pos: i
+			};
+		}
+
 		// args_count++;
 	}
 

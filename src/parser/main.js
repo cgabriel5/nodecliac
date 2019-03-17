@@ -46,6 +46,8 @@ module.exports = (contents, commandname, source) => {
 
 	let last_open_br = [];
 	let last_open_pr = [];
+	let commandchain_flag_count;
+	let flag_options_count;
 
 	// RegExp patterns:
 	// Letter.
@@ -203,20 +205,29 @@ module.exports = (contents, commandname, source) => {
 	};
 
 	// The index, source input, regexp, return character count.
-	let error = (message, index) => {
+	let error = (message, index, line) => {
+		// Use provided line num else use the currently parsed line number.
+		let linenum = (line !== undefined ? line : line_count) + 1;
+		let linechar = index !== undefined ? `:${index}` : "";
+
 		exit([
-			`[${chalk.bold.red("error")}] ${message} [line ${line_count + 1}${
-				index !== undefined ? `:${index}` : ""
-			}]`
+			`[${chalk.bold.red(
+				"error"
+			)}] ${message} [line ${linenum}${linechar}]`
 		]);
 	};
 
 	// The index, source input, regexp, return character count.
 	let warning = (message, index, line) => {
+		// Use provided line num else use the currently parsed line number.
+		let linenum = (line !== undefined ? line : line_count) + 1;
+		let linechar = index !== undefined ? `:${index}` : "";
+
 		exit(
 			[
-				`[${chalk.bold.yellow("warning")}] ${message} [line ${(line ||
-					line_count) + 1}${index !== undefined ? `:${index}` : ""}]`
+				`[${chalk.bold.yellow(
+					"warning"
+				)}] ${message} [line ${linenum}${linechar}]`
 			],
 			false
 		);
@@ -589,6 +600,9 @@ module.exports = (contents, commandname, source) => {
 					// Store line of open bracket for later use in error.
 					last_open_br = [line_count];
 					mcommand = true;
+
+					// Set flag set counter.
+					commandchain_flag_count = [line_count, 0];
 				}
 
 				// Reset index to be at the end of the line.
@@ -692,13 +706,51 @@ module.exports = (contents, commandname, source) => {
 				let chain = lookup[commandchain];
 				if (chain) {
 					// Starts with '$(' or '(' and ends with ')'.
-					if (/^\$?\(/.test(value) && /\)$/.test(value)) {
+					if (/^(\$|\()/.test(value) && /\)$/.test(value)) {
 						// [TODO] Check for empty command-flag/list.
+
+						// If starts with '$' a '(' must follow.
+						if (
+							value.charAt(0) === "$" &&
+							value.charAt(1) !== "("
+						) {
+							error(
+								`Invalid command-flag. Saw '$' but expected '$('.`,
+
+								// The offending characters position.
+								indentation.length +
+									hyphens.length +
+									flag.length +
+									setter.length +
+									value.indexOf("$")
+							);
+						}
 
 						// Clean command-flag string.
 						if (value.charAt(0) === "$") {
-							value = paramparse(value);
-							chain.push(`${hyphens}${flag}${setter}${value}`);
+							let pvalue = paramparse(value);
+
+							// If the return paramparse value is not
+							// a string then we have an invalid character.
+							if (typeof pvalue !== "string") {
+								// Extract error information.
+								let { char, pos } = pvalue;
+
+								error(
+									`Illegal character '${char}' in command-flag.`,
+									// The offending characters position.
+									indentation.length +
+										hyphens.length +
+										flag.length +
+										setter.length +
+										pos +
+										2
+								);
+							} else {
+								chain.push(
+									`${hyphens}${flag}${setter}${value}`
+								);
+							}
 						}
 						// Options value list starts with '(' and ends with ')'.
 						else {
@@ -706,25 +758,90 @@ module.exports = (contents, commandname, source) => {
 							value = value.replace(/^\(|\)$/g, "");
 
 							// Parse flag option list into individual items.
-							let args = argparser(value);
+							let args = argparser(
+								value,
+								flag,
+								error,
+								warning,
+								line_count
+							);
 
-							// If list is empty give error.
-							if (!value.replace(/[ \t]/g, "")) {
-								warning(`Empty '()' (no flag options).`);
-							}
+							if (Array.isArray(args)) {
+								// If list is empty give error.
+								if (!value.replace(/[ \t]/g, "")) {
+									warning(`Empty '()' (no flag options).`);
+								}
 
-							// Add main flag to list
-							chain.push(`${hyphens}${flag}${setter}`);
+								// Add main flag to list
+								chain.push(`${hyphens}${flag}${setter}`);
 
-							// Normalize setter.
-							setter = setter.replace("*", "");
+								// Store original setter length.
+								let setter_len = setter.length;
 
-							// Add each value with its flag.
-							for (let i = 0, l = args.length; i < l; i++) {
-								// Cache current loop item.
-								let arg = args[i];
-								// Add to flags list.
-								chain.push(`${hyphens}${flag}${setter}${arg}`);
+								// Normalize setter.
+								setter = setter.replace("*", "");
+
+								// Add each value with its flag.
+								for (let i = 0, l = args.length; i < l; i++) {
+									// Cache current loop item.
+									let arg = args[i];
+									// Add to flags list.
+									chain.push(
+										`${hyphens}${flag}${setter}${arg}`
+									);
+
+									// Get the first char of argument.
+									let afchar = arg.charAt(0);
+									if (
+										// If arg is a command-flag.
+										afchar === "$" ||
+										// Or if arg contains special chars.
+										(/[^"']/.test(afchar) &&
+											/(?<!\\)[~`!#\$\^&\*(){}\|\[\];'",<>\? ]/.test(
+												afchar
+											))
+									) {
+										let pvalue = paramparse(arg);
+
+										// If the return paramparse value is not
+										// a string then we have an invalid character.
+										if (typeof pvalue !== "string") {
+											// Extract error information.
+											let { char, pos } = pvalue;
+
+											error(
+												`Illegal character '${char}' in command-flag.`,
+												// The offending characters position.
+												indentation.length +
+													hyphens.length +
+													flag.length +
+													setter_len +
+													pos +
+													2
+											);
+										}
+									}
+								}
+							} else {
+								// Extract error information.
+								let { char, pos, code } = args;
+
+								// Generate error message.
+								let error_message =
+									`Invalid flag options list. Saw '${char}' but expected ` +
+									(code === "eol"
+										? `end-of-line.'`
+										: `' ' (space-delimiter).`);
+
+								error(
+									error_message,
+									// The offending characters position.
+									indentation.length +
+										hyphens.length +
+										flag.length +
+										setter.length +
+										pos
+								);
 							}
 						}
 					}
@@ -733,6 +850,17 @@ module.exports = (contents, commandname, source) => {
 						chain.push(`${hyphens}${flag}${setter}`);
 					}
 				}
+
+				// Increment flag set counter.
+				if (commandchain_flag_count) {
+					// Get values before incrementing.
+					let [counter, linenum] = commandchain_flag_count;
+					// Increment and store values.
+					commandchain_flag_count = [linenum, counter + 1];
+				}
+
+				// Increment/set flag options counter.
+				flag_options_count = [line_count, 0];
 
 				// Else it's a valid setting so reset vars.
 				// Reset index to be at the end of the line.
@@ -765,12 +893,32 @@ module.exports = (contents, commandname, source) => {
 					);
 				}
 
+				// Increment flag option counter.
+				if (flag_options_count) {
+					// Get values before incrementing.
+					let [counter, linenum] = flag_options_count;
+					// Increment and store values.
+					flag_options_count = [linenum, counter + 1];
+				}
+
 				// Reset index to be at the end of the line.
 				i = indices[1] - 1;
 			} else if (line_type === "close_parenthesis") {
 				if (!mflag) {
 					error(`Unmatched closing parentheses.`);
 				}
+
+				// If command chain's flag array is empty give warning.
+				if (flag_options_count && !flag_options_count[1]) {
+					warning(
+						`Empty '()' (no flag options).`,
+						undefined,
+						last_open_pr[0]
+						// flag_options_count[1]
+					);
+				}
+				// Clear flag.
+				flag_options_count = null;
 
 				// Look ahead to grab setting.
 				let { chars_str, indices } = lookahead(i, contents, r_nl);
@@ -802,6 +950,18 @@ module.exports = (contents, commandname, source) => {
 					error(`Unmatched closing bracket.`);
 				}
 
+				// If command chain's flag array is empty give warning.
+				if (commandchain_flag_count && !commandchain_flag_count[1]) {
+					warning(
+						`Empty '[]' (no flags).`,
+						undefined,
+						last_open_br[0]
+						// commandchain_flag_count[1]
+					);
+				}
+				// Clear flag.
+				commandchain_flag_count = null;
+
 				// Look ahead to grab setting.
 				let { chars_str, indices } = lookahead(i, contents, r_nl);
 
@@ -816,16 +976,6 @@ module.exports = (contents, commandname, source) => {
 							stripped.length - 1 > 1 ? "s" : ""
 						} after ']'.`
 						// , cline.indexOf("[") + 1
-					);
-				}
-
-				// If command chain's flag array is empty give warning.
-				let flags = lookup[commandchain];
-				if (flags && !flags.length) {
-					warning(
-						`Empty '[]' (no flags).`,
-						undefined,
-						last_open_br[0]
 					);
 				}
 

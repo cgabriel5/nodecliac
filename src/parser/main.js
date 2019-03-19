@@ -29,6 +29,8 @@ const lookahead = require("./lookahead.js");
 const shortcuts = require("./shortcuts.js");
 const paramparse = require("./paramparse.js");
 const formatflags = require("./formatflags.js");
+// Get parsers.
+const psetting = require("./p.setting.js");
 
 module.exports = (contents, commandname, source) => {
 	// Vars - General.
@@ -109,6 +111,59 @@ module.exports = (contents, commandname, source) => {
 				)}] ${message} [line ${linenum}${linechar}]`
 			],
 			false
+		);
+	};
+
+	/**
+	 * Issue warnings and or error the parsing result object might contain.
+	 *
+	 * @param  {object} result - The parsing result object.
+	 * @return {undefined} - Logs warnings. Exits script if error is issued.
+	 */
+	let verify = result => {
+		// Get warnings from result object.
+		let { warnings } = result;
+		// Print warnings.
+		if (warnings.length) {
+			for (let j = 0, ll = warnings.length; j < ll; j++) {
+				issue(warnings[j], "warn");
+			}
+		}
+
+		// Issue error if present.
+		if (result.hasOwnProperty("code")) {
+			issue(result);
+		}
+	};
+
+	/**
+	 * Issues warnings/error. Warnings are non-obtrusive as they simply get
+	 *     logged to the console. When an error is issued the script will
+	 *     exit after logging error to the console.
+	 *
+	 * @param  {object} data - The result object.
+	 * @param  {string} type - The issue type (error/warning).
+	 * @return {undefined} - Logs warnings. Exits script if error is issued.
+	 */
+	let issue = (result, type = "error") => {
+		// Use provided line num else use the currently parsed line number.
+		let linenum = (result.line || line_count) + 1;
+		let linechar = result.index - result.offset + 1;
+
+		// Determine color to highlight label.
+		let color = type === "error" ? "red" : "yellow";
+
+		// Build line info.
+		let lineinfo = `line ${linenum}`;
+		if (linechar !== undefined) {
+			lineinfo += `:${linechar}`;
+		}
+
+		// Log issue to console.
+		exit(
+			[`[${chalk.bold[color](type)}] ${result.reason} [${lineinfo}]`],
+			// If issuing an error stop script after logging error.
+			type === "error" ? undefined : false
 		);
 	};
 
@@ -227,126 +282,18 @@ module.exports = (contents, commandname, source) => {
 
 		if (line_type) {
 			if (line_type === "setting") {
-				// Look ahead to grab setting line.
-				let { indices, chars_str } = lookahead(i, contents, r_nl);
+				// Parse settings line.
+				let result = psetting(contents, i, settings);
 
-				// Checks:
-				// - Empty setting.
-				// - Invalid characters.
-				// - Duplicate settings.
-				// - Dangling setting symbol.
-				// - Improperly quoted value.
+				// Check result for parsing issues (errors/warnings).
+				verify(result);
 
-				// [TODO] Simplify error checking.
+				// When parsing passes reset the index so that on the next
+				// iteration it continues with the newline character.
+				i = result.nl_index - 1;
 
-				// Check for dandling setting symbol.
-				if (chars_str === "@") {
-					error("Dangling '@' setting symbol.", indentation.length);
-				}
-				// Breakdown setting (setting name/value).
-				let matches = chars_str.match(r_setting);
-				// No matches means setting name contains invalid characters.
-				if (!matches) {
-					// If '=' present check for invalid chars in setting name.
-					let eq_sign_index = chars_str.indexOf("=");
-					if (-~eq_sign_index) {
-						// Get setting name.
-						let name = chars_str.substring(0, eq_sign_index).trim();
-
-						// Replace space/tab characters with their symbols.
-						name = name.replace(/ |\t/g, function(match) {
-							return match === " " ? "␣" : "⇥";
-						});
-
-						// Current line before char string.
-						let cline = `${indentation}${line}`;
-
-						// Keep invalid characters count for error message.
-						let highlight_count = 0;
-						let highlight_name =
-							"@" +
-							name
-								.slice(1)
-								.replace(/([^_a-zA-Z0-9])/g, function(match) {
-									highlight_count++;
-									return `${chalk.red.bold(match)}`;
-								});
-
-						// Highlight invalid chars.
-						error(
-							`Invalid character${
-								highlight_count > 1 ? "s" : ""
-							} in setting name '${highlight_name}'.`,
-							cline.length
-						);
-					}
-
-					// General error.
-					error(
-						`Invalid setting '${chalk.bold(
-							"@" +
-								chars_str
-									.slice(1)
-									// Replace space and tab characters with their symbols.
-									.replace(/ |\t/g, function(match) {
-										return match === " " ? "␣" : "⇥";
-									})
-									.replace(
-										/([^a-zA-Z])/g,
-										`${chalk.bold.red("$1")}`
-									)
-						)}'.`,
-						indentation.length
-					);
-				}
-				// Check that value if quoted is quoted properly.
-				let name = matches[1];
-				let value = matches[3];
-				if (value) {
-					// If value is quoted check that it's properly quoted.
-					let vfchar = value.charAt(0);
-					var vlchar = value.charAt(value.length - 1);
-
-					// Check for mismatched quotes.
-					if (/"|'/.test(vfchar) && /"|'/.test(vlchar)) {
-						if (vfchar !== vlchar) {
-							error(`Setting value has mismatched quotes.`);
-						}
-					}
-					// Check that the last char is a matching quote.
-					else if (/"|'/.test(vfchar) && vfchar !== vlchar) {
-						error(
-							`Improperly quoted setting value. Missing right ${vfchar} quote.`
-						);
-					}
-					// Check that the last char is a matching quote.
-					else if (/"|'/.test(vlchar) && vlchar !== vfchar) {
-						error(
-							`Improperly quoted setting value. Missing left ${vlchar} quote.`
-						);
-					}
-				} else {
-					error(`Valueless setting '${chalk.bold(matches[0])}'.`);
-				}
-				// Check if setting syntax is valid or give general error.
-				if (!r_setting.test(chars_str)) {
-					error(`Invalid setting.`, indentation.length);
-				}
-
-				// Else, checks passed so reset vars. Reset index to continue
-				// loop at newline character on next iteration.
-				i = indices[1] - 1;
-
-				// If setting exists give an dupe/override warning.
-				if (settings[name]) {
-					warning(
-						`Duplicate '${chalk.bold(name)}' setting.`,
-						indentation.length
-					);
-				}
-
-				// Store setting/value in settings object.
-				settings[name] = value;
+				// Store setting/value pair.
+				settings[result.name] = result.value;
 			} else if (line_type === "command") {
 				// Look ahead to grab command chain.
 				let { chars_str, indices } = lookahead(

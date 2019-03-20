@@ -47,7 +47,6 @@ module.exports = (contents, commandname, source) => {
 	let mflag;
 	let mcommand;
 	let line_type;
-	let flag_set_oneline;
 
 	let last_open_br = [];
 	let last_open_pr = [];
@@ -317,67 +316,52 @@ module.exports = (contents, commandname, source) => {
 				}
 				commandchain = cc;
 
-				// // Get setter type. Either [ or '--' for single line flags
-				// // to start a single line definition string.
-				// if (/^-/.test(chars_str.match(r_command_setter)[1])) {
-				// 	flag_set_oneline = [chars_str, indices];
-				// }
-
 				// Unclosed '['.
 				if (last_open_br.length) {
 					line_count = last_open_br[0];
 					error("Unclosed open bracket.");
 				}
 
-				// If brackets are empty set flags.
-				if (result.brstate === "closed") {
-					// Reset flags.
-					mcommand = null;
+				// For non flagset oneliners.
+				if (result.brstate) {
+					// If brackets are empty set flags.
+					if (result.brstate === "closed") {
+						// Reset flags.
+						mcommand = null;
+						commandchain = "";
+						last_open_br.length = 0;
+					}
+					// If bracket is unclosed set other flags.
+					else {
+						// Store line of open bracket for later use in error.
+						last_open_br = [line_count];
+						mcommand = true;
+
+						// Set flag set counter.
+						commandchain_flag_count = [line_count, 0];
+					}
+				} else {
+					// Clear values.
 					commandchain = "";
-					last_open_br.length = 0;
-				}
-				// If bracket is unclosed set other flags.
-				else {
-					// Store line of open bracket for later use in error.
-					last_open_br = [line_count];
-					mcommand = true;
 
-					// Set flag set counter.
-					commandchain_flag_count = [line_count, 0];
-				}
-			} else if (line_type === "flag_set_oneline") {
-				// Get information stored from command_setter.
-				let [chars_str, indices] = flag_set_oneline;
+					// Store flagsets with its command chain in lookup table.
+					let chain = lookup[result.chain];
+					if (chain) {
+						// Get flag sets.
+						let flags = result.flagsets;
 
-				// Remove setter syntax.
-				chars_str = chars_str.replace(/^[ \t]*=[ \t]*/, "");
+						// Add each flag set to its command chain.
+						for (let j = 0, ll = flags.length; j < ll; j++) {
+							// Cache current loop item.
+							let flag = flags[j].trim();
 
-				let flags = chars_str
-					// Parse on unescaped '|' characters:
-					// [https://stackoverflow.com/a/25895905]
-					// [https://stackoverflow.com/a/12281034]
-					.split(/(?<=[^\\]|^|$)\|/);
-
-				// Add to lookup table if not already.
-				let chain = lookup[commandchain];
-				if (chain) {
-					for (let i = 0, l = flags.length; i < l; i++) {
-						// Cache current loop item.
-						let flag = flags[i].trim();
-
-						// Skip empty flags.
-						if (!/^-{1,}$/.test(flag)) {
-							chain.push(flag);
+							// Skip empty flags.
+							if (!/^-{1,}$/.test(flag)) {
+								chain.push(flag);
+							}
 						}
 					}
 				}
-
-				// Clear values.
-				commandchain = "";
-				flag_set_oneline = null;
-
-				// Reset index to be at the end of the line.
-				i = indices[1] - 1;
 			} else if (line_type === "flag_set") {
 				// Look ahead to grab setting.
 				let { chars_str, chars, indices } = lookahead(

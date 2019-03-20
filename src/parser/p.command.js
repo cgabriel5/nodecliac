@@ -27,6 +27,8 @@ module.exports = (string, offset) => {
 	let isshortcut;
 	let assignment = "";
 	let value = "";
+	let flagset = "";
+	let flagsets = [];
 	let state = "chain"; // Parsing state.
 	let nl_index;
 	// Collect all parsing warnings.
@@ -199,6 +201,11 @@ module.exports = (string, offset) => {
 				if (char === "[") {
 					// Store index.
 					indices.braces.open = i;
+				} else if (char === "-") {
+					// Parsing a one-line flag.
+					state = "flagset-oneline";
+					i--;
+					continue;
 				} else {
 					return error(char, 4);
 				}
@@ -227,11 +234,35 @@ module.exports = (string, offset) => {
 			if (!/[ \t]/.test(char)) {
 				return error(char, 4);
 			}
+		} else if (state === "flagset-oneline") {
+			// With RegExp to parse on unescaped '|' characters it would be
+			// something like this: String.split(/(?<=[^\\]|^|$)\|/);
+			// [https://stackoverflow.com/a/25895905]
+			// [https://stackoverflow.com/a/12281034]
+
+			// Get individual flag sets. Use unescaped '|' as the delimiter.
+			if (char === "|" && pchar !== "\\") {
+				// [TODO] Run other checks on flag set.
+				// Store current flag set.
+				flagsets.push(flagset);
+				// Reset flag set string.
+				flagset = "";
+			} else {
+				// Build flag set string.
+				flagset += char;
+			}
 		}
 	}
 
+	// Add final flag set.
+	if (flagset) {
+		flagsets.push(flagset);
+		// Clear var.
+		flagset = "";
+	}
+
 	// If there was assignment do some value checks.
-	if (assignment) {
+	if (assignment && !flagsets.length) {
 		// Determine brace state.
 		brstate = value === "[]" ? "closed" : "open";
 
@@ -262,6 +293,7 @@ module.exports = (string, offset) => {
 		value,
 		brstate,
 		assignment,
+		flagsets,
 		nl_index,
 		warnings
 	};

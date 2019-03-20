@@ -31,6 +31,8 @@ const paramparse = require("./paramparse.js");
 const formatflags = require("./formatflags.js");
 // Get parsers.
 const psetting = require("./p.setting.js");
+const pcommand = require("./p.command.js");
+const pbrace = require("./p.close-brace.js");
 
 module.exports = (contents, commandname, source) => {
 	// Vars - General.
@@ -282,7 +284,7 @@ module.exports = (contents, commandname, source) => {
 
 		if (line_type) {
 			if (line_type === "setting") {
-				// Parse settings line.
+				// Parse line.
 				let result = psetting(contents, i, settings);
 
 				// Check result for parsing issues (errors/warnings).
@@ -295,134 +297,47 @@ module.exports = (contents, commandname, source) => {
 				// Store setting/value pair.
 				settings[result.name] = result.value;
 			} else if (line_type === "command") {
-				// Look ahead to grab command chain.
-				let { chars_str, indices } = lookahead(
-					i,
-					contents,
-					r_command,
-					Infinity
-				);
+				// Parse line.
+				let result = pcommand(contents, i);
 
-				// Reset index to be at the end of the line.
-				i = indices[1] - 1;
+				// Check result for parsing issues (errors/warnings).
+				verify(result);
 
-				// Next look for command setter (' = ' → ignore quotes).
-				line_type = "command_setter";
+				// When parsing passes reset the index so that on the next
+				// iteration it continues with the newline character.
+				i = result.nl_index - 1;
 
-				// Store chars.
-				line += chars_str;
+				// Get command chain.
+				let cc = result.chain;
+				let value = result.value;
 
 				// Store command chain.
-				if (!lookup[line]) {
-					lookup[line] = [];
+				if (!lookup[cc]) {
+					lookup[cc] = [];
 				}
-				commandchain = line;
-			} else if (line_type === "command_setter") {
-				// Look ahead to grab command chain.
-				let { chars_str, indices } = lookahead(i, contents, r_nl);
+				commandchain = cc;
 
-				// Checks:
-				// - Check for invalid characters.
-				// - Highlight multiple '=' and '[' characters?
-				// - Check for possible invalid characters.
+				// // Get setter type. Either [ or '--' for single line flags
+				// // to start a single line definition string.
+				// if (/^-/.test(chars_str.match(r_command_setter)[1])) {
+				// 	flag_set_oneline = [chars_str, indices];
+				// }
 
-				// Remove all whitespace from string.
-				let stripped = chars_str.replace(/[ \t]/g, "");
-
-				// Current line before char string.
-				let cline = `${indentation}${line}`;
-
-				// Must pass RegExp pattern.
-				if (!r_command_setter.test(chars_str)) {
-					// Check if setter was even provider.
-					if (!stripped.startsWith("=")) {
-						error("Missing '=' after command chain.", cline.length);
-					}
-					// Check if assignment is empty. Give warning for now
-					// or be more strict and give error.
-					else if (stripped === "=") {
-						warning(`Empty assignment after '='.`);
-						i = indices[1] - 1;
-						continue;
-					}
-					// Check for missing '[' character?
-					else if (!stripped.includes("[")) {
-						error(`Illegal assignment after '='.`, cline.length);
-					}
-
-					// // Give general error.
-					// error(
-					// 	`Expected ' = [' but saw '${chars_str}' instead.`,
-					// 	cline.length
-					// );
-				}
-
-				// Store chars.
-				line += chars_str;
-
-				// Lookup RegExp char.
-				let rchar;
-
-				// Get setter type. Either [ or '--' for single line flags
-				// to start a single line definition string.
-				if (/^-/.test(chars_str.match(r_command_setter)[1])) {
-					// Look ahead to grab '[' index.
-					rchar = "-";
-
-					line_type = "flag_set_oneline";
-					flag_set_oneline = [chars_str, indices];
-				} else {
-					// Look ahead to grab '[' index.
-					rchar = "\\[";
-
-					// Next look for command open bracket. ('[' → ignore quotes).
-					line_type = "command_open_bracket";
-				}
-
-				// Look ahead to grab lookup character index.
-				let la = lookahead(0, chars_str, new RegExp(rchar));
-
-				// Reset index to be at the end of the line.
-				i = i + la.indices[1] - 1;
-			} else if (line_type === "command_open_bracket") {
 				// Unclosed '['.
 				if (last_open_br.length) {
 					line_count = last_open_br[0];
 					error("Unclosed open bracket.");
 				}
 
-				// Look ahead to grab command chain.
-				let { chars_str, indices } = lookahead(i, contents, r_nl);
-
-				// Remove all whitespace from string.
-				let stripped = chars_str.replace(/[ \t]/g, "");
-
-				// Current line before char string.
-				let cline = `${indentation}${line}`;
-
-				// If brackets are empty give warning.
-				if (stripped === "[]") {
-					warning(`Empty '[]' (no flags).`);
-
+				// If brackets are empty set flags.
+				if (result.brstate === "closed") {
 					// Reset flags.
 					mcommand = null;
 					commandchain = "";
 					last_open_br.length = 0;
 				}
-
-				// Must pass RegExp pattern.
-				if (!r_open_command_br.test(stripped)) {
-					// Check for trailing chars.
-					error(
-						`Illegal character${
-							stripped.length - 1 ? "s" : ""
-						} after '${/^\[\]/.test(stripped) ? "]" : "["}'.`
-						// , cline.indexOf("[") + 1
-					);
-				}
-
-				// If bracket is unclosed then set flag.
-				if (stripped === "[") {
+				// If bracket is unclosed set other flags.
+				else {
 					// Store line of open bracket for later use in error.
 					last_open_br = [line_count];
 					mcommand = true;
@@ -430,9 +345,6 @@ module.exports = (contents, commandname, source) => {
 					// Set flag set counter.
 					commandchain_flag_count = [line_count, 0];
 				}
-
-				// Reset index to be at the end of the line.
-				i = indices[1] - 1;
 			} else if (line_type === "flag_set_oneline") {
 				// Get information stored from command_setter.
 				let [chars_str, indices] = flag_set_oneline;
@@ -746,30 +658,19 @@ module.exports = (contents, commandname, source) => {
 				// Clear flag.
 				flag_options_count = null;
 
-				// Look ahead to grab setting.
-				let { chars_str, indices } = lookahead(i, contents, r_nl);
+				// Parse line.
+				let result = pbrace(contents, i);
 
-				// Remove all whitespace from string.
-				let stripped = chars_str.replace(/[ \t]/g, "");
-
-				// Must pass RegExp pattern.
-				if (!r_close_parens.test(chars_str)) {
-					// Check for trailing chars.
-					error(
-						`Illegal character${
-							stripped.length - 1 > 1 ? "s" : ""
-						} after ')'.`
-						// , cline.indexOf("[") + 1
-					);
-				}
+				// Check result for parsing issues (errors/warnings).
+				verify(result);
 
 				// Reset flags.
 				mflag = null;
 				last_open_pr.length = 0;
 
-				// Else it's a valid setting so reset vars.
-				// Reset index to be at the end of the line.
-				i = indices[1] - 1;
+				// When parsing passes reset the index so that on the next
+				// iteration it continues with the newline character.
+				i = result.nl_index - 1;
 			} else if (line_type === "close_bracket") {
 				// Unmatched ']'.
 				if (!mcommand) {
@@ -780,7 +681,7 @@ module.exports = (contents, commandname, source) => {
 				if (commandchain_flag_count && !commandchain_flag_count[1]) {
 					warning(
 						`Empty '[]' (no flags).`,
-						undefined,
+						void 0,
 						last_open_br[0]
 						// commandchain_flag_count[1]
 					);
@@ -788,31 +689,20 @@ module.exports = (contents, commandname, source) => {
 				// Clear flag.
 				commandchain_flag_count = null;
 
-				// Look ahead to grab setting.
-				let { chars_str, indices } = lookahead(i, contents, r_nl);
+				// Parse line.
+				let result = pbrace(contents, i);
 
-				// Remove all whitespace from string.
-				let stripped = chars_str.replace(/[ \t]/g, "");
-
-				// Must pass RegExp pattern.
-				if (!r_close_br.test(chars_str)) {
-					// Check for trailing chars.
-					error(
-						`Illegal character${
-							stripped.length - 1 > 1 ? "s" : ""
-						} after ']'.`
-						// , cline.indexOf("[") + 1
-					);
-				}
+				// Check result for parsing issues (errors/warnings).
+				verify(result);
 
 				// Reset flags.
 				mcommand = null;
 				commandchain = "";
 				last_open_br.length = 0;
 
-				// Else it's a valid setting so reset vars.
-				// Reset index to be at the end of the line.
-				i = indices[1] - 1;
+				// When parsing passes reset the index so that on the next
+				// iteration it continues with the newline character.
+				i = result.nl_index - 1;
 			} else if (line_type === "comment") {
 				// Reset index to comment ending newline index.
 				let la = lookahead(i, contents, r_nl);

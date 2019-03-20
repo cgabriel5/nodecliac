@@ -3,7 +3,7 @@
  *
  * ---------- Parsing States Breakdown -----------------------------------------
  * @default = true
- *         | |    ^-EOS-Whitespace-Boundary 3
+ *         | |    ^-EOL-Whitespace-Boundary 3
  *         ^-^-Whitespace-Boundary 1/2
  * ^-Symbol
  *  ^-Name
@@ -25,7 +25,6 @@ module.exports = (string, offset, settings) => {
 	let value = "";
 	let qchar; // String quote char.
 	let state = "name"; // Parsing state.
-	let eq_sign_index;
 	let nl_index;
 	// Collect all parsing warnings.
 	let warnings = [];
@@ -124,7 +123,7 @@ module.exports = (string, offset, settings) => {
 				}
 				// If we encounter a whitespace character, everything after
 				// this point must be a space until we encounter an eq sign
-				// or the end-of-string.
+				// or the end-of-line.
 				else if (/[ \t]/.test(char)) {
 					state = "name-wsb";
 					continue;
@@ -180,7 +179,7 @@ module.exports = (string, offset, settings) => {
 				// End string at same style-unescaped quote.
 				if (qchar) {
 					if (char === qchar && pchar !== "\\") {
-						state = "eos-wsb";
+						state = "eol-wsb";
 					}
 
 					// Store index.
@@ -189,7 +188,7 @@ module.exports = (string, offset, settings) => {
 				} else {
 					// We must stop at the first space char.
 					if (/[ \t]/.test(char)) {
-						state = "eos-wsb";
+						state = "eol-wsb";
 						i--;
 					} else {
 						// When building unquoted "strings" warn user
@@ -204,7 +203,7 @@ module.exports = (string, offset, settings) => {
 					}
 				}
 			}
-		} else if (state === "eos-wsb") {
+		} else if (state === "eol-wsb") {
 			// Allow trailing whitespace only.
 			if (!/[ \t]/.test(char)) {
 				return error(char, 2);

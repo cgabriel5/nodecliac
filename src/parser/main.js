@@ -33,6 +33,8 @@ const formatflags = require("./formatflags.js");
 const psetting = require("./p.setting.js");
 const pcommand = require("./p.command.js");
 const pbrace = require("./p.close-brace.js");
+const pflagset = require("./p.flagset.js");
+const pflagoption = require("./p.flagoption.js");
 
 module.exports = (contents, commandname, source) => {
 	// Vars - General.
@@ -363,56 +365,35 @@ module.exports = (contents, commandname, source) => {
 					}
 				}
 			} else if (line_type === "flag_set") {
-				// Look ahead to grab setting.
-				let { chars_str, chars, indices } = lookahead(
-					i,
-					contents,
-					r_nl
-				);
+				// Parse line.
+				let result = pflagset(contents, i, indentation);
 
-				// Must pass RegExp pattern.
-				if (!r_flag_set.test(chars_str)) {
-					// Check if it's a flag option. If so the option is not
-					// being assigned to a flag.
-					if (r_flag_option.test(chars_str)) {
-						error(`Unassigned flag option.`);
-					}
+				// Check result for parsing issues (errors/warnings).
+				verify(result);
 
-					// General error.
-					error(`Invalid flag.`);
-				}
+				// // Must pass RegExp pattern.
+				// if (!r_flag_set.test(chars_str)) {
+				// 	// Check if it's a flag option. If so the option is not
+				// 	// being assigned to a flag.
+				// 	if (r_flag_option.test(chars_str)) {
+				// 		error(`Unassigned flag option.`);
+				// 	}
+				// 	// General error.
+				// 	error(`Invalid flag.`);
+				// }
 
 				// Breakdown flag.
-				let [
-					,
-					hyphens,
-					flag,
-					,
-					setter = "",
-					value = ""
-				] = chars_str.match(r_flag_set);
-
-				// If value is a command-flag or an options value list
-				// make sure both cases are properly enclosed with ')'.
-				if (
-					value &&
-					/^\$?\(/.test(value) &&
-					value
-						.substring(value.indexOf("(") + 1, value.length)
-						.replace(/\s/g, "").length &&
-					chars[chars.length - 1] !== ")"
-				) {
-					if (value.charAt(0) === "$") {
-						error("Unclosed command-flag. Add ')' to close line.");
-					} else {
-						error("Unclosed options flag. Add ')' to close line.");
-					}
-				}
+				let hyphens = result.symbol;
+				let flag = result.name;
+				let setter = result.assignment;
+				let values = result.value;
+				let special = result.special;
+				let isopeningpr = result.isopeningpr;
 
 				// If we have a flag like '--flag=(' we have a long-form
 				// flag list opening. Store line for later use in case
 				// the parentheses is not closed.
-				if (value === "(") {
+				if (isopeningpr) {
 					// Unclosed '('.
 					if (last_open_pr.length) {
 						line_count = last_open_pr[0];
@@ -427,149 +408,19 @@ module.exports = (contents, commandname, source) => {
 				// Add to lookup table if not already.
 				let chain = lookup[commandchain];
 				if (chain) {
-					// Starts with '$(' or '(' and ends with ')'.
-					if (/^(\$|\()/.test(value) && /\)$/.test(value)) {
-						// [TODO] Check for empty command-flag/list.
+					// Add flag itself to lookup table > command chain.
+					chain.push(`${hyphens}${flag}${setter}`);
 
-						// If starts with '$' a '(' must follow.
-						if (
-							value.charAt(0) === "$" &&
-							value.charAt(1) !== "("
-						) {
-							error(
-								`Invalid command-flag. Saw '$' but expected '$('.`,
+					// It not an opening brace then add values.
+					if (!isopeningpr) {
+						// Loop over values and add to lookup table.
+						for (let i = 0, l = values.length; i < l; i++) {
+							// Cache current loop item.
+							let value = values[i];
 
-								// The offending characters position.
-								indentation.length +
-									hyphens.length +
-									flag.length +
-									setter.length +
-									value.indexOf("$")
-							);
+							// Add to lookup table > command chain.
+							chain.push(`${hyphens}${flag}${setter}${value}`);
 						}
-
-						// Clean command-flag string.
-						if (value.charAt(0) === "$") {
-							let pvalue = paramparse(value);
-
-							// If the return paramparse value is not
-							// a string then we have an invalid character.
-							if (typeof pvalue !== "string") {
-								// Extract error information.
-								let { char, pos } = pvalue;
-
-								error(
-									`Illegal character '${char}' in command-flag.`,
-									// The offending characters position.
-									indentation.length +
-										hyphens.length +
-										flag.length +
-										setter.length +
-										pos +
-										2
-								);
-							} else {
-								chain.push(
-									`${hyphens}${flag}${setter}${value}`
-								);
-							}
-						}
-						// Options value list starts with '(' and ends with ')'.
-						else {
-							// Remove wrapping '(' and ')'.
-							value = value.replace(/^\(|\)$/g, "");
-
-							// Parse flag option list into individual items.
-							let args = argparser(
-								value,
-								flag,
-								error,
-								warning,
-								line_count
-							);
-
-							if (Array.isArray(args)) {
-								// If list is empty give error.
-								if (!value.replace(/[ \t]/g, "")) {
-									warning(`Empty '()' (no flag options).`);
-								}
-
-								// Add main flag to list
-								chain.push(`${hyphens}${flag}${setter}`);
-
-								// Store original setter length.
-								let setter_len = setter.length;
-
-								// Normalize setter.
-								setter = setter.replace("*", "");
-
-								// Add each value with its flag.
-								for (let i = 0, l = args.length; i < l; i++) {
-									// Cache current loop item.
-									let arg = args[i];
-									// Add to flags list.
-									chain.push(
-										`${hyphens}${flag}${setter}${arg}`
-									);
-
-									// Get the first char of argument.
-									let afchar = arg.charAt(0);
-									if (
-										// If arg is a command-flag.
-										afchar === "$" ||
-										// Or if arg contains special chars.
-										(/[^"']/.test(afchar) &&
-											/(?<!\\)[~`!#\$\^&\*(){}\|\[\];'",<>\? ]/.test(
-												afchar
-											))
-									) {
-										let pvalue = paramparse(arg);
-
-										// If the return paramparse value is not
-										// a string then we have an invalid character.
-										if (typeof pvalue !== "string") {
-											// Extract error information.
-											let { char, pos } = pvalue;
-
-											error(
-												`Illegal character '${char}' in command-flag.`,
-												// The offending characters position.
-												indentation.length +
-													hyphens.length +
-													flag.length +
-													setter_len +
-													pos +
-													2
-											);
-										}
-									}
-								}
-							} else {
-								// Extract error information.
-								let { char, pos, code } = args;
-
-								// Generate error message.
-								let error_message =
-									`Invalid flag options list. Saw '${char}' but expected ` +
-									(code === "eol"
-										? `end-of-line.'`
-										: `' ' (space-delimiter).`);
-
-								error(
-									error_message,
-									// The offending characters position.
-									indentation.length +
-										hyphens.length +
-										flag.length +
-										setter.length +
-										pos
-								);
-							}
-						}
-					}
-					// Multi-flags, normal flags (w/ or w/ out setter/value).
-					else {
-						chain.push(`${hyphens}${flag}${setter}`);
 					}
 				}
 
@@ -584,35 +435,20 @@ module.exports = (contents, commandname, source) => {
 				// Increment/set flag options counter.
 				flag_options_count = [line_count, 0];
 
-				// Else it's a valid setting so reset vars.
-				// Reset index to be at the end of the line.
-				i = indices[1] - 1;
+				// When parsing passes reset the index so that on the next
+				// iteration it continues with the newline character.
+				i = result.nl_index - 1;
 			} else if (line_type === "flag_option") {
-				// Look ahead to grab setting.
-				let { chars_str, indices } = lookahead(i, contents, r_nl);
+				// Parse line.
+				let result = pflagoption(contents, i, indentation);
 
-				// Check if setting syntax is valid give general error.
-				if (!r_flag_option.test(chars_str)) {
-					// Further breakdown exact syntax error?
-					// - setting name check?
-					// - value check (if quoted is it properly quoted.)
-
-					// General error.
-					error(`Invalid flag option.`);
-				}
+				// Check result for parsing issues (errors/warnings).
+				verify(result);
 
 				// If flag chain exists add flag option.
 				let chain = lookup[commandchain];
 				if (chain) {
-					// [TODO] Parse option before adding to chain flags.
-
-					chain.push(
-						// Trim, remove option syntax, and store.
-						`${mflag}=${chars_str.replace(
-							/^[ \t]*-[ \t]*|[ \t]*$/g,
-							""
-						)}`
-					);
+					chain.push(`${mflag}=${result.value[0]}`);
 				}
 
 				// Increment flag option counter.
@@ -623,8 +459,9 @@ module.exports = (contents, commandname, source) => {
 					flag_options_count = [linenum, counter + 1];
 				}
 
-				// Reset index to be at the end of the line.
-				i = indices[1] - 1;
+				// When parsing passes reset the index so that on the next
+				// iteration it continues with the newline character.
+				i = result.nl_index - 1;
 			} else if (line_type === "close_parenthesis") {
 				if (!mflag) {
 					error(`Unmatched closing parentheses.`);

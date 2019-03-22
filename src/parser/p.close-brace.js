@@ -8,7 +8,7 @@
  * -----------------------------------------------------------------------------
  *
  * @param  {string} string - The line to parse.
- * @return {object} - Object containing parsing results.
+ * @return {object} - Object containing parsed information.
  */
 module.exports = (string, offset) => {
 	// Vars.

@@ -13,8 +13,8 @@
  *                      ^-EOL-Whitespace-Boundary 4
  * -----------------------------------------------------------------------------
  *
- * @param  {string} string - The setting line.
- * @return {object} - Object containing setting name, value, and warnings.
+ * @param  {string} string - The line to parse.
+ * @return {object} - Object containing parsed information.
  */
 module.exports = (string, offset) => {
 	// Vars.

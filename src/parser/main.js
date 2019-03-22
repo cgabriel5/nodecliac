@@ -441,22 +441,24 @@ module.exports = (contents, commandname, source) => {
 			} else if (line_type === "flag_option") {
 				// Parse line.
 				let result = pflagoption(contents, i, indentation);
+				// Get result value.
+				let value = result.value[0];
 
 				// Check result for parsing issues (errors/warnings).
 				verify(result);
 
-				// If flag chain exists add flag option.
+				// If flag chain exists add flag option and increment counter.
 				let chain = lookup[commandchain];
-				if (chain) {
-					chain.push(`${mflag}=${result.value[0]}`);
-				}
+				if (chain && value) {
+					chain.push(`${mflag}=${value}`);
 
-				// Increment flag option counter.
-				if (flag_options_count) {
-					// Get values before incrementing.
-					let [counter, linenum] = flag_options_count;
-					// Increment and store values.
-					flag_options_count = [linenum, counter + 1];
+					// Increment flag option counter.
+					if (flag_options_count) {
+						// Get values before incrementing.
+						let [counter, linenum] = flag_options_count;
+						// Increment and store values.
+						flag_options_count = [linenum, counter + 1];
+					}
 				}
 
 				// When parsing passes reset the index so that on the next

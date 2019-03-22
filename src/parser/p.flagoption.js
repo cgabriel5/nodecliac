@@ -52,20 +52,23 @@ module.exports = (string, offset, indentation) => {
 	let { r_schars, r_nl } = require("./regexpp.js");
 
 	// Generate error with provided information.
-	let error = (char = "", code) => {
+	let error = (char = "", code, index) => {
+		// Use loop index if one is not provided.
+		index = (index || i) + indentation.length;
+
 		// Replace whitespace characters with their respective symbols.
 		char = char.replace(/ /g, "␣").replace(/\t/g, "⇥");
 
 		// Parsing error reasons.
 		let reasons = {
-			0: "Unexpected token '-'.",
+			0: `Empty flag option.`,
 			// 2: `Unexpected character '${char}'.`,
 			4: `Improperly closed string.`
 		};
 
 		// Return object containing relevant information.
 		return {
-			index: i,
+			index,
 			offset,
 			char,
 			code,
@@ -125,47 +128,45 @@ module.exports = (string, offset, indentation) => {
 		type = ":escaped";
 	}
 
-	// Run flag value parser from here...
-	let pvalue = pflagvalue(
-		value,
-		0,
-		type,
-		// Provide the index where the value starts - the initial
-		// loop index position plus the indentation length to
-		// properly provide correct line error/warning output.
-		indices.value.start - offset + indentation.length
-	);
-
-	// Reset value.
-	value = pvalue.args;
-	// Reset index. Combine indices.
-	i += pvalue.index;
-
-	// Join warnings.
-	if (pvalue.warnings.length) {
-		warnings = warnings.concat(pvalue.warnings);
-	}
-	// If error exists return error.
-	if (pvalue.code) {
-		return pvalue;
-	}
-
-	// Check for dangling '-'.
-	if (!value[0]) {
+	// If option does not exist then value will be empty (dangling '-').
+	if (!value) {
 		// Reset index so it points to '-' symbol.
-		i = indices.symbol.index;
+		warnings.push(error("-", 0, indices.symbol.index));
+	} else {
+		// Run flag value parser from here...
+		let pvalue = pflagvalue(
+			value,
+			0,
+			type,
+			// Provide the index where the value starts - the initial
+			// loop index position plus the indentation length to
+			// properly provide correct line error/warning output.
+			indices.value.start - offset + indentation.length
+		);
 
-		return error("-", 0);
-	}
+		// Reset value.
+		value = pvalue.args;
+		// Reset index. Combine indices.
+		i += pvalue.index;
 
-	// If value exists and is quoted, check that is properly quoted.
-	if (type === ":quoted") {
-		// If building quoted string check if it's closed off.
-		if (value[0].charAt(value[0].length - 1) !== value[0].charAt(0)) {
-			// Set index to first quote.
-			i = indices.value.start;
+		// Join warnings.
+		if (pvalue.warnings.length) {
+			warnings = warnings.concat(pvalue.warnings);
+		}
+		// If error exists return error.
+		if (pvalue.code) {
+			return pvalue;
+		}
 
-			return error(void 0, 4);
+		// If value exists and is quoted, check that is properly quoted.
+		if (type === ":quoted") {
+			// If building quoted string check if it's closed off.
+			if (value[0].charAt(value[0].length - 1) !== value[0].charAt(0)) {
+				// Set index to first quote.
+				i = indices.value.start;
+
+				return error(void 0, 4);
+			}
 		}
 	}
 

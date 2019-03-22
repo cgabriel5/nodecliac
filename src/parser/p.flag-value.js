@@ -26,20 +26,6 @@ module.exports = (string, offset, type, voffset) => {
 	// Vars.
 	let i = offset || 0;
 	let l = string.length;
-
-	// Modify index/string length when parsing a command-flag/lists to
-	// ignore '$(/(', ')' syntax.
-	if (type && !type.startsWith(":")) {
-		if (type === "command") {
-			// i += 2;
-		} else {
-			// Increment index by one to avoid list starting at '('.
-			i++;
-			// Decrease length by 1 to skip closing ')'.
-			l--;
-		}
-	}
-
 	// Parsing vars.
 	let value = "";
 	let qchar; // String quote char.
@@ -49,13 +35,40 @@ module.exports = (string, offset, type, voffset) => {
 	// Collect all parsing warnings.
 	let warnings = [];
 	let args = [];
+	// Capture state's start/end indices.
+	let indices = {
+		quoted: {
+			open: null
+		}
+	};
 
-	// Reset parsing state when type provided from flag options script.
-	if (type && type.startsWith(":")) {
-		if (type !== ":command") {
-			state = type.slice(1);
-		} else {
-			type = "command";
+	// Depending on type, modify index/length.
+	if (type) {
+		// Modify index/string length when parsing a command-flag/lists to
+		// ignore '$(/(', ')' syntax.
+		if (type.charAt(0) !== ":") {
+			if (type === "command") {
+				// i += 2;
+			} else {
+				// Increment index by one to avoid list starting at '('.
+				i++;
+				// Decrease length by 1 to skip closing ')'.
+				l--;
+			}
+		}
+		// Reset parsing state when type provided from flag options script.
+		else {
+			if (type !== ":command") {
+				state = type.slice(1);
+
+				// Reset everything for quoted strings.
+				if (type === ":quoted") {
+					type = "";
+					state = "";
+				}
+			} else {
+				type = "command";
+			}
 		}
 	}
 
@@ -116,6 +129,8 @@ module.exports = (string, offset, type, voffset) => {
 					return error(char, 2);
 				}
 			} else if (/["']/.test(char)) {
+				// Store index.
+				indices.quoted.open = i;
 				state = "quoted";
 				qchar = char;
 			} else {
@@ -154,12 +169,16 @@ module.exports = (string, offset, type, voffset) => {
 					args.push(`${qchar}${value}${qchar}`);
 					// Clear value.
 					value = "";
+					// Clear stored index.
+					indices.quoted.open = null;
 					continue;
 				}
 
 				// Check that string was properly closed.
-				if (i === l) {
+				if (i === l - 1) {
 					if (value.charAt(value.length - 1) !== qchar) {
+						// Reset index.
+						i = indices.quoted.open;
 						// String was never closed so give error.
 						return error(char, 4);
 					}

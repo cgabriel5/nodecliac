@@ -65,7 +65,7 @@ module.exports = (string, offset, indentation) => {
 	// Generate error with provided information.
 	let error = (char = "", code, index) => {
 		// Use loop index if one is not provided.
-		index = index || i;
+		index = (index || i) + indentation.length;
 
 		// Replace whitespace characters with their respective symbols.
 		char = char.replace(/ /g, "␣").replace(/\t/g, "⇥");
@@ -132,7 +132,7 @@ module.exports = (string, offset, indentation) => {
 			// Default parse state to 'name' (l → r : @name=value).
 		} else if (state === "name") {
 			// If char is the first char...
-			if (name.length === 1) {
+			if (!name.length) {
 				// First char of name must be a letter.
 				if (!/[a-zA-Z]/.test(char)) {
 					return error(char, 1);

@@ -47,8 +47,8 @@ module.exports = (contents, commandname, source) => {
 
 	// Vars - Parser flags.
 	let line_type; // Store current type of line being parsed.
-	let mflag; // Store current flag.
-	let commandchain; // Store current command chain.
+	let currentflag; // Store flag name of currently parsed flag list.
+	let currentchain; // Store current command chain.
 
 	// Vars - Track open/closed brace vars.
 	let last_open_br = [];
@@ -189,7 +189,7 @@ module.exports = (contents, commandname, source) => {
 			// command chain needs to be cleared to catch any flags not
 			// contained within [].
 			if (line_type === "command_setter") {
-				commandchain = "";
+				currentchain = "";
 			}
 
 			// Reset vars.
@@ -239,14 +239,14 @@ module.exports = (contents, commandname, source) => {
 			} else if (r_letter.test(char)) {
 				line_type = "command";
 
-				if (commandchain) {
+				if (currentchain) {
 					error("Command chain cannot be nested.");
 				}
 			} else if (char === "]") {
 				line_type = "close_bracket";
 			} else if (char === "-") {
 				// If flag is set we are getting flag options.
-				line_type = mflag
+				line_type = currentflag
 					? // Option must my listed with a hyphen.
 					  // /\s/.test(nchar)
 					  "flag_option"
@@ -254,7 +254,7 @@ module.exports = (contents, commandname, source) => {
 
 				// If command chain does not exist but a flag_set/option
 				// was detected there is an unnested/unwrapped flag/option.
-				if (!commandchain) {
+				if (!currentchain) {
 					// Look ahead to grab setting line.
 					let { indices, chars_str } = lookahead(i, contents, r_nl);
 
@@ -317,8 +317,8 @@ module.exports = (contents, commandname, source) => {
 				if (!lookup[cc]) {
 					lookup[cc] = [];
 				}
-				commandchain = cc;
-
+				// Store current command chain.
+				currentchain = cc;
 				// Unclosed '['.
 				if (last_open_br.length) {
 					line_count = last_open_br[0];
@@ -330,7 +330,7 @@ module.exports = (contents, commandname, source) => {
 					// If brackets are empty set flags.
 					if (result.brstate === "closed") {
 						// Reset flags.
-						commandchain = "";
+						currentchain = "";
 						last_open_br.length = 0;
 					}
 					// If bracket is unclosed set other flags.
@@ -343,7 +343,7 @@ module.exports = (contents, commandname, source) => {
 					}
 				} else {
 					// Clear values.
-					commandchain = "";
+					currentchain = "";
 
 					// Store flagsets with its command chain in lookup table.
 					let chain = lookup[result.chain];
@@ -401,11 +401,11 @@ module.exports = (contents, commandname, source) => {
 
 					// Store line of open bracket for later use in error.
 					last_open_pr = [line_count];
-					mflag = `${hyphens}${flag}`;
+					currentflag = `${hyphens}${flag}`;
 				}
 
 				// Add to lookup table if not already.
-				let chain = lookup[commandchain];
+				let chain = lookup[currentchain];
 				if (chain) {
 					// Add flag itself to lookup table > command chain.
 					chain.push(`${hyphens}${flag}${setter}`);
@@ -447,9 +447,9 @@ module.exports = (contents, commandname, source) => {
 				verify(result);
 
 				// If flag chain exists add flag option and increment counter.
-				let chain = lookup[commandchain];
+				let chain = lookup[currentchain];
 				if (chain && value) {
-					chain.push(`${mflag}=${value}`);
+					chain.push(`${currentflag}=${value}`);
 
 					// Increment flag option counter.
 					if (flag_options_count) {
@@ -464,7 +464,7 @@ module.exports = (contents, commandname, source) => {
 				// iteration it continues with the newline character.
 				i = result.nl_index - 1;
 			} else if (line_type === "close_parenthesis") {
-				if (!mflag) {
+				if (!currentflag) {
 					error(`Unmatched closing parentheses.`);
 				}
 
@@ -487,7 +487,7 @@ module.exports = (contents, commandname, source) => {
 				verify(result);
 
 				// Reset flags.
-				mflag = null;
+				currentflag = null;
 				last_open_pr.length = 0;
 
 				// When parsing passes reset the index so that on the next
@@ -518,7 +518,7 @@ module.exports = (contents, commandname, source) => {
 				verify(result);
 
 				// Reset flags.
-				commandchain = "";
+				currentchain = "";
 				last_open_br.length = 0;
 
 				// When parsing passes reset the index so that on the next

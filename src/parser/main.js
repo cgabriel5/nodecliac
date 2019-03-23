@@ -45,11 +45,12 @@ module.exports = (contents, commandname, source) => {
 	let settings = {};
 	let newlines = [];
 
-	let commandchain;
-	let mflag;
-	let mcommand;
-	let line_type;
+	// Vars - Parser flags.
+	let line_type; // Store current type of line being parsed.
+	let mflag; // Store current flag.
+	let commandchain; // Store current command chain.
 
+	// Vars - Track open/closed brace vars.
 	let last_open_br = [];
 	let last_open_pr = [];
 	let commandchain_flag_count;
@@ -329,7 +330,6 @@ module.exports = (contents, commandname, source) => {
 					// If brackets are empty set flags.
 					if (result.brstate === "closed") {
 						// Reset flags.
-						mcommand = null;
 						commandchain = "";
 						last_open_br.length = 0;
 					}
@@ -337,7 +337,6 @@ module.exports = (contents, commandname, source) => {
 					else {
 						// Store line of open bracket for later use in error.
 						last_open_br = [line_count];
-						mcommand = true;
 
 						// Set flag set counter.
 						commandchain_flag_count = [line_count, 0];
@@ -496,7 +495,7 @@ module.exports = (contents, commandname, source) => {
 				i = result.nl_index - 1;
 			} else if (line_type === "close_bracket") {
 				// Unmatched ']'.
-				if (!mcommand) {
+				if (!last_open_br.length) {
 					error(`Unmatched closing bracket.`);
 				}
 
@@ -519,7 +518,6 @@ module.exports = (contents, commandname, source) => {
 				verify(result);
 
 				// Reset flags.
-				mcommand = null;
 				commandchain = "";
 				last_open_br.length = 0;
 

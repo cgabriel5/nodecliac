@@ -57,30 +57,10 @@ module.exports = (contents, commandname, source) => {
 	let flag_options_count;
 
 	// RegExp patterns:
-	// Letter.
-	let r_letter = /[a-zA-Z]/;
-	// Whitespace.
-	let r_whitespace = /[ \t]/;
-	// New line character.
-	let r_nl = new RegExp(`(\\r?\\n)`);
-	// Open command bracket.
-	let r_open_command_br = /^\[\]?$/;
-	// Close bracket.
-	let r_close_br = /^[ \t]*\][ \t]*$/;
-	// Close parentheses.
-	let r_close_parens = /^[ \t]*\)[ \t]*$/;
-	// Starting line character.
-	let r_start_line_char = /[-@a-zA-Z\)\]#]/;
-	// Command setter.
-	let r_command_setter = /^[ \t]*=[ \t]*(\[|-{1,2})/;
-	// Flag option.
-	let r_flag_option = /^[ \t]*-[ \t]{1,}([^\s]{1,}.*?)$/;
-	// Command.
-	let r_command = new RegExp(`[-_.:a-zA-Z0-9\\\\\/{}\|]`);
-	// Setting syntax.
-	let r_setting = /^(@[a-zA-Z][_a-zA-Z]*)[ \t]*(=[ \t]*(.*?))?$/;
-	// Flag set.
-	let r_flag_set = /^(-{1,2})([a-zA-Z][-._:a-zA-Z0-9]*)[ \t]*((=\*?)[ \t]*(\(|\(\)|.*?)?)?$/;
+	let r_letter = /[a-zA-Z]/; // Letter.
+	let r_whitespace = /[ \t]/; // Whitespace.
+	let r_nl = new RegExp(`(\\r?\\n)`); // New line character.
+	let r_start_line_char = /[-@a-zA-Z\)\]#]/; // Starting line character.
 
 	// acmap file header.
 	let header = [

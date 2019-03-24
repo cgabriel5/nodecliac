@@ -53,8 +53,8 @@ module.exports = (contents, commandname, source) => {
 	// Vars - Track open/closed brace vars.
 	let last_open_br = [];
 	let last_open_pr = [];
-	let commandchain_flag_count;
-	let flag_options_count;
+	let flag_count; // Track command's flag count.
+	let flag_count_options; // Track flag's option count.
 
 	// RegExp patterns:
 	let r_letter = /[a-zA-Z]/; // Letter.
@@ -404,15 +404,15 @@ module.exports = (contents, commandname, source) => {
 				}
 
 				// Increment flag set counter.
-				if (commandchain_flag_count) {
+				if (flag_count) {
 					// Get values before incrementing.
-					let [counter, linenum] = commandchain_flag_count;
+					let [counter, linenum] = flag_count;
 					// Increment and store values.
-					commandchain_flag_count = [linenum, counter + 1];
+					flag_count = [linenum, counter + 1];
 				}
 
 				// Increment/set flag options counter.
-				flag_options_count = [line_count, 0];
+				flag_count_options = [line_count, 0];
 
 				// When parsing passes reset the index so that on the next
 				// iteration it continues with the newline character.
@@ -432,11 +432,11 @@ module.exports = (contents, commandname, source) => {
 					chain.push(`${currentflag}=${value}`);
 
 					// Increment flag option counter.
-					if (flag_options_count) {
+					if (flag_count_options) {
 						// Get values before incrementing.
-						let [counter, linenum] = flag_options_count;
+						let [counter, linenum] = flag_count_options;
 						// Increment and store values.
-						flag_options_count = [linenum, counter + 1];
+						flag_count_options = [linenum, counter + 1];
 					}
 				}
 
@@ -449,7 +449,7 @@ module.exports = (contents, commandname, source) => {
 				}
 
 				// If command chain's flag array is empty give warning.
-				if (flag_options_count && !flag_options_count[1]) {
+				if (flag_count_options && !flag_count_options[1]) {
 					warning(
 						`Empty '()' (no flag options).`,
 						undefined,
@@ -458,7 +458,7 @@ module.exports = (contents, commandname, source) => {
 					);
 				}
 				// Clear flag.
-				flag_options_count = null;
+				flag_count_options = null;
 
 				// Parse line.
 				let result = pbrace(contents, i);
@@ -480,7 +480,7 @@ module.exports = (contents, commandname, source) => {
 				}
 
 				// If command chain's flag array is empty give warning.
-				if (commandchain_flag_count && !commandchain_flag_count[1]) {
+				if (flag_count && !flag_count[1]) {
 					warning(
 						`Empty '[]' (no flags).`,
 						void 0,
@@ -489,7 +489,7 @@ module.exports = (contents, commandname, source) => {
 					);
 				}
 				// Clear flag.
-				commandchain_flag_count = null;
+				flag_count = null;
 
 				// Parse line.
 				let result = pbrace(contents, i);

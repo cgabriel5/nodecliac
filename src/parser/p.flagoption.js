@@ -21,12 +21,12 @@ module.exports = (string, offset, indentation) => {
 	let l = string.length;
 
 	// Parsing vars.
-	let name = "";
+	let symbol = "";
 	let boundary = "";
 	let assignment = "";
 	let value = "";
 	let qchar; // String quote char.
-	let state = "boundary"; // Parsing state.
+	let state = "symbol"; // Parsing state.
 	let nl_index;
 	// Collect all parsing warnings.
 	let warnings = [];
@@ -63,6 +63,7 @@ module.exports = (string, offset, indentation) => {
 		let reasons = {
 			0: `Empty flag option.`,
 			// 2: `Unexpected character '${char}'.`,
+			3: `Invalid flag option.`,
 			4: `Improperly closed string.`
 		};
 
@@ -77,9 +78,6 @@ module.exports = (string, offset, indentation) => {
 			warnings
 		};
 	};
-
-	// Increment index by 1 to skip initial '-' setting symbol.
-	i++;
 
 	// Loop over string.
 	for (; i < l; i++) {
@@ -96,22 +94,42 @@ module.exports = (string, offset, indentation) => {
 		}
 
 		// Default parse state.
-		if (state === "boundary") {
-			// Boundary must only contain whitespace.
-			if (/[ \t]/.test(char)) {
-				if (!boundary) {
-					// Store start index.
-					indices.boundary.start = i;
-				}
+		if (state === "symbol") {
+			// Check that first char is indeed a hyphen symbol '-'.
+			if (char !== "-") {
+				return error(char, 3);
+			}
 
-				// Store index.
-				indices.boundary.end = i;
-				boundary += char;
+			// Store index.
+			indices.symbol.index = i;
+			state = "boundary";
+			symbol = char;
+		} else if (state === "boundary") {
+			// Boundary must contain at least a single whitespace char.
+			if (boundary === "") {
+				// First boundary char must be space.
+				if (/[ \t]/.test(char)) {
+					// Store indices.
+					indices.boundary.start = i;
+					indices.boundary.end = i;
+
+					boundary += char;
+				} else {
+					// If first char is not a whitespace give an error.
+					return error(char, 3);
+				}
 			} else {
-				// Store index.
-				indices.value.start = i;
-				state = "value";
-				i--;
+				// Only whitespace.
+				if (/[ \t]/.test(char)) {
+					// Store index.
+					indices.boundary.end = i;
+					boundary += char;
+				} else {
+					// Store index.
+					indices.value.start = i;
+					state = "value";
+					i--;
+				}
 			}
 		} else if (state === "value") {
 			value += char;
@@ -171,5 +189,5 @@ module.exports = (string, offset, indentation) => {
 	}
 
 	// Return relevant parsing information.
-	return { index: i, offset, name, value, assignment, nl_index, warnings };
+	return { index: i, offset, symbol, value, assignment, nl_index, warnings };
 };

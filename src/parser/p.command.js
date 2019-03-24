@@ -295,6 +295,8 @@ module.exports = (string, offset) => {
 		assignment,
 		flagsets,
 		nl_index,
-		warnings
+		warnings,
+		// Returned brace opening index for later error checks.
+		br_open_index: indices.braces.open - offset
 	};
 };

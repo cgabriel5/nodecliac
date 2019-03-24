@@ -56,6 +56,9 @@ module.exports = (string, offset, indentation) => {
 		value: {
 			start: null,
 			end: null
+		},
+		braces: {
+			open: null
 		}
 	};
 
@@ -229,6 +232,9 @@ module.exports = (string, offset, indentation) => {
 					if (char === "$" && nchar !== "(") {
 						return error(char, 2);
 					}
+
+					// Store parentheses index.
+					indices.braces.open = i;
 				}
 				// For anything else give an error.
 				else if (!/[a-zA-Z0-9]/.test(char)) {
@@ -352,6 +358,8 @@ module.exports = (string, offset, indentation) => {
 		assignment,
 		nl_index,
 		warnings,
-		isopeningpr
+		isopeningpr,
+		// Returned brace opening index for later error checks.
+		pr_open_index: indices.braces.open - offset
 	};
 };

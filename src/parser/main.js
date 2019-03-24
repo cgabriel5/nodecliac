@@ -50,9 +50,9 @@ module.exports = (contents, commandname, source) => {
 	let currentflag; // Store flag name of currently parsed flag list.
 	let currentchain; // Store current command chain.
 
-	// Vars - Track open/closed brace vars.
-	let last_open_br = [];
-	let last_open_pr = [];
+	// Vars - Tracking.
+	let last_open_br; // Track open/closing brackets.
+	let last_open_pr; // Track open/closing parentheses.
 	let flag_count; // Track command's flag count.
 	let flag_count_options; // Track flag's option count.
 
@@ -149,6 +149,61 @@ module.exports = (contents, commandname, source) => {
 			// If issuing an error stop script after logging error.
 			type === "error" ? undefined : false
 		);
+	};
+
+	/**
+	 * Issue warning for unmatched/unclosed/empty braces.
+	 *
+	 * @param  {string} issue - Type of issue to give (unclosed/unmatched).
+	 * @param  {string} brace_style - Brace style (bracket/parentheses).
+	 * @return {undefined} - Nothing is returned.
+	 */
+	let brace_check = (issue, brace_style) => {
+		// Determine what data set to use.
+		let data = /[\[\]]/.test(brace_style) ? last_open_br : last_open_pr;
+
+		if (!data) {
+			if (issue === "unmatched") {
+				// Give error.
+				verify({
+					index: indentation.length,
+					code: -1,
+					reason: `Unmatched '${brace_style}'.`,
+					warnings: []
+				});
+			}
+		} else {
+			// Get information on last opened brace matching style provided.
+			let [line, index] = data;
+
+			if (issue === "unclosed") {
+				// Reset line.
+				line_count = line;
+
+				// Give error.
+				verify({
+					index,
+					code: -1,
+					reason: `Unclosed '${brace_style}'.`,
+					warnings: []
+				});
+			} else if (issue === "empty") {
+				// Give error.
+				verify({
+					warnings: [
+						{
+							line: line + 1,
+							index,
+							reason: `Empty ${
+								brace_style === "parentheses"
+									? "'()' (no flag options)"
+									: "'[]' (no flags)"
+							}.`
+						}
+					]
+				});
+			}
+		}
 	};
 
 	// Main loop. Loops over each character in acmap.
@@ -279,6 +334,9 @@ module.exports = (contents, commandname, source) => {
 				// Store setting/value pair.
 				settings[result.name] = result.value;
 			} else if (line_type === "command") {
+				// Check for an unclosed '['.
+				brace_check("unclosed", "[");
+
 				// Parse line.
 				let result = pcommand(contents, i);
 
@@ -292,6 +350,8 @@ module.exports = (contents, commandname, source) => {
 				// Get command chain.
 				let cc = result.chain;
 				let value = result.value;
+				// Get opening brace index.
+				let br_index = result.br_open_index;
 
 				// Store command chain.
 				if (!lookup[cc]) {
@@ -299,27 +359,21 @@ module.exports = (contents, commandname, source) => {
 				}
 				// Store current command chain.
 				currentchain = cc;
-				// Unclosed '['.
-				if (last_open_br.length) {
-					line_count = last_open_br[0];
-					error("Unclosed open bracket.");
-				}
 
-				// For non flagset oneliners.
+				// For non flag set one-liners.
 				if (result.brstate) {
 					// If brackets are empty set flags.
 					if (result.brstate === "closed") {
 						// Reset flags.
 						currentchain = "";
-						last_open_br.length = 0;
+						last_open_br = null;
 					}
 					// If bracket is unclosed set other flags.
 					else {
-						// Store line of open bracket for later use in error.
-						last_open_br = [line_count];
-
 						// Set flag set counter.
-						commandchain_flag_count = [line_count, 0];
+						flag_count = [line_count, 0];
+						// Store line + opening bracket index.
+						last_open_br = [line_count, br_index];
 					}
 				} else {
 					// Clear values.
@@ -344,6 +398,9 @@ module.exports = (contents, commandname, source) => {
 					}
 				}
 			} else if (line_type === "flag_set") {
+				// Check for an unclosed '('.
+				brace_check("unclosed", "(");
+
 				// Parse line.
 				let result = pflagset(contents, i, indentation);
 
@@ -368,19 +425,16 @@ module.exports = (contents, commandname, source) => {
 				let values = result.value;
 				let special = result.special;
 				let isopeningpr = result.isopeningpr;
+				// Get opening brace index.
+				let pr_index = result.pr_open_index;
 
 				// If we have a flag like '--flag=(' we have a long-form
 				// flag list opening. Store line for later use in case
 				// the parentheses is not closed.
 				if (isopeningpr) {
-					// Unclosed '('.
-					if (last_open_pr.length) {
-						line_count = last_open_pr[0];
-						error("Unclosed open parentheses.");
-					}
-
-					// Store line of open bracket for later use in error.
-					last_open_pr = [line_count];
+					// Store line + opening parentheses index for use in error
+					// later if needed.
+					last_open_pr = [line_count, pr_index];
 					currentflag = `${hyphens}${flag}`;
 				}
 
@@ -420,11 +474,12 @@ module.exports = (contents, commandname, source) => {
 			} else if (line_type === "flag_option") {
 				// Parse line.
 				let result = pflagoption(contents, i, indentation);
-				// Get result value.
-				let value = result.value[0];
 
 				// Check result for parsing issues (errors/warnings).
 				verify(result);
+
+				// Get result value.
+				let value = result.value[0];
 
 				// If flag chain exists add flag option and increment counter.
 				let chain = lookup[currentchain];
@@ -444,18 +499,11 @@ module.exports = (contents, commandname, source) => {
 				// iteration it continues with the newline character.
 				i = result.nl_index - 1;
 			} else if (line_type === "close_parenthesis") {
-				if (!currentflag) {
-					error(`Unmatched closing parentheses.`);
-				}
-
+				// Opening flag must be set else this ')' is unmatched.
+				brace_check("unmatched", ")");
 				// If command chain's flag array is empty give warning.
 				if (flag_count_options && !flag_count_options[1]) {
-					warning(
-						`Empty '()' (no flag options).`,
-						undefined,
-						last_open_pr[0]
-						// flag_options_count[1]
-					);
+					brace_check("empty", "parentheses");
 				}
 				// Clear flag.
 				flag_count_options = null;
@@ -468,25 +516,17 @@ module.exports = (contents, commandname, source) => {
 
 				// Reset flags.
 				currentflag = null;
-				last_open_pr.length = 0;
+				last_open_pr = null;
 
 				// When parsing passes reset the index so that on the next
 				// iteration it continues with the newline character.
 				i = result.nl_index - 1;
 			} else if (line_type === "close_bracket") {
-				// Unmatched ']'.
-				if (!last_open_br.length) {
-					error(`Unmatched closing bracket.`);
-				}
-
+				// Opening flag must be set else this ']' is unmatched.
+				brace_check("unmatched", "]");
 				// If command chain's flag array is empty give warning.
 				if (flag_count && !flag_count[1]) {
-					warning(
-						`Empty '[]' (no flags).`,
-						void 0,
-						last_open_br[0]
-						// commandchain_flag_count[1]
-					);
+					brace_check("empty", "brackets");
 				}
 				// Clear flag.
 				flag_count = null;
@@ -499,7 +539,7 @@ module.exports = (contents, commandname, source) => {
 
 				// Reset flags.
 				currentchain = "";
-				last_open_br.length = 0;
+				last_open_br = null;
 
 				// When parsing passes reset the index so that on the next
 				// iteration it continues with the newline character.
@@ -512,17 +552,9 @@ module.exports = (contents, commandname, source) => {
 		}
 	}
 
-	// If flags are still set post loop, a brace remained opened.
-	// Unclosed '['.
-	if (last_open_br.length) {
-		line_count = last_open_br[0];
-		error("Unclosed open bracket.");
-	}
-	// Unclosed '('.
-	if (last_open_pr.length) {
-		line_count = last_open_pr[0];
-		error("Unclosed open parentheses.");
-	}
+	// Final unclosed brace checks.
+	brace_check("unclosed", "[");
+	brace_check("unclosed", "(");
 
 	console.log("");
 	console.log(chalk.bold.blue("LOOKUP:"));

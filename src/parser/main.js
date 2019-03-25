@@ -47,7 +47,7 @@ module.exports = (contents, commandname, source) => {
 	let lookup = {};
 	let settings = {};
 	let newlines = [];
-	let __warnings = [];
+	let warnings = [];
 
 	// Vars - Parser flags.
 	let line_type; // Store current type of line being parsed.
@@ -80,18 +80,14 @@ module.exports = (contents, commandname, source) => {
 	 * @return {undefined} - Logs warnings. Exits script if error is issued.
 	 */
 	let verify = result => {
-		// Attach line number to result object for later use.
-		result.line_num = line_num;
-
 		// Get warnings from result object.
-		let { warnings = [] } = result;
+		let warns = result.warnings || [];
+
 		// Print warnings.
-		if (warnings.length) {
-			for (let i = 0, ll = warnings.length; i < ll; i++) {
-				// Attach line number to warning result object before issuing.
-				warnings[i].line_num = line_num;
+		if (warns.length) {
+			for (let i = 0, ll = warns.length; i < ll; i++) {
 				// Store warning object.
-				__warnings.push(warnings[i]);
+				warnings.push(warns[i]);
 			}
 		}
 
@@ -191,7 +187,7 @@ module.exports = (contents, commandname, source) => {
 				error(brace_style, 7, line, index);
 			} else if (issue === "empty") {
 				// Add warning to warnings.
-				__warnings.push({
+				warnings.push({
 					line: line,
 					index,
 					reason: `Empty ${
@@ -604,15 +600,15 @@ module.exports = (contents, commandname, source) => {
 	 */
 	(() => {
 		// Order warnings by line number then issue.
-		__warnings = __warnings.sort(function(a, b) {
+		warnings = warnings.sort(function(a, b) {
 			// [https://coderwall.com/p/ebqhca/javascript-sort-by-two-fields]
 			// [https://stackoverflow.com/a/13211728]
 			return a.line - b.line || a.index - b.index;
 		});
 
-		for (let i = 0, l = __warnings.length; i < l; i++) {
+		for (let i = 0, l = warnings.length; i < l; i++) {
 			// Cache current loop item.
-			issue(__warnings[i], "warn");
+			issue(warnings[i], "warn");
 		}
 	})();
 

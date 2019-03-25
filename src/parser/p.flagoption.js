@@ -158,33 +158,6 @@ module.exports = (...args) => {
 
 		issue("warning", 0, "-");
 	} else {
-		// 66 '\t' <-- Line start (line_fchar)
-		// 67 '\t'
-		// 68 '-'  <-- Option Start (i)
-		// 69 ' '
-		// 70 ' '
-		// 71 ' '
-		// 72 ' '
-		// 73 ' '
-		// 74 'v' <-- Option Value Start (indices.value.start)
-		// 75 'a'
-		// 76 'l'
-		// 77 'u'
-		// 78 'e'
-		// 79 '\\'
-		// 80 ' '
-		// 81 's'
-		// 82 'o'
-		// 83 'm'
-		// 84 'e'
-		// 85 't'
-		// 86 'h'
-		// 87 'i'
-		// 88 '?'
-		// 89 'n'
-		// 90 'g' <-- Option Value End (indices.value.end)
-		// 91 '\n'
-
 		// Run flag value parser from here...
 		let pvalue = pflagvalue(
 			value,

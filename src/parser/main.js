@@ -605,7 +605,9 @@ module.exports = (contents, commandname, source) => {
 	(() => {
 		// Order warnings by line number then issue.
 		__warnings = __warnings.sort(function(a, b) {
-			return a.line_num - b.line_num;
+			// [https://coderwall.com/p/ebqhca/javascript-sort-by-two-fields]
+			// [https://stackoverflow.com/a/13211728]
+			return a.line - b.line || a.index - b.index;
 		});
 
 		for (let i = 0, l = __warnings.length; i < l; i++) {

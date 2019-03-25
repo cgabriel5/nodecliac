@@ -22,11 +22,16 @@ const pcommandflag = require("./p.flag-command.js");
  * @param  {string} string - The line to parse.
  * @return {object} - Object containing parsed information.
  */
-module.exports = (string, offset, type, voffset) => {
-	// Vars.
-	let i = offset || 0;
-	let l = string.length;
+module.exports = (...params) => {
+	// Get arguments.
+	let [string, i, l, line_num, line_fchar, vsi, type] = params;
+
 	// Parsing vars.
+	// Note: Parsing the value starts a new loop from 0 to only focus on
+	// parsing the provided value. This means the original loop index
+	// needs to be accounted for. This variable will track the original
+	// index.
+	let ci = vsi;
 	let value = "";
 	let qchar; // String quote char.
 	let isvspecial;
@@ -41,6 +46,9 @@ module.exports = (string, offset, type, voffset) => {
 			open: null
 		}
 	};
+
+	// // Determine delimiter. Lists can only be delimited by spaces.
+	// let delimiter = type === "list" ? /[,]/ : /[ \t,]/;
 
 	// Depending on type, modify index/length.
 	if (type) {
@@ -75,11 +83,8 @@ module.exports = (string, offset, type, voffset) => {
 	// Get RegExp patterns.
 	let { r_schars, r_nl } = require("./regexpp.js");
 
-	// Generate error with provided information.
-	let error = (char = "", code, index) => {
-		// Use loop index if one is not provided.
-		index = index || i + voffset;
-
+	// Generate issue with provided information.
+	let issue = (type = "error", code, char = "") => {
 		// Replace whitespace characters with their respective symbols.
 		char = char.replace(/ /g, "␣").replace(/\t/g, "⇥");
 
@@ -91,26 +96,47 @@ module.exports = (string, offset, type, voffset) => {
 			10: `Empty '()' (no flag options).`
 		};
 
-		// Return object containing relevant information.
-		return {
-			index,
-			offset,
-			char,
-			code,
-			state,
-			reason: reasons[code],
-			warnings
+		// Generate base issue object.
+		let issue_object = {
+			line: line_num,
+			index: ci - line_fchar,
+			reason: reasons[code]
 		};
+
+		// Add additional information if issuing an error and return.
+		if (type === "error") {
+			return Object.assign(issue_object, {
+				char,
+				code,
+				state,
+				warnings
+			});
+		} else {
+			// Add warning to warnings array.
+			warnings.push(issue_object);
+		}
 	};
 
-	// command-flag, quoted, regular (escaped value)
+	// Keep a list of unique loop iterations for current index.
+	let last_index;
+	// Account for command-flag/list '$(' or '(' syntax removal.
+	ci += i;
 
-	// Loop over string.
+	// Loop over string - command-flag, quoted, regular (escaped value).
 	for (; i < l; i++) {
 		// Cache current loop item.
 		let char = string.charAt(i);
 		let pchar = string.charAt(i - 1);
 		let nchar = string.charAt(i + 1);
+
+		// Note: Since loop logic can back track (e.g. 'i--;'), we only
+		// increment current index (original index) on unique iterations.
+		if (last_index !== i) {
+			// Update last index to the latest unique iteration index.
+			last_index = i;
+			// Increment current index.
+			ci += 1;
+		}
 
 		// Determine the initial parsing state.
 		if (!state) {
@@ -126,11 +152,11 @@ module.exports = (string, offset, type, voffset) => {
 					continue;
 				} else {
 					// If the next char is not '(' return error.
-					return error(char, 2);
+					return issue("error", 2, char);
 				}
 			} else if (/["']/.test(char)) {
 				// Store index.
-				indices.quoted.open = i;
+				indices.quoted.open = ci;
 				state = "quoted";
 				qchar = char;
 			} else {
@@ -156,7 +182,8 @@ module.exports = (string, offset, type, voffset) => {
 				// When building unquoted "strings" warn user
 				// when using unescaped special characters.
 				if (r_schars.test(char) && pchar !== "\\") {
-					warnings.push(error(char, 5));
+					// Add warning.
+					issue("warning", 5, char);
 				}
 
 				// Append character to current value string.
@@ -178,25 +205,25 @@ module.exports = (string, offset, type, voffset) => {
 				if (i === l - 1) {
 					if (value.charAt(value.length - 1) !== qchar) {
 						// Reset index.
-						i = indices.quoted.open;
+						ci = indices.quoted.open;
+
 						// String was never closed so give error.
-						return error(char, 4);
+						return issue("error", 4, char);
 					}
 				}
 
 				// Append character to current value string.
 				value += char;
 			} else if (state === "command") {
-				// Delimiter is a comma.
+				// Run command flag parser from here...
 				let pvalue = pcommandflag(
 					string,
 					i,
-					type,
-					// Provide the index where the value starts - the initial
-					// loop index position plus the indentation length to
-					// properly provide correct line error/warning output.
-					// indices.value.start - offset + indentation.length
-					voffset
+					string.length,
+					line_num,
+					line_fchar,
+					vsi,
+					type
 				);
 
 				// Join warnings.
@@ -229,17 +256,20 @@ module.exports = (string, offset, type, voffset) => {
 		value = "";
 	}
 
-	// If args array is empty then no arguments were parsed meaning no
+	// If arguments array is empty then nothing was parsed. Meaning no
 	// arguments were provided.
 	if (!args.length) {
-		warnings.push(error(void 0, 10, voffset));
+		// Reset index.
+		ci = vsi;
+
+		// Add warning.
+		issue("warning", 10);
 	}
 
 	// Return relevant parsing information.
 	return {
-		string,
 		index: i,
-		offset,
+		string,
 		value,
 		special: isvspecial,
 		nl_index,

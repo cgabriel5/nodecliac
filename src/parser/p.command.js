@@ -16,10 +16,9 @@
  * @param  {string} string - The line to parse.
  * @return {object} - Object containing parsed information.
  */
-module.exports = (string, offset) => {
-	// Vars.
-	let i = offset || 0;
-	let l = string.length;
+module.exports = (...args) => {
+	// Get arguments.
+	let [string, i, l, line_num, line_fchar] = args;
 
 	// Parsing vars.
 	let chain = "";
@@ -36,7 +35,7 @@ module.exports = (string, offset) => {
 	// Capture state's start/end indices.
 	let indices = {
 		chain: {
-			start: offset,
+			start: i,
 			end: null
 		},
 		assignment: {
@@ -56,8 +55,8 @@ module.exports = (string, offset) => {
 	// Get RegExp patterns.
 	let { r_nl } = require("./regexpp.js");
 
-	// Generate error with provided information.
-	let error = (char = "", code) => {
+	// Generate issue with provided information.
+	let issue = (type = "error", code, char = "") => {
 		// Replace whitespace characters with their respective symbols.
 		char = char.replace(/ /g, "␣").replace(/\t/g, "⇥");
 
@@ -67,20 +66,30 @@ module.exports = (string, offset) => {
 			2: `Unnecessary escape character. \\${char}.`,
 			3: `Illegal escape sequence \\${char}.`,
 			4: `Unexpected character '${char}'.`,
+			// Parsing warning reasons.
 			5: `Empty command chain assignment.`,
 			6: `Empty '[]' (no flags).`
 		};
 
-		// Return object containing relevant information.
-		return {
-			index: i,
-			offset,
-			char,
-			code,
-			state,
-			reason: reasons[code],
-			warnings
+		// Generate base issue object.
+		let issue_object = {
+			line: line_num,
+			index: i - line_fchar + 1, // Add 1 to account for 0 index.
+			reason: reasons[code]
 		};
+
+		// Add additional information if issuing an error and return.
+		if (type === "error") {
+			return Object.assign(issue_object, {
+				char,
+				code,
+				state,
+				warnings
+			});
+		} else {
+			// Add warning to warnings array.
+			warnings.push(issue_object);
+		}
 	};
 
 	// Loop over string.
@@ -103,7 +112,7 @@ module.exports = (string, offset) => {
 			if (!chain) {
 				// First char of chain must be a letter.
 				if (!/[a-zA-Z]/.test(char)) {
-					return error(char, 1);
+					return issue("error", 1, char);
 				}
 				// Store index.
 				indices.chain.start = i;
@@ -127,10 +136,10 @@ module.exports = (string, offset) => {
 							// Must be an allowed character.
 							if (/[-_a-zA-Z0-9]/.test(nchar)) {
 								// If char is not a dot give warning.
-								warnings.push(error(nchar, 2));
+								issue("warning", 2, nchar);
 								skip = true;
 							} else {
-								return error(nchar, 3);
+								return issue("error", 3, nchar);
 							}
 						}
 						// Turn off flag.
@@ -164,7 +173,7 @@ module.exports = (string, offset) => {
 				}
 				// Anything else the character is not allowed.
 				else {
-					return error(char, 4);
+					return issue("error", 4, char);
 				}
 			}
 		} else if (state === "chain-wsb") {
@@ -172,7 +181,7 @@ module.exports = (string, offset) => {
 			// been set we are looking for an eq sign.
 			if (!/[ \t]/.test(char) && assignment === "") {
 				if (char !== "=") {
-					return error(char, 4);
+					return issue("error", 4, char);
 				} else {
 					state = "assignment";
 					i--;
@@ -207,7 +216,7 @@ module.exports = (string, offset) => {
 					i--;
 					continue;
 				} else {
-					return error(char, 4);
+					return issue("error", 4, char);
 				}
 
 				// Store index.
@@ -219,7 +228,7 @@ module.exports = (string, offset) => {
 				if (char === "]") {
 					state = "eol-wsb";
 				} else if (!/[ \t]/.test(char)) {
-					return error(char, 4);
+					return issue("error", 4, char);
 				}
 
 				// Store index.
@@ -232,7 +241,7 @@ module.exports = (string, offset) => {
 		} else if (state === "eol-wsb") {
 			// Allow trailing whitespace only.
 			if (!/[ \t]/.test(char)) {
-				return error(char, 4);
+				return issue("error", 4, char);
 			}
 		} else if (state === "flagset-oneline") {
 			// With RegExp to parse on unescaped '|' characters it would be
@@ -272,7 +281,7 @@ module.exports = (string, offset) => {
 			i = indices.assignment.index;
 
 			// Add warning.
-			warnings.push(error("=", 5));
+			issue("warning", 5, "=");
 		}
 
 		// If assignment but not value give warning.
@@ -281,22 +290,20 @@ module.exports = (string, offset) => {
 			i = indices.value.start;
 
 			// Add warning.
-			warnings.push(error(void 0, 6));
+			issue("warning", 6);
 		}
 	}
 
 	// Return relevant parsing information.
 	return {
-		index: i,
-		offset,
 		chain,
 		value,
 		brstate,
-		assignment,
+		// assignment,
 		flagsets,
 		nl_index,
 		warnings,
 		// Returned brace opening index for later error checks.
-		br_open_index: indices.braces.open - offset
+		br_open_index: indices.braces.open - line_fchar + 1 // Add 1 to account for 0 index.
 	};
 };

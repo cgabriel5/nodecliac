@@ -15,10 +15,9 @@ const pflagvalue = require("./p.flag-value.js");
  * @param  {string} string - The line to parse.
  * @return {object} - Object containing parsed information.
  */
-module.exports = (string, offset, indentation) => {
-	// Vars.
-	let i = offset || 0;
-	let l = string.length;
+module.exports = (...args) => {
+	// Get arguments.
+	let [string, i, l, line_num, line_fchar] = args;
 
 	// Parsing vars.
 	let symbol = "";
@@ -33,7 +32,7 @@ module.exports = (string, offset, indentation) => {
 	// Capture state's start/end indices.
 	let indices = {
 		symbol: {
-			index: offset
+			index: i
 		},
 		boundary: {
 			start: null,
@@ -51,11 +50,8 @@ module.exports = (string, offset, indentation) => {
 	// Get RegExp patterns.
 	let { r_schars, r_nl } = require("./regexpp.js");
 
-	// Generate error with provided information.
-	let error = (char = "", code, index) => {
-		// Use loop index if one is not provided.
-		index = (index || i) + indentation.length;
-
+	// Generate issue with provided information.
+	let issue = (type = "error", code, char = "") => {
 		// Replace whitespace characters with their respective symbols.
 		char = char.replace(/ /g, "␣").replace(/\t/g, "⇥");
 
@@ -67,16 +63,25 @@ module.exports = (string, offset, indentation) => {
 			4: `Improperly closed string.`
 		};
 
-		// Return object containing relevant information.
-		return {
-			index,
-			offset,
-			char,
-			code,
-			state,
-			reason: reasons[code],
-			warnings
+		// Generate base issue object.
+		let issue_object = {
+			line: line_num,
+			index: i - line_fchar + 1, // Add 1 to account for 0 index.
+			reason: reasons[code]
 		};
+
+		// Add additional information if issuing an error and return.
+		if (type === "error") {
+			return Object.assign(issue_object, {
+				char,
+				code,
+				state,
+				warnings
+			});
+		} else {
+			// Add warning to warnings array.
+			warnings.push(issue_object);
+		}
 	};
 
 	// Loop over string.
@@ -97,7 +102,7 @@ module.exports = (string, offset, indentation) => {
 		if (state === "symbol") {
 			// Check that first char is indeed a hyphen symbol '-'.
 			if (char !== "-") {
-				return error(char, 3);
+				return issue("error", 3, char);
 			}
 
 			// Store index.
@@ -116,7 +121,7 @@ module.exports = (string, offset, indentation) => {
 					boundary += char;
 				} else {
 					// If first char is not a whitespace give an error.
-					return error(char, 3);
+					return issue("error", 3, char);
 				}
 			} else {
 				// Only whitespace.
@@ -149,17 +154,46 @@ module.exports = (string, offset, indentation) => {
 	// If option does not exist then value will be empty (dangling '-').
 	if (!value) {
 		// Reset index so it points to '-' symbol.
-		warnings.push(error("-", 0, indices.symbol.index));
+		i = indices.symbol.index;
+
+		issue("warning", 0, "-");
 	} else {
+		// 66 '\t' <-- Line start (line_fchar)
+		// 67 '\t'
+		// 68 '-'  <-- Option Start (i)
+		// 69 ' '
+		// 70 ' '
+		// 71 ' '
+		// 72 ' '
+		// 73 ' '
+		// 74 'v' <-- Option Value Start (indices.value.start)
+		// 75 'a'
+		// 76 'l'
+		// 77 'u'
+		// 78 'e'
+		// 79 '\\'
+		// 80 ' '
+		// 81 's'
+		// 82 'o'
+		// 83 'm'
+		// 84 'e'
+		// 85 't'
+		// 86 'h'
+		// 87 'i'
+		// 88 '?'
+		// 89 'n'
+		// 90 'g' <-- Option Value End (indices.value.end)
+		// 91 '\n'
+
 		// Run flag value parser from here...
 		let pvalue = pflagvalue(
 			value,
-			0,
-			type,
-			// Provide the index where the value starts - the initial
-			// loop index position plus the indentation length to
-			// properly provide correct line error/warning output.
-			indices.value.start - offset + indentation.length
+			0, // Index.
+			value.length,
+			line_num,
+			line_fchar,
+			indices.value.start, // Value start index.
+			type
 		);
 
 		// Reset value.
@@ -183,11 +217,11 @@ module.exports = (string, offset, indentation) => {
 				// Set index to first quote.
 				i = indices.value.start;
 
-				return error(void 0, 4);
+				return issue("error", 4);
 			}
 		}
 	}
 
 	// Return relevant parsing information.
-	return { index: i, offset, symbol, value, assignment, nl_index, warnings };
+	return { symbol, value, assignment, nl_index, warnings };
 };

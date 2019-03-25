@@ -13,10 +13,9 @@
  * @param  {string} string - The line to parse.
  * @return {object} - Object containing parsed information.
  */
-module.exports = (string, offset, type, voffset) => {
-	// Vars.
-	let i = offset || 0;
-	let l = string.length;
+module.exports = (...args) => {
+	// Get arguments.
+	let [string, i, l, line_num, line_fchar, vsi, type] = args;
 
 	// If parsing a list reduce length to ignore closing ')'. Otherwise,
 	// leave length be as a command, for example, does get wrapped with '()'.
@@ -25,6 +24,11 @@ module.exports = (string, offset, type, voffset) => {
 	}
 
 	// Parsing vars.
+	// Note: Parsing the value starts a new loop from 0 to only focus on
+	// parsing the provided value. This means the original loop index
+	// needs to be accounted for. This variable will track the original
+	// index.
+	let ci = vsi;
 	let value = "";
 	let qchar; // String quote char.
 	let state = ""; // Parsing state.
@@ -43,11 +47,8 @@ module.exports = (string, offset, type, voffset) => {
 	// Get RegExp patterns.
 	let { r_schars, r_nl } = require("./regexpp.js");
 
-	// Generate error with provided information.
-	let error = (char = "", code) => {
-		// Use loop index if one is not provided.
-		index = index || i + voffset;
-
+	// Generate issue with provided information.
+	let issue = (type = "error", code, char = "") => {
 		// Replace whitespace characters with their respective symbols.
 		char = char.replace(/ /g, "␣").replace(/\t/g, "⇥");
 
@@ -60,17 +61,31 @@ module.exports = (string, offset, type, voffset) => {
 			6: `Improperly closed command-flag. Missing ')'.`
 		};
 
-		// Return object containing relevant information.
-		return {
-			index: i,
-			offset,
-			char,
-			code,
-			state,
-			reason: reasons[code],
-			warnings
+		// Generate base issue object.
+		let issue_object = {
+			line: line_num,
+			index: ci - line_fchar,
+			reason: reasons[code]
 		};
+
+		// Add additional information if issuing an error and return.
+		if (type === "error") {
+			return Object.assign(issue_object, {
+				char,
+				code,
+				state,
+				warnings
+			});
+		} else {
+			// Add warning to warnings array.
+			warnings.push(issue_object);
+		}
 	};
+
+	// Keep a list of unique loop iterations for current index.
+	let last_index;
+	// Account for command-flag/list '$(' or '(' syntax removal.
+	ci += i;
 
 	// Loop over string.
 	for (; i < l; i++) {
@@ -78,6 +93,15 @@ module.exports = (string, offset, type, voffset) => {
 		let char = string.charAt(i);
 		let pchar = string.charAt(i - 1);
 		let nchar = string.charAt(i + 1);
+
+		// Note: Since loop logic can back track (e.g. 'i--;'), we only
+		// increment current index (original index) on unique iterations.
+		if (last_index !== i) {
+			// Update last index to the latest unique iteration index.
+			last_index = i;
+			// Increment current index.
+			ci += 1;
+		}
 
 		// Determine the initial parsing state.
 		if (!state) {
@@ -93,13 +117,13 @@ module.exports = (string, offset, type, voffset) => {
 
 				// Return error if consecutive/empty arguments.
 				if (delimiter_count) {
-					return error(char, 5);
+					return issue("error", 5, char);
 				}
 				// Increment delimiter counter.
 				delimiter_count++;
 
 				// Store delimiter index.
-				indices.delimiter.last = i;
+				indices.delimiter.last = ci;
 
 				i--;
 			} else if (char === ")") {
@@ -109,7 +133,7 @@ module.exports = (string, offset, type, voffset) => {
 				// If char is anything other than q quote or a comma
 				// the character is not allowed so return an error.
 				if (!/[ \t]/.test(char)) {
-					return error(char, 2);
+					return issue("error", 2, char);
 				}
 			}
 		} else {
@@ -138,7 +162,7 @@ module.exports = (string, offset, type, voffset) => {
 				if (i === l - 2) {
 					if (value.charAt(value.length - 1) !== qchar) {
 						// String was never closed so give error.
-						return error(char, 4);
+						return issue("error", 4, char);
 					}
 				}
 
@@ -148,7 +172,7 @@ module.exports = (string, offset, type, voffset) => {
 				// Make a final check. The char after the closing ')'
 				// has to be an end-of-line character or a space.
 				if (nchar && !/[ \t\)]/.test(nchar)) {
-					return error(nchar, 2);
+					return issue("error", 2, nchar);
 				}
 
 				// Once closing ')' has been detected, stop loop.
@@ -163,13 +187,16 @@ module.exports = (string, offset, type, voffset) => {
 	// If the command-flag was never closed give an error. This means the
 	// ')' character was missing.
 	if (!closed) {
-		return error(void 0, 6);
+		return issue("error", 6);
 	}
 
 	// If the delimiter index remained then there is a trailing delimiter.
 	if (indices.delimiter.last) {
-		i = indices.delimiter.last;
-		return error(void 0, 5);
+		// Reset index.
+		ci = indices.delimiter.last;
+
+		// Issue error.
+		return issue("error", 5);
 	}
 
 	// Add final value if it exists.
@@ -183,8 +210,6 @@ module.exports = (string, offset, type, voffset) => {
 
 	// Return relevant parsing information.
 	return {
-		index: i,
-		offset,
 		cmd_str,
 		warnings
 	};

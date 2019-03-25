@@ -10,10 +10,9 @@
  * @param  {string} string - The line to parse.
  * @return {object} - Object containing parsed information.
  */
-module.exports = (string, offset) => {
-	// Vars.
-	let i = offset || 0;
-	let l = string.length;
+module.exports = (...args) => {
+	// Get arguments.
+	let [string, i, l, line_num, line_fchar] = args;
 
 	// Parsing vars.
 	let state = "eol-wsb"; // Parsing state.
@@ -23,15 +22,15 @@ module.exports = (string, offset) => {
 	// Capture state's start/end indices.
 	let indices = {
 		brace: {
-			close: offset
+			close: i
 		}
 	};
 
 	// Get RegExp patterns.
 	let { r_nl } = require("./regexpp.js");
 
-	// Generate error with provided information.
-	let error = (char = "", code) => {
+	// Generate issue with provided information.
+	let issue = (type = "error", code, char = "") => {
 		// Replace whitespace characters with their respective symbols.
 		char = char.replace(/ /g, "␣").replace(/\t/g, "⇥");
 
@@ -40,16 +39,25 @@ module.exports = (string, offset) => {
 			1: `Unexpected character '${char}'.`
 		};
 
-		// Return object containing relevant information.
-		return {
-			index: i,
-			offset,
-			char,
-			code,
-			state,
-			reason: reasons[code],
-			warnings
+		// Generate base issue object.
+		let issue_object = {
+			line: line_num,
+			index: i - line_fchar + 1, // Add 1 to account for 0 index.
+			reason: reasons[code]
 		};
+
+		// Add additional information if issuing an error and return.
+		if (type === "error") {
+			return Object.assign(issue_object, {
+				char,
+				code,
+				state,
+				warnings
+			});
+		} else {
+			// Add warning to warnings array.
+			warnings.push(issue_object);
+		}
 	};
 
 	// Increment index by 1 to skip brace character.
@@ -73,11 +81,11 @@ module.exports = (string, offset) => {
 		if (state === "eol-wsb") {
 			// Characters after ']' must be trailing whitespace.
 			if (!/[ \t]/.test(char)) {
-				return error(char, 1);
+				return issue("error", 1, char);
 			}
 		}
 	}
 
 	// Return relevant parsing information.
-	return { index: i, offset, nl_index, warnings };
+	return { nl_index, warnings };
 };

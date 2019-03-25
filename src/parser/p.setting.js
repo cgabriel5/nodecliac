@@ -14,10 +14,9 @@
  * @param  {string} string - The line to parse.
  * @return {object} - Object containing parsed information.
  */
-module.exports = (string, offset, settings) => {
-	// Vars.
-	let i = offset || 0;
-	let l = string.length;
+module.exports = (...args) => {
+	// Get arguments.
+	let [string, i, l, line_num, line_fchar, settings] = args;
 
 	// Parsing vars.
 	let name = "@";
@@ -31,7 +30,7 @@ module.exports = (string, offset, settings) => {
 	// Capture state's start/end indices.
 	let indices = {
 		symbol: {
-			index: offset
+			index: i
 		},
 		name: {
 			start: null,
@@ -49,8 +48,8 @@ module.exports = (string, offset, settings) => {
 	// Get RegExp patterns.
 	let { r_schars, r_nl } = require("./regexpp.js");
 
-	// Generate error with provided information.
-	let error = (char = "", code) => {
+	// Generate issue with provided information.
+	let issue = (type = "error", code, char = "") => {
 		// Replace whitespace characters with their respective symbols.
 		char = char.replace(/ /g, "␣").replace(/\t/g, "⇥");
 
@@ -61,22 +60,32 @@ module.exports = (string, offset, settings) => {
 			2: `Unexpected character '${char}'.`,
 			3: `Value cannot start with '${char}'.`,
 			4: `Improperly closed string.`,
+			// Parsing warning reasons.
 			5: `Unescaped character '${char}' in value.`,
 			6: `Empty setting assignment.`,
 			7: `Duplicate setting '${name}'.`,
 			8: `Empty setting '${name}'.`
 		};
 
-		// Return object containing relevant information.
-		return {
-			index: i,
-			offset,
-			char,
-			code,
-			state,
-			reason: reasons[code],
-			warnings
+		// Generate base issue object.
+		let issue_object = {
+			line: line_num,
+			index: i - line_fchar + 1, // Add 1 to account for 0 index.
+			reason: reasons[code]
 		};
+
+		// Add additional information if issuing an error and return.
+		if (type === "error") {
+			return Object.assign(issue_object, {
+				char,
+				code,
+				state,
+				warnings
+			});
+		} else {
+			// Add warning to warnings array.
+			warnings.push(issue_object);
+		}
 	};
 
 	// Increment index by 1 to skip initial '@' setting symbol.
@@ -102,7 +111,7 @@ module.exports = (string, offset, settings) => {
 			if (name.length === 1) {
 				// First char of name must be a letter.
 				if (!/[a-zA-Z]/.test(char)) {
-					return error(char, 1);
+					return issue("error", 1, char);
 				}
 				// Store index.
 				indices.name.start = i;
@@ -130,7 +139,7 @@ module.exports = (string, offset, settings) => {
 				}
 				// Anything else the character is not allowed.
 				else {
-					return error(char, 2);
+					return issue("error", 2, char);
 				}
 			}
 		} else if (state === "name-wsb") {
@@ -138,7 +147,7 @@ module.exports = (string, offset, settings) => {
 			// been set we are looking for an eq sign.
 			if (!/[ \t]/.test(char) && assignment === "") {
 				if (char !== "=") {
-					return error(char, 2);
+					return issue("error", 2, char);
 				} else {
 					state = "assignment";
 					i--;
@@ -168,7 +177,7 @@ module.exports = (string, offset, settings) => {
 				if (/["']/.test(char)) {
 					qchar = char;
 				} else if (!/[a-zA-Z0-9]/.test(char)) {
-					return error(char, 3);
+					return issue("error", 3, char);
 				}
 
 				// Store index.
@@ -194,7 +203,7 @@ module.exports = (string, offset, settings) => {
 						// When building unquoted "strings" warn user
 						// when using unescaped special characters.
 						if (r_schars.test(char)) {
-							warnings.push(error(char, 5));
+							issue("warning", 5, char);
 						}
 
 						// Store index.
@@ -206,7 +215,7 @@ module.exports = (string, offset, settings) => {
 		} else if (state === "eol-wsb") {
 			// Allow trailing whitespace only.
 			if (!/[ \t]/.test(char)) {
-				return error(char, 2);
+				return issue("error", 2, char);
 			}
 		}
 	}
@@ -216,7 +225,7 @@ module.exports = (string, offset, settings) => {
 		// Reset index so it points to '@' symbol.
 		i = indices.symbol.index;
 
-		return error("@", 0);
+		return issue("error", 0, "@");
 	}
 
 	// If value exists and is quoted, check that is properly quoted.
@@ -226,7 +235,7 @@ module.exports = (string, offset, settings) => {
 			// Set index to first quote.
 			i = indices.value.start;
 
-			return error(void 0, 4);
+			return issue("error", 4);
 		}
 	}
 
@@ -236,7 +245,7 @@ module.exports = (string, offset, settings) => {
 		i = indices.assignment.index;
 
 		// Add warning.
-		warnings.push(error("=", 6));
+		issue("warning", 6, "=");
 	}
 
 	// If no value was provided give warning.
@@ -245,7 +254,7 @@ module.exports = (string, offset, settings) => {
 		i = indices.name.end;
 
 		// Add warning.
-		warnings.push(error("=", 8));
+		issue("warning", 8, "=");
 	}
 
 	// If setting exists give an dupe/override warning.
@@ -253,9 +262,9 @@ module.exports = (string, offset, settings) => {
 		// Reset index to point to name.
 		i = indices.name.end;
 
-		warnings.push(error("=", 7));
+		issue("warning", 7, "=");
 	}
 
 	// Return relevant parsing information.
-	return { index: i, offset, name, value, assignment, nl_index, warnings };
+	return { name, value, nl_index, warnings };
 };

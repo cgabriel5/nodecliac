@@ -22,10 +22,9 @@ const pflagvalue = require("./p.flag-value.js");
  * @param  {string} string - The line to parse.
  * @return {object} - Object containing parsed information.
  */
-module.exports = (string, offset, indentation) => {
-	// Vars.
-	let i = offset || 0;
-	let l = string.length;
+module.exports = (...args) => {
+	// Get arguments.
+	let [string, i, l, line_num, line_fchar, indentation] = args;
 
 	// Parsing vars.
 	let symbol = "";
@@ -42,7 +41,7 @@ module.exports = (string, offset, indentation) => {
 	// Capture state's start/end indices.
 	let indices = {
 		symbol: {
-			index: offset
+			index: i
 		},
 		name: {
 			start: null,
@@ -65,11 +64,8 @@ module.exports = (string, offset, indentation) => {
 	// Get RegExp patterns.
 	let { r_schars, r_nl } = require("./regexpp.js");
 
-	// Generate error with provided information.
-	let error = (char = "", code, index) => {
-		// Use loop index if one is not provided.
-		index = (index || i) + indentation.length;
-
+	// Generate issue with provided information.
+	let issue = (type = "error", code, char = "") => {
 		// Replace whitespace characters with their respective symbols.
 		char = char.replace(/ /g, "␣").replace(/\t/g, "⇥");
 
@@ -80,23 +76,33 @@ module.exports = (string, offset, indentation) => {
 			3: `Value cannot start with '${char}'.`,
 			4: `Improperly closed string.`,
 			5: `Unescaped character '${char}' in value.`,
-			6: `Empty flag assignment.`,
+			// Parsing warning reasons.
+			// 6: `Empty flag assignment.`,
 			8: `Empty flag '${name}'.`,
 			9: `${
 				isvspecial === "command" ? "Command-flag" : "Options flag list"
 			} missing closing ')'.`
 		};
 
-		// Return object containing relevant information.
-		return {
-			index,
-			offset,
-			char,
-			code,
-			state,
-			reason: reasons[code],
-			warnings
+		// Generate base issue object.
+		let issue_object = {
+			line: line_num,
+			index: i - line_fchar + 1, // Add 1 to account for 0 index.
+			reason: reasons[code]
 		};
+
+		// Add additional information if issuing an error and return.
+		if (type === "error") {
+			return Object.assign(issue_object, {
+				char,
+				code,
+				state,
+				warnings
+			});
+		} else {
+			// Add warning to warnings array.
+			warnings.push(issue_object);
+		}
 	};
 
 	// Loop over string.
@@ -128,8 +134,8 @@ module.exports = (string, offset, indentation) => {
 				// Before ending state check symbol.
 				if (!/-{1,2}/.test(symbol)) {
 					// Reset index.
-					i = offset;
-					return error(char, 2);
+					i = line_fchar;
+					return issue("error", 2, char);
 				}
 			}
 			// Default parse state to 'name' (l → r : @name=value).
@@ -138,7 +144,7 @@ module.exports = (string, offset, indentation) => {
 			if (!name.length) {
 				// First char of name must be a letter.
 				if (!/[a-zA-Z]/.test(char)) {
-					return error(char, 1);
+					return issue("error", 1, char);
 				}
 				// Store index.
 				indices.name.start = i;
@@ -176,7 +182,7 @@ module.exports = (string, offset, indentation) => {
 				}
 				// Anything else the character is not allowed.
 				else {
-					return error(char, 2);
+					return issue("error", 2, char);
 				}
 			}
 		} else if (state === "name-wsb") {
@@ -184,7 +190,7 @@ module.exports = (string, offset, indentation) => {
 			// been set we are looking for an eq sign.
 			if (!/[ \t]/.test(char) && assignment === "") {
 				if (char !== "=") {
-					return error(char, 2);
+					return issue("error", 2, char);
 				} else {
 					state = "assignment";
 					i--;
@@ -230,7 +236,7 @@ module.exports = (string, offset, indentation) => {
 					isvspecial = char === "$" ? "command" : "list";
 
 					if (char === "$" && nchar !== "(") {
-						return error(char, 2);
+						return issue("error", 2, char);
 					}
 
 					// Store parentheses index.
@@ -238,7 +244,7 @@ module.exports = (string, offset, indentation) => {
 				}
 				// For anything else give an error.
 				else if (!/[a-zA-Z0-9]/.test(char)) {
-					return error(char, 3);
+					return issue("error", 3, char);
 				}
 
 				// Store index.
@@ -264,7 +270,8 @@ module.exports = (string, offset, indentation) => {
 						// When building unquoted "strings" warn user
 						// when using unescaped special characters.
 						if (r_schars.test(char)) {
-							warnings.push(error(char, 5));
+							// Add warning.
+							issue("warning", 5, char);
 						}
 
 						// Store index.
@@ -276,7 +283,7 @@ module.exports = (string, offset, indentation) => {
 		} else if (state === "eol-wsb") {
 			// Allow trailing whitespace only.
 			if (!/[ \t]/.test(char)) {
-				return error(char, 2);
+				return issue("error", 2, char);
 			}
 		}
 	}
@@ -285,7 +292,7 @@ module.exports = (string, offset, indentation) => {
 	if (isvspecial) {
 		if (value.length > 1) {
 			if (value.charAt(value.length - 1) !== ")") {
-				return error(void 0, 9);
+				return issue("error", 9);
 			}
 		} else {
 			// If check above values and is 'list' then it's not a true list.
@@ -300,32 +307,32 @@ module.exports = (string, offset, indentation) => {
 		// If building quoted string check if it's closed off.
 		if (value.charAt(value.length - 1) !== qchar) {
 			// Provide first quote index.
-			return error(void 0, 4, indices.value.start);
+			i = indices.value.start;
+
+			return issue("error", 4);
 		}
 	}
-
-	// // If assignment but not value give warning.
-	// if (assignment && !value) {
-	// 	// Provide eq sign index.
-	// 	warnings.push(error("=", 6, indices.assignment.start));
-	// }
 
 	// If no value was provided give warning.
 	if (!assignment && !indices.name.boolean) {
 		// Provide original index.
-		warnings.push(error("=", 8, indices.name.end));
+		i = indices.name.end;
+
+		// Add warning.
+		issue("warning", 8, "=");
 	}
 
 	// Further parse value if not an opening parentheses.
 	if (value !== "(") {
+		// Run flag value parser from here...
 		let pvalue = pflagvalue(
 			value,
-			0,
-			isvspecial,
-			// Provide the index where the value starts - the initial
-			// loop index position plus the indentation length to
-			// properly provide correct line error/warning output.
-			indices.value.start - offset + indentation.length
+			0, // Index.
+			value.length,
+			line_num,
+			line_fchar,
+			indices.value.start, // Value start index.
+			isvspecial
 		);
 
 		// Reset value.
@@ -349,8 +356,6 @@ module.exports = (string, offset, indentation) => {
 
 	// Return relevant parsing information.
 	return {
-		index: i,
-		offset,
 		symbol,
 		name,
 		value,
@@ -360,6 +365,6 @@ module.exports = (string, offset, indentation) => {
 		warnings,
 		isopeningpr,
 		// Returned brace opening index for later error checks.
-		pr_open_index: indices.braces.open - offset
+		pr_open_index: indices.braces.open - line_fchar + 1 // Add 1 to account for 0 index.
 	};
 };

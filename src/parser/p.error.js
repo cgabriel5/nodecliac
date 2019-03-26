@@ -90,7 +90,8 @@ module.exports = (...args) => {
 			3: `Invalid flag option.`,
 			4: `Improperly closed string.`
 		},
-		"p.close-brace.js": { 1: `Unexpected character '${char}'.` }
+		"p.close-brace.js": { 1: `Unexpected character '${char}'.` },
+		"p.comment.js": {}
 	};
 
 	// Generate issue with provided information.

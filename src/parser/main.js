@@ -17,6 +17,7 @@
 
 // Needed modules.
 // const path = require("path");
+const path = require("path");
 const chalk = require("chalk");
 const { exit } = require("../utils.js");
 
@@ -38,7 +39,7 @@ const pflagoption = require("./p.flagoption.js");
 // Get error checking functions.
 const {
 	issue,
-	error,
+	error: eerror,
 	// Rename functions to later wrap.
 	verify: everify,
 	brace_check: ebc
@@ -80,7 +81,7 @@ module.exports = (contents, commandname, source) => {
 
 	// Create error functions wrappers to add fixed parameters.
 	let verify = result => {
-		return everify(result, warnings);
+		return everify(result, warnings, source);
 	};
 	let brace_check = (issue, brace_style) => {
 		return ebc({
@@ -89,8 +90,15 @@ module.exports = (contents, commandname, source) => {
 			last_open_br,
 			last_open_pr,
 			indentation,
-			warnings
+			warnings,
+			source
 		});
+	};
+	let error = (...params) => {
+		// Add source to parameters.
+		params.push(source);
+		// Run and return error function.
+		return eerror.apply(null, params);
 	};
 	// Create parser wrapper to add fixed parameters.
 	let parser = (pname, ...params) => {
@@ -485,18 +493,37 @@ module.exports = (contents, commandname, source) => {
 	 *
 	 * @resource [https://stackoverflow.com/a/8228308]
 	 */
+	// Track longest (line + index) column to evenly space line/char.
+	let line_col_length = 0;
 	(() => {
 		// Order warnings by line number then issue.
 		warnings = warnings.sort(function(a, b) {
+			// Store line + index length;
+			let line_col_size = (a.line + "" + (a.index || "")).length;
+			if (line_col_size > line_col_length) {
+				line_col_length = line_col_size;
+			}
+
 			// [https://coderwall.com/p/ebqhca/javascript-sort-by-two-fields]
 			// [https://stackoverflow.com/a/13211728]
 			return a.line - b.line || a.index - b.index;
 		});
 
+		// Add warnings header if warnings exist.
+		if (warnings.length) {
+			console.log();
+			console.log(
+				`${chalk.bold.underline(path.relative(process.cwd(), source))}`
+			);
+		}
+
 		for (let i = 0, l = warnings.length; i < l; i++) {
 			// Cache current loop item.
-			issue(warnings[i], "warn");
+			issue(warnings[i], "warn", line_col_length);
 		}
+
+		// Print bottom padding.
+		console.log();
 	})();
 
 	console.log("");

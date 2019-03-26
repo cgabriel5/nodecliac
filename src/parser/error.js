@@ -1,4 +1,5 @@
 // Needed modules.
+const path = require("path");
 const chalk = require("chalk");
 const { exit } = require("../utils.js");
 
@@ -8,7 +9,7 @@ const { exit } = require("../utils.js");
  * @param  {object} result - The parsing result object.
  * @return {undefined} - Logs warnings. Exits script if error is issued.
  */
-let verify = (result, warnings) => {
+let verify = (result, warnings, source) => {
 	// Get warnings from result object.
 	let warns = result.warnings || [];
 
@@ -22,6 +23,12 @@ let verify = (result, warnings) => {
 
 	// Issue error if present.
 	if (result.hasOwnProperty("code")) {
+		// Add warnings header if warnings exist.
+		console.log();
+		console.log(
+			`${chalk.bold.underline(path.relative(process.cwd(), source))}`
+		);
+
 		issue(result);
 	}
 };
@@ -35,23 +42,40 @@ let verify = (result, warnings) => {
  * @param  {string} type - The issue type (error/warning).
  * @return {undefined} - Logs warnings. Exits script if error is issued.
  */
-let issue = (result, type = "error") => {
+let issue = (result, type = "error", col_size) => {
 	// Use provided line num/char index position.
 	let line = result.line;
 	let index = result.index;
 
-	// Determine highlight label color.
+	// Store line + index length;
+	let line_col_size = (line + "" + (index || "")).length;
+	let remainder = col_size - line_col_size;
+
+	// Determine highlight label color/issue symbol.
 	let color = type === "error" ? "red" : "yellow";
+	let symbol = type === "error" ? "❌" : "⚠";
 
 	// Build line info.
-	let lineinfo = `line ${line}`;
+	let lineinfo = `${line}`;
 	if (index) {
 		lineinfo += `:${index}`;
 	}
 
+	// The text to log to console.
+	let data = [
+		`  ${chalk.bold[color](symbol)}  ${lineinfo}${" ".repeat(remainder)}  ${
+			result.reason
+		}`
+	];
+
+	// Add bottom padding for error.
+	if (type === "error") {
+		data.push("");
+	}
+
 	// Print issue.
-	exit(
-		[`[${chalk.bold[color](type)}] ${result.reason} [${lineinfo}]`],
+	exit.normal(
+		data,
 		// If issuing an error stop script after printing error.
 		type === "error" ? undefined : false
 	);
@@ -64,7 +88,7 @@ let issue = (result, type = "error") => {
  * @param  {number} index - The char index error occurred.
  * @return {undefined} - Nothing is returned.
  */
-let error = (char = "", code, line, index) => {
+let error = (char = "", code, line, index, source) => {
 	// Replace whitespace characters with their respective symbols.
 	char = char.replace(/ /g, "␣").replace(/\t/g, "⇥");
 
@@ -82,13 +106,17 @@ let error = (char = "", code, line, index) => {
 	};
 
 	// Issue error.
-	verify({
-		line,
-		index,
-		code,
-		char,
-		reason: reasons[code]
-	});
+	verify(
+		{
+			line,
+			index,
+			code,
+			char,
+			reason: reasons[code]
+		},
+		[],
+		source
+	);
 };
 
 /**
@@ -106,7 +134,8 @@ let brace_check = args => {
 		last_open_br,
 		last_open_pr,
 		indentation,
-		warnings
+		warnings,
+		source
 	} = args;
 
 	// Determine which data set to use.
@@ -116,14 +145,14 @@ let brace_check = args => {
 
 	if (!data) {
 		if (issue === "unmatched") {
-			error(brace_style, 7, void 0, indentation.length);
+			error(brace_style, 7, void 0, indentation.length, source);
 		}
 	} else {
 		// Get information on last opened brace matching style provided.
 		let [line, index] = data;
 
 		if (issue === "unclosed") {
-			error(brace_style, 7, line, index);
+			error(brace_style, 7, line, index, source);
 		} else if (issue === "empty") {
 			// Add warning to warnings.
 			warnings.push({

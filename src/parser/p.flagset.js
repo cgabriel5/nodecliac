@@ -1,6 +1,8 @@
 // Require needed modules.
 const issuefunc = require("./p.error.js");
 const pflagvalue = require("./p.flag-value.js");
+// Get RegExp patterns.
+let { r_schars, r_nl } = require("./regexpp.js");
 
 /**
  * Parses flag set line to extract flag name, value, and its other components.
@@ -61,9 +63,6 @@ module.exports = (...args) => {
 			open: null
 		}
 	};
-
-	// Get RegExp patterns.
-	let { r_schars, r_nl } = require("./regexpp.js");
 
 	// Wrap issue function to add fixed parameters.
 	let issue = (type = "error", code, char = "") => {

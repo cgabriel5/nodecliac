@@ -1,5 +1,7 @@
 // Get needed modules.
 const issuefunc = require("./p.error.js");
+// Get RegExp patterns.
+let { r_schars, r_nl } = require("./regexpp.js");
 
 /**
  * Parses command flag into its individual arguments.
@@ -46,9 +48,6 @@ module.exports = (...args) => {
 			last: null
 		}
 	};
-
-	// Get RegExp patterns.
-	let { r_schars, r_nl } = require("./regexpp.js");
 
 	// Wrap issue function to add fixed parameters.
 	let issue = (type = "error", code, char = "") => {

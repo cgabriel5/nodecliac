@@ -1,5 +1,7 @@
 // Get needed modules.
 const issuefunc = require("./p.error.js");
+// Get RegExp patterns.
+let { r_schars, r_nl } = require("./regexpp.js");
 
 /**
  * Parses settings line to extract setting name and its value.
@@ -47,9 +49,6 @@ module.exports = (...args) => {
 			end: null
 		}
 	};
-
-	// Get RegExp patterns.
-	let { r_schars, r_nl } = require("./regexpp.js");
 
 	// Wrap issue function to add fixed parameters.
 	let issue = (type = "error", code, char = "") => {

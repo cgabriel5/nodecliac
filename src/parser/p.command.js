@@ -1,5 +1,7 @@
 // Get needed modules.
 const issuefunc = require("./p.error.js");
+// Get RegExp patterns.
+let { r_nl } = require("./regexpp.js");
 
 /**
  * Parses command chain line to extract command chain.
@@ -54,9 +56,6 @@ module.exports = (...args) => {
 	};
 	// Store brace state (open/closed).
 	let brstate;
-
-	// Get RegExp patterns.
-	let { r_nl } = require("./regexpp.js");
 
 	// Wrap issue function to add fixed parameters.
 	let issue = (type = "error", code, char = "") => {

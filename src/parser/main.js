@@ -250,6 +250,20 @@ module.exports = (contents, commandname, source) => {
 		}
 
 		if (line_type) {
+			// Give warning for mixed whitespace
+			if (
+				indentation &&
+				/ /.test(indentation) &&
+				/\t/.test(indentation)
+			) {
+				// Add warning to warnings.
+				warnings.push({
+					line: line_num,
+					index: 0,
+					reason: `Mixed whitespace characters.`
+				});
+			}
+
 			if (line_type === "setting") {
 				// Parse line.
 				let result = parser(psetting, settings);

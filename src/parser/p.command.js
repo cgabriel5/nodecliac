@@ -279,7 +279,7 @@ module.exports = (...args) => {
 		flagsets,
 		nl_index,
 		warnings,
-		// Returned brace opening index for later error checks.
+		// Return brace opening index for later error checks.
 		br_open_index: indices.braces.open - line_fchar + 1 // Add 1 to account for 0 index.
 	};
 };

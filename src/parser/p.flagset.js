@@ -354,7 +354,14 @@ module.exports = (...args) => {
 		nl_index,
 		warnings,
 		isopeningpr,
-		// Returned brace opening index for later error checks.
-		pr_open_index: indices.braces.open - line_fchar + 1 // Add 1 to account for 0 index.
+		// Return brace opening index for later error checks.
+		// Note: When an opening brace is not provided like in the following
+		// example: '--flag' or '--flag=*' we simply use the line_fchar
+		// variable so that the pr_open_index value gets set to 1 instead
+		// of a negative (as the values cancel each other out). Overall, it
+		// really doesn't matter as the pr_open_index does not get used later.
+		// This change is more of cosmetic thing. I'd rather see a positive
+		// number, in this case the resulting 1 over a negative index value.
+		pr_open_index: (indices.braces.open || line_fchar) - line_fchar + 1 // Add 1 to account for 0 index.
 	};
 };

@@ -45,7 +45,7 @@ let issue = (result, type = "error") => {
 
 	// Build line info.
 	let lineinfo = `line ${line}`;
-	if (index !== undefined) {
+	if (index) {
 		lineinfo += `:${index}`;
 	}
 

@@ -1,4 +1,5 @@
 // Require needed modules.
+const issuefunc = require("./p.error.js");
 const pflagvalue = require("./p.flag-value.js");
 
 /**
@@ -64,45 +65,25 @@ module.exports = (...args) => {
 	// Get RegExp patterns.
 	let { r_schars, r_nl } = require("./regexpp.js");
 
-	// Generate issue with provided information.
+	// Wrap issue function to add fixed parameters.
 	let issue = (type = "error", code, char = "") => {
-		// Replace whitespace characters with their respective symbols.
-		char = char.replace(/ /g, "␣").replace(/\t/g, "⇥");
-
-		// Parsing error reasons.
-		let reasons = {
-			1: `Setting started with '${char}'. Expected a letter.`,
-			2: `Unexpected character '${char}'.`,
-			3: `Value cannot start with '${char}'.`,
-			4: `Improperly closed string.`,
-			5: `Unescaped character '${char}' in value.`,
-			// Parsing warning reasons.
-			// 6: `Empty flag assignment.`,
-			8: `Empty flag '${name}'.`,
-			9: `${
-				isvspecial === "command" ? "Command-flag" : "Options flag list"
-			} missing closing ')'.`
-		};
-
-		// Generate base issue object.
-		let issue_object = {
-			line: line_num,
-			index: i - line_fchar + 1, // Add 1 to account for 0 index.
-			reason: reasons[code]
-		};
-
-		// Add additional information if issuing an error and return.
-		if (type === "error") {
-			return Object.assign(issue_object, {
-				char,
-				code,
-				state,
-				warnings
-			});
-		} else {
-			// Add warning to warnings array.
-			warnings.push(issue_object);
-		}
+		// Use multiple parameter arrays to flatten function.
+		let paramset1 = [string, i, l, line_num, line_fchar];
+		let paramset2 = [
+			__filename,
+			warnings,
+			state,
+			type,
+			code,
+			char,
+			// Parser specific variables.
+			{
+				name,
+				isvspecial
+			}
+		];
+		// Run and return issue.
+		return issuefunc.apply(null, paramset1.concat(paramset2));
 	};
 
 	// Loop over string.

@@ -35,7 +35,7 @@ const pcommand = require("./p.command.js");
 const pbrace = require("./p.close-brace.js");
 const pflagset = require("./p.flagset.js");
 const pflagoption = require("./p.flagoption.js");
-// Error checking functions.
+// Get error checking functions.
 const {
 	issue,
 	error,
@@ -45,6 +45,10 @@ const {
 } = require("./error.js");
 
 module.exports = (contents, commandname, source) => {
+	// Vars - Main loop.
+	let i = 0;
+	let l = contents.length;
+
 	// Vars - Line information.
 	let line = "";
 	let line_num = 1;
@@ -74,7 +78,7 @@ module.exports = (contents, commandname, source) => {
 	let r_nl = new RegExp(`(\\r?\\n)`); // New line character.
 	let r_start_line_char = /[-@a-zA-Z\)\]#]/; // Starting line character.
 
-	// Wrap needed error functions to add fixed parameters.
+	// Create error functions wrappers to add fixed parameters.
 	let verify = result => {
 		return everify(result, warnings);
 	};
@@ -88,6 +92,13 @@ module.exports = (contents, commandname, source) => {
 			warnings
 		});
 	};
+	// Create parser wrapper to add fixed parameters.
+	let parser = (pname, ...params) => {
+		// Join fixed parameters with provided.
+		params = [contents, i, l, line_num, line_fchar].concat(params);
+		// Run parser function.
+		return pname.apply(null, params);
+	};
 
 	// ACMAP file header.
 	let header = [
@@ -97,7 +108,7 @@ module.exports = (contents, commandname, source) => {
 	];
 
 	// Main loop. Loops over each character in acmap.
-	for (let i = 0, l = contents.length; i < l; i++) {
+	for (; i < l; i++) {
 		// Cache current/previous/next chars.
 		let char = contents.charAt(i);
 		let pchar = contents.charAt(i - 1);
@@ -232,14 +243,7 @@ module.exports = (contents, commandname, source) => {
 		if (line_type) {
 			if (line_type === "setting") {
 				// Parse line.
-				let result = psetting(
-					contents,
-					i,
-					l,
-					line_num,
-					line_fchar,
-					settings
-				);
+				let result = parser(psetting, settings);
 
 				// Check result for parsing issues (errors/warnings).
 				verify(result);
@@ -255,7 +259,7 @@ module.exports = (contents, commandname, source) => {
 				brace_check("unclosed", "[");
 
 				// Parse line.
-				let result = pcommand(contents, i, l, line_num, line_fchar);
+				let result = parser(pcommand);
 
 				// Check result for parsing issues (errors/warnings).
 				verify(result);
@@ -319,14 +323,7 @@ module.exports = (contents, commandname, source) => {
 				brace_check("unclosed", "(");
 
 				// Parse line.
-				let result = pflagset(
-					contents,
-					i,
-					l,
-					line_num,
-					line_fchar,
-					indentation
-				);
+				let result = parser(pflagset, indentation);
 
 				// Check result for parsing issues (errors/warnings).
 				verify(result);
@@ -397,14 +394,7 @@ module.exports = (contents, commandname, source) => {
 				i = result.nl_index - 1;
 			} else if (line_type === "flag_option") {
 				// Parse line.
-				let result = pflagoption(
-					contents,
-					i,
-					l,
-					line_num,
-					line_fchar,
-					indentation
-				);
+				let result = parser(pflagoption, indentation);
 
 				// Check result for parsing issues (errors/warnings).
 				verify(result);
@@ -440,7 +430,7 @@ module.exports = (contents, commandname, source) => {
 				flag_count_options = null;
 
 				// Parse line.
-				let result = pbrace(contents, i, l, line_num, line_fchar);
+				let result = parser(pbrace);
 
 				// Check result for parsing issues (errors/warnings).
 				verify(result);
@@ -463,7 +453,7 @@ module.exports = (contents, commandname, source) => {
 				flag_count = null;
 
 				// Parse line.
-				let result = pbrace(contents, i, l, line_num, line_fchar);
+				let result = parser(pbrace);
 
 				// Check result for parsing issues (errors/warnings).
 				verify(result);

@@ -1,3 +1,6 @@
+// Get needed modules.
+const issuefunc = require("./p.error.js");
+
 /**
  * Parses closing brace (either ']' or ')') line.
  *
@@ -29,35 +32,13 @@ module.exports = (...args) => {
 	// Get RegExp patterns.
 	let { r_nl } = require("./regexpp.js");
 
-	// Generate issue with provided information.
+	// Wrap issue function to add fixed parameters.
 	let issue = (type = "error", code, char = "") => {
-		// Replace whitespace characters with their respective symbols.
-		char = char.replace(/ /g, "␣").replace(/\t/g, "⇥");
-
-		// Parsing error reasons.
-		let reasons = {
-			1: `Unexpected character '${char}'.`
-		};
-
-		// Generate base issue object.
-		let issue_object = {
-			line: line_num,
-			index: i - line_fchar + 1, // Add 1 to account for 0 index.
-			reason: reasons[code]
-		};
-
-		// Add additional information if issuing an error and return.
-		if (type === "error") {
-			return Object.assign(issue_object, {
-				char,
-				code,
-				state,
-				warnings
-			});
-		} else {
-			// Add warning to warnings array.
-			warnings.push(issue_object);
-		}
+		// Use multiple parameter arrays to flatten function.
+		let paramset1 = [string, i, l, line_num, line_fchar];
+		let paramset2 = [__filename, warnings, state, type, code, char];
+		// Run and return issue.
+		return issuefunc.apply(null, paramset1.concat(paramset2));
 	};
 
 	// Increment index by 1 to skip brace character.

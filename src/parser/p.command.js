@@ -1,3 +1,6 @@
+// Get needed modules.
+const issuefunc = require("./p.error.js");
+
 /**
  * Parses command chain line to extract command chain.
  *
@@ -55,41 +58,13 @@ module.exports = (...args) => {
 	// Get RegExp patterns.
 	let { r_nl } = require("./regexpp.js");
 
-	// Generate issue with provided information.
+	// Wrap issue function to add fixed parameters.
 	let issue = (type = "error", code, char = "") => {
-		// Replace whitespace characters with their respective symbols.
-		char = char.replace(/ /g, "␣").replace(/\t/g, "⇥");
-
-		// Parsing error reasons.
-		let reasons = {
-			1: `Chain started with '${char}'. Expected a letter.`,
-			2: `Unnecessary escape character. \\${char}.`,
-			3: `Illegal escape sequence \\${char}.`,
-			4: `Unexpected character '${char}'.`,
-			// Parsing warning reasons.
-			5: `Empty command chain assignment.`,
-			6: `Empty '[]' (no flags).`
-		};
-
-		// Generate base issue object.
-		let issue_object = {
-			line: line_num,
-			index: i - line_fchar + 1, // Add 1 to account for 0 index.
-			reason: reasons[code]
-		};
-
-		// Add additional information if issuing an error and return.
-		if (type === "error") {
-			return Object.assign(issue_object, {
-				char,
-				code,
-				state,
-				warnings
-			});
-		} else {
-			// Add warning to warnings array.
-			warnings.push(issue_object);
-		}
+		// Use multiple parameter arrays to flatten function.
+		let paramset1 = [string, i, l, line_num, line_fchar];
+		let paramset2 = [__filename, warnings, state, type, code, char];
+		// Run and return issue.
+		return issuefunc.apply(null, paramset1.concat(paramset2));
 	};
 
 	// Loop over string.

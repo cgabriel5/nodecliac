@@ -176,7 +176,8 @@ module.exports = (contents, commandname, source) => {
 			} else {
 				// Char must be an allowed starting char.
 				if (!r_start_line_char.test(char)) {
-					error(char, 0, line_num, indentation.length);
+					// Character index will be indentation.length + 1.
+					error(char, 0, line_num, indentation.length + 1);
 				}
 
 				// Set line start type.

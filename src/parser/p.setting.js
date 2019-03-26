@@ -64,8 +64,7 @@ module.exports = (...args) => {
 			char,
 			// Parser specific variables.
 			{
-				name,
-				isvspecial
+				name
 			}
 		];
 		// Run and return issue.

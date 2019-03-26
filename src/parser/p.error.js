@@ -66,7 +66,7 @@ module.exports = (...args) => {
 			5: `Unescaped character '${char}' in value.`,
 			// Parsing warning reasons.
 			// 6: `Empty flag assignment.`,
-			8: `Empty flag '${name}'.`,
+			8: `Empty flag '${name}' (use boolean indicator?).`,
 			9: `${
 				isvspecial === "command" ? "Command-flag" : "Options flag list"
 			} missing closing ')'.`

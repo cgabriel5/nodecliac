@@ -303,36 +303,45 @@ module.exports = (...args) => {
 		issue("warning", 8, "=");
 	}
 
-	// Further parse value if not an opening parentheses.
-	if (value !== "(") {
-		// Run flag value parser from here...
-		let pvalue = pflagvalue(
-			value,
-			0, // Index.
-			value.length,
-			line_num,
-			line_fchar,
-			indices.value.start, // Value start index.
-			isvspecial
-		);
-
-		// Reset value.
-		value = pvalue.args;
-		// Reset index. Combine indices.
-		i += pvalue.index;
-
-		// Join warnings.
-		if (pvalue.warnings.length) {
-			warnings = warnings.concat(pvalue.warnings);
-		}
-		// If error exists return error.
-		if (pvalue.code) {
-			return pvalue;
-		}
-	} else {
+	// If a flag was assigned a flag...
+	if (value) {
 		// Since value is '(' we set flag and reset value.
-		isopeningpr = true;
-		value = [value];
+		if (value === "(") {
+			isopeningpr = true;
+			value = [value];
+		}
+		// Further parse value if not an opening parentheses.
+		else {
+			// Run flag value parser from here...
+			let pvalue = pflagvalue(
+				value,
+				0, // Index.
+				value.length,
+				line_num,
+				line_fchar,
+				indices.value.start, // Value start index.
+				isvspecial
+			);
+
+			// Reset value.
+			value = pvalue.args;
+			// Reset index. Combine indices.
+			i += pvalue.index;
+
+			// Join warnings.
+			if (pvalue.warnings.length) {
+				warnings = warnings.concat(pvalue.warnings);
+			}
+			// If error exists return error.
+			if (pvalue.code) {
+				return pvalue;
+			}
+		}
+	}
+	// If flag is empty (no assigned value)...
+	else if (!value) {
+		value = [""];
+		isopeningpr = false;
 	}
 
 	// Return relevant parsing information.

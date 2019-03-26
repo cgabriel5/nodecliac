@@ -248,7 +248,8 @@ module.exports = (...args) => {
 	// If there was assignment do some value checks.
 	if (assignment && !flagsets.length) {
 		// Determine brace state.
-		brstate = value === "[]" ? "closed" : "open";
+		brstate =
+			value === "[]" ? "closed" : value === "[" ? "open" : undefined;
 
 		// If assignment but not value give warning.
 		if (!value) {

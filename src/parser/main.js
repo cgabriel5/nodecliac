@@ -1,7 +1,6 @@
 "use strict";
 
 // Needed modules.
-// const path = require("path");
 const path = require("path");
 const chalk = require("chalk");
 const { exit } = require("../utils.js");
@@ -10,9 +9,7 @@ const { exit } = require("../utils.js");
 // const merge = require("./merge.js");
 // const config = require("./config.js");
 // const dedupe = require("./dedupe.js");
-// const argparser = require("./argparser.js");
 // const shortcuts = require("./shortcuts.js");
-// const paramparse = require("./paramparse.js");
 // const formatflags = require("./formatflags.js");
 // Get parsers.
 const psetting = require("./p.setting.js");

@@ -66,9 +66,10 @@ let issue = (result, type = "error", col_size) => {
 
 	// The text to log to console.
 	let data = [
-		`  ${chalk.bold[color](symbol)}  ${lineinfo}${" ".repeat(remainder)}  ${
-			result.reason
-		}`
+		`  ${chalk.bold[color](symbol)}  ${lineinfo}${" ".repeat(
+			// Note: When remainder is negative set to 0.
+			remainder < 0 ? 0 : remainder
+		)}  ${result.reason}`
 	];
 
 	// Add bottom padding for error.

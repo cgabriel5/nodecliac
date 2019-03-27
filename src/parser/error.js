@@ -96,11 +96,14 @@ let error = (char = "", code, line, index, source) => {
 	// Replace whitespace characters with their respective symbols.
 	char = char.replace(/ /g, "␣").replace(/\t/g, "⇥");
 
+	// Get character type.
+	let ctype = char && Number(char) ? "number" : "character";
+
 	// Parsing error reasons.
 	let reasons = {
-		0: `Unexpected start-of-line character '${char}'.`,
+		0: `Unexpected start-of-line ${ctype} '${char}'.`,
 		1: "Command chain cannot be nested.",
-		2: `Unexpected character '${char}'.`,
+		2: `Unexpected ${ctype} '${char}'.`,
 		3: "Improperly nested flag option.",
 		4: "Improperly nested flag.",
 		5: "Invalid line.",

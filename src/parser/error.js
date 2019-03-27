@@ -31,6 +31,9 @@ let verify = (result, warnings, source) => {
 
 		issue(result);
 	}
+
+	// Return result object.
+	return result;
 };
 
 /**
@@ -99,7 +102,7 @@ let error = (char = "", code, line, index, source) => {
 		2: `Unexpected character '${char}'.`,
 		3: "Improperly nested flag option.",
 		4: "Improperly nested flag.",
-		5: "Rogue flag/flag option. Must be placed inside '[]'.",
+		5: "Invalid line.",
 		6: `Line cannot begin with whitespace.`,
 		7: `Unmatched '${char}'.`,
 		8: `Unclosed '${char}'.`

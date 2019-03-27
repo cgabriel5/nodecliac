@@ -1,20 +1,5 @@
 "use strict";
 
-// Parser:
-// ✓ comments
-// 	✓ single line
-// 	✖ trailing-ending comments
-// ✓ @settings
-// ✓ command chains
-// 	✓ shortcuts
-// ✓ long-form flags
-// 	✓ command-flags
-// 	✓ flags options list
-
-// ✖ balanced braces - necessary?
-// ✖ validate characters for command chains
-// ✖ account for line numbers/errors
-
 // Needed modules.
 // const path = require("path");
 const path = require("path");
@@ -22,14 +7,13 @@ const chalk = require("chalk");
 const { exit } = require("../utils.js");
 
 // Require parser functions.
-const merge = require("./merge.js");
-const config = require("./config.js");
-const dedupe = require("./dedupe.js");
-const argparser = require("./argparser.js");
-const lookahead = require("./lookahead.js");
-const shortcuts = require("./shortcuts.js");
-const paramparse = require("./paramparse.js");
-const formatflags = require("./formatflags.js");
+// const merge = require("./merge.js");
+// const config = require("./config.js");
+// const dedupe = require("./dedupe.js");
+// const argparser = require("./argparser.js");
+// const shortcuts = require("./shortcuts.js");
+// const paramparse = require("./paramparse.js");
+// const formatflags = require("./formatflags.js");
 // Get parsers.
 const psetting = require("./p.setting.js");
 const pcommand = require("./p.command.js");
@@ -52,9 +36,8 @@ module.exports = (contents, commandname, source) => {
 	let l = contents.length;
 
 	// Vars - Line information.
-	let line = "";
-	let line_num = 1;
-	let line_fchar;
+	let line_num = 1; // y-index
+	let line_fchar; // x-index
 	let indentation = "";
 
 	// Vars - General.
@@ -125,34 +108,30 @@ module.exports = (contents, commandname, source) => {
 
 		// Check if \r?\n newline sequence.
 		if ((char === "\r" && nchar === "\n") || char === "\n") {
-			// Increment line counter.
-			line_num++;
-			// Reset line char index.
-			line_fchar = null;
+			// Reset vars.
+			line_type = null;
+			indentation = "";
+			line_num++; // Increment line counter.
+			line_fchar = null; // Reset line char index.
 
-			// The line type will get switched to "command_setter" after
-			// extracting the command chain. However, when the command chain
-			// does not contain a setter and therefore also no flags the
-			// command chain needs to be cleared to catch any flags not
-			// contained within [].
+			// Note: The line type will get switched to "command_setter"
+			// after extracting the command chain. However, when the command
+			// chain is not assigned flags the command chain needs to be
+			// cleared to catch any flags not contained within [].
 			if (line_type === "command_setter") {
 				currentchain = "";
 			}
 
-			// Reset vars.
-			line = "";
-			line_type = null;
-			indentation = "";
-
 			continue;
 		}
 
-		// Store index of first character in current line.
+		// Store index of first character of current line to keep track of
+		// the x-index character position.
 		if (!line_fchar) {
 			line_fchar = i;
 		}
 
-		// If a line type has not been defined yet.
+		// Determine the lines type to parse line accordingly.
 		if (!line_type) {
 			// If the current character is a space then continue.
 			if (r_whitespace.test(char)) {
@@ -160,27 +139,27 @@ module.exports = (contents, commandname, source) => {
 				continue;
 			}
 
-			// If not a space character, look for an allowed character.
-			// Lines can start with following chars/char sets.
-			// @      → setting
-			// #      → comment
-			// a-zA-Z → command chain
-			//     -      → flag
-			//     '- '   → flag option (ignore quotes)
-			//     )      → closing flag set
-			//     ]      → closing long-flag form
-			// -------------------------------------------------------------
-			// Special flag characters to look out for:
-			// $(, "", ''
+			// Line must begin with following start-of-line character:
+			// @       → Setting.
+			// #       → Comment.
+			// a-zA-Z  → Command chain.
+			// -       → Flag.
+			// '- '    → Flag option (ignore quotes).
+			// )       → Closing flag set.
+			// ]       → Closing long-flag form.
 
 			// If current flag is set only comments, flag options, and
 			// closing parenthesis are allowed.
 			if (currentflag) {
-				line_type = "flag_option";
-				if (char === ")") {
-					line_type = "close_parenthesis";
-				} else if (char === "#") {
-					line_type = "comment";
+				switch (char) {
+					case ")":
+						line_type = "close_parenthesis";
+						break;
+					case "#":
+						line_type = "comment";
+						break;
+					default:
+						line_type = "flag_option";
 				}
 			} else {
 				// Char must be an allowed starting char.
@@ -190,316 +169,297 @@ module.exports = (contents, commandname, source) => {
 				}
 
 				// Set line start type.
-				if (char === "@") {
-					line_type = "setting";
-				} else if (char === "#") {
-					line_type = "comment";
-				} else if (r_letter.test(char)) {
-					line_type = "command";
+				// RegExp Switch case: [https://stackoverflow.com/a/2896642]
+				switch (true) {
+					case char === "@":
+						line_type = "setting";
+						break;
+					case char === "#":
+						line_type = "comment";
+						break;
+					case char === "]":
+						line_type = "close_bracket";
+						break;
+					case char === "-":
+						// If flag is set we are getting flag options.
+						line_type = currentflag ? "flag_option" : "flag_set";
 
-					// If a current chain flag is set then another chain
-					// cannot be parsed. This means the chain is nested.
-					if (currentchain) {
-						error("", 1, line_num, 0);
-					}
-				} else if (char === "]") {
-					line_type = "close_bracket";
-				} else if (char === "-") {
-					// If flag is set we are getting flag options.
-					line_type = currentflag
-						? // Option must my listed with a hyphen.
-						  // /\s/.test(nchar)
-						  "flag_option"
-						: "flag_set";
-
-					// If command chain does not exist but a flag_set/option
-					// was detected there is an unnested/unwrapped flag/option.
-					if (!currentchain) {
-						// Look ahead to grab setting line.
-						let { indices, chars_str } = lookahead(
-							i,
-							contents,
-							r_nl
-						);
-
-						// Improperly nested flag option.
-						if (/^-[ \t]/.test(chars_str)) {
-							error("", 3, line_num, 0);
-						}
-						// Flag is improperly nested.
-						else if (/^-{1,2}/) {
-							error("", 4, line_num, 0);
+						// If command chain doesn't exist but a flag_set or
+						// option was detected the line was illegally declared.
+						if (!currentchain) {
+							// Check for improperly declared flag/option.
+							if (/[- \t]/.test(nchar)) {
+								error("", nchar === "-" ? 4 : 3, line_num, 0);
+							} else {
+								// General error - invalid line.
+								error("", 5, line_num, 0);
+							}
 						}
 
-						// General error.
-						error("", 5, line_num, 0);
-					}
-				} else if (char === ")") {
-					line_type = "close_parenthesis";
+						break;
+					case char === ")":
+						line_type = "close_parenthesis";
+						break;
+					case r_letter.test(char):
+						line_type = "command";
+
+						// If a current chain flag is set then another chain
+						// cannot be parsed. This means the chain is nested.
+						if (currentchain) {
+							error("", 1, line_num, 0);
+						}
+
+						break;
 				}
 
-				// Following commands cannot begin with any whitespace.
-				if (
-					indentation.length &&
-					["setting", "command"].includes(line_type)
-				) {
-					// Line cannot begin begin with whitespace.
-					error("", 6, line_num, 0);
+				// Indentation/whitespace checks.
+				if (indentation) {
+					// Following commands cannot begin with any whitespace.
+					if (/(setting|command)/.test(line_type)) {
+						// Line cannot begin begin with whitespace.
+						error("", 6, line_num, 0);
+					}
+
+					// Give warning for mixed whitespace
+					if (/ /.test(indentation) && /\t/.test(indentation)) {
+						// Add warning to warnings.
+						warnings.push({
+							line: line_num,
+							index: 0,
+							reason: `Mixed whitespace characters.`
+						});
+					}
 				}
 			}
-			// line += char;
 		}
 
-		if (line_type) {
-			// Give warning for mixed whitespace
-			if (
-				indentation &&
-				/ /.test(indentation) &&
-				/\t/.test(indentation)
-			) {
-				// Add warning to warnings.
-				warnings.push({
-					line: line_num,
-					index: 0,
-					reason: `Mixed whitespace characters.`
-				});
-			}
+		// Run logic for each line type.
+		switch (line_type) {
+			case "setting":
+				{
+					// Parse and verify line.
+					let result = verify(parser(psetting, settings));
 
-			if (line_type === "setting") {
-				// Parse line.
-				let result = parser(psetting, settings);
+					// Reset index to start at newline on next iteration.
+					i = result.nl_index - 1;
 
-				// Check result for parsing issues (errors/warnings).
-				verify(result);
-
-				// When parsing passes reset the index so that on the next
-				// iteration it continues with the newline character.
-				i = result.nl_index - 1;
-
-				// Store setting/value pair.
-				settings[result.name] = result.value;
-			} else if (line_type === "command") {
-				// Check for an unclosed '['.
-				brace_check("unclosed", "[");
-
-				// Parse line.
-				let result = parser(pcommand);
-
-				// Check result for parsing issues (errors/warnings).
-				verify(result);
-
-				// When parsing passes reset the index so that on the next
-				// iteration it continues with the newline character.
-				i = result.nl_index - 1;
-
-				// Get command chain.
-				let cc = result.chain;
-				let value = result.value;
-				// Get opening brace index.
-				let br_index = result.br_open_index;
-
-				// Store command chain.
-				if (!lookup[cc]) {
-					lookup[cc] = [];
+					// Store setting/value pair.
+					settings[result.name] = result.value;
 				}
-				// Store current command chain.
-				currentchain = cc;
 
-				// For non flag set one-liners.
-				if (result.brstate) {
-					// If brackets are empty set flags.
-					if (result.brstate === "closed") {
-						// Reset flags.
+				break;
+			case "command":
+				{
+					// Check for an unclosed '['.
+					brace_check("unclosed", "[");
+
+					// Parse and verify line.
+					let result = verify(parser(pcommand));
+
+					// Reset index to start at newline on next iteration.
+					i = result.nl_index - 1;
+
+					// Get command chain.
+					let cc = result.chain;
+					let value = result.value;
+					// Get opening brace index.
+					let br_index = result.br_open_index;
+
+					// Store command chain.
+					if (!lookup[cc]) {
+						lookup[cc] = [];
+					}
+					// Store current command chain.
+					currentchain = cc;
+
+					// For non flag set one-liners.
+					if (result.brstate) {
+						// If brackets are empty set flags.
+						if (result.brstate === "closed") {
+							// Reset flags.
+							currentchain = "";
+							last_open_br = null;
+						}
+						// If bracket is unclosed set other flags.
+						else {
+							// Set flag set counter.
+							flag_count = [line_num, 0];
+							// Store line + opening bracket index.
+							last_open_br = [line_num, br_index];
+						}
+					} else {
+						// Clear values.
 						currentchain = "";
-						last_open_br = null;
-					}
-					// If bracket is unclosed set other flags.
-					else {
-						// Set flag set counter.
-						flag_count = [line_num, 0];
-						// Store line + opening bracket index.
-						last_open_br = [line_num, br_index];
-					}
-				} else {
-					// Clear values.
-					currentchain = "";
 
-					// Store flagsets with its command chain in lookup table.
-					let chain = lookup[result.chain];
-					if (chain) {
-						// Get flag sets.
-						let flags = result.flagsets;
+						// Store flagsets with its command chain in lookup table.
+						let chain = lookup[result.chain];
+						if (chain) {
+							// Get flag sets.
+							let flags = result.flagsets;
 
-						// Add each flag set to its command chain.
-						for (let j = 0, ll = flags.length; j < ll; j++) {
-							// Cache current loop item.
-							let flag = flags[j].trim();
+							// Add each flag set to its command chain.
+							for (let j = 0, ll = flags.length; j < ll; j++) {
+								// Cache current loop item.
+								let flag = flags[j].trim();
 
-							// Skip empty flags.
-							if (!/^-{1,}$/.test(flag)) {
-								chain.push(flag);
+								// Skip empty flags.
+								if (!/^-{1,}$/.test(flag)) {
+									chain.push(flag);
+								}
 							}
 						}
 					}
 				}
-			} else if (line_type === "flag_set") {
-				// Check for an unclosed '('.
-				brace_check("unclosed", "(");
 
-				// Parse line.
-				let result = parser(pflagset, indentation);
+				break;
+			case "flag_set":
+				{
+					// Check for an unclosed '('.
+					brace_check("unclosed", "(");
 
-				// Check result for parsing issues (errors/warnings).
-				verify(result);
+					// Parse and verify line.
+					let result = verify(parser(pflagset, indentation));
 
-				// // Must pass RegExp pattern.
-				// if (!r_flag_set.test(chars_str)) {
-				// 	// Check if it's a flag option. If so the option is not
-				// 	// being assigned to a flag.
-				// 	if (r_flag_option.test(chars_str)) {
-				// 		error(`Unassigned flag option.`);
-				// 	}
-				// 	// General error.
-				// 	error(`Invalid flag.`);
-				// }
+					// Breakdown flag.
+					let hyphens = result.symbol;
+					let flag = result.name;
+					let setter = result.assignment;
+					let values = result.value;
+					let special = result.special;
+					let isopeningpr = result.isopeningpr;
+					// Get opening brace index.
+					let pr_index = result.pr_open_index;
 
-				// Breakdown flag.
-				let hyphens = result.symbol;
-				let flag = result.name;
-				let setter = result.assignment;
-				let values = result.value;
-				let special = result.special;
-				let isopeningpr = result.isopeningpr;
-				// Get opening brace index.
-				let pr_index = result.pr_open_index;
+					// If we have a flag like '--flag=(' we have a long-form
+					// flag list opening. Store line for later use in case
+					// the parentheses is not closed.
+					if (isopeningpr) {
+						// Store line + opening parentheses index for use in error
+						// later if needed.
+						last_open_pr = [line_num, pr_index];
+						currentflag = `${hyphens}${flag}`;
+					}
 
-				// If we have a flag like '--flag=(' we have a long-form
-				// flag list opening. Store line for later use in case
-				// the parentheses is not closed.
-				if (isopeningpr) {
-					// Store line + opening parentheses index for use in error
-					// later if needed.
-					last_open_pr = [line_num, pr_index];
-					currentflag = `${hyphens}${flag}`;
-				}
+					// Add to lookup table if not already.
+					let chain = lookup[currentchain];
+					if (chain) {
+						// Add flag itself to lookup table > command chain.
+						chain.push(`${hyphens}${flag}${setter}`);
 
-				// Add to lookup table if not already.
-				let chain = lookup[currentchain];
-				if (chain) {
-					// Add flag itself to lookup table > command chain.
-					chain.push(`${hyphens}${flag}${setter}`);
+						// It not an opening brace then add values.
+						if (!isopeningpr) {
+							// Loop over values and add to lookup table.
+							for (let i = 0, l = values.length; i < l; i++) {
+								// Cache current loop item.
+								let value = values[i];
 
-					// It not an opening brace then add values.
-					if (!isopeningpr) {
-						// Loop over values and add to lookup table.
-						for (let i = 0, l = values.length; i < l; i++) {
-							// Cache current loop item.
-							let value = values[i];
-
-							// Add to lookup table > command chain.
-							chain.push(`${hyphens}${flag}${setter}${value}`);
+								// Add to lookup table > command chain.
+								chain.push(
+									`${hyphens}${flag}${setter}${value}`
+								);
+							}
 						}
 					}
-				}
 
-				// Increment flag set counter.
-				if (flag_count) {
-					// Get values before incrementing.
-					let [counter, linenum] = flag_count;
-					// Increment and store values.
-					flag_count = [linenum, counter + 1];
-				}
-
-				// Increment/set flag options counter.
-				flag_count_options = [line_num, 0];
-
-				// When parsing passes reset the index so that on the next
-				// iteration it continues with the newline character.
-				i = result.nl_index - 1;
-			} else if (line_type === "flag_option") {
-				// Parse line.
-				let result = parser(pflagoption, indentation);
-
-				// Check result for parsing issues (errors/warnings).
-				verify(result);
-
-				// Get result value.
-				let value = result.value[0];
-
-				// If flag chain exists add flag option and increment counter.
-				let chain = lookup[currentchain];
-				if (chain && value) {
-					chain.push(`${currentflag}=${value}`);
-
-					// Increment flag option counter.
-					if (flag_count_options) {
+					// Increment flag set counter.
+					if (flag_count) {
 						// Get values before incrementing.
-						let [counter, linenum] = flag_count_options;
+						let [counter, linenum] = flag_count;
 						// Increment and store values.
-						flag_count_options = [linenum, counter + 1];
+						flag_count = [linenum, counter + 1];
 					}
+
+					// Increment/set flag options counter.
+					flag_count_options = [line_num, 0];
+
+					// Reset index to start at newline on next iteration.
+					i = result.nl_index - 1;
 				}
 
-				// When parsing passes reset the index so that on the next
-				// iteration it continues with the newline character.
-				i = result.nl_index - 1;
-			} else if (line_type === "close_parenthesis") {
-				// Opening flag must be set else this ')' is unmatched.
-				brace_check("unmatched", ")");
-				// If command chain's flag array is empty give warning.
-				if (flag_count_options && !flag_count_options[1]) {
-					brace_check("empty", "parentheses");
+				break;
+			case "flag_option":
+				{
+					// Parse and verify line.
+					let result = verify(parser(pflagoption, indentation));
+
+					// Get result value.
+					let value = result.value[0];
+
+					// If flag chain exists add flag option and increment counter.
+					let chain = lookup[currentchain];
+					if (chain && value) {
+						chain.push(`${currentflag}=${value}`);
+
+						// Increment flag option counter.
+						if (flag_count_options) {
+							// Get values before incrementing.
+							let [counter, linenum] = flag_count_options;
+							// Increment and store values.
+							flag_count_options = [linenum, counter + 1];
+						}
+					}
+
+					// Reset index to start at newline on next iteration.
+					i = result.nl_index - 1;
 				}
-				// Clear flag.
-				flag_count_options = null;
 
-				// Parse line.
-				let result = parser(pbrace);
+				break;
+			case "close_parenthesis":
+				{
+					// Opening flag must be set else this ')' is unmatched.
+					brace_check("unmatched", ")");
+					// If command chain's flag array is empty give warning.
+					if (flag_count_options && !flag_count_options[1]) {
+						brace_check("empty", "parentheses");
+					}
+					// Clear flag.
+					flag_count_options = null;
 
-				// Check result for parsing issues (errors/warnings).
-				verify(result);
+					// Parse and verify line.
+					let result = verify(parser(pbrace));
 
-				// Reset flags.
-				currentflag = null;
-				last_open_pr = null;
+					// Reset flags.
+					currentflag = null;
+					last_open_pr = null;
 
-				// When parsing passes reset the index so that on the next
-				// iteration it continues with the newline character.
-				i = result.nl_index - 1;
-			} else if (line_type === "close_bracket") {
-				// Opening flag must be set else this ']' is unmatched.
-				brace_check("unmatched", "]");
-				// If command chain's flag array is empty give warning.
-				if (flag_count && !flag_count[1]) {
-					brace_check("empty", "brackets");
+					// Reset index to start at newline on next iteration.
+					i = result.nl_index - 1;
 				}
-				// Clear flag.
-				flag_count = null;
 
-				// Parse line.
-				let result = parser(pbrace);
+				break;
+			case "close_bracket":
+				{
+					// Opening flag must be set else this ']' is unmatched.
+					brace_check("unmatched", "]");
+					// If command chain's flag array is empty give warning.
+					if (flag_count && !flag_count[1]) {
+						brace_check("empty", "brackets");
+					}
+					// Clear flag.
+					flag_count = null;
 
-				// Check result for parsing issues (errors/warnings).
-				verify(result);
+					// Parse and verify line.
+					let result = verify(parser(pbrace));
 
-				// Reset flags.
-				currentchain = "";
-				last_open_br = null;
+					// Reset flags.
+					currentchain = "";
+					last_open_br = null;
 
-				// When parsing passes reset the index so that on the next
-				// iteration it continues with the newline character.
-				i = result.nl_index - 1;
-			} else if (line_type === "comment") {
-				// Parse line.
-				let result = parser(pcomment);
+					// Reset index to start at newline on next iteration.
+					i = result.nl_index - 1;
+				}
 
-				// Check result for parsing issues (errors/warnings).
-				verify(result);
+				break;
+			case "comment":
+				{
+					// Parse and verify line.
+					let result = verify(parser(pcomment));
 
-				// When parsing passes reset the index so that on the next
-				// iteration it continues with the newline character.
-				i = result.nl_index - 1;
-			}
+					// Reset index to start at newline on next iteration.
+					i = result.nl_index - 1;
+				}
+
+				break;
 		}
 	}
 

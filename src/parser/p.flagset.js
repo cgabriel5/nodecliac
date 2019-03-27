@@ -133,7 +133,7 @@ module.exports = (...args) => {
 			// Keep building name string...
 			else {
 				// If char is allowed keep building string.
-				if (/[-_a-zA-Z]/.test(char)) {
+				if (/[-_a-zA-Z0-9]/.test(char)) {
 					// Store index.
 					indices.name.end = i;
 					name += char;

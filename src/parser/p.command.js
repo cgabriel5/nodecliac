@@ -33,7 +33,9 @@ module.exports = (...args) => {
 	let value = "";
 	let flagset = "";
 	let flagsets = [];
-	let state = "chain"; // Parsing state.
+	let command = "";
+	let commands = [];
+	let state = "command"; // Parsing state.
 	let nl_index;
 	// Collect all parsing warnings.
 	let warnings = [];
@@ -51,6 +53,9 @@ module.exports = (...args) => {
 			end: null
 		},
 		braces: {
+			open: null
+		},
+		shortcut: {
 			open: null
 		}
 	};
@@ -80,22 +85,58 @@ module.exports = (...args) => {
 			break;
 		}
 
-		// Default parse state to 'chain'.
-		if (state === "chain") {
+		// Default parse state.
+		if (state === "command") {
 			// If char is the first char...
-			if (!chain) {
-				// First char of chain must be a letter.
+			if (!command) {
+				// Check for shortcut opening brace '{'.
+				if (char === "{") {
+					// If an open brace already exists.
+					if (indices.shortcut.open) {
+						return issue("error", 4, char);
+					}
+
+					// Add opening shortcut brace.
+					commands.push(char);
+
+					// Store command string if populated.
+					if (command) {
+						commands.push(command);
+					}
+					// Reset command string.
+					command = "";
+
+					// Store index.
+					indices.shortcut.open = i;
+					// Add char to string.
+					chain += char;
+					continue;
+				}
+				// Check if delimiter after closing shortcut brace.
+				// For example: command.{command}.command
+				//                               ^
+				else if (/[\.\/]/.test(char) && pchar === "}") {
+					// Add delimiter.
+					commands.push(".");
+					// Add char to string.
+					chain += char;
+					continue;
+				}
+
+				// First char of command must be a letter.
 				if (!/[a-zA-Z]/.test(char)) {
 					return issue("error", 1, char);
 				}
 				// Store index.
 				indices.chain.start = i;
+				// Add char to strings.
+				command += char;
 				chain += char;
 			}
-			// Keep building chain string...
+			// Keep building command string...
 			else {
 				// If char is allowed keep building string.
-				if (/[-_.\\\/\{\}a-zA-Z0-9]/.test(char)) {
+				if (/[-_.\\\/a-zA-Z0-9]/.test(char)) {
 					let skip = false;
 
 					// Check for escape char  '\'. Next char must be a dot.
@@ -106,6 +147,7 @@ module.exports = (...args) => {
 					}
 					if (escaping) {
 						// Check if char actually needs to be escaped.
+						// if (nchar !== "." && nchar !== "/") {
 						if (nchar !== ".") {
 							// Must be an allowed character.
 							if (/[-_a-zA-Z0-9]/.test(nchar)) {
@@ -120,21 +162,63 @@ module.exports = (...args) => {
 						escaping = false;
 					}
 
-					// // Check for shortcut curly braces.
-					// if (char === "{") {
-					// 	if (!isshortcut) {
-					// 		isshortcut = true;
-					// 	}
-					// }
-
 					// Store index.
 					indices.chain.end = i;
 					if (!skip) {
-						chain += char;
+						// Don't store command delimiters (unescaped . or /).
+						if (/[\.\/]/.test(char) && pchar !== "\\") {
+							// Store command string if populated.
+							if (command) {
+								commands.push(command, ".");
+							}
+							// Reset command string.
+							command = "";
+
+							// Add char to string.
+							chain += ".";
+						}
+						// If not a command delimiter store character.
+						else {
+							// Add char to strings.
+							command += char;
+							chain += char;
+						}
+					}
+				}
+				// Check for shortcut braces.
+				else if (/[\}\|]/.test(char)) {
+					// Open brace must exist or char is used out of place.
+					if (!indices.shortcut.open) {
+						return issue("error", 4, char);
+					}
+
+					// Store command string if populated.
+					if (command) {
+						commands.push(command);
+					}
+					// Reset command string.
+					command = "";
+
+					// Add closing shortcut brace/pipe separator char.
+					commands.push(char);
+					// Add char to string.
+					chain += char;
+
+					// Closing brace '}'.
+					if (char === "}") {
+						// Clear opening shortcut index.
+						indices.shortcut.open = null;
 					}
 				}
 				// If char is an eq sign change state/reset index.
 				else if (char === "=") {
+					// If brace index is set it was never closed.
+					if (indices.shortcut.open) {
+						// Reset index opened shortcut brace.
+						i = indices.shortcut.open;
+						return issue("error", 7, "{");
+					}
+
 					state = "assignment";
 					i--;
 				}
@@ -142,6 +226,13 @@ module.exports = (...args) => {
 				// this point must be a space until we encounter an eq sign
 				// or the end-of-line.
 				else if (/[ \t]/.test(char) && (!escaping && !isshortcut)) {
+					// If brace index is set it was never closed.
+					if (indices.shortcut.open) {
+						// Reset index opened shortcut brace.
+						i = indices.shortcut.open;
+						return issue("error", 7, "{");
+					}
+
 					state = "chain-wsb";
 					continue;
 				}
@@ -236,6 +327,14 @@ module.exports = (...args) => {
 			}
 		}
 	}
+
+	// Add the last command.
+	if (command) {
+		commands.push(command);
+	}
+
+	// Join command parts and reset chain to normalized chain string.
+	chain = commands.join("");
 
 	// Add final flag set.
 	if (flagset) {

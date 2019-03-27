@@ -123,8 +123,8 @@ module.exports = (...args) => {
 					continue;
 				}
 
-				// First char of command must be a letter.
-				if (!/[a-zA-Z]/.test(char)) {
+				// First char of command must be a letter or semicolon.
+				if (!/[:a-zA-Z]/.test(char)) {
 					return issue("error", 1, char);
 				}
 				// Store index.
@@ -136,7 +136,7 @@ module.exports = (...args) => {
 			// Keep building command string...
 			else {
 				// If char is allowed keep building string.
-				if (/[-_.\\\/a-zA-Z0-9]/.test(char)) {
+				if (/[-_.:\\\/a-zA-Z0-9]/.test(char)) {
 					let skip = false;
 
 					// Check for escape char  '\'. Next char must be a dot.

@@ -41,7 +41,7 @@ module.exports = (...args) => {
 	// Parsing error reasons.
 	let reasons = {
 		"p.setting.js": {
-			0: "Unexpected token '@'.",
+			// 0: "Unexpected token '@'.",
 			1: `Setting started with '${char}'. Expected a letter.`,
 			2: `Unexpected ${ctype} '${char}'.`,
 			3: `Value cannot start with '${char}'.`,

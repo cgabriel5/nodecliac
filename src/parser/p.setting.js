@@ -207,7 +207,7 @@ module.exports = (...args) => {
 		// Reset index so it points to '@' symbol.
 		i = indices.symbol.index;
 
-		return issue("error", 0, "@");
+		return issue("error", 2, "@");
 	}
 
 	// If value exists and is quoted, check that is properly quoted.

@@ -264,7 +264,7 @@ module.exports = (contents, commandname, source) => {
 
 					// Store command chain.
 					if (!lookup[cc]) {
-						lookup[cc] = [];
+						lookup[cc] = new Set();
 					}
 					// Store current command chain.
 					currentchain = cc;
@@ -301,7 +301,7 @@ module.exports = (contents, commandname, source) => {
 
 								// Skip empty flags.
 								if (!/^-{1,}$/.test(flag)) {
-									chain.push(flag);
+									chain.add(flag);
 								}
 							}
 						}
@@ -341,7 +341,7 @@ module.exports = (contents, commandname, source) => {
 					let chain = lookup[currentchain];
 					if (chain) {
 						// Add flag itself to lookup table > command chain.
-						chain.push(`${hyphens}${flag}${setter}`);
+						chain.add(`${hyphens}${flag}${setter}`);
 
 						// It not an opening brace then add values.
 						if (!isopeningpr) {
@@ -351,9 +351,7 @@ module.exports = (contents, commandname, source) => {
 								let value = values[i];
 
 								// Add to lookup table > command chain.
-								chain.push(
-									`${hyphens}${flag}${setter}${value}`
-								);
+								chain.add(`${hyphens}${flag}${setter}${value}`);
 							}
 						}
 					}
@@ -385,7 +383,7 @@ module.exports = (contents, commandname, source) => {
 					// If flag chain exists add flag option and increment counter.
 					let chain = lookup[currentchain];
 					if (chain && value) {
-						chain.push(`${currentflag}=${value}`);
+						chain.add(`${currentflag}=${value}`);
 
 						// Increment flag option counter.
 						if (flag_count_options) {

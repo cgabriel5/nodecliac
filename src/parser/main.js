@@ -531,35 +531,16 @@ module.exports = (contents, commandname, source) => {
 		console.log();
 	})();
 
-	console.log("");
-	console.log(chalk.bold.blue("LOOKUP:"));
-	console.log(lookup);
-	console.log("");
-	console.log(chalk.bold.blue("SETTINGS:"));
-	console.log(settings);
-	console.log("");
-	console.log(chalk.bold.blue("NEWLINES:"));
-
-	for (let i = 0, l = newlines.length; i < l; i++) {
-		// Cache current loop item.
-		let line = newlines[i];
-
-		console.log(line);
-	}
-	console.log("");
-
-	exit([]);
-
-	// // Return generated acdef/config file contents.
-	// return {
-	// 	acdef: header
-	// 		.concat(
-	// 			merge(commandname, lookup, newlines).sort(function(a, b) {
-	// 				return a.localeCompare(b);
-	// 			})
-	// 		)
-	// 		.join("\n")
-	// 		.replace(/\s*$/, ""),
-	// 	config: config(settings, header)
-	// };
+	// Return generated acdef/config file contents.
+	return {
+		acdef: header
+			.concat(
+				post(commandname, lookup, newlines).sort(function(a, b) {
+					return a.localeCompare(b);
+				})
+			)
+			.join("\n")
+			.replace(/\s*$/, ""),
+		config: config(settings, header)
+	};
 };

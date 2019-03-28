@@ -1,9 +1,5 @@
-// Require needed modules.
-const unique = require("./unique.js");
-
 /**
- * Create final contents by combining duplicate command chains with all
- *     their flag sets.
+ * Run post operations on command chain and its respective flag set.
  *
  * @param  {string} commandname - The main command name.
  * @param  {object} lookup - Lookup table containing single chains to their
@@ -15,25 +11,28 @@ module.exports = (commandname, lookup, newlines) => {
 	// Vars.
 	let has_root = false;
 	// RegExp to match main command/first command in chain to remove.
-	let r = new RegExp(`^(${commandname}|[-_a-zA-Z0-9]+)`, "gm");
+	let r = new RegExp(`^(${commandname}|[-_a-zA-Z0-9]+)`);
 
 	// Loop over command chain lookup table.
-	for (let commandchain in lookup) {
-		if (commandchain && lookup.hasOwnProperty(commandchain)) {
+	for (let chain in lookup) {
+		if (chain && lookup.hasOwnProperty(chain)) {
 			// Get flags array.
-			let flags = lookup[commandchain];
-			let fcount = flags.length;
+			let flags = lookup[chain];
+			// Get set length (size).
+			let fcount = flags.size;
 
+			// If set contains flags sort its values.
 			if (fcount) {
-				// Join (flatten) all flag sets:
-				// [https://www.jstips.co/en/javascript/flattening-multidimensional-arrays-in-javascript/]
-				flags = flags.reduce(function(prev, curr) {
-					return prev.concat(curr);
-				});
-
-				// Dedupe and sort flags if multiple sets exist.
-				flags = unique(flags, "alpha").join("|");
-			} else {
+				// Convert set to an array, sort, then turn to string.
+				// [https://stackoverflow.com/a/47243199]
+				flags = Array.from(flags)
+					.sort(function(a, b) {
+						return a.localeCompare(b);
+					})
+					.join("|");
+			}
+			// If no flags reset to empty flag indicator.
+			else {
 				flags = "--";
 			}
 
@@ -41,7 +40,7 @@ module.exports = (commandname, lookup, newlines) => {
 			// when the command name is not the main command in (i.e.
 			// when running on a test file) just remove the first command
 			// name in the chain.
-			let row = `${commandchain.replace(r, "")} ${flags}`;
+			let row = `${chain.replace(r, "")} ${flags}`;
 
 			// Remove multiple ' --' command chains. This will happen for
 			// test files with multiple main commands.
@@ -51,7 +50,7 @@ module.exports = (commandname, lookup, newlines) => {
 				continue;
 			}
 
-			// Finally add to newlines array.
+			// Finally, add to newlines array.
 			newlines.push(row);
 		}
 	}

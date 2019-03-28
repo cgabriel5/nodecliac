@@ -35,6 +35,7 @@ module.exports = (...args) => {
 	let flagsets = [];
 	let command = "";
 	let commands = [];
+	let has_shortcuts = false;
 	let state = "command"; // Parsing state.
 	let nl_index;
 	// Collect all parsing warnings.
@@ -110,6 +111,8 @@ module.exports = (...args) => {
 					indices.shortcut.open = i;
 					// Add char to string.
 					chain += char;
+					// Set flag.
+					has_shortcuts = true;
 					continue;
 				}
 				// Check if delimiter after closing shortcut brace.
@@ -377,6 +380,7 @@ module.exports = (...args) => {
 		flagsets,
 		nl_index,
 		warnings,
+		has_shortcuts,
 		// Return brace opening index for later error checks.
 		br_open_index: indices.braces.open - line_fchar + 1 // Add 1 to account for 0 index.
 	};

@@ -463,6 +463,34 @@ module.exports = (contents, commandname, source) => {
 	brace_check("unclosed", "[");
 	brace_check("unclosed", "(");
 
+	// Expand shortcuts and make any children command chains.
+	for (let chain in lookup) {
+		// Loop through lookup table.
+		if (lookup.hasOwnProperty(chain)) {
+			// Get flags.
+			let flags = lookup[chain];
+
+			// Expand shortcuts in command chain.
+			let sc = shortcuts(chain);
+			// Chains containing shortcuts will return a populated array.
+			if (sc.length) {
+				// Loop over each expanded chain to make
+				for (let i = 0, l = sc.length; i < l; i++) {
+					// Cache current loop item.
+					let shortcut = sc[i];
+					// Create children command chains.
+					mkchain(shortcut, flags, lookup);
+
+					// Finally, delete original chain from object.
+					delete lookup[chain];
+				}
+			} else {
+				// Create children command chains.
+				mkchain(chain, flags, lookup);
+			}
+		}
+	}
+
 	/**
 	 * IIFE arrow function prints parser warnings.
 	 *

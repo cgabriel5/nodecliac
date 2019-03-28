@@ -45,58 +45,58 @@ module.exports = (...args) => {
 		"p.setting.js": {
 			// 0: "Unexpected token '@'.",
 			1: `Setting started with '${char}'. Expected a letter.`,
-			2: `Unexpected ${ctype} '${char}'.`,
+			2: `Unexpected ${ctype}: '${char}'.`,
 			3: `Value cannot start with '${char}'.`,
 			4: `Improperly closed string.`,
 			// Parsing warning reasons.
-			5: `Unescaped ${ctype} '${char}' in value.`,
+			5: `Unescaped ${ctype}: '${char}' in value.`,
 			6: `Empty setting assignment.`,
-			7: `Duplicate setting '${name}'.`,
-			8: `Empty setting '${name}'.`
+			7: `Duplicate setting: '${name}'.`,
+			8: `Empty setting: '${name}'.`
 		},
 		"p.command.js": {
-			1: `Chain started with '${char}'. Expected a letter.`,
-			2: `Unnecessary escape ${ctype} \\${char}.`,
-			3: `Illegal escape sequence \\${char}.`,
-			4: `Unexpected ${ctype} '${char}'.`,
+			1: `Chain started with: '${char}'. Expected a letter.`,
+			2: `Unnecessary escape ${ctype}: \\${char}.`,
+			3: `Illegal escape sequence: \\${char}.`,
+			4: `Unexpected ${ctype}: '${char}'.`,
 			// Parsing warning reasons.
 			5: `Empty command chain assignment.`,
 			6: `Empty '[]' (no flags).`,
-			7: `Unclosed shortcut brace '${char}'.`
+			7: `Unclosed shortcut brace: '${char}'.`
 		},
 		"p.flagset.js": {
 			1: `Setting started with '${char}'. Expected a letter.`,
-			2: `Unexpected ${ctype} '${char}'.`,
+			2: `Unexpected ${ctype}: '${char}'.`,
 			3: `Value cannot start with '${char}'.`,
 			4: `Improperly closed string.`,
 			5: `Unescaped ${ctype} '${char}' in value.`,
 			// Parsing warning reasons.
 			// 6: `Empty flag assignment.`,
-			8: `Empty flag '${name}' (use boolean indicator?).`,
+			8: `Empty flag: '${name}' (use boolean indicator: '?').`,
 			9: `${
 				isvspecial === "command" ? "Command-flag" : "Options flag list"
 			} missing closing ')'.`
 		},
 		"p.flag-command.js": {
-			2: `Unexpected ${ctype} '${char}'.`,
-			3: `Value cannot start with '${char}'.`,
+			2: `Unexpected ${ctype}: '${char}'.`,
+			3: `Value cannot start with: '${char}'.`,
 			4: `Improperly closed string.`,
 			5: `Empty command flag argument.`,
 			6: `Improperly closed command-flag. Missing ')'.`
 		},
 		"p.flag-value.js": {
-			2: `Unexpected ${ctype} '${char}'.`,
+			2: `Unexpected ${ctype}: '${char}'.`,
 			4: `Improperly closed string.`,
-			5: `Unescaped ${ctype} '${char}' in value.`,
+			5: `Unescaped ${ctype}: '${char}' in value.`,
 			10: `Empty '()' (no flag options).`
 		},
 		"p.flagoption.js": {
 			0: `Empty flag option.`,
-			// 2: `Unexpected ${ctype} '${char}'.`,
+			// 2: `Unexpected ${ctype}: '${char}'.`,
 			3: `Invalid flag option.`,
 			4: `Improperly closed string.`
 		},
-		"p.close-brace.js": { 1: `Unexpected ${ctype} '${char}'.` },
+		"p.close-brace.js": { 1: `Unexpected ${ctype}: '${char}'.` },
 		"p.comment.js": {}
 	};
 

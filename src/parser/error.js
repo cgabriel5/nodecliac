@@ -103,9 +103,9 @@ let error = (char = "", code, line, index, source) => {
 
 	// Parsing error reasons.
 	let reasons = {
-		0: `Unexpected start-of-line ${ctype} '${char}'.`,
+		0: `Unexpected start-of-line ${ctype}: '${char}'.`,
 		1: "Command chain cannot be nested.",
-		2: `Unexpected ${ctype} '${char}'.`,
+		2: `Unexpected ${ctype}: '${char}'.`,
 		3: "Improperly nested flag option.",
 		4: "Improperly nested flag.",
 		5: "Invalid line.",

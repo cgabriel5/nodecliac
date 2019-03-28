@@ -5,19 +5,20 @@ const path = require("path");
 const chalk = require("chalk");
 const { exit } = require("../utils.js");
 
-// Require parser functions.
-// const merge = require("./merge.js");
-// const config = require("./config.js");
-// const dedupe = require("./dedupe.js");
-// const shortcuts = require("./shortcuts.js");
-// const formatflags = require("./formatflags.js");
-// Get parsers.
+// Require parsers.
 const psetting = require("./p.setting.js");
 const pcommand = require("./p.command.js");
 const pbrace = require("./p.close-brace.js");
 const pflagset = require("./p.flagset.js");
 const pflagoption = require("./p.flagoption.js");
 const pcomment = require("./p.comment.js");
+
+// Require parser helpers.
+const post = require("./post.js");
+const config = require("./config.js");
+const mkchain = require("./mkchain.js");
+const shortcuts = require("./shortcuts.js");
+
 // Get error checking functions.
 const {
 	issue,

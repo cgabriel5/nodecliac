@@ -53,7 +53,7 @@ let issue = (result, type = "error", col_size) => {
 	let index = result.index;
 
 	// Store line + index length;
-	let line_col_size = (line + "" + index).length;
+	let line_col_size = (line + ":" + index).length;
 	let remainder = col_size - line_col_size;
 
 	// Determine highlight label color/issue symbol.

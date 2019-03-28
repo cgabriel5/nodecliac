@@ -502,10 +502,16 @@ module.exports = (contents, commandname, source) => {
 		// Order warnings by line number then issue.
 		warnings = warnings.sort(function(a, b) {
 			// Store line + index length;
-			let line_col_size = (a.line + "" + (a.index || "")).length;
+			let line_col_size = (a.line + ":" + (a.index || "0")).length;
 			if (line_col_size > line_col_length) {
 				line_col_length = line_col_size;
 			}
+			// Re-do calculation with item b.
+			line_col_size = (b.line + ":" + (b.index || "0")).length;
+			if (line_col_size > line_col_length) {
+				line_col_length = line_col_size;
+			}
+			// [TODO] ^ Find better solution to avoid redundant calculations.
 
 			// [https://coderwall.com/p/ebqhca/javascript-sort-by-two-fields]
 			// [https://stackoverflow.com/a/13211728]

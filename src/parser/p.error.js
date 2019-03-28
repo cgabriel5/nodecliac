@@ -1,3 +1,5 @@
+"use strict";
+
 // Get needed modules.
 const path = require("path");
 

@@ -1,3 +1,5 @@
+"use strict";
+
 /**
  * Expand shortcuts. For example, command.{cmd1|cmd2} will expand
  *     to command.cmd1 and command.cmd2.

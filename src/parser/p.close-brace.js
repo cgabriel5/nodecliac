@@ -1,3 +1,5 @@
+"use strict";
+
 // Get needed modules.
 const issuefunc = require("./p.error.js");
 // Get RegExp patterns.
@@ -24,12 +26,12 @@ module.exports = (...args) => {
 	let nl_index;
 	// Collect all parsing warnings.
 	let warnings = [];
-	// Capture state's start/end indices.
-	let indices = {
-		brace: {
-			close: i
-		}
-	};
+	// // Capture state's start/end indices.
+	// let indices = {
+	// 	brace: {
+	// 		close: i
+	// 	}
+	// };
 
 	// Wrap issue function to add fixed parameters.
 	let issue = (type = "error", code, char = "") => {

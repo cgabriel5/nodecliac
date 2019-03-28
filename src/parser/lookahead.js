@@ -1,3 +1,5 @@
+"use strict";
+
 /**
  * Does 1 of two things. Either looks ahead and captures all characters
  *     until provided RegExp fails or captures all characters until

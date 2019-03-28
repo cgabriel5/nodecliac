@@ -1,3 +1,5 @@
+"use strict";
+
 /**
  * Export used RegExp patterns.
  */
@@ -15,15 +17,15 @@ module.exports = {
 	// Close parentheses.
 	r_close_parens: /^[ \t]*\)[ \t]*$/,
 	// Starting line character.
-	r_start_line_char: /[-@a-zA-Z\)\]#]/,
+	r_start_line_char: /[-@a-zA-Z)\]#]/,
 	// Command setter.
 	r_command_setter: /^[ \t]*=[ \t]*(\[|-{1,2})/,
 	// Flag option.
 	r_flag_option: /^[ \t]*-[ \t]{1,}([^\s]{1,}.*?)$/,
 	// Command.
-	r_command: new RegExp(`[-_.:a-zA-Z0-9\\\\\/{}\|]`),
+	r_command: new RegExp(`[-_.:a-zA-Z0-9\\\\/{}|]`),
 	// Unquoted special characters: [https://stackoverflow.com/a/44581064]
-	r_schars: /(?<!\\)[~`!#\$\^&\*(){}\|\[\];'",<>\? ]/,
+	r_schars: /(?<!\\)[~`!#$^&*(){}|[\];'",<>? ]/,
 	// Setting syntax.
 	r_setting: /^(@[a-zA-Z][_a-zA-Z]*)[ \t]*(=[ \t]*(.*?))?$/,
 	// Flag set.

@@ -1,5 +1,7 @@
-// Get needed modules.
-const issuefunc = require("./p.error.js");
+"use strict";
+
+// // Get needed modules.
+// const issuefunc = require("./p.error.js");
 // Get RegExp patterns.
 let { r_nl } = require("./regexpp.js");
 
@@ -17,7 +19,7 @@ let { r_nl } = require("./regexpp.js");
  */
 module.exports = (...args) => {
 	// Get arguments.
-	let [string, i, l, line_num, line_fchar] = args;
+	let [string, i, l /*line_num, line_fchar*/] = args;
 
 	// Parsing vars.
 	let state = "comment-char"; // Parsing state.
@@ -25,14 +27,14 @@ module.exports = (...args) => {
 	// Collect all parsing warnings.
 	let warnings = [];
 
-	// Wrap issue function to add fixed parameters.
-	let issue = (type = "error", code, char = "") => {
-		// Use multiple parameter arrays to flatten function.
-		let paramset1 = [string, i, l, line_num, line_fchar];
-		let paramset2 = [__filename, warnings, state, type, code, char];
-		// Run and return issue.
-		return issuefunc.apply(null, paramset1.concat(paramset2));
-	};
+	// // Wrap issue function to add fixed parameters.
+	// let issue = (type = "error", code, char = "") => {
+	// 	// Use multiple parameter arrays to flatten function.
+	// 	let paramset1 = [string, i, l, line_num, line_fchar];
+	// 	let paramset2 = [__filename, warnings, state, type, code, char];
+	// 	// Run and return issue.
+	// 	return issuefunc.apply(null, paramset1.concat(paramset2));
+	// };
 
 	// Increment index by 1 to skip symbol character.
 	i++;

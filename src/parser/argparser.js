@@ -1,5 +1,4 @@
-// Require parser functions.
-const balanced = require("./balanced.js");
+"use strict";
 
 /**
  * Parse string by spaces. Takes into account quotes strings with spaces.
@@ -17,7 +16,7 @@ const balanced = require("./balanced.js");
  *     [https://github.com/mccormicka/string-argv]
  *     [https://github.com/adarqui/argparser-js]
  */
-module.exports = (input, flag, error, warning, line_count) => {
+module.exports = (input, flag, error, warning /*line_count*/) => {
 	// Vars.
 	let current = "";
 	let quote_char = "";
@@ -29,7 +28,7 @@ module.exports = (input, flag, error, warning, line_count) => {
 
 	// RegExp patterns.
 	// Unquoted special characters: [https://stackoverflow.com/a/44581064]
-	let r_schars = /(?<!\\)[~`!#\$\^&\*(){}\|\[\];'",<>\? ]/;
+	let r_schars = /(?<!\\)[~`!#$^&*(){}|[\];'",<>? ]/;
 
 	// Return empty array when input is empty.
 	if (!input || !input.length) {
@@ -43,7 +42,7 @@ module.exports = (input, flag, error, warning, line_count) => {
 	 * @param  {string} arg [description]
 	 * @return {undefined} - Console warning if unescaped characters found.
 	 */
-	let has_special_chars = (arg, n) => {
+	let has_special_chars = (arg /*n*/) => {
 		// If arg is unquoted check for unescaped special characters.
 		if (!/^("|')/.test(arg)) {
 			// Check for special characters in argument.

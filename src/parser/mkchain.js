@@ -1,3 +1,5 @@
+"use strict";
+
 // Needed modules.
 let { concat_sets } = require("../utils.js");
 

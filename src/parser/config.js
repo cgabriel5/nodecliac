@@ -1,3 +1,5 @@
+"use strict";
+
 /**
  * Build acdef config file contents from extracted settings.
  *

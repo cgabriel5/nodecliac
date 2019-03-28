@@ -1,3 +1,5 @@
+"use strict";
+
 // Get needed modules.
 const issuefunc = require("./p.error.js");
 // Get RegExp patterns.
@@ -118,7 +120,7 @@ module.exports = (...args) => {
 				// Check if delimiter after closing shortcut brace.
 				// For example: command.{command}.command
 				//                               ^
-				else if (/[\.\/]/.test(char) && pchar === "}") {
+				else if (/[./]/.test(char) && pchar === "}") {
 					// Add delimiter.
 					commands.push(".");
 					// Add char to string.
@@ -139,7 +141,7 @@ module.exports = (...args) => {
 			// Keep building command string...
 			else {
 				// If char is allowed keep building string.
-				if (/[-_.:\\\/a-zA-Z0-9]/.test(char)) {
+				if (/[-_.:\\/a-zA-Z0-9]/.test(char)) {
 					let skip = false;
 
 					// Check for escape char  '\'. Next char must be a dot.
@@ -169,7 +171,7 @@ module.exports = (...args) => {
 					indices.chain.end = i;
 					if (!skip) {
 						// Don't store command delimiters (unescaped . or /).
-						if (/[\.\/]/.test(char) && pchar !== "\\") {
+						if (/[./]/.test(char) && pchar !== "\\") {
 							// Store command string if populated.
 							if (command) {
 								commands.push(command, ".");
@@ -189,7 +191,7 @@ module.exports = (...args) => {
 					}
 				}
 				// Check for shortcut braces.
-				else if (/[\}\|]/.test(char)) {
+				else if (/[}|]/.test(char)) {
 					// Open brace must exist or char is used out of place.
 					if (!indices.shortcut.open) {
 						return issue("error", 4, char);

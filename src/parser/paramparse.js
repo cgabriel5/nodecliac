@@ -1,3 +1,5 @@
+"use strict";
+
 /**
  * Parse string command flag ($("")) arguments. This is done to basically
  *     to make command-flags uniform. For example, user can space out
@@ -124,13 +126,13 @@ module.exports = input => {
 	if (argument) {
 		args.push(argument);
 
-		// If arg is empty return an error.
-		if (!argument) {
-			return {
-				char,
-				pos: i
-			};
-		}
+		// // If arg is empty return an error.
+		// if (!argument) {
+		// 	return {
+		// 		char,
+		// 		pos: i
+		// 	};
+		// }
 
 		// args_count++;
 	}

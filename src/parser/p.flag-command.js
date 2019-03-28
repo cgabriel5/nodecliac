@@ -1,7 +1,7 @@
+"use strict";
+
 // Get needed modules.
 const issuefunc = require("./p.error.js");
-// Get RegExp patterns.
-let { r_schars, r_nl } = require("./regexpp.js");
 
 /**
  * Parses command flag into its individual arguments.
@@ -158,7 +158,7 @@ module.exports = (...args) => {
 			} else if (state === "closing-parens") {
 				// Make a final check. The char after the closing ')'
 				// has to be an end-of-line character or a space.
-				if (nchar && !/[ \t\)]/.test(nchar)) {
+				if (nchar && !/[ \t)]/.test(nchar)) {
 					return issue("error", 2, nchar);
 				}
 

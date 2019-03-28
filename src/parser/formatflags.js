@@ -1,3 +1,5 @@
+"use strict";
+
 // Require needed modules.
 const paramparse = require("./paramparse.js");
 

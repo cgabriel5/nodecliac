@@ -1,3 +1,5 @@
+"use strict";
+
 /**
  * Run post operations on command chain and its respective flag set.
  *

@@ -1,8 +1,10 @@
+"use strict";
+
 // Require needed modules.
 const issuefunc = require("./p.error.js");
 const pflagvalue = require("./p.flag-value.js");
 // Get RegExp patterns.
-let { r_schars, r_nl } = require("./regexpp.js");
+let { r_nl } = require("./regexpp.js");
 
 /**
  * Parses flag option line.
@@ -27,7 +29,7 @@ module.exports = (...args) => {
 	let boundary = "";
 	let assignment = "";
 	let value = "";
-	let qchar; // String quote char.
+	// let qchar; // String quote char.
 	let state = "symbol"; // Parsing state.
 	let nl_index;
 	// Collect all parsing warnings.
@@ -63,8 +65,8 @@ module.exports = (...args) => {
 	for (; i < l; i++) {
 		// Cache current loop item.
 		let char = string.charAt(i);
-		let pchar = string.charAt(i - 1);
-		let nchar = string.charAt(i + 1);
+		// let pchar = string.charAt(i - 1);
+		// let nchar = string.charAt(i + 1);
 
 		// End loop on a new line char.
 		if (r_nl.test(char)) {

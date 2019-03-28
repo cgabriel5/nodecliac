@@ -1,3 +1,5 @@
+"use strict";
+
 /**
  * Make the provided array unique.
  *

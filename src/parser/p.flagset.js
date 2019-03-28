@@ -1,3 +1,5 @@
+"use strict";
+
 // Require needed modules.
 const issuefunc = require("./p.error.js");
 const pflagvalue = require("./p.flag-value.js");
@@ -27,7 +29,7 @@ let { r_schars, r_nl } = require("./regexpp.js");
  */
 module.exports = (...args) => {
 	// Get arguments.
-	let [string, i, l, line_num, line_fchar, indentation] = args;
+	let [string, i, l, line_num, line_fchar /*indentation*/] = args;
 
 	// Parsing vars.
 	let symbol = "";
@@ -212,7 +214,7 @@ module.exports = (...args) => {
 					qchar = char;
 				}
 				// Command-flag or options list.
-				else if (/[\$\(]/.test(char)) {
+				else if (/[$(]/.test(char)) {
 					isvspecial = char === "$" ? "command" : "list";
 
 					if (char === "$" && nchar !== "(") {

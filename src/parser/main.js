@@ -3,7 +3,6 @@
 // Needed modules.
 const path = require("path");
 const chalk = require("chalk");
-const { exit } = require("../utils.js");
 
 // Require parsers.
 const psetting = require("./p.setting.js");
@@ -58,8 +57,7 @@ module.exports = (contents, commandname, source) => {
 	// RegExp patterns:
 	let r_letter = /[a-zA-Z]/; // Letter.
 	let r_whitespace = /[ \t]/; // Whitespace.
-	let r_nl = new RegExp(`(\\r?\\n)`); // New line character.
-	let r_start_line_char = /[-@a-zA-Z\)\]#]/; // Starting line character.
+	let r_start_line_char = /[-@a-zA-Z)\]#]/; // Starting line character.
 
 	// Create error functions wrappers to add fixed parameters.
 	let verify = result => {
@@ -101,7 +99,7 @@ module.exports = (contents, commandname, source) => {
 	for (; i < l; i++) {
 		// Cache current/previous/next chars.
 		let char = contents.charAt(i);
-		let pchar = contents.charAt(i - 1);
+		// let pchar = contents.charAt(i - 1);
 		let nchar = contents.charAt(i + 1);
 
 		// Check if \r?\n newline sequence.
@@ -259,7 +257,7 @@ module.exports = (contents, commandname, source) => {
 
 					// Get command chain.
 					let cc = result.chain;
-					let value = result.value;
+					// let value = result.value;
 					// Get opening brace index.
 					let br_index = result.br_open_index;
 
@@ -323,7 +321,7 @@ module.exports = (contents, commandname, source) => {
 					let flag = result.name;
 					let setter = result.assignment;
 					let values = result.value;
-					let special = result.special;
+					// let special = result.special;
 					let isopeningpr = result.isopeningpr;
 					// Get opening brace index.
 					let pr_index = result.pr_open_index;

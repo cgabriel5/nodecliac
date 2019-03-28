@@ -1,3 +1,5 @@
+"use strict";
+
 // Needed modules.
 const path = require("path");
 const chalk = require("chalk");
@@ -146,9 +148,7 @@ let brace_check = args => {
 	} = args;
 
 	// Determine which data set to use.
-	let data = /[\[\]]|brackets/.test(brace_style)
-		? last_open_br
-		: last_open_pr;
+	let data = /[[\]]|brackets/.test(brace_style) ? last_open_br : last_open_pr;
 
 	if (!data) {
 		if (issue === "unmatched") {

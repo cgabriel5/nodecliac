@@ -1,3 +1,5 @@
+"use strict";
+
 // Get needed modules.
 const issuefunc = require("./p.error.js");
 // Get RegExp patterns.
@@ -78,7 +80,7 @@ module.exports = (...args) => {
 		// Cache current loop item.
 		let char = string.charAt(i);
 		let pchar = string.charAt(i - 1);
-		let nchar = string.charAt(i + 1);
+		// let nchar = string.charAt(i + 1);
 
 		// End loop on a new line char.
 		if (r_nl.test(char)) {

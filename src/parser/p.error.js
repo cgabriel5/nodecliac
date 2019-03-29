@@ -65,7 +65,9 @@ module.exports = (...args) => {
 			// Parsing warning reasons.
 			5: `Empty command chain assignment.`,
 			6: `Empty '[]' (no flags).`,
-			7: `Unclosed shortcut brace: '${char}'.`
+			7: `Unclosed shortcut brace: '${char}'.`,
+			8: `Illegal command delimiter: '${char}'.`,
+			9: `Illegal shortcut delimiter: '${char}'.`
 		},
 		"p.flagset.js": {
 			1: `Setting started with '${char}'. Expected a letter.`,

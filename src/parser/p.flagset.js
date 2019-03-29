@@ -135,7 +135,12 @@ module.exports = (...args) => {
 			// Keep building name string...
 			else {
 				// If char is allowed keep building string.
-				if (/[-_a-zA-Z0-9]/.test(char)) {
+				if (/[-_.a-zA-Z0-9]/.test(char)) {
+					// Give warning for consecutive dots.
+					if (char === "." && nchar === ".") {
+						issue("warning", 10, nchar);
+					}
+
 					// Store index.
 					indices.name.end = i;
 					name += char;

@@ -80,7 +80,8 @@ module.exports = (...args) => {
 			8: `Empty flag: '${name}' (use boolean indicator: '?').`,
 			9: `${
 				isvspecial === "command" ? "Command-flag" : "Options flag list"
-			} missing closing ')'.`
+			} missing closing ')'.`,
+			10: `Empty flag namespace '${char}'.`
 		},
 		"p.flag-command.js": {
 			2: `Unexpected ${ctype}: '${char}'.`,

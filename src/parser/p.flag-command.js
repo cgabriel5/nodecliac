@@ -40,6 +40,7 @@ module.exports = (...args) => {
 	let closed = false;
 	let delimiter_count = 0;
 	let cmd_str = "";
+	let is_cmd_arg; // Is command-flag arg using '$' command indicator?
 	// Collect all parsing warnings.
 	let warnings = [];
 	// Capture state's start/end indices.
@@ -116,6 +117,16 @@ module.exports = (...args) => {
 			} else if (char === ")") {
 				state = "closing-parens";
 				i--;
+			}
+			// Command flag argument indicator/symbol.
+			else if (char === "$") {
+				// The following char must be a quote.
+				if (!/["']/.test(nchar)) {
+					return issue("error", 2, char);
+				}
+
+				// Set flag.
+				is_cmd_arg = true;
 			} else {
 				// If char is anything other than q quote or a comma
 				// the character is not allowed so return an error.
@@ -133,6 +144,11 @@ module.exports = (...args) => {
 					// Store value.
 					value = `${qchar}${value}${qchar}`;
 
+					// Add '$' flag argument indicator if flag is set.
+					if (is_cmd_arg) {
+						value = `\$${value}`;
+					}
+
 					if (!cmd_str) {
 						cmd_str = value;
 					} else {
@@ -142,6 +158,7 @@ module.exports = (...args) => {
 
 					// Clear value.
 					value = "";
+					is_cmd_arg = null;
 					continue;
 				}
 
@@ -189,10 +206,18 @@ module.exports = (...args) => {
 	// Add final value if it exists.
 	if (value) {
 		value = `${qchar}${value}${qchar}`;
+
+		// Add '$' flag argument indicator if flag is set.
+		if (is_cmd_arg) {
+			value = `\$${value}`;
+		}
+
 		cmd_str += ",";
 		cmd_str += value;
-		// Reset value.
+
+		// Clear value.
 		value = "";
+		is_cmd_arg = null;
 	}
 
 	// Return relevant parsing information.

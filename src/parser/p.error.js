@@ -40,6 +40,9 @@ module.exports = (...args) => {
 	// Get character type.
 	let ctype = char && Number(char) ? "number" : "character";
 
+	// Replace whitespace characters with their respective symbols.
+	char = char.replace(/ /g, "␣").replace(/\t/g, "⇥");
+
 	// Parsing error reasons.
 	let reasons = {
 		"p.setting.js": {
@@ -102,9 +105,6 @@ module.exports = (...args) => {
 
 	// Generate issue with provided information.
 	return ((type = "error", code, char = "") => {
-		// Replace whitespace characters with their respective symbols.
-		char = char.replace(/ /g, "␣").replace(/\t/g, "⇥");
-
 		// Calculate character index.
 		let index = is_intermediary_file ? ci - line_fchar : i - line_fchar + 1; // Add 1 to account for 0 index.
 

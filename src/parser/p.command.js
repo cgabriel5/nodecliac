@@ -2,6 +2,7 @@
 
 // Get needed modules.
 const issuefunc = require("./p.error.js");
+const pflagset = require("./p.flagset.js");
 // Get RegExp patterns.
 let { r_nl } = require("./regexpp.js");
 
@@ -58,6 +59,9 @@ module.exports = (...args) => {
 		},
 		shortcut: {
 			open: null
+		},
+		oneliner: {
+			start: null
 		}
 	};
 	// Store brace state (open/closed).
@@ -303,6 +307,10 @@ module.exports = (...args) => {
 				} else if (char === "-") {
 					// Parsing a one-line flag.
 					state = "flagset-oneline";
+
+					// Set index.
+					indices.oneliner.start = i;
+
 					i--;
 					continue;
 				} else {
@@ -341,11 +349,42 @@ module.exports = (...args) => {
 
 			// Get individual flag sets. Use unescaped '|' as the delimiter.
 			if (char === "|" && pchar !== "\\") {
-				// [TODO] Run other checks on flag set.
+				// Run flag value parser from here...
+				let pvalue = pflagset(
+					string,
+					indices.oneliner.start, // Index to resume parsing at...
+					l,
+					line_num,
+					line_fchar,
+					undefined,
+					true // Let parser know to end on newline or pipe chars.
+				);
+
+				// Get result values.
+				let symbol = pvalue.symbol;
+				let name = pvalue.name;
+				let assignment = pvalue.assignment;
+				let value = pvalue.value;
+				let nl_index = pvalue.nl_index;
+
+				// Reset flag to newly parsed value.
+				flagset = `${symbol}${name}${assignment}${value}`;
+
+				// Reset oneliner start index.
+				indices.oneliner.start = (nl_index || i) + 1;
 				// Store current flag set.
 				flagsets.push(flagset);
 				// Reset flag set string.
 				flagset = "";
+
+				// Join warnings.
+				if (pvalue.warnings.length) {
+					warnings = warnings.concat(pvalue.warnings);
+				}
+				// If error exists return error.
+				if (pvalue.code) {
+					return pvalue;
+				}
 			} else {
 				// Build flag set string.
 				flagset += char;

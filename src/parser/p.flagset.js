@@ -4,7 +4,7 @@
 const issuefunc = require("./p.error.js");
 const pflagvalue = require("./p.flag-value.js");
 // Get RegExp patterns.
-let { r_schars, r_nl } = require("./regexpp.js");
+let { r_schars, r_nl, r_nlpipe } = require("./regexpp.js");
 
 /**
  * Parses flag set line to extract flag name, value, and its other components.
@@ -29,7 +29,7 @@ let { r_schars, r_nl } = require("./regexpp.js");
  */
 module.exports = (...args) => {
 	// Get arguments.
-	let [string, i, l, line_num, line_fchar /*indentation*/] = args;
+	let [string, i, l, line_num, line_fchar /*indentation*/, , usepipe] = args;
 
 	// Parsing vars.
 	let symbol = "";
@@ -87,6 +87,9 @@ module.exports = (...args) => {
 		return issuefunc.apply(null, paramset1.concat(paramset2));
 	};
 
+	// Determine character/delimiter to end on.
+	let r_echar = !usepipe ? r_nl : r_nlpipe;
+
 	// Loop over string.
 	for (; i < l; i++) {
 		// Cache current loop item.
@@ -95,7 +98,7 @@ module.exports = (...args) => {
 		let nchar = string.charAt(i + 1);
 
 		// End loop on a new line char.
-		if (r_nl.test(char)) {
+		if (r_echar.test(char)) {
 			// Store newline index.
 			nl_index = i;
 			break;

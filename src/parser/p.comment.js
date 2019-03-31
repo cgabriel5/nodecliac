@@ -26,6 +26,7 @@ module.exports = (...args) => {
 	let nl_index;
 	// Collect all parsing warnings.
 	let warnings = [];
+	let comment = "";
 
 	// // Wrap issue function to add fixed parameters.
 	// let issue = (type = "error", code, char = "") => {
@@ -56,9 +57,10 @@ module.exports = (...args) => {
 		// Default parse state.
 		if (state === "comment-char") {
 			// Allow for any characters in comments.
+			comment += char;
 		}
 	}
 
 	// Return relevant parsing information.
-	return { nl_index, warnings };
+	return { comment, nl_index, warnings };
 };

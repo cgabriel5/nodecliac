@@ -1,9 +1,5 @@
 "use strict";
 
-// Needed modules.
-const path = require("path");
-const chalk = require("chalk");
-
 // Require parsers.
 const psetting = require("./p.setting.js");
 const pcommand = require("./p.command.js");

@@ -11,7 +11,7 @@ module.exports = {
 	// New line character.
 	r_nl: new RegExp(`(\\r?\\n)`),
 	// Pipe oneliner delimiter.
-	r_nlpipe: new RegExp(`(\\r?\\n|\\\|)`),
+	r_nlpipe: new RegExp(`(\\r?\\n|\\|)`),
 	// Open command bracket.
 	r_open_command_br: /^\[\]?$/,
 	// Close bracket.

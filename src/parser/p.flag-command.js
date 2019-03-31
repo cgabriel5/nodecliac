@@ -146,7 +146,7 @@ module.exports = (...args) => {
 
 					// Add '$' flag argument indicator if flag is set.
 					if (is_cmd_arg) {
-						value = `\$${value}`;
+						value = `$${value}`;
 					}
 
 					if (!cmd_str) {
@@ -209,7 +209,7 @@ module.exports = (...args) => {
 
 		// Add '$' flag argument indicator if flag is set.
 		if (is_cmd_arg) {
-			value = `\$${value}`;
+			value = `$${value}`;
 		}
 
 		cmd_str += ",";

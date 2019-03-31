@@ -30,7 +30,7 @@ module.exports = (lines, formatting) => {
 		let [pline, ptype] = pdata;
 		// Get next line info.
 		let ndata = lines[i + 1] || [];
-		let [nline, ntype] = ndata;
+		let [, /*nline*/ ntype] = ndata;
 
 		// Determine indentation.
 		let indentation = !indentation_amount

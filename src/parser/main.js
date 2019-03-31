@@ -170,13 +170,13 @@ module.exports = (contents, commandname, source, formatting) => {
 			if (currentflag) {
 				switch (char) {
 					case ")":
-						line_type = "close_parenthesis";
+						line_type = "close-parenthesis";
 						break;
 					case "#":
 						line_type = "comment";
 						break;
 					default:
-						line_type = "flag_option";
+						line_type = "flag-option";
 				}
 			} else {
 				// Char must be an allowed starting char.
@@ -195,13 +195,13 @@ module.exports = (contents, commandname, source, formatting) => {
 						line_type = "comment";
 						break;
 					case char === "]":
-						line_type = "close_bracket";
+						line_type = "close-bracket";
 						break;
 					case char === "-":
 						// If flag is set we are getting flag options.
-						line_type = currentflag ? "flag_option" : "flag_set";
+						line_type = currentflag ? "flag-option" : "flag-set";
 
-						// If command chain doesn't exist but a flag_set or
+						// If command chain doesn't exist but a flag-set or
 						// option was detected the line was illegally declared.
 						if (!currentchain) {
 							// Check for improperly declared flag/option.
@@ -215,7 +215,7 @@ module.exports = (contents, commandname, source, formatting) => {
 
 						break;
 					case char === ")":
-						line_type = "close_parenthesis";
+						line_type = "close-parenthesis";
 						break;
 					case r_letter.test(char):
 						line_type = "command";
@@ -346,7 +346,7 @@ module.exports = (contents, commandname, source, formatting) => {
 				}
 
 				break;
-			case "flag_set":
+			case "flag-set":
 				{
 					// Check for an unclosed '('.
 					brace_check("unclosed", "(");
@@ -389,7 +389,7 @@ module.exports = (contents, commandname, source, formatting) => {
 								? `${setter}(`
 								: ""
 						}`,
-						"flag_set",
+						"flag-set",
 						1
 					);
 
@@ -451,7 +451,7 @@ module.exports = (contents, commandname, source, formatting) => {
 				}
 
 				break;
-			case "flag_option":
+			case "flag-option":
 				{
 					// Parse and verify line.
 					let result = verify(parser(pflagoption, indentation));
@@ -463,7 +463,7 @@ module.exports = (contents, commandname, source, formatting) => {
 					let chain = lookup[currentchain];
 					if (chain && value) {
 						// Add line to format later.
-						preformat(`- ${value}`, "flag_option", 2);
+						preformat(`- ${value}`, "flag-option", 2);
 
 						chain.add(`${currentflag}=${value}`);
 
@@ -481,7 +481,7 @@ module.exports = (contents, commandname, source, formatting) => {
 				}
 
 				break;
-			case "close_parenthesis":
+			case "close-parenthesis":
 				{
 					// Opening flag must be set else this ')' is unmatched.
 					brace_check("unmatched", ")");
@@ -500,14 +500,14 @@ module.exports = (contents, commandname, source, formatting) => {
 					last_open_pr = null;
 
 					// Add line to format later.
-					preformat(`)`, "close_brace", 1);
+					preformat(`)`, "close-brace", 1);
 
 					// Reset index to start at newline on next iteration.
 					i = result.nl_index - 1;
 				}
 
 				break;
-			case "close_bracket":
+			case "close-bracket":
 				{
 					// Opening flag must be set else this ']' is unmatched.
 					brace_check("unmatched", "]");
@@ -526,7 +526,7 @@ module.exports = (contents, commandname, source, formatting) => {
 					last_open_br = null;
 
 					// Add line to format later.
-					preformat(`]`, "close_brace");
+					preformat(`]`, "close-brace");
 
 					// Reset index to start at newline on next iteration.
 					i = result.nl_index - 1;

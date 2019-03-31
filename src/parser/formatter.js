@@ -48,10 +48,10 @@ module.exports = (lines, formatting) => {
 
 		// Skip empty lines after an opened command or before closing braces.
 		if (type === "nl") {
-			if (ptype === "nl" && /(close_brace)/.test(ntype)) {
+			if (ptype === "nl" && /(close-brace)/.test(ntype)) {
 				continue;
 			} else if (
-				((ptype === "flag_set" && pline.endsWith("(")) ||
+				((ptype === "flag-set" && pline.endsWith("(")) ||
 					(ptype === "command" && pline.endsWith("["))) &&
 				ntype === "nl"
 			) {

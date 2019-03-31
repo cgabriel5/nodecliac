@@ -10,7 +10,7 @@ const { exit } = require("./utils.js");
 // Get CLI parameters.
 const args = minimist(process.argv.slice(2));
 // Get the provided action to run.
-const [action] = args._;
+let [action] = args._;
 // Allowed actions.
 const actions = [
 	"setup",
@@ -20,7 +20,8 @@ const actions = [
 	"remove",
 	"add",
 	"status",
-	"print"
+	"print",
+	"format"
 ];
 
 // Run action's respective file if provided.
@@ -32,6 +33,11 @@ if (action) {
 	// Check if command exists.
 	if (!actions.includes(action)) {
 		exit([`Supplied unknown command ${chalk.bold(action)}.`]);
+	}
+
+	// If action is 'format' switch to 'make'.
+	if (action === "format") {
+		action = "make";
 	}
 
 	require(`./${action}.js`)(args);

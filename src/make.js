@@ -13,8 +13,49 @@ module.exports = args => {
 	let { acmapspath } = paths;
 
 	// Get CLI args.
-	let { source, print, add, save } = args;
+	let { source, print, add, save, indent } = args;
 	let parser = require("./parser/main.js");
+	// Formatting indentation values.
+	let indent_char = "\t",
+		indent_amount = 1;
+	let formatting = args._[0] === "format";
+
+	// If formatting check that indentation information was provided.
+	if (formatting) {
+		// If indent flag is not provided exit and error.
+		if (!indent) {
+			exit([
+				`Please provide indentation information via ${chalk.bold(
+					"--indent"
+				)} flag.`
+			]);
+		}
+
+		// Validate indentation flag.
+		if (typeof indent !== "string") {
+			exit([`${chalk.bold("--indent")}'s value must be a string.`]);
+		}
+
+		// Validate indentation flag.
+		if (!/^(s|t):\d$/.test(indent)) {
+			exit([`Invalid indentation value.`]);
+		}
+
+		// Else if all good, parse indentation information.
+		let parts = indent.split(":", 2);
+		// Get values.
+		indent_char = parts[0];
+		indent_amount = parts[1];
+		// Set default values.
+		indent_char = indent_char === "s" ? " " : "\t";
+		indent_amount;
+		// Cast amount to number.
+		indent_amount;
+
+		// // Set print flag to bypass checks.
+		// args.print = true;
+		// print = true;
+	}
 
 	// Source must be provided.
 	if (!source) {
@@ -42,7 +83,7 @@ module.exports = args => {
 	source = path.join(process.cwd(), source);
 
 	// Also requires one of the following flags to do anything.
-	if (!(save || add || print)) {
+	if (!(save || add || print || indent)) {
 		exit([
 			`Must also provide one of the following flags: ${chalk.bold(
 				"--save"
@@ -63,10 +104,11 @@ module.exports = args => {
 		}
 
 		// Generate acmap.
-		let { acdef: acmap, config } = parser(
+		let { acdef: acmap, config, formatted } = parser(
 			fs.readFileSync(source).toString(),
 			commandname,
-			source
+			source,
+			formatting ? [indent_char, indent_amount] : undefined
 		);
 		let savename = `${commandname}.acdef`;
 		let saveconfigname = `.${commandname}.config.acdef`;
@@ -101,6 +143,21 @@ module.exports = args => {
 			console.log(acmap);
 			console.log(`\n[${chalk.bold(`.${commandname}.config.acdef`)}]\n`);
 			console.log(config);
+		}
+
+		// If formatting print the output.
+		if (formatting) {
+			console.log(
+				`${"-".repeat(25)}${chalk.bold.blue(`Prettied`)}${"-".repeat(
+					25
+				)}\n`
+			);
+			console.log(formatted);
+			console.log(
+				`\n${"-".repeat(25)}${chalk.bold.blue(`Prettied`)}${"-".repeat(
+					25
+				)}\n`
+			);
 		}
 	});
 };

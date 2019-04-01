@@ -22,6 +22,9 @@ const {
 } = require("./error.js");
 
 module.exports = (contents, commandname, source, formatting) => {
+	// Vars - timers.
+	let stime = process.hrtime(); // Store start time tuple array.
+
 	// Vars - Main loop.
 	let i = 0;
 	let l = contents.length;
@@ -597,13 +600,7 @@ module.exports = (contents, commandname, source, formatting) => {
 	return {
 		acdef: require("./acdef.js")(commandname, lookup, lk_size, header),
 		config: require("./config.js")(settings, header),
-				post(commandname, lookup, newlines).sort(function(a, b) {
-					return a.localeCompare(b);
-				})
-			)
-			.join("\n")
-			.replace(/\s*$/, ""),
-		config: config(settings, header),
-		formatted: require("./formatter.js")(preformat.lines, formatting)
+		formatted: require("./formatter.js")(preformat.lines, formatting),
+		time: process.hrtime(stime) // Return end time tuple array.
 	};
 };

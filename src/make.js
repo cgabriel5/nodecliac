@@ -104,7 +104,7 @@ module.exports = args => {
 		}
 
 		// Generate acmap.
-		let { acdef: acmap, config, formatted } = parser(
+		let { acdef: acmap, config, formatted, time } = parser(
 			fs.readFileSync(source).toString(),
 			commandname,
 			source,
@@ -175,19 +175,14 @@ module.exports = args => {
 				);
 			}
 
-		// If formatting print the output.
-		if (formatting) {
-			console.log(
-				`${"-".repeat(25)}${chalk.bold.blue(`Prettied`)}${"-".repeat(
-					25
-				)}\n`
-			);
-			console.log(formatted);
-			console.log(
-				`\n${"-".repeat(25)}${chalk.bold.blue(`Prettied`)}${"-".repeat(
-					25
-				)}\n`
-			);
+			// Time in seconds: [https://stackoverflow.com/a/41443682]
+			// [https://stackoverflow.com/a/18031945]
+			// [https://stackoverflow.com/a/1975103]
+			// [https://blog.abelotech.com/posts/measure-execution-time-nodejs-javascript/]
+			const duration = ((time[0] * 1e3 + time[1] / 1e6) / 1e3).toFixed(3);
+			log(`Completed in ${duration}s.`);
+			console.log();
+			// hrtime wrapper: [https://github.com/seriousManual/hirestime]
 		}
 	});
 };

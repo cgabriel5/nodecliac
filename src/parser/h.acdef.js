@@ -23,6 +23,9 @@ module.exports = (commandname, lookup, lk_size, header) => {
 	// Store lines.
 	let lines = [];
 
+	// RegExp patter for multi-flag indicator.
+	let r_mf = /=\*$/;
+
 	// If lines array is empty give warning and exit.
 	if (!lk_size) {
 		exit(
@@ -48,7 +51,14 @@ module.exports = (commandname, lookup, lk_size, header) => {
 				// [https://stackoverflow.com/a/47243199]
 				flags = Array.from(flags)
 					.sort(function(a, b) {
-						return a.localeCompare(b);
+						return (
+							// Give multi-flags higher sorting precedence.
+							// [https://stackoverflow.com/a/9604891]
+							// [https://stackoverflow.com/a/24292023]
+							// [http://www.javascripttutorial.net/javascript-array-sort/]
+							~~b.endsWith("=*") - ~~a.endsWith("=*") ||
+							a.localeCompare(b)
+						);
 					})
 					.join("|");
 			}

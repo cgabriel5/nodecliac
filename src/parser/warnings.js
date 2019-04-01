@@ -15,6 +15,11 @@ module.exports = (warnings, issue, source) => {
 	// Track longest (line + index) column to evenly space line/char.
 	let line_col_length = 0;
 
+	// Return if warnings array is empty (no warnings to log).
+	if (!warnings.length) {
+		return;
+	}
+
 	// Order warnings by line number then issue.
 	warnings = warnings.sort(function(a, b) {
 		// Store line + index length;

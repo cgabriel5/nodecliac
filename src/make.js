@@ -139,11 +139,37 @@ module.exports = args => {
 
 		// Log acmap file contents if print flag provided.
 		if (print) {
-			console.log(`[${chalk.bold(`${commandname}.acdef`)}]\n`);
-			console.log(acmap);
-			console.log(`\n[${chalk.bold(`.${commandname}.config.acdef`)}]\n`);
-			console.log(config);
-		}
+			// Print generated acdef/config file contents.
+			if (!formatting) {
+				if (acmap) {
+					console.log(`[${chalk.bold(`${commandname}.acdef`)}]\n`);
+					console.log(acmap);
+					if (!config) {
+						console.log(); // Bottom padding.
+					}
+				}
+				if (config) {
+					console.log(
+						`\n[${chalk.bold(`.${commandname}.config.acdef`)}]\n`
+					);
+					console.log(config);
+					console.log(); // Bottom padding.
+				}
+			}
+			// If formatting print the output.
+			else {
+				console.log(
+					`${"-".repeat(25)}${chalk.bold.blue(
+						`Prettied`
+					)}${"-".repeat(25)}\n`
+				);
+				console.log(formatted);
+				console.log(
+					`\n${"-".repeat(25)}${chalk.bold.blue(
+						`Prettied`
+					)}${"-".repeat(25)}\n`
+				);
+			}
 
 		// If formatting print the output.
 		if (formatting) {

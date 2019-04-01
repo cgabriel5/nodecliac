@@ -9,8 +9,6 @@ const pflagoption = require("./p.flagoption.js");
 const pcomment = require("./p.comment.js");
 
 // Require parser helpers.
-const post = require("./post.js");
-const config = require("./config.js");
 const mkchain = require("./mkchain.js");
 const shortcuts = require("./shortcuts.js");
 
@@ -35,8 +33,11 @@ module.exports = (contents, commandname, source, formatting) => {
 
 	// Vars - General.
 	let lookup = {};
+	// Keep track of lookup size.
+	let lk_size = 0;
 	let settings = {};
-	let newlines = [];
+	// Keep track of settings count.
+	settings.count = 0;
 	let warnings = [];
 
 	// Vars - Parser flags.
@@ -262,6 +263,8 @@ module.exports = (contents, commandname, source, formatting) => {
 
 					// Store setting/value pair.
 					settings[result.name] = result.value;
+					// Increment settings count.
+					settings.count++;
 
 					// Add line to format later.
 					preformat(`${result.name} = ${result.value}`, "setting");
@@ -288,6 +291,7 @@ module.exports = (contents, commandname, source, formatting) => {
 					// Store command chain.
 					if (!lookup[cc]) {
 						lookup[cc] = new Set();
+						lk_size++;
 					}
 					// Store current command chain.
 					currentchain = cc;
@@ -589,10 +593,10 @@ module.exports = (contents, commandname, source, formatting) => {
 	// Log any warnings.
 	require("./warnings.js")(warnings, issue, source);
 
-	// Return generated acdef/config file contents.
+	// Return generated acdef, config, and formatted file contents.
 	return {
-		acdef: header
-			.concat(
+		acdef: require("./acdef.js")(commandname, lookup, lk_size, header),
+		config: require("./config.js")(settings, header),
 				post(commandname, lookup, newlines).sort(function(a, b) {
 					return a.localeCompare(b);
 				})

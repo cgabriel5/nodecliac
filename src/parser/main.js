@@ -9,8 +9,8 @@ const pflagoption = require("./p.flagoption.js");
 const pcomment = require("./p.comment.js");
 
 // Require parser helpers.
-const mkchain = require("./mkchain.js");
-const shortcuts = require("./shortcuts.js");
+const mkchain = require("./h.mkchain.js");
+const shortcuts = require("./h.shortcuts.js");
 
 // Get error checking functions.
 const {
@@ -19,7 +19,7 @@ const {
 	// Rename functions to later wrap.
 	verify: everify,
 	brace_check: ebc
-} = require("./error.js");
+} = require("./h.error.js");
 
 module.exports = (contents, commandname, source, formatting) => {
 	// Vars - timers.
@@ -594,13 +594,13 @@ module.exports = (contents, commandname, source, formatting) => {
 	}
 
 	// Log any warnings.
-	require("./warnings.js")(warnings, issue, source);
+	require("./h.warnings.js")(warnings, issue, source);
 
 	// Return generated acdef, config, and formatted file contents.
 	return {
-		acdef: require("./acdef.js")(commandname, lookup, lk_size, header),
-		config: require("./config.js")(settings, header),
-		formatted: require("./formatter.js")(preformat.lines, formatting),
+		acdef: require("./h.acdef.js")(commandname, lookup, lk_size, header),
+		config: require("./h.config.js")(settings, header),
+		formatted: require("./h.formatter.js")(preformat.lines, formatting),
 		time: process.hrtime(stime) // Return end time tuple array.
 	};
 };

@@ -4,7 +4,7 @@
 const issuefunc = require("./p.error.js");
 const pflagset = require("./p.flagset.js");
 // Get RegExp patterns.
-let { r_nl } = require("./regexpp.js");
+let { r_nl } = require("./h.patterns.js");
 
 /**
  * Parses command chain line to extract command chain.

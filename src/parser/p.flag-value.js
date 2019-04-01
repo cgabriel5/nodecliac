@@ -4,7 +4,7 @@
 const issuefunc = require("./p.error.js");
 const pcommandflag = require("./p.flag-command.js");
 // Get RegExp patterns.
-let { r_schars } = require("./regexpp.js");
+let { r_schars } = require("./h.patterns.js");
 
 /**
  * Parses flag set line to extract flag name, value, and its other components.

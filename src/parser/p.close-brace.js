@@ -3,7 +3,7 @@
 // Get needed modules.
 const issuefunc = require("./p.error.js");
 // Get RegExp patterns.
-let { r_nl } = require("./regexpp.js");
+let { r_nl } = require("./h.patterns.js");
 
 /**
  * Parses closing brace (either ']' or ')') line.

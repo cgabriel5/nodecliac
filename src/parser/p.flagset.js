@@ -4,7 +4,7 @@
 const issuefunc = require("./p.error.js");
 const pflagvalue = require("./p.flag-value.js");
 // Get RegExp patterns.
-let { r_schars, r_nl, r_nlpipe } = require("./regexpp.js");
+let { r_schars, r_nl, r_nlpipe } = require("./h.patterns.js");
 
 /**
  * Parses flag set line to extract flag name, value, and its other components.

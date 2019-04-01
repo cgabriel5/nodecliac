@@ -180,7 +180,7 @@ module.exports = args => {
 			// [https://stackoverflow.com/a/1975103]
 			// [https://blog.abelotech.com/posts/measure-execution-time-nodejs-javascript/]
 			const duration = ((time[0] * 1e3 + time[1] / 1e6) / 1e3).toFixed(3);
-			log(`Completed in ${duration}s.`);
+			log(`Completed in ${chalk.green(duration + "s")}.`);
 			console.log();
 			// hrtime wrapper: [https://github.com/seriousManual/hirestime]
 		}

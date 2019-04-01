@@ -426,8 +426,13 @@ module.exports = (contents, commandname, source, formatting) => {
 									values_len - 1 !== i ? " " : ""
 								}`;
 
+								// Extract '=' from assignment.
+								let cassignment = setter.charAt(0);
+
 								// Add to lookup table > command chain.
-								chain.add(`${hyphens}${flag}${setter}${value}`);
+								chain.add(
+									`${hyphens}${flag}${cassignment}${value}`
+								);
 							}
 
 							// Add line to formatted text.

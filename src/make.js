@@ -113,8 +113,12 @@ module.exports = args => {
 		let savename = `${commandname}.acdef`;
 		let saveconfigname = `.${commandname}.config.acdef`;
 
+		// Save formatted acmap file to source location when flag is provided.
+		if (save && formatting) {
+			fs.writeFileSync(source, formatted);
+		}
 		// Save definitions file to source location when flag is provided.
-		if (save) {
+		else if (save) {
 			fs.writeFileSync(path.join(fi.dirname, savename), acmap);
 			fs.writeFileSync(path.join(fi.dirname, saveconfigname), config);
 		}

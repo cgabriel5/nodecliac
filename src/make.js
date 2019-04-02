@@ -13,7 +13,7 @@ module.exports = args => {
 	let { acmapspath } = paths;
 
 	// Get CLI args.
-	let { source, print, add, save, indent } = args;
+	let { source, print, add, save, indent, "ignore-comments": igc } = args;
 	let parser = require("./parser/main.js");
 	// Formatting indentation values.
 	let indent_char = "\t",
@@ -108,7 +108,8 @@ module.exports = args => {
 			fs.readFileSync(source).toString(),
 			commandname,
 			source,
-			formatting ? [indent_char, indent_amount] : undefined
+			formatting ? [indent_char, indent_amount] : undefined,
+			igc
 		);
 		let savename = `${commandname}.acdef`;
 		let saveconfigname = `.${commandname}.config.acdef`;

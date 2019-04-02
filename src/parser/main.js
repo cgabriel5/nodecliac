@@ -21,7 +21,13 @@ const {
 	brace_check: ebc
 } = require("./h.error.js");
 
-module.exports = (contents, commandname, source, formatting) => {
+module.exports = (
+	contents,
+	commandname,
+	source,
+	formatting,
+	ignorecomments // When formatting should comments be ignored?
+) => {
 	// Vars - timers.
 	let stime = process.hrtime(); // Store start time tuple array.
 
@@ -97,6 +103,11 @@ module.exports = (contents, commandname, source, formatting) => {
 	 * @return {undefined} - Nothing is returned.
 	 */
 	let preformat = (line, type, indentation) => {
+		// Ignore comments when 'ignore-comments' is set.
+		if (ignorecomments && type === "comment") {
+			return;
+		}
+
 		// Reset format new line counter.
 		preformat.nl_count = 0;
 		// Add line to formatted array.
@@ -616,7 +627,11 @@ module.exports = (contents, commandname, source, formatting) => {
 	return {
 		acdef: require("./h.acdef.js")(commandname, lookup, lk_size, header),
 		config: require("./h.config.js")(settings, header),
-		formatted: require("./h.formatter.js")(preformat.lines, formatting),
+		formatted: require("./h.formatter.js")(
+			preformat.lines,
+			formatting,
+			ignorecomments
+		),
 		time: process.hrtime(stime) // Return end time tuple array.
 	};
 };

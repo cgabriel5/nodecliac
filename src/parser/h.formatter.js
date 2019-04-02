@@ -8,7 +8,7 @@
  * @param  {[type]} formatting - Array containing indentation char/amount.
  * @return {string} - The finally formatted string.
  */
-module.exports = (lines, formatting) => {
+module.exports = (lines, formatting, ignorecomments) => {
 	// If not formatting then return an empty string.
 	if (!formatting) {
 		return "";
@@ -31,6 +31,9 @@ module.exports = (lines, formatting) => {
 		// Get next line info.
 		let ndata = lines[i + 1] || [];
 		let [, /*nline*/ ntype] = ndata;
+		// Get next line info.
+		let ndata2 = lines[i + 2] || [];
+		let [, /*nline2*/ ntype2] = ndata2;
 
 		// Determine indentation.
 		let indentation = !indentation_amount
@@ -46,7 +49,7 @@ module.exports = (lines, formatting) => {
 			isempty = false;
 		}
 
-		// Skip empty lines after an opened command or before closing braces.
+		// Skip empty lines after for following scenarios.
 		if (type === "nl") {
 			if (ptype === "nl" && /(close-brace)/.test(ntype)) {
 				continue;
@@ -56,6 +59,23 @@ module.exports = (lines, formatting) => {
 				ntype === "nl"
 			) {
 				continue;
+			}
+
+			// Run further newline checks when 'ignore-comments' flag is set.
+			if (ignorecomments) {
+				if (
+					ptype === "flag-set" &&
+					ntype === "nl" &&
+					ntype2 !== "close-brace"
+				) {
+					continue;
+				} else if (
+					ptype === "flag-option" &&
+					ntype === "nl" &&
+					ntype2 === "flag-option"
+				) {
+					continue;
+				}
 			}
 		}
 

@@ -18,8 +18,23 @@ let verify = (result, warnings, source) => {
 	// Print warnings.
 	if (warns.length) {
 		for (let i = 0, ll = warns.length; i < ll; i++) {
+			// Cache current loop item.
+			let warn = warns[i];
+
+			// Calculate index:line, parser name column lengths.
+			let col_line = (warn.line + ":" + (warn.index || "0")).length;
+			let col_pname = warn.source.length;
+
+			// Attach if length is larger than currently attached length.
+			if (col_line > (warnings.col_line || 0)) {
+				warnings.col_line = col_line;
+			}
+			if (col_pname > (warnings.col_pname || 0)) {
+				warnings.col_pname = col_pname;
+			}
+
 			// Store warning object.
-			warnings.push(warns[i]);
+			warnings.push(warn);
 		}
 	}
 
@@ -45,22 +60,20 @@ let verify = (result, warnings, source) => {
  *
  * @param  {object} data - The result object.
  * @param  {string} type - The issue type (error/warning).
- * @param  {number} col_size - The max column length of line:index column.
- * @param  {string} fpname_size - The max column length parser name is allowed.
  * @return {undefined} - Logs warnings. Exits script if error is issued.
  */
-let issue = (result, type = "error", col_size, fpname_size) => {
+let issue = (result, type = "error", warnings) => {
 	// Use provided line num/char index position.
 	let line = result.line;
 	let index = result.index;
+	let pname = result.source; // Get name of parser issuing error/warning.
 
-	// Store line + index length;
-	let line_col_size = (line + ":" + index).length;
-	let remainder = col_size - line_col_size;
-
-	// Store line + index length;
-	let line_col_fpname_size = result.source.length;
-	let fremainder = fpname_size - line_col_fpname_size;
+	// Calculate line:index column remainder.
+	let remainder = warnings.col_line - (line + ":" + index).length;
+	remainder = remainder < 0 ? 0 : remainder;
+	// Calculate parser name column remainder.
+	let fremainder = warnings.col_pname - pname.length;
+	fremainder = fremainder < 0 ? 0 : fremainder;
 
 	// Determine highlight label color/issue symbol.
 	let color = type === "error" ? "red" : "yellow";
@@ -76,10 +89,10 @@ let issue = (result, type = "error", col_size, fpname_size) => {
 	let data = [
 		`  ${chalk.bold[color](symbol)}  ${lineinfo}${" ".repeat(
 			// Note: When remainder is negative set to 0.
-			remainder < 0 ? 0 : remainder
-		)}  ${chalk.dim(result.source.replace(/(p\.|\.js)/g, ""))}${" ".repeat(
+			remainder
+		)}  ${chalk.dim(pname.replace(/(p\.|\.js)/g, ""))}${" ".repeat(
 			// Note: When remainder is negative set to 0.
-			fremainder < 0 ? 0 : fremainder
+			fremainder
 		)}  ${result.reason}`
 	];
 

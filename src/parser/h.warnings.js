@@ -24,29 +24,6 @@ module.exports = (warnings, issue, source) => {
 
 	// Order warnings by line number then issue.
 	warnings = warnings.sort(function(a, b) {
-		// Store line + index length;
-		let line_col_size = (a.line + ":" + (a.index || "0")).length;
-		if (line_col_size > line_col_length) {
-			line_col_length = line_col_size;
-		}
-		// Re-do calculation with item b.
-		line_col_size = (b.line + ":" + (b.index || "0")).length;
-		if (line_col_size > line_col_length) {
-			line_col_length = line_col_size;
-		}
-
-		// Store parser name length;
-		let src_col_size = a.source.length;
-		if (src_col_size > line_col_fpname) {
-			line_col_fpname = src_col_size;
-		}
-		// Re-do calculation with item b.
-		src_col_size = b.source.length;
-		if (src_col_size > line_col_fpname) {
-			line_col_fpname = src_col_size;
-		}
-		// [TODO] ^ Find better solution to avoid redundant calculations.
-
 		// [https://coderwall.com/p/ebqhca/javascript-sort-by-two-fields]
 		// [https://stackoverflow.com/a/13211728]
 		return a.line - b.line || a.index - b.index;
@@ -62,7 +39,7 @@ module.exports = (warnings, issue, source) => {
 
 	for (let i = 0, l = warnings.length; i < l; i++) {
 		// Cache current loop item.
-		issue(warnings[i], "warn", line_col_length, line_col_fpname);
+		issue(warnings[i], "warn", warnings);
 	}
 
 	// Print bottom padding.

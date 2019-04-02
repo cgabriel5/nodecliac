@@ -126,7 +126,9 @@ module.exports = (...args) => {
 				char,
 				code,
 				state,
-				warnings
+				warnings,
+				// Add key to denote file giving issue.
+				source: scriptname
 			});
 		} else {
 			// Add warning to warnings array.

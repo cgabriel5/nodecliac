@@ -45,9 +45,11 @@ let verify = (result, warnings, source) => {
  *
  * @param  {object} data - The result object.
  * @param  {string} type - The issue type (error/warning).
+ * @param  {number} col_size - The max column length of line:index column.
+ * @param  {string} fpname_size - The max column length parser name is allowed.
  * @return {undefined} - Logs warnings. Exits script if error is issued.
  */
-let issue = (result, type = "error", col_size) => {
+let issue = (result, type = "error", col_size, fpname_size) => {
 	// Use provided line num/char index position.
 	let line = result.line;
 	let index = result.index;
@@ -55,6 +57,10 @@ let issue = (result, type = "error", col_size) => {
 	// Store line + index length;
 	let line_col_size = (line + ":" + index).length;
 	let remainder = col_size - line_col_size;
+
+	// Store line + index length;
+	let line_col_fpname_size = result.source.length;
+	let fremainder = fpname_size - line_col_fpname_size;
 
 	// Determine highlight label color/issue symbol.
 	let color = type === "error" ? "red" : "yellow";
@@ -71,6 +77,9 @@ let issue = (result, type = "error", col_size) => {
 		`  ${chalk.bold[color](symbol)}  ${lineinfo}${" ".repeat(
 			// Note: When remainder is negative set to 0.
 			remainder < 0 ? 0 : remainder
+		)}  ${chalk.dim(result.source.replace(/(p\.|\.js)/g, ""))}${" ".repeat(
+			// Note: When remainder is negative set to 0.
+			fremainder < 0 ? 0 : fremainder
 		)}  ${result.reason}`
 	];
 
@@ -121,7 +130,9 @@ let error = (char = "", code, line, index, source) => {
 			index,
 			code,
 			char,
-			reason: reasons[code]
+			reason: reasons[code],
+			// Add key to denote file giving issue.
+			source: "main.js"
 		},
 		[],
 		source
@@ -169,7 +180,9 @@ let brace_check = args => {
 					brace_style === "parentheses"
 						? "'()' (no flag options)"
 						: "'[]' (no flags)"
-				}.`
+				}.`,
+				// Add key to denote file giving issue.
+				source: "main.js"
 			});
 		}
 	}

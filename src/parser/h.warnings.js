@@ -14,6 +14,8 @@ const chalk = require("chalk");
 module.exports = (warnings, issue, source) => {
 	// Track longest (line + index) column to evenly space line/char.
 	let line_col_length = 0;
+	// Track longest parser name column to evenly space line/char.
+	let line_col_fpname = 0;
 
 	// Return if warnings array is empty (no warnings to log).
 	if (!warnings.length) {
@@ -32,6 +34,17 @@ module.exports = (warnings, issue, source) => {
 		if (line_col_size > line_col_length) {
 			line_col_length = line_col_size;
 		}
+
+		// Store parser name length;
+		let src_col_size = a.source.length;
+		if (src_col_size > line_col_fpname) {
+			line_col_fpname = src_col_size;
+		}
+		// Re-do calculation with item b.
+		src_col_size = b.source.length;
+		if (src_col_size > line_col_fpname) {
+			line_col_fpname = src_col_size;
+		}
 		// [TODO] ^ Find better solution to avoid redundant calculations.
 
 		// [https://coderwall.com/p/ebqhca/javascript-sort-by-two-fields]
@@ -49,7 +62,7 @@ module.exports = (warnings, issue, source) => {
 
 	for (let i = 0, l = warnings.length; i < l; i++) {
 		// Cache current loop item.
-		issue(warnings[i], "warn", line_col_length);
+		issue(warnings[i], "warn", line_col_length, line_col_fpname);
 	}
 
 	// Print bottom padding.

@@ -367,6 +367,11 @@ module.exports = (...args) => {
 				let value = pvalue.value;
 				let nl_index = pvalue.nl_index;
 
+				// If value is not a string (therefore an array) join values.
+				if (typeof value !== "string" && value.length > 1) {
+					value = `(${value.join(" ")})`;
+				}
+
 				// Reset flag to newly parsed value.
 				flagset = `${symbol}${name}${assignment}${value}`;
 
@@ -426,6 +431,11 @@ module.exports = (...args) => {
 		let assignment = pvalue.assignment;
 		let value = pvalue.value;
 		let nl_index = pvalue.nl_index;
+
+		// If value is not a string (therefore an array) join values.
+		if (typeof value !== "string" && value.length > 1) {
+			value = `(${value.join(" ")})`;
+		}
 
 		// Reset flag to newly parsed value.
 		flagset = `${symbol}${name}${assignment}${value}`;

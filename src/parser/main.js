@@ -442,14 +442,18 @@ module.exports = (contents, commandname, source, formatting) => {
 							// Add line to formatted text.
 							if (flist) {
 								// TODO: Simplify/clarify logic.
+
+								// Determine whether to wrap list: '()'.
+								let wrap = !(is_cmd_flag || values_len === 1);
+
 								// Get last formatted line in array. It should
 								// be the flag set's flag.
 								let last_fline =
 									preformat.lines[preformat.lines.length - 1];
 								// Add to last line in formatted array.
 								last_fline[0] = `${last_fline[0]}${
-									is_cmd_flag ? "" : "("
-								}${flist}${is_cmd_flag ? "" : ")"}`;
+									wrap ? "(" : ""
+								}${flist}${wrap ? ")" : ""}`;
 							}
 						}
 					}

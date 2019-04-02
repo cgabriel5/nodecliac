@@ -385,16 +385,17 @@ module.exports = (contents, commandname, source, formatting) => {
 
 					// Add line to format later.
 					preformat(
+						// TODO: Simplify/clarify logic.
 						`${hyphens}${flag}${
 							!setter
 								? ""
 								: !values_len
 								? `${setter}()`
-								: values_len === 1 && fval === ""
-								? `${setter}`
-								: values_len === 1 && fval === "("
+								: values_len && fval === "("
 								? `${setter}(`
-								: ""
+								: `${setter}`
+							// : values_len && fval === ""
+							// ? `${setter}`
 						}`,
 						"flag-set",
 						1
@@ -407,9 +408,12 @@ module.exports = (contents, commandname, source, formatting) => {
 						chain.add(`${hyphens}${flag}${setter}`);
 
 						// If not an opening brace then add values.
-						if (!isopeningpr && values_len > 1) {
+						if (!isopeningpr && fval && values_len) {
 							// Formatted flag values list string.
 							let flist = "";
+
+							// Check whether first value is a command-flag.
+							let is_cmd_flag = fval.startsWith("$(");
 
 							// Loop over values and add to lookup table.
 							for (let i = 0, l = values_len; i < l; i++) {
@@ -437,12 +441,15 @@ module.exports = (contents, commandname, source, formatting) => {
 
 							// Add line to formatted text.
 							if (flist) {
+								// TODO: Simplify/clarify logic.
 								// Get last formatted line in array. It should
 								// be the flag set's flag.
 								let last_fline =
 									preformat.lines[preformat.lines.length - 1];
 								// Add to last line in formatted array.
-								last_fline[0] = `${last_fline[0]}=(${flist})`;
+								last_fline[0] = `${last_fline[0]}${
+									is_cmd_flag ? "" : "("
+								}${flist}${is_cmd_flag ? "" : ")"}`;
 							}
 						}
 					}

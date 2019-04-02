@@ -15,31 +15,42 @@ let verify = (result, warnings, source) => {
 	// Get warnings from result object.
 	let warns = result.warnings || [];
 
+	/**
+	 * Calculate/attach max column lengths for index:line and parser name.
+	 *
+	 * @param  {object} issue - The parsing result object.
+	 * @return {object} - The issue object.
+	 */
+	let max_col_lengths = issue => {
+		// Calculate index:line, parser name column lengths.
+		let col_line = (issue.line + ":" + (issue.index || "0")).length;
+		let col_pname = issue.source.length;
+
+		// Attach if length is larger than currently attached length.
+		if (col_line > (warnings.col_line || 0)) {
+			warnings.col_line = col_line;
+		}
+		if (col_pname > (warnings.col_pname || 0)) {
+			warnings.col_pname = col_pname;
+		}
+
+		// Return object.
+		return issue;
+	};
+
 	// Print warnings.
 	if (warns.length) {
 		for (let i = 0, ll = warns.length; i < ll; i++) {
-			// Cache current loop item.
-			let warn = warns[i];
-
-			// Calculate index:line, parser name column lengths.
-			let col_line = (warn.line + ":" + (warn.index || "0")).length;
-			let col_pname = warn.source.length;
-
-			// Attach if length is larger than currently attached length.
-			if (col_line > (warnings.col_line || 0)) {
-				warnings.col_line = col_line;
-			}
-			if (col_pname > (warnings.col_pname || 0)) {
-				warnings.col_pname = col_pname;
-			}
-
-			// Store warning object.
-			warnings.push(warn);
+			// Calculate max column lengths then store warning object.
+			warnings.push(max_col_lengths(warns[i]));
 		}
 	}
 
 	// Issue error if present.
 	if (result.hasOwnProperty("code")) {
+		// Calculate max column lengths.
+		max_col_lengths(result);
+
 		// Add warnings header if warnings exist.
 		console.log();
 		console.log(
@@ -60,9 +71,10 @@ let verify = (result, warnings, source) => {
  *
  * @param  {object} data - The result object.
  * @param  {string} type - The issue type (error/warning).
+ * @param  {array} warnings - The array of warning objects.
  * @return {undefined} - Logs warnings. Exits script if error is issued.
  */
-let issue = (result, type = "error", warnings) => {
+let issue = (result, type = "error", warnings = []) => {
 	// Use provided line num/char index position.
 	let line = result.line;
 	let index = result.index;

@@ -157,7 +157,7 @@ let error = (char = "", code, line, index, source) => {
 			char,
 			reason: reasons[code],
 			// Add key to denote file giving issue.
-			source: "main.js"
+			source: "p.main.js"
 		},
 		[],
 		source
@@ -207,7 +207,7 @@ let brace_check = args => {
 						: "'[]' (no flags)"
 				}.`,
 				// Add key to denote file giving issue.
-				source: "main.js"
+				source: "p.main.js"
 			});
 		}
 	}

@@ -258,7 +258,9 @@ module.exports = (
 						warnings.push({
 							line: line_num,
 							index: 0,
-							reason: `Mixed whitespace characters.`
+							reason: `Mixed whitespace characters.`,
+							// Add key to denote file giving issue.
+							source: "p.main.js"
 						});
 					}
 				}

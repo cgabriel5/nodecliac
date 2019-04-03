@@ -576,7 +576,7 @@ module.exports = (
 
 					// Add line to format later.
 					preformat(
-						`#${result.comment}`,
+						`${result.comment}`,
 						"comment",
 						// Determine format indentation level.
 						currentflag ? 2 : currentchain ? 1 : undefined

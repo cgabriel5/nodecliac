@@ -37,9 +37,6 @@ module.exports = (...args) => {
 	// 	return issuefunc.apply(null, paramset1.concat(paramset2));
 	// };
 
-	// Increment index by 1 to skip symbol character.
-	i++;
-
 	// Loop over string.
 	for (; i < l; i++) {
 		// Cache current loop item.

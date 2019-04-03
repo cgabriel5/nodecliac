@@ -50,7 +50,7 @@ module.exports = (...args) => {
 			1: `Setting started with '${char}'. Expected a letter.`,
 			2: `Unexpected ${ctype}: '${char}'.`,
 			3: `Value cannot start with '${char}'.`,
-			4: `Improperly closed string.`,
+			4: `Improperly quoted string.`,
 			// Parsing warning reasons.
 			5: `Unescaped ${ctype}: '${char}' in value.`,
 			6: `Empty setting assignment.`,
@@ -73,7 +73,7 @@ module.exports = (...args) => {
 			1: `Setting started with '${char}'. Expected a letter.`,
 			2: `Unexpected ${ctype}: '${char}'.`,
 			3: `Value cannot start with '${char}'.`,
-			4: `Improperly closed string.`,
+			4: `Improperly quoted string.`,
 			5: `Unescaped ${ctype} '${char}' in value.`,
 			// Parsing warning reasons.
 			// 6: `Empty flag assignment.`,
@@ -86,13 +86,13 @@ module.exports = (...args) => {
 		"p.flag-command.js": {
 			2: `Unexpected ${ctype}: '${char}'.`,
 			3: `Value cannot start with: '${char}'.`,
-			4: `Improperly closed string.`,
+			4: `Improperly quoted string.`,
 			5: `Empty command flag argument.`,
 			6: `Improperly closed command-flag. Missing ')'.`
 		},
 		"p.flag-value.js": {
 			2: `Unexpected ${ctype}: '${char}'.`,
-			4: `Improperly closed string.`,
+			4: `Improperly quoted string.`,
 			5: `Unescaped ${ctype}: '${char}' in value.`,
 			10: `Empty '()' (no flag options).`
 		},
@@ -100,7 +100,7 @@ module.exports = (...args) => {
 			0: `Empty flag option.`,
 			// 2: `Unexpected ${ctype}: '${char}'.`,
 			3: `Invalid flag option.`,
-			4: `Improperly closed string.`
+			4: `Improperly quoted string.`
 		},
 		"p.close-brace.js": { 1: `Unexpected ${ctype}: '${char}'.` },
 		"p.comment.js": {}

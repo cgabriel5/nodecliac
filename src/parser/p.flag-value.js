@@ -165,7 +165,7 @@ module.exports = (...params) => {
 						// Reset index to exclude current char (space char).
 						ci--;
 
-						// Add warning.
+						// Improperly quoted string, give error.
 						return issue("error", 4);
 					}
 
@@ -255,12 +255,20 @@ module.exports = (...params) => {
 		// If the final state was left as escaped check value for improperly
 		// quoted (missing left quote) string/value.
 		if (state === "escaped") {
+			// Get value information.
+			let vlength = value.length;
+			let lchar = value.charAt(vlength - 1); // Value's last char.
+			let lschar = value.charAt(vlength - 2); // Second to last char.
+
 			// If the value's last character is a quote and the
 			// first character of the string is not the same style
 			// quote then give an error.
-			let lchar = value.charAt(value.length - 1);
-			if (/["']/.test(lchar) && value.charAt(0) !== lchar) {
-				// Add warning.
+			if (
+				/["']/.test(lchar) &&
+				lschar !== "\\" &&
+				value.charAt(0) !== lchar
+			) {
+				// Improperly quoted string, give error.
 				return issue("error", 4);
 			}
 		}

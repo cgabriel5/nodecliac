@@ -42,6 +42,7 @@ module.exports = (...params) => {
 	let isvspecial;
 	let state = ""; // Parsing state.
 	let nl_index;
+	let delimiter_count = 0;
 	// Collect all parsing warnings.
 	let warnings = [];
 	let args = [];
@@ -49,6 +50,9 @@ module.exports = (...params) => {
 	let indices = {
 		quoted: {
 			open: null
+		},
+		delimiter: {
+			last: null
 		}
 	};
 
@@ -153,6 +157,28 @@ module.exports = (...params) => {
 			}
 		} else {
 			if (state === "delimiter") {
+				// Run delimiter checks on commas.
+				if (char === ",") {
+					if (delimiter_count) {
+						// Error on consecutive/empty comma delimiter.
+						return issue("error", 2, char);
+					}
+
+					// Store delimiter index.
+					indices.delimiter.last = ci;
+
+					// Increment delimiter counter.
+					delimiter_count++;
+				}
+
+				// Note: If args exists and there is no state then the state
+				// was reset. In this case if the char is not a delimiter we
+				// give an error. For example, this covers the following:
+				// '"a""b"' when it should really be: '"a" "b"' (delimited).
+				if (!/[ \t,]/.test(char)) {
+					return issue("error", 2, char);
+				}
+
 				state = "";
 			} else if (state === "escaped") {
 				// Build value until an unescaped whitespace char is hit.
@@ -169,8 +195,12 @@ module.exports = (...params) => {
 						return issue("error", 4);
 					}
 
+					// Reset delimiter count/index.
+					delimiter_count = 0;
+					indices.delimiter.last = null;
+
 					// Reset state
-					state = "";
+					state = "delimiter";
 					// Store value.
 					args.push(value);
 					// Clear value.
@@ -190,8 +220,12 @@ module.exports = (...params) => {
 				value += char;
 			} else if (state === "quoted") {
 				if (char === qchar && pchar !== "\\") {
+					// Reset delimiter count/index.
+					delimiter_count = 0;
+					indices.delimiter.last = null;
+
 					// Reset state
-					state = "";
+					state = "delimiter";
 					// Store value.
 					args.push(`${qchar}${value}${qchar}`);
 					// Clear value.
@@ -236,8 +270,12 @@ module.exports = (...params) => {
 					return pvalue;
 				}
 
+				// Reset delimiter count/index.
+				delimiter_count = 0;
+				indices.delimiter.last = null;
+
 				// Reset state
-				state = "";
+				state = "delimiter";
 				// Store value.
 				args.push(`$(${pvalue.cmd_str})`);
 				// Clear value.
@@ -248,6 +286,15 @@ module.exports = (...params) => {
 				continue;
 			}
 		}
+	}
+
+	// If the delimiter index remained then there is a trailing delimiter.
+	if (indices.delimiter.last) {
+		// Reset index.
+		ci = indices.delimiter.last;
+
+		// Issue error.
+		return issue("error", 2, ",");
 	}
 
 	// Add final value if it exists.

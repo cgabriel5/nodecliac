@@ -6,6 +6,7 @@ const path = require("path");
 const chalk = require("chalk");
 const log = require("fancy-log");
 const fe = require("file-exists");
+const stripansi = require("strip-ansi");
 const { fileinfo, exit, paths } = require("./utils.js");
 
 module.exports = args => {
@@ -13,7 +14,15 @@ module.exports = args => {
 	let { acmapspath } = paths;
 
 	// Get CLI args.
-	let { source, print, add, save, indent, "ignore-comments": igc } = args;
+	let {
+		source,
+		print,
+		add,
+		save,
+		indent,
+		"ignore-comments": igc,
+		highlight
+	} = args;
 	let parser = require("./parser/main.js");
 	// Formatting indentation values.
 	let indent_char = "\t",
@@ -116,7 +125,11 @@ module.exports = args => {
 
 		// Save formatted acmap file to source location when flag is provided.
 		if (save && formatting) {
-			fs.writeFileSync(source, formatted);
+			fs.writeFileSync(
+				source,
+				// Remove ANSI colors before saving.
+				highlight ? stripansi(formatted) : formatted
+			);
 		}
 		// Save definitions file to source location when flag is provided.
 		else if (save) {

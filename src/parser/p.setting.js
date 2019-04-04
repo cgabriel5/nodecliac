@@ -23,7 +23,7 @@ let { r_schars, r_nl } = require("./h.patterns.js");
  */
 module.exports = (...args) => {
 	// Get arguments.
-	let [string, i, l, line_num, line_fchar, settings] = args;
+	let [string, i, l, line_num, line_fchar, h, settings] = args;
 
 	// Parsing vars.
 	let name = "@";
@@ -248,6 +248,10 @@ module.exports = (...args) => {
 
 		issue("warning", 7, "=");
 	}
+
+	// Add syntax highlighting.
+	name = h(name, "setting");
+	value = h(value, "value");
 
 	// Return relevant parsing information.
 	return { name, value, nl_index, warnings };

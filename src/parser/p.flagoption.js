@@ -22,7 +22,7 @@ let { r_nl } = require("./h.patterns.js");
  */
 module.exports = (...args) => {
 	// Get arguments.
-	let [string, i, l, line_num, line_fchar] = args;
+	let [string, i, l, line_num, line_fchar, h] = args;
 
 	// Parsing vars.
 	let symbol = "";
@@ -142,6 +142,7 @@ module.exports = (...args) => {
 			value.length,
 			line_num,
 			line_fchar,
+			h,
 			indices.value.start, // Value start index.
 			type
 		);
@@ -171,6 +172,9 @@ module.exports = (...args) => {
 			}
 		}
 	}
+
+	// Highlight option list values.
+	value = h(value, "value", ":/2");
 
 	// Return relevant parsing information.
 	return { symbol, value, assignment, nl_index, warnings };

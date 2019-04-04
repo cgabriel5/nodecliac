@@ -19,7 +19,7 @@ let { r_nl } = require("./h.patterns.js");
  */
 module.exports = (...args) => {
 	// Get arguments.
-	let [string, i, l /*line_num, line_fchar*/] = args;
+	let [string, i, l /*line_num, line_fchar*/, , , h] = args;
 
 	// Parsing vars.
 	let state = "comment-char"; // Parsing state.
@@ -57,6 +57,9 @@ module.exports = (...args) => {
 			comment += char;
 		}
 	}
+
+	// Add syntax highlighting.
+	comment = h(comment, "comment");
 
 	// Return relevant parsing information.
 	return { comment, nl_index, warnings };

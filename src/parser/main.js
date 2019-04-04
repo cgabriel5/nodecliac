@@ -1,6 +1,7 @@
 "use strict";
 
 // Require parsers.
+const stripansi = require("strip-ansi");
 const psetting = require("./p.setting.js");
 const pcommand = require("./p.command.js");
 const pbrace = require("./p.close-brace.js");
@@ -9,6 +10,7 @@ const pflagoption = require("./p.flagoption.js");
 const pcomment = require("./p.comment.js");
 
 // Require parser helpers.
+const h = require("./h.highlighter.js");
 const mkchain = require("./h.mkchain.js");
 const shortcuts = require("./h.shortcuts.js");
 
@@ -89,7 +91,7 @@ module.exports = (
 	// Create parser wrapper to add fixed parameters.
 	let parser = (pname, ...params) => {
 		// Join fixed parameters with provided.
-		params = [contents, i, l, line_num, line_fchar].concat(params);
+		params = [contents, i, l, line_num, line_fchar, h].concat(params);
 		// Run parser function.
 		return pname.apply(null, params);
 	};
@@ -277,8 +279,8 @@ module.exports = (
 					// Reset index to start at newline on next iteration.
 					i = result.nl_index - 1;
 
-					// Store setting/value pair.
-					settings[result.name] = result.value;
+					// Store setting/value pair (Note: Remove ANSI color).
+					settings[stripansi(result.name)] = result.value;
 					// Increment settings count.
 					settings.count++;
 

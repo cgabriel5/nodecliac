@@ -19,7 +19,7 @@ let { r_nl } = require("./h.patterns.js");
  */
 module.exports = (...args) => {
 	// Get arguments.
-	let [string, i, l, line_num, line_fchar] = args;
+	let [string, i, l, line_num, line_fchar /*h*/] = args;
 
 	// Parsing vars.
 	let state = "eol-wsb"; // Parsing state.

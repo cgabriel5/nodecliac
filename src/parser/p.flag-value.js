@@ -29,7 +29,7 @@ let { r_schars } = require("./h.patterns.js");
  */
 module.exports = (...params) => {
 	// Get arguments.
-	let [string, i, l, line_num, line_fchar, vsi, type] = params;
+	let [string, i, l, line_num, line_fchar, h, vsi, type] = params;
 
 	// Parsing vars.
 	// Note: Parsing the value starts a new loop from 0 to only focus on
@@ -222,6 +222,7 @@ module.exports = (...params) => {
 					string.length,
 					line_num,
 					line_fchar,
+					h,
 					vsi,
 					type
 				);
@@ -278,6 +279,9 @@ module.exports = (...params) => {
 		// Add warning.
 		issue("warning", 10);
 	}
+
+	// Highlight option list values.
+	args = h(args, "cmd-flag", ":/1");
 
 	// Return relevant parsing information.
 	return {

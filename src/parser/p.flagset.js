@@ -29,7 +29,16 @@ let { r_schars, r_nl, r_nlpipe } = require("./h.patterns.js");
  */
 module.exports = (...args) => {
 	// Get arguments.
-	let [string, i, l, line_num, line_fchar /*indentation*/, , usepipe] = args;
+	let [
+		string,
+		i,
+		l,
+		line_num,
+		line_fchar,
+		h /*indentation*/,
+		,
+		usepipe
+	] = args;
 
 	// Parsing vars.
 	let symbol = "";
@@ -328,6 +337,7 @@ module.exports = (...args) => {
 				value.length,
 				line_num,
 				line_fchar,
+				h,
 				indices.value.start, // Value start index.
 				isvspecial
 			);
@@ -352,6 +362,10 @@ module.exports = (...args) => {
 		value = [""];
 		isopeningpr = false;
 	}
+
+	// Add syntax highlighting.
+	name = h(name, "flag");
+	value = h(value, "value", ":/3"); // Highlight option list values.
 
 	// Return relevant parsing information.
 	return {

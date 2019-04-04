@@ -20,7 +20,7 @@ const issuefunc = require("./p.error.js");
  */
 module.exports = (...args) => {
 	// Get arguments.
-	let [string, i, l, line_num, line_fchar, vsi, type] = args;
+	let [string, i, l, line_num, line_fchar, h, vsi, type] = args;
 
 	// If parsing a list reduce length to ignore closing ')'. Otherwise,
 	// leave length be as a command, for example, does get wrapped with '()'.
@@ -149,12 +149,11 @@ module.exports = (...args) => {
 						value = `$${value}`;
 					}
 
-					if (!cmd_str) {
-						cmd_str = value;
-					} else {
+					if (cmd_str) {
 						cmd_str += ",";
-						cmd_str += value;
 					}
+					// Add syntax highlighting.
+					cmd_str += h(value, "cmd-flag-arg", "value");
 
 					// Clear value.
 					value = "";
@@ -213,7 +212,8 @@ module.exports = (...args) => {
 		}
 
 		cmd_str += ",";
-		cmd_str += value;
+		// Add syntax highlighting.
+		cmd_str += h(value, "cmd-flag-arg", "value");
 
 		// Clear value.
 		value = "";

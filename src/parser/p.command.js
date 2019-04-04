@@ -26,7 +26,7 @@ let { r_nl } = require("./h.patterns.js");
  */
 module.exports = (...args) => {
 	// Get arguments.
-	let [string, i, l, line_num, line_fchar] = args;
+	let [string, i, l, line_num, line_fchar, h] = args;
 
 	// Parsing vars.
 	let chain = "";
@@ -154,7 +154,8 @@ module.exports = (...args) => {
 
 							// Store command string if populated.
 							if (command) {
-								commands.push(command);
+								// Add syntax highlighting.
+								commands.push(h(command, "shortcut"));
 							}
 							// Reset command string.
 							command = "";
@@ -356,6 +357,7 @@ module.exports = (...args) => {
 					l,
 					line_num,
 					line_fchar,
+					h,
 					undefined,
 					true // Let parser know to end on newline or pipe chars.
 				);
@@ -421,6 +423,7 @@ module.exports = (...args) => {
 			l,
 			line_num,
 			line_fchar,
+			h,
 			undefined,
 			true // Let parser know to end on newline or pipe chars.
 		);
@@ -481,6 +484,9 @@ module.exports = (...args) => {
 			issue("warning", 6);
 		}
 	}
+
+	// Add syntax highlighting.
+	chain = h(chain, "command");
 
 	// Return relevant parsing information.
 	return {

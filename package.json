@@ -28,7 +28,8 @@
 		"mkdirp": "^0.5.1",
 		"path-exists": "^3.0.0",
 		"prettier": "^1.15.3",
-		"rimraf": "^2.6.3"
+		"rimraf": "^2.6.3",
+		"strip-ansi": "^5.2.0"
 	},
 	"author": "Carlos Gabriel",
 	"license": "MIT",

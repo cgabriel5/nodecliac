@@ -47,8 +47,8 @@ module.exports = (
 	// Keep track of lookup size.
 	let lk_size = 0;
 	let settings = {};
-	// Keep track of settings count.
-	settings.count = 0;
+	// Keep track of settings size/count.
+	settings.__count__ = 0;
 	let warnings = [];
 
 	// Vars - Parser flags.
@@ -284,8 +284,8 @@ module.exports = (
 
 					// Store setting/value pair (Note: Remove ANSI color).
 					settings[stripansi(result.name)] = result.value;
-					// Increment settings count.
-					settings.count++;
+					// Increment settings size/count.
+					settings.__count__++;
 
 					// Add line to format later.
 					preformat(`${result.name} = ${result.value}`, "setting");

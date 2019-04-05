@@ -12,9 +12,11 @@ module.exports = (settings, header) => {
 	let lines = [];
 
 	// If settings is empty return an empty string.
-	if (!settings.count) {
+	if (!settings.__count__) {
 		return "";
 	}
+	// Remove size/count key.
+	delete settings.__count__;
 
 	// Loop over settings to build config.
 	for (let setting in settings) {

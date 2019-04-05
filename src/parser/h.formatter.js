@@ -5,7 +5,9 @@
  *     unneeded new lines.
  *
  * @param  {array} lines - The list of lines to format into final string.
- * @param  {[type]} formatting - Array containing indentation char/amount.
+ * @param  {array} formatting - Array containing indentation char/amount.
+ * @param  {boolean} stripcomments - Flag indicating whether to remove
+ *     comments or not.
  * @return {string} - The finally formatted string.
  */
 module.exports = (lines, formatting, stripcomments) => {

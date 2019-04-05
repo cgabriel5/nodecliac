@@ -133,8 +133,16 @@ module.exports = args => {
 		}
 		// Save definitions file to source location when flag is provided.
 		else if (save) {
-			fs.writeFileSync(path.join(fi.dirname, savename), acmap);
-			fs.writeFileSync(path.join(fi.dirname, saveconfigname), config);
+			fs.writeFileSync(
+				path.join(fi.dirname, savename),
+				// Remove ANSI colors before saving.
+				highlight ? stripansi(acmap) : acmap
+			);
+			fs.writeFileSync(
+				path.join(fi.dirname, saveconfigname),
+				// Remove ANSI colors before saving.
+				highlight ? stripansi(config) : config
+			);
 		}
 
 		// Add to maps location if add flag provided.

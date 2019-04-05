@@ -20,7 +20,7 @@ module.exports = args => {
 		add,
 		save,
 		indent,
-		"ignore-comments": igc,
+		"strip-comments": igc,
 		highlight
 	} = args;
 	let parser = require("./parser/main.js");

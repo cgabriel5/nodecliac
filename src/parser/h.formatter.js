@@ -8,7 +8,7 @@
  * @param  {[type]} formatting - Array containing indentation char/amount.
  * @return {string} - The finally formatted string.
  */
-module.exports = (lines, formatting, ignorecomments) => {
+module.exports = (lines, formatting, stripcomments) => {
 	// If not formatting then return an empty string.
 	if (!formatting) {
 		return "";
@@ -61,8 +61,8 @@ module.exports = (lines, formatting, ignorecomments) => {
 				continue;
 			}
 
-			// Run further newline checks when 'ignore-comments' flag is set.
-			if (ignorecomments) {
+			// Run further newline checks when 'strip-comments' flag is set.
+			if (stripcomments) {
 				if (
 					ptype === "flag-set" &&
 					ntype === "nl" &&

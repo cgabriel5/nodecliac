@@ -28,7 +28,7 @@ module.exports = (
 	commandname,
 	source,
 	formatting,
-	ignorecomments // When formatting should comments be ignored?
+	stripcomments // When formatting should comments be removed?
 ) => {
 	// Vars - timers.
 	let stime = process.hrtime(); // Store start time tuple array.
@@ -105,8 +105,8 @@ module.exports = (
 	 * @return {undefined} - Nothing is returned.
 	 */
 	let preformat = (line, type, indentation) => {
-		// Ignore comments when 'ignore-comments' is set.
-		if (ignorecomments && type === "comment") {
+		// Ignore comments when 'strip-comments' is set.
+		if (stripcomments && type === "comment") {
 			return;
 		}
 
@@ -634,7 +634,7 @@ module.exports = (
 		formatted: require("./h.formatter.js")(
 			preformat.lines,
 			formatting,
-			ignorecomments
+			stripcomments
 		),
 		time: process.hrtime(stime) // Return end time tuple array.
 	};

@@ -486,7 +486,7 @@ module.exports = (...args) => {
 	}
 
 	// Add syntax highlighting.
-	chain = h(chain, "command");
+	// chain = h(chain, "command");
 
 	// Return relevant parsing information.
 	return {

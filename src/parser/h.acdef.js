@@ -15,7 +15,7 @@ const { fileinfo, exit, paths } = require("../utils.js");
  * @param  {array} header - The final file's header information.
  * @return {array} - The new lines array.
  */
-module.exports = (commandname, lookup, lk_size, header) => {
+module.exports = (commandname, lookup, lk_size, header, h) => {
 	// Vars.
 	let has_root = false;
 	// RegExp to match main command/first command in chain to remove.
@@ -71,7 +71,10 @@ module.exports = (commandname, lookup, lk_size, header) => {
 			// when the command name is not the main command in (i.e.
 			// when running on a test file) just remove the first command
 			// name in the chain.
-			let row = `${chain.replace(r, "")} ${flags}`;
+			let row = `${
+				// Add syntax highlighting.
+				h(chain.replace(r, ""), "command")
+			} ${flags}`;
 
 			// Remove multiple ' --' command chains. This will happen for
 			// test files with multiple main commands.

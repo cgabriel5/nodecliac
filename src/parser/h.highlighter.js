@@ -125,7 +125,11 @@ module.exports = (value, ...scopes) => {
 
 						break;
 					case "flag":
-						value = chalk[c.flag](value);
+						// Highlight flag name only (not bool '?' indicator).
+						value = value.replace(
+							/^([^\?]*?)(\??)$/g,
+							`${chalk[c.flag]("$1")}$2`
+						);
 
 						break;
 					case "shortcut":

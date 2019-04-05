@@ -183,11 +183,19 @@ module.exports = (...params) => {
 			} else if (state === "escaped") {
 				// Build value until an unescaped whitespace char is hit.
 				if (/[ \t]/.test(char) && pchar !== "\\") {
+					// Get value information.
+					let vlength = value.length;
+					let lchar = value.charAt(vlength - 1); // Value's last char.
+					let lschar = value.charAt(vlength - 2); // Second to last char.
+
 					// If the value's last character is a quote and the
 					// first character of the string is not the same style
 					// quote then give an error.
-					let lchar = value.charAt(value.length - 1);
-					if (/["']/.test(lchar) && value.charAt(0) !== lchar) {
+					if (
+						/["']/.test(lchar) &&
+						lschar !== "\\" &&
+						value.charAt(0) !== lchar
+					) {
 						// Reset index to exclude current char (space char).
 						ci--;
 

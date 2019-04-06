@@ -128,12 +128,15 @@ let issue = (result, type = "error", warnings = []) => {
  * @param  {number} index - The char index error occurred.
  * @return {undefined} - Nothing is returned.
  */
-let error = (char = "", code, line, index, source) => {
+let error = (char = "", code, line, index, source, h) => {
 	// Replace whitespace characters with their respective symbols.
 	char = char.replace(/ /g, "␣").replace(/\t/g, "⇥");
 
 	// Get character type.
 	let ctype = char && Number(char) ? "number" : "character";
+
+	// Add syntax highlight.
+	char = h(char, "value");
 
 	// Parsing error reasons.
 	let reasons = {

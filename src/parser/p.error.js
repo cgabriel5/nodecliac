@@ -2,6 +2,9 @@
 
 // Get needed modules.
 const path = require("path");
+const chalk = require("chalk");
+const h = require("./h.highlighter.js");
+const stripansi = require("strip-ansi");
 
 module.exports = (...args) => {
 	// Get arguments.
@@ -27,7 +30,9 @@ module.exports = (...args) => {
 	let is_intermediary_file = /^p\.flag-(command|value)\.js$/.test(scriptname);
 
 	// Define variables for specific parsers.
-	let name, isvspecial, ci;
+	let name = "",
+		isvspecial,
+		ci;
 	if (scriptname === "p.flagset.js") {
 		name = fvars.name;
 		isvspecial = fvars.isvspecial;
@@ -42,6 +47,10 @@ module.exports = (...args) => {
 
 	// Replace whitespace characters with their respective symbols.
 	char = char.replace(/ /g, "␣").replace(/\t/g, "⇥");
+
+	// Add syntax highlight.
+	char = h(char, "value");
+	name = h(name, name.startsWith("@") ? "setting" : "flag");
 
 	// Parsing error reasons.
 	let reasons = {
@@ -59,12 +68,18 @@ module.exports = (...args) => {
 		},
 		"p.command.js": {
 			1: `Chain started with: '${char}'. Expected a letter.`,
-			2: `Unnecessary escape ${ctype}: \\${char}.`,
-			3: `Illegal escape sequence: \\${char}.`,
+			2: `Unnecessary escape ${ctype}: ${h(
+				"\\" + stripansi(char),
+				"value"
+			)}.`,
+			3: `Illegal escape sequence: ${h(
+				"\\" + stripansi(char),
+				"value"
+			)}.`,
 			4: `Unexpected ${ctype}: '${char}'.`,
 			// Parsing warning reasons.
 			5: `Empty command chain assignment.`,
-			6: `Empty '[]' (no flags).`,
+			6: `Empty '${h("[]", "value")}' (no flags).`,
 			7: `Unclosed shortcut brace: '${char}'.`,
 			8: `Illegal command delimiter: '${char}'.`,
 			9: `Illegal shortcut delimiter: '${char}'.`
@@ -77,10 +92,13 @@ module.exports = (...args) => {
 			5: `Unescaped ${ctype} '${char}' in value.`,
 			// Parsing warning reasons.
 			// 6: `Empty flag assignment.`,
-			8: `Empty flag: '${name}' (use boolean indicator: '?').`,
+			8: `Empty flag: '${name}' (use boolean indicator: '${h(
+				"?",
+				"value"
+			)}').`,
 			9: `${
 				isvspecial === "command" ? "Command-flag" : "Options flag list"
-			} missing closing ')'.`,
+			} missing closing '${h(")", "value")}'.`,
 			10: `Empty flag namespace '${char}'.`
 		},
 		"p.flag-command.js": {
@@ -88,13 +106,13 @@ module.exports = (...args) => {
 			3: `Value cannot start with: '${char}'.`,
 			4: `Improperly quoted string.`,
 			5: `Empty command flag argument.`,
-			6: `Improperly closed command-flag. Missing ')'.`
+			6: `Improperly closed command-flag. Missing '${h(")", "value")}'.`
 		},
 		"p.flag-value.js": {
 			2: `Unexpected ${ctype}: '${char}'.`,
 			4: `Improperly quoted string.`,
 			5: `Unescaped ${ctype}: '${char}' in value.`,
-			10: `Empty '()' (no flag options).`
+			10: `Empty '${h("()", "value")}' (no flag options).`
 		},
 		"p.flagoption.js": {
 			0: `Empty flag option.`,

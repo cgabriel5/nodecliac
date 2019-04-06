@@ -84,7 +84,7 @@ module.exports = (
 	};
 	let error = (...params) => {
 		// Add source to parameters.
-		params.push(source);
+		params.push(source, h);
 		// Run and return error function.
 		return eerror.apply(null, params);
 	};

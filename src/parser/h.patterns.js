@@ -30,6 +30,8 @@ module.exports = {
 	r_schars: /(?<!\\)[~`!#$^&*(){}|[\];'",<>? ]/,
 	// Setting syntax.
 	r_setting: /^(@[a-zA-Z][_a-zA-Z]*)[ \t]*(=[ \t]*(.*?))?$/,
+	// Number pattern: [https://stackoverflow.com/a/30987109]
+	r_number: /^(?:NaN|-?(?:(?:\d+|\d*\.\d+)(?:[E|e][+|-]?\d+)?|Infinity))$/,
 	// Flag set.
 	r_flag_set: /^(-{1,2})([a-zA-Z][-._:a-zA-Z0-9]*)[ \t]*((=\*?)[ \t]*(\(|\(\)|.*?)?)?$/
 };

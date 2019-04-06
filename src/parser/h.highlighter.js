@@ -3,8 +3,11 @@
 // Needed modules.
 const chalk = require("chalk");
 const minimist = require("minimist");
+const stripansi = require("strip-ansi");
 // Get CLI parameters.
 const args = minimist(process.argv.slice(2));
+// Get RegExp patterns.
+const { r_number } = require("./h.patterns.js");
 
 module.exports = (value, ...scopes) => {
 	// Context:color lookup table.
@@ -18,15 +21,16 @@ module.exports = (value, ...scopes) => {
 		// Blue → false/true, shortcuts
 		boolean: "blue",
 		shortcut: "blue",
-		// Green → escape characters, numbers
-		escape: "green",
+		// Cyan → escape characters
+		escape: "cyan",
+		// Green → numbers
 		number: "green",
 		// Dim (gray) → comments
 		comment: "dim",
 		// Command-flag '$'.
 		cmdflag: "magenta",
 		// Default text.
-		def: "black",
+		def: "reset",
 		// Font styles.
 		i: "italic",
 		dim: "dim"
@@ -86,23 +90,40 @@ module.exports = (value, ...scopes) => {
 						if (/^(true|false)$/.test(value)) {
 							value = chalk[c.boolean](value);
 						}
-						// Number: [https://stackoverflow.com/a/1779019]
-						else if (/^\d+$/.test(value)) {
+						// Number:
+						else if (r_number.test(value)) {
 							value = chalk[c.number](value);
 						}
 						// String or anything else.
 						else {
-							// Highlight escaped sequences.
-							value = value
-								.replace(/(\\.)/g, `${chalk[c.escape]("$1")}`)
-								// Highlight starting/closing quotes.
-								.replace(
-									/^(["'])|(["'])$/g,
-									`${chalk[c.def]("$1$2")}`
-								);
+							// Check if value is a string.
+							let is_str = /^["']/.test(value);
 
-							// Highlight everything else.
-							value = chalk[c.value](value);
+							// Highlight escaped sequences.
+							value = value.replace(
+								/(\\.)/g,
+								`${chalk[c.escape]("$1")}`
+							);
+
+							// Check whether value is a string.
+							if (is_str) {
+								// Get first and last characters (quotes).
+								let fchar = value.charAt(0);
+								let lchar = value.charAt(value.length - 1);
+
+								// Remove quotes and apply highlighting.
+								value = `${chalk[c.def](fchar)}${chalk[
+									c.string
+								](
+									// Remove start/closing quotes.
+									value.slice(1, -1)
+								)}${chalk[c.def](lchar)}`;
+							}
+							// Highlight everything but command-flags.
+							else if (!/\$\(/.test(stripansi(value))) {
+								// Highlight everything else.
+								value = chalk[c.value](value);
+							}
 						}
 
 						break;
@@ -153,11 +174,23 @@ module.exports = (value, ...scopes) => {
 
 						break;
 					case "cmd-flag-arg":
-						// Highlight command-flag syntax: '$(' and ')'.
-						value = value.replace(
-							/^(\$)("|')/,
-							`${chalk[c.def]("$1")}${chalk[c.def]("$2")}`
-						);
+						// Check if argument is a run-able command.
+						let is_carg = /^\$/.test(value);
+
+						// Remove '$' if argument is a run-able command.
+						value = is_carg ? value.slice(1) : value;
+
+						// Get first and last characters (quotes).
+						let fchar = value.charAt(0);
+						let lchar = value.charAt(value.length - 1);
+
+						// Remove quotes and apply highlighting.
+						value = `${is_carg ? chalk[c.def]("$") : ""}${chalk[
+							c.def
+						](fchar)}${chalk[c.string](
+							// Remove start/closing quotes.
+							value.slice(1, -1)
+						)}${chalk[c.def](lchar)}`;
 
 						break;
 				}

@@ -298,7 +298,7 @@ module.exports = (
 					brace_check("unclosed", "[");
 
 					// Parse and verify line.
-					let result = verify(parser(pcommand));
+					let result = verify(parser(pcommand, formatting));
 
 					// Reset index to start at newline on next iteration.
 					i = result.nl_index - 1;

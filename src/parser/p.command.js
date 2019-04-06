@@ -26,7 +26,7 @@ let { r_nl } = require("./h.patterns.js");
  */
 module.exports = (...args) => {
 	// Get arguments.
-	let [string, i, l, line_num, line_fchar, h] = args;
+	let [string, i, l, line_num, line_fchar, h, formatting] = args;
 
 	// Parsing vars.
 	let chain = "";
@@ -493,8 +493,10 @@ module.exports = (...args) => {
 		}
 	}
 
-	// Add syntax highlighting.
-	// chain = h(chain, "command");
+	// Add syntax highlighting if formatting.
+	if (formatting) {
+		chain = h(chain, "command");
+	}
 
 	// Return relevant parsing information.
 	return {

@@ -7,7 +7,7 @@
  * @param  {array} header - The final file's header information.
  * @return {string} - The config file contents string.
  */
-module.exports = (settings, header) => {
+module.exports = (settings, header, h) => {
 	// Store lines.
 	let lines = [];
 
@@ -21,7 +21,8 @@ module.exports = (settings, header) => {
 	// Loop over settings to build config.
 	for (let setting in settings) {
 		if (settings.hasOwnProperty(setting)) {
-			lines.push(`${setting} = ${settings[setting]}`);
+			// Add syntax highlighting to setting then store setting:value.
+			lines.push(`${h(setting, "setting")} = ${settings[setting]}`);
 		}
 	}
 

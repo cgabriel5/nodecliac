@@ -633,7 +633,7 @@ module.exports = (
 	// Return generated acdef, config, and formatted file contents.
 	return {
 		acdef: require("./h.acdef.js")(commandname, lookup, lk_size, header, h),
-		config: require("./h.config.js")(settings, header),
+		config: require("./h.config.js")(settings, header, h),
 		formatted: require("./h.formatter.js")(
 			preformat.lines,
 			formatting,

@@ -249,6 +249,14 @@ module.exports = (...args) => {
 					}
 					// If not a command delimiter store character.
 					else {
+						// When escaping anything but a dot do not include
+						// the '\' as it is not needed. For example, if the
+						// command is 'com\mand\.name' we should return
+						// 'command\.name' and not 'com\mand\.name'.
+						if (char === "\\") {
+							continue;
+						}
+
 						// Add char to strings.
 						command += char;
 						chain += char;

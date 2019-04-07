@@ -4,7 +4,7 @@
 const path = require("path");
 const chalk = require("chalk");
 const { exit } = require("../utils.js");
-
+const h = require("./h.highlighter.js");
 /**
  * Issue warnings and or error the parsing result object might contain.
  *
@@ -206,8 +206,8 @@ let brace_check = args => {
 				index,
 				reason: `Empty ${
 					brace_style === "parentheses"
-						? "'()' (no flag options)"
-						: "'[]' (no flags)"
+						? `'${h("()", "value")}' (no flag options)`
+						: `'${h("[]", "value")}' (no flags)`
 				}.`,
 				// Add key to denote file giving issue.
 				source: "p.main.js"

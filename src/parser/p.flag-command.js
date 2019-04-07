@@ -238,6 +238,7 @@ module.exports = (...args) => {
 	// Return relevant parsing information.
 	return {
 		cmd_str,
-		warnings
+		warnings,
+		index: i
 	};
 };

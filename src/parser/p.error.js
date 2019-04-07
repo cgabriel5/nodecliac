@@ -106,13 +106,15 @@ module.exports = (...args) => {
 			3: `Value cannot start with: '${char}'.`,
 			4: `Improperly quoted string.`,
 			5: `Empty command flag argument.`,
-			6: `Improperly closed command-flag. Missing '${h(")", "value")}'.`
+			6: `Improperly closed command-flag. Missing '${h(")", "value")}'.`,
+			11: `Empty string '${chalk.yellow(stripansi(char))}'.`
 		},
 		"p.flag-value.js": {
 			2: `Unexpected ${ctype}: '${char}'.`,
 			4: `Improperly quoted string.`,
 			5: `Unescaped ${ctype}: '${char}' in value.`,
-			10: `Empty '${h("()", "value")}' (no flag options).`
+			10: `Empty '${h("()", "value")}' (no flag options).`,
+			11: `Empty string '${chalk.yellow(stripansi(char))}'.`
 		},
 		"p.flagoption.js": {
 			0: `Empty flag option.`,

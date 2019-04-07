@@ -144,6 +144,21 @@ module.exports = (...args) => {
 					// Store value.
 					value = `${qchar}${value}${qchar}`;
 
+					// If string is empty give a warning.
+					if (/^("|')\1$/.test(value)) {
+						// Store index to later reset it back.
+						let old_ci = ci;
+
+						// Reset index to point to opening quote.
+						ci--;
+
+						// Issue warning.
+						issue("warning", 11, `${char}${char}`);
+
+						// Restore index after issuing warning.
+						ci = old_ci;
+					}
+
 					// Add '$' flag argument indicator if flag is set.
 					if (is_cmd_arg) {
 						value = `$${value}`;

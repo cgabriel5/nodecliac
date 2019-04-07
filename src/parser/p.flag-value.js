@@ -228,14 +228,32 @@ module.exports = (...params) => {
 				value += char;
 			} else if (state === "quoted") {
 				if (char === qchar && pchar !== "\\") {
+					// Reset state
+					state = "delimiter";
+					// Build string value.
+					value = `${qchar}${value}${qchar}`;
+
+					// If string is empty give a warning.
+					if (/^("|')\1$/.test(value)) {
+						// Store index to later reset it back.
+						let old_ci = ci;
+
+						// Reset index to point to opening quote.
+						ci--;
+
+						// Issue warning.
+						issue("warning", 11, `${char}${char}`);
+
+						// Restore index after issuing warning.
+						ci = old_ci;
+					}
+
 					// Reset delimiter count/index.
 					delimiter_count = 0;
 					indices.delimiter.last = null;
 
-					// Reset state
-					state = "delimiter";
 					// Store value.
-					args.push(`${qchar}${value}${qchar}`);
+					args.push(value);
 					// Clear value.
 					value = "";
 					// Clear stored index.

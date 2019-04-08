@@ -377,6 +377,15 @@ module.exports = (...args) => {
 				let value = pvalue.value;
 				let nl_index = pvalue.nl_index;
 
+				// Join warnings.
+				if (pvalue.warnings.length) {
+					warnings = warnings.concat(pvalue.warnings);
+				}
+				// If error exists return error.
+				if (pvalue.code) {
+					return pvalue;
+				}
+
 				// If value is not a string (therefore an array) join values.
 				if (typeof value !== "string" && value.length > 1) {
 					value = `(${value.join(" ")})`;
@@ -391,15 +400,6 @@ module.exports = (...args) => {
 				flagsets.push(flagset);
 				// Reset flag set string.
 				flagset = "";
-
-				// Join warnings.
-				if (pvalue.warnings.length) {
-					warnings = warnings.concat(pvalue.warnings);
-				}
-				// If error exists return error.
-				if (pvalue.code) {
-					return pvalue;
-				}
 			} else {
 				// Build flag set string.
 				flagset += char;
@@ -443,6 +443,15 @@ module.exports = (...args) => {
 		let value = pvalue.value;
 		let nl_index = pvalue.nl_index;
 
+		// Join warnings.
+		if (pvalue.warnings.length) {
+			warnings = warnings.concat(pvalue.warnings);
+		}
+		// If error exists return error.
+		if (pvalue.code) {
+			return pvalue;
+		}
+
 		// If value is not a string (therefore an array) join values.
 		if (typeof value !== "string" && value.length > 1) {
 			value = `(${value.join(" ")})`;
@@ -457,15 +466,6 @@ module.exports = (...args) => {
 		flagsets.push(flagset);
 		// Reset flag set string.
 		flagset = "";
-
-		// Join warnings.
-		if (pvalue.warnings.length) {
-			warnings = warnings.concat(pvalue.warnings);
-		}
-		// If error exists return error.
-		if (pvalue.code) {
-			return pvalue;
-		}
 	}
 
 	// If there was assignment do some value checks.

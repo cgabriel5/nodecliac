@@ -225,7 +225,7 @@ module.exports = (...args) => {
 			}
 		} else if (state === "value") {
 			// If this is the first char is must be either one of the
-			// following: ", ', or a-zA-Z0-9
+			// following: ", ', or -:a-zA-Z0-9
 			if (value === "") {
 				if (/["']/.test(char)) {
 					qchar = char;
@@ -242,7 +242,7 @@ module.exports = (...args) => {
 					indices.braces.open = i;
 				}
 				// For anything else give an error.
-				else if (!/[a-zA-Z0-9]/.test(char)) {
+				else if (!/[-:a-zA-Z0-9]/.test(char)) {
 					return issue("error", 3, char);
 				}
 

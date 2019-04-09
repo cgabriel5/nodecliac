@@ -55,7 +55,8 @@ module.exports = (...args) => {
 	// Capture state's start/end indices.
 	let indices = {
 		symbol: {
-			index: i
+			start: i,
+			end: null
 		},
 		name: {
 			start: null,
@@ -115,9 +116,9 @@ module.exports = (...args) => {
 
 		if (state === "symbol") {
 			if (char === "-") {
-				if (symbol.length <= 2) {
-					symbol += char;
-				}
+				// Store index.
+				indices.symbol.end = i;
+				symbol += char;
 			}
 			// Hitting anything other than a hyphen ends symbol state.
 			else {
@@ -125,11 +126,16 @@ module.exports = (...args) => {
 				// Reset index.
 				i--;
 
-				// Before ending state check symbol.
-				if (!/-{1,2}/.test(symbol)) {
+				// Before ending symbol state check length.
+				let max_hyphens = 2;
+				let sym_len = symbol.length;
+				if (sym_len > max_hyphens) {
 					// Reset index.
-					i = line_fchar;
-					return issue("error", 2, char);
+					i = indices.symbol.end - sym_len + max_hyphens;
+					i++; // Add 1 to set at offending character.
+
+					// Issue error.
+					return issue("error", 2, string.charAt(i));
 				}
 			}
 			// Default parse state to 'name' (l → r : @name=value).

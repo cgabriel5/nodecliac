@@ -318,10 +318,10 @@ module.exports = (...args) => {
 		}
 	}
 
-	// If no value was provided give warning.
+	// If no value (only hyphen(s)) was provided give warning.
 	if (!assignment && !indices.name.boolean) {
-		// Provide original index.
-		i = indices.name.end;
+		// Reset index to symbol end.
+		i = indices.symbol.end;
 
 		// Add warning.
 		issue("warning", 8, "=");

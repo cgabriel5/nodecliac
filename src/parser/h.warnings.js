@@ -4,9 +4,6 @@
 const path = require("path");
 const chalk = require("chalk");
 
-// Get globals.
-let warnings = global.$app.get("warnings"); // Get warnings.
-
 /**
  * Prints parser warnings.
  *
@@ -14,7 +11,11 @@ let warnings = global.$app.get("warnings"); // Get warnings.
  *
  * @resource [https://stackoverflow.com/a/8228308]
  */
-module.exports = (issue, source) => {
+module.exports = issue => {
+	// Get globals.
+	let source = global.$app.get("source");
+	let warnings = global.$app.get("warnings");
+
 	// Track longest (line + index) column to evenly space line/char.
 	let line_col_length = 0;
 	// Track longest parser name column to evenly space line/char.

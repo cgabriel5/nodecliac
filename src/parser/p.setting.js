@@ -23,12 +23,13 @@ let { r_schars, r_nl } = require("./h.patterns.js");
  */
 module.exports = (...args) => {
 	// Get arguments.
-	let [i, line_num, line_fchar, settings] = args;
+	let [i, line_num, line_fchar] = args;
 
 	// Get globals.
 	let h = global.$app.get("highlighter");
 	let string = global.$app.get("string");
 	let l = global.$app.get("l");
+	let settings = global.$app.get("settings");
 
 	// Parsing vars.
 	let name = "@";

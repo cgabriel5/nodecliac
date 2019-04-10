@@ -10,7 +10,11 @@
  *     comments or not.
  * @return {string} - The finally formatted string.
  */
-module.exports = (lines, formatting, stripcomments) => {
+module.exports = lines => {
+	// Get globals.
+	let formatting = global.$app.get("formatting");
+	let stripcomments = global.$app.get("stripcomments");
+
 	// If not formatting then return an empty string.
 	if (!formatting) {
 		return "";

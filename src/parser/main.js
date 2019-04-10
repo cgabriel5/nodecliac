@@ -286,7 +286,7 @@ module.exports = (
 			case "setting":
 				{
 					// Parse and verify line.
-					let result = verify(parser(psetting, settings));
+					let result = verify(parser(psetting));
 
 					// Reset index to start at newline on next iteration.
 					i = result.nl_index - 1;
@@ -307,7 +307,7 @@ module.exports = (
 					brace_check("unclosed", "[");
 
 					// Parse and verify line.
-					let result = verify(parser(pcommand, formatting));
+					let result = verify(parser(pcommand));
 
 					// Reset index to start at newline on next iteration.
 					i = result.nl_index - 1;
@@ -637,17 +637,13 @@ module.exports = (
 	}
 
 	// Log any warnings.
-	require("./h.warnings.js")(issue, source);
+	require("./h.warnings.js")(issue);
 
 	// Return generated acdef, config, and formatted file contents.
 	return {
-		acdef: require("./h.acdef.js")(commandname, lookup, lk_size, header),
-		config: require("./h.config.js")(settings, header),
-		formatted: require("./h.formatter.js")(
-			preformat.lines,
-			formatting,
-			stripcomments
-		),
+		acdef: require("./h.acdef.js")(lk_size, header),
+		config: require("./h.config.js")(header),
+		formatted: require("./h.formatter.js")(preformat.lines),
 		time: process.hrtime(stime) // Return end time tuple array.
 	};
 };

@@ -14,8 +14,9 @@ const h = global.$app.get("highlighter");
  * @param  {object} result - The parsing result object.
  * @return {undefined} - Logs warnings. Exits script if error is issued.
  */
-let verify = (result, source) => {
-	// Get warnings.
+let verify = result => {
+	// Get globals.
+	let source = global.$app.get("source");
 	let warnings = global.$app.get("warnings");
 
 	// Get warnings from result object.
@@ -182,14 +183,11 @@ let error = (char = "", code, line, index, source) => {
  */
 let brace_check = args => {
 	// Get arguments.
-	let {
-		issue,
-		brace_style,
-		last_open_br,
-		last_open_pr,
-		indentation,
-		source
-	} = args;
+	let { issue, brace_style, last_open_br, last_open_pr, indentation } = args;
+
+	// Get globals.
+	let source = global.$app.get("source");
+	let warnings = global.$app.get("warnings");
 
 	// Determine which data set to use.
 	let data = /[[\]]|brackets/.test(brace_style) ? last_open_br : last_open_pr;

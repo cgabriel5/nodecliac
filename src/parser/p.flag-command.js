@@ -18,14 +18,14 @@ const issuefunc = require("./p.error.js");
  * @param  {string} string - The line to parse.
  * @return {object} - Object containing parsed information.
  */
-module.exports = (...args) => {
-	// Get arguments.
-	let [i, line_num, line_fchar, str = [], vsi, type] = args;
-
+module.exports = (str = [], vsi, type) => {
 	// Get globals.
+	let string = str[1] || global.$app.get("string");
+	let i = +(str[0] || global.$app.get("i"));
+	let l = str[2] || global.$app.get("l");
+	let line_num = global.$app.get("line_num");
+	let line_fchar = global.$app.get("line_fchar");
 	let h = global.$app.get("highlighter");
-	let string = str[0] || global.$app.get("string");
-	let l = str[1] || global.$app.get("l");
 
 	// If parsing a list reduce length to ignore closing ')'. Otherwise,
 	// leave length be as a command, for example, does get wrapped with '()'.
@@ -57,22 +57,11 @@ module.exports = (...args) => {
 
 	// Wrap issue function to add fixed parameters.
 	let issue = (type = "error", code, char = "") => {
-		// Use multiple parameter arrays to flatten function.
-		let paramset1 = [i, line_num, line_fchar];
-		let paramset2 = [
-			__filename,
-			warnings,
-			state,
-			type,
-			code,
-			char,
-			// Parser specific variables.
-			{
-				ci
-			}
-		];
 		// Run and return issue.
-		return issuefunc.apply(null, paramset1.concat(paramset2));
+		return issuefunc(i, __filename, warnings, state, type, code, char, {
+			// Parser specific variables.
+			ci
+		});
 	};
 
 	// Keep a list of unique loop iterations for current index.

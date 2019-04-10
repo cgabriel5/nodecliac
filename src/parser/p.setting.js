@@ -21,14 +21,14 @@ let { r_schars, r_nl } = require("./h.patterns.js");
  * @param  {string} string - The line to parse.
  * @return {object} - Object containing parsed information.
  */
-module.exports = (...args) => {
-	// Get arguments.
-	let [i, line_num, line_fchar] = args;
-
+module.exports = () => {
 	// Get globals.
-	let h = global.$app.get("highlighter");
 	let string = global.$app.get("string");
+	let i = global.$app.get("i");
 	let l = global.$app.get("l");
+	let line_num = global.$app.get("line_num");
+	let line_fchar = global.$app.get("line_fchar");
+	let h = global.$app.get("highlighter");
 	let settings = global.$app.get("settings");
 
 	// Parsing vars.
@@ -60,22 +60,11 @@ module.exports = (...args) => {
 
 	// Wrap issue function to add fixed parameters.
 	let issue = (type = "error", code, char = "") => {
-		// Use multiple parameter arrays to flatten function.
-		let paramset1 = [i, line_num, line_fchar];
-		let paramset2 = [
-			__filename,
-			warnings,
-			state,
-			type,
-			code,
-			char,
-			// Parser specific variables.
-			{
-				name
-			}
-		];
 		// Run and return issue.
-		return issuefunc.apply(null, paramset1.concat(paramset2));
+		return issuefunc(i, __filename, warnings, state, type, code, char, {
+			// Parser specific variables.
+			name
+		});
 	};
 
 	// Increment index by 1 to skip initial '@' setting symbol.

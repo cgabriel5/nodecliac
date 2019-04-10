@@ -7,24 +7,14 @@ const stripansi = require("strip-ansi");
 
 module.exports = (...args) => {
 	// Get arguments.
-	let [
-		i,
-		line_num,
-		line_fchar,
-		filename,
-		warnings,
-		state,
-		type,
-		code,
-		char,
-		// Parser specific variables.
-		fvars = {}
-	] = args;
+	let [i, filename, warnings, state, type, code, char, fvars = {}] = args;
 
 	// Get globals
-	let h = global.$app.get("highlighter");
 	let string = global.$app.get("string");
 	let l = global.$app.get("l");
+	let line_num = global.$app.get("line_num");
+	let line_fchar = global.$app.get("line_fchar");
+	let h = global.$app.get("highlighter");
 
 	// Get basename from file name.
 	let scriptname = path.basename(filename);

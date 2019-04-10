@@ -27,14 +27,14 @@ let { r_schars, r_nl, r_nlpipe } = require("./h.patterns.js");
  * @param  {string} string - The line to parse.
  * @return {object} - Object containing parsed information.
  */
-module.exports = (...args) => {
-	// Get arguments.
-	let [i, line_num, line_fchar, , /*indentation*/ usepipe] = args;
-
+module.exports = (str = [], usepipe) => {
 	// Get globals.
+	let string = str[1] || global.$app.get("string");
+	let i = +(str[0] || global.$app.get("i"));
+	let l = str[2] || global.$app.get("l");
+	let line_num = global.$app.get("line_num");
+	let line_fchar = global.$app.get("line_fchar");
 	let h = global.$app.get("highlighter");
-	let string = global.$app.get("string");
-	let l = global.$app.get("l");
 
 	// Parsing vars.
 	let symbol = "";
@@ -74,23 +74,12 @@ module.exports = (...args) => {
 
 	// Wrap issue function to add fixed parameters.
 	let issue = (type = "error", code, char = "") => {
-		// Use multiple parameter arrays to flatten function.
-		let paramset1 = [i, line_num, line_fchar];
-		let paramset2 = [
-			__filename,
-			warnings,
-			state,
-			type,
-			code,
-			char,
-			// Parser specific variables.
-			{
-				name,
-				isvspecial
-			}
-		];
 		// Run and return issue.
-		return issuefunc.apply(null, paramset1.concat(paramset2));
+		return issuefunc(i, __filename, warnings, state, type, code, char, {
+			// Parser specific variables.
+			name,
+			isvspecial
+		});
 	};
 
 	// Determine character/delimiter to end on.
@@ -334,10 +323,7 @@ module.exports = (...args) => {
 		else {
 			// Run flag value parser from here...
 			let pvalue = pflagvalue(
-				0, // Index.
-				line_num,
-				line_fchar,
-				[value, value.length], // Provide...
+				["0", value, value.length], // Provide new string information.
 				indices.value.start, // Value start index.
 				isvspecial
 			);

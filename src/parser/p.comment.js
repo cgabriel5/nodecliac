@@ -17,14 +17,12 @@ let { r_nl } = require("./h.patterns.js");
  * @param  {string} string - The line to parse.
  * @return {object} - Object containing parsed information.
  */
-module.exports = (...args) => {
-	// Get arguments.
-	let [i /*line_num, line_fchar*/] = args;
-
+module.exports = () => {
 	// Get globals.
-	let h = global.$app.get("highlighter");
 	let string = global.$app.get("string");
 	let l = global.$app.get("l");
+	let i = global.$app.get("i");
+	let h = global.$app.get("highlighter");
 
 	// Parsing vars.
 	let state = "comment-char"; // Parsing state.
@@ -35,11 +33,8 @@ module.exports = (...args) => {
 
 	// // Wrap issue function to add fixed parameters.
 	// let issue = (type = "error", code, char = "") => {
-	// 	// Use multiple parameter arrays to flatten function.
-	// 	let paramset1 = [i, line_num, line_fchar];
-	// 	let paramset2 = [__filename, warnings, state, type, code, char];
 	// 	// Run and return issue.
-	// 	return issuefunc.apply(null, paramset1.concat(paramset2));
+	// 	return issuefunc(i, __filename, warnings, state, type, code, char);
 	// };
 
 	// Loop over string.

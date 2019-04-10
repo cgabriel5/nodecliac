@@ -82,14 +82,10 @@ module.exports = (
 		return everify(result, source);
 	};
 	let brace_check = (issue, brace_style) => {
-		return ebc({
-			issue,
-			brace_style,
-			last_open_br,
-			last_open_pr,
-			indentation,
-			source
-		});
+		// Set globals to access in parser.
+		globals.set("indentation", indentation);
+		// Run and return error function.
+		return ebc({ issue, brace_style, last_open_br, last_open_pr });
 	};
 	let error = (...params) => {
 		// Add source to parameters.
@@ -99,8 +95,11 @@ module.exports = (
 	};
 	// Create parser wrapper to add fixed parameters.
 	let parser = (pname, ...params) => {
-		// Join fixed parameters with provided.
-		params = [i, line_num, line_fchar].concat(params);
+		// Set globals to access in parser.
+		globals.set("i", i);
+		globals.set("line_num", line_num);
+		globals.set("line_fchar", line_fchar);
+
 		// Run parser function.
 		return pname.apply(null, params);
 	};
@@ -108,12 +107,12 @@ module.exports = (
 	/**
 	 * Store line and its type. Mainly used to reset new line counter.
 	 *
-	 * @param  {string} string - The line to add to formatted array.
-	 * @param  {string} type - The line's line type.
-	 * @param  {array} type - Array: [tab char, indentation amount].
+	 * @param  {string} line - The line to add to formatted array.
+	 * @param  {string} type - The line's type.
+	 * @param  {array} indentation - Array: [tab char, indentation amount].
 	 * @return {undefined} - Nothing is returned.
 	 */
-	let preformat = (line, type, indentation) => {
+	let preformat = (...args) => {
 		// Ignore comments when 'strip-comments' is set.
 		if (stripcomments && type === "comment") {
 			return;
@@ -122,7 +121,7 @@ module.exports = (
 		// Reset format new line counter.
 		preformat.nl_count = 0;
 		// Add line to formatted array.
-		preformat.lines.push([line, type, indentation]);
+		preformat.lines.push(args);
 	};
 	// Vars -  Pre-formatting (attached to function).
 	preformat.lines = []; // Store lines before final formatting.
@@ -386,7 +385,7 @@ module.exports = (
 					brace_check("unclosed", "(");
 
 					// Parse and verify line.
-					let result = verify(parser(pflagset, indentation));
+					let result = verify(parser(pflagset));
 
 					// Breakdown flag.
 					let hyphens = result.symbol;
@@ -504,7 +503,7 @@ module.exports = (
 			case "flag-option":
 				{
 					// Parse and verify line.
-					let result = verify(parser(pflagoption, indentation));
+					let result = verify(parser(pflagoption));
 
 					// Get result value.
 					let value = result.value[0];

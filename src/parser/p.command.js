@@ -24,14 +24,14 @@ let { r_nl } = require("./h.patterns.js");
  * @param  {string} string - The line to parse.
  * @return {object} - Object containing parsed information.
  */
-module.exports = (...args) => {
-	// Get arguments.
-	let [i, line_num, line_fchar] = args;
-
+module.exports = () => {
 	// Get globals.
-	let h = global.$app.get("highlighter");
 	let string = global.$app.get("string");
+	let i = global.$app.get("i");
 	let l = global.$app.get("l");
+	let line_num = global.$app.get("line_num");
+	let line_fchar = global.$app.get("line_fchar");
+	let h = global.$app.get("highlighter");
 	let formatting = global.$app.get("formatting");
 
 	// Parsing vars.
@@ -75,11 +75,8 @@ module.exports = (...args) => {
 
 	// Wrap issue function to add fixed parameters.
 	let issue = (type = "error", code, char = "") => {
-		// Use multiple parameter arrays to flatten function.
-		let paramset1 = [i, line_num, line_fchar];
-		let paramset2 = [__filename, warnings, state, type, code, char];
 		// Run and return issue.
-		return issuefunc.apply(null, paramset1.concat(paramset2));
+		return issuefunc(i, __filename, warnings, state, type, code, char);
 	};
 
 	// Loop over string.
@@ -366,11 +363,8 @@ module.exports = (...args) => {
 			if (char === "|" && pchar !== "\\") {
 				// Run flag value parser from here...
 				let pvalue = pflagset(
-					indices.oneliner.start, // Index to resume parsing at...
-					line_num,
-					line_fchar,
-					undefined,
-					true // Let parser know to end on newline or pipe chars.
+					[indices.oneliner.start], // Index to resume parsing at.
+					true // End parsing either on newlines or pipe chars.
 				);
 
 				// Get result values.
@@ -429,11 +423,8 @@ module.exports = (...args) => {
 	if (flagset) {
 		// Run flag value parser from here...
 		let pvalue = pflagset(
-			indices.oneliner.start, // Index to resume parsing at...
-			line_num,
-			line_fchar,
-			undefined,
-			true // Let parser know to end on newline or pipe chars.
+			[indices.oneliner.start], // Index to resume parsing at.
+			true // End parsing either on newlines or pipe chars.
 		);
 
 		// Get result values.

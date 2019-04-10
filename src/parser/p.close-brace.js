@@ -17,12 +17,10 @@ let { r_nl } = require("./h.patterns.js");
  * @param  {string} string - The line to parse.
  * @return {object} - Object containing parsed information.
  */
-module.exports = (...args) => {
-	// Get arguments.
-	let [i, line_num, line_fchar] = args;
-
+module.exports = () => {
 	// Get globals.
 	let string = global.$app.get("string");
+	let i = global.$app.get("i");
 	let l = global.$app.get("l");
 
 	// Parsing vars.
@@ -30,20 +28,11 @@ module.exports = (...args) => {
 	let nl_index;
 	// Collect all parsing warnings.
 	let warnings = [];
-	// // Capture state's start/end indices.
-	// let indices = {
-	// 	brace: {
-	// 		close: i
-	// 	}
-	// };
 
 	// Wrap issue function to add fixed parameters.
 	let issue = (type = "error", code, char = "") => {
-		// Use multiple parameter arrays to flatten function.
-		let paramset1 = [i, line_num, line_fchar];
-		let paramset2 = [__filename, warnings, state, type, code, char];
 		// Run and return issue.
-		return issuefunc.apply(null, paramset1.concat(paramset2));
+		return issuefunc(i, __filename, warnings, state, type, code, char);
 	};
 
 	// Increment index by 1 to skip brace character.

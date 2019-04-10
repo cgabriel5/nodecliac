@@ -27,14 +27,14 @@ let { r_schars } = require("./h.patterns.js");
  * @param  {string} string - The line to parse.
  * @return {object} - Object containing parsed information.
  */
-module.exports = (...params) => {
-	// Get arguments.
-	let [i, line_num, line_fchar, str = [], vsi, type] = params;
-
+module.exports = (str = [], vsi, type) => {
 	// Get globals.
+	let string = str[1] || global.$app.get("string");
+	let i = +(str[0] || global.$app.get("i"));
+	let l = str[2] || global.$app.get("l");
+	let line_num = global.$app.get("line_num");
+	let line_fchar = global.$app.get("line_fchar");
 	let h = global.$app.get("highlighter");
-	let string = str[0] || global.$app.get("string");
-	let l = str[1] || global.$app.get("l");
 
 	// Parsing vars.
 	// Note: Parsing the value starts a new loop from 0 to only focus on
@@ -96,22 +96,11 @@ module.exports = (...params) => {
 
 	// Wrap issue function to add fixed parameters.
 	let issue = (type = "error", code, char = "") => {
-		// Use multiple parameter arrays to flatten function.
-		let paramset1 = [i, line_num, line_fchar];
-		let paramset2 = [
-			__filename,
-			warnings,
-			state,
-			type,
-			code,
-			char,
-			// Parser specific variables.
-			{
-				ci
-			}
-		];
 		// Run and return issue.
-		return issuefunc.apply(null, paramset1.concat(paramset2));
+		return issuefunc(i, __filename, warnings, state, type, code, char, {
+			// Parser specific variables.
+			ci
+		});
 	};
 
 	// Keep a list of unique loop iterations for current index.
@@ -282,11 +271,8 @@ module.exports = (...params) => {
 			} else if (state === "command") {
 				// Run command flag parser from here...
 				let pvalue = pcommandflag(
-					i,
-					line_num,
-					line_fchar,
-					[string, string.length], // Provide...
-					vsi,
+					[i + "", string, string.length], // Provide new string information.
+					vsi, // Value start index.
 					type
 				);
 

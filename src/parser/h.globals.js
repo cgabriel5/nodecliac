@@ -45,7 +45,12 @@ f.set = (name, value) => {
  * @return {any} - The global's value.
  */
 f.get = (name, def) => {
-	return ref[name] || def;
+	// Get value.
+	let value = ref[name];
+
+	// If value is not undefined return it. This way it falsy values
+	// are properly returned.
+	return value !== undefined ? value : def;
 };
 
 /**

@@ -19,7 +19,11 @@ let { r_nl } = require("./h.patterns.js");
  */
 module.exports = (...args) => {
 	// Get arguments.
-	let [string, i, l, line_num, line_fchar /*h*/] = args;
+	let [i, line_num, line_fchar] = args;
+
+	// Get globals.
+	let string = global.$app.get("string");
+	let l = global.$app.get("l");
 
 	// Parsing vars.
 	let state = "eol-wsb"; // Parsing state.
@@ -36,7 +40,7 @@ module.exports = (...args) => {
 	// Wrap issue function to add fixed parameters.
 	let issue = (type = "error", code, char = "") => {
 		// Use multiple parameter arrays to flatten function.
-		let paramset1 = [string, i, l, line_num, line_fchar];
+		let paramset1 = [i, line_num, line_fchar];
 		let paramset2 = [__filename, warnings, state, type, code, char];
 		// Run and return issue.
 		return issuefunc.apply(null, paramset1.concat(paramset2));

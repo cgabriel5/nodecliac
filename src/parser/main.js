@@ -1,5 +1,8 @@
 "use strict";
 
+// Setup app global variables.
+const globals = require("./h.globals.js");
+
 // Require parsers.
 const stripansi = require("strip-ansi");
 const psetting = require("./p.setting.js");
@@ -10,9 +13,9 @@ const pflagoption = require("./p.flagoption.js");
 const pcomment = require("./p.comment.js");
 
 // Require parser helpers.
-const h = require("./h.highlighter.js");
 const mkchain = require("./h.mkchain.js");
 const shortcuts = require("./h.shortcuts.js");
+const h = globals.set("highlighter", require("./h.highlighter.js"));
 
 // Get error checking functions.
 const {
@@ -30,12 +33,19 @@ module.exports = (
 	formatting,
 	stripcomments // When formatting should comments be removed?
 ) => {
+	// Store arguments for quick access later.
+	globals.set("string", contents);
+	globals.set("commandname", commandname);
+	globals.set("source", source);
+	globals.set("formatting", formatting);
+	globals.set("stripcomments", stripcomments);
+
 	// Vars - timers.
 	let stime = process.hrtime(); // Store start time tuple array.
 
 	// Vars - Main loop.
 	let i = 0;
-	let l = contents.length;
+	let l = globals.set("l", contents.length);
 
 	// Vars - Line information.
 	let line_num = 1; // y-index
@@ -43,13 +53,13 @@ module.exports = (
 	let indentation = "";
 
 	// Vars - General.
-	let lookup = {};
+	let lookup = globals.set("lookup", {});
 	// Keep track of lookup size.
 	let lk_size = 0;
-	let settings = {};
+	let settings = globals.set("settings", {});
 	// Keep track of settings size/count.
 	settings.__count__ = 0;
-	let warnings = [];
+	let warnings = globals.set("warnings", []);
 
 	// Vars - Parser flags.
 	let line_type; // Store current type of line being parsed.
@@ -69,7 +79,7 @@ module.exports = (
 
 	// Create error functions wrappers to add fixed parameters.
 	let verify = result => {
-		return everify(result, warnings, source);
+		return everify(result, source);
 	};
 	let brace_check = (issue, brace_style) => {
 		return ebc({
@@ -78,20 +88,19 @@ module.exports = (
 			last_open_br,
 			last_open_pr,
 			indentation,
-			warnings,
 			source
 		});
 	};
 	let error = (...params) => {
 		// Add source to parameters.
-		params.push(source, h);
+		params.push(source);
 		// Run and return error function.
 		return eerror.apply(null, params);
 	};
 	// Create parser wrapper to add fixed parameters.
 	let parser = (pname, ...params) => {
 		// Join fixed parameters with provided.
-		params = [contents, i, l, line_num, line_fchar, h].concat(params);
+		params = [i, line_num, line_fchar].concat(params);
 		// Run parser function.
 		return pname.apply(null, params);
 	};
@@ -628,12 +637,12 @@ module.exports = (
 	}
 
 	// Log any warnings.
-	require("./h.warnings.js")(warnings, issue, source);
+	require("./h.warnings.js")(issue, source);
 
 	// Return generated acdef, config, and formatted file contents.
 	return {
-		acdef: require("./h.acdef.js")(commandname, lookup, lk_size, header, h),
-		config: require("./h.config.js")(settings, header, h),
+		acdef: require("./h.acdef.js")(commandname, lookup, lk_size, header),
+		config: require("./h.config.js")(settings, header),
 		formatted: require("./h.formatter.js")(
 			preformat.lines,
 			formatting,

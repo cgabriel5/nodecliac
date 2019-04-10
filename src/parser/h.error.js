@@ -4,14 +4,20 @@
 const path = require("path");
 const chalk = require("chalk");
 const { exit } = require("../utils.js");
-const h = require("./h.highlighter.js");
+
+// Get highlighter.
+const h = global.$app.get("highlighter");
+
 /**
  * Issue warnings and or error the parsing result object might contain.
  *
  * @param  {object} result - The parsing result object.
  * @return {undefined} - Logs warnings. Exits script if error is issued.
  */
-let verify = (result, warnings, source) => {
+let verify = (result, source) => {
+	// Get warnings.
+	let warnings = global.$app.get("warnings");
+
 	// Get warnings from result object.
 	let warns = result.warnings || [];
 
@@ -128,7 +134,7 @@ let issue = (result, type = "error", warnings = []) => {
  * @param  {number} index - The char index error occurred.
  * @return {undefined} - Nothing is returned.
  */
-let error = (char = "", code, line, index, source, h) => {
+let error = (char = "", code, line, index, source) => {
 	// Replace whitespace characters with their respective symbols.
 	char = char.replace(/ /g, "␣").replace(/\t/g, "⇥");
 
@@ -182,7 +188,6 @@ let brace_check = args => {
 		last_open_br,
 		last_open_pr,
 		indentation,
-		warnings,
 		source
 	} = args;
 

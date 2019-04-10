@@ -29,16 +29,12 @@ let { r_schars, r_nl, r_nlpipe } = require("./h.patterns.js");
  */
 module.exports = (...args) => {
 	// Get arguments.
-	let [
-		string,
-		i,
-		l,
-		line_num,
-		line_fchar,
-		h /*indentation*/,
-		,
-		usepipe
-	] = args;
+	let [i, line_num, line_fchar, , /*indentation*/ usepipe] = args;
+
+	// Get globals.
+	let h = global.$app.get("highlighter");
+	let string = global.$app.get("string");
+	let l = global.$app.get("l");
 
 	// Parsing vars.
 	let symbol = "";
@@ -79,7 +75,7 @@ module.exports = (...args) => {
 	// Wrap issue function to add fixed parameters.
 	let issue = (type = "error", code, char = "") => {
 		// Use multiple parameter arrays to flatten function.
-		let paramset1 = [string, i, l, line_num, line_fchar];
+		let paramset1 = [i, line_num, line_fchar];
 		let paramset2 = [
 			__filename,
 			warnings,
@@ -338,12 +334,10 @@ module.exports = (...args) => {
 		else {
 			// Run flag value parser from here...
 			let pvalue = pflagvalue(
-				value,
 				0, // Index.
-				value.length,
 				line_num,
 				line_fchar,
-				h,
+				[value, value.length], // Provide...
 				indices.value.start, // Value start index.
 				isvspecial
 			);

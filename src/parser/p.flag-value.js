@@ -29,7 +29,12 @@ let { r_schars } = require("./h.patterns.js");
  */
 module.exports = (...params) => {
 	// Get arguments.
-	let [string, i, l, line_num, line_fchar, h, vsi, type] = params;
+	let [i, line_num, line_fchar, str = [], vsi, type] = params;
+
+	// Get globals.
+	let h = global.$app.get("highlighter");
+	let string = str[0] || global.$app.get("string");
+	let l = str[1] || global.$app.get("l");
 
 	// Parsing vars.
 	// Note: Parsing the value starts a new loop from 0 to only focus on
@@ -92,7 +97,7 @@ module.exports = (...params) => {
 	// Wrap issue function to add fixed parameters.
 	let issue = (type = "error", code, char = "") => {
 		// Use multiple parameter arrays to flatten function.
-		let paramset1 = [string, i, l, line_num, line_fchar];
+		let paramset1 = [i, line_num, line_fchar];
 		let paramset2 = [
 			__filename,
 			warnings,
@@ -277,12 +282,10 @@ module.exports = (...params) => {
 			} else if (state === "command") {
 				// Run command flag parser from here...
 				let pvalue = pcommandflag(
-					string,
 					i,
-					string.length,
 					line_num,
 					line_fchar,
-					h,
+					[string, string.length], // Provide...
 					vsi,
 					type
 				);

@@ -20,7 +20,12 @@ const issuefunc = require("./p.error.js");
  */
 module.exports = (...args) => {
 	// Get arguments.
-	let [string, i, l, line_num, line_fchar, h, vsi, type] = args;
+	let [i, line_num, line_fchar, str = [], vsi, type] = args;
+
+	// Get globals.
+	let h = global.$app.get("highlighter");
+	let string = str[0] || global.$app.get("string");
+	let l = str[1] || global.$app.get("l");
 
 	// If parsing a list reduce length to ignore closing ')'. Otherwise,
 	// leave length be as a command, for example, does get wrapped with '()'.
@@ -53,7 +58,7 @@ module.exports = (...args) => {
 	// Wrap issue function to add fixed parameters.
 	let issue = (type = "error", code, char = "") => {
 		// Use multiple parameter arrays to flatten function.
-		let paramset1 = [string, i, l, line_num, line_fchar];
+		let paramset1 = [i, line_num, line_fchar];
 		let paramset2 = [
 			__filename,
 			warnings,

@@ -26,7 +26,12 @@ let { r_nl } = require("./h.patterns.js");
  */
 module.exports = (...args) => {
 	// Get arguments.
-	let [string, i, l, line_num, line_fchar, h, formatting] = args;
+	let [i, line_num, line_fchar, formatting] = args;
+
+	// Get globals.
+	let h = global.$app.get("highlighter");
+	let string = global.$app.get("string");
+	let l = global.$app.get("l");
 
 	// Parsing vars.
 	let chain = "";
@@ -70,7 +75,7 @@ module.exports = (...args) => {
 	// Wrap issue function to add fixed parameters.
 	let issue = (type = "error", code, char = "") => {
 		// Use multiple parameter arrays to flatten function.
-		let paramset1 = [string, i, l, line_num, line_fchar];
+		let paramset1 = [i, line_num, line_fchar];
 		let paramset2 = [__filename, warnings, state, type, code, char];
 		// Run and return issue.
 		return issuefunc.apply(null, paramset1.concat(paramset2));
@@ -360,12 +365,9 @@ module.exports = (...args) => {
 			if (char === "|" && pchar !== "\\") {
 				// Run flag value parser from here...
 				let pvalue = pflagset(
-					string,
 					indices.oneliner.start, // Index to resume parsing at...
-					l,
 					line_num,
 					line_fchar,
-					h,
 					undefined,
 					true // Let parser know to end on newline or pipe chars.
 				);
@@ -426,12 +428,9 @@ module.exports = (...args) => {
 	if (flagset) {
 		// Run flag value parser from here...
 		let pvalue = pflagset(
-			string,
 			indices.oneliner.start, // Index to resume parsing at...
-			l,
 			line_num,
 			line_fchar,
-			h,
 			undefined,
 			true // Let parser know to end on newline or pipe chars.
 		);

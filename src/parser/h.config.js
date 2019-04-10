@@ -7,7 +7,10 @@
  * @param  {array} header - The final file's header information.
  * @return {string} - The config file contents string.
  */
-module.exports = (settings, header, h) => {
+module.exports = (settings, header) => {
+	// Get highlighter.
+	const h = global.$app.get("highlighter");
+
 	// Store lines.
 	let lines = [];
 

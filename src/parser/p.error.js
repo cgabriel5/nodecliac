@@ -3,15 +3,12 @@
 // Get needed modules.
 const path = require("path");
 const chalk = require("chalk");
-const h = require("./h.highlighter.js");
 const stripansi = require("strip-ansi");
 
 module.exports = (...args) => {
 	// Get arguments.
 	let [
-		,
 		i,
-		,
 		line_num,
 		line_fchar,
 		filename,
@@ -23,6 +20,11 @@ module.exports = (...args) => {
 		// Parser specific variables.
 		fvars = {}
 	] = args;
+
+	// Get globals
+	let h = global.$app.get("highlighter");
+	let string = global.$app.get("string");
+	let l = global.$app.get("l");
 
 	// Get basename from file name.
 	let scriptname = path.basename(filename);

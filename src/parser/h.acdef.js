@@ -15,13 +15,16 @@ const { fileinfo, exit, paths } = require("../utils.js");
  * @param  {array} header - The final file's header information.
  * @return {array} - The new lines array.
  */
-module.exports = (commandname, lookup, lk_size, header, h) => {
+module.exports = (commandname, lookup, lk_size, header) => {
 	// Vars.
 	let has_root = false;
 	// RegExp to match main command/first command in chain to remove.
 	let r = new RegExp(`^(${commandname}|[-_a-zA-Z0-9]+)`);
 	// Store lines.
 	let lines = [];
+
+	// Get highlighter.
+	const h = global.$app.get("highlighter");
 
 	// RegExp patter for multi-flag indicator.
 	let r_mf = /=\*$/;

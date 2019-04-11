@@ -27,7 +27,10 @@ let { r_schars, r_nl, r_nlpipe } = require("./h.patterns.js");
  * @param  {string} string - The line to parse.
  * @return {object} - Object containing parsed information.
  */
-module.exports = (str = [], usepipe) => {
+module.exports = (params = {}) => {
+	// Get params.
+	let { str = [], usepipe = false } = params;
+
 	// Get globals.
 	let string = str[1] || global.$app.get("string");
 	let i = +(str[0] || global.$app.get("i"));
@@ -322,11 +325,11 @@ module.exports = (str = [], usepipe) => {
 		// Further parse value if not an opening parentheses.
 		else {
 			// Run flag value parser from here...
-			let pvalue = pflagvalue(
-				["0", value, value.length], // Provide new string information.
-				indices.value.start, // Value start index.
-				isvspecial
-			);
+			let pvalue = pflagvalue({
+				str: ["0", value, value.length], // Provide new string information.
+				vsi: indices.value.start, // Value start index.
+				type: isvspecial
+			});
 
 			// Reset value.
 			value = pvalue.args;

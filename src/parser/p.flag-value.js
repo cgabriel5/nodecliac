@@ -27,7 +27,10 @@ let { r_schars } = require("./h.patterns.js");
  * @param  {string} string - The line to parse.
  * @return {object} - Object containing parsed information.
  */
-module.exports = (str = [], vsi, type) => {
+module.exports = (params = {}) => {
+	// Get params.
+	let { str = [], vsi, type } = params;
+
 	// Get globals.
 	let string = str[1] || global.$app.get("string");
 	let i = +(str[0] || global.$app.get("i"));
@@ -270,11 +273,11 @@ module.exports = (str = [], vsi, type) => {
 				value += char;
 			} else if (state === "command") {
 				// Run command flag parser from here...
-				let pvalue = pcommandflag(
-					[i + "", string, string.length], // Provide new string information.
+				let pvalue = pcommandflag({
+					str: [i + "", string, string.length], // Provide new string information.
 					vsi, // Value start index.
 					type
-				);
+				});
 
 				// Join warnings.
 				if (pvalue.warnings.length) {

@@ -362,10 +362,10 @@ module.exports = () => {
 			// Get individual flag sets. Use unescaped '|' as the delimiter.
 			if (char === "|" && pchar !== "\\") {
 				// Run flag value parser from here...
-				let pvalue = pflagset(
-					[indices.oneliner.start], // Index to resume parsing at.
-					true // End parsing either on newlines or pipe chars.
-				);
+				let pvalue = pflagset({
+					str: [indices.oneliner.start], // Index to resume parsing at.
+					usepipe: true // End parsing either on newlines or pipe chars.
+				});
 
 				// Get result values.
 				let symbol = pvalue.symbol;
@@ -422,10 +422,10 @@ module.exports = () => {
 	// Add final flag set.
 	if (flagset) {
 		// Run flag value parser from here...
-		let pvalue = pflagset(
-			[indices.oneliner.start], // Index to resume parsing at.
-			true // End parsing either on newlines or pipe chars.
-		);
+		let pvalue = pflagset({
+			str: [indices.oneliner.start], // Index to resume parsing at.
+			usepipe: true // End parsing either on newlines or pipe chars.
+		});
 
 		// Get result values.
 		let symbol = pvalue.symbol;

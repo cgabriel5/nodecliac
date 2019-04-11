@@ -18,7 +18,10 @@ const issuefunc = require("./p.error.js");
  * @param  {string} string - The line to parse.
  * @return {object} - Object containing parsed information.
  */
-module.exports = (str = [], vsi, type) => {
+module.exports = (params = {}) => {
+	// Get params.
+	let { str = [], vsi, type } = params;
+
 	// Get globals.
 	let string = str[1] || global.$app.get("string");
 	let i = +(str[0] || global.$app.get("i"));

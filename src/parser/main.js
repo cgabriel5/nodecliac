@@ -93,15 +93,15 @@ module.exports = (
 		// Run and return error function.
 		return eerror.apply(null, params);
 	};
-	// Create parser wrapper to add fixed parameters.
-	let parser = (pname, ...params) => {
+	// Create parser wrapper to set global variables.
+	let parser = parser_name => {
 		// Set globals to access in parser.
 		globals.set("i", i);
 		globals.set("line_num", line_num);
 		globals.set("line_fchar", line_fchar);
 
-		// Run parser function.
-		return pname.apply(null, params);
+		// Run parser.
+		return parser_name();
 	};
 
 	/**

@@ -138,11 +138,11 @@ module.exports = () => {
 		issue("warning", 0, "-");
 	} else {
 		// Run flag value parser from here...
-		let pvalue = pflagvalue(
-			["0", value, value.length], // Provide new string information.
-			indices.value.start, // Value start index.
+		let pvalue = pflagvalue({
+			str: ["0", value, value.length], // Provide new string information.
+			vsi: indices.value.start, // Value start index.
 			type
-		);
+		});
 
 		// Reset value.
 		value = pvalue.args;

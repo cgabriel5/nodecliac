@@ -97,6 +97,12 @@ module.exports = (params = {}) => {
 
 		// End loop on a new line char.
 		if (r_echar.test(char)) {
+			// If char is a pipe delimiter and it's the last character
+			// of the line - give a warning.
+			if (char === "|" && (!nchar || /[^-]/.test(nchar))) {
+				return issue("error", 2, char);
+			}
+
 			// Store newline index.
 			nl_index = i;
 			break;

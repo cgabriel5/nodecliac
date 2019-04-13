@@ -10,10 +10,14 @@
  *     comments or not.
  * @return {string} - The finally formatted string.
  */
-module.exports = lines => {
+module.exports = preformat => {
+	// Get params.
+	let { lines, hlines } = preformat;
+
 	// Get globals.
 	let formatting = global.$app.get("formatting");
 	let stripcomments = global.$app.get("stripcomments");
+	let highlight = global.$app.get("highlight");
 
 	// If not formatting then return an empty string.
 	if (!formatting) {
@@ -26,6 +30,7 @@ module.exports = lines => {
 	let indent_lvl2 = indent_lvl1.repeat(2);
 
 	let cformatted = []; // Cleaned/indented formatted array.
+	let hcformatted = []; // Highlighted version.
 	let isempty = true;
 	for (let i = 0, l = lines.length; i < l; i++) {
 		// Cache current loop item.
@@ -40,6 +45,9 @@ module.exports = lines => {
 		// Get next line info.
 		let ndata2 = lines[i + 2] || [];
 		let [, /*nline2*/ ntype2] = ndata2;
+
+		// Get highlighted data.
+		let [hline] = hlines[i];
 
 		// Determine indentation.
 		let indentation = !indentation_amount
@@ -87,8 +95,17 @@ module.exports = lines => {
 
 		// Add to cleaned, formatted array.
 		cformatted.push(`${indentation}${line}`);
+		// Add to cleaned, formatted array.
+		hcformatted.push(`${indentation}${hline}`);
 	}
 
-	// Join final lines, right trim string, and return.
-	return cformatted.join("").replace(/\n*$/g, "");
+	// Generate un-highlighted and highlighted formatted acmaps.
+	let content = cformatted.join("").replace(/\n*$/g, "");
+	let hcontent = hcformatted.join("").replace(/\n*$/g, "");
+
+	return {
+		content,
+		hcontent,
+		print: highlight ? hcontent : content
+	};
 };

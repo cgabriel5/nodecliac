@@ -39,7 +39,9 @@ module.exports = () => {
 	let assignment = "";
 	let value = "";
 	let flagset = "";
+	let hflagset = "";
 	let flagsets = [];
+	let hflagsets = [];
 	let command = "";
 	let commands = [];
 	let has_shortcuts = false;
@@ -157,8 +159,10 @@ module.exports = () => {
 
 							// Store command string if populated.
 							if (command) {
-								// Add syntax highlighting.
-								commands.push(h(command, "shortcut"));
+								// Add syntax highlighting?
+								// commands.push(h(command, "shortcut"));
+
+								commands.push(command);
 							}
 							// Reset command string.
 							command = "";
@@ -367,13 +371,6 @@ module.exports = () => {
 					usepipe: true // End parsing either on newlines or pipe chars.
 				});
 
-				// Get result values.
-				let symbol = pvalue.symbol;
-				let name = pvalue.name;
-				let assignment = pvalue.assignment;
-				let value = pvalue.value;
-				let nl_index = pvalue.nl_index;
-
 				// Join warnings.
 				if (pvalue.warnings.length) {
 					warnings = warnings.concat(pvalue.warnings);
@@ -383,20 +380,35 @@ module.exports = () => {
 					return pvalue;
 				}
 
+				// Get result values.
+				let symbol = pvalue.symbol;
+				let name = pvalue.name;
+				let hname = pvalue.h.name;
+				let assignment = pvalue.assignment;
+				let value = pvalue.value;
+				let hvalue = pvalue.h.value;
+				let nl_index = pvalue.nl_index;
+
 				// If value is not a string (therefore an array) join values.
 				if (typeof value !== "string" && value.length > 1) {
 					value = `(${value.join(" ")})`;
+					hvalue = `(${hvalue.join(" ")})`;
 				}
 
 				// Reset flag to newly parsed value.
 				flagset = `${symbol}${name}${assignment}${value}`;
+				// Set highlighted version.
+				hflagset = `${symbol}${hname}${assignment}${hvalue}`;
 
 				// Reset oneliner start index.
 				indices.oneliner.start = (nl_index || i) + 1;
 				// Store current flag set.
 				flagsets.push(flagset);
+				// Set highlighted version.
+				hflagsets.push(hflagset);
 				// Reset flag set string.
 				flagset = "";
+				hflagset = "";
 			} else {
 				// Build flag set string.
 				flagset += char;
@@ -427,13 +439,6 @@ module.exports = () => {
 			usepipe: true // End parsing either on newlines or pipe chars.
 		});
 
-		// Get result values.
-		let symbol = pvalue.symbol;
-		let name = pvalue.name;
-		let assignment = pvalue.assignment;
-		let value = pvalue.value;
-		let nl_index = pvalue.nl_index;
-
 		// Join warnings.
 		if (pvalue.warnings.length) {
 			warnings = warnings.concat(pvalue.warnings);
@@ -443,20 +448,35 @@ module.exports = () => {
 			return pvalue;
 		}
 
+		// Get result values.
+		let symbol = pvalue.symbol;
+		let name = pvalue.name;
+		let hname = pvalue.h.name;
+		let assignment = pvalue.assignment;
+		let value = pvalue.value;
+		let hvalue = pvalue.h.value;
+		let nl_index = pvalue.nl_index;
+
 		// If value is not a string (therefore an array) join values.
 		if (typeof value !== "string" && value.length > 1) {
 			value = `(${value.join(" ")})`;
+			hvalue = `(${hvalue.join(" ")})`;
 		}
 
 		// Reset flag to newly parsed value.
 		flagset = `${symbol}${name}${assignment}${value}`;
+		// Set highlighted version.
+		hflagset = `${symbol}${hname}${assignment}${hvalue}`;
 
 		// Reset oneliner start index.
 		indices.oneliner.start = (nl_index || i) + 1;
 		// Store current flag set.
 		flagsets.push(flagset);
+		// Set highlighted version.
+		hflagsets.push(hflagset);
 		// Reset flag set string.
 		flagset = "";
+		hflagset = "";
 	}
 
 	// If there was assignment do some value checks.
@@ -484,11 +504,6 @@ module.exports = () => {
 		}
 	}
 
-	// Add syntax highlighting if formatting.
-	if (formatting) {
-		chain = h(chain, "command");
-	}
-
 	// Return relevant parsing information.
 	return {
 		chain,
@@ -496,10 +511,14 @@ module.exports = () => {
 		brstate,
 		// assignment,
 		flagsets,
+		hflagsets,
 		nl_index,
 		warnings,
 		has_shortcuts,
 		// Return brace opening index for later error checks.
-		br_open_index: indices.braces.open - line_fchar + 1 // Add 1 to account for 0 index.
+		br_open_index: indices.braces.open - line_fchar + 1, // Add 1 to account for 0 index.
+		h: {
+			chain: h(chain, "command")
+		}
 	};
 };

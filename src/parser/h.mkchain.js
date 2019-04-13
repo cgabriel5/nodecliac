@@ -39,7 +39,12 @@ module.exports = (commandchain, flags, lookup) => {
 			command_string += command_count ? `.${command}` : command;
 			// Add command path to lookup.
 			if (!lookup[command_string]) {
-				lookup[command_string] = new Set();
+				// Add to lookup.
+				let set = new Set();
+				// Add highlight set.
+				set.__h = new Set();
+				// Attach set to chain.
+				lookup[command_string] = set;
 			}
 
 			// Clear current command.
@@ -62,9 +67,15 @@ module.exports = (commandchain, flags, lookup) => {
 
 	// Store in lookup table.
 	if (!lookup[commandchain]) {
+		// Store highlighted set reference.
+		let hset = flags.__h;
+		// Create new set from old set.
+		let set = new Set(flags);
+		// Re-attach highlighted set.
+		set.__h = hset;
 		// Copy original set for expanded chain.
 		// [https://stackoverflow.com/a/30626071]
-		lookup[commandchain] = new Set(flags);
+		lookup[commandchain] = set;
 	} else {
 		// Since chain exists in lookup combine flags.
 		concat_sets(lookup[commandchain], flags);

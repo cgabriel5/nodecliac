@@ -3,7 +3,6 @@
 // Get needed modules.
 const path = require("path");
 const chalk = require("chalk");
-const stripansi = require("strip-ansi");
 
 module.exports = (...args) => {
 	// Get arguments.
@@ -15,6 +14,7 @@ module.exports = (...args) => {
 	let line_num = global.$app.get("line_num");
 	let line_fchar = global.$app.get("line_fchar");
 	let h = global.$app.get("highlighter");
+	let stripansi = global.$app.get("stripansi");
 
 	// Get basename from file name.
 	let scriptname = path.basename(filename);

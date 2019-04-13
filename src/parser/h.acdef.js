@@ -15,11 +15,13 @@ const { fileinfo, exit, paths } = require("../utils.js");
  * @param  {array} header - The final file's header information.
  * @return {array} - The new lines array.
  */
-module.exports = (lk_size, header) => {
+module.exports = lk_size => {
 	// Get globals.
 	let h = global.$app.get("highlighter");
 	let lookup = global.$app.get("lookup");
 	let commandname = global.$app.get("commandname");
+	let highlight = global.$app.get("highlight");
+	let header = global.$app.get("header");
 
 	// Vars.
 	let has_root = false;
@@ -27,6 +29,7 @@ module.exports = (lk_size, header) => {
 	let r = new RegExp(`^(${commandname}|[-_a-zA-Z0-9]+)`);
 	// Store lines.
 	let lines = [];
+	let hlines = [];
 
 	// RegExp patter for multi-flag indicator.
 	let r_mf = /=\*$/;
@@ -47,8 +50,13 @@ module.exports = (lk_size, header) => {
 		if (chain && lookup.hasOwnProperty(chain)) {
 			// Get flags array.
 			let flags = lookup[chain];
+			// Get highlighted flags.
+			let hflags = lookup[chain].__h;
 			// Get set length (size).
 			let fcount = flags.size;
+
+			// [TODO] Optimize sorting: [https://stackoverflow.com/a/13960306]
+			// [https://stackoverflow.com/questions/11499268/sort-two-arrays-the-same-way]
 
 			// If set contains flags sort its values.
 			if (fcount) {
@@ -66,20 +74,29 @@ module.exports = (lk_size, header) => {
 						);
 					})
 					.join("|");
+
+				// Do same operation to the highlighted lines.
+				hflags = Array.from(hflags)
+					.sort(function(a, b) {
+						return (
+							~~b.endsWith("=*") - ~~a.endsWith("=*") ||
+							a.localeCompare(b)
+						);
+					})
+					.join("|");
 			}
 			// If no flags reset to empty flag indicator.
 			else {
 				flags = "--";
+				hflags = "--";
 			}
 
 			// Remove the main command from the command chain. However,
 			// when the command name is not the main command in (i.e.
 			// when running on a test file) just remove the first command
 			// name in the chain.
-			let row = `${
-				// Add syntax highlighting.
-				h(chain.replace(r, ""), "command")
-			} ${flags}`;
+			let row = `${chain.replace(r, "")} ${flags}`;
+			let hrow = `${h(chain.replace(r, ""), "command")} ${hflags}`;
 
 			// Remove multiple ' --' command chains. This will happen for
 			// test files with multiple main commands.
@@ -89,13 +106,14 @@ module.exports = (lk_size, header) => {
 				continue;
 			}
 
-			// Finally, add to lines array.
+			// Finally, add to line.
 			lines.push(row);
+			hlines.push(hrow);
 		}
 	}
 
-	// Add header to lines and return final lines.
-	return header
+	// Generate un-highlighted and highlighted acmaps.
+	let content = [header]
 		.concat(
 			lines.sort(function(a, b) {
 				return a.localeCompare(b);
@@ -103,4 +121,18 @@ module.exports = (lk_size, header) => {
 		)
 		.join("\n")
 		.replace(/\s*$/, "");
+	let hcontent = [h(header, "comment")]
+		.concat(
+			hlines.sort(function(a, b) {
+				return a.localeCompare(b);
+			})
+		)
+		.join("\n")
+		.replace(/\s*$/, "");
+
+	return {
+		content,
+		hcontent,
+		print: highlight ? hcontent : content
+	};
 };

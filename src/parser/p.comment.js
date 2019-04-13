@@ -58,9 +58,11 @@ module.exports = () => {
 		}
 	}
 
-	// Add syntax highlighting.
-	comment = h(comment, "comment");
-
 	// Return relevant parsing information.
-	return { comment, nl_index, warnings };
+	return {
+		comment,
+		nl_index,
+		warnings,
+		h: { comment: h(comment, "comment") }
+	};
 };

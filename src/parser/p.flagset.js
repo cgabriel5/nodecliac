@@ -333,6 +333,10 @@ module.exports = (params = {}) => {
 
 			// Reset value.
 			value = pvalue.args;
+
+			// Store highlighted args.
+			value.hargs = [...pvalue.h.args]; // Highlight option list values.
+
 			// Reset index. Combine indices.
 			i += pvalue.index;
 
@@ -352,9 +356,10 @@ module.exports = (params = {}) => {
 		isopeningpr = false;
 	}
 
-	// Add syntax highlighting.
-	name = h(name, "flag");
-	value = h(value, "value", ":/3"); // Highlight option list values.
+	// If no highlighted args set a default.
+	if (!value.hargs) {
+		value.hargs = [];
+	}
 
 	// Return relevant parsing information.
 	return {
@@ -374,6 +379,11 @@ module.exports = (params = {}) => {
 		// really doesn't matter as the pr_open_index does not get used later.
 		// This change is more of cosmetic thing. I'd rather see a positive
 		// number, in this case the resulting 1 over a negative index value.
-		pr_open_index: (indices.braces.open || line_fchar) - line_fchar + 1 // Add 1 to account for 0 index.
+		pr_open_index: (indices.braces.open || line_fchar) - line_fchar + 1, // Add 1 to account for 0 index.
+		h: {
+			// Add syntax highlighting.
+			name: h(name, "flag"),
+			value: value.hargs // Highlight option list values.
+		}
 	};
 };

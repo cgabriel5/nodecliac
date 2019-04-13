@@ -3,13 +3,15 @@
 // Needed modules.
 const chalk = require("chalk");
 const minimist = require("minimist");
-const stripansi = require("strip-ansi");
 // Get CLI parameters.
 const args = minimist(process.argv.slice(2));
 // Get RegExp patterns.
 const { r_number } = require("./h.patterns.js");
 
 module.exports = (value, ...scopes) => {
+	// Get globals
+	let stripansi = global.$app.get("stripansi");
+
 	// Context:color lookup table.
 	let c = {
 		// Magenta → settings, flags

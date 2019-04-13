@@ -6,7 +6,6 @@ const path = require("path");
 const chalk = require("chalk");
 const log = require("fancy-log");
 const fe = require("file-exists");
-const stripansi = require("strip-ansi");
 const { fileinfo, exit, paths } = require("./utils.js");
 
 module.exports = args => {
@@ -118,6 +117,7 @@ module.exports = args => {
 			commandname,
 			source,
 			formatting ? [indent_char, indent_amount] : undefined,
+			highlight,
 			igc
 		);
 		let savename = `${commandname}.acdef`;
@@ -125,23 +125,14 @@ module.exports = args => {
 
 		// Save formatted acmap file to source location when flag is provided.
 		if (save && formatting) {
-			fs.writeFileSync(
-				source,
-				// Remove ANSI colors before saving.
-				highlight ? stripansi(formatted) : formatted
-			);
+			fs.writeFileSync(source, formatted.content);
 		}
 		// Save definitions file to source location when flag is provided.
 		else if (save) {
-			fs.writeFileSync(
-				path.join(fi.dirname, savename),
-				// Remove ANSI colors before saving.
-				highlight ? stripansi(acmap) : acmap
-			);
+			fs.writeFileSync(path.join(fi.dirname, savename), acmap.contents);
 			fs.writeFileSync(
 				path.join(fi.dirname, saveconfigname),
-				// Remove ANSI colors before saving.
-				highlight ? stripansi(config) : config
+				config.contents
 			);
 		}
 
@@ -169,7 +160,7 @@ module.exports = args => {
 			if (!formatting) {
 				if (acmap) {
 					console.log(`[${chalk.bold(`${commandname}.acdef`)}]\n`);
-					console.log(acmap);
+					console.log(acmap.print);
 					if (!config) {
 						console.log(); // Bottom padding.
 					}
@@ -178,7 +169,7 @@ module.exports = args => {
 					console.log(
 						`\n[${chalk.bold(`.${commandname}.config.acdef`)}]\n`
 					);
-					console.log(config);
+					console.log(config.print);
 					console.log(); // Bottom padding.
 				}
 			}
@@ -189,7 +180,7 @@ module.exports = args => {
 						`Prettied`
 					)}${"-".repeat(25)}\n`
 				);
-				console.log(formatted);
+				console.log(formatted.print);
 				console.log(
 					`\n${"-".repeat(25)}${chalk.bold.blue(
 						`Prettied`

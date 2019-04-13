@@ -48,6 +48,7 @@ module.exports = (params = {}) => {
 	let closed = false;
 	let delimiter_count = 0;
 	let cmd_str = "";
+	let hcmd_str = "";
 	let is_cmd_arg; // Is command-flag arg using '$' command indicator?
 	// Collect all parsing warnings.
 	let warnings = [];
@@ -163,9 +164,11 @@ module.exports = (params = {}) => {
 
 					if (cmd_str) {
 						cmd_str += ",";
+						hcmd_str += ",";
 					}
 					// Add syntax highlighting.
-					cmd_str += h(value, "cmd-flag-arg", "value");
+					cmd_str += value;
+					hcmd_str += h(value, "cmd-flag-arg", "value");
 
 					// Clear value.
 					value = "";
@@ -224,8 +227,10 @@ module.exports = (params = {}) => {
 		}
 
 		cmd_str += ",";
+		hcmd_str += ",";
 		// Add syntax highlighting.
-		cmd_str += h(value, "cmd-flag-arg", "value");
+		cmd_str += value;
+		hcmd_str += h(value, "cmd-flag-arg", "value");
 
 		// Clear value.
 		value = "";
@@ -236,6 +241,10 @@ module.exports = (params = {}) => {
 	return {
 		cmd_str,
 		warnings,
-		index: i
+		index: i,
+		h: {
+			// The highlighted string.
+			hcmd_str
+		}
 	};
 };

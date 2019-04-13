@@ -146,6 +146,9 @@ module.exports = () => {
 
 		// Reset value.
 		value = pvalue.args;
+
+		// Store highlighted args.
+		value.hargs = h([...pvalue.h.args], "value", ":/2"); // Highlight option list values.
 		// Reset index. Combine indices.
 		i += pvalue.index;
 
@@ -169,9 +172,6 @@ module.exports = () => {
 			}
 		}
 	}
-
-	// Highlight option list values.
-	value = h(value, "value", ":/2");
 
 	// Return relevant parsing information.
 	return { symbol, value, assignment, nl_index, warnings };

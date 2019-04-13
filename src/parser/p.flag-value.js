@@ -54,6 +54,7 @@ module.exports = (params = {}) => {
 	// Collect all parsing warnings.
 	let warnings = [];
 	let args = [];
+	let hargs = [];
 	// Capture state's start/end indices.
 	let indices = {
 		quoted: {
@@ -208,6 +209,7 @@ module.exports = (params = {}) => {
 					state = "delimiter";
 					// Store value.
 					args.push(value);
+					hargs.push(value);
 					// Clear value.
 					value = "";
 					// Reset index to set delimiter state.
@@ -251,6 +253,7 @@ module.exports = (params = {}) => {
 
 					// Store value.
 					args.push(value);
+					hargs.push(value);
 					// Clear value.
 					value = "";
 					// Clear stored index.
@@ -296,6 +299,9 @@ module.exports = (params = {}) => {
 				state = "delimiter";
 				// Store value.
 				args.push(`$(${pvalue.cmd_str})`);
+				// Add highlighted version.
+				hargs.push(`$(${pvalue.h.hcmd_str})`);
+
 				// Clear value.
 				value = "";
 
@@ -339,6 +345,8 @@ module.exports = (params = {}) => {
 		}
 
 		args.push(value);
+		// Add highlighted version.
+		hargs.push(value);
 		// Reset value.
 		value = "";
 	}
@@ -353,9 +361,6 @@ module.exports = (params = {}) => {
 		issue("warning", 10);
 	}
 
-	// Highlight option list values.
-	args = h(args, "cmd-flag", ":/1");
-
 	// Return relevant parsing information.
 	return {
 		index: i,
@@ -364,6 +369,10 @@ module.exports = (params = {}) => {
 		special: isvspecial,
 		nl_index,
 		warnings,
-		args
+		args,
+		h: {
+			// Highlight option list values.
+			args: h(hargs, "cmd-flag", ":/1")
+		}
 	};
 };

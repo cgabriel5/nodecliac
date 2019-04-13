@@ -244,10 +244,16 @@ module.exports = () => {
 		issue("warning", 7, "=");
 	}
 
-	// Add syntax highlighting.
-	name = h(name, "setting");
-	value = h(value, "value");
-
 	// Return relevant parsing information.
-	return { name, value, nl_index, warnings };
+	return {
+		name,
+		value,
+		nl_index,
+		warnings,
+		h: {
+			// Add syntax highlighting.
+			name: h(name, "setting"),
+			value: h(value, "value")
+		}
+	};
 };

@@ -21,9 +21,9 @@ module.exports = issue => {
 	// Track longest parser name column to evenly space line/char.
 	let line_col_fpname = 0;
 
-	// Return if warnings array is empty (no warnings to log).
+	// Only print empty line to pad output when no warnings exist.
 	if (!warnings.length) {
-		return;
+		return console.log();
 	}
 
 	// Order warnings by line number then issue.
@@ -34,12 +34,9 @@ module.exports = issue => {
 	});
 
 	// Add warnings header if warnings exist.
-	if (warnings.length) {
-		console.log();
-		console.log(
-			`${chalk.bold.underline(path.relative(process.cwd(), source))}`
-		);
-	}
+	console.log(
+		`\n${chalk.bold.underline(path.relative(process.cwd(), source))}`
+	);
 
 	for (let i = 0, l = warnings.length; i < l; i++) {
 		// Cache current loop item.

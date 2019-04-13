@@ -18,6 +18,9 @@ let { r_nl } = require("./h.patterns.js");
  * @return {object} - Object containing parsed information.
  */
 module.exports = () => {
+	// Trace parser.
+	require("./h.trace.js")(__filename);
+
 	// Get globals.
 	let string = global.$app.get("string");
 	let l = global.$app.get("l");

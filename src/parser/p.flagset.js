@@ -28,6 +28,9 @@ let { r_schars, r_nl, r_nlpipe } = require("./h.patterns.js");
  * @return {object} - Object containing parsed information.
  */
 module.exports = (params = {}) => {
+	// Trace parser.
+	require("./h.trace.js")(__filename);
+
 	// Get params.
 	let { str = [], usepipe = false } = params;
 

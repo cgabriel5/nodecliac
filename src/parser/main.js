@@ -32,6 +32,7 @@ module.exports = (
 	source,
 	formatting,
 	highlight,
+	trace,
 	stripcomments // When formatting should comments be removed?
 ) => {
 	// Store arguments for quick access later.
@@ -41,6 +42,7 @@ module.exports = (
 	globals.set("formatting", formatting);
 	globals.set("highlight", highlight);
 	globals.set("stripcomments", stripcomments);
+	globals.set("trace", trace);
 
 	// Vars - timers.
 	let stime = process.hrtime(); // Store start time tuple array.

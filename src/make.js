@@ -20,7 +20,8 @@ module.exports = args => {
 		save,
 		indent,
 		"strip-comments": igc,
-		highlight
+		highlight,
+		trace
 	} = args;
 	let parser = require("./parser/main.js");
 	// Formatting indentation values.
@@ -118,6 +119,7 @@ module.exports = args => {
 			source,
 			formatting ? [indent_char, indent_amount] : undefined,
 			highlight,
+			trace,
 			igc
 		);
 		let savename = `${commandname}.acdef`;

@@ -28,6 +28,9 @@ let { r_schars } = require("./h.patterns.js");
  * @return {object} - Object containing parsed information.
  */
 module.exports = (params = {}) => {
+	// Trace parser.
+	require("./h.trace.js")(__filename);
+
 	// Get params.
 	let { str = [], vsi, type } = params;
 

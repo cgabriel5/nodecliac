@@ -77,7 +77,7 @@ module.exports = (...args) => {
 			9: `Illegal shortcut delimiter: '${char}'.`
 		},
 		"p.flagset.js": {
-			1: `Setting started with '${char}'. Expected a letter.`,
+			1: `Flag started with '${char}'. Expected a letter.`,
 			2: `Unexpected ${ctype}: '${char}'.`,
 			3: `Value cannot start with '${char}'.`,
 			4: `Improperly quoted string.`,

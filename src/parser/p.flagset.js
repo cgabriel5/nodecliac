@@ -116,6 +116,13 @@ module.exports = (params = {}) => {
 			}
 			// Hitting anything other than a hyphen ends symbol state.
 			else {
+				// If symbol is empty but the state changed then the
+				// character is not allowed.
+				if (!symbol) {
+					// Issue error.
+					return issue("error", 2, string.charAt(i));
+				}
+
 				state = "name";
 				// Reset index.
 				i--;

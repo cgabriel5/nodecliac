@@ -63,14 +63,13 @@ module.exports = preformat => {
 			isempty = false;
 		}
 
-		// Skip empty lines after for following scenarios.
+		// Skip empty lines for following scenarios.
 		if (type === "nl") {
-			if (ptype === "nl" && /(close-brace)/.test(ntype)) {
-				continue;
-			} else if (
-				((ptype === "flag-set" && pline.endsWith("(")) ||
+			if (
+				(ptype === "nl" && /(close-brace|flag-option)/.test(ntype)) ||
+				(((ptype === "flag-set" && pline.endsWith("(")) ||
 					(ptype === "command" && pline.endsWith("["))) &&
-				ntype === "nl"
+					ntype === "nl")
 			) {
 				continue;
 			}

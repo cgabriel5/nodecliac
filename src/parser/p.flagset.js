@@ -400,7 +400,7 @@ module.exports = (params = {}) => {
 		h: {
 			// Add syntax highlighting.
 			name: h(name, "flag"),
-			value: value.hargs // Highlight option list values.
+			value: h(value.hargs, "value", ":/3") // Highlight option list values.
 		}
 	};
 };

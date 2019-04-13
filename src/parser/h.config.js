@@ -31,13 +31,19 @@ module.exports = () => {
 	// Loop over settings to build config.
 	for (let setting in settings) {
 		if (settings.hasOwnProperty(setting)) {
-			lines.push(`${setting} = ${settings[setting]}`);
+			// Get setting value.
+			let value = settings[setting];
+			// Store setting/value line.
+			lines.push(`${setting}${value ? "=" + value : ""}`);
 		}
 	}
 	// Loop over highlighted settings config object.
 	for (let hsetting in hsettings) {
 		if (hsettings.hasOwnProperty(hsetting)) {
-			hlines.push(`${hsetting} = ${hsettings[hsetting]}`);
+			// Get setting value.
+			let hvalue = hsettings[hsetting];
+			// Store setting/value line.
+			hlines.push(`${hsetting}${hvalue ? "=" + hvalue : ""}`);
 		}
 	}
 

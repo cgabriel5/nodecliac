@@ -126,8 +126,9 @@ module.exports = (params = {}) => {
 					return issue("error", 2, string.charAt(i));
 				}
 			}
-			// Default parse state to 'name' (l → r : @name=value).
-		} else if (state === "name") {
+		}
+		// Default parse state to 'name'.
+		else if (state === "name") {
 			// If char is the first char...
 			if (!name.length) {
 				// First char of name must be a letter.

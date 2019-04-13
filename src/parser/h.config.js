@@ -34,7 +34,7 @@ module.exports = () => {
 			// Get setting value.
 			let value = settings[setting];
 			// Store setting/value line.
-			lines.push(`${setting}${value ? "=" + value : ""}`);
+			lines.push(`${setting}${value ? " = " + value : ""}`);
 		}
 	}
 	// Loop over highlighted settings config object.
@@ -43,7 +43,7 @@ module.exports = () => {
 			// Get setting value.
 			let hvalue = hsettings[hsetting];
 			// Store setting/value line.
-			hlines.push(`${hsetting}${hvalue ? "=" + hvalue : ""}`);
+			hlines.push(`${hsetting}${hvalue ? " = " + hvalue : ""}`);
 		}
 	}
 

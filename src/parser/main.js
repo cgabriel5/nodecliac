@@ -325,10 +325,13 @@ module.exports = (
 					settings.__count__++;
 
 					// Add line to format later.
-					preformat(`${name}${value ? "=" + value : ""}`, "setting");
+					preformat(
+						`${name}${value ? " = " + value : ""}`,
+						"setting"
+					);
 					// Add highlighted version.
 					hpreformat(
-						`${hname}${hvalue ? "=" + hvalue : ""}`,
+						`${hname}${hvalue ? " = " + hvalue : ""}`,
 						"setting"
 					);
 				}

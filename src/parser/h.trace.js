@@ -41,11 +41,11 @@ module.exports = p => {
 
 	// If a new unique line number.
 	if (line_num !== last_line_num) {
-		process.stdout.write(`${chalk.bold(line_num)}:${filename}\n`);
+		process.stdout.write(`  ${chalk.bold(line_num)} ${filename}:\n`);
 	}
 	// Else append parser to current parser chain.
 	else {
-		process.stdout.write(`  — ${chalk.dim(filename)}\n`);
+		process.stdout.write(`    — ${chalk.dim(filename)}\n`);
 		// console.log(1111, line_num, last_line_num);
 	}
 };

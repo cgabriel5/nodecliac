@@ -67,6 +67,10 @@ module.exports = preformat => {
 		if (type === "nl") {
 			if (
 				(ptype === "nl" && /(close-brace|flag-option)/.test(ntype)) ||
+				// Note: This scenario, in some cases, removes the needed new
+				// line which separates the flagset > \n > flag-option lines.
+				// This will get amended below. The scenario in question is:
+				// '--flag=(\n- val', for example.
 				(((ptype === "flag-set" && pline.endsWith("(")) ||
 					(ptype === "command" && pline.endsWith("["))) &&
 					ntype === "nl")
@@ -89,6 +93,18 @@ module.exports = preformat => {
 				) {
 					continue;
 				}
+			}
+		}
+
+		// Note: When skipping new lines (above) a needed new line separating
+		// the flagset > \n > flag-option lines in some cases removed. This
+		// will amend this special flag-option scenario.
+		if (type === "flag-option") {
+			// If last item in formatted array is the parent flag set and
+			// not a new line then we append a new line.
+			if (cformatted[cformatted.length - 1] !== "\n") {
+				cformatted.push("\n");
+				hcformatted.push("\n");
 			}
 		}
 

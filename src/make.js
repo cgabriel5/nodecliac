@@ -131,10 +131,10 @@ module.exports = args => {
 		}
 		// Save definitions file to source location when flag is provided.
 		else if (save) {
-			fs.writeFileSync(path.join(fi.dirname, savename), acmap.contents);
+			fs.writeFileSync(path.join(fi.dirname, savename), acmap.content);
 			fs.writeFileSync(
 				path.join(fi.dirname, saveconfigname),
-				config.contents
+				config.content
 			);
 		}
 
@@ -144,8 +144,8 @@ module.exports = args => {
 			let commandconfigpath = path.join(acmapspath, saveconfigname);
 			if (!fe.sync(commandpath) || args.force) {
 				// Save file to map location.
-				fs.writeFileSync(commandpath, acmap);
-				fs.writeFileSync(commandconfigpath, config);
+				fs.writeFileSync(commandpath, acmap.content);
+				fs.writeFileSync(commandconfigpath, config.content);
 				log(`${chalk.bold(commandname)} acmap added.`);
 			} else {
 				log(

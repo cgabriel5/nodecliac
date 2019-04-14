@@ -10,7 +10,7 @@
  *     comments or not.
  * @return {string} - The finally formatted string.
  */
-module.exports = preformat => {
+let formatter = preformat => {
 	// Get params.
 	let { lines, hlines } = preformat;
 
@@ -123,4 +123,42 @@ module.exports = preformat => {
 		hcontent,
 		print: highlight ? hcontent : content
 	};
+};
+
+/**
+ * Store line and its type. Mainly used to reset new line counter.
+ *
+ * @param  {string} line - Line to add to formatted array.
+ * @param  {string} hline - Highlighted line to add to formatted array.
+ * @param  {string} type - The line's type.
+ * @param  {array} indentation - Array: [tab char, indentation amount].
+ * @return {undefined} - Nothing is returned.
+ */
+let preformat = (line, hline, ...params) => {
+	// Get highlighter.
+	let stripcomments = global.$app.get("stripcomments");
+
+	// Get params.
+	let [type] = params;
+
+	// Ignore comments when 'strip-comments' is set.
+	if (stripcomments && type === "comment") {
+		return;
+	}
+
+	// Reset format new line counter.
+	preformat.nl_count = 0;
+	// Add line to formatted array.
+	preformat.lines.push([line].concat(params));
+	// Add line to formatted array.
+	preformat.hlines.push([hline].concat(params));
+};
+// Vars -  Pre-formatting (attached to function).
+preformat.lines = []; // Store lines before final formatting.
+preformat.hlines = []; // Store lines before final formatting.
+preformat.nl_count = 0; // Store new line count.
+
+module.exports = {
+	formatter,
+	preformat
 };

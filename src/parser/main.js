@@ -14,6 +14,7 @@ const pcomment = require("./p.comment.js");
 // Require parser helpers.
 const mkchain = require("./h.mkchain.js");
 const shortcuts = require("./h.shortcuts.js");
+const { formatter, preformat } = require("./h.formatter.js");
 const stripansi = globals.set("stripansi", require("strip-ansi"));
 const h = globals.set("highlighter", require("./h.highlighter.js"));
 
@@ -117,36 +118,6 @@ module.exports = (
 		// Run parser.
 		return parser_name();
 	};
-
-	/**
-	 * Store line and its type. Mainly used to reset new line counter.
-	 *
-	 * @param  {string} line - Line to add to formatted array.
-	 * @param  {string} hline - Highlighted line to add to formatted array.
-	 * @param  {string} type - The line's type.
-	 * @param  {array} indentation - Array: [tab char, indentation amount].
-	 * @return {undefined} - Nothing is returned.
-	 */
-	let preformat = (line, hline, ...params) => {
-		// Get params.
-		let [type] = params;
-
-		// Ignore comments when 'strip-comments' is set.
-		if (stripcomments && type === "comment") {
-			return;
-		}
-
-		// Reset format new line counter.
-		preformat.nl_count = 0;
-		// Add line to formatted array.
-		preformat.lines.push([line].concat(params));
-		// Add line to formatted array.
-		preformat.hlines.push([hline].concat(params));
-	};
-	// Vars -  Pre-formatting (attached to function).
-	preformat.lines = []; // Store lines before final formatting.
-	preformat.hlines = []; // Store lines before final formatting.
-	preformat.nl_count = 0; // Store new line count.
 
 	// Main loop. Loops over each character in acmap.
 	for (; i < l; i++) {
@@ -741,9 +712,9 @@ module.exports = (
 
 	// Return generated acdef, config, and formatted file contents.
 	return {
-		acdef: require("./h.acdef.js")(lk_size),
+		time: process.hrtime(stime), // Return end time tuple array.
+		formatted: formatter(preformat),
 		config: require("./h.config.js")(),
-		formatted: require("./h.formatter.js")(preformat),
-		time: process.hrtime(stime) // Return end time tuple array.
+		acdef: require("./h.acdef.js")(lk_size)
 	};
 };

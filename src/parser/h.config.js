@@ -47,21 +47,24 @@ module.exports = () => {
 		}
 	}
 
+	/**
+	 * Sort function.
+	 *
+	 * @param  {string} a - Item a.
+	 * @param  {string} b - Item b.
+	 * @return {number} - The sort number result.
+	 */
+	let aplhasort = (a, b) => {
+		return a.localeCompare(b);
+	};
+
 	// Generate un-highlighted and highlighted acmaps.
 	let content = [header]
-		.concat(
-			lines.sort(function(a, b) {
-				return a.localeCompare(b);
-			})
-		)
+		.concat(lines.sort(aplhasort))
 		.join("\n")
 		.replace(/\s*$/, "");
 	let hcontent = [h(header, "comment")]
-		.concat(
-			hlines.sort(function(a, b) {
-				return a.localeCompare(b);
-			})
-		)
+		.concat(hlines.sort(aplhasort))
 		.join("\n")
 		.replace(/\s*$/, "");
 

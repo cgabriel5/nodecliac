@@ -121,14 +121,15 @@ module.exports = (
 	/**
 	 * Store line and its type. Mainly used to reset new line counter.
 	 *
-	 * @param  {string} line - The line to add to formatted array.
+	 * @param  {string} line - Line to add to formatted array.
+	 * @param  {string} hline - Highlighted line to add to formatted array.
 	 * @param  {string} type - The line's type.
 	 * @param  {array} indentation - Array: [tab char, indentation amount].
 	 * @return {undefined} - Nothing is returned.
 	 */
-	let preformat = (...params) => {
+	let preformat = (line, hline, ...params) => {
 		// Get params.
-		let [, type] = params;
+		let [type] = params;
 
 		// Ignore comments when 'strip-comments' is set.
 		if (stripcomments && type === "comment") {
@@ -138,19 +139,9 @@ module.exports = (
 		// Reset format new line counter.
 		preformat.nl_count = 0;
 		// Add line to formatted array.
-		preformat.lines.push(params);
-	};
-	let hpreformat = (...params) => {
-		// Get params.
-		let [, type] = params;
-
-		// Ignore comments when 'strip-comments' is set.
-		if (stripcomments && type === "comment") {
-			return;
-		}
-
+		preformat.lines.push([line].concat(params));
 		// Add line to formatted array.
-		preformat.hlines.push(params);
+		preformat.hlines.push([hline].concat(params));
 	};
 	// Vars -  Pre-formatting (attached to function).
 	preformat.lines = []; // Store lines before final formatting.
@@ -327,10 +318,6 @@ module.exports = (
 					// Add line to format later.
 					preformat(
 						`${name}${value ? " = " + value : ""}`,
-						"setting"
-					);
-					// Add highlighted version.
-					hpreformat(
 						`${hname}${hvalue ? " = " + hvalue : ""}`,
 						"setting"
 					);
@@ -373,8 +360,11 @@ module.exports = (
 					// For non flag set one-liners.
 					if (result.brstate) {
 						// Add line to format later.
-						preformat(`${currentchain} = [`, "command");
-						hpreformat(`${hcurrentchain} = [`, "command");
+						preformat(
+							`${currentchain} = [`,
+							`${hcurrentchain} = [`,
+							"command"
+						);
 
 						// If brackets are empty set flags.
 						if (result.brstate === "closed") {
@@ -384,8 +374,7 @@ module.exports = (
 							last_open_br = null;
 
 							// Add line to format later.
-							preformat(`]`, "command");
-							hpreformat(`]`, "command");
+							preformat("]", "]", "command");
 						}
 						// If bracket is unclosed set other flags.
 						else {
@@ -411,10 +400,6 @@ module.exports = (
 								`${cc}${
 									flags.length ? ` = ${flags.join("|")}` : ""
 								}`,
-								"command"
-							);
-							// Add highlighted version.
-							hpreformat(
 								`${hcc}${
 									hflags.length
 										? ` = ${hflags.join("|")}`
@@ -473,38 +458,24 @@ module.exports = (
 						hcurrentflag = `${hyphens}${hflag}`;
 					}
 
+					// Generate the formatted assignment string.
+					let fassignment =
+						// TODO: Simplify/clarify logic.
+						`${
+							!setter
+								? ""
+								: !values_len
+								? `${setter}()`
+								: values_len && fval === "("
+								? `${setter}(`
+								: `${setter}`
+							// : values_len && fval === ""
+							// ? `${setter}`
+						}`;
 					// Add line to format later.
 					preformat(
-						// TODO: Simplify/clarify logic.
-						`${hyphens}${flag}${
-							!setter
-								? ""
-								: !values_len
-								? `${setter}()`
-								: values_len && fval === "("
-								? `${setter}(`
-								: `${setter}`
-							// : values_len && fval === ""
-							// ? `${setter}`
-						}`,
-						"flag-set",
-						1
-					);
-
-					// Add line to format later.
-					hpreformat(
-						// TODO: Simplify/clarify logic.
-						`${hyphens}${hflag}${
-							!setter
-								? ""
-								: !values_len
-								? `${setter}()`
-								: values_len && fval === "("
-								? `${setter}(`
-								: `${setter}`
-							// : values_len && fval === ""
-							// ? `${setter}`
-						}`,
+						`${hyphens}${flag}${fassignment}`,
+						`${hyphens}${hflag}${fassignment}`,
 						"flag-set",
 						1
 					);
@@ -625,9 +596,12 @@ module.exports = (
 						let hvalue = values.hargs[0];
 
 						// Add line to format later.
-						preformat(`- ${value}`, "flag-option", 2);
-						// Add highlighted version.
-						hpreformat(`- ${hvalue}`, "flag-option", 2);
+						preformat(
+							`- ${value}`,
+							`- ${hvalue}`,
+							"flag-option",
+							2
+						);
 
 						// Add to lookup table > command chain.
 						chain.add(`${currentflag}=${value}`);
@@ -668,8 +642,7 @@ module.exports = (
 					last_open_pr = null;
 
 					// Add line to format later.
-					preformat(`)`, "close-brace", 1);
-					hpreformat(`)`, "close-brace", 1);
+					preformat(")", ")", "close-brace", 1);
 
 					// Reset index to start at newline on next iteration.
 					i = result.nl_index - 1;
@@ -696,8 +669,7 @@ module.exports = (
 					last_open_br = null;
 
 					// Add line to format later.
-					preformat(`]`, "close-brace");
-					hpreformat(`]`, "close-brace");
+					preformat("]", "]", "close-brace");
 
 					// Reset index to start at newline on next iteration.
 					i = result.nl_index - 1;
@@ -717,9 +689,12 @@ module.exports = (
 						: undefined;
 
 					// Add line to format later.
-					preformat(`${result.comment}`, "comment", indent_level);
-					// Add highlighted version.
-					hpreformat(`${result.h.comment}`, "comment", indent_level);
+					preformat(
+						`${result.comment}`,
+						`${result.h.comment}`,
+						"comment",
+						indent_level
+					);
 
 					// Reset index to start at newline on next iteration.
 					i = result.nl_index - 1;

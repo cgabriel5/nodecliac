@@ -45,6 +45,25 @@ module.exports = lk_size => {
 		return "";
 	}
 
+	/**
+	 * Sort function.
+	 *
+	 * @param  {string} a - Item a.
+	 * @param  {string} b - Item b.
+	 * @return {number} - The sort number result.
+	 */
+	let sorter = (a, b) => {
+		// Get un-highlighted flag items only.
+		a = a[0];
+		b = b[0];
+
+		// Give multi-flags higher sorting precedence.
+		// [https://stackoverflow.com/a/9604891]
+		// [https://stackoverflow.com/a/24292023]
+		// [http://www.javascripttutorial.net/javascript-array-sort/]
+		return ~~b.endsWith("=*") - ~~a.endsWith("=*") || a.localeCompare(b);
+	};
+
 	// Loop over command chain lookup table.
 	for (let chain in lookup) {
 		if (chain && lookup.hasOwnProperty(chain)) {
@@ -55,35 +74,36 @@ module.exports = lk_size => {
 			// Get set length (size).
 			let fcount = flags.size;
 
-			// [TODO] Optimize sorting: [https://stackoverflow.com/a/13960306]
-			// [https://stackoverflow.com/questions/11499268/sort-two-arrays-the-same-way]
+			// Use zip method to only sort 1 array: [https://stackoverflow.com/a/6418539]
+			// [https://stackoverflow.com/a/13960306], [https://stackoverflow.com/q/11499268]
 
 			// If set contains flags sort its values.
 			if (fcount) {
 				// Convert set to an array, sort, then turn to string.
-				// [https://stackoverflow.com/a/47243199]
-				flags = Array.from(flags)
-					.sort(function(a, b) {
-						return (
-							// Give multi-flags higher sorting precedence.
-							// [https://stackoverflow.com/a/9604891]
-							// [https://stackoverflow.com/a/24292023]
-							// [http://www.javascripttutorial.net/javascript-array-sort/]
-							~~b.endsWith("=*") - ~~a.endsWith("=*") ||
-							a.localeCompare(b)
-						);
-					})
-					.join("|");
+				// [https://stackoverflow.com/a/47243199], [https://stackoverflow.com/a/21194765]
+				flags = [...flags];
+				hflags = [...hflags];
+				let zip = []; // The zip array.
 
-				// Do same operation to the highlighted lines.
-				hflags = Array.from(hflags)
-					.sort(function(a, b) {
-						return (
-							~~b.endsWith("=*") - ~~a.endsWith("=*") ||
-							a.localeCompare(b)
-						);
-					})
-					.join("|");
+				// Use 'zip' to only sort main un-highlighted flags array.
+				for (let i = 0, l = flags.length; i < l; i++) {
+					// Store values in zip array.
+					zip.push([flags[i], hflags[i]]);
+				}
+
+				// Sort array using the un-highlighted flags array.
+				zip.sort(sorter);
+
+				// unzip
+				for (let i = 0, l = zip.length; i < l; i++) {
+					let z = zip[i];
+					flags[i] = z[0];
+					hflags[i] = z[1];
+				}
+
+				// Joins arrays.
+				flags = flags.join("|");
+				hflags = hflags.join("|");
 			}
 			// If no flags reset to empty flag indicator.
 			else {

@@ -26,21 +26,35 @@ module.exports = (...args) => {
 		flag = "",
 		isvspecial,
 		ci;
-	if (scriptname === "p.flagset.js") {
-		name = fvars.name;
-		isvspecial = fvars.isvspecial;
-	} else if (scriptname === "p.setting.js") {
-		name = fvars.name;
-	} else if (scriptname === "p.command.js") {
-		name = fvars.name;
-	} else if (is_intermediary_file) {
-		// Get flag name if it exists.
-		if (fvars.flag) {
-			flag = fvars.flag;
-		}
+	// Run logic for each line type.
+	switch (scriptname) {
+		case "p.flagset.js":
+			{
+				name = fvars.name;
+				isvspecial = fvars.isvspecial;
+			}
 
-		// Get corrected index.
-		ci = fvars.ci;
+			break;
+		case "p.setting.js":
+			{
+				name = fvars.name;
+			}
+
+			break;
+		case "p.command.js": {
+			name = fvars.name;
+		}
+		default: {
+			if (is_intermediary_file) {
+				// Get flag name if it exists.
+				if (fvars.flag) {
+					flag = fvars.flag;
+				}
+
+				// Get corrected index.
+				ci = fvars.ci;
+			}
+		}
 	}
 
 	// Get character type.

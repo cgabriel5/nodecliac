@@ -6,7 +6,7 @@ const chalk = require("chalk");
 
 module.exports = (...args) => {
 	// Get arguments.
-	let [i, filename, warnings, state, type, code, char, fvars = {}] = args;
+	let [i, filename, warnings, state, type, code, fvars = {}] = args;
 
 	// Get globals
 	let string = global.$app.get("string");
@@ -22,40 +22,11 @@ module.exports = (...args) => {
 	let is_intermediary_file = /^p\.flag-(command|value)\.js$/.test(scriptname);
 
 	// Define variables for specific parsers.
-	let name = "",
-		flag = "",
-		isvspecial,
-		ci;
-	// Run logic for each line type.
-	switch (scriptname) {
-		case "p.flagset.js":
-			{
-				name = fvars.name;
-				isvspecial = fvars.isvspecial;
-			}
-
-			break;
-		case "p.setting.js":
-			{
-				name = fvars.name;
-			}
-
-			break;
-		case "p.command.js": {
-			name = fvars.name;
-		}
-		default: {
-			if (is_intermediary_file) {
-				// Get flag name if it exists.
-				if (fvars.flag) {
-					flag = fvars.flag;
-				}
-
-				// Get corrected index.
-				ci = fvars.ci;
-			}
-		}
-	}
+	let ci = fvars.ci || 0,
+		char = fvars.char || "",
+		flag = fvars.flag || "",
+		name = fvars.name || "",
+		isvspecial = fvars.isvspecial;
 
 	// Get character type.
 	let ctype = char && Number(char) ? "number" : "character";
@@ -102,10 +73,7 @@ module.exports = (...args) => {
 			5: `Unescaped ${ctype} '${char}' in value.`,
 			// Parsing warning reasons.
 			// 6: `Empty flag assignment.`,
-			8: `Empty flag: '${name}' (use boolean indicator: '${h(
-				"?",
-				"value"
-			)}').`,
+			8: `Empty flag: '${name}' (use bool mark: '${h("?", "value")}').`,
 			9: `${
 				isvspecial === "command" ? "Command-flag" : "Options flag list"
 			} missing closing '${h(")", "value")}'.`,

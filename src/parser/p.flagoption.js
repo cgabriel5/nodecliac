@@ -63,7 +63,10 @@ module.exports = () => {
 	// Wrap issue function to add fixed parameters.
 	let issue = (type = "error", code, char = "") => {
 		// Run and return issue.
-		return issuefunc(i, __filename, warnings, state, type, code, char);
+		return issuefunc(i, __filename, warnings, state, type, code, {
+			// Parser specific variables.
+			char
+		});
 	};
 
 	// Loop over string.

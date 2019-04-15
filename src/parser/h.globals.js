@@ -82,9 +82,15 @@ f.unset = name => {
 /**
  * Return amount of globals set.
  *
+ * @param  {number} modifier - Amount to modify count by.
  * @return {number} - Global count.
  */
-f.size = () => {
+f.size = modifier => {
+	if (modifier !== undefined) {
+		// Add modifier to count.
+		count += modifier;
+	}
+
 	return count;
 };
 

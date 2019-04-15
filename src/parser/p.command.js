@@ -418,8 +418,8 @@ module.exports = () => {
 				let name = pvalue.name;
 				let hname = pvalue.h.name;
 				let assignment = pvalue.assignment;
-				let value = pvalue.value;
-				let hvalue = pvalue.h.value;
+				let value = pvalue.args;
+				let hvalue = pvalue.h.hargs;
 				let nl_index = pvalue.nl_index;
 
 				// If value is not a string (therefore an array) join values.
@@ -489,8 +489,8 @@ module.exports = () => {
 		let name = pvalue.name;
 		let hname = pvalue.h.name;
 		let assignment = pvalue.assignment;
-		let value = pvalue.value;
-		let hvalue = pvalue.h.value;
+		let value = pvalue.args;
+		let hvalue = pvalue.h.hargs;
 		let nl_index = pvalue.nl_index;
 
 		// If value is not a string (therefore an array) join values.

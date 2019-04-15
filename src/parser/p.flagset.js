@@ -399,7 +399,9 @@ module.exports = (params = {}) => {
 	return {
 		symbol,
 		name,
-		value,
+		// Note: Since the name 'value' is a bit misleading as it's actually
+		// an array of values rename to 'args' before passing object.
+		args: value,
 		special: isvspecial,
 		assignment,
 		nl_index,
@@ -417,7 +419,7 @@ module.exports = (params = {}) => {
 		h: {
 			// Add syntax highlighting.
 			name: h(name, "flag"),
-			value: h(value.hargs, "value", ":/3") // Highlight option list values.
+			hargs: h(value.hargs, "value", ":/3") // Highlight option list values.
 		}
 	};
 };

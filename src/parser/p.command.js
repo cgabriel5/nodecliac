@@ -88,6 +88,28 @@ module.exports = () => {
 		});
 	};
 
+	/**
+	 * Set chain as a global to access in other parsers.
+	 *
+	 * @param  {string} chain - The chain to store.
+	 * @return {undefined} - Nothing is returned.
+	 */
+	let setchain = chain => {
+		// Get global chain.
+		let cchain = global.$app.vars.currentchain;
+
+		// Only set if chain is different than current chain.
+		if (chain !== cchain) {
+			// Store as global to access in other parsers (for dupe checks).
+			global.$app.vars.currentchain = chain;
+		}
+
+		// If a global chain does not exist, increment global size.
+		if (!cchain) {
+			global.$app.size(1); // Increment size by 1.
+		}
+	};
+
 	// Loop over string.
 	for (; i < l; i++) {
 		// Cache current loop item.
@@ -372,6 +394,9 @@ module.exports = () => {
 
 			// Get individual flag sets. Use unescaped '|' as the delimiter.
 			if (char === "|" && pchar !== "\\") {
+				// Store chain as a global.
+				setchain(chain);
+
 				// Run flag value parser from here...
 				let pvalue = pflagset({
 					str: [indices.oneliner.start], // Index to resume parsing at.
@@ -437,6 +462,9 @@ module.exports = () => {
 
 	// Join command parts and reset chain to normalized chain string.
 	chain = commands.join("");
+
+	// Store chain as a global.
+	setchain(chain);
 
 	// Add final flag set.
 	if (flagset) {
@@ -510,10 +538,6 @@ module.exports = () => {
 			issue("warning", 6);
 		}
 	}
-
-	// Store as global to access in other parsers (for dupe checks).
-	global.$app.vars.currentchain = chain;
-	global.$app.size(1); // Increment size by 1.
 
 	// Check if command chain is a duplicate.
 	if (lookup[chain]) {

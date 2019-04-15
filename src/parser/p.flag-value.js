@@ -45,6 +45,7 @@ module.exports = (params = {}) => {
 	let lookup = global.$app.get("lookup");
 	let currentchain = global.$app.get("currentchain");
 	let currentflag = global.$app.get("currentflag");
+	let flags = lookup[currentchain]; // Get command's flag list.
 
 	// Parsing vars.
 	// Note: Parsing the value starts a new loop from 0 to only focus on
@@ -139,10 +140,7 @@ module.exports = (params = {}) => {
 		}
 
 		// Check if flag is a duplicate.
-		if (
-			lookup[currentchain].has(flagvalue) ||
-			isdupeval.values.has(value)
-		) {
+		if ((flags && flags.has(flagvalue)) || isdupeval.values.has(value)) {
 			// Store index to later reset it back.
 			let old_index = i;
 

@@ -43,6 +43,7 @@ module.exports = (params = {}) => {
 	let h = global.$app.get("highlighter");
 	let lookup = global.$app.get("lookup");
 	let currentchain = global.$app.get("currentchain");
+	let flags = lookup[currentchain]; // Get command's flag list.
 
 	// Parsing vars.
 	let symbol = "";
@@ -385,7 +386,7 @@ module.exports = (params = {}) => {
 	}
 
 	// Check if flag is a duplicate.
-	if (lookup[currentchain].has(`${symbol}${name}${assignment}`)) {
+	if (flags && flags.has(`${symbol}${name}${assignment}`)) {
 		// Reset index.
 		i = indices.name.end;
 

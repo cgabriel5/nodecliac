@@ -41,6 +41,9 @@ module.exports = (params = {}) => {
 	let line_num = global.$app.get("line_num");
 	let line_fchar = global.$app.get("line_fchar");
 	let h = global.$app.get("highlighter");
+	let lookup = global.$app.get("lookup");
+	let currentchain = global.$app.get("currentchain");
+	let currentflag = global.$app.get("currentflag");
 
 	// Parsing vars.
 	// Note: Parsing the value starts a new loop from 0 to only focus on
@@ -106,9 +109,49 @@ module.exports = (params = {}) => {
 		// Run and return issue.
 		return issuefunc(i, __filename, warnings, state, type, code, char, {
 			// Parser specific variables.
-			ci
+			ci,
+			flag: currentflag
 		});
 	};
+
+	/**
+	 * Check if value is a duplicate value.
+	 *
+	 * @param  {string}  value - The flag's value.
+	 * @param  {number}  index - The value's positional index.
+	 * @return {undefined} - Nothing is returned.
+	 */
+	let isdupeval = function(value, index) {
+		if (!currentflag) {
+			return;
+		}
+
+		// Build --flag=value string.
+		let flagvalue = `${currentflag}=${value}`;
+
+		// Check if flag is a duplicate.
+		if (
+			lookup[currentchain].has(flagvalue) ||
+			isdupeval.values.has(value)
+		) {
+			// Store index to later reset it back.
+			let old_index = i;
+
+			// Reset index.
+			i = index;
+
+			// Add warning.
+			issue("warning", 12, value);
+
+			// Restore index after issuing warning.
+			i = old_index;
+		}
+
+		// Store the value.
+		isdupeval.values.add(value);
+	};
+	// Store currently parsed values.
+	isdupeval.values = new Set();
 
 	// Keep a list of unique loop iterations for current index.
 	let last_index;
@@ -208,6 +251,9 @@ module.exports = (params = {}) => {
 					delimiter_count = 0;
 					indices.delimiter.last = null;
 
+					// Check for duplicate values.
+					isdupeval(value, ci);
+
 					// Reset state
 					state = "delimiter";
 					// Store value.
@@ -254,6 +300,9 @@ module.exports = (params = {}) => {
 					delimiter_count = 0;
 					indices.delimiter.last = null;
 
+					// Check for duplicate values.
+					isdupeval(value, ci);
+
 					// Store value.
 					args.push(value);
 					hargs.push(value);
@@ -294,14 +343,20 @@ module.exports = (params = {}) => {
 					return pvalue;
 				}
 
+				// Build string value.
+				value = `$(${pvalue.cmd_str})`;
+
 				// Reset delimiter count/index.
 				delimiter_count = 0;
 				indices.delimiter.last = null;
 
+				// Check for duplicate values.
+				isdupeval(value, ci);
+
 				// Reset state
 				state = "delimiter";
 				// Store value.
-				args.push(`$(${pvalue.cmd_str})`);
+				args.push(value);
 				// Add highlighted version.
 				hargs.push(`$(${pvalue.h.hcmd_str})`);
 
@@ -346,6 +401,9 @@ module.exports = (params = {}) => {
 				return issue("error", 4);
 			}
 		}
+
+		// Check for duplicate values.
+		isdupeval(value, ci);
 
 		args.push(value);
 		// Add highlighted version.

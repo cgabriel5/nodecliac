@@ -41,6 +41,8 @@ module.exports = (params = {}) => {
 	let line_num = global.$app.get("line_num");
 	let line_fchar = global.$app.get("line_fchar");
 	let h = global.$app.get("highlighter");
+	let lookup = global.$app.get("lookup");
+	let currentchain = global.$app.get("currentchain");
 
 	// Parsing vars.
 	let symbol = "";
@@ -332,6 +334,10 @@ module.exports = (params = {}) => {
 		issue("warning", 8, "=");
 	}
 
+	// Store as global to access in other parsers (for dupe checks).
+	global.$app.vars.currentflag = `${symbol}${name}`;
+	global.$app.size(1); // Increment size by 1.
+
 	// If a flag was assigned a flag...
 	if (value) {
 		// Since value is '(' we set flag and reset value.
@@ -376,6 +382,15 @@ module.exports = (params = {}) => {
 	// If no highlighted args set a default.
 	if (!value.hargs) {
 		value.hargs = [];
+	}
+
+	// Check if flag is a duplicate.
+	if (lookup[currentchain].has(`${symbol}${name}${assignment}`)) {
+		// Reset index.
+		i = indices.name.end;
+
+		// Add warning.
+		issue("warning", 11, name);
 	}
 
 	// Return relevant parsing information.

@@ -36,6 +36,7 @@ module.exports = () => {
 	let line_fchar = global.$app.get("line_fchar");
 	let h = global.$app.get("highlighter");
 	let formatting = global.$app.get("formatting");
+	let lookup = global.$app.get("lookup");
 
 	// Parsing vars.
 	let chain = "";
@@ -81,7 +82,10 @@ module.exports = () => {
 	// Wrap issue function to add fixed parameters.
 	let issue = (type = "error", code, char = "") => {
 		// Run and return issue.
-		return issuefunc(i, __filename, warnings, state, type, code, char);
+		return issuefunc(i, __filename, warnings, state, type, code, char, {
+			// Parser specific variables.
+			name: chain
+		});
 	};
 
 	// Loop over string.
@@ -505,6 +509,19 @@ module.exports = () => {
 			// Add warning.
 			issue("warning", 6);
 		}
+	}
+
+	// Store as global to access in other parsers (for dupe checks).
+	global.$app.vars.currentchain = chain;
+	global.$app.size(1); // Increment size by 1.
+
+	// Check if command chain is a duplicate.
+	if (lookup[chain]) {
+		// Reset index.
+		i = indices.chain.end;
+
+		// Add warning.
+		issue("warning", 10, chain);
 	}
 
 	// Return relevant parsing information.

@@ -23,6 +23,7 @@ module.exports = (...args) => {
 
 	// Define variables for specific parsers.
 	let name = "",
+		flag = "",
 		isvspecial,
 		ci;
 	if (scriptname === "p.flagset.js") {
@@ -30,7 +31,15 @@ module.exports = (...args) => {
 		isvspecial = fvars.isvspecial;
 	} else if (scriptname === "p.setting.js") {
 		name = fvars.name;
+	} else if (scriptname === "p.command.js") {
+		name = fvars.name;
 	} else if (is_intermediary_file) {
+		// Get flag name if it exists.
+		if (fvars.flag) {
+			flag = fvars.flag;
+		}
+
+		// Get corrected index.
 		ci = fvars.ci;
 	}
 
@@ -55,7 +64,7 @@ module.exports = (...args) => {
 			// Parsing warning reasons.
 			5: `Unescaped ${ctype}: '${char}' in value.`,
 			6: `Empty setting assignment.`,
-			7: `Duplicate setting: '${name}'.`,
+			7: `Dupe setting: '${name}'.`,
 			8: `Empty setting: '${name}'.`
 		},
 		"p.command.js": {
@@ -74,7 +83,8 @@ module.exports = (...args) => {
 			6: `Empty '${h("[]", "value")}' (no flags).`,
 			7: `Unclosed shortcut brace: '${char}'.`,
 			8: `Illegal command delimiter: '${char}'.`,
-			9: `Illegal shortcut delimiter: '${char}'.`
+			9: `Illegal shortcut delimiter: '${char}'.`,
+			10: `Dupe command: '${h(stripansi(name), "command")}'.`
 		},
 		"p.flagset.js": {
 			1: `Flag started with '${char}'. Expected a letter.`,
@@ -91,7 +101,8 @@ module.exports = (...args) => {
 			9: `${
 				isvspecial === "command" ? "Command-flag" : "Options flag list"
 			} missing closing '${h(")", "value")}'.`,
-			10: `Empty flag namespace '${char}'.`
+			10: `Empty flag namespace '${char}'.`,
+			11: `Dupe flag: '${name}'.`
 		},
 		"p.flag-command.js": {
 			2: `Unexpected ${ctype}: '${char}'.`,
@@ -106,7 +117,11 @@ module.exports = (...args) => {
 			4: `Improperly quoted string.`,
 			5: `Unescaped ${ctype}: '${char}' in value.`,
 			10: `Empty '${h("()", "value")}' (no flag options).`,
-			11: `Empty string '${chalk.yellow(stripansi(char))}'.`
+			11: `Empty string '${chalk.yellow(stripansi(char))}'.`,
+			12: `Dupe value: '${char}' (${flag.replace(
+				/^(-{1,2})(.*?)$/g,
+				`$1${h("$2", "flag")}`
+			)}).`
 		},
 		"p.flagoption.js": {
 			0: `Empty flag option.`,

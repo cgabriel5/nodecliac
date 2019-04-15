@@ -14,7 +14,7 @@ module.exports = (...args) => {
 	let line_num = global.$app.get("line_num");
 	let line_fchar = global.$app.get("line_fchar");
 	let h = global.$app.get("highlighter");
-	let stripansi = global.$app.get("stripansi");
+	let s = global.$app.get("stripansi");
 
 	// Get basename from file name.
 	let scriptname = path.basename(filename);
@@ -69,14 +69,8 @@ module.exports = (...args) => {
 		},
 		"p.command.js": {
 			1: `Chain started with: '${char}'. Expected a letter.`,
-			2: `Unnecessary escape ${ctype}: ${h(
-				"\\" + stripansi(char),
-				"value"
-			)}.`,
-			3: `Illegal escape sequence: ${h(
-				"\\" + stripansi(char),
-				"value"
-			)}.`,
+			2: `Unnecessary escape ${ctype}: ${h("\\" + s(char), "value")}.`,
+			3: `Illegal escape sequence: ${h("\\" + s(char), "value")}.`,
 			4: `Unexpected ${ctype}: '${char}'.`,
 			// Parsing warning reasons.
 			5: `Empty command chain assignment.`,
@@ -84,7 +78,7 @@ module.exports = (...args) => {
 			7: `Unclosed shortcut brace: '${char}'.`,
 			8: `Illegal command delimiter: '${char}'.`,
 			9: `Illegal shortcut delimiter: '${char}'.`,
-			10: `Dupe command: '${h(stripansi(name), "command")}'.`
+			10: `Dupe command: '${h(s(name), "command")}'.`
 		},
 		"p.flagset.js": {
 			1: `Flag started with '${char}'. Expected a letter.`,
@@ -110,14 +104,14 @@ module.exports = (...args) => {
 			4: `Improperly quoted string.`,
 			5: `Empty command flag argument.`,
 			6: `Improperly closed command-flag. Missing '${h(")", "value")}'.`,
-			11: `Empty string '${chalk.yellow(stripansi(char))}'.`
+			11: `Empty string '${chalk.yellow(s(char))}'.`
 		},
 		"p.flag-value.js": {
 			2: `Unexpected ${ctype}: '${char}'.`,
 			4: `Improperly quoted string.`,
 			5: `Unescaped ${ctype}: '${char}' in value.`,
 			10: `Empty '${h("()", "value")}' (no flag options).`,
-			11: `Empty string '${chalk.yellow(stripansi(char))}'.`,
+			11: `Empty string '${chalk.yellow(s(char))}'.`,
 			12: `Dupe value: '${char}' (${flag.replace(
 				/^(-{1,2})(.*?)$/g,
 				`$1${h("$2", "flag")}`

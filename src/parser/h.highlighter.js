@@ -10,7 +10,7 @@ const { r_number } = require("./h.patterns.js");
 
 module.exports = (value, ...scopes) => {
 	// Get globals
-	let stripansi = global.$app.get("stripansi");
+	let s = global.$app.get("stripansi");
 
 	// Context:color lookup table.
 	let c = {
@@ -122,7 +122,7 @@ module.exports = (value, ...scopes) => {
 								)}${chalk[c.def](lchar)}`;
 							}
 							// Highlight everything but command-flags.
-							else if (!/\$\(/.test(stripansi(value))) {
+							else if (!/\$\(/.test(s(value))) {
 								// Highlight everything else.
 								value = chalk[c.value](value);
 							}

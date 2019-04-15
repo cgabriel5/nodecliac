@@ -14,8 +14,8 @@ const pcomment = require("./p.comment.js");
 // Require parser helpers.
 const mkchain = require("./h.mkchain.js");
 const shortcuts = require("./h.shortcuts.js");
+const s = globals.set("stripansi", require("strip-ansi"));
 const { formatter, preformat } = require("./h.formatter.js");
-const stripansi = globals.set("stripansi", require("strip-ansi"));
 const h = globals.set("highlighter", require("./h.highlighter.js"));
 
 // Get error checking functions.

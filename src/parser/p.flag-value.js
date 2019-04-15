@@ -41,6 +41,7 @@ module.exports = (params = {}) => {
 	let line_num = global.$app.get("line_num");
 	let line_fchar = global.$app.get("line_fchar");
 	let h = global.$app.get("highlighter");
+	let highlight = global.$app.get("highlight");
 	let lookup = global.$app.get("lookup");
 	let currentchain = global.$app.get("currentchain");
 	let currentflag = global.$app.get("currentflag");
@@ -117,17 +118,25 @@ module.exports = (params = {}) => {
 	/**
 	 * Check if value is a duplicate value.
 	 *
-	 * @param  {string}  value - The flag's value.
-	 * @param  {number}  index - The value's positional index.
+	 * @param  {string} value - The flag's value.
+	 * @param  {number} index - The value's positional index.
+	 * @param  {string} hvalue - cmd-flag highlighted string value.
 	 * @return {undefined} - Nothing is returned.
 	 */
-	let isdupeval = function(value, index) {
+	let isdupeval = function(value, index, hvalue) {
 		if (!currentflag) {
 			return;
 		}
 
 		// Build --flag=value string.
 		let flagvalue = `${currentflag}=${value}`;
+
+		// Note: Since value is being stored in the warnings array before
+		// final command-flag highlighting is applied we need to run
+		// highlight on value before storing.
+		if (hvalue && highlight) {
+			value = h([hvalue], "cmd-flag", ":/1")[0];
+		}
 
 		// Check if flag is a duplicate.
 		if (
@@ -345,20 +354,21 @@ module.exports = (params = {}) => {
 
 				// Build string value.
 				value = `$(${pvalue.cmd_str})`;
+				let hvalue = `$(${pvalue.h.hcmd_str})`;
 
 				// Reset delimiter count/index.
 				delimiter_count = 0;
 				indices.delimiter.last = null;
 
 				// Check for duplicate values.
-				isdupeval(value, ci);
+				isdupeval(value, ci, hvalue);
 
 				// Reset state
 				state = "delimiter";
 				// Store value.
 				args.push(value);
 				// Add highlighted version.
-				hargs.push(`$(${pvalue.h.hcmd_str})`);
+				hargs.push(hvalue);
 
 				// Clear value.
 				value = "";

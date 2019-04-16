@@ -63,7 +63,8 @@ module.exports = args => {
 		acplscriptpath,
 		acplscriptconfigpath,
 		acmapspath,
-		acmapssource
+		acmapssource,
+		setupfilepath
 	} = paths;
 
 	// If ~/.nodecliac exist we need the --force flag to proceed with install.
@@ -125,6 +126,20 @@ module.exports = args => {
 					script("scripts/main.sh", mscriptpath);
 					script("scripts/ac.pl", acplscriptpath, "775");
 					script("scripts/config.pl", acplscriptconfigpath, "775");
+
+					// Create setup info file to reference on uninstall.
+					fs.writeFileSync(
+						setupfilepath,
+						JSON.stringify(
+							{
+								force,
+								rcfilepath,
+								time: Date.now()
+							},
+							undefined,
+							"\t"
+						)
+					);
 
 					// Give success message.
 					log(chalk.green("Setup successful."));

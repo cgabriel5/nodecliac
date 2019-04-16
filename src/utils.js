@@ -83,6 +83,7 @@ let paths = (function(os, path) {
 	);
 	let acmapspath = path.join(homedir, `.${cdirname}/defs`);
 	let acmapssource = path.join(homedir, `.${cdirssrc}`);
+	let setupfilepath = path.join(customdir, `/.setup.db.json`);
 
 	return {
 		homedir,
@@ -97,7 +98,8 @@ let paths = (function(os, path) {
 		acplscriptpath,
 		acplscriptconfigpath,
 		acmapspath,
-		acmapssource
+		acmapssource,
+		setupfilepath
 	};
 })(os, path);
 

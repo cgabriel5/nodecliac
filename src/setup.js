@@ -122,7 +122,10 @@ module.exports = args => {
 						// Edit .rcfile file to "include" nodecliac main script file.
 						fs.writeFileSync(
 							bashrcpath,
-							`${contents}\nncliac=~/.nodecliac/src/${mainscriptname};if [ -f "$ncliac" ];then source "$ncliac";fi;`
+							`${contents.replace(
+								/\n*$/g,
+								""
+							)}\n\nncliac=~/.nodecliac/src/${mainscriptname};if [ -f "$ncliac" ];then source "$ncliac";fi;`
 						);
 					}
 

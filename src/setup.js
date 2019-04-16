@@ -15,9 +15,11 @@ module.exports = () => {
 	 *
 	 * @param  {string} source - The script's source path.
 	 * @param  {string} output - The script's output path.
+	 * @param  {string} mode - The script's mode (chmod) value.
 	 * @return {string} - The cleaned file contents.
 	 */
-	let script = (source, output) => {
+	let script = (source, output, mode) => {
+		// Write file to disk.
 		fs.writeFileSync(
 			output,
 			fs
@@ -33,6 +35,18 @@ module.exports = () => {
 				.replace(/(\r\n\t|\n|\r\t){1,}/gm, "\n")
 				.trim()
 		);
+
+		// Apply file mode if supplied.
+		if (mode) {
+			// Using options.mode does not work as expected:
+			// [https://github.com/nodejs/node/issues/1104]
+			// [https://github.com/nodejs/node/issues/2249]
+			// [https://github.com/nodejs/node-v0.x-archive/issues/25756]
+			// [https://x-team.com/blog/file-system-permissions-umask-node-js/]
+
+			// Therefore apply file mode (chmod) explicitly.
+			fs.chmodSync(output, mode);
+		}
 	};
 
 	// Get needed paths.
@@ -89,11 +103,8 @@ module.exports = () => {
 				// Generate main and completion scripts.
 				script("scripts/ac.sh", acscriptpath);
 				script("scripts/main.sh", mscriptpath);
-				script("scripts/ac.pl", acplscriptpath);
-				script("scripts/config.pl", acplscriptconfigpath);
-				// Make perl scripts executable.
-				fs.chmodSync(acplscriptpath, "775");
-				fs.chmodSync(acplscriptconfigpath, "775");
+				script("scripts/ac.pl", acplscriptpath, "775");
+				script("scripts/config.pl", acplscriptconfigpath, "775");
 
 				// Give success message.
 				log(chalk.green("Setup successful."));

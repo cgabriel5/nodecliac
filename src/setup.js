@@ -7,9 +7,13 @@ const chalk = require("chalk");
 const log = require("fancy-log");
 const mkdirp = require("mkdirp");
 const fe = require("file-exists");
-const { paths } = require("./utils.js");
+const de = require("directory-exists");
+const { exit, paths } = require("./utils.js");
 
-module.exports = () => {
+module.exports = args => {
+	// Get CLI args.
+	let { force } = args;
+
 	/**
 	 * Generate bash script from source file and remove comments/empty lines.
 	 *
@@ -51,6 +55,7 @@ module.exports = () => {
 
 	// Get needed paths.
 	let {
+		customdir,
 		bashrcpath,
 		mainscriptname,
 		mscriptpath,
@@ -61,53 +66,69 @@ module.exports = () => {
 		acmapssource
 	} = paths;
 
-	// .bashrc file needs to exist to do anything.
-	fe(bashrcpath, (err, exists) => {
-		if (err) {
-			console.error(err);
-			process.exit();
+	// If ~/.nodecliac exist we need the --force flag to proceed with install.
+	de(customdir, (err, exists) => {
+		// If custom directory exists exit setup and give user a warning.
+		if (exists && !force) {
+			exit([
+				`${chalk.bold(customdir)} exists. Setup with ${chalk.bold(
+					"--force"
+				)} to overwrite directory.`
+			]);
 		}
 
-		// If .bashrc does not exist, give message and end process.
-		if (!exists) {
-			log(`${chalk.bold(".bashrc")} file does not exist. Setup aborted.`);
-			process.exit();
-		}
-
-		// Create ~/.nodecliac/defs/ path.
-		mkdirp(acmapspath, function(err) {
+		// .bashrc file needs to exist to do anything.
+		fe(bashrcpath, (err, exists) => {
 			if (err) {
 				console.error(err);
 				process.exit();
 			}
 
-			// Create ~/.nodecliac/src/ path.
-			mkdirp(acmapssource, function(err) {
+			// If .bashrc does not exist, give message and end process.
+			if (!exists) {
+				log(
+					`${chalk.bold(
+						".bashrc"
+					)} file does not exist. Setup aborted.`
+				);
+				process.exit();
+			}
+
+			// Create ~/.nodecliac/defs/ path.
+			mkdirp(acmapspath, function(err) {
 				if (err) {
 					console.error(err);
 					process.exit();
 				}
 
-				// Get .bashrc script contents.
-				let contents = fs.readFileSync(bashrcpath).toString();
+				// Create ~/.nodecliac/src/ path.
+				mkdirp(acmapssource, function(err) {
+					if (err) {
+						console.error(err);
+						process.exit();
+					}
 
-				// Check for nodecliac marker.
-				if (!/^ncliac=~/m.test(contents)) {
-					// Edit .bashrc file to "include" nodecliac main script file.
-					fs.writeFileSync(
-						bashrcpath,
-						`${contents}\nncliac=~/.nodecliac/src/${mainscriptname};if [ -f "$ncliac" ];then source "$ncliac";fi;`
-					);
-				}
+					// Get .bashrc script contents.
+					let contents = fs.readFileSync(bashrcpath).toString();
 
-				// Generate main and completion scripts.
-				script("scripts/ac.sh", acscriptpath);
-				script("scripts/main.sh", mscriptpath);
-				script("scripts/ac.pl", acplscriptpath, "775");
-				script("scripts/config.pl", acplscriptconfigpath, "775");
+					// Check for nodecliac marker.
+					if (!/^ncliac=~/m.test(contents)) {
+						// Edit .bashrc file to "include" nodecliac main script file.
+						fs.writeFileSync(
+							bashrcpath,
+							`${contents}\nncliac=~/.nodecliac/src/${mainscriptname};if [ -f "$ncliac" ];then source "$ncliac";fi;`
+						);
+					}
 
-				// Give success message.
-				log(chalk.green("Setup successful."));
+					// Generate main and completion scripts.
+					script("scripts/ac.sh", acscriptpath);
+					script("scripts/main.sh", mscriptpath);
+					script("scripts/ac.pl", acplscriptpath, "775");
+					script("scripts/config.pl", acplscriptconfigpath, "775");
+
+					// Give success message.
+					log(chalk.green("Setup successful."));
+				});
 			});
 		});
 	});

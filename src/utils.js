@@ -1,8 +1,10 @@
 "use strict";
 
 // Needed modules.
+var fs = require("fs");
 const os = require("os");
 const path = require("path");
+var crypto = require("crypto");
 const log = require("fancy-log");
 const ext = require("file-extension");
 
@@ -116,8 +118,24 @@ let concat_sets = function(set, ...iterables) {
 	}
 };
 
+/**
+ * Generate checksum from provided string.
+ *
+ * @return {string} - The generated checksum.
+ *
+ * @resource [https://gist.github.com/zfael/a1a6913944c55843ed3e999b16350b50]
+ * @resource [https://blog.abelotech.com/posts/calculate-checksum-hash-nodejs-javascript/]
+ */
+let checksum = (str, algorithm, encoding) => {
+	return crypto
+		.createHash(algorithm || "md5")
+		.update(str, "utf8")
+		.digest(encoding || "hex");
+};
+
 module.exports = {
 	concat_sets,
+	checksum,
 	fileinfo,
 	paths,
 	exit

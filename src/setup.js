@@ -12,7 +12,7 @@ const { exit, paths } = require("./utils.js");
 
 module.exports = args => {
 	// Get CLI args.
-	let { force } = args;
+	let { force, rcfilepath } = args;
 
 	/**
 	 * Generate bash script from source file and remove comments/empty lines.
@@ -67,6 +67,11 @@ module.exports = args => {
 		setupfilepath
 	} = paths;
 
+	// If a custom .rcfile path was provided use that instead.
+	if (rcfilepath) {
+		bashrcpath = rcfilepath;
+	}
+
 	// If ~/.nodecliac exist we need the --force flag to proceed with install.
 	de(customdir, (err, exists) => {
 		// If custom directory exists exit setup and give user a warning.
@@ -78,18 +83,18 @@ module.exports = args => {
 			]);
 		}
 
-		// .bashrc file needs to exist to do anything.
+		// .rcfile needs to exist to do anything.
 		fe(bashrcpath, (err, exists) => {
 			if (err) {
 				console.error(err);
 				process.exit();
 			}
 
-			// If .bashrc does not exist, give message and end process.
+			// If .rcfile does not exist, give message and end process.
 			if (!exists) {
 				log(
 					`${chalk.bold(
-						".bashrc"
+						rcfilepath
 					)} file does not exist. Setup aborted.`
 				);
 				process.exit();
@@ -109,12 +114,12 @@ module.exports = args => {
 						process.exit();
 					}
 
-					// Get .bashrc script contents.
+					// Get .rcfile script contents.
 					let contents = fs.readFileSync(bashrcpath).toString();
 
 					// Check for nodecliac marker.
 					if (!/^ncliac=~/m.test(contents)) {
-						// Edit .bashrc file to "include" nodecliac main script file.
+						// Edit .rcfile file to "include" nodecliac main script file.
 						fs.writeFileSync(
 							bashrcpath,
 							`${contents}\nncliac=~/.nodecliac/src/${mainscriptname};if [ -f "$ncliac" ];then source "$ncliac";fi;`

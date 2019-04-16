@@ -34,6 +34,7 @@ module.exports = (
 	formatting,
 	highlight,
 	trace,
+	nowarn,
 	stripcomments // When formatting should comments be removed?
 ) => {
 	// Store arguments for quick access later.
@@ -708,7 +709,9 @@ module.exports = (
 	}
 
 	// Log any warnings.
-	require("./h.warnings.js")(issue);
+	if (!nowarn) {
+		require("./h.warnings.js")(issue);
+	}
 
 	// Return generated acdef, config, and formatted file contents.
 	return {

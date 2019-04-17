@@ -19,9 +19,13 @@ module.exports = () => {
 	let lines = [];
 	let hlines = [];
 
-	// If settings is empty return an empty string.
+	// If settings object is empty return "empty" object (just headers).
 	if (!settings.__count__) {
-		return "";
+		return {
+			content: header,
+			hcontent: h(header, "comment"),
+			print: highlight ? h(header, "comment") : header
+		};
 	}
 	// Remove size/count key.
 	delete settings.__count__;

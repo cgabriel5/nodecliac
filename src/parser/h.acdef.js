@@ -41,8 +41,12 @@ module.exports = lk_size => {
 			false
 		);
 
-		// Return an empty string.
-		return "";
+		// If no definitions exist return "empty" object (just headers).
+		return {
+			content: header,
+			hcontent: h(header, "comment"),
+			print: highlight ? h(header, "comment") : header
+		};
 	}
 
 	/**

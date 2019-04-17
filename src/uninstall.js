@@ -7,11 +7,14 @@ const log = require("fancy-log");
 const rimraf = require("rimraf");
 const fe = require("file-exists");
 const de = require("directory-exists");
-const { paths } = require("./utils.js");
+const { exit, paths } = require("./utils.js");
 
-module.exports = () => {
+module.exports = args => {
+	// Get CLI args.
+	let { rcfilepath } = args;
+
 	// Get needed paths.
-	let { customdir, bashrcpath } = paths;
+	let { customdir, bashrcpath, setupfilepath } = paths;
 
 	// Custom dir needs to exist to completely remove.
 	de(customdir, (err, exists) => {
@@ -20,44 +23,88 @@ module.exports = () => {
 			process.exit();
 		}
 
-		// Exit if already removed.
+		// Exit if root directory does not exist.
 		if (!exists) {
-			log(chalk.blue("Already removed."));
+			log("Already removed or is not installed.");
 			process.exit();
 		}
 
-		rimraf(customdir, err => {
+		// Setup file needs to exist to remove .rcfile modifications.
+		fe(setupfilepath, (err, exists) => {
 			if (err) {
 				console.error(err);
 				process.exit();
 			}
 
-			// .bashrc file needs to exist to remove nodecliac marker.
-			fe(bashrcpath, (err, exists) => {
+			// If a custom .rcfile path was provided use that instead.
+			if (rcfilepath) {
+				bashrcpath = rcfilepath;
+			} else {
+				// Get rcfile path from setup file.
+				bashrcpath = exists
+					? JSON.parse(fs.readFileSync(setupfilepath).toString())
+							.rcfilepath
+					: null;
+			}
+
+			rimraf(customdir, err => {
 				if (err) {
 					console.error(err);
 					process.exit();
 				}
 
-				// If .bashrc exists, remove marker if present.
-				if (exists) {
-					// Get .bashrc script contents.
-					let contents = fs.readFileSync(bashrcpath).toString();
+				// If setup file exists we try to remove .rcfile modifications.
+				if (bashrcpath) {
+					// .rcfile file needs to exist to remove nodecliac marker.
+					fe(bashrcpath, (err, exists) => {
+						if (err) {
+							console.error(err);
+							process.exit();
+						}
 
-					// Check for nodecliac marker.
-					if (/^ncliac=~/m.test(contents)) {
-						// Remove marker.
-						fs.writeFileSync(
-							bashrcpath,
-							contents.replace(
-								/ncliac=~[\s\S]*?"\$ncliac";\s*fi;/g,
-								""
-							)
-						);
-					}
+						// If .rcfile exists, remove marker if present.
+						if (exists) {
+							// Get .rcfile script contents.
+							let contents = fs
+								.readFileSync(bashrcpath)
+								.toString();
+
+							// Check for nodecliac marker.
+							if (/^ncliac=~/m.test(contents)) {
+								// Remove marker.
+								fs.writeFileSync(
+									bashrcpath,
+									contents.replace(
+										/ncliac=~[\s\S]*?"\$ncliac";\s*fi;/g,
+										""
+									)
+								);
+							}
+
+							// Reverted .rcfile changes.
+							log(
+								`${chalk.green(
+									"Successfully"
+								)} reverted ${chalk.bold(bashrcpath)} changes.`
+							);
+						} else {
+							log(
+								`Could not revert ${chalk.bold(
+									bashrcpath
+								)} changes.`
+							);
+						}
+					});
+				} else {
+					log("Could not revert rcfile changes.");
 				}
 
-				log(chalk.green("Successfully removed."));
+				// Removed nodecliac root directory.
+				log(
+					`${chalk.green(
+						"Successfully"
+					)} removed nodecliac ${chalk.bold(customdir)}.`
+				);
 			});
 		});
 	});

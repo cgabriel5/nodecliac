@@ -27,6 +27,7 @@ module.exports = {
 	// Command.
 	r_command: new RegExp(`[-_.:a-zA-Z0-9\\\\/{}|]`),
 	// Unquoted special characters: [https://stackoverflow.com/a/44581064]
+	// [https://mywiki.wooledge.org/BashGuide/SpecialCharacters]
 	r_schars: /(?<!\\)[~`!#$^&*(){}|[\];'",<>? ]/,
 	// Setting syntax.
 	r_setting: /^(@[a-zA-Z][_a-zA-Z]*)[ \t]*(=[ \t]*(.*?))?$/,

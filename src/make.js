@@ -76,7 +76,7 @@ module.exports = args => {
 	}
 	// Check path for file name and extension.
 	let fi = fileinfo(source);
-	if (!/^[a-z][a-z0-9-_]{2,}\.acmap$/i.test(fi.name)) {
+	if (!/^[a-z][-_+a-z0-9]{2,}\.acmap$/i.test(fi.name)) {
 		exit([
 			`File name must follow format: ${chalk.bold.blue(
 				"<cli-command-name>.acmap"
@@ -87,7 +87,7 @@ module.exports = args => {
 		]);
 	}
 	// Extract the command name.
-	let commandname = fi.name.match(/^[a-z0-9-_]+/g)[0].replace(/_/g, "-");
+	let commandname = fi.name.match(/^[-_:+a-z0-9]+/g)[0].replace(/_/g, "-");
 
 	// Turn source path to absolute path.
 	source = path.join(process.cwd(), source);

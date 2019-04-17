@@ -26,7 +26,10 @@ module.exports = lk_size => {
 	// Vars.
 	let has_root = false;
 	// RegExp to match main command/first command in chain to remove.
-	let r = new RegExp(`^(${commandname}|[-_a-zA-Z0-9]+)`);
+	let r = new RegExp(
+		// Note: Properly escape '+' characters for commands like 'g++'.
+		`^(${commandname.replace(/(\+)/g, "\\$1")}|[-_a-zA-Z0-9]+)`
+	);
 	// Store lines.
 	let lines = [];
 	let hlines = [];

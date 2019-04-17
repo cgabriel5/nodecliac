@@ -243,7 +243,7 @@ module.exports = () => {
 			// Keep building command string...
 			else {
 				// If char is allowed keep building string.
-				if (/[-_.:\\/a-zA-Z0-9]/.test(char)) {
+				if (/[-_.:+\\/a-zA-Z0-9]/.test(char)) {
 					// Flag denotes whether to skip character escaping.
 					let escapechar;
 

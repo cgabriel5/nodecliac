@@ -140,8 +140,8 @@ module.exports = args => {
 						setupfilepath,
 						JSON.stringify(
 							{
-								force,
-								rcfilepath,
+								force: force || false,
+								rcfilepath: bashrcpath,
 								time: Date.now()
 							},
 							undefined,

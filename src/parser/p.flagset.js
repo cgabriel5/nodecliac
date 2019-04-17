@@ -157,6 +157,8 @@ module.exports = (params = {}) => {
 				}
 				// Store index.
 				indices.name.start = i;
+				// Store ending index as well for single letter flags.
+				indices.name.end = i;
 				name += char;
 			}
 			// Keep building name string...

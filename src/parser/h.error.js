@@ -98,6 +98,14 @@ let issue = (result, type = "error", warnings = []) => {
 	let color = type === "error" ? "red" : "yellow";
 	let symbol = type === "error" ? "❌" : "⚠";
 
+	// Note: The character's (position) index should never be negative. If
+	// it's negative the the index was not properly set. To easily detect
+	// negative indices highlight them red.
+	if (index < 0) {
+		// Highlight red for visual feedback.
+		index = chalk.red.bold(index);
+	}
+
 	// Build line info.
 	let lineinfo = `${line}`;
 	if (index !== undefined) {

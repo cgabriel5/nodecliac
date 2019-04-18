@@ -117,7 +117,7 @@ let issue = (result, type = "error", warnings = []) => {
 		`  ${chalk.bold[color](symbol)}  ${lineinfo}${" ".repeat(
 			// Note: When remainder is negative set to 0.
 			remainder
-		)}  ${chalk.dim(pname.replace(/(p\.|\.js)/g, ""))}${" ".repeat(
+		)}  ${h(pname.replace(/(p\.|\.js)/g, ""), "comment")}${" ".repeat(
 			// Note: When remainder is negative set to 0.
 			fremainder
 		)}  ${result.reason}`

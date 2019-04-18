@@ -398,6 +398,12 @@ module.exports = () => {
 				// Store chain as a global.
 				setchain(chain);
 
+				// Use as global to access in other parsers (for dupe checks).
+				if (!global.$app.vars.oneliner) {
+					global.$app.vars.oneliner = new Set();
+					global.$app.size(1); // Increment size by 1.
+				}
+
 				// Run flag value parser from here...
 				let pvalue = pflagset({
 					str: [indices.oneliner.start], // Index to resume parsing at.
@@ -547,6 +553,12 @@ module.exports = () => {
 
 		// Add warning.
 		issue("warning", 10, chain);
+	}
+
+	// Unset global oneliner flag set used for dupe checks.
+	if (global.$app.vars.oneliner) {
+		delete global.$app.vars.oneliner;
+		global.$app.size(-1); // Decrease size by 1.
 	}
 
 	// Return relevant parsing information.

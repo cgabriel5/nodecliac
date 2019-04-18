@@ -132,6 +132,8 @@ module.exports = (params = {}) => {
 
 		// Build --flag=value string.
 		let flagvalue = `${currentflag}=${value}`;
+		// Get oneliner flag set.
+		let flagset_oneliner = global.$app.vars.oneliner;
 
 		// Note: Since value is being stored in the warnings array before
 		// final command-flag highlighting is applied we need to run
@@ -141,7 +143,14 @@ module.exports = (params = {}) => {
 		}
 
 		// Check if flag is a duplicate.
-		if ((flags && flags.has(flagvalue)) || isdupeval.values.has(value)) {
+		if (
+			// Check main flag set.
+			(flags && flags.has(flagvalue)) ||
+			// Check local value array.
+			isdupeval.values.has(value) ||
+			// Check global oneliner flag set.
+			(flagset_oneliner && flagset_oneliner.has(flagvalue))
+		) {
 			// Store index to later reset it back.
 			let old_index = i;
 
@@ -157,6 +166,11 @@ module.exports = (params = {}) => {
 
 		// Store the value.
 		isdupeval.values.add(value);
+
+		// Store flag=value in oneliner flag set to access in other scripts.
+		if (flagset_oneliner) {
+			flagset_oneliner.add(flagvalue);
+		}
 	};
 	// Store currently parsed values.
 	isdupeval.values = new Set();

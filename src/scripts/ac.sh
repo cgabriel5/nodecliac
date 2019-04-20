@@ -965,6 +965,52 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 					__ltrim_colon_completions "$last"
 					break
 				done < <(tail -n +2 <<< "$output")
+
+				# When COMPREPLY is empty, meaning no autocompletion values
+				# are in COMPREPLY array, the command was registered with
+				# the '-o' flag, and the config setting 'filedir' is set then
+				# run bash completion's _filedir function.
+				if [[ "${#COMPREPLY[@]}" -eq 0 ]]; then
+
+					# '-o' option had to have been used when registered else
+					# if not then we do not resort to using _filedir.
+					registry=`complete -p | grep "_nodecliac $maincommand"`
+					if [[ "$registry" != *" -o "*  ]]; then return; fi
+
+					# Build config path.
+					acdef_configpath="$HOME/.nodecliac/defs/.$maincommand.config.acdef"
+					if [[ -f "$acdef_configpath" ]]; then
+						# Get acdef config file contents.
+						config="$(<"$acdef_configpath")"
+
+						# Check whether a comp-option was provided. If so set use that.
+						acpl_script=~/.nodecliac/src/config.pl
+						# Run config.pl to get default value.
+						settings=`"$acpl_script" "$config" "filedir"`
+
+						# Get setting value.
+						local filedirvalue=`__setting 0`
+
+						# Run function with or without arguments.
+						if [[ ! -z "$filedirvalue" && "$filedirvalue" != "false" ]]; then
+							# Reset value if no pattern was provided.
+							if [[ "$filedirvalue" == "true" ]]; then
+								filedirvalue=""
+							fi
+
+							# [https://github.com/gftg85/bash-completion/blob/bb0e3a1777e387e7fd77c3abcaa379744d0d87b3/bash_completion#L549]
+							# [https://unix.stackexchange.com/a/463342]
+							# [https://unix.stackexchange.com/a/463336]
+							# [https://github.com/scop/bash-completion/blob/master/completions/java]
+							# [https://stackoverflow.com/a/23999768]
+							# [https://unix.stackexchange.com/a/190004]
+							# [https://unix.stackexchange.com/a/198025]
+							local cur="$last"
+							_filedir "$filedirvalue"
+						fi
+					fi
+				fi
+
 			elif [[ "$type" == *"flag"* ]]; then
 				# Note: Disable bash's default behavior of adding a trailing space
 				# to completions when hitting the [tab] key. This will be handle

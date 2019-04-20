@@ -18,6 +18,12 @@ my $output = "";
 my @settings = split(";", $ARGV[1]);
 my $l = scalar(@settings);
 
+# Allowed comp-option values.
+# [http://www.gnu.org/software/bash/manual/bash.html#Programmable-Completion]
+# [https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html]
+my $def_compopts = " bashdefault default dirnames filenames noquote nosort nospace plusdirs false ";
+my $def_default = "default";
+
 # Loop over settings to get their values.
 for (my $i = 0; $i < $l; $i++) {
 	my $setting = $settings[$i];
@@ -25,22 +31,21 @@ for (my $i = 0; $i < $l; $i++) {
 	# Get config value.
 	my $value = "";
 	my $pattern = '^\@' . $setting . '\s*\=\s*(.*)$';
-	if ($config =~ /$pattern/m) {
-		if ($1) { $value = $1; }
-	}
+	# Get setting's value.
+	if ($config =~ /$pattern/m) { if ($1) { $value = $1; } }
+
+	# If value is quoted, unquote it.
+	if ($value =~ /^("|').*\1$/) { $value = substr($value, 1, -1); }
 
 	# Custom logic for the 'default' setting.
 	if ($setting eq "default") {
-		# Allowed comp-option values.
-		# [http://www.gnu.org/software/bash/manual/bash.html#Programmable-Completion]
-		# [https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html]
-		my $compopts = " bashdefault default dirnames filenames noquote nosort nospace plusdirs false ";
-		my $co_value = "default";
-
-		# If a value was found check if it's allowed.
-		if ($value && index($compopts, $value) != -1) { $value = $co_value; }
-		# If no value was found then set to default value.
-		if (!$value) { $value = $co_value; }
+		if ($value) {
+			# If value is not allowed reset to default value.
+			if (index($def_compopts, $value) == -1) { $value = $def_default; }
+		} else {
+			# If no value was found then set to default value.
+			$value = $def_default;
+		}
 	}
 
 	# Add value to output string.

@@ -358,15 +358,6 @@ module.exports = (params = {}) => {
 				type: isvspecial
 			});
 
-			// Reset value.
-			value = pvalue.args;
-
-			// Store highlighted args.
-			value.hargs = [...pvalue.h.args]; // Highlight option list values.
-
-			// Reset index. Combine indices.
-			i += pvalue.index;
-
 			// Join warnings.
 			if (pvalue.warnings.length) {
 				warnings = warnings.concat(pvalue.warnings);
@@ -375,6 +366,15 @@ module.exports = (params = {}) => {
 			if (pvalue.code) {
 				return pvalue;
 			}
+
+			// Reset value.
+			value = pvalue.args;
+
+			// Store highlighted args.
+			value.hargs = [...pvalue.h.args]; // Highlight option list values.
+
+			// Reset index. Combine indices.
+			i += pvalue.index;
 		}
 	}
 	// If flag is empty (no assigned value)...

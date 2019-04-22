@@ -246,6 +246,7 @@ module.exports = (params = {}) => {
 		cmd_str,
 		warnings,
 		index: i,
+		ci,
 		h: {
 			// The highlighted string.
 			hcmd_str

@@ -365,6 +365,10 @@ module.exports = (params = {}) => {
 					return pvalue;
 				}
 
+				// Reset indices.
+				ci = pvalue.ci;
+				i = pvalue.index;
+
 				// Build string value.
 				value = `$(${pvalue.cmd_str})`;
 				let hvalue = `$(${pvalue.h.hcmd_str})`;

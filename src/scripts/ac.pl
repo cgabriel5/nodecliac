@@ -24,6 +24,8 @@ my $cline_length = length($cline); # Original input's length.
 my $isquoted = 0;
 my $autocompletion = 1;
 my $inp = substr($cline, 0, $cpoint); # CLI input from start to caret index.
+my $inp_remainder = substr($cline, $cpoint, -1); # CLI input from caret index to input string end.
+my $inp_len = length($inp); # Input length.
 
 # Get the acmap definitions file.
 my $acmap = $ARGV[3];
@@ -359,7 +361,7 @@ sub __parser {
 	my $current = "";
 	my ($input) = @_;
 	my $quote_char = "";
-	my $l = length($input); # Input length.
+	my $l = $inp_len # Input length.
 
 	# Input must not be empty.
 	if (!$input) {
@@ -883,16 +885,29 @@ sub __lookup {
 
 							# Set environment vars so command has access.
 							my $prefix = "NODECLIAC_";
-							$ENV{"${prefix}COMP_LINE"} = $cline;
-							$ENV{"${prefix}COMP_POINT"} = $cpoint;
-							$ENV{"${prefix}MAIN_COMMAND"} = $maincommand;
-							$ENV{"${prefix}COMMAND_CHAIN"} = $commandchain;
-							$ENV{"${prefix}USED_FLAGS"} = $usedflags;
-							$ENV{"${prefix}LAST"} = $last;
-							$ENV{"${prefix}INPUT"} = $inp;
-							$ENV{"${prefix}LAST_CHAR"} = $lastchar;
-							$ENV{"${prefix}NEXT_CHAR"} = $nextchar;
-							$ENV{"${prefix}COMP_LINE_LENGTH"} = $cline_length;
+
+							# Following env vars are provided by bash but exposed via nodecliac.
+							$ENV{"${prefix}COMP_LINE"} = $cline; # Original (unmodified) CLI input.
+							$ENV{"${prefix}COMP_POINT"} = $cpoint; # Caret index when [tab] key was pressed.
+
+							# Following env vars are custom and exposed via nodecliac.
+							$ENV{"${prefix}MAIN_COMMAND"} = $maincommand; # The command auto completion is being performed for.
+							$ENV{"${prefix}COMMAND_CHAIN"} = $commandchain; # The parsed command chain.
+							$ENV{"${prefix}USED_FLAGS"} = $usedflags; # The parsed used flags.
+							$ENV{"${prefix}LAST"} = $last; # The last parsed word item (note: could be a partial word item. This happens
+							# when the [tab] key gets pressed within a word item. For example, take the input 'maincommand command'. If
+							# the [tab] key was pressed like so: 'maincommand comm[tab]and' then the last word item is 'comm' and it is
+							# a partial as its remaining text is 'and'. This will result in using 'comm' to determine possible auto
+							# completion word possibilities.).
+							$ENV{"${prefix}PREV"} = $args[-2]; # The word item preceding the last word item.
+							$ENV{"${prefix}INPUT"} = $inp; # CLI input from start to caret index.
+							$ENV{"${prefix}INPUT_REMAINDER"} = $inp_remainder; # CLI input from start to caret index.
+							$ENV{"${prefix}LAST_CHAR"} = $lastchar; # Character before caret.
+							$ENV{"${prefix}NEXT_CHAR"} = $nextchar; # Character after caret. If char is not '' (empty) then the last word
+							# item is a partial word.
+							$ENV{"${prefix}COMP_LINE_LENGTH"} = $cline_length; # Original input's length.
+							$ENV{"${prefix}INPUT_LINE_LENGTH"} = $cline_length; # CLI input from start to caret index string length.
+							$ENV{"${prefix}INPUT_WORD_COUNT"} = scalar(@args); # Amount of word items parsed before caret position/index.
 
 							# Run the command.
 							my $lines = `$command`;

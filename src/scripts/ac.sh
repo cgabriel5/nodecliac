@@ -32,7 +32,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# local usedflags=""
 		local completions=()
 		local commandchain=""
-		local cline="$COMP_LINE" # Original (complete) CLI input.
+		local cline="$COMP_LINE" # Original (unmodified) CLI input.
 		local cpoint="$COMP_POINT" # Caret index when [tab] key was pressed.
 		local lastchar="${cline:$cpoint-1:1}" # Character before caret.
 		local nextchar="${cline:$cpoint:1}" # Character after caret.

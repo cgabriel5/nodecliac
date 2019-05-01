@@ -1,0 +1,240 @@
+%YAML 1.2
+---
+name: Auto Completion Map (acmap/def)
+file_extensions:
+  - acmap
+  - acdef
+scope: source.acmap
+
+# Resources:
+# [https://medium.com/@model_train/creating-universal-syntax-highlighters-with-iro-549501698fd2]
+# [https://eeyo.io/iro/]
+# [https://www.sublimetext.com/docs/3/scope_naming.html]
+# [https://www.sublimetext.com/docs/3/syntax.html]
+# [https://github.com/sublimehq/Packages]
+# [https://stackoverflow.com/a/41700827]: "(?:[^\\\s]|\\.)+"
+
+# [TODO]
+# - Balance braces?
+# - Simplify syntax with variables.
+# - Improve command highlighting (handle shortcuts better).
+# - Overall cleanup syntax/improve syntax.
+
+contexts:
+  prototype:
+    - include: comments
+  main:
+    - include: settings
+    - include: commands
+    - include: long_form_flags
+    - include: flags
+    - include: unaccounted
+
+  # Primitives -----------------------------------------------------------------
+
+  comments:
+    - match: "(\\#[ \t])(.*)" # Single line comment.
+      scope: comment.line.number-sign.acmap
+      captures:
+        1: punctuation.definition.comment.acmap
+        2: comment.line.documentation.acmap
+
+  constants:
+    - match: \b(?:true|false)\b
+      scope: constant.language.acmap
+
+  numbers: # [https://stackoverflow.com/a/30987109]
+    - match: '\b(?:NaN|-?(?:(?:\d+|\d*\.\d+)(?:[E|e][+|-]?\d+)?|Infinity))\b'
+      scope: constant.numeric.acmap
+
+  strings:
+    - match: '"' # Double quoted string.
+      scope: punctuation.definition.string.begin.acmap
+      push:
+        - meta_scope: string.quoted.double.acmap
+        - meta_include_prototype: false
+        - match: '\\.'
+          scope: constant.character.escape.acmap
+        - match: '"'
+          scope: punctuation.definition.string.end.acmap
+          pop: true
+    - match: "'" # Single quoted string.
+      scope: punctuation.definition.string.begin.acmap
+      push:
+        - meta_scope: string.quoted.double.acmap
+        - meta_include_prototype: false
+        - match: '\\.'
+          scope: constant.character.escape.acmap
+        - match: "'"
+          scope: punctuation.definition.string.end.acmap
+          pop: true
+
+  default: # Highlight remaining characters as strings.
+    - match: "([^\\s])"
+      scope: string
+
+  unaccounted: # Highlight unaccounted characters in main context as invalid.
+    - match: "([^\\s])"
+      scope: invalid.illegal.acmap
+
+  escape:
+    - match: "(\\\\.)"
+      scope: constant.character.escape.acmap
+
+  # Language Constructs --------------------------------------------------------
+
+  settings:
+    - match: "^([ \t]*)(@)([a-zA-Z][_a-zA-Z0-9]*)([ \t]*(=)[ \t])?"
+      captures:
+        1: invalid.illegal.acmap
+        2: entity.name.setting.symbol.acmap
+        3: entity.name.setting keyword.setting.acmap
+        5: keyword.operator.assignment.acmap
+      push:
+        - match: "$"
+          pop: true
+        - include: constants
+        - include: numbers
+        - include: strings
+        - include: escape
+        - include: default
+
+  commands:
+    - match: "^([ \t]*)(?:[^-@#\\])\\s])"
+      scope: entity.name.command.acmap # Italicize in color scheme.
+      captures:
+        1: invalid.illegal.acmap
+      push:
+        - meta_scope: entity.name.command.acmap
+        - match: "(?:$|[ \t]*(=)|[ \t])"
+          scope: keyword.operator.assignment.acmap
+          captures:
+            1: keyword.operator.assignment.acmap
+          pop: true
+        - include: escape
+        # - match: "([^.\\{}\\|])"
+          # scope: variable.parameter.function
+
+  long_form_flags:
+    - match: "([ \t]*--)$" # Empty flag: '--' or 'command = --'.
+      scope: entity.name.flag.symbol.empty.acmap
+    - match: "[ \t]*(\\[)(.*)(\\])$" # Single line '[]'.
+      scope: punctuation.section.sequence.begin.acmap
+      captures:
+        1: punctuation.section.brackets.begin.acmap
+        # 2: invalid.illegal.acmap
+        3: punctuation.section.brackets.end.acmap
+    - match: "[ \t]*(\\[)[ \t]*$" # Opening brace '['.
+      scope: punctuation.section.sequence.begin.acmap
+      captures:
+        1: punctuation.section.brackets.begin.acmap
+      push:
+        - meta_scope: meta.sequence.acmap
+        # - match: "^[ \t]*(\\])[ \t]*$" # Closing brace ']'.
+        - match: "^[ \t]*(\\])([^\\s]*)$" # Closing brace ']'.
+          scope: punctuation.section.sequence.end.acmap
+          captures:
+            1: punctuation.section.brackets.end.acmap
+            2: invalid.illegal.acmap
+          pop: true
+        - include: flag_value_list
+        - include: flag_oneliner
+        - include: flags
+    # - match: "\\]" # Highlight invalid closing brace.
+      # scope: invalid.illegal.stray-bracket-end.acmap
+
+  flag_value_list:
+    - match: "(--?)([a-zA-Z][-a-zA-Z0-9]*)[ \t]*(=)(\\*)?[ \t]*(\\()[ \t]*$"
+      scope: punctuation.section.sequence.begin.acmap
+      captures:
+        1: entity.name.flag.symbol.acmap
+        2: entity.name.flag keyword.flag.acmap
+        3: keyword.operator.assignment.acmap
+        4: entity.name.flag.indicator.multi.acmap
+        5: punctuation.section.brackets.parenthesis.begin.acmap
+      push:
+        - meta_scope: meta.sequence.acmap
+        - match: "^[ \t]*(\\))[ \t]*(.*)$"
+          scope: punctuation.section.sequence.end.acmap
+          captures:
+            1: punctuation.section.brackets.parenthesis.end.acmap
+            2: invalid.illegal.acmap
+          pop: true
+        - match: "(-[ \t])" # Flag value item.
+          scope: punctuation.section.sequence.begin.acmap
+          captures:
+            1: entity.name.value-item.symbol.acmap
+          push:
+            - meta_scope: meta.sequence.acmap
+            - match: "$"
+              scope: punctuation.section.sequence.end.acmap
+              pop: true
+            - include: constants
+            - include: numbers
+            - include: strings
+            - include: flag_command
+            - include: escape
+            - match: "([^\\s])" # Scope remaining characters as strings.
+              scope: string
+
+  flag_oneliner:
+    - match: "(--?)([a-zA-Z][-a-zA-Z0-9]*)[ \t]*(=)(\\*)?[ \t]*(\\()[ \t]*"
+      scope: punctuation.section.sequence.begin.acmap
+      captures:
+        1: entity.name.flag.symbol.acmap
+        2: entity.name.flag keyword.flag.acmap
+        3: keyword.operator.assignment.acmap
+        4: entity.name.flag.indicator.multi.acmap
+        5: punctuation.section.brackets.parenthesis.begin.acmap
+      push:
+        - meta_scope: meta.sequence.acmap
+        - match: "[ \t]*(\\))[ \t]*$"
+          scope: punctuation.section.sequence.end.acmap
+          captures:
+            1: punctuation.section.brackets.parenthesis.end.acmap
+          pop: true
+        - include: constants
+        - include: numbers
+        - include: strings
+        - include: flags
+        - include: escape
+        - include: flag_command
+        - match: "\n" # Invalid escaped command-flag.
+          scope: invalid.illegal.acmap
+        - include: default
+
+  flags:
+    - match: "(--?)([a-zA-Z][-_.:a-zA-Z0-9]*)([ \t]*(=)(\\*)?|(\\?))?"
+      scope: punctuation.section.sequence.begin.acmap
+      captures:
+        1: entity.name.flag.symbol.acmap
+        2: entity.name.flag keyword.flag.acmap
+        4: keyword.operator.assignment.acmap
+        5: entity.name.flag.indicator.multi.acmap
+        6: entity.name.flag.indicator.boolean.acmap
+      push:
+        - meta_scope: meta.sequence.acmap
+        - match: "($|(\\|))"
+          scope: punctuation.section.sequence.end.acmap
+          captures:
+            2: punctuation.separator.comma.acmap
+          pop: true
+        - include: constants
+        - include: numbers
+        - include: strings
+        - include: flag_command
+        - include: escape
+        - match: "([^\\s\\|])" # Scope remaining characters as strings.
+          scope: string
+
+  flag_command:
+    - match: "(\\$)\\("
+      scope: punctuation.section.sequence.begin.acmap
+      captures:
+        1: keyword
+      push:
+        - meta_scope: meta.sequence.acmap
+        - match: "\\)"
+          scope: punctuation.section.sequence.end.acmap
+          pop: true
+        - include: strings

@@ -261,6 +261,21 @@ mycliprogram.uninstall
 ```
 
 </details>
+
+### Miscellaneous 
+
+#### Blank Lines
+
+Blank lines (empty lines) are allowed and ignored when generating `.acdef` file.
+
+#### Duplicate Command Chains/Flags/Settings
+
+Though allowed the parser will warn when duplicate command chains/flags/settings are detected.
+
+#### Indentation
+
+Indentation is all allowed but when declaring command chains and settings.
+
 </details>
 
 <a name="examples"></a>

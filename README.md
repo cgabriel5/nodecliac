@@ -66,7 +66,7 @@ nodecliac uses 2 custom file formats: `auto-completion definition` (`.acdef`) an
 ### ACMAP Format/Syntax
 
 <details>
-  <summary>Inspired by INI files, ACMAP files are also text files with a simple language structure and relatively few language constructs (<code>comments</code>, <code>settings</code>, <code>command chains</code>, <code>flag lists</code>).</summary>
+  <summary>ACMAP files are text files with a simple language structure and relatively few language constructs.</summary>
 
 ##### Comments
 
@@ -434,11 +434,11 @@ $ nodecliac format --source path/to/mycliprogram.acmap --print --highlight --ind
 
 ##### Shell Support
 
-- nodecliac only works with Bash, seeing that it the only shell I use. However, if the project grows support for other shells (Zsh, Fish, etc.) could be added.
+- nodecliac only works with Bash, seeing that it is the only shell I use. However, if the project grows support for other shells (Zsh, Fish, etc.) could be added.
 
 ##### Editor Support (Syntax Highlighting)
 
-- I use Sublime Text and have created a language syntax file (`acmap.sublime-syntax`) for it. It can be accessed in the `resources/sublime-text/Auto Completion Map (acmap)` folder. Download the folder and place it in `User/` folder for Sublime Text to pickup. Personally, I have it stored like so: `/User/Languages/Auto Completion Map (acmap)`.
+- I use Sublime Text and have created a language syntax file (`acmap.sublime-syntax`) for it. It can be accessed in the `resources/sublime-text/Auto Completion Map (acmap)` folder. Download the folder and place it in the `User/` folder for Sublime Text to pickup. Personally, I have it stored like so: `/User/Languages/Auto Completion Map (acmap)`.
 - Support for other editors can also be added if the project grows.
 
 <a name="contributing"></a>

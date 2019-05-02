@@ -68,7 +68,7 @@ nodecliac uses 2 custom file formats: `auto-completion definition` (`.acdef`) an
 <details>
   <summary>ACMAP files are text files with a simple language structure and relatively few language constructs.</summary>
 
-##### Comments
+#### Comments
 
 - Comments are identified by a number-sign followed by a single whitespace character (tab or space) (<code># </code>).
 - Any amount of whitespace indentation can precede the comment.
@@ -80,7 +80,7 @@ nodecliac uses 2 custom file formats: `auto-completion definition` (`.acdef`) an
   # Starting white space is perfectly fine.
 ```
 
-##### Settings
+#### Settings
 
 - Settings start off with an at-sign (`@`) followed by the setting name.
 - Setting values are assigned with `=` followed by the setting value.
@@ -95,7 +95,7 @@ nodecliac uses 2 custom file formats: `auto-completion definition` (`.acdef`) an
 @disable    =   false
 ```
 
-##### Command Chains
+#### Command Chains
 
 - Your program's commands/subcommands should be thought of as a chain which reads from left to right.
 - It starts with your CLI program's name, is followed by any commands/subcommands, and is dot (`.`) delimited.
@@ -110,7 +110,7 @@ mycliprogram.install
 mycliprogram.uninstall
 ```
 
-##### Flags
+#### Flags
 
 To define flags we need to add to the [command chain](#command-chains) syntax.
 
@@ -133,7 +133,7 @@ mycliprogram.uninstall
 <details>
   <summary>Show flag variations</summary>
 
-##### Flags (user input)
+#### Flags (user input)
 
 - If flag requires user input append `=` to the flag.
 
@@ -143,7 +143,7 @@ mycliprogram.command = [
 ]
 ```
 
-##### Flags (boolean)
+#### Flags (boolean)
 
 - If flag does not require input and is more a switch (yes/no boolean) then append `?` to the flag.
 - Though not required, doing so will let the auto-completion engine know the flag does not require value auto-completion.
@@ -154,7 +154,7 @@ mycliprogram.command = [
 ]
 ```
 
-##### Flags (multi-flag)
+#### Flags (multi-flag)
 
 - Sometimes a flag can be supplied multiple times.
 - Let the auto-completion engine know this by using the multi-flag indicator `*`.
@@ -169,7 +169,7 @@ mycliprogram.command = [
 ]
 ```
 
-##### Flags Values (one liner)
+#### Flags Values (one liner)
 
 - This method should be used when the flag value list is short.
 - Otherwise the long form method should be used.
@@ -189,7 +189,7 @@ mycliprogram.command = [
 
 <a name="flags-values-long-form"></a>
 
-##### Flags Values (long form)
+#### Flags Values (long form)
 
 - Flag long form list are wrapped with `=(` and a closing `)`.
 - The `=(` must be on the same line as the flag.
@@ -217,7 +217,7 @@ mycliprogram.command = [
 mycliprogram.uninstall
 ```
 
-##### Flags (dynamic values)
+#### Flags (dynamic values)
 
 Sometimes hard-coded values are not enough so a `command-flag` can be used. A `command-flag` runs a command that expects output. By default the returned command's output expects each completion item to be on its own line (newline delimited list). However, if you need to change the delimiter character to a space, hyphen, etc. then simply add the delimiter character to the command flag. The syntax for a `command-flag` is as follows:
 
@@ -284,7 +284,7 @@ Indentation is all allowed but when declaring command chains and settings.
 
 <details><summary>Show examples</summary>
 
-##### Sublime Text ACMAP
+#### Sublime Text ACMAP
 
 The following represents `subl.acmap`, the Sublime Text nodecliac auto-completion map file.
 
@@ -301,7 +301,7 @@ subl = [
 ]
 ```
 
-##### nodecliac ACMAP
+#### nodecliac ACMAP
 
 **One liner**: The following represents `nodecliac.acmap`, the nodecliac auto-completion map file.
 
@@ -416,7 +416,7 @@ Currently nodecliac is only a CLI tool.
 
 ### CLI Usage Examples
 
-##### Generate ACDEF file
+#### Generate ACDEF file
 
 ```sh
 # Generate mycliprogram.acdef file and add it to registry.
@@ -426,7 +426,7 @@ $ nodecliac make --source path/to/mycliprogram.acmap --add
 $ nodecliac make --source path/to/mycliprogram.acmap --print --highlight
 ```
 
-##### Prettify ACMAP file
+#### Prettify ACMAP file
 
 ```sh
 # Prettify mycliprogram.acmap file using 2 spaces per indentation level and log/highlight output.
@@ -440,18 +440,18 @@ $ nodecliac format --source path/to/mycliprogram.acmap --print --highlight --ind
 
 ### Support
 
-##### OS Support
+#### OS Support
 
 - Made using Node.js `v8.16.0` on a Linux machine running `Ubuntu 16.04.5 LTS`.
 - Tested and working on:
   - `macOS Mojave (v10.14.4)`.
   - `Windows 10 - Untested`.
 
-##### Shell Support
+#### Shell Support
 
 - nodecliac only works with Bash, seeing that it is the only shell I use. However, if the project grows support for other shells (Zsh, Fish, etc.) could be added.
 
-##### Editor Support (Syntax Highlighting)
+#### Editor Support (Syntax Highlighting)
 
 - I use Sublime Text and have created a language syntax file (`acmap.sublime-syntax`) for it. It can be accessed in the `resources/sublime-text/Auto Completion Map (acmap)` folder. Download the folder and place it in the `User/` folder for Sublime Text to pickup. Personally, I have it stored like so: `/User/Languages/Auto Completion Map (acmap)`.
 - Support for other editors can also be added if the project grows.

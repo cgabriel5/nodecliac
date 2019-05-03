@@ -1,0 +1,10 @@
+# DON'T EDIT FILE —— GENERATED: Thu May 02 2019 18:35:39 GMT-0700 (PDT)(1556847339235)
+
+ --version?
+.format --highlight?|--indent|--nowarn?|--print?|--save?|--source|--strip-comments?|--trace?
+.list --
+.make --add?|--force?|--highlight?|--nowarn?|--print?|--save?|--source|--trace?
+.print --command=|--command=$("for f in ~/.nodecliac/defs/*; do echo \"\${f##*/}\"; done;")
+.setup --force?|--rcfilepath?
+.status --disable?|--enable?
+.uninstall --rcfilepath?

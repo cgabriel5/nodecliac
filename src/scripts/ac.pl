@@ -361,7 +361,7 @@ sub __parser {
 	my $current = "";
 	my ($input) = @_;
 	my $quote_char = "";
-	my $l = $inp_len # Input length.
+	my $l = $inp_len; # Input length.
 
 	# Input must not be empty.
 	if (!$input) {

@@ -66,6 +66,15 @@ cd ~/Desktop && git clone https://github.com/cgabriel5/nodecliac.git && cd nodec
 cd ~/Desktop && git clone https://github.com/cgabriel5/nodecliac.git && cd nodecliac && npm install && npm link && nodecliac setup
 ```
 
+<details><summary>Need to download <a href="https://stackoverflow.com/a/4568323" target="_blank" rel="nofollow">specific branch</a>?</summary>
+
+```sh
+# Use following git clone over '$ git clone URL' method.
+git clone -b BRANCH_NAME --single-branch https://github.com/cgabriel5/nodecliac.git
+```
+
+</details>
+
 </details>
 
 **Note**: Current installation is cumbersome and will be streamlined with time.

@@ -55,7 +55,8 @@ $ npm install && npm link
 $ nodecliac setup
 ```
 
-Above code but quick copy/paste one-liner install.
+<details>
+  <summary>Show copy/paste one-liner installs.</summary>
 
 ```sh
 # yarn
@@ -64,6 +65,8 @@ cd ~/Desktop && git clone https://github.com/cgabriel5/nodecliac.git && cd nodec
 # npm
 cd ~/Desktop && git clone https://github.com/cgabriel5/nodecliac.git && cd nodecliac && npm install && npm link && nodecliac setup
 ```
+
+</details>
 
 **Note**: Current installation is cumbersome and will be streamlined with time.
 

@@ -47,13 +47,25 @@ $ git clone https://github.com/cgabriel5/nodecliac.git
 $ cd nodecliac
 
 # Setup repo with yarn...
-$ yarn install
+$ yarn install && yarn link
 # ...or with npm.
-$ npm install
+$ npm install && npm link
 
-# Finally, install nodecliac.
+# Finally, install/setup nodecliac.
 $ nodecliac setup
 ```
+
+Above code but quick copy/paste one-liner install.
+
+```sh
+# yarn
+cd ~/Desktop && git clone https://github.com/cgabriel5/nodecliac.git && cd nodecliac && yarn install && yarn link && nodecliac setup
+
+# npm
+cd ~/Desktop && git clone https://github.com/cgabriel5/nodecliac.git && cd nodecliac && npm install && npm link && nodecliac setup
+```
+
+**Note**: Current installation is cumbersome and will be streamlined with time.
 
 <a name="how-it-works"></a>
 

@@ -262,7 +262,7 @@ mycliprogram.uninstall
 
 </details>
 
-### Miscellaneous 
+### Miscellaneous
 
 #### Blank Lines
 

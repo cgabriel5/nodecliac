@@ -64,8 +64,8 @@ exit.normal = (messages, stop) => {
  */
 let paths = (function(os, path) {
 	// Get/create needed paths.
-	// [https://stackoverflow.com/a/9081436]
-	let homedir = os.homedir();
+	let pwd = process.env.PWD; // [https://stackoverflow.com/a/39740187]
+	let homedir = os.homedir(); // [https://stackoverflow.com/a/9081436]
 	let cdirname = "nodecliac"; // Custom directory name.
 	let cdirssrc = `${cdirname}/src`; // Source scripts.
 	let customdir = path.join(homedir, `.${cdirname}`);
@@ -84,8 +84,10 @@ let paths = (function(os, path) {
 	let acmapspath = path.join(homedir, `.${cdirname}/defs`);
 	let acmapssource = path.join(homedir, `.${cdirssrc}`);
 	let setupfilepath = path.join(customdir, `/.setup.db.json`);
+	let resourcedefs = path.join(pwd, "resources/nodecliac/acdefs");
 
 	return {
+		pwd,
 		homedir,
 		cdirname,
 		customdir,
@@ -99,7 +101,8 @@ let paths = (function(os, path) {
 		acplscriptconfigpath,
 		acmapspath,
 		acmapssource,
-		setupfilepath
+		setupfilepath,
+		resourcedefs
 	};
 })(os, path);
 

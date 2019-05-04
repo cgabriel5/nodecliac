@@ -37,47 +37,31 @@ Download/clone the repo somewhere on your machine. Preferably to your desktop. O
       </details>
 
 ```sh
-# Go to desktop.
-$ cd ~/Desktop
+# yarn install:
+$ yarn global add cgabriel5/nodecliac && nodecliac setup
+# Uninstall:
+$ nodecliac uninstall && yarn global remove nodecliac
 
-# Clone repo to desktop.
-$ git clone https://github.com/cgabriel5/nodecliac.git
-
-# cd into project directory.
-$ cd nodecliac
-
-# Setup repo with yarn...
-$ yarn install && yarn link
-# ...or with npm.
-$ npm install && npm link
-
-# Finally, install/setup nodecliac.
-$ nodecliac setup
-```
-
-<details>
-  <summary>Show copy/paste one-liner installs.</summary>
-
-```sh
-# yarn
-cd ~/Desktop && git clone https://github.com/cgabriel5/nodecliac.git && cd nodecliac && yarn install && yarn link && nodecliac setup
-
-# npm
-cd ~/Desktop && git clone https://github.com/cgabriel5/nodecliac.git && cd nodecliac && npm install && npm link && nodecliac setup
+# npm install (requires sudo):
+$ sudo npm i -g cgabriel5/nodecliac && nodecliac setup
+# Uninstall:
+$ nodecliac uninstall && sudo npm uninstall -g nodecliac
 ```
 
 <details><summary>Need to download <a href="https://stackoverflow.com/a/4568323" target="_blank" rel="nofollow">specific branch</a>?</summary>
 
 ```sh
-# Use following git clone over '$ git clone URL' method.
-git clone -b BRANCH_NAME --single-branch https://github.com/cgabriel5/nodecliac.git
+# yarn
+$ yarn global add cgabriel5/nodecliac#BRANCH_NAME && nodecliac setup
+
+# npm (requires sudo)
+$ sudo npm i -g cgabriel5/nodecliac#BRANCH_NAME && nodecliac setup
+
+# git
+$ git clone -b BRANCH_NAME --single-branch https://github.com/cgabriel5/nodecliac.git
 ```
 
 </details>
-
-</details>
-
-**Note**: Current installation is cumbersome and will be streamlined with time.
 
 <a name="how-it-works"></a>
 

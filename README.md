@@ -37,16 +37,24 @@ Download/clone the repo somewhere on your machine. Preferably to your desktop. O
       </details>
 
 ```sh
-# yarn install:
+# yarn
 $ yarn global add cgabriel5/nodecliac && nodecliac setup
-# Uninstall:
+
+# npm (requires sudo)
+$ sudo npm i -g cgabriel5/nodecliac && nodecliac setup
+```
+
+<details><summary>Uninstall?</summary>
+
+```sh
+# yarn
 $ nodecliac uninstall && yarn global remove nodecliac
 
-# npm install (requires sudo):
-$ sudo npm i -g cgabriel5/nodecliac && nodecliac setup
-# Uninstall:
+# npm (requires sudo)
 $ nodecliac uninstall && sudo npm uninstall -g nodecliac
 ```
+
+</details>
 
 <details><summary>Need to download <a href="https://stackoverflow.com/a/4568323" target="_blank" rel="nofollow">specific branch</a>?</summary>
 

@@ -7,7 +7,7 @@
 - [How It Works](#how-it-works)
 - [ACMAP Format/Syntax](#acmap-format-syntax)
 - [Examples](#examples)
-- [API](#API)
+- [API](#api)
 - [CLI](#cli)
 - [CLI Usage](#cli-usage-examples)
 - [Support](#support)
@@ -387,6 +387,20 @@ Currently nodecliac is only a CLI tool.
 <a name="cli"></a>
 
 ### CLI
+
+#### CLI Anatomy (Example)
+
+nodecliac assumes following CLI program [design](http://programmingpractices.blogspot.com/2008/04/anatomy-of-command-line.html) pathway:
+
+- `program-name` → [`subcommands`](https://github.com/mosop/cli/wiki/Defining-Subcommands) → `short-flags`/`long-flags` → `positional-parameters`
+
+```
+$ mycliprogram [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] [file ...]
+  ^^^^^^^^^^^^  ^^^^^^^^^^^^^^   ^^^^^^^   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^   ^^^^^^^^
+        |              |            |                      /                    /
+  CLI program's   Program        Program          Program long     Program's (flag-less)
+  command.        subcommands.   short flags.     flags.           positional parameters.
+```
 
 <details>
   <summary>Show commands/flags.</summary>

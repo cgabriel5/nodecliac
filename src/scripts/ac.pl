@@ -27,6 +27,14 @@ my $inp = substr($cline, 0, $cpoint); # CLI input from start to caret index.
 my $inp_remainder = substr($cline, $cpoint, -1); # CLI input from caret index to input string end.
 my $inp_len = length($inp); # Input length.
 
+# Get user's home directory.
+# [https://stackoverflow.com/a/1475447]
+# [https://stackoverflow.com/a/1475396]
+# [https://stackoverflow.com/a/4045032]
+# [https://stackoverflow.com/a/4043831]
+# [https://stackoverflow.com/a/18123004]
+my $hdir = glob("~");
+
 # Get the acmap definitions file.
 my $acmap = $ARGV[3];
 
@@ -205,6 +213,31 @@ sub __includes {
 # 	grep(!$seen{$_}++, @_);
 # }
 
+# Checks whether the provided string is a valid file or directory.
+#
+# @param {string} 1) - The string to check.
+# @return {number} - 0 or 1 to represent boolean.
+#
+# Test with following commands:
+# $ nodecliac uninstall subcmd subcmd noncmd ~ --
+# $ nodecliac add ~ --
+# $ nodecliac ~ --
+sub __is_file_or_dir {
+	# Get arguments.
+	my ($arg) = @_;
+	my $result = 0;
+
+	# If arg contains a '/' sign check if it's a path. If so let it pass.
+	if (__includes($arg, "/") || $arg eq "~") {
+		my $path_str = $arg =~ s/^~/$hdir/r; # Expand tilde in path.
+
+		# With tilde expanded, check if string is a path.
+		return (-e $path_str || -d $path_str) ? 1 : 0;
+	}
+
+	return $result;
+}
+
 # Escape '\' characters and replace unescaped slashes '/' with '.' (dots)
 #     command strings
 #
@@ -213,6 +246,9 @@ sub __includes {
 sub __normalize_command {
 	# Get arguments.
 	my ($command) = @_;
+
+	# If string is a file/directory then return.
+	if (__is_file_or_dir($command)) { return $command; }
 
 	# Escape dots.
 	$command = $command =~ s/\./\\\\./r;
@@ -232,6 +268,9 @@ sub __normalize_command {
 sub __validate {
 	# Get arguments.
 	my ($arg, $type) = @_;
+
+	# If string is a file/directory then return.
+	if (__is_file_or_dir($arg)) { return $arg; }
 
 	# Determine what matching pattern to use (command/flag).
 	my $pattern = ($type eq "command") ? '[^-_.:a-zA-Z0-9\\\/]+' : '[^-_a-zA-Z0-9]+';
@@ -469,6 +508,9 @@ sub __extractor {
 	my $l = scalar(@args);
 	my @oldchains = ();
 	my @foundflags = ();
+	# Following variables are used when validating command chain.
+	my $last_valid_chain = "";
+	my $end_chain = 0;
 
 	# Loop over CLI arguments.
 	for (my $i = 1; $i < $l; $i++) {
@@ -489,9 +531,25 @@ sub __extractor {
 		# If a command (does not start with a hyphen.)
 		# [https://stackoverflow.com/a/34951053]
 		# [https://www.thoughtco.com/perl-chr-ord-functions-quick-tutorial-2641190]
-		if (!__starts_with_hyphen($item)) {
+		if (!__starts_with_hyphen($item) && !$end_chain) {
 			# Store command.
-			$commandchain .= __validate("." . __normalize_command($item), "command");
+			$commandchain .= "." . __validate(__normalize_command($item), "command");
+
+			# Check that command chain exists in acdef.
+			my $pattern = '^' . quotemeta($commandchain) . '.* ';
+			if ($acmap =~ /$pattern/m && !$end_chain) {
+				# If there is a match then store chain.
+				$last_valid_chain = $commandchain;
+			} else {
+				# If the chain does not exits then the current item in the
+				# loop is not a valid subcommand. Therefore, stop collecting
+				# subcommand.
+				$end_chain = 1;
+
+				# Revert command chain back to last valid command chain.
+				$commandchain = $last_valid_chain;
+			}
+
 			# Reset used flags.
 			@foundflags = ();
 		} else { # We have a flag.
@@ -1146,8 +1204,15 @@ sub __lookup {
 			@rows = grep(/$pattern/, @data);
 
 			if (scalar(@rows) && $lastchar_notspace) {
-				# Add last command in chain.
-				$lookup{__last_command($rows[0], $rtype)} = 1;
+				# Get the last command in command chain.
+				my $last_command = __last_command($rows[0], $rtype);
+
+				# If the last command in the chain is equal to the last word
+				# then add the last command to the lookup table.
+				if ($last_command eq $last) {
+					# Add last command in chain.
+					$lookup{$last_command} = 1;
+				}
 			}
 		} else {
 			# Last word checks:

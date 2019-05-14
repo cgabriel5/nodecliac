@@ -46,6 +46,5 @@ module.exports = p => {
 	// Else append parser to current parser chain.
 	else {
 		process.stdout.write(`    — ${chalk.dim(filename)}\n`);
-		// console.log(1111, line_num, last_line_num);
 	}
 };

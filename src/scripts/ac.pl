@@ -510,7 +510,6 @@ sub __extractor {
 	my @foundflags = ();
 	# Following variables are used when validating command chain.
 	my $last_valid_chain = "";
-	my $end_chain = 0;
 
 	# Loop over CLI arguments.
 	for (my $i = 1; $i < $l; $i++) {
@@ -531,21 +530,16 @@ sub __extractor {
 		# If a command (does not start with a hyphen.)
 		# [https://stackoverflow.com/a/34951053]
 		# [https://www.thoughtco.com/perl-chr-ord-functions-quick-tutorial-2641190]
-		if (!__starts_with_hyphen($item) && !$end_chain) {
+		if (!__starts_with_hyphen($item)) {
 			# Store command.
 			$commandchain .= "." . __validate(__normalize_command($item), "command");
 
 			# Check that command chain exists in acdef.
 			my $pattern = '^' . quotemeta($commandchain) . '.* ';
-			if ($acmap =~ /$pattern/m && !$end_chain) {
+			if ($acmap =~ /$pattern/m) {
 				# If there is a match then store chain.
 				$last_valid_chain = $commandchain;
 			} else {
-				# If the chain does not exits then the current item in the
-				# loop is not a valid subcommand. Therefore, stop collecting
-				# subcommand.
-				$end_chain = 1;
-
 				# Revert command chain back to last valid command chain.
 				$commandchain = $last_valid_chain;
 			}

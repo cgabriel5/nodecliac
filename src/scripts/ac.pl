@@ -479,8 +479,6 @@ sub __execute_command {
 							# Finally, add to flags array.
 							push(@completions, $line);
 						}
-						# if (index($flag, $last_fkey) == 0 && $flag =~ /$flagcommand/) {
-
 					} else {
 						# Finally, add to flags array.
 						push(@completions, $line);

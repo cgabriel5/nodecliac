@@ -42,7 +42,8 @@ my $acmap = $ARGV[3];
 my $flgopt = '-{1,2}[-.a-zA-Z0-9]*='; # "--flag/-flag="
 my $flagstartr = '^-{1,2}[a-zA-Z0-9]([-.a-zA-Z0-9]{1,})?\=\*?'; #"--flag/-flag=*"
 my $flgoptvalue = $flagstartr . '.{1,}$'; # "--flag/-flag=value"
-my $flagcommand = $flagstartr . '\$\((.{1,})\)$'; # "--flag/-flag=$("<COMMAND-STRING>")"
+my $commandstr = '\$\((.{1,})\)$'; # $("<COMMAND-STRING>")
+my $flagcommand = $flagstartr . $commandstr; # "--flag/-flag=$("<COMMAND-STRING>")"
 
 # Log local variables and their values.
 sub __debug {
@@ -1328,11 +1329,41 @@ sub __lookup {
 		# If no completions exist run default command if it exists.
 		if (!scalar(@completions)) {
 			# Get default command, parse it, then run it...
-			my $pattern = '^' . quotemeta($commandchain) . ' default \$\((.*?)\)$';
+			my $pattern = '^' . quotemeta($commandchain) . ' default[ \t]{1,}(.*?)$';
 			if ($acmap =~ /$pattern/m) {
-				if ($1) {
-					# Parse user provided command-flag command.
-					__execute_command($1);
+				# Store matched RegExp pattern value.
+				my $value = $1;
+				# If match exists...
+				if ($value) {
+					# Check if it is a command-string.
+					my $pattern = '\$\((.*?)\)';
+					if ($value =~ /$pattern/m) {
+						# Get the command-flag.
+						if ($1) {
+							# Parse user provided command-flag command.
+							__execute_command($1);
+						}
+					}
+					# Else it is a static non command-string value.
+					else {
+						if ($last) {
+							# When last word is present only
+							# add words that start with last
+							# word.
+
+							# Since we are completing a command we only
+							# want words that start with the current
+							# command we are trying to complete.
+							my $pattern = '^' . $last;
+							if ($value =~ /$pattern/) {
+								# Finally, add to flags array.
+								push(@completions, $value);
+							}
+						} else {
+							# Finally, add to flags array.
+							push(@completions, $value);
+						}
+					}
 				}
 			}
 		}

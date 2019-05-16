@@ -239,6 +239,15 @@ module.exports = () => {
 				// Add warning.
 				issue("warning", 5, keyword);
 			}
+
+			// Give warning for empty default command value.
+			if (!value) {
+				// Reset index to point to keyword.
+				i = indices.keyword.end;
+
+				// Add warning.
+				issue("warning", 6, null);
+			}
 		}
 
 		// Run keyword through highlighter.

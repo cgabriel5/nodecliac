@@ -468,6 +468,15 @@ module.exports = (params = {}) => {
 				// Add warning.
 				issue("warning", 12, currentchain);
 			}
+
+			// Give warning for empty default command value.
+			if (!value[0]) {
+				// Reset index to point to keyword.
+				i = indices.keyword.end;
+
+				// Add warning.
+				issue("warning", 13, null);
+			}
 		}
 
 		// Run keyword through highlighter.

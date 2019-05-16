@@ -89,7 +89,11 @@ module.exports = (...args) => {
 			} missing closing '${h(")", "value")}'.`,
 			10: `Empty flag namespace '${char}'.`,
 			11: `Dupe flag: '${name}'.`,
-			12: `Dupe '${h("default", "keyword")}' for command: '${chain}'.`
+			12: `Dupe '${h("default", "keyword")}' for command: '${chain}'.`,
+			13: `Empty '${h(
+				"default",
+				"keyword"
+			)}' value for command: '${chain}'.`
 		},
 		"p.flag-command.js": {
 			2: `Unexpected ${ctype}: '${char}'.`,
@@ -115,7 +119,11 @@ module.exports = (...args) => {
 			2: `Unexpected ${ctype}: '${char}'.`,
 			3: `Invalid flag option.`,
 			4: `Improperly quoted string.`,
-			5: `Dupe '${h("default", "keyword")}' for command: '${chain}'.`
+			5: `Dupe '${h("default", "keyword")}' for command: '${chain}'.`,
+			6: `Empty '${h(
+				"default",
+				"keyword"
+			)}' value for command: '${chain}'.`
 		},
 		"p.close-brace.js": { 1: `Unexpected ${ctype}: '${char}'.` },
 		"p.comment.js": {}

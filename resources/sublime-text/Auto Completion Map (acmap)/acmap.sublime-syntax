@@ -25,6 +25,7 @@ contexts:
     - include: comments
   main:
     - include: settings
+    - include: defaults
     - include: commands
     - include: long_form_flags
     - include: flags
@@ -203,7 +204,29 @@ contexts:
           scope: invalid.illegal.acmap
         - include: default
 
+  defaults:
+    - match: "[ \t]{1,}(default)[ \t]{1,}" # Highlight default command chain command.
+      scope: punctuation.section.sequence.begin.acmap
+      captures:
+        1: meta.command.acmap storage.type.command.acmap
+      push:
+        - meta_scope: meta.sequence.acmap
+        - match: "($|(\\|))" # To end of line.
+          pop: true
+        - include: flag_command
+        - include: unaccounted
+
   flags:
+    - match: "(default)[ \t]{1,}" # Highlight default command chain command.
+      scope: punctuation.section.sequence.begin.acmap
+      captures:
+        1: meta.command.acmap storage.type.command.acmap
+      push:
+        - meta_scope: meta.sequence.acmap
+        - match: "($|(\\|))" # To end of line.
+          pop: true
+        - include: flag_command
+        - include: unaccounted
     - match: "(--?)([a-zA-Z][-_.:a-zA-Z0-9]*)([ \t]*(=)(\\*)?|(\\?))?"
       scope: punctuation.section.sequence.begin.acmap
       captures:

@@ -37,6 +37,8 @@ module.exports = () => {
 	let h = global.$app.get("highlighter");
 	let formatting = global.$app.get("formatting");
 	let lookup = global.$app.get("lookup");
+	let keywords = global.$app.get("keywords");
+	let hkeywords = global.$app.get("hkeywords");
 
 	// Parsing vars.
 	let chain = "";
@@ -350,7 +352,7 @@ module.exports = () => {
 				if (char === "[") {
 					// Store index.
 					indices.braces.open = i;
-				} else if (char === "-") {
+				} else if (char === "-" || /[a-z]/.test(char)) {
 					// Parsing a one-line flag.
 					state = "flagset-oneline";
 
@@ -420,6 +422,7 @@ module.exports = () => {
 				}
 
 				// Get result values.
+				let keyword = pvalue.keyword;
 				let symbol = pvalue.symbol;
 				let name = pvalue.name;
 				let hname = pvalue.h.name;
@@ -427,6 +430,23 @@ module.exports = () => {
 				let value = pvalue.args;
 				let hvalue = pvalue.h.hargs;
 				let nl_index = pvalue.nl_index;
+
+				// For keyword declarations.
+				if (keyword) {
+					// Store setting/value pair (Note: Remove ANSI color).
+					keywords[chain] = [keyword, value];
+					hkeywords[chain] = [keyword, hvalue];
+					// Increment keyword size/count.
+					keywords.__count__++;
+
+					// Reset oneliner start index.
+					indices.oneliner.start = (nl_index || i) + 1;
+					// Reset flag set string.
+					flagset = "";
+					hflagset = "";
+
+					continue;
+				}
 
 				// If value is not a string (therefore an array) join values.
 				if (typeof value !== "string" && value.length > 1) {
@@ -492,6 +512,7 @@ module.exports = () => {
 
 		// Get result values.
 		let symbol = pvalue.symbol;
+		let keyword = pvalue.keyword;
 		let name = pvalue.name;
 		let hname = pvalue.h.name;
 		let assignment = pvalue.assignment;
@@ -499,26 +520,41 @@ module.exports = () => {
 		let hvalue = pvalue.h.hargs;
 		let nl_index = pvalue.nl_index;
 
-		// If value is not a string (therefore an array) join values.
-		if (typeof value !== "string" && value.length > 1) {
-			value = `(${value.join(" ")})`;
-			hvalue = `(${hvalue.join(" ")})`;
+		// For keyword declarations.
+		if (keyword) {
+			// Store setting/value pair (Note: Remove ANSI color).
+			keywords[chain] = [keyword, value];
+			hkeywords[chain] = [keyword, hvalue];
+			// Increment keyword size/count.
+			keywords.__count__++;
+
+			// Reset oneliner start index.
+			indices.oneliner.start = (nl_index || i) + 1;
+			// Reset flag set string.
+			flagset = "";
+			hflagset = "";
+		} else {
+			// If value is not a string (therefore an array) join values.
+			if (typeof value !== "string" && value.length > 1) {
+				value = `(${value.join(" ")})`;
+				hvalue = `(${hvalue.join(" ")})`;
+			}
+
+			// Reset flag to newly parsed value.
+			flagset = `${symbol}${name}${assignment}${value}`;
+			// Set highlighted version.
+			hflagset = `${symbol}${hname}${assignment}${hvalue}`;
+
+			// Reset oneliner start index.
+			indices.oneliner.start = (nl_index || i) + 1;
+			// Store current flag set.
+			flagsets.push(flagset);
+			// Set highlighted version.
+			hflagsets.push(hflagset);
+			// Reset flag set string.
+			flagset = "";
+			hflagset = "";
 		}
-
-		// Reset flag to newly parsed value.
-		flagset = `${symbol}${name}${assignment}${value}`;
-		// Set highlighted version.
-		hflagset = `${symbol}${hname}${assignment}${hvalue}`;
-
-		// Reset oneliner start index.
-		indices.oneliner.start = (nl_index || i) + 1;
-		// Store current flag set.
-		flagsets.push(flagset);
-		// Set highlighted version.
-		hflagsets.push(hflagset);
-		// Reset flag set string.
-		flagset = "";
-		hflagset = "";
 	}
 
 	// If there was assignment do some value checks.

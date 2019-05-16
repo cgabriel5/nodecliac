@@ -284,6 +284,212 @@ sub __validate {
 	return $arg;
 }
 
+# Parse and run command-flag (flag) or default command chain command
+#     (commandchain).
+#
+# @param {string} 1) - The command to run in string.
+# @return {null} - Nothing is returned.
+sub __execute_command {
+	# Get arguments.
+	my ($command_str, $flags, $last_fkey) = @_;
+
+	# Cache captured string command.
+	my @arguments = __paramparse($command_str);
+	my $args_count = pop(@arguments);
+
+	# Set defaults.
+	my $command = $arguments[0];
+	# By default command output will be split lines.
+	my $delimiter = "\$\\r\?\\n";
+
+	# 'bash -c' with arguments documentation:
+	# [https://stackoverflow.com/q/26167803]
+	# [https://unix.stackexchange.com/a/144519]
+	# [https://stackoverflow.com/a/1711985]
+
+	# Start creating command string. Will take the
+	# following form: `bash -c $command 2> /dev/null`
+	my $cmd = "bash -c $arguments[0]";
+
+	# Only command and delimiter.
+	if ($args_count > 1) {
+		# print last element
+		# $cdelimiter = $arguments[-1];
+		my $cdelimiter = pop(@arguments);
+
+		# Set custom delimiter if provided. To be
+		# provided it must be more than 2 characters.
+		# Meaning more than the 2 quotes.
+		if (length($cdelimiter) >= 2) {
+			# [https://stackoverflow.com/a/5745667]
+			$delimiter = substr($cdelimiter, 1, -1);
+		}
+
+		# Set command.
+		$command = $arguments[0];
+		# Unescape pipe characters.
+		$command = $command =~ s/\\\|/\|/r;
+
+		# Reduce arguments count by one since we
+		# popped off the last item (the delimiter).
+		$args_count -= 1;
+
+		# Add arguments to command string.
+		for (my $i = 1; $i < $args_count; $i++) {
+			# Cache argument.
+			my $arg = $arguments[$i];
+
+			# Run command if '$' is prefix to string.
+			if ($arg =~ /^\$/) {
+				# Remove '$' command indicator.
+				$arg = substr($arg, 1);
+				# Get the used quote type.
+				my $quote_char =  substr($arg, 0, 1);
+
+				# Run command and append result to
+				# command string.
+				my $cmdarg = "bash -c $arg 2> /dev/null";
+				$cmd .= "$quote_char" . `$cmdarg` . "$quote_char";
+
+				# # If the result is empty after
+				# # trimming then do not append?
+				# my $result = `$cmdarg`;
+				# if ($result =~ s/^\s*|\s*$//rg) {}
+			} else {
+				# Append non-command argument to
+				# command string.
+				$cmd .= " $arg";
+			}
+		}
+	}
+
+	# Close command string. Suppress any/all errors.
+	$cmd .= " 2> /dev/null";
+
+	# Reset command string.
+	$command = $cmd;
+
+	# Run command. Add an or logical statement in case
+	# the command returns nothing or an error is return.
+	# [https://stackoverflow.com/a/3854742]
+	# [https://stackoverflow.com/a/15678831]
+	# [https://stackoverflow.com/a/9784016]
+	# [https://stackoverflow.com/a/3201234]
+	# [https://stackoverflow.com/a/3374285]
+	# [https://stackoverflow.com/a/11231972]
+
+	# Set environment vars so command has access.
+	my $prefix = "NODECLIAC_";
+
+	# Following env vars are provided by bash but exposed via nodecliac.
+	$ENV{"${prefix}COMP_LINE"} = $cline; # Original (unmodified) CLI input.
+	$ENV{"${prefix}COMP_POINT"} = $cpoint; # Caret index when [tab] key was pressed.
+
+	# Following env vars are custom and exposed via nodecliac.
+	$ENV{"${prefix}MAIN_COMMAND"} = $maincommand; # The command auto completion is being performed for.
+	$ENV{"${prefix}COMMAND_CHAIN"} = $commandchain; # The parsed command chain.
+	$ENV{"${prefix}USED_FLAGS"} = $usedflags; # The parsed used flags.
+	$ENV{"${prefix}LAST"} = $last; # The last parsed word item (note: could be a partial word item. This happens
+	# when the [tab] key gets pressed within a word item. For example, take the input 'maincommand command'. If
+	# the [tab] key was pressed like so: 'maincommand comm[tab]and' then the last word item is 'comm' and it is
+	# a partial as its remaining text is 'and'. This will result in using 'comm' to determine possible auto
+	# completion word possibilities.).
+	$ENV{"${prefix}PREV"} = $args[-2]; # The word item preceding the last word item.
+	$ENV{"${prefix}INPUT"} = $inp; # CLI input from start to caret index.
+	$ENV{"${prefix}INPUT_REMAINDER"} = $inp_remainder; # CLI input from start to caret index.
+	$ENV{"${prefix}LAST_CHAR"} = $lastchar; # Character before caret.
+	$ENV{"${prefix}NEXT_CHAR"} = $nextchar; # Character after caret. If char is not '' (empty) then the last word
+	# item is a partial word.
+	$ENV{"${prefix}COMP_LINE_LENGTH"} = $cline_length; # Original input's length.
+	$ENV{"${prefix}INPUT_LINE_LENGTH"} = $cline_length; # CLI input from start to caret index string length.
+	$ENV{"${prefix}INPUT_WORD_COUNT"} = scalar(@args); # Amount of word items parsed before caret position/index.
+
+	# Run the command.
+	my $lines = `$command`;
+	# Note: command_str (the provided command string) will
+	# be injected as is. Meaning it will be provided to
+	# 'bash' with the provided surrounding quotes. User
+	# needs to make sure to properly use and escape
+	# quotes as needed. ' 2> /dev/null' will suppress
+	# all errors in the event the command fails.
+
+	# Unset environment vars once command is ran.
+	# [https://stackoverflow.com/a/8770380]
+	# Is this needed?
+	# delete $ENV{"${prefix}COMP_LINE"};
+	# delete $ENV{"${prefix}COMP_POINT"};
+	# delete $ENV{"${prefix}MAIN_COMMAND"};
+	# delete $ENV{"${prefix}COMMAND_CHAIN"};
+	# delete $ENV{"${prefix}USED_FLAGS"};
+	# delete $ENV{"${prefix}LAST"};
+	# delete $ENV{"${prefix}INPUT"};
+	# delete $ENV{"${prefix}LAST_CHAR"};
+	# delete $ENV{"${prefix}NEXT_CHAR"};
+	# delete $ENV{"${prefix}COMP_LINE_LENGTH"};
+
+	# By default if the command generates output split
+	# it by lines. Unless a delimiter was provided.
+	# Then split by custom delimiter to then add to
+	# flags array.
+	if ($lines) {
+		# Trim string if using custom delimiter.
+		if ($delimiter ne "\$\\r\?\\n") {
+			# [https://perlmaven.com/trim]
+			$lines =~ s/^\s+|\s+$//g;
+		}
+
+		# Split output by lines.
+		# [https://stackoverflow.com/a/4226362]
+		my @lines = split(/$delimiter/m, $lines);
+
+		# Run logic for command-flag command execution.
+		if ($type eq "flag") {
+			# Add each line to flags array.
+			foreach my $line (@lines) {
+				# # Remove starting left line break in line,
+				# # if it exists, before adding to flags.
+				# if ($delimiter eq "\$") {
+				# 	$line = $line =~ s/^\n//r;
+				# }
+
+				# Line cannot be empty.
+				if ($line) {
+					# Finally, add to flags array.
+					push(@$flags, $last_fkey . "=$line");
+				}
+			}
+		}
+		# Run logic for default command chain commands.
+		else {
+			# Add each line to completions array.
+			foreach my $line (@lines) {
+				# Line cannot be empty.
+				if ($line) {
+					if ($last) {
+						# When last word is present only
+						# add words that start with last
+						# word.
+
+						# Since we are completing a command we only
+						# want words that start with the current
+						# command we are trying to complete.
+						my $pattern = '^' . $last;
+						if ($line =~ /$pattern/) {
+							# Finally, add to flags array.
+							push(@completions, $line);
+						}
+						# if (index($flag, $last_fkey) == 0 && $flag =~ /$flagcommand/) {
+
+					} else {
+						# Finally, add to flags array.
+						push(@completions, $line);
+					}
+				}
+			}
+		}
+	}
+}
+
 # Parse string command flag ($("")) arguments.
 #
 # @param  {string} 1) input - The string command-flag to parse.
@@ -850,171 +1056,9 @@ sub __lookup {
 					if ($last_eqsign) {
 						# If fkey starts with flag and is a command flag.
 						if (index($flag, $last_fkey) == 0 && $flag =~ /$flagcommand/) {
-							# Cache captured string command.
-							my @arguments = __paramparse($2);
-							my $args_count = pop(@arguments);
-
-							# Set defaults.
-							my $command = $arguments[0];
-							# By default command output will be split lines.
-							my $delimiter = "\$\\r\?\\n";
-
-							# 'bash -c' with arguments documentation:
-							# [https://stackoverflow.com/q/26167803]
-							# [https://unix.stackexchange.com/a/144519]
-							# [https://stackoverflow.com/a/1711985]
-
-							# Start creating command string. Will take the
-							# following form: `bash -c $command 2> /dev/null`
-							my $cmd = "bash -c $arguments[0]";
-
-							# Only command and delimiter.
-							if ($args_count > 1) {
-								# print last element
-								# $cdelimiter = $arguments[-1];
-								my $cdelimiter = pop(@arguments);
-
-								# Set custom delimiter if provided. To be
-								# provided it must be more than 2 characters.
-								# Meaning more than the 2 quotes.
-								if (length($cdelimiter) >= 2) {
-									# [https://stackoverflow.com/a/5745667]
-									$delimiter = substr($cdelimiter, 1, -1);
-								}
-
-								# Set command.
-								$command = $arguments[0];
-								# Unescape pipe characters.
-								$command = $command =~ s/\\\|/\|/r;
-
-								# Reduce arguments count by one since we
-								# popped off the last item (the delimiter).
-								$args_count -= 1;
-
-								# Add arguments to command string.
-								for (my $i = 1; $i < $args_count; $i++) {
-									# Cache argument.
-									my $arg = $arguments[$i];
-
-									# Run command if '$' is prefix to string.
-									if ($arg =~ /^\$/) {
-										# Remove '$' command indicator.
-										$arg = substr($arg, 1);
-										# Get the used quote type.
-										my $quote_char =  substr($arg, 0, 1);
-
-										# Run command and append result to
-										# command string.
-										my $cmdarg = "bash -c $arg 2> /dev/null";
-										$cmd .= "$quote_char" . `$cmdarg` . "$quote_char";
-
-										# # If the result is empty after
-										# # trimming then do not append?
-										# my $result = `$cmdarg`;
-										# if ($result =~ s/^\s*|\s*$//rg) {}
-									} else {
-										# Append non-command argument to
-										# command string.
-										$cmd .= " $arg";
-									}
-								}
-							}
-
-							# Close command string. Suppress any/all errors.
-							$cmd .= " 2> /dev/null";
-
-							# Reset command string.
-							$command = $cmd;
-
-							# Run command. Add an or logical statement in case
-							# the command returns nothing or an error is return.
-							# [https://stackoverflow.com/a/3854742]
-							# [https://stackoverflow.com/a/15678831]
-							# [https://stackoverflow.com/a/9784016]
-							# [https://stackoverflow.com/a/3201234]
-							# [https://stackoverflow.com/a/3374285]
-							# [https://stackoverflow.com/a/11231972]
-
-							# Set environment vars so command has access.
-							my $prefix = "NODECLIAC_";
-
-							# Following env vars are provided by bash but exposed via nodecliac.
-							$ENV{"${prefix}COMP_LINE"} = $cline; # Original (unmodified) CLI input.
-							$ENV{"${prefix}COMP_POINT"} = $cpoint; # Caret index when [tab] key was pressed.
-
-							# Following env vars are custom and exposed via nodecliac.
-							$ENV{"${prefix}MAIN_COMMAND"} = $maincommand; # The command auto completion is being performed for.
-							$ENV{"${prefix}COMMAND_CHAIN"} = $commandchain; # The parsed command chain.
-							$ENV{"${prefix}USED_FLAGS"} = $usedflags; # The parsed used flags.
-							$ENV{"${prefix}LAST"} = $last; # The last parsed word item (note: could be a partial word item. This happens
-							# when the [tab] key gets pressed within a word item. For example, take the input 'maincommand command'. If
-							# the [tab] key was pressed like so: 'maincommand comm[tab]and' then the last word item is 'comm' and it is
-							# a partial as its remaining text is 'and'. This will result in using 'comm' to determine possible auto
-							# completion word possibilities.).
-							$ENV{"${prefix}PREV"} = $args[-2]; # The word item preceding the last word item.
-							$ENV{"${prefix}INPUT"} = $inp; # CLI input from start to caret index.
-							$ENV{"${prefix}INPUT_REMAINDER"} = $inp_remainder; # CLI input from start to caret index.
-							$ENV{"${prefix}LAST_CHAR"} = $lastchar; # Character before caret.
-							$ENV{"${prefix}NEXT_CHAR"} = $nextchar; # Character after caret. If char is not '' (empty) then the last word
-							# item is a partial word.
-							$ENV{"${prefix}COMP_LINE_LENGTH"} = $cline_length; # Original input's length.
-							$ENV{"${prefix}INPUT_LINE_LENGTH"} = $cline_length; # CLI input from start to caret index string length.
-							$ENV{"${prefix}INPUT_WORD_COUNT"} = scalar(@args); # Amount of word items parsed before caret position/index.
-
-							# Run the command.
-							my $lines = `$command`;
-							# Note: $2 (the provided command string) will be
-							# injected as is. Meaning it will be provided to
-							# 'bash' with the provided surrounding quotes. User
-							# needs to make sure to properly use and escape
-							# quotes as needed. ' 2> /dev/null' will suppress
-							# all errors in the event the command fails.
-
-							# Unset environment vars once command is ran.
-							# [https://stackoverflow.com/a/8770380]
-							# Is this needed?
-							# delete $ENV{"${prefix}COMP_LINE"};
-							# delete $ENV{"${prefix}COMP_POINT"};
-							# delete $ENV{"${prefix}MAIN_COMMAND"};
-							# delete $ENV{"${prefix}COMMAND_CHAIN"};
-							# delete $ENV{"${prefix}USED_FLAGS"};
-							# delete $ENV{"${prefix}LAST"};
-							# delete $ENV{"${prefix}INPUT"};
-							# delete $ENV{"${prefix}LAST_CHAR"};
-							# delete $ENV{"${prefix}NEXT_CHAR"};
-							# delete $ENV{"${prefix}COMP_LINE_LENGTH"};
-
-							# By default if the command generates output split
-							# it by lines. Unless a delimiter was provided.
-							# Then split by custom delimiter to then add to
-							# flags array.
-							if ($lines) {
-								# Trim string if using custom delimiter.
-								if ($delimiter ne "\$\\r\?\\n") {
-									# [https://perlmaven.com/trim]
-									$lines =~ s/^\s+|\s+$//g;
-								}
-
-								# Split output by lines.
-								# [https://stackoverflow.com/a/4226362]
-								my @lines = split(/$delimiter/m, $lines);
-
-								# Add each line to flags array.
-								foreach my $line (@lines) {
-									# # Remove starting left line break in line,
-									# # if it exists, before adding to flags.
-									# if ($delimiter eq "\$") {
-									# 	$line = $line =~ s/^\n//r;
-									# }
-
-									# Line cannot be empty.
-									if ($line) {
-										# Finally, add to flags array.
-										push(@flags, $last_fkey . "=$line");
-									}
-								}
-							}
-
+							# *Pass flags array as a ref to access in function.
+							# Parse user provided command-flag command.
+							__execute_command($2, \@flags, $last_fkey);
 							# Skip flag to not add literal command to completions.
 							next;
 						}
@@ -1278,6 +1322,18 @@ sub __lookup {
 			my $pattern = '.' . $completions[0] . '(\\.|$)';
 			if ($commandchain =~ /$pattern/) {
 				@completions = ();
+			}
+		}
+
+		# If no completions exist run default command if it exists.
+		if (!scalar(@completions)) {
+			# Get default command, parse it, then run it...
+			my $pattern = '^' . quotemeta($commandchain) . ' default \$\((.*?)\)$';
+			if ($acmap =~ /$pattern/m) {
+				if ($1) {
+					# Parse user provided command-flag command.
+					__execute_command($1);
+				}
 			}
 		}
 	}

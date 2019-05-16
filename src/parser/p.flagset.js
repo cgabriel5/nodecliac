@@ -44,8 +44,10 @@ module.exports = (params = {}) => {
 	let lookup = global.$app.get("lookup");
 	let currentchain = global.$app.get("currentchain");
 	let flags = lookup[currentchain]; // Get command's flag list.
+	let keywords = global.$app.get("keywords");
 
 	// Parsing vars.
+	let keyword = "";
 	let symbol = "";
 	let name = "";
 	let assignment = "";
@@ -57,8 +59,13 @@ module.exports = (params = {}) => {
 	// Collect all parsing warnings.
 	let warnings = [];
 	let isopeningpr = false;
+	let valid_keywords = ["default"];
 	// Capture state's start/end indices.
 	let indices = {
+		keyword: {
+			start: null,
+			end: null
+		},
 		symbol: {
 			start: i,
 			end: null
@@ -88,7 +95,8 @@ module.exports = (params = {}) => {
 			// Parser specific variables.
 			char,
 			name,
-			isvspecial
+			isvspecial,
+			currentchain
 		});
 	};
 
@@ -105,9 +113,9 @@ module.exports = (params = {}) => {
 		// End loop on a new line char.
 		if (r_echar.test(char)) {
 			// If char is a pipe delimiter and it's the last character
-			// of the line - give a warning.
-			if (char === "|" && (!nchar || /[^-]/.test(nchar))) {
-				return issue("error", 2, char);
+			// of the line give a warning.
+			if (char === "|" && (!nchar || /[^-a-z]/.test(nchar))) {
+				return issue("error", 2, !nchar ? char : nchar);
 			}
 
 			// Store newline index.
@@ -115,7 +123,48 @@ module.exports = (params = {}) => {
 			break;
 		}
 
-		if (state === "symbol") {
+		// If a symbol does not exist then check to see if the char is a 'd'.
+		// If so, then set state to keyword to check for 'default' keyword.
+		if (!symbol && !keyword && /[a-z]/.test(char)) {
+			// Store index.
+			indices.keyword.start = i;
+			state = "keyword";
+		}
+
+		// Parse keyword option line.
+		if (state === "keyword") {
+			// Keyword must only contain letters. Parsing for keyword must
+			// end at the end of line or when a non-letter character is
+			// found. Once all letter characters are rounded up the final
+			// collection must match one of the allowed keywords.
+			if (/[a-z]/.test(char)) {
+				// Store index.
+				indices.keyword.end = i;
+				state = "keyword";
+				keyword += char;
+			} else {
+				// Check if keyword is valid.
+				if (!valid_keywords.includes(keyword)) {
+					return issue(
+						"error",
+						2,
+						// Provide last character in keyword to error.
+						string.charAt(indices.keyword.end)
+					);
+				}
+
+				if (/[ \t]/.test(char)) {
+					state = "value-wsb";
+					i--;
+				}
+				// Give error for any other character.
+				else {
+					return issue("error", 2, char);
+				}
+			}
+		}
+		// Symbol parse state.
+		else if (state === "symbol") {
 			if (char === "-") {
 				// Store index.
 				indices.symbol.end = i;
@@ -330,7 +379,7 @@ module.exports = (params = {}) => {
 	}
 
 	// If no value (only hyphen(s)) was provided give warning.
-	if (!assignment && !indices.name.boolean) {
+	if (!assignment && !indices.name.boolean && !keyword) {
 		// Reset index to symbol end.
 		i = indices.symbol.end;
 
@@ -397,8 +446,37 @@ module.exports = (params = {}) => {
 		issue("warning", 11, name);
 	}
 
+	// Check if command chain is a duplicate.
+	if (keyword) {
+		// Validate keyword here to catch following invalid cases:
+		// 'default = default $("command")|d|a' ←
+		if (!valid_keywords.includes(keyword)) {
+			return issue(
+				"error",
+				2,
+				// Provide last character in keyword to error.
+				string.charAt(indices.keyword.end)
+			);
+		}
+
+		if (currentchain) {
+			// If setting exists give an dupe/override warning.
+			if (keywords.hasOwnProperty(currentchain)) {
+				// Reset index to point to keyword.
+				i = indices.keyword.start;
+
+				// Add warning.
+				issue("warning", 12, currentchain);
+			}
+		}
+
+		// Run keyword through highlighter.
+		keyword = h(keyword, "keyword");
+	}
+
 	// Return relevant parsing information.
 	return {
+		keyword,
 		symbol,
 		name,
 		// Note: Since the name 'value' is a bit misleading as it's actually

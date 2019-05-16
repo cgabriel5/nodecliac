@@ -31,8 +31,11 @@ module.exports = () => {
 	let line_num = global.$app.get("line_num");
 	let line_fchar = global.$app.get("line_fchar");
 	let h = global.$app.get("highlighter");
+	let keywords = global.$app.get("keywords");
+	let currentchain = global.$app.get("currentchain");
 
 	// Parsing vars.
+	let keyword = "";
 	let symbol = "";
 	let boundary = "";
 	let assignment = "";
@@ -42,8 +45,13 @@ module.exports = () => {
 	let nl_index;
 	// Collect all parsing warnings.
 	let warnings = [];
+	let valid_keywords = ["default"];
 	// Capture state's start/end indices.
 	let indices = {
+		keyword: {
+			start: null,
+			end: null
+		},
 		symbol: {
 			index: i
 		},
@@ -65,7 +73,8 @@ module.exports = () => {
 		// Run and return issue.
 		return issuefunc(i, __filename, warnings, state, type, code, {
 			// Parser specific variables.
-			char
+			char,
+			currentchain
 		});
 	};
 
@@ -83,8 +92,48 @@ module.exports = () => {
 			break;
 		}
 
-		// Default parse state.
-		if (state === "symbol") {
+		// If a symbol does not exist then check to see if the char is a 'd'.
+		// If so, then set state to keyword to check for 'default' keyword.
+		if (!symbol && !keyword && /[a-z]/.test(char)) {
+			// Store index.
+			indices.keyword.start = i;
+			state = "keyword";
+		}
+
+		// Parse keyword option line.
+		if (state === "keyword") {
+			// Keyword must only contain letters. Parsing for keyword must
+			// end at the end of line or when a non-letter character is
+			// found. Once all letter characters are rounded up the final
+			// collection must match one of the allowed keywords.
+			if (/[a-z]/.test(char)) {
+				// Store index.
+				indices.keyword.end = i;
+				state = "keyword";
+				keyword += char;
+			} else {
+				// Check if keyword is valid.
+				if (!valid_keywords.includes(keyword)) {
+					return issue(
+						"error",
+						2,
+						// Provide last character in keyword to error.
+						string.charAt(indices.keyword.end)
+					);
+				}
+
+				if (/[ \t]/.test(char)) {
+					state = "boundary";
+					i--;
+				}
+				// Give error for any other character.
+				else {
+					return issue("error", 2, char);
+				}
+			}
+		}
+		// Symbol parse state.
+		else if (state === "symbol") {
 			// Check that first char is indeed a hyphen symbol '-'.
 			if (char !== "-") {
 				return issue("error", 3, char);
@@ -179,6 +228,23 @@ module.exports = () => {
 		}
 	}
 
+	// Check if command chain is a duplicate.
+	if (keyword) {
+		if (currentchain) {
+			// If setting exists give an dupe/override warning.
+			if (keywords.hasOwnProperty(currentchain)) {
+				// Reset index to point to keyword.
+				i = indices.keyword.start;
+
+				// Add warning.
+				issue("warning", 5, keyword);
+			}
+		}
+
+		// Run keyword through highlighter.
+		keyword = h(keyword, "keyword");
+	}
+
 	// Return relevant parsing information.
-	return { symbol, value, assignment, nl_index, warnings };
+	return { keyword, symbol, value, assignment, nl_index, warnings };
 };

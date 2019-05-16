@@ -145,7 +145,16 @@ let issue = (result, type = "error", warnings = []) => {
  */
 let error = (char = "", code, line, index, source) => {
 	// Replace whitespace characters with their respective symbols.
-	char = char.replace(/ /g, "␣").replace(/\t/g, "⇥");
+	char = char.replace(/\s/g, function(match) {
+		let lookup = {
+			"\n": "↵",
+			"\t": "⇥",
+			" ": "␣"
+		};
+
+		// Return white character symbol.
+		return lookup[match];
+	});
 
 	// Get character type.
 	let ctype = char && Number(char) ? "number" : "character";

@@ -26,13 +26,23 @@ module.exports = (...args) => {
 		char = fvars.char || "",
 		flag = fvars.flag || "",
 		name = fvars.name || "",
-		isvspecial = fvars.isvspecial;
+		isvspecial = fvars.isvspecial,
+		chain = fvars.currentchain || "";
 
 	// Get character type.
 	let ctype = char && Number(char) ? "number" : "character";
 
 	// Replace whitespace characters with their respective symbols.
-	char = char.replace(/ /g, "␣").replace(/\t/g, "⇥");
+	char = char.replace(/\s/g, function(match) {
+		let lookup = {
+			"\n": "↵",
+			"\t": "⇥",
+			" ": "␣"
+		};
+
+		// Return white character symbol.
+		return lookup[match];
+	});
 
 	// Add syntax highlight.
 	char = h(char, "value");
@@ -78,7 +88,8 @@ module.exports = (...args) => {
 				isvspecial === "command" ? "Command-flag" : "Options flag list"
 			} missing closing '${h(")", "value")}'.`,
 			10: `Empty flag namespace '${char}'.`,
-			11: `Dupe flag: '${name}'.`
+			11: `Dupe flag: '${name}'.`,
+			12: `Dupe '${h("default", "keyword")}' for command: '${chain}'.`
 		},
 		"p.flag-command.js": {
 			2: `Unexpected ${ctype}: '${char}'.`,
@@ -101,9 +112,10 @@ module.exports = (...args) => {
 		},
 		"p.flagoption.js": {
 			0: `Empty flag option.`,
-			// 2: `Unexpected ${ctype}: '${char}'.`,
+			2: `Unexpected ${ctype}: '${char}'.`,
 			3: `Invalid flag option.`,
-			4: `Improperly quoted string.`
+			4: `Improperly quoted string.`,
+			5: `Dupe '${h("default", "keyword")}' for command: '${chain}'.`
 		},
 		"p.close-brace.js": { 1: `Unexpected ${ctype}: '${char}'.` },
 		"p.comment.js": {}

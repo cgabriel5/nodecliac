@@ -67,6 +67,11 @@ module.exports = (
 	// Keep track of settings size/count.
 	settings.__count__ = 0;
 	let warnings = globals.set("warnings", []);
+	// Track keywords.
+	let keywords = globals.set("keywords", {});
+	let hkeywords = globals.set("hkeywords", {});
+	// Keep track of keyword size/count.
+	keywords.__count__ = 0;
 
 	// Vars - Parser flags.
 	let line_type; // Store current type of line being parsed.
@@ -234,6 +239,21 @@ module.exports = (
 						// If a current chain flag is set then another chain
 						// cannot be parsed. This means the chain is nested.
 						if (currentchain) {
+							// When inside a command chain's flag definitions
+							// all lines must start off with hyphens to denote
+							// they are flag definitions. However with the
+							// new 'default' keyword this means we must now
+							// also allow letters. Would it be better to
+							// limit char to a character white-list?
+							if (/[a-z]/.test(char)) {
+								// Reset the line type.
+								line_type = "flag-option";
+
+								// Stop further logic.
+								break;
+							}
+
+							// Give error for all other characters.
 							error("", 1, line_num, 0);
 						}
 
@@ -564,26 +584,39 @@ module.exports = (
 					if (chain && value) {
 						// Get highlighted version.
 						let hvalue = values.hargs[0];
+						// Get keyword.
+						let keyword = result.keyword;
 
-						// Add line to format later.
-						preformat(
-							`- ${value}`,
-							`- ${hvalue}`,
-							"flag-option",
-							2
-						);
+						// For keyword declarations.
+						if (keyword) {
+							// Store setting/value pair (Note: Remove ANSI color).
+							keywords[currentchain] = [keyword, value];
+							hkeywords[currentchain] = [keyword, hvalue];
+							// Increment keyword size/count.
+							keywords.__count__++;
+						}
+						// Actual flag options.
+						else {
+							// Add line to format later.
+							preformat(
+								`- ${value}`,
+								`- ${hvalue}`,
+								"flag-option",
+								2
+							);
 
-						// Add to lookup table > command chain.
-						chain.add(`${currentflag}=${value}`);
-						// Add highlighted version.
-						chain.__h.add(`${hcurrentflag}=${hvalue}`);
+							// Add to lookup table > command chain.
+							chain.add(`${currentflag}=${value}`);
+							// Add highlighted version.
+							chain.__h.add(`${hcurrentflag}=${hvalue}`);
 
-						// Increment flag option counter.
-						if (flag_count_options) {
-							// Get values before incrementing.
-							let [counter, linenum] = flag_count_options;
-							// Increment and store values.
-							flag_count_options = [linenum, counter + 1];
+							// Increment flag option counter.
+							if (flag_count_options) {
+								// Get values before incrementing.
+								let [counter, linenum] = flag_count_options;
+								// Increment and store values.
+								flag_count_options = [linenum, counter + 1];
+							}
 						}
 					}
 
@@ -624,7 +657,8 @@ module.exports = (
 					// Opening flag must be set else this ']' is unmatched.
 					brace_check("unmatched", "]");
 					// If command chain's flag array is empty give warning.
-					if (flag_count && !flag_count[1]) {
+					// Also account for 'default' command declaration count.
+					if (flag_count && !(flag_count[1] || keywords.__count__)) {
 						brace_check("empty", "brackets");
 					}
 					// Clear flag.
@@ -716,6 +750,7 @@ module.exports = (
 		time: process.hrtime(stime), // Return end time tuple array.
 		formatted: formatter(preformat),
 		config: require("./h.config.js")(),
+		keywords: require("./h.keywords.js")(),
 		acdef: require("./h.acdef.js")(lk_size)
 	};
 };

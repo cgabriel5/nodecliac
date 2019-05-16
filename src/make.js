@@ -114,7 +114,7 @@ module.exports = args => {
 		}
 
 		// Generate acmap.
-		let { acdef: acmap, config, formatted, time } = parser(
+		let { acdef: acmap, keywords, config, formatted, time } = parser(
 			fs.readFileSync(source).toString(),
 			commandname,
 			source,
@@ -133,7 +133,10 @@ module.exports = args => {
 		}
 		// Save definitions file to source location when flag is provided.
 		else if (save) {
-			fs.writeFileSync(path.join(fi.dirname, savename), acmap.content);
+			fs.writeFileSync(
+				path.join(fi.dirname, savename),
+				acmap.content + keywords.content
+			);
 			fs.writeFileSync(
 				path.join(fi.dirname, saveconfigname),
 				config.content
@@ -146,7 +149,7 @@ module.exports = args => {
 			let commandconfigpath = path.join(acmapspath, saveconfigname);
 			if (!fe.sync(commandpath) || args.force) {
 				// Save file to map location.
-				fs.writeFileSync(commandpath, acmap.content);
+				fs.writeFileSync(commandpath, acmap.content + keywords.content);
 				fs.writeFileSync(commandconfigpath, config.content);
 				log(`${chalk.bold(commandname)} acmap added.`);
 			} else {
@@ -164,7 +167,7 @@ module.exports = args => {
 			if (!formatting) {
 				if (acmap) {
 					console.log(`[${chalk.bold(`${commandname}.acdef`)}]\n`);
-					console.log(acmap.print);
+					console.log(acmap.print + keywords.print);
 					if (!config) {
 						console.log(); // Bottom padding.
 					}

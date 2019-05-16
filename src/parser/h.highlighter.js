@@ -14,7 +14,8 @@ module.exports = (value, ...scopes) => {
 
 	// Context:color lookup table.
 	let c = {
-		// Magenta → settings, flags
+		// Magenta → keyword, settings, flags
+		keyword: "magenta",
 		setting: "magenta",
 		flag: "magenta",
 		// Brown → strings, values*
@@ -131,6 +132,10 @@ module.exports = (value, ...scopes) => {
 						break;
 					case "setting":
 						value = `@${chalk[c.setting](value.slice(1))}`;
+
+						break;
+					case "keyword":
+						value = chalk[c.keyword](value);
 
 						break;
 					case "comment":

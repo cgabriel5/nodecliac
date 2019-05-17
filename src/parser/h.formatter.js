@@ -32,6 +32,10 @@ let formatter = preformat => {
 	let cformatted = []; // Cleaned/indented formatted array.
 	let hcformatted = []; // Highlighted version.
 	let isempty = true;
+	// RegExp pattern.
+	let option_r = /(flag-option|default)/;
+
+	// Loop over lines.
 	for (let i = 0, l = lines.length; i < l; i++) {
 		// Cache current loop item.
 		let data = lines[i];
@@ -66,7 +70,8 @@ let formatter = preformat => {
 		// Skip empty lines for following scenarios.
 		if (type === "nl") {
 			if (
-				(ptype === "nl" && /(close-brace|flag-option)/.test(ntype)) ||
+				(ptype === "nl" &&
+					/(close-brace|flag-option|default)/.test(ntype)) ||
 				// Note: This scenario, in some cases, removes the needed new
 				// line which separates the flagset > \n > flag-option lines.
 				// This will get amended below. The scenario in question is:
@@ -87,9 +92,9 @@ let formatter = preformat => {
 				) {
 					continue;
 				} else if (
-					ptype === "flag-option" &&
+					option_r.test(ptype) &&
 					ntype === "nl" &&
-					ntype2 === "flag-option"
+					option_r.test(ntype2)
 				) {
 					continue;
 				}
@@ -99,7 +104,7 @@ let formatter = preformat => {
 		// Note: When skipping new lines (above) a needed new line separating
 		// the flagset > \n > flag-option lines in some cases removed. This
 		// will amend this special flag-option scenario.
-		if (type === "flag-option") {
+		if (option_r.test(type)) {
 			// If last item in formatted array is the parent flag set and
 			// not a new line then we append a new line.
 			if (cformatted[cformatted.length - 1] !== "\n") {

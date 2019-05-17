@@ -433,31 +433,36 @@ module.exports = () => {
 
 				// For keyword declarations.
 				if (keyword) {
-					// Store setting/value pair (Note: Remove ANSI color).
+					// Get highlighted/non-highlighted keywords.
+					let [, hkeyword] = keyword;
+					keyword = keyword[0];
+
+					// Store setting/value pair.
 					keywords[chain] = [keyword, value];
-					hkeywords[chain] = [keyword, hvalue];
+					hkeywords[chain] = [hkeyword, hvalue];
 					// Increment keyword size/count.
 					keywords.__count__++;
 
-					// Reset oneliner start index.
-					indices.oneliner.start = (nl_index || i) + 1;
 					// Reset flag set string.
 					flagset = "";
 					hflagset = "";
 
-					continue;
-				}
+					// Reset flag to newly parsed value.
+					flagset = `${keyword} ${value}`;
+					// Set highlighted version.
+					hflagset = `${hkeyword} ${hvalue}`;
+				} else {
+					// If value is not a string (therefore an array) join values.
+					if (typeof value !== "string" && value.length > 1) {
+						value = `(${value.join(" ")})`;
+						hvalue = `(${hvalue.join(" ")})`;
+					}
 
-				// If value is not a string (therefore an array) join values.
-				if (typeof value !== "string" && value.length > 1) {
-					value = `(${value.join(" ")})`;
-					hvalue = `(${hvalue.join(" ")})`;
+					// Reset flag to newly parsed value.
+					flagset = `${symbol}${name}${assignment}${value}`;
+					// Set highlighted version.
+					hflagset = `${symbol}${hname}${assignment}${hvalue}`;
 				}
-
-				// Reset flag to newly parsed value.
-				flagset = `${symbol}${name}${assignment}${value}`;
-				// Set highlighted version.
-				hflagset = `${symbol}${hname}${assignment}${hvalue}`;
 
 				// Reset oneliner start index.
 				indices.oneliner.start = (nl_index || i) + 1;
@@ -493,6 +498,8 @@ module.exports = () => {
 	// Store chain as a global.
 	setchain(chain);
 
+	// [TODO] Use a function to not repeat followed pflagset logic.
+
 	// Add final flag set.
 	if (flagset) {
 		// Run flag value parser from here...
@@ -522,17 +529,24 @@ module.exports = () => {
 
 		// For keyword declarations.
 		if (keyword) {
-			// Store setting/value pair (Note: Remove ANSI color).
+			// Get highlighted/non-highlighted keywords.
+			let [, hkeyword] = keyword;
+			keyword = keyword[0];
+
+			// Store setting/value pair.
 			keywords[chain] = [keyword, value];
-			hkeywords[chain] = [keyword, hvalue];
+			hkeywords[chain] = [hkeyword, hvalue];
 			// Increment keyword size/count.
 			keywords.__count__++;
 
-			// Reset oneliner start index.
-			indices.oneliner.start = (nl_index || i) + 1;
 			// Reset flag set string.
 			flagset = "";
 			hflagset = "";
+
+			// Reset flag to newly parsed value.
+			flagset = `${keyword} ${value}`;
+			// Set highlighted version.
+			hflagset = `${hkeyword} ${hvalue}`;
 		} else {
 			// If value is not a string (therefore an array) join values.
 			if (typeof value !== "string" && value.length > 1) {
@@ -544,17 +558,17 @@ module.exports = () => {
 			flagset = `${symbol}${name}${assignment}${value}`;
 			// Set highlighted version.
 			hflagset = `${symbol}${hname}${assignment}${hvalue}`;
-
-			// Reset oneliner start index.
-			indices.oneliner.start = (nl_index || i) + 1;
-			// Store current flag set.
-			flagsets.push(flagset);
-			// Set highlighted version.
-			hflagsets.push(hflagset);
-			// Reset flag set string.
-			flagset = "";
-			hflagset = "";
 		}
+
+		// Reset oneliner start index.
+		indices.oneliner.start = (nl_index || i) + 1;
+		// Store current flag set.
+		flagsets.push(flagset);
+		// Set highlighted version.
+		hflagsets.push(hflagset);
+		// Reset flag set string.
+		flagset = "";
+		hflagset = "";
 	}
 
 	// If there was assignment do some value checks.

@@ -589,9 +589,21 @@ module.exports = (
 
 						// For keyword declarations.
 						if (keyword) {
+							// Get highlighted/non-highlighted keywords.
+							let [, hkeyword] = keyword;
+							keyword = keyword[0];
+
+							// Add line to format later.
+							preformat(
+								`${keyword} ${value}`,
+								`${hkeyword} ${hvalue}`,
+								"default",
+								1
+							);
+
 							// Store setting/value pair (Note: Remove ANSI color).
 							keywords[currentchain] = [keyword, value];
-							hkeywords[currentchain] = [keyword, hvalue];
+							hkeywords[currentchain] = [hkeyword, hvalue];
 							// Increment keyword size/count.
 							keywords.__count__++;
 						}

@@ -250,8 +250,11 @@ module.exports = () => {
 			}
 		}
 
-		// Run keyword through highlighter.
-		keyword = h(keyword, "keyword");
+		// Add highlighted/non-highlighted keywords.
+		keyword = [keyword, h(keyword, "keyword")];
+	} else {
+		// Set keyword to nothing.
+		keyword = null;
 	}
 
 	// Return relevant parsing information.

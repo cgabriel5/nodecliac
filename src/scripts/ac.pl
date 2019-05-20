@@ -294,6 +294,9 @@ sub __execute_command {
 	# Get arguments.
 	my ($command_str, $flags, $last_fkey) = @_;
 
+	# Unescape pipe chars (better if unescaped args individually?).
+	$command_str = $command_str =~ s/\\\|/\|/gr;
+
 	# Cache captured string command.
 	my @arguments = __paramparse($command_str);
 	my $args_count = pop(@arguments);
@@ -325,11 +328,6 @@ sub __execute_command {
 			# [https://stackoverflow.com/a/5745667]
 			$delimiter = substr($cdelimiter, 1, -1);
 		}
-
-		# Set command.
-		$command = $arguments[0];
-		# Unescape pipe characters.
-		$command = $command =~ s/\\\|/\|/r;
 
 		# Reduce arguments count by one since we
 		# popped off the last item (the delimiter).

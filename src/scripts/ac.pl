@@ -313,7 +313,7 @@ sub __execute_command {
 
 	# Start creating command string. Will take the
 	# following form: `bash -c $command 2> /dev/null`
-	my $cmd = "bash -c $arguments[0]";
+	my $cmd = "bash -c $command";
 
 	# Only command and delimiter.
 	if ($args_count > 1) {

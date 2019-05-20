@@ -1332,7 +1332,7 @@ sub __lookup {
 				# If match exists...
 				if ($value) {
 					# Check if it is a command-string.
-					my $pattern = '\$\((.*?)\)';
+					my $pattern = '^\$\((.*?)\)$';
 					if ($value =~ /$pattern/m) {
 						# Get the command-flag.
 						if ($1) {

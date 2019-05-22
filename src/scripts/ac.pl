@@ -40,7 +40,7 @@ my $acmap = $ARGV[3];
 
 # RegExp Patterns:
 my $flgopt = '-{1,2}[-.a-zA-Z0-9]*='; # "--flag/-flag="
-my $flagstartr = '^-{1,2}[a-zA-Z0-9]([-.a-zA-Z0-9]{1,})?\=\*?'; #"--flag/-flag=*"
+my $flagstartr = '^-{1,2}[a-zA-Z0-9]([-.a-zA-Z0-9]{1,})?\=\*?'; # "--flag/-flag=*"
 my $flgoptvalue = $flagstartr . '.{1,}$'; # "--flag/-flag=value"
 my $commandstr = '\$\((.{1,})\)$'; # $("<COMMAND-STRING>")
 my $flagcommand = $flagstartr . $commandstr; # "--flag/-flag=$("<COMMAND-STRING>")"

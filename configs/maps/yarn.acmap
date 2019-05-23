@@ -1,0 +1,301 @@
+# ACMAP definition file for yarn v1.15.2.
+
+# Main command/flags.
+yarn = [
+	--cache-folder
+	--check-files
+	--cwd
+	--disable-pnp
+	--emoji?
+	--enable-pnp
+	--flat
+	--focus
+	--force
+	--frozen-lockfile
+	--global-folder
+	--har
+	--https-proxy
+	--ignore-engines
+	--ignore-optional
+	--ignore-platform
+	--ignore-scripts
+	--json
+	--link-duplicates
+	--link-folder
+	--modules-folder
+	--mutex
+	--network-concurrency
+	--network-timeout
+	--no-bin-links
+	--no-default-rc
+	--no-lockfile
+	--non-interactive
+	--no-node-version-check
+	--no-progress
+	--offline
+	--otp
+	--prefer-offline
+	--preferred-cache-folder
+	--production
+	--proxy
+	--pure-lockfile
+	--registry
+	--silent
+	--scripts-prepend-node-path?
+	--skip-integrity-check
+	--strict-semver
+	--update-checksums
+	--use-yarnrc
+	--version
+	--verbose
+	--help
+]
+
+yarn.access = []
+
+yarn.add = [
+	# [https://yarnpkg.com/en/docs/cli/add]
+	# [https://stackoverflow.com/a/43747805]
+	# [https://github.com/yarnpkg/yarn/issues/2049]
+	# [https://stackoverflow.com/questions/47952851/where-is-yarn-storing-offline-packages]
+	# [https://stackoverflow.com/questions/428109/extract-substring-in-bash]
+	# [https://stackoverflow.com/questions/16623835/remove-a-fixed-prefix-suffix-from-a-string-in-bash]
+	default $("ls -lF ~/.cache/yarn/v4 \| grep -Po \"npm-([-a-z]+)-\\d\" \| sed -e \"s/^npm-//\" -e \"s/-[0-9]$//\"")
+]
+
+yarn.audit = [
+	--verbose
+	--json
+]
+
+yarn.autoclean = [
+	--init
+	--force
+]
+
+yarn.bin = []
+
+yarn.cache.list = [
+	--pattern
+]
+yarn.cache.dir = []
+yarn.cache.clean = []
+
+yarn.check = [
+	--integrity
+	--verify-tree
+]
+
+yarn.config.set = [
+	--global
+	# ignore-optional
+	# init-author-email
+	# init-license
+	# prefix
+	# user-agent
+	# version-git-tag
+	# ignore-platform
+	# init-author-name
+	# init-version
+	# registry
+	# version-git-message
+	# version-tag-prefix
+	# ignore-scripts
+	# init-author-url
+	# no-progress
+	# save-prefix
+	# version-git-sign
+]
+yarn.config.get = []
+yarn.config.delete = []
+yarn.config.list = []
+
+yarn.create = []
+yarn.exec = []
+yarn.generate-lock-entry = []
+
+yarn.global = [
+	--prefix
+]
+yarn.global.add = [
+	default $("ls -lF ~/.cache/yarn/v4 \| grep -Po \"npm-([-a-z]+)-\\d\" \| sed -e \"s/^npm-//\" -e \"s/-[0-9]$//\"")
+]
+yarn.global.bin = []
+yarn.global.list = []
+yarn.global.remove = []
+yarn.global.upgrade = []
+
+yarn.help = []
+
+yarn.import = []
+
+# [https://yarnpkg.com/en/docs/cli/info]
+yarn.info = [
+	default $("ls -lF ~/.cache/yarn/v4 \| grep -Po \"npm-([-a-z]+)-\\d\" \| sed -e \"s/^npm-//\" -e \"s/-[0-9]$//\"")
+	--json
+]
+# For the time being add standard fields as command chains. However a better
+# solution should be used for this.
+yarn.info.author = --json
+yarn.info.bin = --json
+yarn.info.bugs = --json
+yarn.info.contributors = --json
+yarn.info.dependencies = --json
+yarn.info.description = --json
+yarn.info.devDependencies = --json
+yarn.info.dist-tags = --json
+yarn.info.engines = --json
+yarn.info.files = --json
+yarn.info.homepage = --json
+yarn.info.keywords = --json
+yarn.info.license = --json
+yarn.info.main = --json
+yarn.info.maintainers = --json
+yarn.info.name = --json
+yarn.info.optionalDependencies = --json
+yarn.info.peerDependencies = --json
+yarn.info.readme = --json
+yarn.info.repository = --json
+# yarn.info.time = []
+yarn.info.version = --json
+yarn.info.versions = --json
+
+yarn.init = [
+	--private
+	--yes
+]
+
+yarn.install = [
+	--check-files
+	--flat
+	--force
+	--har
+	--ignore-scripts
+	--modules-folder
+	--no-lockfile
+	--production=(true false)
+	--pure-lockfile
+	--focus
+	--frozen-lockfile
+	--silent
+	--ignore-engines
+	--ignore-optional
+	--offline
+	--non-interactive
+	--update-checksums
+	--audit
+	--no-bin-links
+	--link-duplicates
+]
+
+yarn.licenses = []
+yarn.licenses.generate-disclaimer = []
+
+yarn.link = []
+
+yarn.list = [
+	--depth
+	--pattern
+]
+yarn.login = []
+yarn.logout = []
+yarn.node = []
+
+yarn.outdated = [
+	# [https://yarnpkg.com/en/docs/cli/outdated]
+	default $("~/.nodecliac/plugins/yarn/main.sh outdated")
+]
+
+yarn.owner = [
+	# [https://yarnpkg.com/en/docs/cli/owner]
+]
+yarn.owner.list = []
+yarn.owner.add = []
+yarn.owner.remove = []
+
+yarn.pack = [
+	--filename
+]
+
+# [https://yarnpkg.com/en/docs/cli/policies]
+yarn.policies = []
+yarn.policies.latest = []
+yarn.policies.nightly = []
+yarn.policies.rc = []
+
+# [https://yarnpkg.com/en/docs/cli/publish]
+yarn.publish = [
+	--new-version
+	--tag
+	--access
+]
+
+yarn.remove = [
+	# [https://yarnpkg.com/en/docs/cli/remove]
+	default $("~/.nodecliac/plugins/yarn/main.sh remove")
+]
+
+yarn.run = [
+	# [https://yarnpkg.com/en/docs/cli/run]
+	default $("~/.nodecliac/plugins/yarn/main.sh run")
+]
+# yarn.run.test = []
+
+# [https://yarnpkg.com/en/docs/cli/tag]
+yarn.tag = []
+yarn.tag.add = []
+yarn.tag.remove = []
+yarn.tag.list = []
+
+# [https://yarnpkg.com/en/docs/cli/team]
+yarn.team = []
+yarn.team.create = []
+yarn.team.destroy = []
+yarn.team.add = []
+yarn.team.remove = []
+yarn.team.list = []
+
+# Shortcut for yarn.run.test
+# [https://yarnpkg.com/en/docs/cli/test]
+yarn.test = []
+
+yarn.unlink = []
+yarn.unplug = []
+yarn.upgrade = []
+yarn.upgrade-interactive = [
+	--latest
+]
+
+# [https://yarnpkg.com/en/docs/cli/version]
+yarn.version = []
+yarn.version = [
+	--new-version
+]
+yarn.version = [
+	--major
+]
+yarn.version = [
+	--minor
+]
+yarn.version = [
+	--patch
+]
+yarn.version = [
+	--no-git-tag-version
+]
+yarn.version = [
+	--no-commit-hooks
+]
+
+yarn.versions = []
+
+# [https://yarnpkg.com/en/docs/cli/why]
+yarn.why = []
+
+# [https://yarnpkg.com/en/docs/cli/workspace]
+yarn.workspace = []
+
+# [https://yarnpkg.com/en/docs/cli/workspaces]
+yarn.workspaces = []
+yarn.workspaces.info = []
+yarn.workspaces.run = []

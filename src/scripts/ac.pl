@@ -27,6 +27,10 @@ my $inp = substr($cline, 0, $cpoint); # CLI input from start to caret index.
 my $inp_remainder = substr($cline, $cpoint, -1); # CLI input from caret index to input string end.
 my $inp_len = length($inp); # Input length.
 
+# Vars to be used for storing used default positional arguments.
+my $used_default_pa_args = "";
+my $collect_used_pa_args = "";
+
 # Get user's home directory.
 # [https://stackoverflow.com/a/1475447]
 # [https://stackoverflow.com/a/1475396]
@@ -402,6 +406,8 @@ sub __execute_command {
 	$ENV{"${prefix}COMP_LINE_LENGTH"} = $cline_length; # Original input's length.
 	$ENV{"${prefix}INPUT_LINE_LENGTH"} = $cline_length; # CLI input from start to caret index string length.
 	$ENV{"${prefix}INPUT_WORD_COUNT"} = scalar(@args); # Amount of word items parsed before caret position/index.
+	# Store collected positional arguments after validating the command-chain to access in plugin auto-completion scripts.
+	$ENV{"${prefix}USED_DEFAULT_POSITIONAL_ARGS"} = $used_default_pa_args;
 
 	# Run the command.
 	my $lines = `$command`;
@@ -734,6 +740,14 @@ sub __extractor {
 		# [https://stackoverflow.com/a/34951053]
 		# [https://www.thoughtco.com/perl-chr-ord-functions-quick-tutorial-2641190]
 		if (!__starts_with_hyphen($item)) {
+			# Store default positional argument if flag is set.
+			if ($collect_used_pa_args) {
+				# Add used argument.
+				$used_default_pa_args .= "\n$item";
+				# Skip all following logic.
+				next;
+			}
+
 			# Store command.
 			$commandchain .= "." . __validate(__normalize_command($item), "command");
 
@@ -745,6 +759,11 @@ sub __extractor {
 			} else {
 				# Revert command chain back to last valid command chain.
 				$commandchain = $last_valid_chain;
+
+				# Set flag to start collecting used positional arguments.
+				$collect_used_pa_args = 1;
+				# Store used argument.
+				$used_default_pa_args .= "\n$item";
 			}
 
 			# Reset used flags.
@@ -753,6 +772,10 @@ sub __extractor {
 			# Store commandchain to revert to it if needed.
 			push(@oldchains, $commandchain);
 			$commandchain = "";
+
+			# Clear stored used default positional arguments string.
+			$used_default_pa_args = "";
+			$collect_used_pa_args = 0;
 
 			# If the flag contains an eq sign don't look ahead.
 			if (__includes($item, "=")) {

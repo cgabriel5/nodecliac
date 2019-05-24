@@ -131,7 +131,7 @@ case "$1" in
 		# Get script names.
 		scripts=`__yarn_get_package_fields scripts`
 
-		# Run ac perl script to get completions.
+		# Run perl script to get completions.
 		prune_args_script=~/.nodecliac/plugins/yarn/prune_args.pl
 		# Run completion script if it exists.
 		if [[ -f "$prune_args_script" ]]; then

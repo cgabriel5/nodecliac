@@ -88,26 +88,14 @@ yarn.check = [
 
 yarn.config.set = [
 	--global
-	# ignore-optional
-	# init-author-email
-	# init-license
-	# prefix
-	# user-agent
-	# version-git-tag
-	# ignore-platform
-	# init-author-name
-	# init-version
-	# registry
-	# version-git-message
-	# version-tag-prefix
-	# ignore-scripts
-	# init-author-url
-	# no-progress
-	# save-prefix
-	# version-git-sign
+	default $("~/.nodecliac/plugins/yarn/config.sh")
 ]
-yarn.config.get = []
-yarn.config.delete = []
+yarn.config.get = [
+	default $("~/.nodecliac/plugins/yarn/config.sh")
+]
+yarn.config.delete = [
+	default $("~/.nodecliac/plugins/yarn/config.sh")
+]
 yarn.config.list = []
 
 yarn.create = []

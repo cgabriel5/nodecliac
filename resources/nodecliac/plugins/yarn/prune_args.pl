@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+# This script's purpose is to return a pruned list of arguments. In essence,
+# a string of arguments is provided and from those arguments all used
+# arguments are excluded to return all unused arguments.
+#
+# Arguments:
+#   0) The list (string) of arguments to purge.
+# **NOTE: All other needed data is obtained from environment variables
+# provided from nodecliac.
+
 # [https://stackoverflow.com/questions/8023959/why-use-strict-and-warnings]
 # [http://perldoc.perl.org/functions/use.html]
 # use strict;

@@ -83,6 +83,7 @@ let paths = (function(os, path) {
 		`.${cdirssrc}/${acplscriptconfigname}`
 	);
 	let acmapspath = path.join(homedir, `.${cdirname}/defs`);
+	let acmapsresources = path.join(homedir, `.${cdirname}/resources`);
 	let acmapssource = path.join(homedir, `.${cdirssrc}`);
 	let setupfilepath = path.join(customdir, `/.setup.db.json`);
 	let resourcedefs = path.join(cwd, "resources/nodecliac/acdefs");
@@ -101,6 +102,7 @@ let paths = (function(os, path) {
 		acplscriptpath,
 		acplscriptconfigpath,
 		acmapspath,
+		acmapsresources,
 		acmapssource,
 		setupfilepath,
 		resourcedefs

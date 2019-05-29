@@ -70,6 +70,7 @@ module.exports = args => {
 		acplscriptconfigpath,
 		acmapspath,
 		acmapssource,
+		acmapsresources,
 		setupfilepath
 	} = paths;
 
@@ -157,49 +158,57 @@ module.exports = args => {
 								process.exit();
 							}
 
-							// Get .rcfile script contents.
-							let contents = fs
-								.readFileSync(bashrcpath)
-								.toString();
+							// Create ~/.nodecliac/resources/ path.
+							mkdirp(acmapsresources, function(err) {
+								if (err) {
+									console.error(err);
+									process.exit();
+								}
 
-							// Check for nodecliac marker.
-							if (!/^ncliac=~/m.test(contents)) {
-								// Edit .rcfile file to "include" nodecliac main script file.
-								fs.writeFileSync(
-									bashrcpath,
-									`${contents.replace(
-										/\n*$/g,
-										""
-									)}\n\nncliac=~/.nodecliac/src/${mainscriptname};if [ -f "$ncliac" ];then source "$ncliac";fi;`
+								// Get .rcfile script contents.
+								let contents = fs
+									.readFileSync(bashrcpath)
+									.toString();
+
+								// Check for nodecliac marker.
+								if (!/^ncliac=~/m.test(contents)) {
+									// Edit .rcfile file to "include" nodecliac main script file.
+									fs.writeFileSync(
+										bashrcpath,
+										`${contents.replace(
+											/\n*$/g,
+											""
+										)}\n\nncliac=~/.nodecliac/src/${mainscriptname};if [ -f "$ncliac" ];then source "$ncliac";fi;`
+									);
+								}
+
+								// Generate main and completion scripts.
+								script("scripts/ac.sh", acscriptpath);
+								script("scripts/main.sh", mscriptpath);
+								script("scripts/ac.pl", acplscriptpath, "775");
+								script(
+									"scripts/config.pl",
+									acplscriptconfigpath,
+									"775"
 								);
-							}
 
-							// Generate main and completion scripts.
-							script("scripts/ac.sh", acscriptpath);
-							script("scripts/main.sh", mscriptpath);
-							script("scripts/ac.pl", acplscriptpath, "775");
-							script(
-								"scripts/config.pl",
-								acplscriptconfigpath,
-								"775"
-							);
+								// Create setup info file to reference on uninstall.
+								fs.writeFileSync(
+									setupfilepath,
+									JSON.stringify(
+										{
+											force: force || false,
+											rcfilepath: bashrcpath,
+											time: Date.now()
+										},
+										undefined,
+										"\t"
+									)
+								);
 
-							// Create setup info file to reference on uninstall.
-							fs.writeFileSync(
-								setupfilepath,
-								JSON.stringify(
-									{
-										force: force || false,
-										rcfilepath: bashrcpath,
-										time: Date.now()
-									},
-									undefined,
-									"\t"
-								)
-							);
-
-							// Give success message.
-							log(chalk.green("Setup successful."));
+								// Give success message.
+								log(chalk.green("Setup successful."));
+							});
 						});
 					}
 				);

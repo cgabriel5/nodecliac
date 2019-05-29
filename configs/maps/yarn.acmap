@@ -325,8 +325,21 @@ yarn.versions
 
 # [https://yarnpkg.com/en/docs/cli/why]
 yarn.why = [
+	# Portable version:
+	# [https://stackoverflow.com/questions/24832458/pcre-regex-to-sed/42381797#42381797]
+	# [https://unix.stackexchange.com/questions/84477/forcing-bash-to-use-perl-regex-engine/84492#84492]
+	# [https://stackoverflow.com/questions/4794145/perl-one-liner-like-grep]
+	# [https://superuser.com/questions/416419/perl-for-matching-with-regular-expressions-in-terminal/416450#416450]
+	# [https://stackoverflow.com/questions/26875838/can-these-two-regex-expressions-ever-give-a-different-result]
+	# [https://en.wikipedia.org/wiki/One-liner_program#Perl]
+	# [https://dzone.com/articles/perl-as-a-better-grep]
+	# [https://serverfault.com/questions/208265/what-is-bash-event-not-found/631101#631101]
+	# [https://stackoverflow.com/questions/53886144/how-to-fix-possible-unintended-interpolation-of-in-regex/53886274#53886274]
+	default $("yarn list --depth=0 \| perl -wln -e \"/(?! ─ )([-\/_.@(?)a-zA-Z0-9]*)(?=\@)/ and print $&;\"")
+	# Above command is slow due to running yarn (node.js CLI tool) - not a native shell CLI tool (i.e. bash).
+
+	# [TODO] Fix parenthesis RegExp capture issue in __execute_command (ac.pl).
 	# default $("yarn list --depth=0 \| grep -Po '(?!─ )[-\/_.@a-zA-Z0-9]+(?=\@)'")
-	# Fix parenthesis regexp capture issue and make command portable for mamcos.
 	# default $("yarn list --depth=0 \| grep -Po '(?!─ )[-\/_.@a-zA-Z0-9]+\(?=\@\)'")
 ]
 

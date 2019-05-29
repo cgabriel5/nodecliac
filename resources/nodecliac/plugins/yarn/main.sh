@@ -119,7 +119,7 @@ __yarn_get_package_fields() {
 # Depending on provided action run appropriate logic...
 
 case "$1" in
-	remove|outdated)
+	remove|outdated|unplug|upgrade)
 		# Get (dev)dependencies.
 		dev=`__yarn_get_package_fields dependencies`
 		devdep=`__yarn_get_package_fields devDependencies`

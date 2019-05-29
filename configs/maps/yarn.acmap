@@ -51,10 +51,18 @@ yarn = [
 	--help
 ]
 
-yarn.access = []
+yarn.access
 
 yarn.add = [
 	# [https://yarnpkg.com/en/docs/cli/add]
+	--dev
+	--peer
+	--optional
+	--exact
+	--tilde
+	--ignore-workspace-root-check
+	--audit
+
 	# [https://stackoverflow.com/a/43747805]
 	# [https://github.com/yarnpkg/yarn/issues/2049]
 	# [https://stackoverflow.com/questions/47952851/where-is-yarn-storing-offline-packages]
@@ -66,6 +74,10 @@ yarn.add = [
 yarn.audit = [
 	--verbose
 	--json
+	# Grabbed from [https://github.com/dsifford/yarn-completion/blob/master/yarn-completion.bash]
+	--groups
+	--level
+	--summary
 ]
 
 yarn.autoclean = [
@@ -73,13 +85,13 @@ yarn.autoclean = [
 	--force
 ]
 
-yarn.bin = []
+yarn.bin
 
 yarn.cache.list = [
 	--pattern
 ]
-yarn.cache.dir = []
-yarn.cache.clean = []
+yarn.cache.dir
+yarn.cache.clean
 
 yarn.check = [
 	--integrity
@@ -96,26 +108,41 @@ yarn.config.get = [
 yarn.config.delete = [
 	default $("~/.nodecliac/plugins/yarn/config.sh")
 ]
-yarn.config.list = []
+yarn.config.list
 
-yarn.create = []
-yarn.exec = []
-yarn.generate-lock-entry = []
+yarn.create
+yarn.exec
+yarn.generate-lock-entry = [
+	--resolved
+	--use-manifest
+]
 
+# [https://yarnpkg.com/en/docs/cli/global]
 yarn.global = [
 	--prefix
+	--latest
 ]
 yarn.global.add = [
+	--prefix
+	--latest
 	default $("ls -lF ~/.cache/yarn/v4 \| grep -Po \"npm-([-a-z]+)-\\d\" \| sed -e \"s/^npm-//\" -e \"s/-[0-9]$//\"")
 ]
-yarn.global.bin = []
-yarn.global.list = []
-yarn.global.remove = []
-yarn.global.upgrade = []
+yarn.global.bin = --prefix|--latest
+yarn.global.list = --prefix|--latest
+yarn.global.remove = [
+	--prefix
+	--latest
+	default $("~/.nodecliac/plugins/yarn/main.sh remove")
+]
+yarn.global.upgrade = [
+	--prefix
+	--latest
+	default $("~/.nodecliac/plugins/yarn/main.sh upgrade")
+]
+yarn.global.upgrade-interactive = --prefix|--latest
 
-yarn.help = []
-
-yarn.import = []
+yarn.help
+yarn.import
 
 # [https://yarnpkg.com/en/docs/cli/info]
 yarn.info = [
@@ -144,7 +171,7 @@ yarn.info.optionalDependencies = --json
 yarn.info.peerDependencies = --json
 yarn.info.readme = --json
 yarn.info.repository = --json
-# yarn.info.time = []
+# yarn.info.time
 yarn.info.version = --json
 yarn.info.versions = --json
 
@@ -176,18 +203,20 @@ yarn.install = [
 	--link-duplicates
 ]
 
-yarn.licenses = []
-yarn.licenses.generate-disclaimer = []
+yarn.licenses.list
+yarn.licenses.generate-disclaimer
 
-yarn.link = []
+yarn.link
 
 yarn.list = [
 	--depth
 	--pattern
 ]
-yarn.login = []
-yarn.logout = []
-yarn.node = []
+yarn.login
+yarn.logout
+yarn.node = [
+	--info
+]
 
 yarn.outdated = [
 	# [https://yarnpkg.com/en/docs/cli/outdated]
@@ -197,25 +226,33 @@ yarn.outdated = [
 yarn.owner = [
 	# [https://yarnpkg.com/en/docs/cli/owner]
 ]
-yarn.owner.list = []
-yarn.owner.add = []
-yarn.owner.remove = []
+yarn.owner.list
+yarn.owner.add
+yarn.owner.remove
 
 yarn.pack = [
 	--filename
 ]
 
 # [https://yarnpkg.com/en/docs/cli/policies]
-yarn.policies = []
-yarn.policies.latest = []
-yarn.policies.nightly = []
-yarn.policies.rc = []
+yarn.policies
+yarn.policies.latest
+yarn.policies.nightly
+yarn.policies.rc
+yarn.policies.set-version = --rc
+
 
 # [https://yarnpkg.com/en/docs/cli/publish]
 yarn.publish = [
-	--new-version
-	--tag
 	--access
+	--major
+	--message
+	--minor
+	--new-version
+	--no-commit-hooks
+	--no-git-tag-version
+	--patch
+	--tag
 ]
 
 yarn.remove = [
@@ -227,63 +264,82 @@ yarn.run = [
 	# [https://yarnpkg.com/en/docs/cli/run]
 	default $("~/.nodecliac/plugins/yarn/main.sh run")
 ]
-# yarn.run.test = []
+# yarn.run.test
 
 # [https://yarnpkg.com/en/docs/cli/tag]
-yarn.tag = []
-yarn.tag.add = []
-yarn.tag.remove = []
-yarn.tag.list = []
+yarn.tag
+yarn.tag.add
+yarn.tag.remove
+yarn.tag.list
 
 # [https://yarnpkg.com/en/docs/cli/team]
-yarn.team = []
-yarn.team.create = []
-yarn.team.destroy = []
-yarn.team.add = []
-yarn.team.remove = []
-yarn.team.list = []
+yarn.team
+yarn.team.add
+yarn.team.create
+yarn.team.destroy
+yarn.team.list
+yarn.team.remove
 
 # Shortcut for yarn.run.test
 # [https://yarnpkg.com/en/docs/cli/test]
-yarn.test = []
+yarn.test
 
-yarn.unlink = []
-yarn.unplug = []
-yarn.upgrade = []
-yarn.upgrade-interactive = [
+yarn.unlink
+
+yarn.unplug = [
+	--clear
+	--clear-all
+	default $("~/.nodecliac/plugins/yarn/main.sh unplug")
+]
+
+yarn.upgrade = [
+	--caret
+	--exact
 	--latest
+	--pattern
+	--scope
+	--tilde
+	default $("~/.nodecliac/plugins/yarn/main.sh upgrade")
+]
+yarn.upgrade-interactive = [
+	--caret
+	--exact
+	--latest
+	--scope
+	--tilde
 ]
 
 # [https://yarnpkg.com/en/docs/cli/version]
-yarn.version = []
-yarn.version = [
-	--new-version
-]
+yarn.version
 yarn.version = [
 	--major
-]
-yarn.version = [
+	--message
 	--minor
-]
-yarn.version = [
+	--new-version
+	--no-commit-hooks
+	--no-git-tag-version
 	--patch
 ]
-yarn.version = [
-	--no-git-tag-version
-]
-yarn.version = [
-	--no-commit-hooks
-]
+yarn.versions
 
-yarn.versions = []
 
 # [https://yarnpkg.com/en/docs/cli/why]
-yarn.why = []
+yarn.why = [
+	# default $("yarn list --depth=0 \| grep -Po '(?!─ )[-\/_.@a-zA-Z0-9]+(?=\@)'")
+	# Fix parenthesis regexp capture issue and make command portable for mamcos.
+	# default $("yarn list --depth=0 \| grep -Po '(?!─ )[-\/_.@a-zA-Z0-9]+\(?=\@\)'")
+]
 
 # [https://yarnpkg.com/en/docs/cli/workspace]
-yarn.workspace = []
+# [TODO] Implement workspace logic.
+# [https://github.com/dsifford/yarn-completion/blob/master/yarn-completion.bash#L900]
+yarn.workspace
 
 # [https://yarnpkg.com/en/docs/cli/workspaces]
-yarn.workspaces = []
-yarn.workspaces.info = []
-yarn.workspaces.run = []
+yarn.workspaces
+
+yarn.workspaces.info
+yarn.workspaces.run = [
+	# [https://yarnpkg.com/en/docs/cli/run]
+	default $("~/.nodecliac/plugins/yarn/main.sh run")
+]

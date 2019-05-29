@@ -26,7 +26,7 @@ END
 )
 
 # Run perl script to get completions.
-prune_args_script=~/.nodecliac/plugins/yarn/prune_args.pl
+prune_args_script=~/.nodecliac/resources/yarn/prune_args.pl
 # Run completion script if it exists.
 if [[ -f "$prune_args_script" ]]; then
 	output=`"$prune_args_script" "$keys"`

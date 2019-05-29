@@ -103,13 +103,13 @@ yarn.check = [
 
 yarn.config.set = [
 	--global
-	default $("~/.nodecliac/plugins/yarn/config.sh")
+	default $("~/.nodecliac/resources/yarn/config.sh")
 ]
 yarn.config.get = [
-	default $("~/.nodecliac/plugins/yarn/config.sh")
+	default $("~/.nodecliac/resources/yarn/config.sh")
 ]
 yarn.config.delete = [
-	default $("~/.nodecliac/plugins/yarn/config.sh")
+	default $("~/.nodecliac/resources/yarn/config.sh")
 ]
 yarn.config.list
 
@@ -135,12 +135,12 @@ yarn.global.list = --prefix|--latest
 yarn.global.remove = [
 	--prefix
 	--latest
-	default $("~/.nodecliac/plugins/yarn/main.sh remove")
+	default $("~/.nodecliac/resources/yarn/main.sh remove")
 ]
 yarn.global.upgrade = [
 	--prefix
 	--latest
-	default $("~/.nodecliac/plugins/yarn/main.sh upgrade")
+	default $("~/.nodecliac/resources/yarn/main.sh upgrade")
 ]
 yarn.global.upgrade-interactive = --prefix|--latest
 
@@ -223,7 +223,7 @@ yarn.node = [
 
 yarn.outdated = [
 	# [https://yarnpkg.com/en/docs/cli/outdated]
-	default $("~/.nodecliac/plugins/yarn/main.sh outdated")
+	default $("~/.nodecliac/resources/yarn/main.sh outdated")
 ]
 
 yarn.owner = [
@@ -260,12 +260,12 @@ yarn.publish = [
 
 yarn.remove = [
 	# [https://yarnpkg.com/en/docs/cli/remove]
-	default $("~/.nodecliac/plugins/yarn/main.sh remove")
+	default $("~/.nodecliac/resources/yarn/main.sh remove")
 ]
 
 yarn.run = [
 	# [https://yarnpkg.com/en/docs/cli/run]
-	default $("~/.nodecliac/plugins/yarn/main.sh run")
+	default $("~/.nodecliac/resources/yarn/main.sh run")
 ]
 # yarn.run.test
 
@@ -292,7 +292,7 @@ yarn.unlink
 yarn.unplug = [
 	--clear
 	--clear-all
-	default $("~/.nodecliac/plugins/yarn/main.sh unplug")
+	default $("~/.nodecliac/resources/yarn/main.sh unplug")
 ]
 
 yarn.upgrade = [
@@ -302,7 +302,7 @@ yarn.upgrade = [
 	--pattern
 	--scope
 	--tilde
-	default $("~/.nodecliac/plugins/yarn/main.sh upgrade")
+	default $("~/.nodecliac/resources/yarn/main.sh upgrade")
 ]
 yarn.upgrade-interactive = [
 	--caret
@@ -356,5 +356,5 @@ yarn.workspaces
 yarn.workspaces.info
 yarn.workspaces.run = [
 	# [https://yarnpkg.com/en/docs/cli/run]
-	default $("~/.nodecliac/plugins/yarn/main.sh run")
+	default $("~/.nodecliac/resources/yarn/main.sh run")
 ]

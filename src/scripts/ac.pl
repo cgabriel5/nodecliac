@@ -559,6 +559,20 @@ sub __paramparse {
 			# Store the character.
 			$argument .= $char;
 
+		# If char is a "'" and status is open due to being wrapped in '"'
+		# double quotes then allow the single quotes through.
+		# Example: yarn list --depth=0 \| grep -Po 'RegExp_PATTERN'
+		# -----------------------------------------^--------------^
+		# ^-This will include the "'" (single quote characters).
+		} elsif (
+			$char =~ /[']/ &&
+			$pchar ne "\\" &&
+			$state eq "open" &&
+			$quote_type eq "\""
+		) {
+			# Store the character.
+			$argument .= $char;
+
 		# Handle escaped characters.
 		} elsif ($char eq "\\") {
 			if ($nchar) {

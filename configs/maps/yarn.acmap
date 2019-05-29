@@ -1,4 +1,7 @@
-# ACMAP definition file for yarn v1.15.2.
+# ACMAP for yarn@1.15.2.
+# Resources:
+# [https://github.com/dsifford/yarn-completion/blob/master/yarn-completion.bash]
+# [https://yarnpkg.com/en/docs/cli/]
 
 # Main command/flags.
 yarn = [

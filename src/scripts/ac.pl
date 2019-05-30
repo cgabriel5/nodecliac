@@ -478,7 +478,7 @@ sub __execute_command {
 						# Since we are completing a command we only
 						# want words that start with the current
 						# command we are trying to complete.
-						my $pattern = '^' . $last;
+						my $pattern = '^' . quotemeta($last);
 						if ($line =~ /$pattern/) {
 							# Finally, add to flags array.
 							push(@completions, $line);
@@ -1101,6 +1101,7 @@ sub __lookup {
 					# Flag must start with the last word.
 					# Escape special chars: [https://stackoverflow.com/a/576459]
 					# [http://perldoc.perl.org/functions/quotemeta.html]
+					# [https://stackoverflow.com/a/2458538]
 					my $pattern = '^' . quotemeta($last);
 					if ($flag =~ /$pattern/) {
 						# Note: If the last word is "--" or if the last
@@ -1326,7 +1327,7 @@ sub __lookup {
 							# Since we are completing a command we only
 							# want words that start with the current
 							# command we are trying to complete.
-							my $pattern = '^' . $last;
+							my $pattern = '^' . quotemeta($last);
 							if ($row =~ /$pattern/) {
 								$lookup{$row} = 1;
 							}
@@ -1387,7 +1388,7 @@ sub __lookup {
 							# Since we are completing a command we only
 							# want words that start with the current
 							# command we are trying to complete.
-							my $pattern = '^' . $last;
+							my $pattern = '^' . quotemeta($last);
 							if ($value =~ /$pattern/) {
 								# Finally, add to flags array.
 								push(@completions, $value);

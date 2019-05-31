@@ -89,9 +89,9 @@ module.exports = (...args) => {
 			} missing closing '${h(")", "value")}'.`,
 			10: `Empty flag namespace '${char}'.`,
 			11: `Dupe flag: '${name}'.`,
-			12: `Dupe ${h("default", "keyword")} (${chain}).`,
+			12: `Dupe ${h("command-string", "keyword")} (${chain}).`,
 			13: `Empty '${h(
-				"default",
+				"command-string",
 				"keyword"
 			)}' value for command: '${chain}'.`
 		},
@@ -119,9 +119,9 @@ module.exports = (...args) => {
 			2: `Unexpected ${ctype}: '${char}'.`,
 			3: `Invalid flag option.`,
 			4: `Improperly quoted string.`,
-			5: `Dupe ${h("default", "keyword")} (${chain}).`,
+			5: `Dupe ${h("command-string", "keyword")} (${chain}).`,
 			6: `Empty '${h(
-				"default",
+				"command-string",
 				"keyword"
 			)}' value for command: '${chain}'.`
 		},

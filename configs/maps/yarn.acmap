@@ -52,6 +52,8 @@ yarn = [
 	--version
 	--verbose
 	--help
+	# [https://yarnpkg.com/en/docs/cli/run]
+	always $("~/.nodecliac/resources/yarn/main.sh run")
 ]
 
 yarn.access

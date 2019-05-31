@@ -289,6 +289,76 @@ sub __validate {
 	return $arg;
 }
 
+# Run command-string fallback logic.
+#
+# @param {string} 1) - The command-string's keyword (default/always).
+# @param {array} 2) - The command chains array reference.
+# @return {null} - Nothing is returned.
+sub __fallback_cmd_string {
+	# Get arguments.
+	my ($keyword, $chains_ref) = @_;
+    # Dereference and use array.
+    my @chains = @{ $chains_ref };
+	# Get chains count.
+	my $chains_count = scalar(@chains);
+
+	# If no chains exists then populate array to always try and run the
+	# main commands command-string.
+	if (!$chains_count) {
+		# Add empty string so simply run loop logic.
+		push(@chains, "");
+		$chains_count = 1;
+	}
+
+	# Loop over chains and run first found command-string.
+	for (my $i = 0; $i < $chains_count; $i++) {
+		# Cache chain.
+		my $chain = $chains[$i];
+
+		# Get command-string, parse it, then run it...
+		my $pattern = '^' . quotemeta($chain) . " $keyword" . '[ \t]{1,}(.*?)$';
+		if ($acmap =~ /$pattern/m) {
+			# Store matched RegExp pattern value.
+			my $value = $1;
+			# If match exists...
+			if ($value) {
+				# Check if it is a command-string.
+				my $pattern = '^\$\((.*?)\)$';
+				if ($value =~ /$pattern/m) {
+					# Get the command-flag.
+					if ($1) {
+						# Parse user provided command-flag command.
+						__execute_command($1);
+					}
+				}
+				# Else it is a static non command-string value.
+				else {
+					if ($last) {
+						# When last word is present only
+						# add words that start with last
+						# word.
+
+						# Since we are completing a command we only
+						# want words that start with the current
+						# command we are trying to complete.
+						my $pattern = '^' . quotemeta($last);
+						if ($value =~ /$pattern/) {
+							# Finally, add to flags array.
+							push(@completions, $value);
+						}
+					} else {
+						# Finally, add to flags array.
+						push(@completions, $value);
+					}
+				}
+			}
+
+			# Stop loop once a command-string is found and ran.
+			last;
+		}
+	}
+}
+
 # Parse and run command-flag (flag) or default command chain command
 #     (commandchain).
 #
@@ -1360,47 +1430,15 @@ sub __lookup {
 			}
 		}
 
+		# Split chain into its individual commands.
+		my @chains = split(/(?:\\\\\.)|(?:(?<!\\)\.)/, $commandchain);
 		# If no completions exist run default command if it exists.
 		if (!scalar(@completions)) {
-			# Get default command, parse it, then run it...
-			my $pattern = '^' . quotemeta($commandchain) . ' default[ \t]{1,}(.*?)$';
-			if ($acmap =~ /$pattern/m) {
-				# Store matched RegExp pattern value.
-				my $value = $1;
-				# If match exists...
-				if ($value) {
-					# Check if it is a command-string.
-					my $pattern = '^\$\((.*?)\)$';
-					if ($value =~ /$pattern/m) {
-						# Get the command-flag.
-						if ($1) {
-							# Parse user provided command-flag command.
-							__execute_command($1);
-						}
-					}
-					# Else it is a static non command-string value.
-					else {
-						if ($last) {
-							# When last word is present only
-							# add words that start with last
-							# word.
-
-							# Since we are completing a command we only
-							# want words that start with the current
-							# command we are trying to complete.
-							my $pattern = '^' . quotemeta($last);
-							if ($value =~ /$pattern/) {
-								# Finally, add to flags array.
-								push(@completions, $value);
-							}
-						} else {
-							# Finally, add to flags array.
-							push(@completions, $value);
-						}
-					}
-				}
-			}
+			# Run default command-string.
+			__fallback_cmd_string("default", $chains);
 		}
+		# Run always command-string.
+		__fallback_cmd_string("always", $chains);
 	}
 }
 

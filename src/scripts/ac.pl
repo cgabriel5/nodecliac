@@ -64,6 +64,23 @@ sub __debug {
 	print "autocompletion: '$autocompletion'\n";
 }
 
+# Return provided arrays length.
+#
+# @param {array} 1) - The array's reference.
+# @return {number} - The array's size.
+#
+# @resource [https://perlmaven.com/passing-two-arrays-to-a-function]
+sub __len {
+	# Get arguments.
+	my ($array_ref) = @_;
+    # Dereference and use array.
+    my @array = @{ $array_ref };
+
+	# [https://alvinalexander.com/blog/post/perl/how-determine-size-number-elements-length-perl-array]
+	# [https://stackoverflow.com/questions/7406807/find-size-of-an-array-in-perl]
+	return $#array + 1; # scalar(@array);
+}
+
 # Global flag only to be used for __dupecheck function.
 my $__dc_multiflags = "";
 
@@ -113,7 +130,7 @@ sub __dupecheck {
 		# [https://stackoverflow.com/a/9538604]
 		$flag_fkey .= "=";
 		my @c = $usedflags =~ /$flag_fkey/g;
-		my $count = scalar(@c);
+		my $count = __len(\@c);
 
 		# More than 1 occurrence flag has been used.
 		if ($count >= 1) {
@@ -300,7 +317,7 @@ sub __fallback_cmd_string {
     # Dereference and use array.
     my @chains = @{ $chains_ref };
 	# Get chains count.
-	my $chains_count = scalar(@chains);
+	my $chains_count = __len(\@chains);
 
 	# If no chains exists then populate array to always try and run the
 	# main commands command-string.
@@ -475,7 +492,7 @@ sub __execute_command {
 	# item is a partial word.
 	$ENV{"${prefix}COMP_LINE_LENGTH"} = $cline_length; # Original input's length.
 	$ENV{"${prefix}INPUT_LINE_LENGTH"} = $cline_length; # CLI input from start to caret index string length.
-	$ENV{"${prefix}INPUT_WORD_COUNT"} = scalar(@args); # Amount of word items parsed before caret position/index.
+	$ENV{"${prefix}INPUT_WORD_COUNT"} = __len(\@args); # Amount of word items parsed before caret position/index.
 	# Store collected positional arguments after validating the command-chain to access in plugin auto-completion scripts.
 	$ENV{"${prefix}USED_DEFAULT_POSITIONAL_ARGS"} = $used_default_pa_args;
 
@@ -798,7 +815,7 @@ sub __parser {
 # myapp run -u $(id -u $USER):$(id -g $USER )
 sub __extractor {
 	# Vars.
-	my $l = scalar(@args);
+	my $l = __len(\@args);
 	my @oldchains = ();
 	my @foundflags = ();
 	# Following variables are used when validating command chain.
@@ -970,7 +987,7 @@ sub __extractor {
 
 	# Build used flags strings.
 	# Switch statement: [https://stackoverflow.com/a/22575299]
-	if (scalar(@foundflags) == 0) {
+	if (__len(\@foundflags) == 0) {
 		$usedflags = "";
 	} else {
 		$usedflags = join(' }|{ ', @foundflags);
@@ -1284,7 +1301,7 @@ sub __lookup {
 				# used flag, this means no completions exist and the
 				# current flag exist. Therefore, add the current word (the
 				# used flag) so that bash appends a space to it.
-				if (scalar(@completions) == 0 && scalar(@used) == 1) {
+				if (__len(\@completions) == 0 && __len(\@used) == 1) {
 					push(@completions, $used[0]);
 				}
 			}
@@ -1341,12 +1358,12 @@ sub __lookup {
 		# to the completions array to bash can append a space when
 		# the user presses the [tab] key to show the completion is
 		# complete for that word.
-		if (scalar(@rows) == 0) {
+		if (__len(\@rows) == 0) {
 			my $pattern = '^' . $commandchain . ' ';
 			# Filter rows instead of looking up entire file again.
 			@rows = grep(/$pattern/, @data);
 
-			if (scalar(@rows) && $lastchar_notspace) {
+			if (__len(\@rows) && $lastchar_notspace) {
 				# Get the last command in command chain.
 				my $last_command = __last_command($rows[0], $rtype);
 
@@ -1423,7 +1440,7 @@ sub __lookup {
 		# Note: If there is only one command in the command completions
 		# array, check whether the command is already in the commandchain.
 		# If so, empty completions array as it has already been used.
-		if ($nextchar && scalar(@completions) == 1) {
+		if ($nextchar && __len(\@completions) == 1) {
 			my $pattern = '.' . $completions[0] . '(\\.|$)';
 			if ($commandchain =~ /$pattern/) {
 				@completions = ();
@@ -1433,7 +1450,7 @@ sub __lookup {
 		# Split chain into its individual commands.
 		my @chains = split(/(?:\\\\\.)|(?:(?<!\\)\.)/, $commandchain);
 		# If no completions exist run default command if it exists.
-		if (!scalar(@completions)) {
+		if (!__len(\@completions)) {
 			# Run default command-string.
 			__fallback_cmd_string("default", $chains);
 		}

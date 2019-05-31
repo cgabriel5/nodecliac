@@ -59,7 +59,7 @@ module.exports = (params = {}) => {
 	// Collect all parsing warnings.
 	let warnings = [];
 	let isopeningpr = false;
-	let valid_keywords = ["default"];
+	let valid_keywords = ["default", "always"];
 	// Capture state's start/end indices.
 	let indices = {
 		keyword: {

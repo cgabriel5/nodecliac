@@ -33,7 +33,7 @@ let formatter = preformat => {
 	let hcformatted = []; // Highlighted version.
 	let isempty = true;
 	// RegExp pattern.
-	let option_r = /(flag-option|default)/;
+	let option_r = /(flag-option|default|always)/;
 
 	// Loop over lines.
 	for (let i = 0, l = lines.length; i < l; i++) {
@@ -71,7 +71,7 @@ let formatter = preformat => {
 		if (type === "nl") {
 			if (
 				(ptype === "nl" &&
-					/(close-brace|flag-option|default)/.test(ntype)) ||
+					/(close-brace|flag-option|default|always)/.test(ntype)) ||
 				// Note: This scenario, in some cases, removes the needed new
 				// line which separates the flagset > \n > flag-option lines.
 				// This will get amended below. The scenario in question is:

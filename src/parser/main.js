@@ -597,7 +597,7 @@ module.exports = (
 							preformat(
 								`${keyword} ${value}`,
 								`${hkeyword} ${hvalue}`,
-								"default",
+								keyword,
 								1
 							);
 

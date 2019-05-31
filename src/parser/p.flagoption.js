@@ -45,7 +45,7 @@ module.exports = () => {
 	let nl_index;
 	// Collect all parsing warnings.
 	let warnings = [];
-	let valid_keywords = ["default"];
+	let valid_keywords = ["default", "always"];
 	// Capture state's start/end indices.
 	let indices = {
 		keyword: {

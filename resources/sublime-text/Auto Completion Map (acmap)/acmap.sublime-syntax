@@ -205,7 +205,7 @@ contexts:
         - include: default
 
   defaults:
-    - match: "[ \t]{1,}(default)[ \t]{1,}" # Highlight default command chain command.
+    - match: "[ \t]{1,}(default|always)[ \t]{1,}" # Highlight default command chain command.
       scope: punctuation.section.sequence.begin.acmap
       captures:
         1: meta.command.acmap storage.type.command.acmap
@@ -217,7 +217,7 @@ contexts:
         - include: unaccounted
 
   flags:
-    - match: "(default)[ \t]{1,}" # Highlight default command chain command.
+    - match: "(default|always)[ \t]{1,}" # Highlight default command chain command.
       scope: punctuation.section.sequence.begin.acmap
       captures:
         1: meta.command.acmap storage.type.command.acmap

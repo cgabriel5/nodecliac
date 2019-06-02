@@ -46,7 +46,11 @@ module.exports = (...args) => {
 
 	// Add syntax highlight.
 	char = h(char, "value");
-	name = h(name, name.startsWith("@") ? "setting" : "flag");
+	if (!["p.variable.js", "p.template-string.js"].includes(scriptname)) {
+		name = h(name, name.startsWith("@") ? "setting" : "flag");
+	} else {
+		name = h(name, "variable");
+	}
 
 	// Parsing error reasons.
 	let reasons = {
@@ -61,6 +65,32 @@ module.exports = (...args) => {
 			6: `Empty setting assignment.`,
 			7: `Dupe setting: '${name}'.`,
 			8: `Empty setting: '${name}'.`
+		},
+		"p.variable.js": {
+			// 0: "Unexpected token '$'.",
+			1: `Setting started with '${char}'. Expected a letter.`,
+			2: `Unexpected ${ctype}: '${char}'.`,
+			3: `Value cannot start with '${char}'.`,
+			4: `Improperly quoted string.`,
+			// Parsing warning reasons.
+			5: `Unescaped ${ctype}: '${char}' in value.`,
+			6: `Empty variable assignment.`,
+			7: `Dupe variable: '${name}'.`,
+			8: `Empty variable: '${name}'.`,
+			9: `Undefined variable: '${name}'.`
+		},
+		"p.template-string.js": {
+			// 0: "Unexpected token '$'.",
+			1: `Setting started with '${char}'. Expected a letter.`,
+			2: `Unexpected ${ctype}: '${char}'.`,
+			3: `Value cannot start with '${char}'.`,
+			4: `Improperly quoted string.`,
+			// Parsing warning reasons.
+			5: `Unescaped ${ctype}: '${char}' in value.`,
+			6: `Empty variable assignment.`,
+			7: `Dupe variable: '${name}'.`,
+			8: `Empty variable: '${name}'.`,
+			9: `Undefined variable: '${name}'.`
 		},
 		"p.command.js": {
 			1: `Chain started with: '${char}'. Expected a letter.`,

@@ -138,6 +138,10 @@ module.exports = (value, ...scopes) => {
 						value = chalk[c.keyword](value);
 
 						break;
+					case "variable":
+						value = chalk[c.def](value);
+
+						break;
 					case "comment":
 						value = chalk[c.comment](value);
 

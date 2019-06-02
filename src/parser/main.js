@@ -5,6 +5,7 @@ const globals = require("./h.globals.js");
 
 // Require parsers.
 const psetting = require("./p.setting.js");
+const pvariable = require("./p.variable.js");
 const pcommand = require("./p.command.js");
 const pbrace = require("./p.close-brace.js");
 const pflagset = require("./p.flagset.js");
@@ -72,6 +73,10 @@ module.exports = (
 	let hkeywords = globals.set("hkeywords", {});
 	// Keep track of keyword size/count.
 	keywords.__count__ = 0;
+	// Track variables.
+	let variables = globals.set("variables", {});
+	let hvariables = globals.set("hvariables", {});
+	variables.__count__ = 0;
 
 	// Vars - Parser flags.
 	let line_type; // Store current type of line being parsed.
@@ -89,7 +94,7 @@ module.exports = (
 	// RegExp patterns:
 	let r_letter = /[a-zA-Z]/; // Letter.
 	let r_whitespace = /[ \t]/; // Whitespace.
-	let r_start_line_char = /[-@a-zA-Z)\]#]/; // Starting line character.
+	let r_start_line_char = /[-@a-zA-Z)\]\$#]/; // Starting line character.
 
 	// Create error functions wrappers to add fixed parameters.
 	let verify = result => {
@@ -207,6 +212,9 @@ module.exports = (
 					case char === "@":
 						line_type = "setting";
 						break;
+					case char === "$":
+						line_type = "variable";
+						break;
 					case char === "#":
 						line_type = "comment";
 						break;
@@ -263,7 +271,7 @@ module.exports = (
 				// Indentation/whitespace checks.
 				if (indentation) {
 					// Following commands cannot begin with any whitespace.
-					if (/(setting|command)/.test(line_type)) {
+					if (/(setting|variable|command)/.test(line_type)) {
 						// Line cannot begin begin with whitespace.
 						error("", 6, line_num, 0);
 					}
@@ -310,6 +318,35 @@ module.exports = (
 						`${name}${value ? " = " + value : ""}`,
 						`${hname}${hvalue ? " = " + hvalue : ""}`,
 						"setting"
+					);
+				}
+
+				break;
+			case "variable":
+				{
+					// Parse and verify line.
+					let result = verify(parser(pvariable));
+
+					// Reset index to start at newline on next iteration.
+					i = result.nl_index - 1;
+
+					// Get variable components.
+					let name = result.name;
+					let hname = result.h.name;
+					let value = result.value;
+					let hvalue = result.h.value;
+
+					// Store variable/value pair.
+					variables[name] = value;
+					hvariables[hname] = hvalue;
+					// Increment variables size/count.
+					variables.__count__++;
+
+					// Add line to format later.
+					preformat(
+						`${name}${value ? " = " + value : ""}`,
+						`${hname}${hvalue ? " = " + hvalue : ""}`,
+						"variable"
 					);
 				}
 

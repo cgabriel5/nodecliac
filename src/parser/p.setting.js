@@ -2,6 +2,7 @@
 
 // Get needed modules.
 const issuefunc = require("./p.error.js");
+const ptemplatestr = require("./p.template-string.js");
 // Get RegExp patterns.
 let { r_schars, r_nl } = require("./h.patterns.js");
 
@@ -79,7 +80,7 @@ module.exports = () => {
 		// Cache current loop item.
 		let char = string.charAt(i);
 		let pchar = string.charAt(i - 1);
-		// let nchar = string.charAt(i + 1);
+		let nchar = string.charAt(i + 1);
 
 		// End loop on a new line char.
 		if (r_nl.test(char)) {
@@ -176,7 +177,33 @@ module.exports = () => {
 
 					// Store index.
 					indices.value.end = i;
-					value += char;
+
+					// Check for template strings (variables).
+					if (char === "$" && pchar !== "\\" && nchar === "{") {
+						// Run template-string parser from here...
+						let pvalue = ptemplatestr({
+							str: [i + 1] // Index to resume parsing at.
+						});
+
+						// Join warnings.
+						if (pvalue.warnings.length) {
+							warnings = warnings.concat(pvalue.warnings);
+						}
+						// If error exists return error.
+						if (pvalue.code) {
+							return pvalue;
+						}
+
+						// Get result values.
+						value += pvalue.value;
+						let nl_index = pvalue.nl_index;
+
+						// Reset index.
+						i = nl_index;
+					} else {
+						// Else keep building value string.
+						value += char;
+					}
 				} else {
 					// We must stop at the first space char.
 					if (/[ \t]/.test(char)) {

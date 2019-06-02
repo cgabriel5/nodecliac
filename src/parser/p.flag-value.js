@@ -3,6 +3,7 @@
 // Require needed modules.
 const issuefunc = require("./p.error.js");
 const pcommandflag = require("./p.flag-command.js");
+const ptemplatestr = require("./p.template-string.js");
 // Get RegExp patterns.
 let { r_schars } = require("./h.patterns.js");
 
@@ -346,8 +347,33 @@ module.exports = (params = {}) => {
 					}
 				}
 
-				// Append character to current value string.
-				value += char;
+				// Check for template strings (variables).
+				if (char === "$" && pchar !== "\\" && nchar === "{") {
+					// Run template-string parser from here...
+					let pvalue = ptemplatestr({
+						// Provide new string information.
+						str: [i + 1, string, string.length]
+					});
+
+					// Join warnings.
+					if (pvalue.warnings.length) {
+						warnings = warnings.concat(pvalue.warnings);
+					}
+					// If error exists return error.
+					if (pvalue.code) {
+						return pvalue;
+					}
+
+					// Get result values.
+					value += pvalue.value;
+					let nl_index = pvalue.nl_index;
+
+					// Reset index.
+					i = nl_index;
+				} else {
+					// Append character to current value string.
+					value += char;
+				}
 			} else if (state === "command") {
 				// Run command flag parser from here...
 				let pvalue = pcommandflag({

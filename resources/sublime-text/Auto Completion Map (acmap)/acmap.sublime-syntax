@@ -25,6 +25,7 @@ contexts:
     - include: comments
   main:
     - include: settings
+    - include: variables
     - include: defaults
     - include: commands
     - include: long_form_flags
@@ -48,6 +49,14 @@ contexts:
     - match: '\b(?:NaN|-?(?:(?:\d+|\d*\.\d+)(?:[E|e][+|-]?\d+)?|Infinity))\b'
       scope: constant.numeric.acmap
 
+  template-strings:
+    - match: "(\\$\\{)[ \t]*([_a-zA-Z][_a-zA-Z0-9]*?)[ \t]*(\\})"
+      scope: meta.binding.name.acmap variable.other.readwrite.acmap meta.template.expression.acmap
+      captures:
+        1: keyword punctuation.definition.template-expression.begin.acmap
+        2: source.acmap.embedded.expression variable.other.readwrite.acmap
+        3: keyword punctuation.definition.template-expression.end.acmap
+
   strings:
     - match: '"' # Double quoted string.
       scope: punctuation.definition.string.begin.acmap
@@ -59,6 +68,8 @@ contexts:
         - match: '"'
           scope: punctuation.definition.string.end.acmap
           pop: true
+        - include: template-strings
+
     - match: "'" # Single quoted string.
       scope: punctuation.definition.string.begin.acmap
       push:
@@ -69,6 +80,7 @@ contexts:
         - match: "'"
           scope: punctuation.definition.string.end.acmap
           pop: true
+        - include: template-strings
 
   default: # Highlight remaining characters as strings.
     - match: "([^\\s])"
@@ -85,11 +97,28 @@ contexts:
   # Language Constructs --------------------------------------------------------
 
   settings:
-    - match: "^([ \t]*)(@)([a-zA-Z][_a-zA-Z0-9]*)([ \t]*(=)[ \t])?"
+    - match: "^([ \t]*)(@)([a-zA-Z][_a-zA-Z0-9]*)([ \t]*(=)[ \t]*)?"
       captures:
         1: invalid.illegal.acmap
         2: entity.name.setting.symbol.acmap
         3: entity.name.setting keyword.setting.acmap
+        5: keyword.operator.assignment.acmap
+      push:
+        - match: "$"
+          pop: true
+        - include: constants
+        - include: numbers
+        - include: strings
+        - include: escape
+        - include: default
+
+  variables:
+    - match: "^([ \t]*)(\\$)([_a-zA-Z][_a-zA-Z0-9]*)([ \t]*(=)[ \t]*)?"
+      captures:
+        1: invalid.illegal.acmap
+        2: entity.name.variable.symbol.acmap
+        # 3: entity.name.variable keyword.variable.acmap
+        3: entity.name.variable.acmap
         5: keyword.operator.assignment.acmap
       push:
         - match: "$"

@@ -315,7 +315,6 @@ yarn.upgrade-interactive = [
 ]
 
 # [https://yarnpkg.com/en/docs/cli/version]
-yarn.version
 yarn.version = [
 	--major
 	--message

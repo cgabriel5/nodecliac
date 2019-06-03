@@ -1452,10 +1452,10 @@ sub __lookup {
 		# If no completions exist run default command if it exists.
 		if (!__len(\@completions)) {
 			# Run default command-string.
-			__fallback_cmd_string("default", $chains);
+			__fallback_cmd_string("default", \@chains);
 		}
 		# Run always command-string.
-		__fallback_cmd_string("always", $chains);
+		__fallback_cmd_string("always", \@chains);
 	}
 }
 

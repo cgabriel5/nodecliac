@@ -3,6 +3,12 @@
 # [https://github.com/dsifford/yarn-completion/blob/master/yarn-completion.bash]
 # [https://yarnpkg.com/en/docs/cli/]
 
+# Variables - paths.
+$configscript = "~/.nodecliac/resources/yarn/config.sh"
+$mainscript = "~/.nodecliac/resources/yarn/main.sh"
+# Variables - shell commands.
+$cmd_add = "ls -lF ~/.cache/yarn/v4 \| grep -Po \"npm-([-a-z]+)-\\d\" \| sed -e \"s/^npm-//\" -e \"s/-[0-9]$//\""
+
 # Main command/flags.
 yarn = [
 	--cache-folder
@@ -52,8 +58,8 @@ yarn = [
 	--version
 	--verbose
 	--help
-	# [https://yarnpkg.com/en/docs/cli/run]
-	always $("~/.nodecliac/resources/yarn/main.sh run")
+	# Dynamically add scripts as commands. [https://yarnpkg.com/en/docs/cli/run]
+	always $("${mainscript} run")
 ]
 
 yarn.access
@@ -73,7 +79,7 @@ yarn.add = [
 	# [https://stackoverflow.com/questions/47952851/where-is-yarn-storing-offline-packages]
 	# [https://stackoverflow.com/questions/428109/extract-substring-in-bash]
 	# [https://stackoverflow.com/questions/16623835/remove-a-fixed-prefix-suffix-from-a-string-in-bash]
-	default $("ls -lF ~/.cache/yarn/v4 \| grep -Po \"npm-([-a-z]+)-\\d\" \| sed -e \"s/^npm-//\" -e \"s/-[0-9]$//\"")
+	default $("${cmd_add}")
 ]
 
 yarn.audit = [
@@ -105,13 +111,13 @@ yarn.check = [
 
 yarn.config.set = [
 	--global
-	default $("~/.nodecliac/resources/yarn/config.sh")
+	default $("${configscript}")
 ]
 yarn.config.get = [
-	default $("~/.nodecliac/resources/yarn/config.sh")
+	default $("${configscript}")
 ]
 yarn.config.delete = [
-	default $("~/.nodecliac/resources/yarn/config.sh")
+	default $("${configscript}")
 ]
 yarn.config.list
 
@@ -130,19 +136,20 @@ yarn.global = [
 yarn.global.add = [
 	--prefix
 	--latest
-	default $("ls -lF ~/.cache/yarn/v4 \| grep -Po \"npm-([-a-z]+)-\\d\" \| sed -e \"s/^npm-//\" -e \"s/-[0-9]$//\"")
+	default $("${cmd_add}")
 ]
 yarn.global.bin = --prefix|--latest
 yarn.global.list = --prefix|--latest
 yarn.global.remove = [
 	--prefix
 	--latest
-	default $("~/.nodecliac/resources/yarn/main.sh remove")
+	default $("${mainscript} remove")
+	# default $("~/.nodecliac/resources/yarn/main.sh remove")
 ]
 yarn.global.upgrade = [
 	--prefix
 	--latest
-	default $("~/.nodecliac/resources/yarn/main.sh upgrade")
+	default $("${mainscript} upgrade")
 ]
 yarn.global.upgrade-interactive = --prefix|--latest
 
@@ -151,7 +158,7 @@ yarn.import
 
 # [https://yarnpkg.com/en/docs/cli/info]
 yarn.info = [
-	default $("ls -lF ~/.cache/yarn/v4 \| grep -Po \"npm-([-a-z]+)-\\d\" \| sed -e \"s/^npm-//\" -e \"s/-[0-9]$//\"")
+	default $("${cmd_add}")
 	--json
 ]
 # For the time being add standard fields as command chains. However a better
@@ -225,7 +232,7 @@ yarn.node = [
 
 yarn.outdated = [
 	# [https://yarnpkg.com/en/docs/cli/outdated]
-	default $("~/.nodecliac/resources/yarn/main.sh outdated")
+	default $("${mainscript} outdated")
 ]
 
 yarn.owner = [
@@ -262,12 +269,12 @@ yarn.publish = [
 
 yarn.remove = [
 	# [https://yarnpkg.com/en/docs/cli/remove]
-	default $("~/.nodecliac/resources/yarn/main.sh remove")
+	default $("${mainscript} remove")
 ]
 
 yarn.run = [
 	# [https://yarnpkg.com/en/docs/cli/run]
-	default $("~/.nodecliac/resources/yarn/main.sh run")
+	default $("${mainscript} run")
 ]
 # yarn.run.test
 
@@ -294,7 +301,7 @@ yarn.unlink
 yarn.unplug = [
 	--clear
 	--clear-all
-	default $("~/.nodecliac/resources/yarn/main.sh unplug")
+	default $("${mainscript} unplug")
 ]
 
 yarn.upgrade = [
@@ -304,7 +311,7 @@ yarn.upgrade = [
 	--pattern
 	--scope
 	--tilde
-	default $("~/.nodecliac/resources/yarn/main.sh upgrade")
+	default $("${mainscript} upgrade")
 ]
 yarn.upgrade-interactive = [
 	--caret
@@ -357,5 +364,5 @@ yarn.workspaces
 yarn.workspaces.info
 yarn.workspaces.run = [
 	# [https://yarnpkg.com/en/docs/cli/run]
-	default $("~/.nodecliac/resources/yarn/main.sh run")
+	default $("${mainscript} run")
 ]

@@ -321,7 +321,7 @@ sub __fallback_cmd_string {
 
 	# If no chains exists then populate array to always try and run the
 	# main commands command-string.
-	if (!$chains_count) {
+	if (!$chains_count && $keyword eq "default") {
 		# Add empty string so simply run loop logic.
 		push(@chains, "");
 		$chains_count = 1;
@@ -1448,13 +1448,27 @@ sub __lookup {
 		}
 
 		# Split chain into its individual commands.
-		my @chains = split(/(?:\\\\\.)|(?:(?<!\\)\.)/, $commandchain);
+		my @chain_parts = split(/(?:\\\\\.)|(?:(?<!\\)\.)/, $commandchain);
+		# Create chains array.
+		my @chains = ($commandchain); # Set command chain as the first chain.
+		# Remove last chain from array.
+		pop(@chain_parts);
+		# Loop over completions and append to list.
+		while(__len(\@chain_parts)){
+			# Remove last chain from array.
+			pop(@chain_parts);
+
+			# Join existing parts to make new command chain string.
+			push(@chains, join('', @chain_parts));
+		}
+
 		# If no completions exist run default command if it exists.
 		if (!__len(\@completions)) {
 			# Run default command-string.
 			__fallback_cmd_string("default", \@chains);
 		}
 		# Run always command-string.
+		my @chains = ($commandchain);
 		__fallback_cmd_string("always", \@chains);
 	}
 }

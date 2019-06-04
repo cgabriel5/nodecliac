@@ -34,6 +34,7 @@ module.exports = () => {
 	let line_fchar = global.$app.get("line_fchar");
 	let h = global.$app.get("highlighter");
 	let variables = global.$app.get("variables");
+	let formatting = global.$app.get("formatting");
 
 	// Parsing vars.
 	let name = "$";
@@ -275,8 +276,11 @@ module.exports = () => {
 		issue("warning", 7, "=");
 	}
 
-	// Unquote value. [https://stackoverflow.com/a/19156197]
-	value = value.replace(/^(["'])(.+(?=\1$))\1$/, "$2");
+	if (!formatting) {
+		// Unquote value. [https://stackoverflow.com/a/19156197]
+		value = value.replace(/^(["'])(.+(?=\1$))\1$/, "$2");
+		hvalue = hvalue.replace(/^(["'])(.+(?=\1$))\1$/, "$2");
+	}
 
 	// Return relevant parsing information.
 	return {

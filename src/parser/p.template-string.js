@@ -32,8 +32,9 @@ module.exports = (params = {}) => {
 	let l = str[2] || global.$app.get("l");
 	let line_num = global.$app.get("line_num");
 	let line_fchar = global.$app.get("line_fchar");
-	// let h = global.$app.get("highlighter");
+	let h = global.$app.get("highlighter");
 	let variables = global.$app.get("variables");
+	let formatting = global.$app.get("formatting");
 
 	// Parsing vars.
 	let assignment = "";
@@ -161,6 +162,11 @@ module.exports = (params = {}) => {
 		i = indices["template-string"].variable.start;
 
 		return issue("error", 9, void 0);
+	}
+
+	// If not formatting then reset variable to actual value.
+	if (!formatting) {
+		value = lookup;
 	}
 
 	// Return relevant parsing information.

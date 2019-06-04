@@ -160,7 +160,7 @@ module.exports = (params = {}) => {
 		// Reset index to point to original index.
 		i = indices["template-string"].variable.start;
 
-		return issue("error", 9, char);
+		return issue("error", 9, void 0);
 	}
 
 	// Return relevant parsing information.

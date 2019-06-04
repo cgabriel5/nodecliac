@@ -39,6 +39,7 @@ module.exports = () => {
 	let name = "@";
 	let assignment = "";
 	let value = "";
+	let hvalue = ""; // Highlighted version.
 	let qchar; // String quote char.
 	let state = "name"; // Parsing state.
 	let nl_index;
@@ -167,6 +168,7 @@ module.exports = () => {
 				// Store index.
 				indices.value.start = i;
 				value += char;
+				hvalue += char;
 			} else {
 				// If value is a quoted string we allow for anything.
 				// End string at same style-unescaped quote.
@@ -196,6 +198,7 @@ module.exports = () => {
 
 						// Get result values.
 						value += pvalue.value;
+						hvalue += pvalue.h.value;
 						let nl_index = pvalue.nl_index;
 
 						// Reset index.
@@ -203,6 +206,7 @@ module.exports = () => {
 					} else {
 						// Else keep building value string.
 						value += char;
+						hvalue += char;
 					}
 				} else {
 					// We must stop at the first space char.
@@ -219,6 +223,7 @@ module.exports = () => {
 						// Store index.
 						indices.value.end = i;
 						value += char;
+						hvalue += char;
 					}
 				}
 			}
@@ -284,7 +289,7 @@ module.exports = () => {
 		h: {
 			// Add syntax highlighting.
 			name: h(name, "setting"),
-			value: h(value, "value")
+			value: h(hvalue, "value")
 		}
 	};
 };

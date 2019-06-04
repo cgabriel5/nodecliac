@@ -55,6 +55,7 @@ module.exports = (params = {}) => {
 	// index.
 	let ci = vsi;
 	let value = "";
+	let hvalue = ""; // Highlighted version.
 	let qchar; // String quote char.
 	let isvspecial;
 	let state = ""; // Parsing state.
@@ -281,9 +282,10 @@ module.exports = (params = {}) => {
 					state = "delimiter";
 					// Store value.
 					args.push(value);
-					hargs.push(value);
+					hargs.push(hvalue);
 					// Clear value.
 					value = "";
+					hvalue = "";
 					// Reset index to set delimiter state.
 					i--;
 					continue;
@@ -297,12 +299,14 @@ module.exports = (params = {}) => {
 
 				// Append character to current value string.
 				value += char;
+				hvalue += char;
 			} else if (state === "quoted") {
 				if (char === qchar && pchar !== "\\") {
 					// Reset state
 					state = "delimiter";
 					// Build string value.
 					value = `${qchar}${value}${qchar}`;
+					hvalue = `${qchar}${hvalue}${qchar}`;
 
 					// If string is empty give a warning.
 					if (/^("|')\1$/.test(value)) {
@@ -328,9 +332,10 @@ module.exports = (params = {}) => {
 
 					// Store value.
 					args.push(value);
-					hargs.push(value);
+					hargs.push(hvalue);
 					// Clear value.
 					value = "";
+					hvalue = "";
 					// Clear stored index.
 					indices.quoted.open = null;
 					continue;
@@ -366,6 +371,7 @@ module.exports = (params = {}) => {
 
 					// Get result values.
 					value += pvalue.value;
+					hvalue += pvalue.h.value;
 					let nl_index = pvalue.nl_index;
 
 					// Reset index.
@@ -373,6 +379,7 @@ module.exports = (params = {}) => {
 				} else {
 					// Append character to current value string.
 					value += char;
+					hvalue += char;
 				}
 			} else if (state === "command") {
 				// Run command flag parser from here...
@@ -397,7 +404,7 @@ module.exports = (params = {}) => {
 
 				// Build string value.
 				value = `$(${pvalue.cmd_str})`;
-				let hvalue = `$(${pvalue.h.hcmd_str})`;
+				hvalue = `$(${pvalue.h.hcmd_str})`;
 
 				// Reset delimiter count/index.
 				delimiter_count = 0;
@@ -415,6 +422,7 @@ module.exports = (params = {}) => {
 
 				// Clear value.
 				value = "";
+				hvalue = "";
 
 				// Reset index.
 				i = pvalue.index;
@@ -460,9 +468,10 @@ module.exports = (params = {}) => {
 
 		args.push(value);
 		// Add highlighted version.
-		hargs.push(value);
+		hargs.push(hvalue);
 		// Reset value.
 		value = "";
+		hvalue = "";
 	}
 
 	// If arguments array is empty then nothing was parsed. Meaning no

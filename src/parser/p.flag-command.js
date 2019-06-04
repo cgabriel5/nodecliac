@@ -47,6 +47,7 @@ module.exports = (params = {}) => {
 	// index.
 	let ci = vsi;
 	let value = "";
+	let hvalue = ""; // Highlighted version.
 	let qchar; // String quote char.
 	let state = ""; // Parsing state.
 	let closed = false;
@@ -146,6 +147,7 @@ module.exports = (params = {}) => {
 					state = "";
 					// Store value.
 					value = `${qchar}${value}${qchar}`;
+					hvalue = `${qchar}${hvalue}${qchar}`;
 
 					// If string is empty give a warning.
 					if (/^("|')\1$/.test(value)) {
@@ -165,6 +167,7 @@ module.exports = (params = {}) => {
 					// Add '$' flag argument indicator if flag is set.
 					if (is_cmd_arg) {
 						value = `$${value}`;
+						hvalue = `$${hvalue}`;
 					}
 
 					if (cmd_str) {
@@ -173,10 +176,11 @@ module.exports = (params = {}) => {
 					}
 					// Add syntax highlighting.
 					cmd_str += value;
-					hcmd_str += h(value, "cmd-flag-arg", "value");
+					hcmd_str += h(hvalue, "cmd-flag-arg", "value");
 
 					// Clear value.
 					value = "";
+					hvalue = "";
 					is_cmd_arg = null;
 					continue;
 				}
@@ -208,6 +212,7 @@ module.exports = (params = {}) => {
 
 					// Get result values.
 					value += pvalue.value;
+					hvalue += pvalue.h.value;
 					let nl_index = pvalue.nl_index;
 
 					// Reset index.
@@ -215,6 +220,7 @@ module.exports = (params = {}) => {
 				} else {
 					// Append character to current value string.
 					value += char;
+					hvalue += char;
 				}
 			} else if (state === "closing-parens") {
 				// Make a final check. The char after the closing ')'
@@ -250,20 +256,23 @@ module.exports = (params = {}) => {
 	// Add final value if it exists.
 	if (value) {
 		value = `${qchar}${value}${qchar}`;
+		hvalue = `${qchar}${hvalue}${qchar}`;
 
 		// Add '$' flag argument indicator if flag is set.
 		if (is_cmd_arg) {
 			value = `$${value}`;
+			hvalue = `$${hvalue}`;
 		}
 
 		cmd_str += ",";
 		hcmd_str += ",";
 		// Add syntax highlighting.
 		cmd_str += value;
-		hcmd_str += h(value, "cmd-flag-arg", "value");
+		hcmd_str += h(hvalue, "cmd-flag-arg", "value");
 
 		// Clear value.
 		value = "";
+		hvalue = "";
 		is_cmd_arg = null;
 	}
 

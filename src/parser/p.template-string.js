@@ -171,9 +171,15 @@ module.exports = (params = {}) => {
 
 	// Return relevant parsing information.
 	return {
-		value: lookup, // Return the variable's lookup value.
+		value,
 		name,
+		warnings,
 		nl_index,
-		warnings
+		h: {
+			// The highlighted string.
+			value: !formatting
+				? value
+				: h("${", "keyword") + h(name, "variable") + h("}", "keyword")
+		}
 	};
 };

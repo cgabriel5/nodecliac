@@ -75,21 +75,14 @@ module.exports = (...args) => {
 			// Parsing warning reasons.
 			5: `Unescaped ${ctype}: '${char}' in value.`,
 			6: `Empty variable assignment.`,
-			7: `Dupe variable: '${name}'.`,
+			7: `Redeclared variable: '${name}'.`,
 			8: `Empty variable: '${name}'.`,
 			9: `Undefined variable: '${name}'.`
 		},
 		"p.template-string.js": {
-			// 0: "Unexpected token '$'.",
-			1: `Setting started with '${char}'. Expected a letter.`,
 			2: `Unexpected ${ctype}: '${char}'.`,
 			3: `Value cannot start with '${char}'.`,
-			4: `Improperly quoted string.`,
 			// Parsing warning reasons.
-			5: `Unescaped ${ctype}: '${char}' in value.`,
-			6: `Empty variable assignment.`,
-			7: `Dupe variable: '${name}'.`,
-			8: `Empty variable: '${name}'.`,
 			9: `Undefined variable: '${name}'.`
 		},
 		"p.command.js": {

@@ -136,7 +136,7 @@ contexts:
         1: invalid.illegal.acmap
       push:
         - meta_scope: entity.name.command.acmap
-        - match: "(?:$|[ \t]*(=)|[ \t])"
+        - match: "(?:$|[ \t]*(=)|[ \t]*(,)|[ \t])"
           scope: keyword.operator.assignment.acmap
           captures:
             1: keyword.operator.assignment.acmap

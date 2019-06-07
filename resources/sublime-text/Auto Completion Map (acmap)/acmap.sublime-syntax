@@ -137,9 +137,9 @@ contexts:
       push:
         - meta_scope: entity.name.command.acmap
         - match: "(?:$|[ \t]*(=)|[ \t]*(,)|[ \t])"
-          scope: keyword.operator.assignment.acmap
           captures:
             1: keyword.operator.assignment.acmap
+            2: keyword.operator.delimiter.acmap
           pop: true
         - include: escape
         # - match: "([^.\\{}\\|])"

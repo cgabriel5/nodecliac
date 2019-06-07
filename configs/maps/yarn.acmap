@@ -91,106 +91,69 @@ yarn.audit = [
 	--summary
 ]
 
-yarn.autoclean = [
-	--init
-	--force
-]
+yarn.autoclean = --init|--force
 
 yarn.bin
 
-yarn.cache.list = [
-	--pattern
-]
+yarn.cache.list = --pattern
 yarn.cache.dir
 yarn.cache.clean
 
-yarn.check = [
-	--integrity
-	--verify-tree
-]
+yarn.check = --integrity|--verify-tree
 
-yarn.config.set = [
-	--global
-	default $("${configscript}")
-]
-yarn.config.get = [
-	default $("${configscript}")
-]
-yarn.config.delete = [
-	default $("${configscript}")
-]
+yarn.config.set = --global
+yarn.config.set,
+yarn.config.get,
+yarn.config.delete = default $("${configscript}")
 yarn.config.list
 
 yarn.create
 yarn.exec
-yarn.generate-lock-entry = [
-	--resolved
-	--use-manifest
-]
+yarn.generate-lock-entry = --resolved|--use-manifest
 
-# [https://yarnpkg.com/en/docs/cli/global]
-yarn.global = [
-	--prefix
-	--latest
-]
-yarn.global.add = [
-	--prefix
-	--latest
-	default $("${cmd_add}")
-]
-yarn.global.bin = --prefix|--latest
-yarn.global.list = --prefix|--latest
-yarn.global.remove = [
-	--prefix
-	--latest
-	default $("${mainscript} remove")
-	# default $("~/.nodecliac/resources/yarn/main.sh remove")
-]
-yarn.global.upgrade = [
-	--prefix
-	--latest
-	default $("${mainscript} upgrade")
-]
+yarn.global,
+yarn.global.add,
+yarn.global.bin,
+yarn.global.list,
+yarn.global.remove,
+yarn.global.upgrade,
 yarn.global.upgrade-interactive = --prefix|--latest
+yarn.global.add = default $("${cmd_add}")
+yarn.global.remove = default $("${mainscript} remove")
+yarn.global.upgrade = default $("${mainscript} upgrade")
 
 yarn.help
 yarn.import
 
 # [https://yarnpkg.com/en/docs/cli/info]
-yarn.info = [
-	default $("${cmd_add}")
-	--json
-]
+yarn.info = --json|default $("${cmd_add}")
 # For the time being add standard fields as command chains. However a better
 # solution should be used for this.
-yarn.info.author = --json
-yarn.info.bin = --json
-yarn.info.bugs = --json
-yarn.info.contributors = --json
-yarn.info.dependencies = --json
-yarn.info.description = --json
-yarn.info.devDependencies = --json
-yarn.info.dist-tags = --json
-yarn.info.engines = --json
-yarn.info.files = --json
-yarn.info.homepage = --json
-yarn.info.keywords = --json
-yarn.info.license = --json
-yarn.info.main = --json
-yarn.info.maintainers = --json
-yarn.info.name = --json
-yarn.info.optionalDependencies = --json
-yarn.info.peerDependencies = --json
-yarn.info.readme = --json
-yarn.info.repository = --json
+yarn.info.author,
+yarn.info.bin,
+yarn.info.bugs,
+yarn.info.contributors,
+yarn.info.dependencies,
+yarn.info.description,
+yarn.info.devDependencies,
+yarn.info.dist-tags,
+yarn.info.engines,
+yarn.info.files,
+yarn.info.homepage,
+yarn.info.keywords,
+yarn.info.license,
+yarn.info.main,
+yarn.info.maintainers,
+yarn.info.name,
+yarn.info.optionalDependencies,
+yarn.info.peerDependencies,
+yarn.info.readme,
+yarn.info.repository,
 # yarn.info.time
-yarn.info.version = --json
+yarn.info.version,
 yarn.info.versions = --json
 
-yarn.init = [
-	--private
-	--yes
-]
+yarn.init = --private|--yes
 
 yarn.install = [
 	--check-files
@@ -220,31 +183,21 @@ yarn.licenses.generate-disclaimer
 
 yarn.link
 
-yarn.list = [
-	--depth
-	--pattern
-]
+yarn.list = --depth|--pattern
 yarn.login
 yarn.logout
-yarn.node = [
-	--info
-]
+yarn.node = --info
 
-yarn.outdated = [
-	# [https://yarnpkg.com/en/docs/cli/outdated]
-	default $("${mainscript} outdated")
-]
+# [https://yarnpkg.com/en/docs/cli/outdated]
+yarn.outdated = default $("${mainscript} outdated")
 
-yarn.owner = [
-	# [https://yarnpkg.com/en/docs/cli/owner]
-]
+# [https://yarnpkg.com/en/docs/cli/owner]
+yarn.owner
 yarn.owner.list
 yarn.owner.add
 yarn.owner.remove
 
-yarn.pack = [
-	--filename
-]
+yarn.pack = --filename
 
 # [https://yarnpkg.com/en/docs/cli/policies]
 yarn.policies
@@ -252,7 +205,6 @@ yarn.policies.latest
 yarn.policies.nightly
 yarn.policies.rc
 yarn.policies.set-version = --rc
-
 
 # [https://yarnpkg.com/en/docs/cli/publish]
 yarn.publish = [
@@ -267,15 +219,11 @@ yarn.publish = [
 	--tag
 ]
 
-yarn.remove = [
-	# [https://yarnpkg.com/en/docs/cli/remove]
-	default $("${mainscript} remove")
-]
+# [https://yarnpkg.com/en/docs/cli/remove]
+yarn.remove = default $("${mainscript} remove")
 
-yarn.run = [
-	# [https://yarnpkg.com/en/docs/cli/run]
-	default $("${mainscript} run")
-]
+# [https://yarnpkg.com/en/docs/cli/run]
+yarn.run = default $("${mainscript} run")
 # yarn.run.test
 
 # [https://yarnpkg.com/en/docs/cli/tag]
@@ -333,7 +281,6 @@ yarn.version = [
 ]
 yarn.versions
 
-
 # [https://yarnpkg.com/en/docs/cli/why]
 yarn.why = [
 	# Portable version:
@@ -362,7 +309,5 @@ yarn.workspace
 yarn.workspaces
 
 yarn.workspaces.info
-yarn.workspaces.run = [
-	# [https://yarnpkg.com/en/docs/cli/run]
-	default $("${mainscript} run")
-]
+# [https://yarnpkg.com/en/docs/cli/run]
+yarn.workspaces.run = default $("${mainscript} run")

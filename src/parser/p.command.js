@@ -42,6 +42,7 @@ module.exports = () => {
 
 	// Parsing vars.
 	let chain = "";
+	let chains = []; // Delimited chains.
 	let assignment = "";
 	let value = "";
 	let flagset = "";
@@ -51,6 +52,8 @@ module.exports = () => {
 	let command = "";
 	let commands = [];
 	let has_shortcuts = false;
+	let is_oneliner = false;
+	let delimiter = false;
 	let state = "command"; // Parsing state.
 	let nl_index;
 	// Collect all parsing warnings.
@@ -62,6 +65,9 @@ module.exports = () => {
 			end: null
 		},
 		assignment: {
+			index: null
+		},
+		delimiter: {
 			index: null
 		},
 		value: {
@@ -111,6 +117,41 @@ module.exports = () => {
 		if (!cchain) {
 			global.$app.size(1); // Increment size by 1.
 		}
+	};
+
+	/**
+	 * Store fallback command string for provided command chain. Also store
+	 *     possible delimited sibling command chains.
+	 *
+	 * @param  {string} keyword  - The un-highlighted keyword (default/always).
+	 * @param  {string} hkeyword - The highlighted keyword.
+	 * @param  {string} value    - The un-highlighted keyword value.
+	 * @param  {string} hvalue   - The highlighted keyword value.
+	 * @param  {string} chain    - The chain to attach fallback to.
+	 * @return {undefined} - Nothing is returned.
+	 */
+	let store_fallback = function(keyword, hkeyword, value, hvalue, chain) {
+		// Get global chain objects.
+		let chains = global.$app.get("chains");
+
+		// Add current chain to objects.
+		chains.push({ chain });
+
+		// Loop over chains to add keyword.
+		for (let i = 0, l = chains.length; i < l; i++) {
+			// Cache current loop item.
+			let item = chains[i];
+			let chain = item.chain;
+
+			// Store setting/value pair.
+			keywords[chain] = [keyword, value];
+			hkeywords[chain] = [hkeyword, hvalue];
+			// Increment keyword size/count.
+			keywords.__count__++;
+		}
+
+		// Remove current chain from chains.
+		chains.pop();
 	};
 
 	// Loop over string.
@@ -313,6 +354,18 @@ module.exports = () => {
 					state = "assignment";
 					i--;
 				}
+				// If char is a comma change state/reset index.
+				else if (char === ",") {
+					// If brace index is set it was never closed.
+					if (indices.shortcut.open) {
+						// Reset index opened shortcut brace.
+						i = indices.shortcut.open;
+						return issue("error", 7, "{");
+					}
+
+					state = "delimiter";
+					i--;
+				}
 				// Anything else the character is not allowed.
 				else {
 					return issue("error", 4, char);
@@ -322,10 +375,13 @@ module.exports = () => {
 			// If the character is not a space and the assignment has not
 			// been set we are looking for an eq sign.
 			if (!/[ \t]/.test(char) && assignment === "") {
-				if (char !== "=") {
+				// Character at this point can only be an eq sign (=) or
+				// a command (,). Return error for anything else.
+				if (!/[=,]/.test(char)) {
 					return issue("error", 4, char);
 				} else {
-					state = "assignment";
+					// Set state.
+					state = char === "=" ? "assignment" : "delimiter";
 					i--;
 				}
 			}
@@ -336,7 +392,33 @@ module.exports = () => {
 			assignment = "=";
 
 			state = "open-bracket-wsb";
+		} else if (state === "delimiter") {
+			// Store index.
+			indices.delimiter.index = i;
+
+			// Set flag.
+			delimiter = true;
+			// Make command.
+			command = commands.join("") + command;
+			// Store chain in delimited chains array.
+			chains.push(commands.join("") + command);
+			// Clear commands array.
+			commands.length = 0;
+
+			state = "open-bracket-wsb";
 		} else if (state === "open-bracket-wsb") {
+			// If the delimiter flag is set...
+			if (delimiter) {
+				// All characters at this point must be spaces. Anything else
+				// is invalid and should produce an error.
+				if (!/[ \t]/.test(char)) {
+					return issue("error", 4, char);
+				}
+
+				// Break from loop and set index to continue parsing.
+				nl_index = i;
+			}
+
 			// Ignore all beginning consecutive spaces. Once a non-space
 			// character is detected switch to value state.
 			if (!/[ \t]/.test(char)) {
@@ -395,6 +477,9 @@ module.exports = () => {
 			// [https://stackoverflow.com/a/25895905]
 			// [https://stackoverflow.com/a/12281034]
 
+			// Set flag.
+			is_oneliner = true;
+
 			// Get individual flag sets. Use unescaped '|' as the delimiter.
 			if (char === "|" && pchar !== "\\") {
 				// Store chain as a global.
@@ -437,15 +522,8 @@ module.exports = () => {
 					let [, hkeyword] = keyword;
 					keyword = keyword[0];
 
-					// Store setting/value pair.
-					keywords[chain] = [keyword, value];
-					hkeywords[chain] = [hkeyword, hvalue];
-					// Increment keyword size/count.
-					keywords.__count__++;
-
-					// Reset flag set string.
-					flagset = "";
-					hflagset = "";
+					// Store the provided command string fallback (default/always).
+					store_fallback(keyword, hkeyword, value, hvalue, chain);
 
 					// Reset flag to newly parsed value.
 					flagset = `${keyword} ${value}`;
@@ -466,10 +544,16 @@ module.exports = () => {
 
 				// Reset oneliner start index.
 				indices.oneliner.start = (nl_index || i) + 1;
-				// Store current flag set.
-				flagsets.push(flagset);
-				// Set highlighted version.
-				hflagsets.push(hflagset);
+
+				// Don't add fallback (default/always) to flagsets as they have
+				// their own section (bottom of output).
+				if (!keyword || formatting) {
+					// Store current flag set.
+					flagsets.push(flagset);
+					// Set highlighted version.
+					hflagsets.push(hflagset);
+				}
+
 				// Reset flag set string.
 				flagset = "";
 				hflagset = "";
@@ -533,15 +617,8 @@ module.exports = () => {
 			let [, hkeyword] = keyword;
 			keyword = keyword[0];
 
-			// Store setting/value pair.
-			keywords[chain] = [keyword, value];
-			hkeywords[chain] = [hkeyword, hvalue];
-			// Increment keyword size/count.
-			keywords.__count__++;
-
-			// Reset flag set string.
-			flagset = "";
-			hflagset = "";
+			// Store the provided command string fallback (default/always).
+			store_fallback(keyword, hkeyword, value, hvalue, chain);
 
 			// Reset flag to newly parsed value.
 			flagset = `${keyword} ${value}`;
@@ -562,10 +639,16 @@ module.exports = () => {
 
 		// Reset oneliner start index.
 		indices.oneliner.start = (nl_index || i) + 1;
-		// Store current flag set.
-		flagsets.push(flagset);
-		// Set highlighted version.
-		hflagsets.push(hflagset);
+
+		// Don't add fallback (default/always) to flagsets as they have
+		// their own section (bottom of output) unless formatting.
+		if (!keyword || formatting) {
+			// Store current flag set.
+			flagsets.push(flagset);
+			// Set highlighted version.
+			hflagsets.push(hflagset);
+		}
+
 		// Reset flag set string.
 		flagset = "";
 		hflagset = "";
@@ -616,14 +699,18 @@ module.exports = () => {
 		chain,
 		value,
 		brstate,
-		// assignment,
+		assignment,
 		flagsets,
 		hflagsets,
 		nl_index,
+		delimiter,
 		warnings,
 		has_shortcuts,
+		is_oneliner,
 		// Return brace opening index for later error checks.
 		br_open_index: indices.braces.open - line_fchar + 1, // Add 1 to account for 0 index.
+		// Return delimiter index for later error checks.
+		delimiter_index: indices.delimiter.index - line_fchar + 1,
 		h: {
 			chain: h(chain, "command")
 		}

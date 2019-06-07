@@ -8,6 +8,9 @@ const { exit } = require("../utils.js");
 // Get highlighter.
 const h = global.$app.get("highlighter");
 
+// Name of main script file (for error purposes).
+const sourcescript = "p.main.js";
+
 /**
  * Issue warnings and or error the parsing result object might contain.
  *
@@ -184,7 +187,7 @@ let error = (char = "", code, line, index, source) => {
 			char,
 			reason: reasons[code],
 			// Add key to denote file giving issue.
-			source: "p.main.js"
+			source: sourcescript
 		},
 		[],
 		source
@@ -231,13 +234,30 @@ let brace_check = args => {
 						: `'${h("[]", "value")}' (no flags)`
 				}.`,
 				// Add key to denote file giving issue.
-				source: "p.main.js"
+				source: sourcescript
 			});
 		}
 	}
 };
 
+/**
+ * If an orphaned delimiter command-chain exists issue an error.
+ *
+ * @param  {array} data - Tuple containing line/index of error.
+ * @return {undefined} - Nothing is returned.
+ */
+let orphaned_cmddel_check = data => {
+	if (data) {
+		// Get line information.
+		let [line, index] = data;
+
+		// Issue error.
+		error(",", 2, line, index, sourcescript);
+	}
+};
+
 module.exports = {
+	orphaned_cmddel_check,
 	verify,
 	issue,
 	error,

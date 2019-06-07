@@ -25,7 +25,8 @@ const {
 	error: eerror,
 	// Rename functions to later wrap.
 	verify: everify,
-	brace_check: ebc
+	brace_check: ebc,
+	orphaned_cmddel_check
 } = require("./h.error.js");
 
 module.exports = (
@@ -77,6 +78,8 @@ module.exports = (
 	let variables = globals.set("variables", {});
 	let hvariables = globals.set("hvariables", {});
 	variables.__count__ = 0;
+	// Hold delimited chains.
+	let chains = globals.set("chains", []);
 
 	// Vars - Parser flags.
 	let line_type; // Store current type of line being parsed.
@@ -90,6 +93,8 @@ module.exports = (
 	let last_open_pr; // Track open/closing parentheses.
 	let flag_count; // Track command's flag count.
 	let flag_count_options; // Track flag's option count.
+	let skip_nl = false; // Whether to skip adding a preformat newline.
+	let last_delimited_command; // Track last delimiter command chain.
 
 	// RegExp patterns:
 	let r_letter = /[a-zA-Z]/; // Letter.
@@ -138,7 +143,7 @@ module.exports = (
 		// Check if \r?\n newline sequence.
 		if ((char === "\r" && nchar === "\n") || char === "\n") {
 			// Exclude consecutive new lines.
-			if (preformat.nl_count < 2) {
+			if (preformat.nl_count < 2 && !skip_nl) {
 				preformat.nl_count++;
 				// Add line to formatted text.
 				preformat.lines.push(["\n", "nl"]);
@@ -150,6 +155,7 @@ module.exports = (
 			indentation = "";
 			line_num++; // Increment line counter.
 			line_fchar = null; // Reset line char index.
+			skip_nl = false;
 
 			// Note: The line type will get switched to "command_setter"
 			// after extracting the command chain. However, when the command
@@ -291,6 +297,12 @@ module.exports = (
 			}
 		}
 
+		// For following line types run orphaned delimiter chain check.
+		if (chains.length && !/(command|comment)/.test(line_type)) {
+			// Check if delimited command was left orphaned.
+			orphaned_cmddel_check(last_delimited_command);
+		}
+
 		// Run logic for each line type.
 		switch (line_type) {
 			case "setting":
@@ -365,88 +377,174 @@ module.exports = (
 					// Get command chain.
 					let cc = result.chain;
 					let hcc = result.h.chain;
-					// let value = result.value;
 					// Get opening brace index.
 					let br_index = result.br_open_index;
+					let brstate = result.brstate;
+					let delimiter = result.delimiter;
 
-					// Store command chain.
-					if (!lookup[cc]) {
-						// Add to lookup.
-						let set = new Set();
-						// Add highlight set.
-						set.__h = new Set();
-						// Attach set to chain.
-						lookup[cc] = set;
-						// Increment lookup size.
-						lk_size++;
+					// Store result object in chains array.
+					chains.push(result);
+
+					// If command is being delimited stop further processing.
+					if (delimiter) {
+						// Store delimiter line + opening bracket index.
+						last_delimited_command = [
+							line_num,
+							result.delimiter_index
+						];
+
+						// Since we are skipping further process we also need
+						// to skip adding the line's ending newline character.
+						skip_nl = true;
+						break;
 					}
-					// Store current command chain.
-					currentchain = cc;
-					hcurrentchain = hcc;
 
-					// For non flag set one-liners.
-					if (result.brstate) {
-						// Add line to format later.
-						preformat(
-							`${currentchain} = [`,
-							`${hcurrentchain} = [`,
-							"command"
+					// When command-chain has assignment, clear flag.
+					if (result.assignment) {
+						last_delimited_command = null;
+					}
+
+					// If a oneliner was just parsed then add its flagsets
+					// to the child command chains objects so they share
+					// them. Basically, add flagsets from command chain with
+					// assignment to its delimited sibling command chains.
+					if (result.is_oneliner) {
+						// Get last command-chain's flag sets.
+						let flags = result.flagsets;
+						let hflags = result.hflagsets;
+
+						// Note: Since the high-order array function 'map'
+						// returns a new array we need to reset the global
+						// "chain" variable as it will get dereferenced
+						chains = globals.set(
+							"chains",
+							chains.map(obj => {
+								// Attach flags from (current) chain with
+								// assignment to its delimited sibling chains.
+								obj.flagsets = flags;
+								obj.hflagsets = hflags;
+								return obj;
+							})
 						);
+					}
 
-						// If brackets are empty set flags.
-						if (result.brstate === "closed") {
-							// Reset flags.
-							currentchain = "";
-							hcurrentchain = "";
-							last_open_br = null;
+					// Loop over delimited command chain result objects.
+					for (let i = 0, l = chains.length; i < l; i++) {
+						// Cache current loop item.
+						let result = chains[i];
 
-							// Add line to format later.
-							preformat("]", "]", "command");
+						// Get command chain.
+						let cc = result.chain;
+						let hcc = result.h.chain;
+						// Get opening brace index.
+						let br_index = result.br_open_index;
+						let brstate = result.brstate;
+
+						// Store command chain.
+						if (!lookup[cc]) {
+							// Add to lookup.
+							let set = new Set();
+							// Add highlight set.
+							set.__h = new Set();
+							// Attach set to chain.
+							lookup[cc] = set;
+							// Increment lookup size.
+							lk_size++;
 						}
-						// If bracket is unclosed set other flags.
-						else {
-							// Set flag set counter.
-							flag_count = [line_num, 0];
-							// Store line + opening bracket index.
-							last_open_br = [line_num, br_index];
-						}
-					} else {
-						// Clear values.
-						currentchain = "";
-						hcurrentchain = "";
+						// Store current command chain.
+						currentchain = cc;
+						hcurrentchain = hcc;
 
-						// Store flagsets with its command chain in lookup table.
-						let chain = lookup[result.chain];
-						if (chain) {
-							// Get flag sets.
-							let flags = result.flagsets;
-							let hflags = result.hflagsets;
-
+						// For non flag set one-liners.
+						if (brstate) {
 							// Add line to format later.
 							preformat(
-								`${cc}${
-									flags.length ? ` = ${flags.join("|")}` : ""
-								}`,
-								`${hcc}${
-									hflags.length
-										? ` = ${hflags.join("|")}`
-										: ""
-								}`,
+								`${currentchain} = [`,
+								`${hcurrentchain} = [`,
 								"command"
 							);
 
-							// Add each flag set to its command chain.
-							for (let j = 0, ll = flags.length; j < ll; j++) {
-								// Cache current loop item.
-								let flag = flags[j].trim();
-								let hflag = hflags[j].trim();
+							// If brackets are empty set flags.
+							if (brstate === "closed") {
+								// Reset flags.
+								currentchain = "";
+								hcurrentchain = "";
+								last_open_br = null;
 
-								// Skip empty flags.
-								if (!/^-{1,}$/.test(flag)) {
-									chain.add(flag);
-									chain.__h.add(hflag);
+								// Add line to format later.
+								preformat("]", "]", "command");
+							}
+							// If bracket is unclosed set other flags.
+							else {
+								// Set flag set counter.
+								flag_count = [line_num, 0];
+								// Store line + opening bracket index.
+								last_open_br = [line_num, br_index];
+							}
+						} else {
+							// Clear values.
+							currentchain = "";
+							hcurrentchain = "";
+
+							// Store flagsets with its command chain in lookup table.
+							let chain = lookup[result.chain];
+							if (chain) {
+								// Get flag sets.
+								let flags = result.flagsets;
+								let hflags = result.hflagsets;
+
+								// For delimited command flags.
+								if (result.delimiter) {
+									// Add line to format later.
+									preformat(`${cc},`, `${hcc},`, "command");
+
+									// Add line to formatted text.
+									preformat.lines.push(["\n", "nl"]);
+									preformat.hlines.push(["\n", "nl"]);
+								} else {
+									// Add line to format later.
+									preformat(
+										`${cc}${
+											flags.length
+												? ` = ${flags.join("|")}`
+												: ""
+										}`,
+										`${hcc}${
+											hflags.length
+												? ` = ${hflags.join("|")}`
+												: ""
+										}`,
+										"command"
+									);
+								}
+
+								// Add each flag set to its command chain.
+								for (
+									let j = 0, ll = flags.length;
+									j < ll;
+									j++
+								) {
+									// Cache current loop item.
+									let flag = flags[j].trim();
+									let hflag = hflags[j].trim();
+
+									// Skip empty flags.
+									if (!/^-{1,}$/.test(flag)) {
+										chain.add(flag);
+										chain.__h.add(hflag);
+									}
 								}
 							}
+						}
+					}
+
+					// Clear chains array to not pass delimited command chains.
+					if (!delimiter) {
+						if (!brstate || brstate !== "open") {
+							// Clear chains array.
+							chains.length = 0;
+							// Clear flag.
+							last_delimited_command = null;
 						}
 					}
 				}
@@ -508,85 +606,94 @@ module.exports = (
 					);
 
 					// Add to lookup table if not already.
-					let chain = lookup[currentchain];
-					if (chain) {
-						// Get the highlighted set.
-						let hchain = chain.__h;
+					for (let i = 0, l = chains.length; i < l; i++) {
+						// Cache current loop item.
+						let result = chains[i];
+						let chain = lookup[result.chain];
 
-						// Add flag itself to lookup table > command chain.
-						chain.add(`${hyphens}${flag}${setter}`);
-						// Add highlighted version.
-						hchain.add(`${hyphens}${hflag}${setter}`);
+						if (chain) {
+							// Get the highlighted set.
+							let hchain = chain.__h;
 
-						// If not an opening brace then add values.
-						if (!isopeningpr && fval && values_len) {
-							// Formatted flag values list string.
-							let flist = "";
-							let hflist = "";
+							// Add flag itself to lookup table > command chain.
+							chain.add(`${hyphens}${flag}${setter}`);
+							// Add highlighted version.
+							hchain.add(`${hyphens}${hflag}${setter}`);
 
-							// Check whether first value is a command-flag.
-							let is_cmd_flag = fval.startsWith("$(");
+							// If not an opening brace then add values.
+							if (!isopeningpr && fval && values_len) {
+								// Formatted flag values list string.
+								let flist = "";
+								let hflist = "";
 
-							// Loop over values and add to lookup table.
-							for (let i = 0, l = values_len; i < l; i++) {
-								// Cache current loop item.
-								let value = values[i];
-								// Get highlighted value.
-								let hvalue = hvalues[i];
+								// Check whether first value is a command-flag.
+								let is_cmd_flag = fval.startsWith("$(");
 
-								// Skip empty value.
-								if (!value) {
-									continue;
+								// Loop over values and add to lookup table.
+								for (let i = 0, l = values_len; i < l; i++) {
+									// Cache current loop item.
+									let value = values[i];
+									// Get highlighted value.
+									let hvalue = hvalues[i];
+
+									// Skip empty value.
+									if (!value) {
+										continue;
+									}
+
+									// Store value in formatted list.
+									flist += `${value}${
+										values_len - 1 !== i ? " " : ""
+									}`;
+									// Store value in formatted list.
+									hflist += `${hvalue}${
+										values_len - 1 !== i ? " " : ""
+									}`;
+
+									// Extract '=' from assignment.
+									let cassignment = setter.charAt(0);
+
+									// Add to lookup table > command chain.
+									chain.add(
+										`${hyphens}${flag}${cassignment}${value}`
+									);
+									// Add highlighted version.
+									hchain.add(
+										`${hyphens}${hflag}${cassignment}${hvalue}`
+									);
 								}
 
-								// Store value in formatted list.
-								flist += `${value}${
-									values_len - 1 !== i ? " " : ""
-								}`;
-								// Store value in formatted list.
-								hflist += `${hvalue}${
-									values_len - 1 !== i ? " " : ""
-								}`;
+								// Add line to formatted text.
+								if (flist) {
+									// TODO: Simplify/clarify logic.
 
-								// Extract '=' from assignment.
-								let cassignment = setter.charAt(0);
+									// Determine whether to wrap list: '()'.
+									let wrap = !(
+										is_cmd_flag || values_len === 1
+									);
 
-								// Add to lookup table > command chain.
-								chain.add(
-									`${hyphens}${flag}${cassignment}${value}`
-								);
-								// Add highlighted version.
-								hchain.add(
-									`${hyphens}${hflag}${cassignment}${hvalue}`
-								);
-							}
+									// Get last formatted line in array. It should
+									// be the flag set's flag.
+									let last_fline =
+										preformat.lines[
+											preformat.lines.length - 1
+										];
+									// Add to last line in formatted array.
+									last_fline[0] = `${last_fline[0]}${
+										wrap ? "(" : ""
+									}${flist}${wrap ? ")" : ""}`;
 
-							// Add line to formatted text.
-							if (flist) {
-								// TODO: Simplify/clarify logic.
-
-								// Determine whether to wrap list: '()'.
-								let wrap = !(is_cmd_flag || values_len === 1);
-
-								// Get last formatted line in array. It should
-								// be the flag set's flag.
-								let last_fline =
-									preformat.lines[preformat.lines.length - 1];
-								// Add to last line in formatted array.
-								last_fline[0] = `${last_fline[0]}${
-									wrap ? "(" : ""
-								}${flist}${wrap ? ")" : ""}`;
-
-								// Get last formatted line in array. It should
-								// be the flag set's flag.
-								let hlast_fline =
-									preformat.hlines[
-										preformat.hlines.length - 1
-									];
-								// Add to last line in formatted array.
-								hlast_fline[0] = `${hlast_fline[0]}${
-									wrap ? "(" : ""
-								}${hflist}${wrap ? ")" : ""}`;
+									// Get last formatted line in array. It should
+									// be the flag set's flag.
+									let hlast_fline =
+										preformat.hlines[
+											preformat.hlines.length - 1
+										];
+									// Add to last line in formatted array.
+									hlast_fline[0] = `${hlast_fline[0]}${
+										wrap ? "(" : ""
+									}${hflist}${wrap ? ")" : ""}`;
+								}
 							}
 						}
 					}
@@ -619,52 +726,65 @@ module.exports = (
 					// If flag chain exists add flag option and increment counter.
 					let chain = lookup[currentchain];
 					if (chain && value) {
-						// Get highlighted version.
-						let hvalue = values.hargs[0];
-						// Get keyword.
-						let keyword = result.keyword;
+						//
+						for (let i = 0, l = chains.length; i < l; i++) {
+							// Cache current loop item.
+							let r = chains[i];
+							let currentchain = r.chain;
 
-						// For keyword declarations.
-						if (keyword) {
-							// Get highlighted/non-highlighted keywords.
-							let [, hkeyword] = keyword;
-							keyword = keyword[0];
+							let chain = lookup[currentchain];
 
-							// Add line to format later.
-							preformat(
-								`${keyword} ${value}`,
-								`${hkeyword} ${hvalue}`,
-								keyword,
-								1
-							);
+							// Get highlighted version.
+							let hvalue = values.hargs[0];
+							// Get keyword.
+							let keyword = result.keyword;
 
-							// Store setting/value pair (Note: Remove ANSI color).
-							keywords[currentchain] = [keyword, value];
-							hkeywords[currentchain] = [hkeyword, hvalue];
-							// Increment keyword size/count.
-							keywords.__count__++;
-						}
-						// Actual flag options.
-						else {
-							// Add line to format later.
-							preformat(
-								`- ${value}`,
-								`- ${hvalue}`,
-								"flag-option",
-								2
-							);
+							// For keyword declarations.
+							if (keyword) {
+								// Get highlighted/non-highlighted keywords.
+								let [, hkeyword] = keyword;
+								keyword = keyword[0];
 
-							// Add to lookup table > command chain.
-							chain.add(`${currentflag}=${value}`);
-							// Add highlighted version.
-							chain.__h.add(`${hcurrentflag}=${hvalue}`);
+								// Only add for the last loop iteration, the
+								// chain where the fall back was attached to.
+								if (l - 1 === i) {
+									// Add line to format later.
+									preformat(
+										`${keyword} ${value}`,
+										`${hkeyword} ${hvalue}`,
+										keyword,
+										1
+									);
+								}
 
-							// Increment flag option counter.
-							if (flag_count_options) {
-								// Get values before incrementing.
-								let [counter, linenum] = flag_count_options;
-								// Increment and store values.
-								flag_count_options = [linenum, counter + 1];
+								// Store setting/value pair (Note: Remove ANSI color).
+								keywords[currentchain] = [keyword, value];
+								hkeywords[currentchain] = [hkeyword, hvalue];
+								// Increment keyword size/count.
+								keywords.__count__++;
+							}
+							// Actual flag options.
+							else {
+								// Add line to format later.
+								preformat(
+									`- ${value}`,
+									`- ${hvalue}`,
+									"flag-option",
+									2
+								);
+
+								// Add to lookup table > command chain.
+								chain.add(`${currentflag}=${value}`);
+								// Add highlighted version.
+								chain.__h.add(`${hcurrentflag}=${hvalue}`);
+
+								// Increment flag option counter.
+								if (flag_count_options) {
+									// Get values before incrementing.
+									let [counter, linenum] = flag_count_options;
+									// Increment and store values.
+									flag_count_options = [linenum, counter + 1];
+								}
 							}
 						}
 					}
@@ -703,6 +823,9 @@ module.exports = (
 				break;
 			case "close-bracket":
 				{
+					// Always clean array after closing a long-flag.
+					chains.length = 0;
+
 					// Opening flag must be set else this ']' is unmatched.
 					brace_check("unmatched", "]");
 					// If command chain's flag array is empty give warning.
@@ -757,6 +880,8 @@ module.exports = (
 		}
 	}
 
+	// Check if delimited command was left orphaned.
+	orphaned_cmddel_check(last_delimited_command);
 	// Final unclosed brace checks.
 	brace_check("unclosed", "[");
 	brace_check("unclosed", "(");

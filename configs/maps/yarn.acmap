@@ -59,7 +59,8 @@ yarn = [
 	--verbose
 	--help
 	# Dynamically add scripts as commands. [https://yarnpkg.com/en/docs/cli/run]
-	always $("${mainscript} run")
+	# always $("${mainscript} run")
+	# ^Note: Use pre-hook to add the script name as commands on the fly.
 ]
 
 yarn.access

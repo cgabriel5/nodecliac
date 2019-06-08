@@ -27,8 +27,8 @@
 		"file-extension": "^4.0.5",
 		"minimist": "^1.2.0",
 		"mkdirp": "^0.5.1",
-		"path-exists": "^3.0.0",
-		"prettier": "^1.15.3",
+		"path-exists": "^4.0.0",
+		"prettier": "^1.18.2",
 		"rimraf": "^2.6.3",
 		"strip-ansi": "^5.2.0"
 	},
@@ -46,9 +46,9 @@
 	},
 	"devDependencies": {
 		"cross-env": "^5.2.0",
-		"eslint": "^5.12.0",
-		"eslint-config-simple": "^0.0.2",
-		"eslint-formatter-simple": "^0.0.3",
-		"prettier-cli-watcher": "^0.3.1"
+		"eslint": "^5.16.0",
+		"eslint-config-simple": "^0.0.6",
+		"eslint-formatter-simple": "^0.0.6",
+		"prettier-cli-watcher": "^0.3.3"
 	}
 }

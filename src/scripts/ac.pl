@@ -704,7 +704,7 @@ sub __paramparse {
 #     Adapted from argsplit module.
 #
 # @param {string} 1) - The string to parse.
-# @return {undefined} - Noting is returned.
+# @return {undefined} - Nothing is returned.
 sub __parser {
 	# Vars.
 	my $current = "";

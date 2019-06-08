@@ -73,8 +73,8 @@ sub __debug {
 sub __len {
 	# Get arguments.
 	my ($array_ref) = @_;
-    # Dereference and use array.
-    my @array = @{ $array_ref };
+	# Dereference and use array.
+	my @array = @{ $array_ref };
 
 	# [https://alvinalexander.com/blog/post/perl/how-determine-size-number-elements-length-perl-array]
 	# [https://stackoverflow.com/questions/7406807/find-size-of-an-array-in-perl]
@@ -314,8 +314,8 @@ sub __validate {
 sub __fallback_cmd_string {
 	# Get arguments.
 	my ($keyword, $chains_ref) = @_;
-    # Dereference and use array.
-    my @chains = @{ $chains_ref };
+	# Dereference and use array.
+	my @chains = @{ $chains_ref };
 	# Get chains count.
 	my $chains_count = __len(\@chains);
 

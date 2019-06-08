@@ -31,6 +31,9 @@ my $inp_len = length($inp); # Input length.
 my $used_default_pa_args = "";
 my $collect_used_pa_args = "";
 
+# Set environment vars so command has access.
+my $prefix = "NODECLIAC_";
+
 # Get user's home directory.
 # [https://stackoverflow.com/a/1475447]
 # [https://stackoverflow.com/a/1475396]
@@ -467,9 +470,6 @@ sub __execute_command {
 	# [https://stackoverflow.com/a/3201234]
 	# [https://stackoverflow.com/a/3374285]
 	# [https://stackoverflow.com/a/11231972]
-
-	# Set environment vars so command has access.
-	my $prefix = "NODECLIAC_";
 
 	# Following env vars are provided by bash but exposed via nodecliac.
 	$ENV{"${prefix}COMP_LINE"} = $cline; # Original (unmodified) CLI input.

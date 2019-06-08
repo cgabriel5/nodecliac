@@ -1447,6 +1447,9 @@ sub __lookup {
 			}
 		}
 
+		# [TODO] Fallback (default/always) command string auto-completion
+		# 'feel' slow. Find a better way or improve (speed) current way.
+
 		# Split chain into its individual commands.
 		my @chain_parts = split(/(?:\\\\\.)|(?:(?<!\\)\.)/, $commandchain);
 		# Create chains array.

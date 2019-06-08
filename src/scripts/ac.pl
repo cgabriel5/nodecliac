@@ -700,6 +700,22 @@ sub __paramparse {
 	return @arguments;
 }
 
+# Runs acdef hook script. This is pre-parsing hook.
+#
+# @return {undefined} - Nothing is returned.
+sub __hook_acdef {
+	# Set env variable to access in hook script.
+	$ENV{"${prefix}ACDEF"} = $acmap;
+
+	# Run command string: `bash -c $command 2> /dev/null` ← Suppress all errors.
+	my $output = `bash -c \"~/.nodecliac/resources/$maincommand/hooks/acdef.sh\" 2> /dev/null`;
+
+	# Set acmap variable to returned output.
+	if ($output) {
+		$acmap = $output;
+	}
+}
+
 # Parses CLI input. Returns input similar to that of process.argv.slice(2).
 #     Adapted from argsplit module.
 #
@@ -1523,6 +1539,6 @@ sub __printer {
 }
 
 # Completion logic:
-# <cli_input> → parser → extractor → lookup → printer
+# hook<acdef> → <cli_input> → parser → extractor → lookup → printer
 # Note: Supply CLI input from start to caret index.
-__parser($inp);__extractor();__lookup();__printer();
+__hook_acdef();__parser($inp);__extractor();__lookup();__printer();

@@ -7,7 +7,7 @@ const chalk = require("chalk");
 const log = require("fancy-log");
 const mkdirp = require("mkdirp");
 const fe = require("file-exists");
-const copydir = require("copy-dir");
+const copydir = require("recursive-copy");
 const de = require("directory-exists");
 const { exit, paths } = require("./utils.js");
 
@@ -125,21 +125,23 @@ module.exports = args => {
 					paths.resourcedefs,
 					// ...to nodecliac registry location.
 					paths.acmapspath,
-					function(stat, filepath, filename) {
-						// Get command from filename.
-						let command = (filename
-							.replace(/^\./, "")
-							.split(".", 1) || [])[0];
+					{
+						overwrite: true,
+						dot: true,
+						debug: false,
+						filter: function(filename) {
+							// Get command from filename.
+							let command = (filename
+								.replace(/^\./, "")
+								.split(".", 1) || [])[0];
 
-						// Command has to be allowed to be copied over.
-						if (
-							stat === "file" &&
-							path.extname(filepath) === ".acdef" &&
-							allowed_commands.includes(command)
-						) {
-							return true;
+							// File must pass conditions to be copied.
+							return (
+								path.extname(filename) === ".acdef" &&
+								// Command must be allowed to be copied.
+								allowed_commands.includes(command)
+							);
 						}
-						return false;
 					},
 					function(err) {
 						// Exit on error.

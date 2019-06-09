@@ -287,6 +287,9 @@ module.exports = () => {
 		hvalue = hvalue.replace(/^(["'])(.+(?=\1$))\1$/, "$2");
 	}
 
+	// Store where variable was declared.
+	variables.__defs__[name.slice(1)] = [line_num, 0];
+
 	// Return relevant parsing information.
 	return {
 		name,

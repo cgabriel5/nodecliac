@@ -77,7 +77,9 @@ module.exports = (
 	// Track variables.
 	let variables = globals.set("variables", {});
 	let hvariables = globals.set("hvariables", {});
-	variables.__count__ = 0;
+	variables.__count__ = 0; // Count number of defined variables.
+	variables.__used__ = {}; // Store variable usage counters.
+	variables.__defs__ = {}; // Store line information of variable declaration.
 	// Hold delimited chains.
 	let chains = globals.set("chains", []);
 
@@ -353,6 +355,8 @@ module.exports = (
 					hvariables[hname] = hvalue;
 					// Increment variables size/count.
 					variables.__count__++;
+					// Add used counter and start at 0.
+					variables.__used__[name.slice(1)] = 0;
 
 					// Add line to format later.
 					preformat(
@@ -910,6 +914,26 @@ module.exports = (
 			} else {
 				// Create children command chains.
 				mkchain(chain, flags, lookup);
+			}
+		}
+	}
+
+	// Warn for unused variables.
+	let varused = variables.__used__;
+	for (let variable in varused) {
+		if (varused.hasOwnProperty(variable)) {
+			if (!varused[variable]) {
+				// Get line information.
+				let [line, index] = variables.__defs__[variable];
+
+				// Add warning to warnings.
+				warnings.push({
+					line,
+					index,
+					reason: `Unused variable: '${variable}'.`,
+					// Add key to denote file giving issue.
+					source: "p.main.js"
+				});
 			}
 		}
 	}

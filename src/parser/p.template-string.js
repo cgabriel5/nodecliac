@@ -169,6 +169,10 @@ module.exports = (params = {}) => {
 		value = lookup;
 	}
 
+	// Track used count.
+	let used_counter = variables.__used__[name];
+	variables.__used__[name] = used_counter + 1;
+
 	// Return relevant parsing information.
 	return {
 		value,

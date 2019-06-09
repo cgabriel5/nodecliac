@@ -101,6 +101,7 @@ module.exports = () => {
 				}
 				// Store index.
 				indices.name.start = i;
+				indices.name.end = i;
 				name += char;
 			}
 			// Keep building name string...

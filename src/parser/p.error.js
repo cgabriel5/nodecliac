@@ -19,7 +19,9 @@ module.exports = (...args) => {
 	// Get basename from file name.
 	let scriptname = path.basename(filename);
 	// Check if file is an intermediary file.
-	let is_intermediary_file = /^p\.flag-(command|value)\.js$/.test(scriptname);
+	let is_intermediary_file = /^p\.(flag-(command|value)|template-string)\.js$/.test(
+		scriptname
+	);
 
 	// Define variables for specific parsers.
 	let ci = fvars.ci || 0,

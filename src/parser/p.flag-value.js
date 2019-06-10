@@ -357,7 +357,8 @@ module.exports = (params = {}) => {
 					// Run template-string parser from here...
 					let pvalue = ptemplatestr({
 						// Provide new string information.
-						str: [i + 1, string, string.length]
+						str: [i + 1, string, string.length],
+						vsi: ci // Value start index.
 					});
 
 					// Join warnings.

@@ -186,7 +186,8 @@ module.exports = () => {
 					if (char === "$" && pchar !== "\\" && nchar === "{") {
 						// Run template-string parser from here...
 						let pvalue = ptemplatestr({
-							str: [i + 1] // Index to resume parsing at.
+							str: [i + 1], // Index to resume parsing at.
+							vsi: i + 1 // Value start index.
 						});
 
 						// Join warnings.

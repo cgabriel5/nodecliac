@@ -159,6 +159,36 @@ mycliprogram.install
 mycliprogram.uninstall
 ```
 
+<details>
+  <summary>Show command default documentation</summary>
+
+#### Command Chain Default
+
+Command chains can have a default command-string (runable shell command(s)) be run to dynamically generate auto-completion items. For example, say we are implementing an `.acmap` file for the dependency manager [yarn](https://yarnpkg.com/en/) and would like to return the names of installed modules when removing a package (i.e.`$ yarn remove...`). Basically, we would like to return the `package.json`'s `dependency` and `devDependency` entries. This can be done with a default command-string.
+
+- Start by using the keyword `default` followed by a space.
+- Follow that with the command-string like so:
+  - A command string is denoted with starting `$(` and closing `)`.
+  - The string in between the closing/starting syntax is the command-string.
+
+**Note**: For more information about `command-string`s please take a look at `ACMAP Format/Syntax > Flags > Flag Variations > Flags (dynamic values)`. The section contains all details for command-strings like special character escaping caveats, dynamic/static arguments, and examples with their breakdowns. Please be aware that the section uses the term `command-flag` due it being used for flags but `command-flag` and `command-string` are effectively the same thing. Here we see it being used for command chains. The naming is based on what it's being used for (i.e. flags or command chains).
+
+```acmap
+yarn.remove = [
+  # The default command will run on '$ yarn remove [TAB]'. The 'config.sh' script should
+  # contain the logic needed to parse package.json to return the installed (dev)dependency
+  # packages.
+  default $("~/.nodecliac/resources/yarn/config.sh")
+
+  # As shown the script resides within ~/.nodecliac/ in the resources/ sub-directory. Some
+  # CLI apps are more complicated than others. This will require the need to make a folder
+  # under the resources/ directory for the command. In this folder all relevant files should
+  # reside.
+]
+```
+
+</details>
+
 #### Flags
 
 To define flags we need to add to the [command chain](#command-chains) syntax.

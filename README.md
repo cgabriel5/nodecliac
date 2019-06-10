@@ -10,6 +10,8 @@
 - [API](#api)
 - [CLI](#cli)
 - [CLI Usage](#cli-usage-examples)
+- [Resource Files](#resources)
+  - [Hooks](#resources-hooks)
 - [Support](#support)
 - [Contributing](#contributing)
 - [License](#license)
@@ -528,6 +530,33 @@ $ nodecliac format --source path/to/mycliprogram.acmap --print --highlight --ind
 # As above but overwrite source file with prettified output.
 $ nodecliac format --source path/to/mycliprogram.acmap --print --highlight --indent "s:2" --save
 ```
+
+<a name="resources"></a>
+
+### Resource Files
+
+Some CLI apps are more complicated than others and will require the need of additional custom script files. If this is the case, a command folder should be made under the following path: `~/.nodecliac/resources/COMMAND-NAME/`. For example, say we are creating an `.acmap` file for [yarn](https://yarnpkg.com/en/) and we need to run custom script files for a better auto-completion experience. These files should reside at `~/.nodecliac/resources/yarn/`. [See directory structure/files here](/resources/nodecliac/resources).
+
+<a name="resources-hooks"></a>
+
+### Hooks
+
+As stated in the resources files section some apps are more complicated than others. In the case of [yarn](https://yarnpkg.com/en/) its `yarn.acdef` file needed to be modified before parsing to [dynamically add the repos scripts as commands](https://yarnpkg.com/en/docs/cli/run#toc-yarn-run). One of the easier solutions for this was to use a pre-parsing hook. Basically, before nodecliac does anything
+it is possible to use a hook script to modify the command's `.acdef` file (in-memory value).
+
+**Note**: Using a hook script might sound involved/off-putting but it's not. A hook script is just a regular shell script. The script just has special meaning in the sense that nodecliac will look for it to run it.
+
+#### Making Hook Script
+
+Using the hook script is easy. Simply create the following path in the command's resources directory: `~/.nodecliac/resources/COMMAND-NAME/hooks/acdef.sh`. Although only one hook script exists right now, all future hook scripts will reside in the `COMMAND-NAME/hooks` sub directory. For yarn it would be: `~/.nodecliac/resources/yarn/hooks/acdef.sh`.
+
+#### Using Hook Script
+
+From within the script the `.acdef` contents can be grabbed via the environment variable: `NODECLIAC_ACDEF`. [Look at yarn's hook script](/resources/nodecliac/resources/yarn) to see a hook script example. It basically runs a Perl script to modify the `.acdef` contents. The Perl script returns the modified `.acdef` contents to the hook script, `acdef.sh`, which then returns the value to nodecliac.
+
+**Note**: Perl is used here for quick text processing as doing it in Bash is slow and cumbersome. _However_, use what you need to get the job done. The hook script just _needs_ to be an executable shell script named `acdef.sh` and located in `~/.nodecliac/resources/COMMAND-NAME/hooks/acdef.sh`
+
+**Note**: As a reminder, the provided `.acmap` file gets parsed to generate an `.acdef` file. The created `.acdef` file is what nodecliac actually reads **a**uto-**c**ompletion **def**initions from. Therefore, modifying `.acdef` contents is a _slightly_ advanced topic as it requires knowing `.acdef` syntax.
 
 <a name="support"></a>
 

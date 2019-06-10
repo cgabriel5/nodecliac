@@ -216,8 +216,9 @@ module.exports = (params = {}) => {
 					hvalue += pvalue.h.value;
 					let nl_index = pvalue.nl_index;
 
-					// Reset index.
-					i = nl_index;
+					// Reset indices.
+					ci = pvalue.ci;
+					i = pvalue.index;
 				} else {
 					// Append character to current value string.
 					value += char;

@@ -111,6 +111,39 @@ nodecliac uses 2 custom file formats: `auto-completion definition` (`.acdef`) an
 @disable    =   false
 ```
 
+#### Variables
+
+- Variables start off with a dollar-sign (`$`) followed by the variable name.
+- Variable name can start with an underscore (`_`) or a letter (`a-zA-Z`).
+- Variable values are assigned with `=` followed by the variable value.
+- A variable's value must be enclosed with quotes.
+- Any amount of whitespace before and after `=` is fine, but keep things tidy.
+- No amount of indentation can precede a setting declaration.
+- To be clear, variables can be declared _anywhere_ within your `.acmap` file but to quickly see what settings are being declared they should be placed at the top of the file.
+
+```acmap
+$scriptpath = "~/path/to/script1.sh"
+$scriptpath="~/path/to/script2.sh"
+$scriptpath    =   "~/path/to/script3.sh"
+```
+
+#### Variable Interpolation (template-string)
+
+- Variables are meant to be used inside quoted strings.
+- Template strings have following structure:
+  - A template string is denoted with starting `${` and closing `}`.
+  - Any amount of space between opening/closing syntax is fine, but keep things tidy.
+  - The string in between the closing/starting syntax is the variable name.
+
+```acmap
+# Variables - paths.
+$mainscript = "~/.nodecliac/resources/yarn/main.sh"
+
+# Command chains.
+yarn.remove = default $("${mainscript} remove")
+yarn.run = default $("${mainscript} run")
+```
+
 #### Command Chains
 
 - Your program's commands/subcommands should be thought of as a chain which reads from left to right.

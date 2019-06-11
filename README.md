@@ -22,7 +22,7 @@
 
 ### Overview
 
-nodecliac is a simple definition based bash auto-completion tool originally made in mind for node (Node.js) apps. However, as development continued it proved useful for non-node CLI apps as well.
+nodecliac (**node**-**cli**-**a**uto-**c**ompletion) is a bash auto-completion tool made to easily add Bash tab auto-completion to your CLI app. Though originally made for Node.js CLI apps it has proved being useful for non-node CLI apps as well.
 
 <a name="install"></a>
 
@@ -548,6 +548,8 @@ it is possible to use a hook script to modify the command's `.acdef` file (in-me
 
 **Note**: Using a hook script might sound involved/off-putting but it's not. A hook script is just a regular shell script. The script just has special meaning in the sense that nodecliac will look for it to run it.
 
+<details><summary>Expand hook section.</summary>
+
 #### Making Hook Script
 
 Using the hook script is easy. Simply create the following path in the command's resources directory: `~/.nodecliac/resources/COMMAND-NAME/hooks/acdef.sh`. Although only one hook script exists right now, all future hook scripts will reside in the `COMMAND-NAME/hooks` sub directory. For yarn it would be: `~/.nodecliac/resources/yarn/hooks/acdef.sh`.
@@ -559,6 +561,8 @@ From within the script the `.acdef` contents can be grabbed via the environment 
 **Note**: Perl is used here for quick text processing as doing it in Bash is slow and cumbersome. _However_, use what you need to get the job done. The hook script just _needs_ to be an executable shell script named `acdef.sh` and located in `~/.nodecliac/resources/COMMAND-NAME/hooks/acdef.sh`
 
 **Note**: As a reminder, the provided `.acmap` file gets parsed to generate an `.acdef` file. The created `.acdef` file is what nodecliac actually reads **a**uto-**c**ompletion **def**initions from. Therefore, modifying `.acdef` contents is a _slightly_ advanced topic as it requires knowing `.acdef` syntax.
+
+</details>
 
 <a name="support"></a>
 

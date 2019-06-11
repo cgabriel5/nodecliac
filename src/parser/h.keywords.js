@@ -10,6 +10,7 @@
 module.exports = () => {
 	// Get highlighter.
 	let h = global.$app.get("highlighter");
+	let s = global.$app.get("stripansi");
 	let keywords = global.$app.get("keywords");
 	let hkeywords = global.$app.get("hkeywords");
 	let header = "\n"; // Set header to a new line.
@@ -81,7 +82,8 @@ module.exports = () => {
 	 * @return {number} - The sort number result.
 	 */
 	let aplhasort = (a, b) => {
-		return a.localeCompare(b);
+		// Remove ansi coloring before sorting.
+		return s(a).localeCompare(s(b));
 	};
 
 	// Generate un-highlighted and highlighted acmaps.

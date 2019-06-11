@@ -1,5 +1,7 @@
 # nodecliac
 
+<p align="center"><img src="./resources/images/nodecliac-tab-completion.gif?raw=true" alt="nodecliac tab completion" title="nodecliac tab completion" width="auto"></p>
+
 ##### Table of Contents
 
 - [Overview](#overview)

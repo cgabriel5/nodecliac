@@ -1,0 +1,115 @@
+# DON'T EDIT FILE —— GENERATED: Tue Jun 11 2019 00:09:34 GMT-0700 (PDT)(1560236974036)
+
+ --cache-folder|--check-files|--cwd|--disable-pnp|--emoji?|--enable-pnp|--flat|--focus|--force|--frozen-lockfile|--global-folder|--har|--help|--https-proxy|--ignore-engines|--ignore-optional|--ignore-platform|--ignore-scripts|--json|--link-duplicates|--link-folder|--modules-folder|--mutex|--network-concurrency|--network-timeout|--no-bin-links|--no-default-rc|--no-lockfile|--no-node-version-check|--no-progress|--non-interactive|--offline|--otp|--prefer-offline|--preferred-cache-folder|--production|--proxy|--pure-lockfile|--registry|--scripts-prepend-node-path?|--silent|--skip-integrity-check|--strict-semver|--update-checksums|--use-yarnrc|--verbose|--version
+.access --
+.add --audit|--dev|--exact|--ignore-workspace-root-check|--optional|--peer|--tilde
+.audit --groups|--json|--level|--summary|--verbose
+.autoclean --force|--init
+.bin --
+.cache --
+.cache.clean --
+.cache.dir --
+.cache.list --pattern
+.check --integrity|--verify-tree
+.config --
+.config.delete --
+.config.get --
+.config.list --
+.config.set --global
+.create --
+.exec --
+.generate-lock-entry --resolved|--use-manifest
+.global --latest|--prefix
+.global.add --latest|--prefix
+.global.bin --latest|--prefix
+.global.list --latest|--prefix
+.global.remove --latest|--prefix
+.global.upgrade --latest|--prefix
+.global.upgrade-interactive --latest|--prefix
+.help --
+.import --
+.info --json
+.info.author --json
+.info.bin --json
+.info.bugs --json
+.info.contributors --json
+.info.dependencies --json
+.info.description --json
+.info.devDependencies --json
+.info.dist-tags --json
+.info.engines --json
+.info.files --json
+.info.homepage --json
+.info.keywords --json
+.info.license --json
+.info.main --json
+.info.maintainers --json
+.info.name --json
+.info.optionalDependencies --json
+.info.peerDependencies --json
+.info.readme --json
+.info.repository --json
+.info.version --json
+.info.versions --json
+.init --private|--yes
+.install --audit|--check-files|--flat|--focus|--force|--frozen-lockfile|--har|--ignore-engines|--ignore-optional|--ignore-scripts|--link-duplicates|--modules-folder|--no-bin-links|--no-lockfile|--non-interactive|--offline|--production=|--production=false|--production=true|--pure-lockfile|--silent|--update-checksums
+.licenses --
+.licenses.generate-disclaimer --
+.licenses.list --
+.link --
+.list --depth|--pattern
+.login --
+.logout --
+.node --info
+.outdated --
+.owner --
+.owner.add --
+.owner.list --
+.owner.remove --
+.pack --filename
+.policies --
+.policies.latest --
+.policies.nightly --
+.policies.rc --
+.policies.set-version --rc
+.publish --access|--major|--message|--minor|--new-version|--no-commit-hooks|--no-git-tag-version|--patch|--tag
+.remove --
+.run --
+.tag --
+.tag.add --
+.tag.list --
+.tag.remove --
+.team --
+.team.add --
+.team.create --
+.team.destroy --
+.team.list --
+.team.remove --
+.test --
+.unlink --
+.unplug --clear|--clear-all
+.upgrade --caret|--exact|--latest|--pattern|--scope|--tilde
+.upgrade-interactive --caret|--exact|--latest|--scope|--tilde
+.version --major|--message|--minor|--new-version|--no-commit-hooks|--no-git-tag-version|--patch
+.versions --
+.why --
+.workspace --
+.workspaces --
+.workspaces.info --
+.workspaces.run --
+
+.add default $("ls -lF ~/.cache/yarn/v4 \| grep -Po \"npm-([-a-z]+)-\\d\" \| sed -e \"s/^npm-//\" -e \"s/-[0-9]$//\"")
+.config.delete default $("~/.nodecliac/resources/yarn/config.sh")
+.config.get default $("~/.nodecliac/resources/yarn/config.sh")
+.config.set default $("~/.nodecliac/resources/yarn/config.sh")
+.global.add default $("ls -lF ~/.cache/yarn/v4 \| grep -Po \"npm-([-a-z]+)-\\d\" \| sed -e \"s/^npm-//\" -e \"s/-[0-9]$//\"")
+.global.remove default $("~/.nodecliac/resources/yarn/main.sh remove")
+.global.upgrade default $("~/.nodecliac/resources/yarn/main.sh upgrade")
+.info default $("ls -lF ~/.cache/yarn/v4 \| grep -Po \"npm-([-a-z]+)-\\d\" \| sed -e \"s/^npm-//\" -e \"s/-[0-9]$//\"")
+.outdated default $("~/.nodecliac/resources/yarn/main.sh outdated")
+.remove default $("~/.nodecliac/resources/yarn/main.sh remove")
+.run default $("~/.nodecliac/resources/yarn/main.sh run")
+.unplug default $("~/.nodecliac/resources/yarn/main.sh unplug")
+.upgrade default $("~/.nodecliac/resources/yarn/main.sh upgrade")
+.why default $("yarn list --depth=0 \| perl -wln -e \"/(?! ─ )([-\/_.@(?)a-zA-Z0-9]*)(?=\@)/ and print $&;\"")
+.workspaces.run default $("~/.nodecliac/resources/yarn/main.sh run")

@@ -1,5 +1,7 @@
 # nodecliac
 
+> Easily add Bash tab completion to CLI apps.
+
 <p align="center"><img src="./resources/images/nodecliac-tab-completion.gif?raw=true" alt="nodecliac tab completion" title="nodecliac tab completion" width="auto"></p>
 
 ##### Table of Contents
@@ -79,7 +81,17 @@ $ git clone -b BRANCH_NAME --single-branch https://github.com/cgabriel5/nodeclia
 
 ### How It Works
 
-nodecliac uses 2 custom file formats: `auto-completion definition` (`.acdef`) and `auto-completion map` (`.acmap`). The idea here is you create an `.acmap` file to map your app's CLI commands/subcommands with their respective flags. You then pass your `mycommand.acmap` file to nodecliac to generate an `.acdef` file all from the command line. This auto-completion definition file (i.e. `mycommand.acdef`) can then be used by nodecliac to provide CLI tab auto-completion for your app.
+###### Text Summary:
+
+nodecliac uses 2 custom file formats: **a**uto-**c**ompletion **def**inition (`.acdef`) and **a**uto-**c**ompletion **map** (`.acmap`) files. The idea here is you create an `.acmap` file to map your app's CLI commands/subcommands with their respective flags. You then pass your `myapp.acmap` file to nodecliac to generate an `.acdef` file all from the command line. This auto-completion definition file (i.e. `myapp.acdef`) can then be used by nodecliac to provide CLI tab auto-completion for your app.
+
+###### Bullet Breakdown:
+
+1. [Create CLI app's auto-completion map](#cli-usage-examples) (`myapp.acmap`) file.
+2. Provide `myapp.acmap` to nodecliac to generate app's (`myapp.acdef`) file via nodecliac's `make` command.
+3. Add generated `myapp.acdef` file to [nodecliac's registry](#cli-usage-examples) via `make`'s `--add` flag.
+4. Open a new terminal and start enjoying Bash tab completions!
+5. See [CLI Usage](#cli-usage-examples) section for examples.
 
 <a name="acmap-format-syntax"></a>
 

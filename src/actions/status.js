@@ -6,7 +6,7 @@ const path = require("path");
 const chalk = require("chalk");
 const log = require("fancy-log");
 const fe = require("file-exists");
-const { exit, paths } = require("./utils.js");
+const { exit, paths } = require("../utils/main.js");
 
 module.exports = args => {
 	// Get needed paths.

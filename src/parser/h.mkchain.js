@@ -1,7 +1,7 @@
 "use strict";
 
 // Needed modules.
-let { concat_sets } = require("../utils.js");
+let { concat_sets } = require("../utils/main.js");
 
 /**
  * Create needed parent command chain(s). For example, if the current

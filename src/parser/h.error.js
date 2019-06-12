@@ -3,7 +3,7 @@
 // Needed modules.
 const path = require("path");
 const chalk = require("chalk");
-const { exit } = require("../utils.js");
+const { exit } = require("../utils/main.js");
 
 // Get highlighter.
 const h = global.$app.get("highlighter");

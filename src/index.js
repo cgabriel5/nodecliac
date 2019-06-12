@@ -5,7 +5,7 @@
 // Needed modules.
 const chalk = require("chalk");
 const minimist = require("minimist");
-const { exit } = require("./utils.js");
+const { exit } = require("./utils/main.js");
 
 // Get CLI parameters.
 const args = minimist(process.argv.slice(2));
@@ -40,7 +40,7 @@ if (action) {
 		action = "make";
 	}
 
-	require(`./${action}.js`)(args);
+	require(`./actions/${action}.js`)(args);
 } else {
 	// If version flag supplied, show version.
 	if (args.version) {

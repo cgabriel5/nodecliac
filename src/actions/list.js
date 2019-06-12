@@ -6,7 +6,7 @@ const path = require("path");
 const chalk = require("chalk");
 const log = require("fancy-log");
 const de = require("directory-exists");
-const { paths } = require("./utils.js");
+const { paths } = require("../utils/main.js");
 
 module.exports = () => {
 	// Get needed paths.

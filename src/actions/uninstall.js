@@ -7,7 +7,7 @@ const log = require("fancy-log");
 const rimraf = require("rimraf");
 const fe = require("file-exists");
 const de = require("directory-exists");
-const { exit, paths } = require("./utils.js");
+const { exit, paths } = require("../utils/main.js");
 
 module.exports = args => {
 	// Get CLI args.

@@ -6,7 +6,7 @@ const path = require("path");
 const chalk = require("chalk");
 const log = require("fancy-log");
 const fe = require("file-exists");
-const { fileinfo, exit, paths } = require("./utils.js");
+const { fileinfo, exit, paths } = require("../utils/main.js");
 
 module.exports = args => {
 	// Get needed paths.
@@ -24,7 +24,7 @@ module.exports = args => {
 		trace,
 		nowarn
 	} = args;
-	let parser = require("./parser/main.js");
+	let parser = require("../parser/main.js");
 	// Formatting indentation values.
 	let indent_char = "\t",
 		indent_amount = 1;

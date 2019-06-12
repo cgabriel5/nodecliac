@@ -9,7 +9,7 @@ const mkdirp = require("mkdirp");
 const fe = require("file-exists");
 const copydir = require("recursive-copy");
 const de = require("directory-exists");
-const { exit, paths } = require("./utils.js");
+const { exit, paths } = require("../utils/main.js");
 
 module.exports = args => {
 	// Get CLI args.

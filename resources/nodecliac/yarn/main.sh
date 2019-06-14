@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Parses and extracts data from package.json files.
 #
 # Usage:

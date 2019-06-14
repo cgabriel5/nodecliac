@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Provide config keys to set|get|delete subcommands.
 
 # Config keys: [https://stackoverflow.com/a/37222377]

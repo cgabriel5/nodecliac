@@ -10,13 +10,14 @@ const mkdirp = require("make-dir");
 const fe = require("file-exists");
 const copydir = require("recursive-copy");
 const de = require("directory-exists");
+const through = require("through2");
 const {
 	exit,
 	paths,
 	read,
 	write,
-	strip_comments,
-	readdir
+	readdir,
+	strip_comments
 } = require("../utils/toolbox.js");
 
 module.exports = async args => {
@@ -176,6 +177,17 @@ module.exports = async args => {
 					// Command must be allowed to be copied.
 					// && allowed_commands.includes(command)
 				);
+			},
+			transform: function(src, dest, stats) {
+				// Only modify Shell and Perl script files.
+				if (!/\.(sh|pl)$/.test(path.extname(src))) {
+					return null;
+				}
+
+				// Remove comments from files and return.
+				return through(function(chunk, enc, done) {
+					done(null, strip_comments(chunk.toString()));
+				});
 			}
 		})
 	);

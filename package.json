@@ -31,7 +31,8 @@
 		"prettier": "^1.18.2",
 		"recursive-copy": "^2.0.10",
 		"rimraf": "^2.6.3",
-		"strip-ansi": "^5.2.0"
+		"strip-ansi": "^5.2.0",
+		"through2": "^3.0.1"
 	},
 	"author": "Carlos Gabriel",
 	"license": "MIT",

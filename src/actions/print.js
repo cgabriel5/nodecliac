@@ -5,8 +5,7 @@ const fs = require("fs");
 const chalk = require("chalk");
 const flatry = require("flatry");
 const fe = require("file-exists");
-const { exit, paths } = require("../utils/main.js");
-const { remove, read } = require("../utils/file.js");
+const { exit, paths, remove, read } = require("../utils/toolbox.js");
 
 module.exports = async args => {
 	// Get needed paths.

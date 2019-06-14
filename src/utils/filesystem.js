@@ -1,8 +1,9 @@
 "use strict";
 
 // Needed modules.
-var fs = require("fs");
+const fs = require("fs");
 const path = require("path");
+const ext = require("file-extension");
 
 /**
  * Wrapper for readFile method. Returns a Promise.
@@ -78,28 +79,48 @@ let remove = filepath => {
 };
 
 /**
- * Remove all comments from Bash/Perl files.
+ * Get file path information (i.e. file name and directory path).
  *
- * @param  {string} contents - The file contents.
- * @return {string} - The file contents with comments removed.
+ * @param  {string} filepath - The complete file path.
+ * @return {object} - Object containing file path components.
  */
-let strip_comments = contents => {
-	return (
-		contents
-			// Inject acmap.
-			// .replace(/# \[\[__acmap__\]\]/, acmap)
-			// Remove comments/empty lines but leave sha-bang comment.
-			.replace(/^\s*#(?!!).*?$/gm, "")
-			.replace(/\s{1,}#\s{1,}.+$/gm, "")
-			// .replace(/(^\s*#.*?$|\s{1,}#\s{1,}.*$)/gm, "")
-			.replace(/(\r\n\t|\n|\r\t){1,}/gm, "\n")
-			.trim()
-	);
+let info = filepath => {
+	// Get file extension.
+	let extension = ext(filepath);
+	// Get file name and directory path.
+	let name = path.basename(filepath);
+	let dirname = path.dirname(filepath);
+
+	return {
+		name,
+		dirname,
+		ext: extension,
+		path: filepath
+	};
+};
+
+/**
+ * Wrapper for readFile method. Returns a Promise.
+ *
+ * @param  {string} filepath - The path of file to read.
+ * @return {promise} - Promise is returned.
+ */
+let readdir = filepath => {
+	return new Promise((resolve, reject) => {
+		fs.readdir(filepath, (err, list) => {
+			// Reject on error.
+			if (err) reject(err);
+
+			// Return directory contents list (array).
+			resolve(list);
+		});
+	});
 };
 
 module.exports = {
-	strip_comments,
+	readdir,
 	remove,
 	write,
+	info,
 	read
 };

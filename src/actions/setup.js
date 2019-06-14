@@ -10,9 +10,14 @@ const mkdirp = require("make-dir");
 const fe = require("file-exists");
 const copydir = require("recursive-copy");
 const de = require("directory-exists");
-const { exit, paths } = require("../utils/main.js");
-const { read, write, strip_comments } = require("../utils/file.js");
-const { readdir } = require("../utils/dir.js");
+const {
+	exit,
+	paths,
+	read,
+	write,
+	strip_comments,
+	readdir
+} = require("../utils/toolbox.js");
 
 module.exports = async args => {
 	/**

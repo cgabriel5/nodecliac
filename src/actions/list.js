@@ -8,8 +8,7 @@ const flatry = require("flatry");
 const log = require("fancy-log");
 const de = require("directory-exists");
 const fe = require("file-exists");
-const { exit, paths } = require("../utils/main.js");
-const { readdir } = require("../utils/dir.js");
+const { exit, paths, readdir } = require("../utils/toolbox.js");
 
 module.exports = async () => {
 	// Get needed paths.

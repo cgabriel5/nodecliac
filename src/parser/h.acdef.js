@@ -3,7 +3,7 @@
 // Needed modules.
 const path = require("path");
 const chalk = require("chalk");
-const { fileinfo, exit, paths } = require("../utils/main.js");
+const { info, exit, paths } = require("../utils/toolbox.js");
 
 /**
  * Run post operations on command chain and its respective flag set.

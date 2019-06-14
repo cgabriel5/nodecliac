@@ -7,8 +7,14 @@ const chalk = require("chalk");
 const flatry = require("flatry");
 const log = require("fancy-log");
 const fe = require("file-exists");
-const { fileinfo, exit, paths } = require("../utils/main.js");
-const { remove, read, write } = require("../utils/file.js");
+const {
+	exit,
+	paths,
+	remove,
+	read,
+	write,
+	info
+} = require("../utils/toolbox.js");
 
 module.exports = async args => {
 	// Get needed paths.
@@ -79,7 +85,7 @@ module.exports = async args => {
 		exit([`${chalk.bold("--source")} needs to be a string.`]);
 	}
 	// Check path for file name and extension.
-	let fi = fileinfo(source);
+	let fi = info(source);
 	if (!/^[a-z][-_+a-z0-9]{2,}\.acmap$/i.test(fi.name)) {
 		exit([
 			`File name must follow format: ${chalk.bold.blue(

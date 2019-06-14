@@ -8,8 +8,7 @@ const rimraf = require("rimraf");
 const flatry = require("flatry");
 const fe = require("file-exists");
 const de = require("directory-exists");
-const { exit, paths } = require("../utils/main.js");
-const { read, write } = require("../utils/file.js");
+const { exit, paths, read, write } = require("../utils/toolbox.js");
 
 module.exports = async args => {
 	// Get CLI args.

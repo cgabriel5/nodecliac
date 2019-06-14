@@ -1,7 +1,7 @@
 "use strict";
 
 // Needed modules.
-let { concat_sets } = require("../utils/main.js");
+let { concat } = require("../utils/toolbox.js");
 
 /**
  * Create needed parent command chain(s). For example, if the current
@@ -78,6 +78,6 @@ module.exports = (commandchain, flags, lookup) => {
 		lookup[commandchain] = set;
 	} else {
 		// Since chain exists in lookup combine flags.
-		concat_sets(lookup[commandchain], flags);
+		concat(lookup[commandchain], flags);
 	}
 };

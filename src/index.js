@@ -5,7 +5,7 @@
 // Needed modules.
 const chalk = require("chalk");
 const minimist = require("minimist");
-const { exit } = require("./utils/main.js");
+const { exit } = require("./utils/toolbox.js");
 
 // Get CLI parameters.
 const args = minimist(process.argv.slice(2));

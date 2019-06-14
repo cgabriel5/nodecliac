@@ -4,13 +4,17 @@
 const fs = require("fs");
 const path = require("path");
 const chalk = require("chalk");
+const flatry = require("flatry");
 const log = require("fancy-log");
 const fe = require("file-exists");
 const { fileinfo, exit, paths } = require("../utils/main.js");
+const { remove, read, write } = require("../utils/file.js");
 
-module.exports = args => {
+module.exports = async args => {
 	// Get needed paths.
-	let { acmapspath } = paths;
+	let { commandspaths } = paths;
+	// Declare empty variables to reuse for all await operations.
+	let err, res;
 
 	// Get CLI args.
 	let {
@@ -102,107 +106,103 @@ module.exports = args => {
 	}
 
 	// Check that the source path exists.
-	fe(source, (err, exists) => {
-		if (err) {
-			console.error(err);
-			process.exit();
-		}
+	[err, res] = await flatry(fe(source));
+	// If path does not exist, give message and end process.
+	if (!res) {
+		exit([`${chalk.bold(source)} does not exist.`]);
+	}
 
-		// If path does not exist, give message and end process.
-		if (!exists) {
-			exit([`${chalk.bold(source)} does not exist.`]);
-		}
+	// Generate acmap.
+	[err, res] = await flatry(read(source));
+	let { acdef: acmap, keywords, config, formatted, time } = parser(
+		res,
+		commandname,
+		source,
+		formatting ? [indent_char, indent_amount] : undefined,
+		highlight,
+		trace,
+		nowarn,
+		igc
+	);
+	let savename = `${commandname}.acdef`;
+	let saveconfigname = `.${commandname}.config.acdef`;
 
-		// Generate acmap.
-		let { acdef: acmap, keywords, config, formatted, time } = parser(
-			fs.readFileSync(source).toString(),
-			commandname,
-			source,
-			formatting ? [indent_char, indent_amount] : undefined,
-			highlight,
-			trace,
-			nowarn,
-			igc
-		);
-		let savename = `${commandname}.acdef`;
-		let saveconfigname = `.${commandname}.config.acdef`;
+	// Save formatted acmap file to source location when flag is provided.
+	if (save && formatting) {
+		[err, res] = await flatry(write(source, formatted.content));
+	}
+	// Save definitions file to source location when flag is provided.
+	else if (save) {
+		let data = acmap.content + keywords.content;
+		await flatry(write(path.join(fi.dirname, savename), data));
+		await flatry(path.join(fi.dirname, saveconfigname), config.data);
+	}
 
-		// Save formatted acmap file to source location when flag is provided.
-		if (save && formatting) {
-			fs.writeFileSync(source, formatted.content);
-		}
-		// Save definitions file to source location when flag is provided.
-		else if (save) {
-			fs.writeFileSync(
-				path.join(fi.dirname, savename),
-				acmap.content + keywords.content
+	// Add to maps location if add flag provided.
+	if (add) {
+		// Build file output paths.
+		let commanddir = path.join(commandspaths, commandname);
+		let commandpath = path.join(commanddir, savename);
+		let commandconfigpath = path.join(commanddir, saveconfigname);
+
+		// Check if command.acdef file exists.
+		[err, res] = await flatry(fe(commandpath));
+		if (!res || args.force) {
+			// Save file to map location.
+			await flatry(write(commandpath, acmap.content + keywords.content));
+			await flatry(write(commandconfigpath, config.content));
+
+			log(`${chalk.bold(commandname)} acmap added.`);
+		} else {
+			log(
+				`acmap ${chalk.bold(commandname)} exists (use ${chalk.bold(
+					"--force"
+				)} to overwrite current acmap).`
 			);
-			fs.writeFileSync(
-				path.join(fi.dirname, saveconfigname),
-				config.content
-			);
 		}
+	}
 
-		// Add to maps location if add flag provided.
-		if (add) {
-			let commandpath = path.join(acmapspath, savename);
-			let commandconfigpath = path.join(acmapspath, saveconfigname);
-			if (!fe.sync(commandpath) || args.force) {
-				// Save file to map location.
-				fs.writeFileSync(commandpath, acmap.content + keywords.content);
-				fs.writeFileSync(commandconfigpath, config.content);
-				log(`${chalk.bold(commandname)} acmap added.`);
-			} else {
-				log(
-					`acmap ${chalk.bold(commandname)} exists (use ${chalk.bold(
-						"--force"
-					)} to overwrite current acmap).`
-				);
-			}
-		}
-
-		// Log acmap file contents if print flag provided.
-		if (print) {
-			// Print generated acdef/config file contents.
-			if (!formatting) {
-				if (acmap) {
-					console.log(`[${chalk.bold(`${commandname}.acdef`)}]\n`);
-					console.log(acmap.print + keywords.print);
-					if (!config) {
-						console.log(); // Bottom padding.
-					}
-				}
-				if (config) {
-					console.log(
-						`\n[${chalk.bold(`.${commandname}.config.acdef`)}]\n`
-					);
-					console.log(config.print);
+	// Log acmap file contents if print flag provided.
+	if (print) {
+		// Print generated acdef/config file contents.
+		if (!formatting) {
+			if (acmap) {
+				console.log(`[${chalk.bold(`${commandname}.acdef`)}]\n`);
+				console.log(acmap.print + keywords.print);
+				if (!config) {
 					console.log(); // Bottom padding.
 				}
 			}
-			// If formatting print the output.
-			else {
+			if (config) {
 				console.log(
-					`${"-".repeat(25)}${chalk.bold.blue(
-						`Prettied`
-					)}${"-".repeat(25)}\n`
+					`\n[${chalk.bold(`.${commandname}.config.acdef`)}]\n`
 				);
-				console.log(formatted.print);
-				console.log(
-					`\n${"-".repeat(25)}${chalk.bold.blue(
-						`Prettied`
-					)}${"-".repeat(25)}\n`
-				);
+				console.log(config.print);
+				console.log(); // Bottom padding.
 			}
-
-			// Time in seconds: [https://stackoverflow.com/a/41443682]
-			// [https://stackoverflow.com/a/18031945]
-			// [https://stackoverflow.com/a/1975103]
-			// [https://blog.abelotech.com/posts/measure-execution-time-nodejs-javascript/]
-			const duration = ((time[0] * 1e3 + time[1] / 1e6) / 1e3).toFixed(3);
-			log(`Completed in ${chalk.green(duration + "s")}.`);
-			console.log();
-			// hrtime wrapper: [https://github.com/seriousManual/hirestime]
 		}
-	});
+		// If formatting print the output.
+		else {
+			console.log(
+				`${"-".repeat(25)}${chalk.bold.blue(`Prettied`)}${"-".repeat(
+					25
+				)}\n`
+			);
+			console.log(formatted.print);
+			console.log(
+				`\n${"-".repeat(25)}${chalk.bold.blue(`Prettied`)}${"-".repeat(
+					25
+				)}\n`
+			);
+		}
+
+		// Time in seconds: [https://stackoverflow.com/a/41443682]
+		// [https://stackoverflow.com/a/18031945]
+		// [https://stackoverflow.com/a/1975103]
+		// [https://blog.abelotech.com/posts/measure-execution-time-nodejs-javascript/]
+		const duration = ((time[0] * 1e3 + time[1] / 1e6) / 1e3).toFixed(3);
+		log(`Completed in ${chalk.green(duration + "s")}.`);
+		console.log();
+		// hrtime wrapper: [https://github.com/seriousManual/hirestime]
+	}
 };

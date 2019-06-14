@@ -65,7 +65,7 @@ exit.normal = (messages, stop) => {
 let paths = (function(os, path) {
 	// Get/create needed paths.
 	// let pwd = process.env.PWD; // [https://stackoverflow.com/a/39740187]
-	let cwd = path.dirname(__dirname); // [https://stackoverflow.com/a/29496638]
+	let cwd = path.dirname(path.dirname(__dirname)); // [https://stackoverflow.com/a/29496638]
 	let homedir = os.homedir(); // [https://stackoverflow.com/a/9081436]
 	let cdirname = "nodecliac"; // Custom directory name.
 	let cdirssrc = `${cdirname}/src`; // Source scripts.
@@ -82,11 +82,11 @@ let paths = (function(os, path) {
 		homedir,
 		`.${cdirssrc}/${acplscriptconfigname}`
 	);
-	let acmapspath = path.join(homedir, `.${cdirname}/defs`);
+	let commandspaths = path.join(homedir, `.${cdirname}/commands`);
 	let acmapsresources = path.join(homedir, `.${cdirname}/resources`);
 	let acmapssource = path.join(homedir, `.${cdirssrc}`);
 	let setupfilepath = path.join(customdir, `/.setup.db.json`);
-	let resourcedefs = path.join(cwd, "resources/nodecliac/acdefs");
+	let resourcespath = path.join(cwd, "resources/nodecliac/");
 
 	return {
 		cwd,
@@ -101,11 +101,11 @@ let paths = (function(os, path) {
 		acplscriptname,
 		acplscriptpath,
 		acplscriptconfigpath,
-		acmapspath,
+		commandspaths,
 		acmapsresources,
 		acmapssource,
 		setupfilepath,
-		resourcedefs
+		resourcespath
 	};
 })(os, path);
 

@@ -4,38 +4,31 @@
 const fs = require("fs");
 const path = require("path");
 const chalk = require("chalk");
+const flatry = require("flatry");
 const log = require("fancy-log");
 const fe = require("file-exists");
 const { exit, paths } = require("../utils/main.js");
+const { remove, write } = require("../utils/file.js");
 
-module.exports = args => {
+module.exports = async args => {
 	// Get needed paths.
 	let { customdir } = paths;
-
 	// Get CLI args.
 	let { enable, disable } = args;
-
 	// Dot file path.
 	let dotfile = path.join(customdir, ".disable");
+	// Declare empty variables to reuse for all await operations.
+	let err, res;
 
 	// If no flag is supplied then only print the status.
 	if (!enable && !disable) {
-		fe(dotfile, (err, exists) => {
-			if (err) {
-				console.error(err);
-				process.exit();
-			}
+		[err, res] = await flatry(fe(dotfile));
 
-			// Print status.
-			if (exists) {
-				log("nodecliac:", chalk.red("disabled"));
-			} else {
-				log("nodecliac:", chalk.green("enabled"));
-			}
-		});
+		// Print status.
+		let message = res ? chalk.red("disabled") : chalk.green("enabled");
+		log(`nodecliac: ${message}`);
 	} else {
 		// Enable/disable nodecliac.
-
 		// If both flags are provided give message and exit.
 		if (enable && disable) {
 			exit([
@@ -48,17 +41,12 @@ module.exports = args => {
 		// If enable flag provided..
 		if (enable) {
 			// Remove dot file.
-			if (fe.sync(dotfile)) {
+			[err, res] = await flatry(fe(dotfile));
+			if (res) {
 				// Remove script.
-				fs.unlink(dotfile, function(err) {
-					if (err) {
-						console.error(err);
-						process.exit();
-					}
-
-					// Log success message.
-					log(chalk.green("Enabled."));
-				});
+				[err, res] = await flatry(remove(dotfile));
+				// Log success message.
+				log(chalk.green("Enabled."));
 			} else {
 				// Log success message.
 				log(chalk.green("Enabled."));
@@ -67,7 +55,9 @@ module.exports = args => {
 			// If disable flag provided...
 
 			// Create blocking dot file.
-			fs.writeFileSync(dotfile, `Disabled: ${new Date()};${Date.now()}`);
+			[err, res] = await flatry(
+				write(dotfile, `Disabled: ${new Date()};${Date.now()}`)
+			);
 
 			// Log success message.
 			log(chalk.red("Disabled."));

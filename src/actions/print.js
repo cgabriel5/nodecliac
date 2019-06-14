@@ -3,15 +3,18 @@
 // Needed modules.
 const fs = require("fs");
 const chalk = require("chalk");
+const flatry = require("flatry");
 const fe = require("file-exists");
 const { exit, paths } = require("../utils/main.js");
+const { remove, read } = require("../utils/file.js");
 
-module.exports = args => {
+module.exports = async args => {
 	// Get needed paths.
-	let { customdir } = paths;
-
+	let { customdir, commandspaths } = paths;
 	// Get CLI args.
 	let { command } = args;
+	// Declare empty variables to reuse for all await operations.
+	let err, res;
 
 	// Source must be provided.
 	if (!command) {
@@ -68,62 +71,39 @@ module.exports = args => {
 		}
 
 		// File paths.
-		let filepath = `${customdir}/defs/${commandname}${ext}`;
-		let filepathconfig = `${customdir}/defs/.${commandname}.config${ext}`;
+		let filepath = `${commandspaths}/${commandname}/${commandname}${ext}`;
+		let filepathconfig = `${commandspaths}/${commandname}/.${commandname}.config${ext}`;
 
 		// Check if acdef file exists.
-		fe(filepath, (err, exists) => {
-			if (err) {
-				console.error(err);
-				process.exit();
-			}
+		[err, res] = await flatry(fe(filepath));
 
+		// Print file contents.
+		if (res) {
+			[err, res] = await flatry(read(filepath));
+
+			// Log file contents.
+			console.log(`[${chalk.bold(`${commandname}${ext}`)}]\n`);
+			console.log(res);
+
+			// Check if config file exists.
+			[err, res] = await flatry(fe(filepathconfig));
 			// Print file contents.
-			if (exists) {
-				fs.readFile(filepath, function(err, data) {
-					if (err) {
-						console.error(err);
-						process.exit();
-					}
+			if (res) {
+				[err, res] = await flatry(read(filepathconfig));
 
-					// Log file contents.
-					console.log(`[${chalk.bold(`${commandname}${ext}`)}]\n`);
-					console.log(data.toString());
-				});
-
-				// Check if config file exists.
-				fe(filepathconfig, (err, exists) => {
-					if (err) {
-						console.error(err);
-						process.exit();
-					}
-
-					// Print file contents.
-					if (exists) {
-						fs.readFile(filepathconfig, function(err, data) {
-							if (err) {
-								console.error(err);
-								process.exit();
-							}
-
-							// Log file contents.
-							console.log(
-								`[${chalk.bold(
-									`.${commandname}.config${ext}`
-								)}]\n`
-							);
-							console.log(data.toString());
-						});
-					}
-				});
-			} else {
-				// If acdef file does not exist log a message and exit script.
-				exit([
-					`acdef file for command ${chalk.bold(
-						commandname
-					)} does not exist.`
-				]);
+				// Log file contents.
+				console.log(
+					`[${chalk.bold(`.${commandname}.config${ext}`)}]\n`
+				);
+				console.log(res);
 			}
-		});
+		} else {
+			// If acdef file does not exist log a message and exit script.
+			exit([
+				`acdef file for command ${chalk.bold(
+					commandname
+				)} does not exist.`
+			]);
+		}
 	}
 };

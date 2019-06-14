@@ -75,7 +75,7 @@ if [[ vmajor -ge 4 ]]; then
 	if [[ -f "$acscript" ]]; then
 		# Loop over map definition files to source them.
 		# [https://stackoverflow.com/a/43606356]
-		for filepath in ~/.nodecliac/defs/*; do
+		for filepath in ~/.nodecliac/commands/*; do
 			# # Ignore config files.
 			# if [[ "$filepath" == *".config.acdef" ]]; then continue; fi
 

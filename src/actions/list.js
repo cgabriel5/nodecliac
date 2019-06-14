@@ -4,76 +4,84 @@
 const fs = require("fs");
 const path = require("path");
 const chalk = require("chalk");
+const flatry = require("flatry");
 const log = require("fancy-log");
 const de = require("directory-exists");
-const { paths } = require("../utils/main.js");
+const fe = require("file-exists");
+const { exit, paths } = require("../utils/main.js");
+const { readdir } = require("../utils/dir.js");
 
-module.exports = () => {
+module.exports = async () => {
 	// Get needed paths.
-	let { acmapspath } = paths;
+	let { commandspaths } = paths;
+	let files = [];
+
+	// Declare empty variables to reuse for all await operations.
+	let err, res;
 
 	// Maps path needs to exist to list acdef files.
-	de(acmapspath, (err, exists) => {
-		if (err) {
-			console.error(err);
-			process.exit();
-		}
+	[err, res] = await flatry(de(commandspaths));
+	if (!res) {
+		exit([]); // Just exit without message.
+	}
 
-		// Exit if path does not exist.
-		if (!exists) {
-			log(`Path: ${chalk.bold(acmapspath)} does not exist.`);
-			process.exit();
-		}
+	// Get list of directory command folders.
+	[err, res] = await flatry(readdir(commandspaths));
+	let commands = res;
 
-		// Store config files.
-		let configs = [];
+	// Loop over found command folders to get their respective
+	// .acdef/config files.
+	for (let i = 0, l = commands.length; i < l; i++) {
+		// Cache current loop item.
+		let command = commands[i];
 
-		// Get acdef files list.
-		fs.readdir(acmapspath, function(err, files) {
-			if (err) {
-				console.error(err);
-				process.exit();
+		// Build .acdef file paths.
+		let acdefpath = path.join(commandspaths, command, `${command}.acdef`);
+		let configpath = path.join(
+			commandspaths,
+			command,
+			`.${command}.config.acdef`
+		);
+
+		// Store information in a tuple.
+		let tuple = [];
+
+		// If acdef file exists add information to tuple.
+		[err, res] = await flatry(fe(acdefpath));
+		if (res) {
+			tuple.push(command);
+
+			// Check for config file.
+			[err, res] = await flatry(fe(configpath));
+			if (res) {
+				// Store config file path for later use.
+				tuple.push(true);
 			}
 
-			// Only get files.
-			files = files.filter(function(p) {
-				let is_configfile = p.includes(".config.acdef");
-				// Store config files.
-				if (is_configfile) {
-					configs.push(p);
-				}
+			// Add tuple to files array.
+			files.push(tuple);
+		}
+	}
 
-				return !(
-					is_configfile || // No .config.acdef files.
-					// Cannot be a directory.
-					fs.lstatSync(path.join(acmapspath, p)).isDirectory()
+	// List commands if any exist.
+	if (files.length) {
+		log(chalk.bold(`.acdef files: (${files.length})`));
+
+		files
+			.sort(function(a, b) {
+				return a[0].localeCompare(b[0]);
+			})
+			.forEach(function(tuple) {
+				// Get file tuple information.
+				let [command, hasconfig] = tuple;
+
+				// Check if config file exists.
+				let config_marker = hasconfig ? "*" : "";
+				log(
+					` ─ ${chalk[config_marker ? "bold" : "black"](
+						chalk[config_marker ? "blue" : "black"](command)
+					)}${config_marker}`
 				);
 			});
-
-			// List commands if any exist.
-			if (files.length) {
-				log(chalk.bold(`.acdef files: (${files.length})`));
-
-				files
-					.sort(function(a, b) {
-						return a.localeCompare(b);
-					})
-					.forEach(function(command) {
-						// Check if config file exists.
-						let config_marker = configs.includes(
-							`.${command.replace(".acdef", ".config.acdef")}`
-						)
-							? "*"
-							: "";
-						log(
-							` ─ ${chalk[config_marker ? "bold" : "black"](
-								chalk[config_marker ? "blue" : "black"](command)
-							)}${config_marker}`
-						);
-					});
-			} else {
-				log(chalk.bold("No .acdef files found."));
-			}
-		});
-	});
+	}
 };

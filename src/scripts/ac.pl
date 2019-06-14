@@ -708,7 +708,7 @@ sub __hook_acdef {
 	$ENV{"${prefix}ACDEF"} = $acmap;
 
 	# Run command string: `bash -c $command 2> /dev/null` ← Suppress all errors.
-	my $output = `bash -c \"~/.nodecliac/resources/$maincommand/hooks/acdef.sh\" 2> /dev/null`;
+	my $output = `bash -c \"~/.nodecliac/commands/$maincommand/hooks/acdef.sh\" 2> /dev/null`;
 
 	# Set acmap variable to returned output.
 	if ($output) {

@@ -68,24 +68,13 @@ let paths = (function(os, path) {
 	let cwd = path.dirname(path.dirname(__dirname)); // [https://stackoverflow.com/a/29496638]
 	let homedir = os.homedir(); // [https://stackoverflow.com/a/9081436]
 	let cdirname = "nodecliac"; // Custom directory name.
-	let cdirssrc = `${cdirname}/src`; // Source scripts.
 	let customdir = path.join(homedir, `.${cdirname}`);
 	let bashrcpath = path.join(homedir, ".bashrc");
 	let mainscriptname = "main.sh";
-	let mscriptpath = path.join(homedir, `.${cdirssrc}/${mainscriptname}`);
-	let acscriptname = "ac.sh";
-	let acscriptpath = path.join(homedir, `.${cdirssrc}/${acscriptname}`);
-	let acplscriptname = "ac.pl";
-	let acplscriptpath = path.join(homedir, `.${cdirssrc}/${acplscriptname}`);
-	let acplscriptconfigname = "config.pl";
-	let acplscriptconfigpath = path.join(
-		homedir,
-		`.${cdirssrc}/${acplscriptconfigname}`
-	);
-	let commandspaths = path.join(homedir, `.${cdirname}/commands`);
-	let acmapsresources = path.join(homedir, `.${cdirname}/resources`);
-	let acmapssource = path.join(homedir, `.${cdirssrc}`);
-	let setupfilepath = path.join(customdir, `/.setup.db.json`);
+	let commandspaths = path.join(homedir, `.${cdirname}`, "commands");
+	let acmapssource = path.join(homedir, `.${cdirname}`, "src");
+	let setupfilepath = path.join(customdir, `.setup.db.json`);
+	// Path to nodecliac resources.
 	let resourcespath = path.join(cwd, "resources/nodecliac/");
 
 	return {
@@ -95,14 +84,7 @@ let paths = (function(os, path) {
 		customdir,
 		bashrcpath,
 		mainscriptname,
-		mscriptpath,
-		acscriptname,
-		acscriptpath,
-		acplscriptname,
-		acplscriptpath,
-		acplscriptconfigpath,
 		commandspaths,
-		acmapsresources,
 		acmapssource,
 		setupfilepath,
 		resourcespath

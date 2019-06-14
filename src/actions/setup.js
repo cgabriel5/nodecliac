@@ -12,6 +12,7 @@ const copydir = require("recursive-copy");
 const de = require("directory-exists");
 const { exit, paths } = require("../utils/main.js");
 const { read, write, strip_comments } = require("../utils/file.js");
+const { readdir } = require("../utils/dir.js");
 
 module.exports = async args => {
 	/**
@@ -37,13 +38,8 @@ module.exports = async args => {
 		customdir,
 		bashrcpath,
 		mainscriptname,
-		mscriptpath,
-		acscriptpath,
-		acplscriptpath,
-		acplscriptconfigpath,
 		commandspaths,
 		acmapssource,
-		acmapsresources,
 		resourcespath,
 		setupfilepath
 	} = paths;
@@ -98,28 +94,42 @@ module.exports = async args => {
 		);
 	}
 
+	// Get list of directory files.
+	[err, res] = await flatry(readdir(fixpath("scripts")));
+	let files = res.filter(file => {
+		return /^(ac|main|config)\.(sh|pl)$/.test(file);
+	});
+
+	// Var to store promises in.
+	let promises = [];
+
+	// Read contents of needed script files.
+	for (let i = 0, l = files.length; i < l; i++) {
+		// Add write promise to promise array.
+		promises.push(read(fixpath(`scripts/${files[i]}`)));
+	}
+
 	// Generate needed completion scripts.
-	[err, res] = await flatry(
-		Promise.all([
-			// Get script file contents.
-			read(fixpath("scripts/ac.sh")),
-			read(fixpath("scripts/main.sh")),
-			read(fixpath("scripts/ac.pl")),
-			read(fixpath("scripts/config.pl"))
-		])
-	);
+	[err, res] = await flatry(Promise.all(promises));
+
+	// Clear variable.
+	promises.length = 0;
+
 	// Get each file contents from read results.
-	let [acbash, maincontent, acpl, config] = res;
+	for (let i = 0, l = files.length; i < l; i++) {
+		// Cache current loop item.
+		let file = files[i];
+		// Determine if script needs to be set to executable.
+		let mode = /\.pl$/.test(file) ? "755" : void 0;
+
+		// Add write promise to promise array.
+		promises.push(
+			write(`${acmapssource}/${file}`, strip_comments(res[i]), mode)
+		);
+	}
 
 	// Create script files.
-	[err, res] = await flatry(
-		Promise.all([
-			write(acscriptpath, strip_comments(acbash)),
-			write(mscriptpath, strip_comments(maincontent)),
-			write(acplscriptpath, strip_comments(acpl), "755"),
-			write(acplscriptconfigpath, strip_comments(config), "755")
-		])
-	);
+	await flatry(Promise.all(promises));
 
 	// Create setup info file to reference on uninstall.
 	[err, res] = await flatry(
@@ -157,7 +167,7 @@ module.exports = async args => {
 				// File must pass conditions to be copied.
 				return (
 					// Don't copy acmaps directory/files.
-					!/^__acmaps__/.test(filename)
+					!/^__acmaps/.test(filename)
 					// Command must be allowed to be copied.
 					// && allowed_commands.includes(command)
 				);

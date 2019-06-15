@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Get repo script names.
-scriptpath=~/.nodecliac/commands/yarn/main.sh
+scriptpath=~/.nodecliac/commands/yarn/scripts/main.sh
 # Run completion script if it exists.
 if [[ -f "$scriptpath" ]]; then
 	output=`"$scriptpath" "run"`

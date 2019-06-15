@@ -4,8 +4,8 @@
 # [https://yarnpkg.com/en/docs/cli/]
 
 # Variables - paths.
-$configscript = "~/.nodecliac/commands/yarn/config.sh"
-$mainscript = "~/.nodecliac/commands/yarn/main.sh"
+$configscript = "~/.nodecliac/commands/yarn/scripts/config.sh"
+$mainscript = "~/.nodecliac/commands/yarn/scripts/main.sh"
 # Variables - shell commands.
 $cmd_add = "ls -lF ~/.cache/yarn/v4 \| grep -Po \"npm-([-a-z]+)-\\d\" \| sed -e \"s/^npm-//\" -e \"s/-[0-9]$//\""
 

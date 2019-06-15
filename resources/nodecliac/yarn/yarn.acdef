@@ -1,4 +1,4 @@
-# DON'T EDIT FILE —— GENERATED: Wed Jun 12 2019 15:35:29 GMT-0700 (PDT)(1560378929547)
+# DON'T EDIT FILE —— GENERATED: Sat Jun 15 2019 13:11:39 GMT-0700 (PDT)(1560629499459)
 
  --cache-folder|--check-files|--cwd|--disable-pnp|--emoji?|--enable-pnp|--flat|--focus|--force|--frozen-lockfile|--global-folder|--har|--help|--https-proxy|--ignore-engines|--ignore-optional|--ignore-platform|--ignore-scripts|--json|--link-duplicates|--link-folder|--modules-folder|--mutex|--network-concurrency|--network-timeout|--no-bin-links|--no-default-rc|--no-lockfile|--no-node-version-check|--no-progress|--non-interactive|--offline|--otp|--prefer-offline|--preferred-cache-folder|--production|--proxy|--pure-lockfile|--registry|--scripts-prepend-node-path?|--silent|--skip-integrity-check|--strict-semver|--update-checksums|--use-yarnrc|--verbose|--version
 .access --
@@ -99,17 +99,17 @@
 .workspaces.run --
 
 .add default $("ls -lF ~/.cache/yarn/v4 \| grep -Po \"npm-([-a-z]+)-\\d\" \| sed -e \"s/^npm-//\" -e \"s/-[0-9]$//\"")
-.config.delete default $("~/.nodecliac/commands/yarn/config.sh")
-.config.get default $("~/.nodecliac/commands/yarn/config.sh")
-.config.set default $("~/.nodecliac/commands/yarn/config.sh")
+.config.delete default $("~/.nodecliac/commands/yarn/scripts/config.sh")
+.config.get default $("~/.nodecliac/commands/yarn/scripts/config.sh")
+.config.set default $("~/.nodecliac/commands/yarn/scripts/config.sh")
 .global.add default $("ls -lF ~/.cache/yarn/v4 \| grep -Po \"npm-([-a-z]+)-\\d\" \| sed -e \"s/^npm-//\" -e \"s/-[0-9]$//\"")
-.global.remove default $("~/.nodecliac/commands/yarn/main.sh remove")
-.global.upgrade default $("~/.nodecliac/commands/yarn/main.sh upgrade")
+.global.remove default $("~/.nodecliac/commands/yarn/scripts/main.sh remove")
+.global.upgrade default $("~/.nodecliac/commands/yarn/scripts/main.sh upgrade")
 .info default $("ls -lF ~/.cache/yarn/v4 \| grep -Po \"npm-([-a-z]+)-\\d\" \| sed -e \"s/^npm-//\" -e \"s/-[0-9]$//\"")
-.outdated default $("~/.nodecliac/commands/yarn/main.sh outdated")
-.remove default $("~/.nodecliac/commands/yarn/main.sh remove")
-.run default $("~/.nodecliac/commands/yarn/main.sh run")
-.unplug default $("~/.nodecliac/commands/yarn/main.sh unplug")
-.upgrade default $("~/.nodecliac/commands/yarn/main.sh upgrade")
+.outdated default $("~/.nodecliac/commands/yarn/scripts/main.sh outdated")
+.remove default $("~/.nodecliac/commands/yarn/scripts/main.sh remove")
+.run default $("~/.nodecliac/commands/yarn/scripts/main.sh run")
+.unplug default $("~/.nodecliac/commands/yarn/scripts/main.sh unplug")
+.upgrade default $("~/.nodecliac/commands/yarn/scripts/main.sh upgrade")
 .why default $("yarn list --depth=0 \| perl -wln -e \"/(?! ─ )([-\/_.@(?)a-zA-Z0-9]*)(?=\@)/ and print $&;\"")
-.workspaces.run default $("~/.nodecliac/commands/yarn/main.sh run")
+.workspaces.run default $("~/.nodecliac/commands/yarn/scripts/main.sh run")

@@ -118,6 +118,9 @@ __yarn_get_package_fields() {
 	sed -n "$pattern"  "$package_dot_json"
 }
 
+# Perl script path.
+prune_args_script=~/.nodecliac/commands/yarn/scripts/prune_args.pl
+
 # Depending on provided action run appropriate logic...
 
 case "$1" in
@@ -126,15 +129,21 @@ case "$1" in
 		dev=`__yarn_get_package_fields dependencies`
 		devdep=`__yarn_get_package_fields devDependencies`
 
-		# Return (dev)dependencies values to auto-complete.
-		echo -e "$dev\n$devdep"
+		# Run completion script if it exists.
+		if [[ -f "$prune_args_script" ]]; then
+			# [https://stackoverflow.com/a/13658950]
+			nl=$'\n'
+
+			output=`"$prune_args_script" "$dev$nl$devdep"`
+
+			# Return (dev)dependencies values to auto-complete.
+			echo -e "\n$output"
+		fi
 	;;
 	run)
 		# Get script names.
 		scripts=`__yarn_get_package_fields scripts`
 
-		# Run perl script to get completions.
-		prune_args_script=~/.nodecliac/commands/yarn/scripts/prune_args.pl
 		# Run completion script if it exists.
 		if [[ -f "$prune_args_script" ]]; then
 			output=`"$prune_args_script" "$scripts"`

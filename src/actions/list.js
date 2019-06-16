@@ -1,7 +1,6 @@
 "use strict";
 
 // Needed modules.
-const fs = require("fs");
 const path = require("path");
 const chalk = require("chalk");
 const flatry = require("flatry");

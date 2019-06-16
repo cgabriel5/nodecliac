@@ -1,15 +1,14 @@
 "use strict";
 
 // Needed modules.
-const fs = require("fs");
 const chalk = require("chalk");
 const flatry = require("flatry");
 const fe = require("file-exists");
-const { exit, paths, remove, read } = require("../utils/toolbox.js");
+const { exit, paths, read } = require("../utils/toolbox.js");
 
 module.exports = async args => {
 	// Get needed paths.
-	let { customdir, commandspaths } = paths;
+	let { commandspaths } = paths;
 	// Get CLI args.
 	let { command } = args;
 	// Declare empty variables to reuse for all await operations.

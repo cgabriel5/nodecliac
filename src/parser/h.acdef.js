@@ -1,9 +1,8 @@
 "use strict";
 
 // Needed modules.
-const path = require("path");
 const chalk = require("chalk");
-const { info, exit, paths } = require("../utils/toolbox.js");
+const { exit } = require("../utils/toolbox.js");
 
 /**
  * Run post operations on command chain and its respective flag set.
@@ -34,9 +33,6 @@ module.exports = lk_size => {
 	// Store lines.
 	let lines = [];
 	let hlines = [];
-
-	// RegExp patter for multi-flag indicator.
-	let r_mf = /=\*$/;
 
 	// If lines array is empty give warning and exit.
 	if (!lk_size) {

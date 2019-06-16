@@ -16,11 +16,6 @@ module.exports = issue => {
 	let source = global.$app.get("source");
 	let warnings = global.$app.get("warnings");
 
-	// Track longest (line + index) column to evenly space line/char.
-	let line_col_length = 0;
-	// Track longest parser name column to evenly space line/char.
-	let line_col_fpname = 0;
-
 	// Only print empty line to pad output when no warnings exist.
 	if (!warnings.length) {
 		return console.log();

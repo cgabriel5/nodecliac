@@ -1,7 +1,6 @@
 "use strict";
 
 // Needed modules.
-const fs = require("fs");
 const chalk = require("chalk");
 const log = require("fancy-log");
 const rimraf = require("rimraf");

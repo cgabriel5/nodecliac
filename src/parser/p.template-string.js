@@ -24,14 +24,14 @@ module.exports = (params = {}) => {
 	require("./h.trace.js")(__filename);
 
 	// Get params.
-	let { str = [], vsi, usepipe = false } = params;
+	let { str = [], vsi } = params;
 
 	// Get globals.
 	let string = str[1] || global.$app.get("string");
 	let i = +(str[0] || global.$app.get("i"));
 	let l = str[2] || global.$app.get("l");
-	let line_num = global.$app.get("line_num");
-	let line_fchar = global.$app.get("line_fchar");
+	// let line_num = global.$app.get("line_num");
+	// let line_fchar = global.$app.get("line_fchar");
 	let h = global.$app.get("highlighter");
 	let variables = global.$app.get("variables");
 	let formatting = global.$app.get("formatting");
@@ -42,7 +42,6 @@ module.exports = (params = {}) => {
 	// needs to be accounted for. This variable will track the original
 	// index.
 	let ci = vsi;
-	let assignment = "";
 	let value = "$";
 	let name = "";
 	let state = "tstring-open-brace"; // Parsing state.
@@ -83,7 +82,7 @@ module.exports = (params = {}) => {
 	for (; i < l; i++) {
 		// Cache current loop item.
 		let char = string.charAt(i);
-		let pchar = string.charAt(i - 1);
+		// let pchar = string.charAt(i - 1);
 		// let nchar = string.charAt(i + 1);
 
 		// Note: Since loop logic can back track (e.g. 'i--;'), we only
@@ -172,7 +171,7 @@ module.exports = (params = {}) => {
 	}
 
 	// Lookup variable's value.
-	let lookup = variables[`\$${name}`];
+	let lookup = variables[`$${name}`];
 
 	// Check that variable exists here.
 	if (!lookup) {

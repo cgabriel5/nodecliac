@@ -28,8 +28,8 @@ module.exports = () => {
 	let string = global.$app.get("string");
 	let i = global.$app.get("i");
 	let l = global.$app.get("l");
-	let line_num = global.$app.get("line_num");
-	let line_fchar = global.$app.get("line_fchar");
+	// let line_num = global.$app.get("line_num");
+	// let line_fchar = global.$app.get("line_fchar");
 	let h = global.$app.get("highlighter");
 	let keywords = global.$app.get("keywords");
 	let currentchain = global.$app.get("currentchain");

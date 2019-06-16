@@ -9,8 +9,8 @@ module.exports = (...args) => {
 	let [i, filename, warnings, state, type, code, fvars = {}] = args;
 
 	// Get globals
-	let string = global.$app.get("string");
-	let l = global.$app.get("l");
+	// let string = global.$app.get("string");
+	// let l = global.$app.get("l");
 	let line_num = global.$app.get("line_num");
 	let line_fchar = global.$app.get("line_fchar");
 	let h = global.$app.get("highlighter");

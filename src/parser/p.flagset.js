@@ -38,7 +38,7 @@ module.exports = (params = {}) => {
 	let string = str[1] || global.$app.get("string");
 	let i = +(str[0] || global.$app.get("i"));
 	let l = str[2] || global.$app.get("l");
-	let line_num = global.$app.get("line_num");
+	// let line_num = global.$app.get("line_num");
 	let line_fchar = global.$app.get("line_fchar");
 	let h = global.$app.get("highlighter");
 	let lookup = global.$app.get("lookup");

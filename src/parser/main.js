@@ -15,9 +15,9 @@ const pcomment = require("./p.comment.js");
 // Require parser helpers.
 const mkchain = require("./h.mkchain.js");
 const shortcuts = require("./h.shortcuts.js");
-const s = globals.set("stripansi", require("strip-ansi"));
 const { formatter, preformat } = require("./h.formatter.js");
-const h = globals.set("highlighter", require("./h.highlighter.js"));
+globals.set("stripansi", require("strip-ansi"));
+globals.set("highlighter", require("./h.highlighter.js"));
 
 // Get error checking functions.
 const {
@@ -101,7 +101,7 @@ module.exports = (
 	// RegExp patterns:
 	let r_letter = /[a-zA-Z]/; // Letter.
 	let r_whitespace = /[ \t]/; // Whitespace.
-	let r_start_line_char = /[-@a-zA-Z)\]\$#]/; // Starting line character.
+	let r_start_line_char = /[-@a-zA-Z)\]$#]/; // Starting line character.
 
 	// Create error functions wrappers to add fixed parameters.
 	let verify = result => {
@@ -378,11 +378,7 @@ module.exports = (
 					// Reset index to start at newline on next iteration.
 					i = result.nl_index - 1;
 
-					// Get command chain.
-					let cc = result.chain;
-					let hcc = result.h.chain;
-					// Get opening brace index.
-					let br_index = result.br_open_index;
+					// Get needed result information.
 					let brstate = result.brstate;
 					let delimiter = result.delimiter;
 

@@ -1,20 +1,12 @@
 "use strict";
 
 // Needed modules.
-const fs = require("fs");
 const path = require("path");
 const chalk = require("chalk");
 const flatry = require("flatry");
 const log = require("fancy-log");
 const fe = require("file-exists");
-const {
-	exit,
-	paths,
-	remove,
-	read,
-	write,
-	info
-} = require("../utils/toolbox.js");
+const { exit, paths, read, write, info } = require("../utils/toolbox.js");
 
 module.exports = async args => {
 	// Get needed paths.

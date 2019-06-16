@@ -159,7 +159,7 @@ module.exports = (value, ...scopes) => {
 					case "flag":
 						// Highlight flag name only (not bool '?' indicator).
 						value = value.replace(
-							/^([^\?]*?)(\??)$/g,
+							/^([^?]*?)(\??)$/g,
 							`${chalk[c.flag]("$1")}$2`
 						);
 

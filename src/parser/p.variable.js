@@ -31,7 +31,7 @@ module.exports = () => {
 	let i = global.$app.get("i");
 	let l = global.$app.get("l");
 	let line_num = global.$app.get("line_num");
-	let line_fchar = global.$app.get("line_fchar");
+	// let line_fchar = global.$app.get("line_fchar");
 	let h = global.$app.get("highlighter");
 	let variables = global.$app.get("variables");
 	let formatting = global.$app.get("formatting");

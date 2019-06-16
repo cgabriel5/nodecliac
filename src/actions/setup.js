@@ -1,7 +1,6 @@
 "use strict";
 
 // Needed modules.
-const fs = require("fs");
 const path = require("path");
 const chalk = require("chalk");
 const flatry = require("flatry");
@@ -178,7 +177,7 @@ module.exports = async args => {
 					// && allowed_commands.includes(command)
 				);
 			},
-			transform: function(src, dest, stats) {
+			transform: function(src /*dest, stats*/) {
 				// Only modify Shell and Perl script files.
 				if (!/\.(sh|pl)$/.test(path.extname(src))) {
 					return null;

@@ -106,6 +106,8 @@ yarn.config.set = --global
 yarn.config.set,
 yarn.config.get,
 yarn.config.delete = default $("${configscript}")
+# [https://github.com/yarnpkg/yarn/issues/2049#issuecomment-397629921]
+yarn.config.current
 yarn.config.list
 
 yarn.create
@@ -119,6 +121,8 @@ yarn.global.list,
 yarn.global.remove,
 yarn.global.upgrade,
 yarn.global.upgrade-interactive = --prefix|--latest
+# [https://github.com/yarnpkg/yarn/issues/2049#issuecomment-337870443]
+yarn.global.dir
 yarn.global.add = default $("${cmd_add}")
 yarn.global.remove = default $("${mainscript} remove")
 yarn.global.upgrade = default $("${mainscript} upgrade")

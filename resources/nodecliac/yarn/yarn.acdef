@@ -1,4 +1,4 @@
-# DON'T EDIT FILE —— GENERATED: Sat Jun 15 2019 13:11:39 GMT-0700 (PDT)(1560629499459)
+# DON'T EDIT FILE —— GENERATED: Sun Jun 16 2019 21:12:09 GMT-0700 (PDT)(1560744729145)
 
  --cache-folder|--check-files|--cwd|--disable-pnp|--emoji?|--enable-pnp|--flat|--focus|--force|--frozen-lockfile|--global-folder|--har|--help|--https-proxy|--ignore-engines|--ignore-optional|--ignore-platform|--ignore-scripts|--json|--link-duplicates|--link-folder|--modules-folder|--mutex|--network-concurrency|--network-timeout|--no-bin-links|--no-default-rc|--no-lockfile|--no-node-version-check|--no-progress|--non-interactive|--offline|--otp|--prefer-offline|--preferred-cache-folder|--production|--proxy|--pure-lockfile|--registry|--scripts-prepend-node-path?|--silent|--skip-integrity-check|--strict-semver|--update-checksums|--use-yarnrc|--verbose|--version
 .access --
@@ -12,6 +12,7 @@
 .cache.list --pattern
 .check --integrity|--verify-tree
 .config --
+.config.current --
 .config.delete --
 .config.get --
 .config.list --
@@ -22,6 +23,7 @@
 .global --latest|--prefix
 .global.add --latest|--prefix
 .global.bin --latest|--prefix
+.global.dir --
 .global.list --latest|--prefix
 .global.remove --latest|--prefix
 .global.upgrade --latest|--prefix

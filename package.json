@@ -52,5 +52,9 @@
 		"eslint-config-simple": "^0.0.6",
 		"eslint-formatter-simple": "^0.0.6",
 		"prettier-cli-watcher": "^0.3.3"
-	}
+	},
+	"files": [
+		"src",
+		"resources/nodecliac"
+	]
 }

@@ -133,7 +133,7 @@ module.exports = async args => {
 	else if (save) {
 		let data = acmap.content + keywords.content;
 		await flatry(write(path.join(fi.dirname, savename), data));
-		await flatry(path.join(fi.dirname, saveconfigname), config.data);
+		await flatry(write(path.join(fi.dirname, saveconfigname), config.data));
 	}
 
 	// Add to maps location if add flag provided.

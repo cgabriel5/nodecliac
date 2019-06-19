@@ -471,30 +471,8 @@ sub __execute_command {
 	# [https://stackoverflow.com/a/3374285]
 	# [https://stackoverflow.com/a/11231972]
 
-	# Following env vars are provided by bash but exposed via nodecliac.
-	$ENV{"${prefix}COMP_LINE"} = $cline; # Original (unmodified) CLI input.
-	$ENV{"${prefix}COMP_POINT"} = $cpoint; # Caret index when [tab] key was pressed.
-
-	# Following env vars are custom and exposed via nodecliac.
-	$ENV{"${prefix}MAIN_COMMAND"} = $maincommand; # The command auto completion is being performed for.
-	$ENV{"${prefix}COMMAND_CHAIN"} = $commandchain; # The parsed command chain.
-	$ENV{"${prefix}USED_FLAGS"} = $usedflags; # The parsed used flags.
-	$ENV{"${prefix}LAST"} = $last; # The last parsed word item (note: could be a partial word item. This happens
-	# when the [tab] key gets pressed within a word item. For example, take the input 'maincommand command'. If
-	# the [tab] key was pressed like so: 'maincommand comm[tab]and' then the last word item is 'comm' and it is
-	# a partial as its remaining text is 'and'. This will result in using 'comm' to determine possible auto
-	# completion word possibilities.).
-	$ENV{"${prefix}PREV"} = $args[-2]; # The word item preceding the last word item.
-	$ENV{"${prefix}INPUT"} = $inp; # CLI input from start to caret index.
-	$ENV{"${prefix}INPUT_REMAINDER"} = $inp_remainder; # CLI input from start to caret index.
-	$ENV{"${prefix}LAST_CHAR"} = $lastchar; # Character before caret.
-	$ENV{"${prefix}NEXT_CHAR"} = $nextchar; # Character after caret. If char is not '' (empty) then the last word
-	# item is a partial word.
-	$ENV{"${prefix}COMP_LINE_LENGTH"} = $cline_length; # Original input's length.
-	$ENV{"${prefix}INPUT_LINE_LENGTH"} = $cline_length; # CLI input from start to caret index string length.
-	$ENV{"${prefix}INPUT_WORD_COUNT"} = __len(\@args); # Amount of word items parsed before caret position/index.
-	# Store collected positional arguments after validating the command-chain to access in plugin auto-completion scripts.
-	$ENV{"${prefix}USED_DEFAULT_POSITIONAL_ARGS"} = $used_default_pa_args;
+	# Set all environmental variables to access in custom scripts.
+	__set_envs();
 
 	# Run the command.
 	my $lines = `$command`;
@@ -507,17 +485,8 @@ sub __execute_command {
 
 	# Unset environment vars once command is ran.
 	# [https://stackoverflow.com/a/8770380]
-	# Is this needed?
-	# delete $ENV{"${prefix}COMP_LINE"};
-	# delete $ENV{"${prefix}COMP_POINT"};
-	# delete $ENV{"${prefix}MAIN_COMMAND"};
-	# delete $ENV{"${prefix}COMMAND_CHAIN"};
-	# delete $ENV{"${prefix}USED_FLAGS"};
-	# delete $ENV{"${prefix}LAST"};
+	# Is this needed? For example, unset NODECLIAC_INPUT:
 	# delete $ENV{"${prefix}INPUT"};
-	# delete $ENV{"${prefix}LAST_CHAR"};
-	# delete $ENV{"${prefix}NEXT_CHAR"};
-	# delete $ENV{"${prefix}COMP_LINE_LENGTH"};
 
 	# By default if the command generates output split
 	# it by lines. Unless a delimiter was provided.
@@ -700,20 +669,74 @@ sub __paramparse {
 	return @arguments;
 }
 
+# Set environment variables to access in custom scripts.
+#
+# @return {undefined} - Nothing is returned.
+sub __set_envs {
+	# Get parsed arguments count.
+	my $l = __len(\@args);
+
+	# Use hash to store environment variables: [https://perlmaven.com/perl-hashes]
+	my %envs = (
+		# Following env vars are provided by bash but exposed via nodecliac.
+		"${prefix}COMP_LINE" => $cline, # Original (unmodified) CLI input.
+		"${prefix}COMP_POINT" => $cpoint, # Caret index when [tab] key was pressed.
+
+		# Following env vars are custom and exposed via nodecliac.
+		"${prefix}ACDEF" => $acmap,
+		"${prefix}MAIN_COMMAND" => $maincommand, # The command auto completion is being performed for.
+		"${prefix}COMMAND_CHAIN" => $commandchain, # The parsed command chain.
+		"${prefix}USED_FLAGS" => $usedflags, # The parsed used flags.
+		"${prefix}LAST" => $last, # The last parsed word item (note: could be a partial word item. This happens
+		# when the [tab] key gets pressed within a word item. For example, take the input 'maincommand command'. If
+		# the [tab] key was pressed like so: 'maincommand comm[tab]and' then the last word item is 'comm' and it is
+		# a partial as its remaining text is 'and'. This will result in using 'comm' to determine possible auto
+		# completion word possibilities.).
+		"${prefix}PREV" => $args[-2], # The word item preceding the last word item.
+		"${prefix}INPUT" => $inp, # CLI input from start to caret index.
+		"${prefix}INPUT_REMAINDER" => $inp_remainder, # CLI input from start to caret index.
+		"${prefix}LAST_CHAR" => $lastchar, # Character before caret.
+		"${prefix}NEXT_CHAR" => $nextchar, # Character after caret. If char is not '' (empty) then the last word
+		# item is a partial word.
+		"${prefix}COMP_LINE_LENGTH" => $cline_length, # Original input's length.
+		"${prefix}INPUT_LINE_LENGTH" => $cline_length, # CLI input from start to caret index string length.
+		"${prefix}ARG_COUNT" => $l, # Amount arguments parsed before caret position/index.
+		# Store collected positional arguments after validating the command-chain to access in plugin auto-completion scripts.
+		"${prefix}USED_DEFAULT_POSITIONAL_ARGS" => $used_default_pa_args
+	);
+
+	# Dynamically set arguments.
+	# for (my $i = 0; $i < $l; $i++) { $ENV{"${prefix}ARG_${i}"} = $args[$i]; }
+
+	# If no arguments are provided then we set all env variables.
+	# [https://stackoverflow.com/a/19234273]
+	# [https://alvinalexander.com/blog/post/perl/how-access-arguments-perl-subroutine-function]
+	if (@_ == 0) {
+		# Set environment variable: [https://alvinalexander.com/blog/post/perl/how-to-traverse-loop-items-elements-perl-hash]
+		foreach my $key (keys %envs) { $ENV{$key} = $envs{$key}; }
+	} else {
+		# Split rows by lines: [https://stackoverflow.com/a/11746174]
+		foreach my $env_name (@_) {
+			my $key = "${prefix}$env_name";
+			# Set environment if provided env name exists in envs lookup hash table.
+			# [https://alvinalexander.com/blog/post/perl/perl-how-test-hash-contains-key]
+			if (exists($envs{$key})) { $ENV{$key} = $envs{$key}; }
+		}
+	}
+}
+
 # Runs acdef hook script. This is pre-parsing hook.
 #
 # @return {undefined} - Nothing is returned.
 sub __hook_acdef {
 	# Set env variable to access in hook script.
-	$ENV{"${prefix}ACDEF"} = $acmap;
+	__set_envs("ACDEF");
 
 	# Run command string: `bash -c $command 2> /dev/null` ← Suppress all errors.
 	my $output = `bash -c \"~/.nodecliac/commands/$maincommand/hooks/acdef.sh\" 2> /dev/null`;
 
 	# Set acmap variable to returned output.
-	if ($output) {
-		$acmap = $output;
-	}
+	if ($output) { $acmap = $output; }
 }
 
 # Parses CLI input. Returns input similar to that of process.argv.slice(2).
@@ -722,6 +745,9 @@ sub __hook_acdef {
 # @param {string} 1) - The string to parse.
 # @return {undefined} - Nothing is returned.
 sub __parser {
+	# Run acdef [pre-parse]hook.
+	__hook_acdef();
+
 	# Vars.
 	my $current = "";
 	my ($input) = @_;
@@ -1539,6 +1565,6 @@ sub __printer {
 }
 
 # Completion logic:
-# hook<acdef> → <cli_input> → parser → extractor → lookup → printer
+# <cli_input> → parser → extractor → lookup → printer
 # Note: Supply CLI input from start to caret index.
-__hook_acdef();__parser($inp);__extractor();__lookup();__printer();
+__parser($inp);__extractor();__lookup();__printer();

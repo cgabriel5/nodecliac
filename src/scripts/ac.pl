@@ -760,14 +760,47 @@ sub __hook_acdef {
 	if ($output) { $acmap = $output; }
 }
 
+# Runs input hook script. This is pre-parsing hook.
+#
+# @return {undefined} - Nothing is returned.
+sub __hook_input {
+	# Hook script file path (expand tilde in path).
+	my $scriptpath = "~/.nodecliac/commands/$maincommand/hooks/input.sh" =~ s/^~/$hdir/r;
+
+	# File has to exist.
+	if (!__file_exists($scriptpath)) { return; }
+
+	# Set env variable to access in hook script.
+	__set_envs("INPUT");
+
+	# Run command string: `bash -c $command 2> /dev/null` ← Suppress all errors.
+	my $output = `bash -c \"$scriptpath\" 2> /dev/null`;
+	# Trim newlines from output.
+	$output =~ s/^\n+|\n+$//g;
+
+	# If output is empty then return from function.
+	if (!$output) { return; };
+
+	# Reset variable(s).
+	$input = $output;
+	$cline = "$input$input_remainder"; # Original (complete) CLI input.
+	$cpoint = length($input); # Caret index when [tab] key was pressed.
+	$lastchar = substr($cline, $cpoint - 1, 1); # Character before caret.
+	$nextchar = substr($cline, $cpoint, 1); # Character after caret.
+	$cline_length = length($cline); # Original input's length.
+	# $input = substr($cline, 0, $cpoint); # CLI input from start to caret index.
+	# $input_remainder = substr($cline, $cpoint, -1); # CLI input from caret index to input string end.
+}
+
 # Parses CLI input. Returns input similar to that of process.argv.slice(2).
 #     Adapted from argsplit module.
 #
 # @param {string} 1) - The string to parse.
 # @return {undefined} - Nothing is returned.
 sub __parser {
-	# Run acdef [pre-parse]hook.
+	# Run [pre-parse]hooks.
 	__hook_acdef();
+	__hook_input();
 
 	# Vars.
 	my $current = "";

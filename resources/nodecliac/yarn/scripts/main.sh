@@ -18,7 +18,8 @@
 #    Code lifted and modified from dsifford's yarn-completion [https://github.com/dsifford/yarn-completion].
 ##
 __yarn_get_package_fields() {
-	declare cwd=$PWD field_type=object field_key opt package_dot_json OPTIND OPTARG
+	# Declare variables.
+	declare cwd="$PWD" field_type=object field_key opt package_dot_json OPTIND OPTARG
 
 	# '-n' documentation: [https://likegeeks.com/sed-linux/]
 	while [[ -n $cwd ]]; do

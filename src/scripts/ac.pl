@@ -23,9 +23,8 @@ my $nextchar = substr($cline, $cpoint, 1); # Character after caret.
 my $cline_length = length($cline); # Original input's length.
 my $isquoted = 0;
 my $autocompletion = 1;
-my $inp = substr($cline, 0, $cpoint); # CLI input from start to caret index.
-my $inp_remainder = substr($cline, $cpoint, -1); # CLI input from caret index to input string end.
-my $inp_len = length($inp); # Input length.
+my $input = substr($cline, 0, $cpoint); # CLI input from start to caret index.
+my $input_remainder = substr($cline, $cpoint, -1); # CLI input from caret index to input string end.
 
 # Vars to be used for storing used default positional arguments.
 my $used_default_pa_args = "";
@@ -58,7 +57,7 @@ sub __debug {
 	print "  commandchain: '$commandchain'\n";
 	print "     usedflags: '$usedflags'\n";
 	print "          last: '$last'\n";
-	print "         input: '$inp'\n";
+	print "         input: '$input'\n";
 	print "  input length: '$cline_length'\n";
 	print "   caret index: '$cpoint'\n";
 	print "      lastchar: '$lastchar'\n";
@@ -693,8 +692,9 @@ sub __set_envs {
 		# a partial as its remaining text is 'and'. This will result in using 'comm' to determine possible auto
 		# completion word possibilities.).
 		"${prefix}PREV" => $args[-2], # The word item preceding the last word item.
-		"${prefix}INPUT" => $inp, # CLI input from start to caret index.
+		"${prefix}INPUT" => $input, # CLI input from start to caret index.
 		"${prefix}INPUT_REMAINDER" => $inp_remainder, # CLI input from start to caret index.
+		"${prefix}INPUT_REMAINDER" => $input_remainder, # CLI input from start to caret index.
 		"${prefix}LAST_CHAR" => $lastchar, # Character before caret.
 		"${prefix}NEXT_CHAR" => $nextchar, # Character after caret. If char is not '' (empty) then the last word
 		# item is a partial word.
@@ -750,9 +750,8 @@ sub __parser {
 
 	# Vars.
 	my $current = "";
-	my ($input) = @_;
 	my $quote_char = "";
-	my $l = $inp_len; # Input length.
+	my $l = length($input); # Input length.
 
 	# Input must not be empty.
 	if (!$input) {
@@ -1567,4 +1566,4 @@ sub __printer {
 # Completion logic:
 # <cli_input> → parser → extractor → lookup → printer
 # Note: Supply CLI input from start to caret index.
-__parser($inp);__extractor();__lookup();__printer();
+__parser();__extractor();__lookup();__printer();

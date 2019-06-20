@@ -25,14 +25,14 @@ my $used = $ENV{'NODECLIAC_USED_DEFAULT_POSITIONAL_ARGS'};
 # Trim string.
 $used =~ s/^\s+|\s+$//g;
 # Split string into individual items.
-my @used_args = split(/\n/, $used);
+my @used_args = split(/[\n ]/, $used);
 
 # Get passed in argument (i.e. script names, (dev)dependencies).
 my $args = $ARGV[0];
 # Trim string.
 $args =~ s/^\s+|\s+$//g;
 # Split string into individual items.
-my @arguments = split(/\n/, $args);
+my @arguments = split(/[\n ]/, $args);
 
 # Array will store unused items.
 my @cleaned_args = ();

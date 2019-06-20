@@ -21,6 +21,16 @@ __yarn_get_package_fields() {
 	# Declare variables.
 	declare cwd="$PWD" field_type=object field_key opt package_dot_json OPTIND OPTARG
 
+	# [https://stackoverflow.com/a/19031736]
+	# [http://defindit.com/readme_files/perl_one_liners.html]
+	# [https://www.perlmonks.org/?node_id=1004245]
+	# Get workspace name if auto-completing workspace.
+	workspace=$(echo "$NODECLIAC_INPUT_ORIGINAL" | perl -ne 'print "$1" if /^[ \t]*yarn[ \t]+workspace[ \t]+([a-zA-Z][-_a-zA-Z0-9]*)[ \t]*.*/')
+
+	# If workspace flag is set then we are auto-completing a workspace.
+	# Therefore, reset CWD to workspace's location.
+	if [[ ! -z "$workspace" ]]; then cwd="$PWD/$workspace"; fi
+
 	# '-n' documentation: [https://likegeeks.com/sed-linux/]
 	while [[ -n $cwd ]]; do
 		if [[ -f "$cwd/package.json" ]]; then
@@ -151,6 +161,25 @@ case "$1" in
 
 			# Return script names.
 			echo -e "\n$output"
+		fi
+	;;
+	workspace)
+		# Get workspaces info via yarn.
+		workspaces_info=$(yarn workspaces info -s 2> /dev/null)
+
+		if [[ -n "$workspaces_info" && $NODECLIAC_ARG_COUNT -le 2 ]] || [[ -n "$workspaces_info" && $NODECLIAC_ARG_COUNT -le 3 && "$NODECLIAC_LAST_CHAR" != " " ]]; then
+			# Get workspace names.
+			# [https://github.com/dsifford/yarn-completion/blob/master/yarn-completion.bash]
+			# [https://www.computerhope.com/unix/bash/mapfile.htm]
+			mapfile -t < <(sed -n 's/^ \{2\}"\([^"]*\)": {$/\1/p' <<< "$workspaces_info")
+
+			# Run completion script if it exists.
+			if [[ -f "$prune_args_script" ]]; then
+				output=`"$prune_args_script" "${MAPFILE[*]}"`
+
+				# Return script names.
+				echo -e "\n$output"
+			fi
 		fi
 	;;
 esac

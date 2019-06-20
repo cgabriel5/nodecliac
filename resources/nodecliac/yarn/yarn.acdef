@@ -1,4 +1,4 @@
-# DON'T EDIT FILE —— GENERATED: Sun Jun 16 2019 21:12:09 GMT-0700 (PDT)(1560744729145)
+# DON'T EDIT FILE —— GENERATED: Mon Jun 17 2019 19:01:26 GMT-0700 (PDT)(1560823286746)
 
  --cache-folder|--check-files|--cwd|--disable-pnp|--emoji?|--enable-pnp|--flat|--focus|--force|--frozen-lockfile|--global-folder|--har|--help|--https-proxy|--ignore-engines|--ignore-optional|--ignore-platform|--ignore-scripts|--json|--link-duplicates|--link-folder|--modules-folder|--mutex|--network-concurrency|--network-timeout|--no-bin-links|--no-default-rc|--no-lockfile|--no-node-version-check|--no-progress|--non-interactive|--offline|--otp|--prefer-offline|--preferred-cache-folder|--production|--proxy|--pure-lockfile|--registry|--scripts-prepend-node-path?|--silent|--skip-integrity-check|--strict-semver|--update-checksums|--use-yarnrc|--verbose|--version
 .access --
@@ -114,4 +114,5 @@
 .unplug default $("~/.nodecliac/commands/yarn/scripts/main.sh unplug")
 .upgrade default $("~/.nodecliac/commands/yarn/scripts/main.sh upgrade")
 .why default $("yarn list --depth=0 \| perl -wln -e \"/(?! ─ )([-\/_.@(?)a-zA-Z0-9]*)(?=\@)/ and print $&;\"")
+.workspace default $("~/.nodecliac/commands/yarn/scripts/main.sh workspace")
 .workspaces.run default $("~/.nodecliac/commands/yarn/scripts/main.sh run")

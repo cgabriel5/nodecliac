@@ -669,6 +669,20 @@ sub __paramparse {
 	return @arguments;
 }
 
+# Checks whether provided file (path) exists.
+#
+# @param {string} 1) - The file's path.
+# @return {boolean} - True if file exists. Otherwise false.
+sub __file_exists {
+	# Get arguments.
+	my ($scriptpath) = @_;
+
+	# [https://stackoverflow.com/a/2601042]
+	# [https://stackoverflow.com/a/8584617]
+	# [https://www.perlmonks.org/?node_id=510490]
+	return (-e "$scriptpath");
+}
+
 # Set environment variables to access in custom scripts.
 #
 # @return {undefined} - Nothing is returned.
@@ -730,11 +744,17 @@ sub __set_envs {
 #
 # @return {undefined} - Nothing is returned.
 sub __hook_acdef {
+	# Hook script file path.
+	my $scriptpath = "~/.nodecliac/commands/$maincommand/hooks/acdef.sh";
+
+	# File has to exist.
+	if (!__file_exists($scriptpath)) { return; }
+
 	# Set env variable to access in hook script.
 	__set_envs("ACDEF");
 
 	# Run command string: `bash -c $command 2> /dev/null` ← Suppress all errors.
-	my $output = `bash -c \"~/.nodecliac/commands/$maincommand/hooks/acdef.sh\" 2> /dev/null`;
+	my $output = `bash -c \"$scriptpath\" 2> /dev/null`;
 
 	# Set acmap variable to returned output.
 	if ($output) { $acmap = $output; }

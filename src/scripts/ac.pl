@@ -17,6 +17,7 @@ my $usedflags = "";
 my @completions = ();
 my $commandchain = "";
 my $cline = $ARGV[0]; # Original (complete) CLI input.
+my $input_original = $cline; # Original unmodified CLI input.
 my $cpoint = int($ARGV[1]); # Caret index when [tab] key was pressed.
 my $lastchar = substr($cline, $cpoint - 1, 1); # Character before caret.
 my $nextchar = substr($cline, $cpoint, 1); # Character after caret.
@@ -693,7 +694,7 @@ sub __set_envs {
 		# completion word possibilities.).
 		"${prefix}PREV" => $args[-2], # The word item preceding the last word item.
 		"${prefix}INPUT" => $input, # CLI input from start to caret index.
-		"${prefix}INPUT_REMAINDER" => $inp_remainder, # CLI input from start to caret index.
+		"${prefix}INPUT_ORIGINAL" => $input_original, # Original unmodified CLI input.
 		"${prefix}INPUT_REMAINDER" => $input_remainder, # CLI input from start to caret index.
 		"${prefix}LAST_CHAR" => $lastchar, # Character before caret.
 		"${prefix}NEXT_CHAR" => $nextchar, # Character after caret. If char is not '' (empty) then the last word

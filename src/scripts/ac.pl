@@ -745,7 +745,7 @@ sub __set_envs {
 # @return {undefined} - Nothing is returned.
 sub __hook_acdef {
 	# Hook script file path.
-	my $scriptpath = "~/.nodecliac/commands/$maincommand/hooks/acdef.sh";
+	my $scriptpath = "~/.nodecliac/commands/$maincommand/hooks/acdef.sh" =~ s/^~/$hdir/r;
 
 	# File has to exist.
 	if (!__file_exists($scriptpath)) { return; }

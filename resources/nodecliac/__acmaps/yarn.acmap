@@ -306,7 +306,8 @@ yarn.why = [
 ]
 
 # [https://yarnpkg.com/en/docs/cli/workspace]
-# [TODO] Implement workspace logic.
+# [https://yarnpkg.com/en/docs/cli/workspaces]
+# [https://yarnpkg.com/en/docs/workspaces]
 # [https://github.com/dsifford/yarn-completion/blob/master/yarn-completion.bash#L900]
 yarn.workspace = default $("${mainscript} workspace")
 

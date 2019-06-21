@@ -744,8 +744,10 @@ sub __set_envs {
 #
 # @return {undefined} - Nothing is returned.
 sub __hook_acdef {
-	# Hook script file path.
-	my $scriptpath = "~/.nodecliac/commands/$maincommand/hooks/acdef.sh" =~ s/^~/$hdir/r;
+	# Hook script file path (expand tilde/wildcard in path). Wildcard '*'
+	# means the first script with the name 'input' will be used regardless
+	# of file extension.
+	my $scriptpath = glob("~/.nodecliac/commands/$maincommand/hooks/acdef.*");
 
 	# File has to exist.
 	if (!__file_exists($scriptpath)) { return; }
@@ -764,8 +766,10 @@ sub __hook_acdef {
 #
 # @return {undefined} - Nothing is returned.
 sub __hook_input {
-	# Hook script file path (expand tilde in path).
-	my $scriptpath = "~/.nodecliac/commands/$maincommand/hooks/input.sh" =~ s/^~/$hdir/r;
+	# Hook script file path (expand tilde/wildcard in path). Wildcard '*'
+	# means the first script with the name 'input' will be used regardless
+	# of file extension.
+	my $scriptpath = glob("~/.nodecliac/commands/$maincommand/hooks/input.*");
 
 	# File has to exist.
 	if (!__file_exists($scriptpath)) { return; }

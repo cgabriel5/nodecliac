@@ -17,13 +17,14 @@
 # Create main script file path.
 my $mainscript = glob("~/.nodecliac/commands/yarn/scripts/main.sh");
 
-# Main script has to exist to continue.
-if (!(-e -x "$mainscript")) { print ""; }
-
 # Run main script to get script names.
 my $scriptnames = `bash -c \"$mainscript run\" 2> /dev/null`;
 # Trim string.
 $scriptnames =~ s/^\s+|\s+$//g;
+
+# Script names must exist to proceed.
+if (!$scriptnames) { exit; }
+
 # Split string into individual items.
 my @scripts = split(/\n/, $scriptnames);
 

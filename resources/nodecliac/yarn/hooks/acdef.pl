@@ -1,10 +1,10 @@
 #!/usr/bin/perl
 
-# This script's purpose will modify the acdef content by adding rows for
-# provided script names. The final acdef output will be returned.
+# This script's purpose will modify the ACDEF content by adding rows for
+# provided script names. The final ACDEF output will be returned.
 #
 # Arguments:
-#   0) The list (string) of script names.
+#   -- none
 # **NOTE: All other needed data is obtained from environment variables
 # provided from nodecliac.
 
@@ -14,24 +14,25 @@
 # use warnings;
 # use diagnostics;
 
-# Get acdef from environment variables.
-my $acdef = $ENV{'NODECLIAC_ACDEF'};
+# Create main script file path.
+my $mainscript = glob("~/.nodecliac/commands/yarn/scripts/main.sh");
 
-# Get passed in script names.
-my $scriptnames = $ARGV[0];
+# Main script has to exist to continue.
+if (!(-e -x "$mainscript")) { print ""; }
+
+# Run main script to get script names.
+my $scriptnames = `bash -c \"$mainscript run\" 2> /dev/null`;
 # Trim string.
 $scriptnames =~ s/^\s+|\s+$//g;
 # Split string into individual items.
 my @scripts = split(/\n/, $scriptnames);
 
-# Store built output.
-my $output = "\n";
+# Get ACDEF from environment variables.
+my $acdef = $ENV{'NODECLIAC_ACDEF'};
 
-# Remove already used items.
-foreach my $script (@scripts) {
-	# Build onto output.
-	$output .= "\n.$script --";
-}
+# Store ACDEF addon.
+my $addon = "";
+foreach my $script (@scripts) { $addon .= "\n.$script --"; }
 
-# Return acdef + output.
-print "$acdef$output";
+# Return acdef + addon script name entries.
+print "$acdef$addon";

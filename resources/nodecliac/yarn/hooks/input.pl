@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# This script's purpose will modify the CLI input The final, modified input
+# This script's purpose will modify the CLI input. The final, modified input
 # will be returned.
 #
 # Arguments:

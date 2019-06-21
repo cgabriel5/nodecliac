@@ -1427,7 +1427,29 @@ sub __lookup {
 		# Make initial acdef file lookup. Ignore comments/empty lines.
 		# my $pattern = '^(?![#|\n])' . quotemeta(substr($commandchain, 0, 2)) . '.*$';
 		# my $pattern = '^(?![#|\n])' . $commandchain . '.+$';
-		my $pattern = '^(?![#|\n])' . substr($commandchain, 0, 2) . '.+$';
+
+		# Built ACDEF lookup pattern.
+		my $minipattern = $last . '$';
+		# Escape the command chain.
+		my $escaped_cc = quotemeta($commandchain);
+		my $pattern = '^(?![#|\n])' .
+			(
+				# If last variable is set and command chain doesn't equal it...
+				($last && $commandchain ne ".$last")
+				?
+					(
+						# If command chain ends with last variable...
+						($escaped_cc =~ /$minipattern/)
+							# If so, use command chain.
+						?  $escaped_cc
+							# Else, use command + last variable.
+						: ($escaped_cc . quotemeta(".$last"))
+					)
+					# Else, use first 2 characters of command chain.
+				: substr($commandchain, 0, 2)
+			)
+			. '.+$';
+
 		my @data = $acmap =~ /$pattern/mg;
 		my @rows = (); # Store filtered data.
 		my $lastchar_notspace = ($lastchar ne " ");

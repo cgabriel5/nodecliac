@@ -669,19 +669,33 @@ sub __paramparse {
 	return @arguments;
 }
 
-# Checks whether provided file (path) exists.
-#
-# @param {string} 1) - The file's path.
-# @return {boolean} - True if file exists. Otherwise false.
-sub __file_exists {
-	# Get arguments.
-	my ($scriptpath) = @_;
+# # Checks whether provided file (path) exists.
+# #
+# # @param {string} 1) - The file's path.
+# # @return {boolean} - True if file exists. Otherwise false.
+# sub __file_exists {
+# 	# Get arguments.
+# 	my ($scriptpath) = @_;
 
-	# [https://stackoverflow.com/a/2601042]
-	# [https://stackoverflow.com/a/8584617]
-	# [https://www.perlmonks.org/?node_id=510490]
-	return (-e "$scriptpath");
-}
+# 	# [https://stackoverflow.com/a/2601042]
+# 	# [https://stackoverflow.com/a/8584617]
+# 	# [https://www.perlmonks.org/?node_id=510490]
+# 	return (-e "$scriptpath");
+# }
+
+# # Checks whether provided file (path) is executable.
+# #
+# # @param {string} 1) - The file's path.
+# # @return {boolean} - True if file is executable. Otherwise false.
+# sub __file_exec {
+# 	# Get arguments.
+# 	my ($scriptpath) = @_;
+
+# 	# [https://stackoverflow.com/a/2601042]
+# 	# [https://stackoverflow.com/a/8584617]
+# 	# [https://www.perlmonks.org/?node_id=510490]
+# 	return (-x "$scriptpath");
+# }
 
 # Set environment variables to access in custom scripts.
 #
@@ -749,8 +763,8 @@ sub __hook_acdef {
 	# of file extension.
 	my $scriptpath = glob("~/.nodecliac/commands/$maincommand/hooks/acdef.*");
 
-	# File has to exist.
-	if (!__file_exists($scriptpath)) { return; }
+	# File checks - Is this needed as any error will be are suppressed?
+	# if (!(__file_exists($scriptpath) && __file_exec($scriptpath))) { return; }
 
 	# Set env variable to access in hook script.
 	__set_envs("ACDEF");
@@ -771,8 +785,8 @@ sub __hook_input {
 	# of file extension.
 	my $scriptpath = glob("~/.nodecliac/commands/$maincommand/hooks/input.*");
 
-	# File has to exist.
-	if (!__file_exists($scriptpath)) { return; }
+	# File checks - Is this needed as any error will be are suppressed?
+	# if (!(__file_exists($scriptpath) && __file_exec($scriptpath))) { return; }
 
 	# Set env variable to access in hook script.
 	__set_envs("INPUT");

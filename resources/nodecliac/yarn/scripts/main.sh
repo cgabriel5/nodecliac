@@ -130,7 +130,7 @@ __yarn_get_package_fields() {
 }
 
 # Perl script path.
-prune_args_script=~/.nodecliac/commands/yarn/scripts/prune_args.pl
+prune_args_script=~/.nodecliac/registry/yarn/scripts/prune_args.pl
 
 # Depending on provided action run appropriate logic...
 

@@ -15,7 +15,7 @@ let [action] = args._;
 const actions = [
 	"setup",
 	"uninstall",
-	"list",
+	"registry",
 	"make",
 	"remove",
 	"add",

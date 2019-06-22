@@ -761,7 +761,7 @@ sub __hook_acdef {
 	# Hook script file path (expand tilde/wildcard in path). Wildcard '*'
 	# means the first script with the name 'input' will be used regardless
 	# of file extension.
-	my $scriptpath = glob("~/.nodecliac/commands/$maincommand/hooks/acdef.*");
+	my $scriptpath = glob("~/.nodecliac/registry/$maincommand/hooks/acdef.*");
 
 	# File checks - Is this needed as any error will be are suppressed?
 	# if (!(__file_exists($scriptpath) && __file_exec($scriptpath))) { return; }
@@ -783,7 +783,7 @@ sub __hook_input {
 	# Hook script file path (expand tilde/wildcard in path). Wildcard '*'
 	# means the first script with the name 'input' will be used regardless
 	# of file extension.
-	my $scriptpath = glob("~/.nodecliac/commands/$maincommand/hooks/input.*");
+	my $scriptpath = glob("~/.nodecliac/registry/$maincommand/hooks/input.*");
 
 	# File checks - Is this needed as any error will be are suppressed?
 	# if (!(__file_exists($scriptpath) && __file_exec($scriptpath))) { return; }

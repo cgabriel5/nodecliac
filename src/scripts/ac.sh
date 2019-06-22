@@ -47,10 +47,10 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# local cleaninput=false
 
 		# # Get the acmap definitions file.
-		# local acmappath="$HOME/.nodecliac/commands/$maincommand/$maincommand"
+		# local acmappath="$HOME/.nodecliac/registry/$maincommand/$maincommand"
 		# local acmapexists=false
 		# # Find acmap file: [https://stackoverflow.com/a/6364244]
-		# for f in ~/.nodecliac/commands/$maincommand/*; do
+		# for f in ~/.nodecliac/registry/$maincommand/*; do
 		# 	# If file matches file pattern then acmap file exists.
 		# 	if [[ "$f" == "$acmappath."* ]]; then
 		# 		acmappath="$f"; acmapexists=true; break
@@ -60,8 +60,8 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# if [[ "$acmapexists" == false ]]; then return; fi
 
 		# Get acmap file contents.
-		# local acmap="$(<~/.nodecliac/commands/$maincommand/$maincommand*)"
-		local acmappath=~/.nodecliac/commands/$maincommand/$maincommand.acdef
+		# local acmap="$(<~/.nodecliac/registry/$maincommand/$maincommand*)"
+		local acmappath=~/.nodecliac/registry/$maincommand/$maincommand.acdef
 		# Check once more if the acdef file exists for the following case:
 		# If in the incident that nodecliac gets deleted (i.e. like running
 		# '$ nodecliac uninstall'), if the acmap file does not exist bash
@@ -978,7 +978,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 					if [[ "$registry" != *" -o "*  ]]; then return; fi
 
 					# Build config path.
-					acdef_configpath="$HOME/.nodecliac/commands/$maincommand/.$maincommand.config.acdef"
+					acdef_configpath="$HOME/.nodecliac/registry/$maincommand/.$maincommand.config.acdef"
 					if [[ -f "$acdef_configpath" ]]; then
 						# Get acdef config file contents.
 						config="$(<"$acdef_configpath")"
@@ -1119,7 +1119,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 	}
 
 	# Register autocompletion script to command.
-	acdef_configpath="$HOME/.nodecliac/commands/$maincommand/.$1.config.acdef"
+	acdef_configpath="$HOME/.nodecliac/registry/$maincommand/.$1.config.acdef"
 	if [[ -f "$acdef_configpath" ]]; then
 		# Get acdef config file contents.
 		config="$(<"$acdef_configpath")"

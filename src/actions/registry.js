@@ -11,20 +11,20 @@ const { exit, paths, readdir } = require("../utils/toolbox.js");
 
 module.exports = async () => {
 	// Get needed paths.
-	let { commandspaths } = paths;
+	let { registrypaths } = paths;
 	let files = [];
 
 	// Declare empty variables to reuse for all await operations.
 	let err, res;
 
 	// Maps path needs to exist to list acdef files.
-	[err, res] = await flatry(de(commandspaths));
+	[err, res] = await flatry(de(registrypaths));
 	if (!res) {
 		exit([]); // Just exit without message.
 	}
 
 	// Get list of directory command folders.
-	[err, res] = await flatry(readdir(commandspaths));
+	[err, res] = await flatry(readdir(registrypaths));
 	let commands = res;
 
 	// Loop over found command folders to get their respective
@@ -34,9 +34,9 @@ module.exports = async () => {
 		let command = commands[i];
 
 		// Build .acdef file paths.
-		let acdefpath = path.join(commandspaths, command, `${command}.acdef`);
+		let acdefpath = path.join(registrypaths, command, `${command}.acdef`);
 		let configpath = path.join(
-			commandspaths,
+			registrypaths,
 			command,
 			`.${command}.config.acdef`
 		);

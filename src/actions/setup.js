@@ -43,7 +43,7 @@ module.exports = async args => {
 		customdir,
 		bashrcpath,
 		mainscriptname,
-		commandspaths,
+		registrypaths,
 		acmapssource,
 		resourcespath,
 		setupfilepath
@@ -77,7 +77,7 @@ module.exports = async args => {
 	[err, res] = await flatry(
 		// [https://github.com/scopsy/await-to-js/issues/12#issuecomment-386147783]
 		Promise.all([
-			mkdirp(commandspaths), // ~/.nodecliac/commands/
+			mkdirp(registrypaths), // ~/.nodecliac/registry/
 			mkdirp(acmapssource) // ~/.nodecliac/src/
 		])
 	);
@@ -159,7 +159,7 @@ module.exports = async args => {
 
 	// Copy nodecliac command packages/files to nodecliac registry.
 	[err, res] = await flatry(
-		copydir(resourcespath, commandspaths, {
+		copydir(resourcespath, registrypaths, {
 			// Copy options.
 			overwrite: true,
 			dot: true,

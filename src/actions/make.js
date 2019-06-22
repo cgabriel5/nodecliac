@@ -10,7 +10,7 @@ const { exit, paths, read, write, info } = require("../utils/toolbox.js");
 
 module.exports = async args => {
 	// Get needed paths.
-	let { commandspaths } = paths;
+	let { registrypaths } = paths;
 	// Declare empty variables to reuse for all await operations.
 	let err, res;
 
@@ -139,7 +139,7 @@ module.exports = async args => {
 	// Add to maps location if add flag provided.
 	if (add) {
 		// Build file output paths.
-		let commanddir = path.join(commandspaths, commandname);
+		let commanddir = path.join(registrypaths, commandname);
 		let commandpath = path.join(commanddir, savename);
 		let commandconfigpath = path.join(commanddir, saveconfigname);
 

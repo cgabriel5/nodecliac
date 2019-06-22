@@ -153,7 +153,7 @@ $scriptpath    =   "~/path/to/script3.sh"
 
 ```acmap
 # Variables - paths.
-$mainscript = "~/.nodecliac/commands/yarn/main.sh"
+$mainscript = "~/.nodecliac/registry/yarn/main.sh"
 
 # Command chains.
 yarn.remove = default $("${mainscript} remove")
@@ -194,11 +194,11 @@ yarn.remove = [
   # The default command will run on '$ yarn remove [TAB]'. The 'config.sh' script should
   # contain the logic needed to parse package.json to return the installed (dev)dependency
   # packages.
-  default $("~/.nodecliac/commands/yarn/config.sh")
+  default $("~/.nodecliac/registry/yarn/config.sh")
 
-  # As shown the script resides within ~/.nodecliac/ in the commands/ sub-directory. Some
+  # As shown the script resides within ~/.nodecliac/ in the registry/ sub-directory. Some
   # CLI apps are more complicated than others. This will require the need to make a folder
-  # under the commands/ directory for the command. In this folder all relevant files should
+  # under the registry/ directory for the command. In this folder all relevant files should
   # reside.
 ]
 ```
@@ -328,7 +328,7 @@ If the command requires arguments they can be hard-coded or dynamically supplied
 **Escaping**: Internally the following characters have special uses: `$` and `|`. This means that when using these characters inside a command they will have to be escaped. Take the following examples:
 
 - `--flag=$("echo \$0-\$1", $"echo 'john'", "doe", "-")`: The `$`s in the command are escaped.
-- `--flag=$("nodecliac list \| grep -oP \"(?<=─ )([-a-z]*)\"")`: Here the `|` gets escaped as well.
+- `--flag=$("nodecliac registry \| grep -oP \"(?<=─ )([-a-z]*)\"")`: Here the `|` gets escaped as well.
 
 ```acmap
 mycliprogram.command = [
@@ -404,7 +404,7 @@ subl = [
 nodecliac = --version?
 nodecliac.setup = --rcfilepath|--force?
 nodecliac.uninstall = --rcfilepath
-nodecliac.list
+nodecliac.registry
 nodecliac.make = --add?|--force?|--source|--save?|--print?|--highlight?|--trace?|--nowarn?
 nodecliac.status = --enable?|--disable?
 nodecliac.format = --indent|--source|--save?|--print?|--highlight?|--strip-comments?|--trace?|--nowarn?
@@ -424,7 +424,7 @@ nodecliac.setup = [
 nodecliac.uninstall = [
   --rcfilepath
 ]
-nodecliac.list
+nodecliac.registry
 nodecliac.make = [
   --add?
   --force?
@@ -496,7 +496,6 @@ $ mycliprogram [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] 
   - `--print`: Print output to console.
   - `--source` (**required**): The `.acmap` file path.
   - `--trace`: Used for debugging purposes only.
-- `list`: Lists installed auto-completion definition files (`.acdef`).
 - `make`: Generate `.acdef` file from an `.acmap` file.
   - `--add`: Add generated `.acdef` file to nodecliac auto-completion registry.
   - `--highlight`: Syntax highlight output.
@@ -508,6 +507,7 @@ $ mycliprogram [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] 
   - `--trace`: Used for debugging purposes only.
 - `print`: Simple command used to showcase nodecliac's ability to generate dynamic flag option values on-the-fly.
   - `--command=`: The file to print (list dynamically generated based on available files in registry).
+- `registry`: Lists installed auto-completion definition files (`.acdef`) in registry.
 - `setup`: Installs and setups nodecliac.
   - `--force`: If nodecliac is already installed this flag is needed for overwrite old install.
   - `--rcfilepath`: By default setup will look for `~/.bashrc` to add modifications to. Supply the path to another rc file if you don't want changes to be made to `~/.bashrc`.
@@ -549,7 +549,7 @@ $ nodecliac format --source path/to/mycliprogram.acmap --print --highlight --ind
 
 ### Resource Files/Directory Structure
 
-Some CLI apps are more complicated than others and will require the need of additional custom script files. If this is the case, a command folder should be made under the following path: `~/.nodecliac/commands/COMMAND-NAME/`. For example, say we are creating an `.acmap` file for [yarn](https://yarnpkg.com/en/) and we need to run custom script files for a better auto-completion experience. These files should reside at `~/.nodecliac/commands/yarn/`. [See directory structure/files here](/resources/nodecliac).
+Some CLI apps are more complicated than others and will require the need of additional custom script files. If this is the case, a command folder should be made under the following path: `~/.nodecliac/registry/COMMAND-NAME/`. For example, say we are creating an `.acmap` file for [yarn](https://yarnpkg.com/en/) and we need to run custom script files for a better auto-completion experience. These files should reside at `~/.nodecliac/registry/yarn/`. [See directory structure/files here](/resources/nodecliac).
 
 <details><summary>Show directory structures.</summary>
 
@@ -557,7 +557,7 @@ Some CLI apps are more complicated than others and will require the need of addi
 
 ```
 ~/.nodecliac/
-└── commands/
+└── registry/
     └── COMMAND-NAME/
         ├── COMMAND-NAME.acdef
         ├── .COMMAND-NAME.config.acdef
@@ -569,7 +569,7 @@ Some CLI apps are more complicated than others and will require the need of addi
 
 ```
 ~/.nodecliac/
-└── commands/
+└── registry/
     └── yarn/
         ├── yarn.acdef
         ├── .yarn.config.acdef
@@ -577,7 +577,7 @@ Some CLI apps are more complicated than others and will require the need of addi
             └── acdef.sh
 ```
 
-**Note**: The manner in which custom script files are placed within `~/.nodecliac/commands/COMMAND-NAME/` is up to you. Just note that the above base structure is required.
+**Note**: The manner in which custom script files are placed within `~/.nodecliac/registry/COMMAND-NAME/` is up to you. Just note that the above base structure is required.
 
 </details>
 
@@ -601,13 +601,13 @@ Available hook scripts:
 
 #### Making Hook Script
 
-Using the hook script is easy. Simply create the following path in the command's resources directory: `~/.nodecliac/commands/COMMAND-NAME/hooks/acdef.*`. All hook scripts will reside in the `COMMAND-NAME/hooks` sub directory. For example, for yarn it would be: `~/.nodecliac/commands/yarn/hooks/acdef.*`.
+Using the hook script is easy. Simply create the following path in the command's resources directory: `~/.nodecliac/registry/COMMAND-NAME/hooks/acdef.*`. All hook scripts will reside in the `COMMAND-NAME/hooks` sub directory. For example, for yarn it would be: `~/.nodecliac/registry/yarn/hooks/acdef.*`.
 
 #### Using Hook Script
 
 Using [yarn's hook scripts](/resources/nodecliac/yarn) as real examples. `acdef.pl` is a Perl script which modifies the `.acdef` contents. The script returns the modified `.acdef` contents to nodecliac where it then overwrites the in-memory `acdef` value. The same concept goes for the `input.pl` script but with the CLI input.
 
-**Note**: Perl is used here for quick text processing as doing it in Bash is slow and cumbersome. _However_, use what you need to get the job done. The hook script just _needs_ to be an executable script named `acdef.*` located at `~/.nodecliac/commands/COMMAND-NAME/hooks/acdef.*`
+**Note**: Perl is used here for quick text processing as doing it in Bash is slow and cumbersome. _However_, use what you need to get the job done. The hook script just _needs_ to be an executable script named `acdef.*` located at `~/.nodecliac/registry/COMMAND-NAME/hooks/acdef.*`
 
 **Note**: As a reminder, the provided `.acmap` file gets parsed to generate an `.acdef` file. The created `.acdef` file is what nodecliac actually reads **a**uto-**c**ompletion **def**initions from. Therefore, modifying `.acdef` contents is a _slightly_ advanced topic as it requires knowing `.acdef` syntax.
 

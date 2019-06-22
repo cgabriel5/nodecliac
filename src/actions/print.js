@@ -8,7 +8,7 @@ const { exit, paths, read } = require("../utils/toolbox.js");
 
 module.exports = async args => {
 	// Get needed paths.
-	let { commandspaths } = paths;
+	let { registrypaths } = paths;
 	// Get CLI args.
 	let { command } = args;
 	// Declare empty variables to reuse for all await operations.
@@ -69,8 +69,8 @@ module.exports = async args => {
 		}
 
 		// File paths.
-		let filepath = `${commandspaths}/${commandname}/${commandname}${ext}`;
-		let filepathconfig = `${commandspaths}/${commandname}/.${commandname}.config${ext}`;
+		let filepath = `${registrypaths}/${commandname}/${commandname}${ext}`;
+		let filepathconfig = `${registrypaths}/${commandname}/.${commandname}.config${ext}`;
 
 		// Check if acdef file exists.
 		[err, res] = await flatry(fe(filepath));

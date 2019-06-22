@@ -46,31 +46,31 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# # not 'feel' as fast.
 		# local cleaninput=false
 
-		# # Get the acmap definitions file.
-		# local acmappath="$HOME/.nodecliac/registry/$maincommand/$maincommand"
-		# local acmapexists=false
-		# # Find acmap file: [https://stackoverflow.com/a/6364244]
+		# # Get the acdef definitions file.
+		# local acdefpath="$HOME/.nodecliac/registry/$maincommand/$maincommand"
+		# local acdefexists=false
+		# # Find acdef file: [https://stackoverflow.com/a/6364244]
 		# for f in ~/.nodecliac/registry/$maincommand/*; do
-		# 	# If file matches file pattern then acmap file exists.
-		# 	if [[ "$f" == "$acmappath."* ]]; then
-		# 		acmappath="$f"; acmapexists=true; break
+		# 	# If file matches file pattern then acdef file exists.
+		# 	if [[ "$f" == "$acdefpath."* ]]; then
+		# 		acdefpath="$f"; acdefexists=true; break
 		# 	fi
 		# done
 		# # Return if definitions file does not exist.
-		# if [[ "$acmapexists" == false ]]; then return; fi
+		# if [[ "acdefexists" == false ]]; then return; fi
 
-		# Get acmap file contents.
-		# local acmap="$(<~/.nodecliac/registry/$maincommand/$maincommand*)"
-		local acmappath=~/.nodecliac/registry/$maincommand/$maincommand.acdef
+		# Get acdef file contents.
+		# local acdef="$(<~/.nodecliac/registry/$maincommand/$maincommand*)"
+		local acdefpath=~/.nodecliac/registry/$maincommand/$maincommand.acdef
 		# Check once more if the acdef file exists for the following case:
 		# If in the incident that nodecliac gets deleted (i.e. like running
-		# '$ nodecliac uninstall'), if the acmap file does not exist bash
+		# '$ nodecliac uninstall'), if the acdef file does not exist bash
 		# will output an error. Therefore, return when file is not found.
-		if [[ ! -f "$acmappath" ]]; then return; fi;
-		local acmap="$(<$acmappath)"
+		if [[ ! -f "$acdefpath" ]]; then return; fi;
+		local acdef="$(<$acdefpath)"
 # [https://serverfault.com/questions/72476/clean-way-to-write-complex-multi-line-string-to-a-variable/424601#424601]
-# local acmap=`cat <<EOF
-# # [[__acmap__]]
+# local acdef=`cat <<EOF
+# # [[__acdef__]]
 # EOF
 # `
 
@@ -475,7 +475,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# 	fi
 		# }
 
-		# # Lookup command/subcommand/flag definitions from the acmap to return
+		# # Lookup command/subcommand/flag definitions from the acdef to return
 		# #     possible completions list.
 		# #
 		# # Test input:
@@ -547,8 +547,8 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# 						if [[ ! -z "$chain" ]]; then
 		# 							oldchain="$chain"
 
-		# 							# Lookup flag definitions from acmap.
-		# 							local rows=`grep "^$maincommand$oldchain[[:space:]]\-\-" <<< "$acmap"`
+		# 							# Lookup flag definitions from acdef.
+		# 							local rows=`grep "^$maincommand$oldchain[[:space:]]\-\-" <<< "$acdef"`
 		# 							local flags="${rows#* }"
 
 		# 							if [[ "$flags" =~ "${item}?"(\||$) ]]; then
@@ -587,8 +587,8 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# 					if [[ ! -z "$chain" ]]; then
 		# 						oldchain="$chain"
 
-		# 						# Lookup flag definitions from acmap.
-		# 						local rows=`grep "^$maincommand$oldchain[[:space:]]\-\-" <<< "$acmap"`
+		# 						# Lookup flag definitions from acdef.
+		# 						local rows=`grep "^$maincommand$oldchain[[:space:]]\-\-" <<< "$acdef"`
 		# 						local flags="${rows#* }"
 
 		# 						if [[ "$flags" =~ "${item}?"(\||$) ]]; then
@@ -691,7 +691,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# 	fi
 		# }
 
-		# # Lookup command/subcommand/flag definitions from the acmap to return
+		# # Lookup command/subcommand/flag definitions from the acdef to return
 		# #     possible completions list.
 		# function __lookup() {
 		# 	# Flag ReGex test patterns.
@@ -707,8 +707,8 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 
 		# 	# Flag completion (last word starts with a hyphen):
 		# 	if [[ "$last" == -* ]]; then
-		# 		# Lookup flag definitions from acmap.
-		# 		local rows=`grep "^$commandchain[[:space:]]\-\-" <<< "$acmap"`
+		# 		# Lookup flag definitions from acdef.
+		# 		local rows=`grep "^$commandchain[[:space:]]\-\-" <<< "$acdef"`
 
 		# 		# Continue if rows exist.
 		# 		if [[ ! -z "$rows" ]]; then
@@ -888,18 +888,18 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# 			usedflags=""
 		# 		fi
 
-		# 		# Lookup command tree rows from acmap.
+		# 		# Lookup command tree rows from acdef.
 		# 		local rows=
 		# 		# Replacement type.
 		# 		local rtype=
 		# 		# Switch statement: [https://stackoverflow.com/a/22575299]
 		# 		case "$lastchar" in
 		# 		' ')
-		# 			rows=`grep "^$commandchain\." <<< "$acmap"`
+		# 			rows=`grep "^$commandchain\." <<< "$acdef"`
 		# 			rtype=1
 		# 			;;
 		# 		*)
-		# 			rows=`grep "^$commandchain.[-:a-zA-Z0-9]* " <<< "$acmap"`
+		# 			rows=`grep "^$commandchain.[-:a-zA-Z0-9]* " <<< "$acdef"`
 		# 			rtype=2
 		# 			;;
 		# 		esac
@@ -910,7 +910,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# 		# the user presses the [tab] key to show the completion is
 		# 		# complete for that word.
 		# 		if [[ -z "$rows" ]]; then
-		# 			local row=`grep "^$commandchain " <<< "$acmap"`
+		# 			local row=`grep "^$commandchain " <<< "$acdef"`
 		# 			if [[ ! -z "$row" && "$lastchar" != " " ]]; then
 		# 				# Add last command in chain.
 		# 				completions=(`__last_command "$row" "$rtype"`)
@@ -920,7 +920,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# 			# exists, and the command tree does not contains any
 		# 			# upper levels then we simply add the last word so
 		# 			# that bash can add a space to it.
-		# 			if [[ ! -z `grep -m1 "^$commandchain " <<< "$acmap"`
+		# 			if [[ ! -z `grep -m1 "^$commandchain " <<< "$acdef"`
 		# 				&& -z `grep -m1 "^$commandchain[-:a-zA-Z0-9]* " <<< "$rows"`
 		# 				&& "$lastchar" != " " ]]; then
 		# 				completions=("$last")
@@ -1087,8 +1087,8 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		acpl_script=~/.nodecliac/src/ac.pl
 		# Run completion script if it exists.
 		if [[ -f "$acpl_script" ]]; then
-			output=`"$acpl_script" "$cline" "$cpoint" "$maincommand" "$acmap"`
-			# "$acpl_script" "$cline" "$cpoint" "$maincommand" "$acmap"
+			output=`"$acpl_script" "$cline" "$cpoint" "$maincommand" "$acdef"`
+			# "$acpl_script" "$cline" "$cpoint" "$maincommand" "$acdef"
 
 			# First line is meta info (completion type, last word, etc.).
 			# [https://stackoverflow.com/a/2440685]

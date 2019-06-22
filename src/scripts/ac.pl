@@ -42,8 +42,8 @@ my $prefix = "NODECLIAC_";
 # [https://stackoverflow.com/a/18123004]
 my $hdir = glob("~");
 
-# Get the acmap definitions file.
-my $acmap = $ARGV[3];
+# Get the acdef definitions file.
+my $acdef = $ARGV[3];
 
 # RegExp Patterns:
 my $flgopt = '-{1,2}[-.a-zA-Z0-9]*='; # "--flag/-flag="
@@ -337,7 +337,7 @@ sub __fallback_cmd_string {
 
 		# Get command-string, parse it, then run it...
 		my $pattern = '^' . quotemeta($chain) . " $keyword" . '[ \t]{1,}(.*?)$';
-		if ($acmap =~ /$pattern/m) {
+		if ($acdef =~ /$pattern/m) {
 			# Store matched RegExp pattern value.
 			my $value = $1;
 			# If match exists...
@@ -711,7 +711,7 @@ sub __set_envs {
 		"${prefix}COMP_POINT" => $cpoint, # Caret index when [tab] key was pressed.
 
 		# Following env vars are custom and exposed via nodecliac.
-		"${prefix}ACDEF" => $acmap,
+		"${prefix}ACDEF" => $acdef,
 		"${prefix}MAIN_COMMAND" => $maincommand, # The command auto completion is being performed for.
 		"${prefix}COMMAND_CHAIN" => $commandchain, # The parsed command chain.
 		"${prefix}USED_FLAGS" => $usedflags, # The parsed used flags.
@@ -772,8 +772,8 @@ sub __hook_acdef {
 	# Run command string: `bash -c $command 2> /dev/null` ← Suppress all errors.
 	my $output = `bash -c \"$scriptpath\" 2> /dev/null`;
 
-	# Set acmap variable to returned output.
-	if ($output) { $acmap = $output; }
+	# Set acdef variable to returned output.
+	if ($output) { $acdef = $output; }
 }
 
 # Runs input hook script. This is pre-parsing hook.
@@ -907,7 +907,7 @@ sub __parser {
 	}
 }
 
-# Lookup command/subcommand/flag definitions from the acmap to return
+# Lookup command/subcommand/flag definitions from the acdef to return
 #     possible completions list.
 #
 # Test input:
@@ -967,7 +967,7 @@ sub __extractor {
 
 			# Check that command chain exists in acdef.
 			my $pattern = '^' . quotemeta($commandchain) . '.* ';
-			if ($acmap =~ /$pattern/m) {
+			if ($acdef =~ /$pattern/m) {
 				# If there is a match then store chain.
 				$last_valid_chain = $commandchain;
 			} else {
@@ -1013,9 +1013,9 @@ sub __extractor {
 						if ($chain) {
 							$oldchain = $chain;
 
-							# Lookup flag definitions from acmap.
+							# Lookup flag definitions from acdef.
 							my $pattern = '^' . "$oldchain" . ' (-{1,2}.*)$';
-							if ($acmap =~ /$pattern/m) {
+							if ($acdef =~ /$pattern/m) {
 								my $pattern = "${item}\\?" . '(\\||$)';
 								if ($1 =~ /$pattern/) {
 									$skipflagval = 1;
@@ -1054,9 +1054,9 @@ sub __extractor {
 					if ($chain) {
 						$oldchain = $chain;
 
-						# Lookup flag definitions from acmap.
+						# Lookup flag definitions from acdef.
 						my $pattern = '^' . "$oldchain" . ' (-{1,2}.*)$';
-						if ($acmap =~ /$pattern/m) {
+						if ($acdef =~ /$pattern/m) {
 							my $pattern = "${item}\\?" . '(\\||$)';
 							if ($1 =~ /$pattern/) {
 								$skipflagval = 1;
@@ -1164,7 +1164,7 @@ sub __extractor {
 		my $islast_aspace = ($lastchar eq " ");
 		# Get correct last word.
 		my $nlast = $args[($islast_aspace ? -1 : -2)];
-		# acmap commandchain lookup Regex.
+		# acdef commandchain lookup Regex.
 		my $pattern = '^' . $commandchain . ' (-{1,2}.*)$';
 
 		# The last word (either last or second last word) must be a flag
@@ -1173,7 +1173,7 @@ sub __extractor {
 			# Show all available flag option values.
 			if ($islast_aspace) {
 				# Check if the flag exists in the following format: '--flag='
-				if ($acmap =~ /$pattern/m) {
+				if ($acdef =~ /$pattern/m) {
 					# Check if flag exists with option(s).
 					my $pattern = $nlast . '=(?!\*).*?(\||$)';
 					if ($1 && $1 =~ /$pattern/) {
@@ -1186,7 +1186,7 @@ sub __extractor {
 				}
 			} else { # Complete currently started value option.
 				# Check if the flag exists in the following format: '--flag='
-				if ($acmap =~ /$pattern/m) {
+				if ($acdef =~ /$pattern/m) {
 					# Escape special chars: [https://stackoverflow.com/a/576459]
 					# [http://perldoc.perl.org/functions/quotemeta.html]
 					my $pattern = $nlast . '=' . quotemeta($last) . '.*?(\||$)';
@@ -1204,7 +1204,7 @@ sub __extractor {
 	}
 }
 
-# Lookup command/subcommand/flag definitions from the acmap to return
+# Lookup command/subcommand/flag definitions from the acdef to return
 #     possible completions list.
 sub __lookup {
 	# Skip logic if last word is quoted or completion variable is off.
@@ -1214,9 +1214,9 @@ sub __lookup {
 
 	# Flag completion (last word starts with a hyphen):
 	if (__starts_with_hyphen($last)) {
-		# Lookup flag definitions from acmap.
+		# Lookup flag definitions from acdef.
 		my $pattern = '^' . $commandchain . ' (-{1,2}.*)$';
-		if ($acmap =~ /$pattern/m) {
+		if ($acdef =~ /$pattern/m) {
 			# Continue if rows exist.
 			if ($1) {
 				my @used = ();
@@ -1437,7 +1437,7 @@ sub __lookup {
 			$usedflags = "";
 		}
 
-		# Lookup all command tree rows from acmap once and store.
+		# Lookup all command tree rows from acdef once and store.
 		# my $pattern = '^' . $commandchain . '.*$'; # Original.
 		# my $pattern = '^' . substr($commandchain, 0, 2) . '.*$'; # 2 char RegExp pattern.
 		# The following RegExp does not seem to work:
@@ -1468,7 +1468,7 @@ sub __lookup {
 			)
 			. '.+$';
 
-		my @data = $acmap =~ /$pattern/mg;
+		my @data = $acdef =~ /$pattern/mg;
 		my @rows = (); # Store filtered data.
 		my $lastchar_notspace = ($lastchar ne " ");
 

@@ -1606,12 +1606,13 @@ sub __lookup {
 			__fallback_cmd_string("default", \@chains);
 		}
 
-		# Note: When running the 'always' fallback should the current command
-		# chain's fallback be looked and run or should the command chain also
-		# be broken up into levels and run the first available fallback always
-		# command-string?
-		my @chains = ($commandchain);
-		__fallback_cmd_string("always", \@chains);
+		# # Note: 'always' keyword has quirks so comment out for now.
+		# # Note: When running the 'always' fallback should the current command
+		# # chain's fallback be looked and run or should the command chain also
+		# # be broken up into levels and run the first available fallback always
+		# # command-string?
+		# my @chains = ($commandchain);
+		# __fallback_cmd_string("always", \@chains);
 	}
 }
 

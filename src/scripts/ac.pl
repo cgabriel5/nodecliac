@@ -1466,7 +1466,7 @@ sub __lookup {
 					# Else, use first 2 characters of command chain.
 				: substr($commandchain, 0, 2)
 			)
-			. '.+$';
+			. '.+ --'; # Get row from start to first flag indicator ' --'.
 
 		my @data = $acdef =~ /$pattern/mg;
 		my @rows = (); # Store filtered data.

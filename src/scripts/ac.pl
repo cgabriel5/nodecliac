@@ -1582,27 +1582,16 @@ sub __lookup {
 			}
 		}
 
-		# [TODO] Fallback (default/always) command string auto-completion
-		# 'feel' slow. Find a better way or improve (speed) current way.
-
-		# Split chain into its individual commands.
-		my @chain_parts = split(/(?:\\\\\.)|(?:(?<!\\)\.)/, substr($commandchain, 1));
+		# Copy commandchain string.
+		my $copy_commandchain = $commandchain;
 		# Create chains array.
-		my @chains = (); # Set command chain as the first chain.
-
-		# Loop over each array to build individual arrays.
-		my %chains_table;
-		my $bchain = ""; # The built chain.
-		my $l = __len(\@chain_parts); # Minus 1 to skip last chain.
-		for (my $i = 0; $i < $l; $i++) {
-			$bchain .= "." . $chain_parts[$i]; # Build chain string.
-			$chains_table{$i} = $bchain; # Store chain in hash.
-		}
-
-		# Get chains (keys) from hash table and reverse the array. Once
-		# reversed loop over array and add to chain to chains array.
-		foreach my $chain (reverse (keys %chains_table)) {
-			push(@chains, $chains_table{$chain}); # Add chain to chains array.
+		my @chains = ($commandchain); # Set command chain as the first chain.
+		# Loop over command chains to build individual chain levels.
+		while ($copy_commandchain) {
+			# Remove last command chain from overall command chain.
+			$copy_commandchain = $copy_commandchain =~ s/\.((?:\\\.)|[^\.])+$//r; # ((?:\\\.)|[^\.]*?)*$
+			# Store chain level in chains array.
+			if ($copy_commandchain) { push(@chains, $copy_commandchain); }
 		}
 
 		# If no completions exist run default command if it exists.

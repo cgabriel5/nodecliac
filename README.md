@@ -1,36 +1,35 @@
 # nodecliac
 
-> Easily add Bash tab completion to CLI apps.
+Easily add Bash tab completion to CLI apps with nodecliac (**node**-**cli**-**a**uto-**c**ompletion).
 
 <p align="center"><img src="./resources/images/nodecliac-tab-completion.gif?raw=true" alt="nodecliac tab completion" title="nodecliac tab completion" width="auto"></p>
 
 ##### Table of Contents
 
-- [Overview](#overview)
 - [Install](#install)
 - [How It Works](#how-it-works)
-- [ACMAP Format/Syntax](#acmap-format-syntax)
+- [ACMAP Syntax](#acmap-syntax)
 - [Examples](#examples)
 - [API](#api)
 - [CLI](#cli)
 - [CLI Usage](#cli-usage-examples)
-- [Resource Files/Directory Structure](#resources-directory-structure)
+- [Registry](#registry)
   - [Hooks](#resources-hooks)
 - [Support](#support)
 - [Contributing](#contributing)
 - [License](#license)
 
-<a name="overview"></a>
-
-### Overview
-
-nodecliac (**node**-**cli**-**a**uto-**c**ompletion) is a bash auto-completion tool made to easily add Bash tab auto-completion to your CLI app. Though originally made for Node.js CLI apps it has proved being useful for non-node CLI apps as well.
-
 <a name="install"></a>
 
-### Install
+## Install
 
-Download/clone the repo somewhere on your machine. Preferably to your desktop. Once download, `cd` into the project directory and setup the project with `yarn` or `npm` to download project dependencies. Finally, while in the project root, run `nodecliac setup` to setup nodecliac. The following commands shows how to install nodecliac.
+```sh
+# yarn
+$ yarn global add cgabriel5/nodecliac && nodecliac setup
+
+# npm (requires sudo)
+$ sudo npm i -g cgabriel5/nodecliac && nodecliac setup
+```
 
 <details>
   <summary>Requirements</summary>
@@ -42,15 +41,7 @@ Download/clone the repo somewhere on your machine. Preferably to your desktop. O
     - [Homebrew](https://brew.sh/) can be used to [update bash](https://akrabat.com/upgrading-to-bash-4-on-macos/).
       </details>
 
-```sh
-# yarn
-$ yarn global add cgabriel5/nodecliac && nodecliac setup
-
-# npm (requires sudo)
-$ sudo npm i -g cgabriel5/nodecliac && nodecliac setup
-```
-
-<details><summary>Uninstall?</summary>
+<details><summary>Uninstall</summary>
 
 ```sh
 # yarn
@@ -62,7 +53,7 @@ $ nodecliac uninstall && sudo npm uninstall -g nodecliac
 
 </details>
 
-<details><summary>Need to download <a href="https://stackoverflow.com/a/4568323" target="_blank" rel="nofollow">specific branch</a>?</summary>
+<details><summary>Download <a href="https://stackoverflow.com/a/4568323" target="_blank" rel="nofollow">specific branch</a></summary>
 
 ```sh
 # yarn
@@ -79,23 +70,23 @@ $ git clone -b BRANCH_NAME --single-branch https://github.com/cgabriel5/nodeclia
 
 <a name="how-it-works"></a>
 
-### How It Works
+## How It Works
 
 ###### Text Summary:
 
-nodecliac uses 2 custom file formats: **a**uto-**c**ompletion **def**inition (`.acdef`) and **a**uto-**c**ompletion **map** (`.acmap`) files. The idea here is you create an `.acmap` file to map your app's CLI commands/subcommands with their respective flags. You then pass your `myapp.acmap` file to nodecliac to generate an `.acdef` file all from the command line. This auto-completion definition file (i.e. `myapp.acdef`) can then be used by nodecliac to provide CLI tab auto-completion for your app.
+nodecliac uses 2 custom file types: **a**uto-**c**ompletion **def**inition (`.acdef`) and **a**uto-**c**ompletion **map** (`.acmap`) files. The idea here is to create an `.acmap` file to map the CLI app's (sub)commands with their respective flags. `mycliprogram.acmap` then gets passed to nodecliac via the command line to generate an `.acdef` file. This generated `mycliprogram.acdef` definitions file can now be used by nodecliac to provide CLI tab completions.
 
 ###### Bullet Breakdown:
 
-1. [Create CLI app's auto-completion map](#cli-usage-examples) (`myapp.acmap`) file.
-2. Provide `myapp.acmap` to nodecliac to generate app's (`myapp.acdef`) file via nodecliac's `make` command.
-3. Add generated `myapp.acdef` file to [nodecliac's registry](#cli-usage-examples) via `make`'s `--add` flag.
-4. Open a new terminal and start enjoying Bash tab completions!
+1. [Create CLI app's](#cli-usage-examples) `mycliprogram.acmap` file.
+2. Using nodecliac's `make` command, provide `mycliprogram.acmap` to generate app's `mycliprogram.acdef` file.
+3. Add generated `mycliprogram.acdef` file to [nodecliac's registry](#cli-usage-examples) via `make`'s `--add` flag.
+4. Open a new Terminal or `source ~/.bashrc` to start enjoying Bash tab completions!
 5. See [CLI Usage](#cli-usage-examples) section for examples.
 
-<a name="acmap-format-syntax"></a>
+<a name="acmap-syntax"></a>
 
-### ACMAP Format/Syntax
+## ACMAP Syntax
 
 <details>
   <summary>ACMAP files are text files with a simple language structure and relatively few language constructs.</summary>
@@ -187,7 +178,7 @@ Command chains can have a default command-string (runable shell command(s)) be r
   - A command string is denoted with starting `$(` and closing `)`.
   - The string in between the closing/starting syntax is the command-string.
 
-**Note**: For more information about `command-string`s please take a look at `ACMAP Format/Syntax > Flags > Flag Variations > Flags (dynamic values)`. The section contains all details for command-strings like special character escaping caveats, dynamic/static arguments, and examples with their breakdowns. Please be aware that the section uses the term `command-flag` due it being used for flags but `command-flag` and `command-string` are effectively the same thing. Here we see it being used for command chains. The naming is based on what it's being used for (i.e. flags or command chains).
+**Note**: For more information about `command-string`s please take a look at `ACMAP Syntax > Flags > Flag Variations > Flags (dynamic values)`. The section contains all details for command-strings like special character escaping caveats, dynamic/static arguments, and examples with their breakdowns. Please be aware that the section uses the term `command-flag` due it being used for flags but `command-flag` and `command-string` are effectively the same thing. Here we see it being used for command chains. The naming is based on what it's being used for (i.e. flags or command chains).
 
 ```acmap
 yarn.remove = [
@@ -357,7 +348,7 @@ mycliprogram.uninstall
 
 </details>
 
-### Miscellaneous
+## Miscellaneous
 
 #### Blank Lines
 
@@ -375,43 +366,26 @@ Indentation is all allowed but when declaring command chains and settings.
 
 <a name="examples"></a>
 
-### Examples
+## Examples
 
-<details><summary>Show examples</summary>
+ACMAPS for various CLI apps can be can be found [here](resources/nodecliac/__acmaps).
 
-#### Sublime Text ACMAP
+<details><summary>nodecliac ACMAP</summary>
 
-The following represents `subl.acmap`, the Sublime Text nodecliac auto-completion map file.
-
-```acmap
-subl = [
-  --project
-  --command
-  --new-window?
-  --add
-  --wait?
-  --background?
-  --help?
-  --version?
-]
-```
-
-#### nodecliac ACMAP
-
-**One liner**: The following represents `nodecliac.acmap`, the nodecliac auto-completion map file.
+**Short form**: The following represents `nodecliac.acmap`, the nodecliac auto-completion map file.
 
 ```acmap
 nodecliac = --version?
-nodecliac.setup = --rcfilepath|--force?
-nodecliac.uninstall = --rcfilepath
+nodecliac.setup = --rcfilepath?|--force?
+nodecliac.uninstall = --rcfilepath?
 nodecliac.registry
 nodecliac.make = --add?|--force?|--source|--save?|--print?|--highlight?|--trace?|--nowarn?
 nodecliac.status = --enable?|--disable?
 nodecliac.format = --indent|--source|--save?|--print?|--highlight?|--strip-comments?|--trace?|--nowarn?
-nodecliac.print = --command=|--command=$("for f in ~/.nodecliac/defs/*; do echo \"\${f##*/}\"; done;")
+nodecliac.print = --command=|--command=$("for f in ~/.nodecliac/registry/*/*.acdef; do f=\"\${f##*/}\";c=\"\${f%%.*}\";echo \"\$c\"; done;")
 ```
 
-**Long form**: Verbose `nodecliac.acmap` alternative. Although verbose this is effectively the same as above. You can pick which to use or settle on a mixture of both.
+**Long form**: Verbose `nodecliac.acmap` alternative (same as short form). Settle on one or mixture of both.
 
 ```acmap
 nodecliac = [
@@ -451,21 +425,23 @@ nodecliac.format = [
 ]
 nodecliac.print = [
   --command=
-  --command=$("for f in ~/.nodecliac/defs/*; do echo \"\${f##*/}\"; done;")
+  --command=$("for f in ~/.nodecliac/registry/*/*.acdef; do f=\"\${f##*/}\";c=\"\${f%%.*}\";echo \"\$c\"; done;")
 ]
 ```
 
 </details>
 
+</details>
+
 <a name="api"></a>
 
-### API
+## API
 
-Currently nodecliac is only a CLI tool.
+nodecliac is currently only a CLI tool.
 
 <a name="cli"></a>
 
-### CLI
+## CLI
 
 #### CLI Anatomy (Example)
 
@@ -482,48 +458,49 @@ $ mycliprogram [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] 
 ```
 
 <details>
-  <summary>Show commands/flags.</summary>
+  <summary>Show nodecliac's commands/flags.</summary>
 
-- `format`: Prettifies `.acmap` file.
-  - `--highlight`: Syntax highlight output.
-  - `--nowarn`: Don't print parser warnings.
-  - `--save`: Overwrite source file with prettified output
-  - `--strip-comments`: Remove all comments from final output.
-  - `--indent` (**required**): Formatting indentation information can be provided like:
-    - `s` for spaces or `t` for tabs followed by `:<NUMBER>`.
+- `format`: Prettifies .acmap files.
+  - `--highlight` : Syntax highlight output.
+  - `--indent="(s|t):Number"`: (**required**): Formatting indentation information:
+    - `s` for spaces or `t` for tabs followed by a number.
     - `t:1`: Use 1 tab per indentation level.
     - `s:2`: Use 2 spaces per indentation level.
-  - `--print`: Print output to console.
-  - `--source` (**required**): The `.acmap` file path.
-  - `--trace`: Used for debugging purposes only.
+  - `--nowarn` : Don't print parser warnings.
+  - `--print` : Print output to console.
+  - `--save` : Overwrite source file with prettified output
+  - `--source`: (**required**): The `.acmap` file path.
+  - `--strip-comments` : Remove all comments from final output.
+  - `--trace` : Used for debugging purposes only.
 - `make`: Generate `.acdef` file from an `.acmap` file.
-  - `--add`: Add generated `.acdef` file to nodecliac auto-completion registry.
+  - `--add`: Add generated`.acdef` file to nodecliac auto-completion registry.
   - `--highlight`: Syntax highlight output.
-  - `--print`: Print output to console.
-  - `--source` (**required**): The `.acmap` file path.
-  - `--force`: If an `.acdef` file exists for the command then this flag is needed to overwrite old `.acdef` file.
-  - `--nowarn`: Don't print parser warnings.
+  - `--print` : Print output to console.
+  - `--source`: (**required**): The `.acmap` file path.
+  - `--force`: If an `.acdef` file exists for the command then this flag is needed to overwrite old`.acdef` file.
+  - `--nowarn` : Don't print parser warnings.
   - `--save`: Will save generated `.acdef` file to source location.
-  - `--trace`: Used for debugging purposes only.
-- `print`: Simple command used to showcase nodecliac's ability to generate dynamic flag option values on-the-fly.
+  - `--trace` : Used for debugging purposes only.
+- `print`: Print acmap/def file contents for files in registry.
   - `--command=`: The file to print (list dynamically generated based on available files in registry).
-- `registry`: Lists installed auto-completion definition files (`.acdef`) in registry.
+- `registry`: Lists `.acdef` files in registry.
 - `setup`: Installs and setups nodecliac.
-  - `--force`: If nodecliac is already installed this flag is needed for overwrite old install.
+  - `--force` : If nodecliac is already installed this flag is needed for overwrite old install.
   - `--rcfilepath`: By default setup will look for `~/.bashrc` to add modifications to. Supply the path to another rc file if you don't want changes to be made to `~/.bashrc`.
-  - To be transparent this is what gets added the your rc file:
+    - **Note**: To be transparent this is what gets added the your rc file:
     - `ncliac=~/.nodecliac/src/main.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;`
-    - The line will load the file `~/.nodecliac/src/main.sh` if it exists. `main.sh` registers all `~/.nodecliac/defs/*.acdef` files with the auto-completion script to work with bash-completion.
+    - The line will load `~/.nodecliac/src/main.sh` if it exists. `main.sh` registers all `~/.nodecliac/registry/*/*.acdef` files with the auto-completion script to work with bash-completion.
 - `status`: Checks whether nodecliac is enabled/disabled.
-  - `--enable`: Enables nodecliac if disabled.
+  - `--enable` : Enables nodecliac if disabled.
   - `--disable`: Disables nodecliac if enabled.
 - `uninstall`: Uninstalls nodecliac/reverts rc file changes.
   - `--rcfilepath`: rc file used in setup to remove changes from.
-    </details>
+
+</details>
 
 <a name="cli-usage-examples"></a>
 
-### CLI Usage Examples
+## CLI Usage Examples
 
 #### Generate ACDEF file
 
@@ -545,9 +522,9 @@ $ nodecliac format --source path/to/mycliprogram.acmap --print --highlight --ind
 $ nodecliac format --source path/to/mycliprogram.acmap --print --highlight --indent "s:2" --save
 ```
 
-<a name="resources-directory-structure"></a>
+<a name="registry"></a>
 
-### Resource Files/Directory Structure
+## Registry
 
 Some CLI apps are more complicated than others and will require the need of additional custom script files. If this is the case, a command folder should be made under the following path: `~/.nodecliac/registry/COMMAND-NAME/`. For example, say we are creating an `.acmap` file for [yarn](https://yarnpkg.com/en/) and we need to run custom script files for a better auto-completion experience. These files should reside at `~/.nodecliac/registry/yarn/`. [See directory structure/files here](/resources/nodecliac).
 
@@ -562,10 +539,9 @@ Some CLI apps are more complicated than others and will require the need of addi
         ├── COMMAND-NAME.acdef
         ├── .COMMAND-NAME.config.acdef
         └── hooks/
-            └── acdef.sh
 ```
 
-- Directory structure with yarn as a command directory:
+- Directory structure with yarn as a registry command:
 
 ```
 ~/.nodecliac/
@@ -574,16 +550,15 @@ Some CLI apps are more complicated than others and will require the need of addi
         ├── yarn.acdef
         ├── .yarn.config.acdef
         └── hooks/
-            └── acdef.sh
 ```
 
-**Note**: The manner in which custom script files are placed within `~/.nodecliac/registry/COMMAND-NAME/` is up to you. Just note that the above base structure is required.
+**Note**: The manner in which script files are structured within `~/.nodecliac/registry/COMMAND-NAME/` is up to you. Just note that the above base structure is required.
 
 </details>
 
 <a name="resources-hooks"></a>
 
-### Hooks
+## Hooks
 
 As stated in the resources files section some apps are more complicated than others. In the case of [yarn](https://yarnpkg.com/en/) its `yarn.acdef` file needed to be modified before parsing to [dynamically add the repos scripts as commands](https://yarnpkg.com/en/docs/cli/run#toc-yarn-run). One of the easier solutions for this was to use a pre-parsing hook. Basically, before nodecliac does anything
 it is possible to use a hook script to modify the command's `.acdef` file (in-memory value).
@@ -601,13 +576,13 @@ Available hook scripts:
 
 #### Making Hook Script
 
-Using the hook script is easy. Simply create the following path in the command's resources directory: `~/.nodecliac/registry/COMMAND-NAME/hooks/acdef.*`. All hook scripts will reside in the `COMMAND-NAME/hooks` sub directory. For example, for yarn it would be: `~/.nodecliac/registry/yarn/hooks/acdef.*`.
+Making use of a hook script is easy. Simply create the following path in the command's resources directory: `~/.nodecliac/registry/COMMAND-NAME/hooks/acdef.*`. All hook scripts will reside in the `COMMAND-NAME/hooks` sub directory. For example, for yarn it would be: `~/.nodecliac/registry/yarn/hooks/acdef.*`.
 
 #### Using Hook Script
 
-Using [yarn's hook scripts](/resources/nodecliac/yarn) as real examples. `acdef.pl` is a Perl script which modifies the `.acdef` contents. The script returns the modified `.acdef` contents to nodecliac where it then overwrites the in-memory `acdef` value. The same concept goes for the `input.pl` script but with the CLI input.
+This section will use [yarn's hook scripts](/resources/nodecliac/yarn) as real examples. `acdef.pl` is a Perl script which modifies the `.acdef` contents. The script returns the modified `.acdef` contents to nodecliac where it then overwrites the in-memory `acdef` value. The same idea goes for `input.pl` script but for the CLI input.
 
-**Note**: Perl is used here for quick text processing as doing it in Bash is slow and cumbersome. _However_, use what you need to get the job done. The hook script just _needs_ to be an executable script named `acdef.*` located at `~/.nodecliac/registry/COMMAND-NAME/hooks/acdef.*`
+**Note**: Perl is used here for quick text processing as doing it in Bash is slow and cumbersome. _However_, use what you _want/need_ to get the job done. Hook scripts just _need_ to be executable scripts stored in `~/.nodecliac/registry/COMMAND-NAME/hooks/`.
 
 **Note**: As a reminder, the provided `.acmap` file gets parsed to generate an `.acdef` file. The created `.acdef` file is what nodecliac actually reads **a**uto-**c**ompletion **def**initions from. Therefore, modifying `.acdef` contents is a _slightly_ advanced topic as it requires knowing `.acdef` syntax.
 
@@ -615,7 +590,7 @@ Using [yarn's hook scripts](/resources/nodecliac/yarn) as real examples. `acdef.
 
 <a name="support"></a>
 
-### Support
+## Support
 
 #### OS Support
 
@@ -626,16 +601,16 @@ Using [yarn's hook scripts](/resources/nodecliac/yarn) as real examples. `acdef.
 
 #### Shell Support
 
-- nodecliac only works with Bash, seeing that it is the only shell I use. However, if the project grows support for other shells (Zsh, Fish, etc.) could be added.
+- nodecliac only works with Bash, seeing that it is the only shell I use. However, if the project grows support for other shells (Zsh, Fish, etc.) may be added.
 
 #### Editor Support (Syntax Highlighting)
 
-- I use Sublime Text and have created a language syntax file (`acmap.sublime-syntax`) for it. It can be accessed in the `resources/sublime-text/Auto Completion Map (acmap)` folder. Download the folder and place it in the `User/` folder for Sublime Text to pickup. Personally, I have it stored like so: `/User/Languages/Auto Completion Map (acmap)`.
+- I use Sublime Text (ST) and have created a language syntax file (`acmap.sublime-syntax`) for it. ST files can be accessed [here](/resources/sublime-text/). Download the folder and place it in the `User/` folder for ST to pickup. Personally, I have it stored like so: `/User/Languages/Auto Completion Map (acmap)`.
 - Support for other editors can also be added if the project grows.
 
 <a name="contributing"></a>
 
-### Contributing
+## Contributing
 
 Contributions are welcome! Found a bug, feel like documentation is lacking/confusing and needs an update, have performance/feature suggestions or simply found a typo? Let me know! :)
 
@@ -643,6 +618,6 @@ See how to contribute [here](/CONTRIBUTING.md).
 
 <a name="license"></a>
 
-### License
+## License
 
 This project uses the [MIT License](/LICENSE.txt).

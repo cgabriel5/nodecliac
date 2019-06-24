@@ -9,6 +9,7 @@ Easily add Bash tab completion to CLI apps with nodecliac (**node**-**cli**-**a*
 - [Install](#install)
 - [How It Works](#how-it-works)
 - [ACMAP Syntax](#acmap-syntax)
+- [ACDEF Syntax](#acdef-syntax)
 - [Examples](#examples)
 - [API](#api)
 - [CLI](#cli)
@@ -361,6 +362,95 @@ Though allowed the parser will warn when duplicate command chains/flags/settings
 #### Indentation
 
 Indentation is all allowed but when declaring command chains and settings.
+
+</details>
+
+<a name="acdef-syntax"></a>
+
+## ACDEF Syntax
+
+<details>
+  <summary>ACDEF are easy to read, look similar to ACMAP files, and is what nodecliac uses to provide auto-completion.</summary>
+
+#### ACDEF Anatomy
+
+The following example `yarn.acdef` file will be used to explain how to read `.acdef` files.
+
+```acdef
+# DON'T EDIT FILE —— GENERATED: Fri Jun 21 2019 19:59:33 GMT-0700 (PDT)(1561172373941)
+
+ --cache-folder|--check-files|--cwd|--disable-pnp
+.access --
+.add --audit|--dev|--exact|--ignore-workspace-root-check|--optional|--peer|--tilde
+.autoclean --force|--init
+.bin --
+.cache --
+.upgrade --caret|--exact|--latest|--pattern|--scope|--tilde
+.why --
+.workspace --
+.workspaces --
+.workspaces.info --
+.workspaces.run --
+
+.upgrade default $("~/.nodecliac/registry/yarn/scripts/main.sh upgrade")
+.why default $("yarn list --depth=0 \| perl -wln -e \"/(?! ─ )([-\/_.@(?)a-zA-Z0-9]*)(?=\@)/ and print $&;\"")
+.workspace default $("~/.nodecliac/registry/yarn/scripts/main.sh workspace")
+.workspaces.run default $("~/.nodecliac/registry/yarn/scripts/main.sh run")
+```
+
+#### ACDEF Header
+
+- The first line in an `.acdef` file is the header.
+- The header contains a warning to not modify the file as well as the file's creation time information.
+
+```acdef
+# DON'T EDIT FILE —— GENERATED: Fri Jun 21 2019 19:59:33 GMT-0700 (PDT)(1561172373941)
+
+...
+```
+
+#### Commands/Flags
+
+- The following section contains the command chains and their respective flags.
+- Each line represents a row which starts with the command chain and is followed by single space.
+- Whatever comes after the single space are the command's flags.
+- Rows that do not have flags will contain `--` after the single space character.
+- Flags are separated by pipe (`|`) characters.
+
+```acdef
+...
+
+ --cache-folder|--check-files|--cwd|--disable-pnp
+.access --
+.add --audit|--dev|--exact|--ignore-workspace-root-check|--optional|--peer|--tilde
+.autoclean --force|--init
+.bin --
+.cache --
+.upgrade --caret|--exact|--latest|--pattern|--scope|--tilde
+.why --
+.workspace --
+.workspaces --
+.workspaces.info --
+.workspaces.run --
+
+...
+```
+
+**Note**: Command chain lines, lines starting with a single space or a dot (`.`) character, have the program's name removed.
+For example, if the line is `.workspaces.run --` it can be thought of as `yarn.workspaces.run --`.
+
+#### Command Fallbacks
+
+- The bottom section of an `.acdef` file will contain any command chain fallbacks.
+
+```acdef
+...
+
+.upgrade default $("~/.nodecliac/registry/yarn/scripts/main.sh upgrade")
+.why default $("yarn list --depth=0 \| perl -wln -e \"/(?! ─ )([-\/_.@(?)a-zA-Z0-9]*)(?=\@)/ and print $&;\"")
+.workspace default $("~/.nodecliac/registry/yarn/scripts/main.sh workspace")
+.workspaces.run default $("~/.nodecliac/registry/yarn/scripts/main.sh run")
+```
 
 </details>
 

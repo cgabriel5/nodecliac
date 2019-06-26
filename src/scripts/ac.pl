@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+# ------------- ^Use '-d:NYTProf' flag to profile script.
 
 # [https://stackoverflow.com/questions/8023959/why-use-strict-and-warnings]
 # [http://perldoc.perl.org/functions/use.html]
@@ -6,8 +7,11 @@
 # use warnings;
 # use diagnostics;
 
-# Get command name from sourced passed-in argument.
-my $maincommand = $ARGV[2];
+# Get environment variables.
+my $cline = $ARGV[0]; # Original (complete) CLI input.
+my $cpoint = int($ARGV[1]); # Caret index when [tab] key was pressed.
+my $acdef = $ARGV[3]; # Get the acdef definitions file.
+my $maincommand = $ARGV[2]; # Get command name from sourced passed-in argument.
 
 # Vars.
 my @args = ();
@@ -16,9 +20,7 @@ my $type = "";
 my $usedflags = "";
 my @completions = ();
 my $commandchain = "";
-my $cline = $ARGV[0]; # Original (complete) CLI input.
 my $input_original = $cline; # Original unmodified CLI input.
-my $cpoint = int($ARGV[1]); # Caret index when [tab] key was pressed.
 my $lastchar = substr($cline, $cpoint - 1, 1); # Character before caret.
 my $nextchar = substr($cline, $cpoint, 1); # Character after caret.
 my $cline_length = length($cline); # Original input's length.
@@ -31,6 +33,9 @@ my $input_remainder = substr($cline, $cpoint, -1); # CLI input from caret index 
 my $used_default_pa_args = "";
 my $collect_used_pa_args = "";
 
+# Store hook scripts paths.
+my $hpaths = "";
+
 # Set environment vars so command has access.
 my $prefix = "NODECLIAC_";
 
@@ -40,10 +45,10 @@ my $prefix = "NODECLIAC_";
 # [https://stackoverflow.com/a/4045032]
 # [https://stackoverflow.com/a/4043831]
 # [https://stackoverflow.com/a/18123004]
-my $hdir = glob("~");
-
-# Get the acdef definitions file.
-my $acdef = $ARGV[3];
+# my $hdir = glob("~"); # ← Slowest...
+# my $hdir = `bash -c "echo \"$HOME\""`; # ← Less slow...
+# [https://stackoverflow.com/q/1475357]
+my $hdir = $ENV{"HOME"}; # ← Fastest way but is it reliable?
 
 # RegExp Patterns:
 my $flgopt = '-{1,2}[-.a-zA-Z0-9]*='; # "--flag/-flag="
@@ -401,7 +406,7 @@ sub __execute_command {
 	# [https://stackoverflow.com/a/3374285]
 	# [https://stackoverflow.com/a/11231972]
 
-	# Set all environmental variables to access in custom scripts.
+	# Set all environment variables to access in custom scripts.
 	__set_envs();
 
 	# Run the command.
@@ -684,14 +689,42 @@ sub __set_envs {
 	}
 }
 
+# Get hook scripts file paths list. Used for hook scripts.
+#
+# @return {undefined} - Nothing is returned.
+sub __hook_filepaths {
+	# Use shell commands over Perl's glob function. The glob function is much
+	# slower than Bash commands. Once the command is run store the commands
+	# for later use/lookup.
+	# [https://stackoverflow.com/a/6364244]
+	# [https://stackoverflow.com/a/34195247]
+	# [https://zybuluo.com/ysongzybl/note/96951]
+	# $hpaths = `bash -c "for f in ~/.nodecliac/registry/$maincommand/hooks/{acdef,input}.*; do [ -e \"\$f\" ] && echo \"\\\$f\" || echo \"\"; done 2> /dev/null"`;
+	$hpaths = `bash -c "for f in ~/.nodecliac/registry/$maincommand/hooks/*.*; do [[ \\\"\\\${f##*/}\\\" =~ ^(acdef|input)\\.[a-zA-Z]+\$ ]] && echo \"\\\$f\"; done;"`;
+	# Test in command line with Perl: [https://stackoverflow.com/a/3374281]
+	# perl -e 'print `bash -c "for f in ~/.nodecliac/registry/yarn/hooks/{acdef,input}.*; do [ -e \"\$f\" ] && echo \"\\\$f\" || echo \"\"; done 2> /dev/null"`';
+
+	# This is for future reference on how to escape code for the shell,
+	# bash -c command, and a Perl one-liner. The following lines of code
+	# can be copy/pasted into the terminal.
+	# [https://stackoverflow.com/a/20796575]
+	# [https://stackoverflow.com/questions/17420994/bash-regex-match-string]
+	# perl -e 'print `bash -c "for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ \\\"\\\${f##*/}\\\" =~ ^(acdef|input)\\.[a-zA-Z]+\$ ]] && echo \"\\\$f\"; done;"`';
+	#                 bash -c "for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ \"\${f##*/}\" =~ ^(acdef|input)\\.[a-zA-Z]+$ ]] && echo \"\$f\"; done;"
+	#                          for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ "${f##*/}" =~ ^(acdef|input)\.[a-zA-Z]+$ ]] && echo "$f"; done
+}
+
 # Runs acdef hook script. This is pre-parsing hook.
 #
 # @return {undefined} - Nothing is returned.
 sub __hook_acdef {
-	# Hook script file path (expand tilde/wildcard in path). Wildcard '*'
-	# means the first script with the name 'input' will be used regardless
-	# of file extension.
-	my $scriptpath = glob("~/.nodecliac/registry/$maincommand/hooks/acdef.*");
+	my $scriptpath = ""; # Store hook script file path.
+	# ACDEF RegExp file pattern.
+	my $pattern = '^(.*' . "\\/acdef\\." . '.*?)$';
+	if ($hpaths =~ /$pattern/m) { $scriptpath = $1; }
+
+	# If path does not exist then return from function.
+	if (!$scriptpath) { return; }
 
 	# File checks - Is this needed as any error will be are suppressed?
 	# if (!(__file_exists($scriptpath) && __file_exec($scriptpath))) { return; }
@@ -710,10 +743,13 @@ sub __hook_acdef {
 #
 # @return {undefined} - Nothing is returned.
 sub __hook_input {
-	# Hook script file path (expand tilde/wildcard in path). Wildcard '*'
-	# means the first script with the name 'input' will be used regardless
-	# of file extension.
-	my $scriptpath = glob("~/.nodecliac/registry/$maincommand/hooks/input.*");
+	my $scriptpath = ""; # Store hook script file path.
+	# Input RegExp file pattern.
+	my $pattern = '^(.*' . "\\/input\\." . '.*?)$';
+	if ($hpaths =~ /$pattern/m) { $scriptpath = $1; }
+
+	# If path does not exist then return from function.
+	if (!$scriptpath) { return; }
 
 	# File checks - Is this needed as any error will be are suppressed?
 	# if (!(__file_exists($scriptpath) && __file_exec($scriptpath))) { return; }
@@ -746,10 +782,6 @@ sub __hook_input {
 # @param {string} 1) - The string to parse.
 # @return {undefined} - Nothing is returned.
 sub __parser {
-	# Run [pre-parse]hooks.
-	__hook_acdef();
-	__hook_input();
-
 	# Vars.
 	my $current = "";
 	my $quote_char = "";
@@ -1621,6 +1653,12 @@ sub __printer {
 }
 
 # Completion logic:
-# <cli_input> → parser → extractor → lookup → printer
-# Note: Supply CLI input from start to caret index.
+
+# Run [pre-parse] hooks.
+__hook_filepaths();
+# Variable must be populated with hook file paths to run scripts.
+if ($hpaths) { __hook_acdef();__hook_input(); }
+
+# (cli_input*) → parser → extractor → lookup → printer
+# *Supply CLI input from start to caret index.
 __parser();__extractor();__lookup();__printer();

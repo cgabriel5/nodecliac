@@ -61,7 +61,6 @@ __yarn_get_package_fields() {
 				esac
 				;;
 			*) ;;
-
 		esac
 	done
 	# [https://unix.stackexchange.com/a/214151]
@@ -126,7 +125,7 @@ __yarn_get_package_fields() {
 	esac
 
 	# Finally, extract package.json data.
-	sed -n "$pattern"  "$package_dot_json"
+	sed -n "$pattern" "$package_dot_json"
 }
 
 # Perl script path.

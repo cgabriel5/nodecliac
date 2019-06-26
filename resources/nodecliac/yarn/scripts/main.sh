@@ -31,7 +31,10 @@ __yarn_get_package_fields() {
 	# Therefore, reset CWD to workspace's location.
 	if [[ ! -z "$workspace" ]]; then cwd="$PWD/$workspace"; fi
 
-	# '-n' documentation: [https://likegeeks.com/sed-linux/]
+	# '-n' documentation:
+	# [https://stackoverflow.com/a/3601734]
+	# [https://linuxconfig.org/how-to-test-for-null-or-empty-variables-within-bash-script]
+	# [https://likegeeks.com/sed-linux/]
 	while [[ -n $cwd ]]; do
 		if [[ -f "$cwd/package.json" ]]; then
 			package_dot_json="$cwd/package.json"

@@ -1,25 +1,16 @@
 #!/bin/bash
 
-# Parses and extracts data from package.json files.
+# Store package.json JSON data and file path.
+# Modifying global vars: [https://stackoverflow.com/q/23564995]
+package_dot_json=""
+field_type="object"
+
+# Find package.json file path.
 #
-# Usage:
-#	__yarn_get_package_fields [-g] [-t FIELDTYPE] <field-key>
-#
-# Options:
-#   -g			  Parse global package.json file, if available
-#   -t FIELDTYPE  The field type being parsed (array|boolean|number|object|string) [default: object]
-#
-# Notes:
-#	If FIELDTYPE is object, then the object keys are returned.
-#	If FIELDTYPE is array, boolean, number, or string, then the field values are returned.
-#	<field-key> must be a first-level field in the json file.
-#
-# Resource:
-#    Code lifted and modified from dsifford's yarn-completion [https://github.com/dsifford/yarn-completion].
-##
-__yarn_get_package_fields() {
+# @return {undefined} - Nothing is returned.
+function __getpkg_filepath() {
 	# Declare variables.
-	declare cwd="$PWD" field_type=object field_key opt package_dot_json OPTIND OPTARG
+	declare cwd="$PWD" opt OPTIND OPTARG
 
 	# [https://stackoverflow.com/a/19031736]
 	# [http://defindit.com/readme_files/perl_one_liners.html]
@@ -68,63 +59,90 @@ __yarn_get_package_fields() {
 	done
 	# [https://unix.stackexchange.com/a/214151]
 	shift $((OPTIND - 1))
+}; __getpkg_filepath; # Immediately run function.
 
-	field_key='"'$1'"'
+# Generate the primitive (boolean, number, string) RegExp lookup pattern.
+#
+# @param {string} 1) - The data type.
+# @param {string} 2) - The field key (package.json key entry).
+# @return {string} - The RegExp lookup pattern.
+function __ptn_prim() {
+	# Vars.
+	local pattern mpattern field_key='"'$2'"'
 
-	[[ ! -f $package_dot_json || ! $field_key ]] && return
+	# RegExp escaping documentation:
+	# [https://unix.stackexchange.com/questions/263668/sed-capture-groups-not-working#comment860675_263675]
+	# [https://stackoverflow.com/a/11651184]
+	# [https://stackoverflow.com/a/2777621]
+	# [https://superuser.com/a/112000]
 
-	# Generate the primitive (boolean, number, string) RegExp patterns.
-	function __ptn_prim() {
-		# Vars.
-		local pattern mpattern
+	# Lookup data type's patterns.
+	case "$1" in
+		boolean) pattern='\(true\|false\)' ;;
+		number)  pattern='"\([\.0-9]*\)"'  ;;
+		string)  pattern='"\(.*\)"'        ;;
+	esac
 
-		# RegExp escaping documentation:
-		# [https://unix.stackexchange.com/questions/263668/sed-capture-groups-not-working#comment860675_263675]
-		# [https://stackoverflow.com/a/11651184]
-		# [https://stackoverflow.com/a/2777621]
-		# [https://superuser.com/a/112000]
+	# Boolean, string, number general pattern.
+	mpattern="[[:space:]]*$field_key:[[:space:]]*XX.*"
+	# [https://stackoverflow.com/a/13210909]
+	echo "s/${mpattern/XX/$pattern}/\1/p"
+}
 
-		# Lookup data type's patterns.
-		case "$1" in
-			boolean) pattern='\(true\|false\)' ;;
-			number)  pattern='"\([\.0-9]*\)"'  ;;
-			string)  pattern='"\(.*\)"'        ;;
-		esac
+# Generate the object (object, array) RegExp patterns.
+#
+# @param {string} 1) - The data type.
+# @param {string} 2) - The field key (package.json key entry).
+# @return {string} - The RegExp lookup pattern.
+function __ptn_objt() {
+	# Vars.
+	local pattern1 pattern2 field_key='"'$2'"'
 
-		# Boolean, string, number general pattern.
-		mpattern="[[:space:]]*$field_key:[[:space:]]*XX.*"
-		# [https://stackoverflow.com/a/13210909]
-		echo "s/${mpattern/XX/$pattern}/\1/p"
-	}
+	# Lookup data type's patterns.
+	case "$1" in
+		object) pattern1='{';  pattern2='}' ;;
+		array)  pattern1='\['; pattern2=']' ;;
+	esac
 
-	# Generate the object (object, array) RegExp patterns.
-	function __ptn_objt() {
-		# Vars.
-		local pattern1 pattern2
+	# Boolean, string, number general pattern.
+	echo '/'"$field_key"':[[:space:]]*'"$pattern1"'/,/^[[:space:]]*'"$pattern2"'/{
+		# exclude start and end patterns
+		//!{
+			# extract the text between the first pair of double quotes
+			s/^[[:space:]]*"\([^"]*\).*/\1/p
+		}
+	}'
+}
 
-		# Lookup data type's patterns.
-		case "$1" in
-			object) pattern1='{';  pattern2='}' ;;
-			array)  pattern1='\['; pattern2=']' ;;
-		esac
+# Extracts data from package.json.
+#
+# Usage:
+#	__yarn_get_package_fields [-g] [-t FIELDTYPE] <field-key>
+#
+# Options:
+#   -g			  Parse global package.json file, if available
+#   -t FIELDTYPE  The field type being parsed (array|boolean|number|object|string) [default: object]
+#
+# Notes:
+#	If FIELDTYPE is object, then the object keys are returned.
+#	If FIELDTYPE is array, boolean, number, or string, then the field values are returned.
+#	<field-key> must be a first-level field in the json file.
+#
+# Resource: Lifted/modified from dsifford's yarn-completion [https://github.com/dsifford/yarn-completion].
+function __yarn_get_package_fields() {
+	# Vars.
+	field_key="$1"
 
-		# Boolean, string, number general pattern.
-		echo '/'"$field_key"':[[:space:]]*'"$pattern1"'/,/^[[:space:]]*'"$pattern2"'/{
-			# exclude start and end patterns
-			//!{
-				# extract the text between the first pair of double quotes
-				s/^[[:space:]]*"\([^"]*\).*/\1/p
-			}
-		}'
-	}
+	# package.json file must exist and field key must be provided to continue.
+	[[ ! -f "$package_dot_json" || ! "$field_key" ]] && return
 
 	# Generate RegExp pattern to extract needed data from package.json.
 	case "$field_type" in
-		object)  pattern="`__ptn_objt object`"  ;;
-		array)   pattern="`__ptn_objt array`"   ;;
-		boolean) pattern="`__ptn_prim boolean`" ;;
-		number)  pattern="`__ptn_prim number`"  ;;
-		string)  pattern="`__ptn_prim string`"  ;;
+		object)  pattern="`__ptn_objt object $field_key`"  ;;
+		array)   pattern="`__ptn_objt array $field_key`"   ;;
+		boolean) pattern="`__ptn_prim boolean $field_key`" ;;
+		number)  pattern="`__ptn_prim number $field_key`"  ;;
+		string)  pattern="`__ptn_prim string $field_key`"  ;;
 	esac
 
 	# Finally, extract package.json data.
@@ -152,6 +170,8 @@ case "$1" in
 			# Return (dev)dependencies values to auto-complete.
 			echo -e "\n$output"
 		fi
+
+		break
 	;;
 	run)
 		# Get script names.
@@ -164,12 +184,17 @@ case "$1" in
 			# Return script names.
 			echo -e "\n$output"
 		fi
+
+		break
 	;;
 	workspace)
 		# Get workspaces info via yarn.
 		workspaces_info=$(yarn workspaces info -s 2> /dev/null)
 
-		if [[ -n "$workspaces_info" && $NODECLIAC_ARG_COUNT -le 2 ]] || [[ -n "$workspaces_info" && $NODECLIAC_ARG_COUNT -le 3 && "$NODECLIAC_LAST_CHAR" != " " ]]; then
+		# Get args count.
+		args_count="$NODECLIAC_ARG_COUNT"
+
+		if [[ -n "$workspaces_info" && "$args_count" -le 2 ]] || [[ -n "$workspaces_info" && "$args_count" -le 3 && "$NODECLIAC_LAST_CHAR" != " " ]]; then
 			# Get workspace names.
 			# [https://github.com/dsifford/yarn-completion/blob/master/yarn-completion.bash]
 			# [https://www.computerhope.com/unix/bash/mapfile.htm]

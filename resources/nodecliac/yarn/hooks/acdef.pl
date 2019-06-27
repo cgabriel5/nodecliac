@@ -15,7 +15,7 @@
 # use diagnostics;
 
 # Create main script file path.
-my $mainscript = glob("~/.nodecliac/registry/yarn/scripts/main.sh");
+my $mainscript = $ENV{"HOME"} . "/.nodecliac/registry/yarn/scripts/main.sh";
 
 # Run main script to get script names.
 my $scriptnames = `bash -c \"$mainscript run\" 2> /dev/null`;

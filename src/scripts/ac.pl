@@ -1594,10 +1594,10 @@ sub __lookup {
 					# Stop loop once a command-string is found and ran.
 					last;
 				}
-			}
 
-			# Remove last command chain from overall command chain.
-			$copy_commandchain = $copy_commandchain =~ s/\.((?:\\\.)|[^\.])+$//r; # ((?:\\\.)|[^\.]*?)*$
+				# Remove last command chain from overall command chain.
+				$copy_commandchain = $copy_commandchain =~ s/\.((?:\\\.)|[^\.])+$//r; # ((?:\\\.)|[^\.]*?)*$
+			}
 
 			# # Note: 'always' keyword has quirks so comment out for now.
 			# # Note: When running the 'always' fallback should the current command

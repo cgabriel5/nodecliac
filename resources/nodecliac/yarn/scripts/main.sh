@@ -131,7 +131,7 @@ function __ptn_objt() {
 # Resource: Lifted/modified from dsifford's yarn-completion [https://github.com/dsifford/yarn-completion].
 function __yarn_get_package_fields() {
 	# Vars.
-	field_key="$1"
+	local pattern field_key="$1"
 
 	# package.json file must exist and field key must be provided to continue.
 	[[ ! -f "$package_dot_json" || ! "$field_key" ]] && return

@@ -46,7 +46,7 @@ my $prefix = "NODECLIAC_";
 # [https://stackoverflow.com/a/4043831]
 # [https://stackoverflow.com/a/18123004]
 # my $hdir = glob("~"); # ← Slowest...
-# my $hdir = `bash -c "echo \"$HOME\""`; # ← Less slow...
+# my $hdir = `echo "\$HOME"`; # ← Less slow...
 # [https://stackoverflow.com/q/1475357]
 my $hdir = $ENV{"HOME"}; # ← Fastest way but is it reliable?
 
@@ -732,8 +732,8 @@ sub __hook_acdef {
 	# Set env variable to access in hook script.
 	__set_envs("ACDEF");
 
-	# Run command string: `bash -c $command 2> /dev/null` ← Suppress all errors.
-	my $output = `bash -c \"$scriptpath\" 2> /dev/null`;
+	# Run command string.
+	my $output = `\"$scriptpath\" 2> /dev/null`;
 
 	# Set acdef variable to returned output.
 	if ($output) { $acdef = $output; }
@@ -757,8 +757,8 @@ sub __hook_input {
 	# Set env variable to access in hook script.
 	__set_envs("INPUT");
 
-	# Run command string: `bash -c $command 2> /dev/null` ← Suppress all errors.
-	my $output = `bash -c \"$scriptpath\" 2> /dev/null`;
+	# Run command string.
+	my $output = `\"$scriptpath\" 2> /dev/null`;
 	# Trim newlines from output.
 	$output =~ s/^\n+|\n+$//g;
 

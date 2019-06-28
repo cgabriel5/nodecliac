@@ -18,7 +18,7 @@
 my $mainscript = $ENV{"HOME"} . "/.nodecliac/registry/yarn/scripts/main.sh";
 
 # Run main script to get script names.
-my $scriptnames = `bash -c \"$mainscript run\" 2> /dev/null`;
+my $scriptnames = `$mainscript run 2> /dev/null`;
 # Trim string.
 $scriptnames =~ s/^\s+|\s+$//g;
 

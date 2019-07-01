@@ -703,6 +703,7 @@ sub __hook_filepaths {
 	# [https://zybuluo.com/ysongzybl/note/96951]
 	# $hpaths = `bash -c "for f in ~/.nodecliac/registry/$maincommand/hooks/{acdef,input}.*; do [ -e \"\$f\" ] && echo \"\\\$f\" || echo \"\"; done 2> /dev/null"`;
 	$hpaths = `bash -c "for f in ~/.nodecliac/registry/$maincommand/hooks/*.*; do [[ \\\"\\\${f##*/}\\\" =~ ^(acdef|input)\\.[a-zA-Z]+\$ ]] && echo \"\\\$f\"; done;"`;
+	# $hpaths = `ls ~/.nodecliac/registry/$maincommand/hooks/*.* -u`;
 	# Test in command line with Perl: [https://stackoverflow.com/a/3374281]
 	# perl -e 'print `bash -c "for f in ~/.nodecliac/registry/yarn/hooks/{acdef,input}.*; do [ -e \"\$f\" ] && echo \"\\\$f\" || echo \"\"; done 2> /dev/null"`';
 

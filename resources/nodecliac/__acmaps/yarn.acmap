@@ -7,7 +7,7 @@
 $configscript = "~/.nodecliac/registry/yarn/scripts/config.sh"
 $mainscript = "~/.nodecliac/registry/yarn/scripts/main.sh"
 # Variables - shell commands.
-$cmd_add = "ls -lF ~/.cache/yarn/v4 \| grep -Po \"npm-([-a-z]+)-\\d\" \| sed -e \"s/^npm-//\" -e \"s/-[0-9]$//\""
+$cmd_add = 'bash -c "ls -lF ~/.cache/yarn/v4 \| grep -Po \"npm-([-a-z]+)-\\d\" \| sed -e \"s/^npm-//\" -e \"s/-[0-9]$//\""'
 
 # Main command/flags.
 yarn = [
@@ -80,7 +80,7 @@ yarn.add = [
 	# [https://stackoverflow.com/questions/47952851/where-is-yarn-storing-offline-packages]
 	# [https://stackoverflow.com/questions/428109/extract-substring-in-bash]
 	# [https://stackoverflow.com/questions/16623835/remove-a-fixed-prefix-suffix-from-a-string-in-bash]
-	default $("${cmd_add}")
+	default $('${cmd_add}')
 ]
 
 yarn.audit = [
@@ -123,7 +123,7 @@ yarn.global.upgrade,
 yarn.global.upgrade-interactive = --prefix|--latest
 # [https://github.com/yarnpkg/yarn/issues/2049#issuecomment-337870443]
 yarn.global.dir
-yarn.global.add = default $("${cmd_add}")
+yarn.global.add = default $('${cmd_add}')
 yarn.global.remove = default $("${mainscript} remove")
 yarn.global.upgrade = default $("${mainscript} upgrade")
 
@@ -131,7 +131,7 @@ yarn.help
 yarn.import
 
 # [https://yarnpkg.com/en/docs/cli/info]
-yarn.info = --json|default $("${cmd_add}")
+yarn.info = --json|default $('${cmd_add}')
 # For the time being add standard fields as command chains. However a better
 # solution should be used for this.
 yarn.info.author,
@@ -298,7 +298,7 @@ yarn.why = [
 	# [https://dzone.com/articles/perl-as-a-better-grep]
 	# [https://serverfault.com/questions/208265/what-is-bash-event-not-found/631101#631101]
 	# [https://stackoverflow.com/questions/53886144/how-to-fix-possible-unintended-interpolation-of-in-regex/53886274#53886274]
-	default $("yarn list --depth=0 \| perl -wln -e \"/(?! ─ )([-\/_.@(?)a-zA-Z0-9]*)(?=\@)/ and print $&;\"")
+	default $('bash -c "yarn list --depth=0 \| perl -wln -e \"/(?! ─ )([-\/_.@(?)a-zA-Z0-9]*)(?=\@)/ and print $&;\""')
 	# Above command is slow due to running yarn (node.js CLI tool) - not a native shell CLI tool (i.e. bash based).
 
 	# Non-portable GNU grep only solution.

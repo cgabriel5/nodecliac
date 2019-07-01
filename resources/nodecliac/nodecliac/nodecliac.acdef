@@ -1,9 +1,9 @@
-# DON'T EDIT FILE —— GENERATED: Fri Jun 21 2019 19:59:32 GMT-0700 (PDT)(1561172372482)
+# DON'T EDIT FILE —— GENERATED: Mon Jul 01 2019 09:53:47 GMT-0700 (PDT)(1562000027465)
 
  --version?
 .format --highlight?|--indent|--nowarn?|--print?|--save?|--source|--strip-comments?|--trace?
 .make --add?|--force?|--highlight?|--nowarn?|--print?|--save?|--source|--trace?
-.print --command=|--command=$("for f in ~/.nodecliac/registry/*/*.acdef; do f=\"\${f##*/}\";c=\"\${f%%.*}\";echo \"\$c\"; done;")
+.print --command=|--command=$('bash -c "for f in ~/.nodecliac/registry/*/*.acdef; do f=\"\${f##*/}\";c=\"\${f%%.*}\";echo \"\$c\"; done;"')
 .registry --
 .setup --force?|--rcfilepath?
 .status --disable?|--enable?

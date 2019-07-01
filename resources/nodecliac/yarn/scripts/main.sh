@@ -151,8 +151,13 @@ function __yarn_get_package_fields() {
 
 # Perl script path.
 prune_args_script=~/.nodecliac/registry/yarn/scripts/prune_args.pl
+# Store action arguments for later pruning.
+args=""
 
 # Depending on provided action run appropriate logic...
+
+# Run completion script if it exists: [https://stackoverflow.com/a/21164441]
+if [[ ! -f "$prune_args_script" ]]; then exit; fi
 
 case "$1" in
 	remove|outdated|unplug|upgrade)
@@ -160,32 +165,15 @@ case "$1" in
 		dev=`__yarn_get_package_fields dependencies`
 		devdep=`__yarn_get_package_fields devDependencies`
 
-		# Run completion script if it exists.
-		if [[ -f "$prune_args_script" ]]; then
-			# [https://stackoverflow.com/a/13658950]
-			nl=$'\n'
+		# [https://stackoverflow.com/a/13658950]
+		nl=$'\n'
 
-			output=`"$prune_args_script" "$dev$nl$devdep"`
-
-			# Return (dev)dependencies values to auto-complete.
-			echo -e "\n$output"
-		fi
-
-		break
+		# Store arguments.
+		args="$dev$nl$devdep"
 	;;
 	run)
-		# Get script names.
-		scripts=`__yarn_get_package_fields scripts`
-
-		# Run completion script if it exists.
-		if [[ -f "$prune_args_script" ]]; then
-			output=`"$prune_args_script" "$scripts"`
-
-			# Return script names.
-			echo -e "\n$output"
-		fi
-
-		break
+		# Get script names and store arguments.
+		args=`__yarn_get_package_fields scripts`
 	;;
 	workspace)
 		# Get workspaces info via yarn.
@@ -200,13 +188,15 @@ case "$1" in
 			# [https://www.computerhope.com/unix/bash/mapfile.htm]
 			mapfile -t < <(sed -n 's/^ \{2\}"\([^"]*\)": {$/\1/p' <<< "$workspaces_info")
 
-			# Run completion script if it exists.
-			if [[ -f "$prune_args_script" ]]; then
-				output=`"$prune_args_script" "${MAPFILE[*]}"`
-
-				# Return script names.
-				echo -e "\n$output"
-			fi
+			# Store arguments.
+			args="${MAPFILE[*]}"
 		fi
 	;;
 esac
+
+# If output exists run the pruning arguments script and return result.
+if [[ ! -z "$args"  ]]; then
+	# Run argument pruning script.
+	output=`"$prune_args_script" "$args"`
+	echo -e "\n$output"
+fi

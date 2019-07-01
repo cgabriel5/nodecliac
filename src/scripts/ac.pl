@@ -341,8 +341,8 @@ sub __execute_command {
 	# [https://stackoverflow.com/a/1711985]
 
 	# Start creating command string. Will take the
-	# following form: `bash -c $command 2> /dev/null`
-	my $cmd = "bash -c $command";
+	# following form: `$command 2> /dev/null`
+	my $cmd = substr($command, 1, -1); # Remove start/end quotes.
 
 	# Only command and delimiter.
 	if ($args_count > 1) {
@@ -374,10 +374,12 @@ sub __execute_command {
 				# Get the used quote type.
 				my $quote_char =  substr($arg, 0, 1);
 
-				# Run command and append result to
-				# command string.
-				my $cmdarg = "bash -c $arg 2> /dev/null";
-				$cmd .= "$quote_char" . `$cmdarg` . "$quote_char";
+				# Remove start/end quotes.
+				$arg = substr($arg, 1, -1);
+
+				# Run command and append result to command string.
+				my $cmdarg = "$arg 2> /dev/null";
+				$cmd .= " $quote_char" . `$cmdarg` . "$quote_char";
 
 				# # If the result is empty after
 				# # trimming then do not append?
@@ -556,10 +558,10 @@ sub __paramparse {
 		# -----------------------------------------^--------------^
 		# ^-This will include the "'" (single quote characters).
 		} elsif (
-			$char =~ /[']/ &&
+			$char =~ /['"]/ &&
 			$pchar ne "\\" &&
-			$state eq "open" &&
-			$quote_type eq "\""
+			$state eq "open"
+			# && $quote_type eq "\""
 		) {
 			# Store the character.
 			$argument .= $char;

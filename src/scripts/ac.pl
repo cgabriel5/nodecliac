@@ -691,92 +691,134 @@ sub __set_envs {
 	}
 }
 
-# Get hook scripts file paths list. Used for hook scripts.
+# # Get hook scripts file paths list. Used for hook scripts.
+# #
+# # @return {undefined} - Nothing is returned.
+# sub __hook_filepaths {
+# 	# Use shell commands over Perl's glob function. The glob function is much
+# 	# slower than Bash commands. Once the command is run store the commands
+# 	# for later use/lookup.
+# 	# [https://stackoverflow.com/a/6364244]
+# 	# [https://stackoverflow.com/a/34195247]
+# 	# [https://zybuluo.com/ysongzybl/note/96951]
+# 	# $hpaths = `bash -c "for f in ~/.nodecliac/registry/$maincommand/hooks/{acdef,input}.*; do [ -e \"\$f\" ] && echo \"\\\$f\" || echo \"\"; done 2> /dev/null"`;
+# 	$hpaths = `bash -c "for f in ~/.nodecliac/registry/$maincommand/hooks/*.*; do [[ \\\"\\\${f##*/}\\\" =~ ^(acdef|input)\\.[a-zA-Z]+\$ ]] && echo \"\\\$f\"; done;"`;
+# 	# $hpaths = `ls ~/.nodecliac/registry/$maincommand/hooks/*.* -u`;
+# 	# Test in command line with Perl: [https://stackoverflow.com/a/3374281]
+# 	# perl -e 'print `bash -c "for f in ~/.nodecliac/registry/yarn/hooks/{acdef,input}.*; do [ -e \"\$f\" ] && echo \"\\\$f\" || echo \"\"; done 2> /dev/null"`';
+
+# 	# This is for future reference on how to escape code for the shell,
+# 	# bash -c command, and a Perl one-liner. The following lines of code
+# 	# can be copy/pasted into the terminal.
+# 	# [https://stackoverflow.com/a/20796575]
+# 	# [https://stackoverflow.com/questions/17420994/bash-regex-match-string]
+# 	# perl -e 'print `bash -c "for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ \\\"\\\${f##*/}\\\" =~ ^(acdef|input)\\.[a-zA-Z]+\$ ]] && echo \"\\\$f\"; done;"`';
+# 	#                 bash -c "for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ \"\${f##*/}\" =~ ^(acdef|input)\\.[a-zA-Z]+$ ]] && echo \"\$f\"; done;"
+# 	#                          for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ "${f##*/}" =~ ^(acdef|input)\.[a-zA-Z]+$ ]] && echo "$f"; done
+# }
+
+# # Runs acdef hook script. This is pre-parsing hook.
+# #
+# # @return {undefined} - Nothing is returned.
+# sub __hook_acdef {
+# 	my $scriptpath = ""; # Store hook script file path.
+# 	# ACDEF RegExp file pattern.
+# 	my $pattern = '^(.*' . "\\/acdef\\." . '.*?)$';
+# 	if ($hpaths =~ /$pattern/m) { $scriptpath = $1; }
+
+# 	# If path does not exist then return from function.
+# 	if (!$scriptpath) { return; }
+
+# 	# File checks - Is this needed as any error will be are suppressed?
+# 	# if (!(__file_exists($scriptpath) && __file_exec($scriptpath))) { return; }
+
+# 	# Set env variable to access in hook script.
+# 	__set_envs("ACDEF");
+
+# 	# Run command string.
+# 	my $output = `\"$scriptpath\" 2> /dev/null`;
+
+# 	# Set acdef variable to returned output.
+# 	if ($output) { $acdef = $output; }
+# }
+
+# # Runs input hook script. This is pre-parsing hook.
+# #
+# # @return {undefined} - Nothing is returned.
+# sub __hook_input {
+# 	my $scriptpath = ""; # Store hook script file path.
+# 	# Input RegExp file pattern.
+# 	my $pattern = '^(.*' . "\\/input\\." . '.*?)$';
+# 	if ($hpaths =~ /$pattern/m) { $scriptpath = $1; }
+
+# 	# If path does not exist then return from function.
+# 	if (!$scriptpath) { return; }
+
+# 	# File checks - Is this needed as any error will be are suppressed?
+# 	# if (!(__file_exists($scriptpath) && __file_exec($scriptpath))) { return; }
+
+# 	# Set env variable to access in hook script.
+# 	__set_envs("INPUT");
+
+# 	# Run command string.
+# 	my $output = `\"$scriptpath\" 2> /dev/null`;
+# 	# Trim newlines from output.
+# 	$output =~ s/^\n+|\n+$//g;
+
+# 	# If output is empty then return from function.
+# 	if (!$output) { return; };
+
+# 	# Reset variable(s).
+# 	$input = $output;
+# 	$cline = "$input$input_remainder"; # Original (complete) CLI input.
+# 	$cpoint = length($input); # Caret index when [tab] key was pressed.
+# 	$lastchar = substr($cline, $cpoint - 1, 1); # Character before caret.
+# 	$nextchar = substr($cline, $cpoint, 1); # Character after caret.
+# 	$cline_length = length($cline); # Original input's length.
+# 	# $input = substr($cline, 0, $cpoint); # CLI input from start to caret index.
+# 	# $input_remainder = substr($cline, $cpoint, -1); # CLI input from caret index to input string end.
+# }
+
+# Runs pre hook script.
 #
 # @return {undefined} - Nothing is returned.
-sub __hook_filepaths {
-	# Use shell commands over Perl's glob function. The glob function is much
-	# slower than Bash commands. Once the command is run store the commands
-	# for later use/lookup.
-	# [https://stackoverflow.com/a/6364244]
-	# [https://stackoverflow.com/a/34195247]
-	# [https://zybuluo.com/ysongzybl/note/96951]
-	# $hpaths = `bash -c "for f in ~/.nodecliac/registry/$maincommand/hooks/{acdef,input}.*; do [ -e \"\$f\" ] && echo \"\\\$f\" || echo \"\"; done 2> /dev/null"`;
-	$hpaths = `bash -c "for f in ~/.nodecliac/registry/$maincommand/hooks/*.*; do [[ \\\"\\\${f##*/}\\\" =~ ^(acdef|input)\\.[a-zA-Z]+\$ ]] && echo \"\\\$f\"; done;"`;
-	# $hpaths = `ls ~/.nodecliac/registry/$maincommand/hooks/*.* -u`;
-	# Test in command line with Perl: [https://stackoverflow.com/a/3374281]
-	# perl -e 'print `bash -c "for f in ~/.nodecliac/registry/yarn/hooks/{acdef,input}.*; do [ -e \"\$f\" ] && echo \"\\\$f\" || echo \"\"; done 2> /dev/null"`';
-
-	# This is for future reference on how to escape code for the shell,
-	# bash -c command, and a Perl one-liner. The following lines of code
-	# can be copy/pasted into the terminal.
-	# [https://stackoverflow.com/a/20796575]
-	# [https://stackoverflow.com/questions/17420994/bash-regex-match-string]
-	# perl -e 'print `bash -c "for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ \\\"\\\${f##*/}\\\" =~ ^(acdef|input)\\.[a-zA-Z]+\$ ]] && echo \"\\\$f\"; done;"`';
-	#                 bash -c "for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ \"\${f##*/}\" =~ ^(acdef|input)\\.[a-zA-Z]+$ ]] && echo \"\$f\"; done;"
-	#                          for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ "${f##*/}" =~ ^(acdef|input)\.[a-zA-Z]+$ ]] && echo "$f"; done
-}
-
-# Runs acdef hook script. This is pre-parsing hook.
-#
-# @return {undefined} - Nothing is returned.
-sub __hook_acdef {
-	my $scriptpath = ""; # Store hook script file path.
-	# ACDEF RegExp file pattern.
-	my $pattern = '^(.*' . "\\/acdef\\." . '.*?)$';
-	if ($hpaths =~ /$pattern/m) { $scriptpath = $1; }
+sub __hook_pre {
+	# Hook directory path.
+	my $hookdir = "$hdir/.nodecliac/registry/yarn/hooks";
+	my $scriptpath = "$hookdir/prehook.sh";
 
 	# If path does not exist then return from function.
-	if (!$scriptpath) { return; }
-
-	# File checks - Is this needed as any error will be are suppressed?
-	# if (!(__file_exists($scriptpath) && __file_exec($scriptpath))) { return; }
+	# [https://www.perlmonks.org/?node_id=510490]
+	if (not -e $scriptpath) { return; }
 
 	# Set env variable to access in hook script.
-	__set_envs("ACDEF");
+	# __set_envs("INPUT", "ACDEF", "MAIN_COMMAND");
+	__set_envs("INPUT", "MAIN_COMMAND");
 
 	# Run command string.
 	my $output = `\"$scriptpath\" 2> /dev/null`;
-
-	# Set acdef variable to returned output.
-	if ($output) { $acdef = $output; }
-}
-
-# Runs input hook script. This is pre-parsing hook.
-#
-# @return {undefined} - Nothing is returned.
-sub __hook_input {
-	my $scriptpath = ""; # Store hook script file path.
-	# Input RegExp file pattern.
-	my $pattern = '^(.*' . "\\/input\\." . '.*?)$';
-	if ($hpaths =~ /$pattern/m) { $scriptpath = $1; }
-
-	# If path does not exist then return from function.
-	if (!$scriptpath) { return; }
-
-	# File checks - Is this needed as any error will be are suppressed?
-	# if (!(__file_exists($scriptpath) && __file_exec($scriptpath))) { return; }
-
-	# Set env variable to access in hook script.
-	__set_envs("INPUT");
-
-	# Run command string.
-	my $output = `\"$scriptpath\" 2> /dev/null`;
-	# Trim newlines from output.
-	$output =~ s/^\n+|\n+$//g;
 
 	# If output is empty then return from function.
 	if (!$output) { return; };
 
-	# Reset variable(s).
-	$input = $output;
-	$cline = "$input$input_remainder"; # Original (complete) CLI input.
-	$cpoint = length($input); # Caret index when [tab] key was pressed.
-	$lastchar = substr($cline, $cpoint - 1, 1); # Character before caret.
-	$nextchar = substr($cline, $cpoint, 1); # Character after caret.
-	$cline_length = length($cline); # Original input's length.
-	# $input = substr($cline, 0, $cpoint); # CLI input from start to caret index.
-	# $input_remainder = substr($cline, $cpoint, -1); # CLI input from caret index to input string end.
+	# Modify input variable if key is in output string.
+	if (__includes($output, "input")) {
+		# Reset variable(s).
+		$input = `cat $hookdir/.input.data`; # Get file contents.
+		$cline = "$input$input_remainder"; # Original (complete) CLI input.
+		$cpoint = length($input); # Caret index when [tab] key was pressed.
+		$lastchar = substr($cline, $cpoint - 1, 1); # Character before caret.
+		$nextchar = substr($cline, $cpoint, 1); # Character after caret.
+		$cline_length = length($cline); # Original input's length.
+		# $input = substr($cline, 0, $cpoint); # CLI input from start to caret index.
+		# $input_remainder = substr($cline, $cpoint, -1); # CLI input from caret index to input string end.
+	}
+
+	# Modify acdef variable if key is in output string.
+	if (__includes($output, "acdef")) {
+		# Get file contents and set acdef variable to returned output.
+		$acdef = `cat "$hookdir/.acdef.data"`;
+	}
 }
 
 # Parses CLI input. Returns input similar to that of process.argv.slice(2).
@@ -1657,10 +1699,11 @@ sub __printer {
 
 # Completion logic:
 
-# Run [pre-parse] hooks.
-__hook_filepaths();
-# Variable must be populated with hook file paths to run scripts.
-if ($hpaths) { __hook_acdef();__hook_input(); }
+# # Run [pre-parse] hooks.
+# __hook_filepaths();
+# # Variable must be populated with hook file paths to run scripts.
+# if ($hpaths) { __hook_acdef();__hook_input(); }
+__hook_pre();
 
 # (cli_input*) → parser → extractor → lookup → printer
 # *Supply CLI input from start to caret index.

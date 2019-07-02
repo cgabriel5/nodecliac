@@ -1,65 +1,14 @@
 #!/bin/bash
 
-# Store package.json JSON data and file path.
-# Modifying global vars: [https://stackoverflow.com/q/23564995]
-package_dot_json=""
-field_type="object"
+# Get arguments.
+action="$1"
+useglobal_pkg="$2"
 
-# Find package.json file path.
-#
-# @return {undefined} - Nothing is returned.
-function __getpkg_filepath() {
-	# Declare variables.
-	declare cwd="$PWD" opt OPTIND OPTARG
-
-	# [https://stackoverflow.com/a/19031736]
-	# [http://defindit.com/readme_files/perl_one_liners.html]
-	# [https://www.perlmonks.org/?node_id=1004245]
-	# Get workspace name if auto-completing workspace.
-	workspace=$(echo "$NODECLIAC_INPUT_ORIGINAL" | perl -ne 'print "$1" if /^[ \t]*yarn[ \t]+workspace[ \t]+([a-zA-Z][-_a-zA-Z0-9]*)[ \t]*.*/')
-
-	# If workspace flag is set then we are auto-completing a workspace.
-	# Therefore, reset CWD to workspace's location.
-	if [[ ! -z "$workspace" ]]; then cwd="$PWD/$workspace"; fi
-
-	# '-n' documentation:
-	# [https://stackoverflow.com/a/3601734]
-	# [https://linuxconfig.org/how-to-test-for-null-or-empty-variables-within-bash-script]
-	# [https://likegeeks.com/sed-linux/]
-	while [[ -n $cwd ]]; do
-		if [[ -f "$cwd/package.json" ]]; then
-			package_dot_json="$cwd/package.json"
-			break
-		fi
-		cwd="${cwd%/*}"
-	done
-
-	while getopts ":gt:" opt; do
-		case $opt in
-			g)
-				if [[ -f $HOME/.config/yarn/global/package.json ]]; then
-					package_dot_json="$HOME/.config/yarn/global/package.json"
-				elif [[ -f $HOME/.local/share/yarn/global/package.json ]]; then
-					package_dot_json="$HOME/.local/share/yarn/global/package.json"
-				elif [[ -f $HOME/.yarn/global/package.json ]]; then
-					package_dot_json="$HOME/.yarn/global/package.json"
-				else
-					package_dot_json=""
-				fi
-				;;
-			t)
-				case "$OPTARG" in
-					array | boolean | number | object | string)
-						field_type="$OPTARG"
-						;;
-				esac
-				;;
-			*) ;;
-		esac
-	done
-	# [https://unix.stackexchange.com/a/214151]
-	shift $((OPTIND - 1))
-}; __getpkg_filepath; # Immediately run function.
+# Get package.json JSON file path.
+package_info=`"$HOME/.nodecliac/registry/yarn/scripts/pkg_path.sh" "$NODECLIAC_INPUT_ORIGINAL" "$useglobal_pkg"`
+read -r firstline <<< "$package_info"
+field_type="${firstline%%:*}"
+package_dot_json="${firstline#*:}"
 
 # Generate the primitive (boolean, number, string) RegExp lookup pattern.
 #
@@ -159,7 +108,7 @@ args=""
 # Run completion script if it exists: [https://stackoverflow.com/a/21164441]
 if [[ ! -f "$prune_args_script" ]]; then exit; fi
 
-case "$1" in
+case "$action" in
 	remove|outdated|unplug|upgrade)
 		# Get (dev)dependencies.
 		dev=`__yarn_get_package_fields dependencies`

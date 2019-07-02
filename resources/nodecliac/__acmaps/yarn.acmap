@@ -124,8 +124,8 @@ yarn.global.upgrade-interactive = --prefix|--latest
 # [https://github.com/yarnpkg/yarn/issues/2049#issuecomment-337870443]
 yarn.global.dir
 yarn.global.add = default $('${cmd_add}')
-yarn.global.remove = default $("${mainscript} remove")
-yarn.global.upgrade = default $("${mainscript} upgrade")
+yarn.global.remove = default $("${mainscript} remove -g")
+yarn.global.upgrade = default $("${mainscript} upgrade -g")
 
 yarn.help
 yarn.import

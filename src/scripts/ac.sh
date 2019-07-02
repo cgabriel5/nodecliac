@@ -1119,7 +1119,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 	}
 
 	# Register autocompletion script to command.
-	acdef_configpath="$HOME/.nodecliac/registry/$maincommand/.$1.config.acdef"
+	acdef_configpath="$HOME/.nodecliac/registry/$1/.$1.config.acdef"
 	if [[ -f "$acdef_configpath" ]]; then
 		# Get acdef config file contents.
 		config="$(<"$acdef_configpath")"

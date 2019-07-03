@@ -1,6 +1,6 @@
 # nodecliac
 
-Easily add Bash tab completion to CLI apps with nodecliac (**node**-**cli**-**a**uto-**c**ompletion).
+Easily add Bash tab completion to CLI programs with nodecliac (**node**-**cli**-**a**uto-**c**ompletion).
 
 <p align="center"><img src="./resources/images/nodecliac-tab-completion.gif?raw=true" alt="nodecliac tab completion" title="nodecliac tab completion" width="auto"></p>
 
@@ -189,7 +189,7 @@ yarn.remove = [
   default $("~/.nodecliac/registry/yarn/config.sh")
 
   # As shown the script resides within ~/.nodecliac/ in the registry/ sub-directory. Some
-  # CLI apps are more complicated than others. This will require the need to make a folder
+  # CLI programs are more complicated than others. This will require the need to make a folder
   # under the registry/ directory for the command. In this folder all relevant files should
   # reside.
 ]
@@ -458,7 +458,7 @@ For example, if the line is `.workspaces.run --` it can be thought of as `yarn.w
 
 ## Examples
 
-ACMAPS for various CLI apps can be can be found [here](resources/nodecliac/__acmaps).
+ACMAPS for various CLI programs can be can be found [here](resources/nodecliac/__acmaps).
 
 <details><summary>nodecliac ACMAP</summary>
 
@@ -616,7 +616,7 @@ $ nodecliac format --source path/to/mycliprogram.acmap --print --highlight --ind
 
 ## Registry
 
-Some CLI apps are more complicated than others and will require the need of additional custom script files. If this is the case, a command folder should be made under the following path: `~/.nodecliac/registry/COMMAND-NAME/`. For example, say we are creating an `.acmap` file for [yarn](https://yarnpkg.com/en/) and we need to run custom script files for a better auto-completion experience. These files should reside at `~/.nodecliac/registry/yarn/`. [See directory structure/files here](/resources/nodecliac).
+Some CLI programs are more complicated than others and will require the need of additional custom script files. If this is the case, a command folder should be made under the following path: `~/.nodecliac/registry/COMMAND-NAME/`. For example, say we are creating an `.acmap` file for [yarn](https://yarnpkg.com/en/) and we need to run custom script files for a better auto-completion experience. These files should reside at `~/.nodecliac/registry/yarn/`. [See directory structure/files here](/resources/nodecliac).
 
 <details><summary>Show directory structures.</summary>
 
@@ -650,7 +650,7 @@ Some CLI apps are more complicated than others and will require the need of addi
 
 ## Hooks
 
-As stated in the resources files section some apps are more complicated than others. In the case of [yarn](https://yarnpkg.com/en/) its `yarn.acdef` file needed to be modified before parsing to [dynamically add the repos scripts as commands](https://yarnpkg.com/en/docs/cli/run#toc-yarn-run). One of the easier solutions for this was to use a pre-parsing hook. Basically, before nodecliac does anything
+As stated in the resources files section some programs are more complicated than others. In the case of [yarn](https://yarnpkg.com/en/) its `yarn.acdef` file needed to be modified before parsing to [dynamically add the repos scripts as commands](https://yarnpkg.com/en/docs/cli/run#toc-yarn-run). One of the easier solutions for this was to use a pre-parsing hook. Basically, before nodecliac does anything
 it is possible to use a hook script to modify the command's `.acdef` file (in-memory value).
 
 Available hook scripts:

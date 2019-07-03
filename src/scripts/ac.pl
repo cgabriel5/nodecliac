@@ -702,7 +702,13 @@ sub __set_envs {
 # 	# [https://stackoverflow.com/a/34195247]
 # 	# [https://zybuluo.com/ysongzybl/note/96951]
 # 	# $hpaths = `bash -c "for f in ~/.nodecliac/registry/$maincommand/hooks/{acdef,input}.*; do [ -e \"\$f\" ] && echo \"\\\$f\" || echo \"\"; done 2> /dev/null"`;
-# 	$hpaths = `bash -c "for f in ~/.nodecliac/registry/$maincommand/hooks/*.*; do [[ \\\"\\\${f##*/}\\\" =~ ^(acdef|input)\\.[a-zA-Z]+\$ ]] && echo \"\\\$f\"; done;"`;
+# 	# $hpaths = `bash -c "for f in ~/.nodecliac/registry/$maincommand/hooks/*.*; do [[ \\\"\\\${f##*/}\\\" =~ ^(acdef|input)\\.[a-zA-Z]+\$ ]] && echo \"\\\$f\"; done;"`;
+# 	$hpaths = `bash -c "for f in ~/.nodecliac/registry/$maincommand/hooks/*.*; do [[ \\\"\\\${f##*/}\\\" =~ ^(prehook)\\.[a-zA-Z]+\$ ]] && echo \"\\\$f\"; done;"`;
+
+# 	# $hpaths = `for f in ~/.nodecliac/registry/yarn/hooks/*.*; do file=\"\${f##*/}\"; name=\"\${file%%.*}\"; filter=\"\`echo \"\$name\" | grep ^prehook\$)\`\"; [ -z \"\$filter\" ] || echo \"\$f\"; done`;
+
+# 	# system "echo \"" . $hpaths . "\" >> ~/Desktop/zzz/output.text";
+
 # 	# $hpaths = `ls ~/.nodecliac/registry/$maincommand/hooks/*.* -u`;
 # 	# Test in command line with Perl: [https://stackoverflow.com/a/3374281]
 # 	# perl -e 'print `bash -c "for f in ~/.nodecliac/registry/yarn/hooks/{acdef,input}.*; do [ -e \"\$f\" ] && echo \"\\\$f\" || echo \"\"; done 2> /dev/null"`';
@@ -779,47 +785,52 @@ sub __set_envs {
 # 	# $input_remainder = substr($cline, $cpoint, -1); # CLI input from caret index to input string end.
 # }
 
-# Runs pre hook script.
-#
-# @return {undefined} - Nothing is returned.
-sub __hook_pre {
-	# Hook directory path.
-	my $hookdir = "$hdir/.nodecliac/registry/yarn/hooks";
-	my $scriptpath = "$hookdir/prehook.sh";
+# # Runs pre hook script.
+# #
+# # @return {undefined} - Nothing is returned.
+# sub __hook_pre {
+# 	# Hook directory path.
+# 	my $hookdir = "$hdir/.nodecliac/registry/yarn/hooks";
+# 	# my $scriptpath = "$hookdir/prehook.sh";
 
-	# If path does not exist then return from function.
-	# [https://www.perlmonks.org/?node_id=510490]
-	if (not -e $scriptpath) { return; }
+# 	my $scriptpath = ""; # Store hook script file path.
+# 	my $pattern = '^(.*' . "\\/prehook\\." . '.*?)$';
+# 	if ($hpaths =~ /$pattern/m) { $scriptpath = $1; }
 
-	# Set env variable to access in hook script.
-	# __set_envs("INPUT", "ACDEF", "MAIN_COMMAND");
-	__set_envs("INPUT", "MAIN_COMMAND");
+# 	# If path does not exist then return from function.
+# 	# [https://www.perlmonks.org/?node_id=510490]
+# 	if (!$scriptpath || not -e $scriptpath) { return; }
+# 	# if (not -e $scriptpath) { return; }
 
-	# Run command string.
-	my $output = `\"$scriptpath\" 2> /dev/null`;
+# 	# Set env variable to access in hook script.
+# 	# __set_envs("INPUT", "ACDEF", "MAIN_COMMAND");
+# 	__set_envs("INPUT", "MAIN_COMMAND", "INPUT_ORIGINAL");
 
-	# If output is empty then return from function.
-	if (!$output) { return; };
+# 	# Run command string.
+# 	my $output = `\"$scriptpath\" 2> /dev/null`;
 
-	# Modify input variable if key is in output string.
-	if (__includes($output, "input")) {
-		# Reset variable(s).
-		$input = `cat $hookdir/.input.data`; # Get file contents.
-		$cline = "$input$input_remainder"; # Original (complete) CLI input.
-		$cpoint = length($input); # Caret index when [tab] key was pressed.
-		$lastchar = substr($cline, $cpoint - 1, 1); # Character before caret.
-		$nextchar = substr($cline, $cpoint, 1); # Character after caret.
-		$cline_length = length($cline); # Original input's length.
-		# $input = substr($cline, 0, $cpoint); # CLI input from start to caret index.
-		# $input_remainder = substr($cline, $cpoint, -1); # CLI input from caret index to input string end.
-	}
+# 	# If output is empty then return from function.
+# 	if (!$output) { return; };
 
-	# Modify acdef variable if key is in output string.
-	if (__includes($output, "acdef")) {
-		# Get file contents and set acdef variable to returned output.
-		$acdef = `cat "$hookdir/.acdef.data"`;
-	}
-}
+# 	# Modify input variable if key is in output string.
+# 	if (__includes($output, "input")) {
+# 		# Reset variable(s).
+# 		$input = `cat $hookdir/.input.data`; # Get file contents.
+# 		$cline = "$input$input_remainder"; # Original (complete) CLI input.
+# 		$cpoint = length($input); # Caret index when [tab] key was pressed.
+# 		$lastchar = substr($cline, $cpoint - 1, 1); # Character before caret.
+# 		$nextchar = substr($cline, $cpoint, 1); # Character after caret.
+# 		$cline_length = length($cline); # Original input's length.
+# 		# $input = substr($cline, 0, $cpoint); # CLI input from start to caret index.
+# 		# $input_remainder = substr($cline, $cpoint, -1); # CLI input from caret index to input string end.
+# 	}
+
+# 	# Modify acdef variable if key is in output string.
+# 	if (__includes($output, "acdef")) {
+# 		# Get file contents and set acdef variable to returned output.
+# 		$acdef = `cat "$hookdir/.acdef.data"`;
+# 	}
+# }
 
 # Parses CLI input. Returns input similar to that of process.argv.slice(2).
 #     Adapted from argsplit module.
@@ -1699,11 +1710,11 @@ sub __printer {
 
 # Completion logic:
 
-# # Run [pre-parse] hooks.
+# # # Run [pre-parse] hooks.
 # __hook_filepaths();
-# # Variable must be populated with hook file paths to run scripts.
-# if ($hpaths) { __hook_acdef();__hook_input(); }
-__hook_pre();
+# # # Variable must be populated with hook file paths to run scripts.
+# # if ($hpaths) { __hook_acdef();__hook_input(); }
+# __hook_pre();
 
 # (cli_input*) → parser → extractor → lookup → printer
 # *Supply CLI input from start to caret index.

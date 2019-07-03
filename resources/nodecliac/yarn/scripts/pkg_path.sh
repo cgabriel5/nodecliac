@@ -33,7 +33,7 @@ if [[ -z "$useglobal_pkg" ]]; then
 	# [https://stackoverflow.com/a/3601734]
 	# [https://linuxconfig.org/how-to-test-for-null-or-empty-variables-within-bash-script]
 	# [https://likegeeks.com/sed-linux/]
-	while [[ -n $cwd ]]; do
+	while [[ -n "$cwd" ]]; do
 		if [[ -f "$cwd/package.json" ]]; then
 			package_dot_json="$cwd/package.json"
 			break

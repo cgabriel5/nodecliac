@@ -95,6 +95,18 @@ package_dot_json="${firstline#*:}"
 # 	LC_ALL=C sed -n "$pattern" "$package_dot_json"
 # }
 
+# Extracts data from package.json using a Perl one-liner.
+#
+# @param {string} 1) - The field entries to extract.
+# @return {string} - The field's key entries.
+function __yarn_get_package_fields() {
+	# Single quotes:
+	# args=`LC_ALL=C perl -0777 -ne 'print "$2" while /"(dependencies|devDependencies)"\s*:\s*{([\s\S]*?)}(,|$)/g' package.json | LC_ALL=C perl -ne 'print "$1\n" while /"([a-zA-Z][-a-zA-Z0-9]*)"\s*:\s*"/g'`
+	# args=`LC_ALL=C perl -0777 -ne 'print "$2" while /"(scripts)"\s*:\s*{([\s\S]*?)}(,|$)/g' package.json | LC_ALL=C perl -ne 'print "$1\n" while /"([a-zA-Z][-a-zA-Z0-9]*)"\s*:\s*"/g'`
+	# Perl only solution:
+	LC_ALL=C perl -0777 -ne "print \"\$2\" while /\"($1)\"\\s*:\\s*{([\\s\\S]*?)}(,|$)/g" "$package_dot_json" | LC_ALL=C perl -ne "print \"\$1\\n\" while /\"([a-zA-Z][-a-zA-Z0-9]*)\"\\s*:\\s*\"/g"
+}
+
 # Perl script path.
 prune_args_script=~/.nodecliac/registry/yarn/scripts/prune_args.pl
 # Run completion script if it exists: [https://stackoverflow.com/a/21164441]
@@ -111,7 +123,8 @@ case "$action" in
 		# [https://www.rexegg.com/regex-perl-one-liners.html]
 		# [https://www.inmotionhosting.com/support/website/ssh/speed-up-grep-searches-with-lc-all]
 		# [https://stackoverflow.com/questions/13913014/grepping-a-huge-file-80gb-any-way-to-speed-it-up]
-		args=`LC_ALL=C perl -0777 -nle 'print "$2" while /"(dependencies|devDependencies)"\s*:\s*{([\s\S]*?)}/g' "$package_dot_json" | LC_ALL=C grep -o '\"\(.\+\)\":' | LC_ALL=C grep -o '[^\": ]\+'`
+		# args=`LC_ALL=C perl -0777 -nle 'print "$2" while /"(dependencies|devDependencies)"\s*:\s*{([\s\S]*?)}/g' "$package_dot_json" | LC_ALL=C grep -o '\"\(.\+\)\":' | LC_ALL=C grep -o '[^\": ]\+'`
+		args=`__yarn_get_package_fields "dependencies|devDependencies"`
 
 		# # Get (dev)dependencies.
 		# dev=`__yarn_get_package_fields dependencies`
@@ -126,7 +139,8 @@ case "$action" in
 	run)
 		# Get script names and store arguments.
 		# [https://www.rexegg.com/regex-perl-one-liners.html]
-		args=`LC_ALL=C perl -0777 -ne 'print "$1" if /"scripts"\s*:\s*{([\s\S]*?)}/s' "$package_dot_json" | LC_ALL=C grep -o '\"\(.\+\)\":' | LC_ALL=C grep -o '[^\": ]\+'`
+		# args=`LC_ALL=C perl -0777 -ne 'print "$1" if /"scripts"\s*:\s*{([\s\S]*?)}/s' "$package_dot_json" | LC_ALL=C grep -o '\"\(.\+\)\":' | LC_ALL=C grep -o '[^\": ]\+'`
+		args=`__yarn_get_package_fields "scripts"`
 
 		# Get script names and store arguments.
 		# args=`__yarn_get_package_fields scripts`

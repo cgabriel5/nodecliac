@@ -651,26 +651,25 @@ Some CLI programs are more complicated than others and will require the need of 
 ## Hooks
 
 As stated in the resources files section some programs are more complicated than others. In the case of [yarn](https://yarnpkg.com/en/) its `yarn.acdef` file needed to be modified before parsing to [dynamically add the repos scripts as commands](https://yarnpkg.com/en/docs/cli/run#toc-yarn-run). One of the easier solutions for this was to use a pre-parsing hook. Basically, before nodecliac does anything
-it is possible to use a hook script to modify the command's `.acdef` file (in-memory value).
+it is possible to use a hook script to modify the command's `.acdef` file and CLI input (in-memory) values.
 
 Available hook scripts:
 
-- `hooks/acdef.*`: Allows the modification of the in-memory `acdef` contents before starting any parsing.
-  - Exposes `NODECLIAC_ACDEF` environment variable to use in script.
-- `hooks/input.*`: Allows the modification of the in-memory CLI input string before starting any parsing.
-  - Exposes `NODECLIAC_INPUT` environment variable to use in script.
+- `hooks/prehook.sh`
+  - Allows the modification of the in-memory `acdef` contents before starting any parsing.
+  - Allows the modification of the in-memory CLI input string before starting any parsing.
 
-**Note**: Using a hook script might sound involved/off-putting but it's not. A hook script is just a regular shell script. The script just has special meaning in the sense that nodecliac will look for it to run it.
+**Note**: Using a hook script might sound involved/off-putting but it's not. A hook script is just a regular shell script. The script just has special meaning in the sense that it can be used to **hook** into nodecliac to change some variables used for later auto-completion processing.
 
 <details><summary>Expand hook section.</summary>
 
 #### Making Hook Script
 
-Making use of a hook script is easy. Simply create the following path in the command's resources directory: `~/.nodecliac/registry/COMMAND-NAME/hooks/acdef.*`. All hook scripts will reside in the `COMMAND-NAME/hooks` sub directory. For example, for yarn it would be: `~/.nodecliac/registry/yarn/hooks/acdef.*`.
+To use a hook script simply create the file in the command's resource `hooks/` directory: `~/.nodecliac/registry/COMMAND-NAME/hooks`. All hook scripts will reside in the `COMMAND-NAME/hooks` sub directory. For example, creating the `prehook` script for yarn would be: `~/.nodecliac/registry/yarn/hooks/prehook.sh`.
 
 #### Using Hook Script
 
-This section will use [yarn's hook scripts](/resources/nodecliac/yarn) as real examples. `acdef.pl` is a Perl script which modifies the `.acdef` contents. The script returns the modified `.acdef` contents to nodecliac where it then overwrites the in-memory `acdef` value. The same idea goes for `input.pl` script but for the CLI input.
+This section will use [yarn's prehook script](/resources/nodecliac/yarn) as an example. [`/yarn/hooks/prehook.sh`](/resources/nodecliac/yarn) runs custom Perl scripts to modify the `.acdef` and the CLI input. Since the prehook script is sourced into the main auto-completion script nothing is echoed back to the main script. Instead, the `acdef` and `cline` variables are overwritten, rather. These new values will then be used by nodecliac to provide auto-completion.
 
 **Note**: Perl is used here for quick text processing as doing it in Bash is slow and cumbersome. _However_, use what you _want/need_ to get the job done. Hook scripts just _need_ to be executable scripts stored in `~/.nodecliac/registry/COMMAND-NAME/hooks/`.
 

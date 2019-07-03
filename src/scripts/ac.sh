@@ -1087,6 +1087,13 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		acpl_script=~/.nodecliac/src/ac.pl
 		# Run completion script if it exists.
 		if [[ -f "$acpl_script" ]]; then
+			# Run prehook(s) if it exists.
+			prehook_script=~/.nodecliac/registry/$1/hooks/prehook.sh
+			if [[ -f "$prehook_script" ]]; then
+				source "$prehook_script" "$cline" "$cpoint" "$maincommand" "$acdef"
+			fi
+
+			# Run Perl auto-completion script.
 			output=`"$acpl_script" "$cline" "$cpoint" "$maincommand" "$acdef"`
 			# "$acpl_script" "$cline" "$cpoint" "$maincommand" "$acdef"
 

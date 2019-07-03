@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# This script's purpose will modify the ACDEF content by adding rows for
+# This script will modify the ACDEF content by adding rows for
 # provided script names. The final ACDEF output will be returned.
 #
 # Arguments:
@@ -13,6 +13,14 @@
 # use strict;
 # use warnings;
 # use diagnostics;
+
+# Get arguments.
+my $input = $ARGV[0]; # Original (complete) CLI input.
+my $acdef = $ARGV[1]; # Command's acdef file contents.
+
+# Only run when input is only the yarn command or yarn and completing a subcommand.
+# [https://perldoc.perl.org/perlrequick.html]
+if ($input !~ /^[ \t]*yarn[ \t]+([a-zA-Z][-_a-zA-Z0-9]*)*$/) { exit; }
 
 # Create main script file path.
 my $mainscript = $ENV{"HOME"} . "/.nodecliac/registry/yarn/scripts/main.sh";
@@ -27,9 +35,6 @@ if (!$scriptnames) { exit; }
 
 # Split string into individual items.
 my @scripts = split(/\n/, $scriptnames);
-
-# Get ACDEF from environment variables.
-my $acdef = $ENV{'NODECLIAC_ACDEF'};
 
 # Store ACDEF addon.
 my $addon = "";

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# This script's purpose will modify the CLI input. The final, modified input
+# This script will modify the CLI input. The final, modified input
 # will be returned.
 #
 # Arguments:
@@ -14,8 +14,8 @@
 # use warnings;
 # use diagnostics;
 
-# Get environment variable(s).
-my $input = $ENV{'NODECLIAC_INPUT'};
+# Get arguments.
+my $input = $ARGV[0]; # Original (complete) CLI input.
 # Store output.
 my $output = "";
 

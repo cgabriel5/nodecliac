@@ -10,6 +10,9 @@ read -r firstline <<< "$package_info"
 field_type="${firstline%%:*}"
 package_dot_json="${firstline#*:}"
 
+# package.json file must exist to continue.
+[[ ! -f "$package_dot_json" ]] && exit
+
 # Generate the primitive (boolean, number, string) RegExp lookup pattern.
 #
 # @param {string} 1) - The data type.
@@ -82,16 +85,10 @@ function __yarn_get_package_fields() {
 	# Vars.
 	local pattern field_key="$1"
 
-	# package.json file must exist and field key must be provided to continue.
-	[[ ! -f "$package_dot_json" || ! "$field_key" ]] && return
-
 	# Generate RegExp pattern to extract needed data from package.json.
 	case "$field_type" in
-		object)  pattern="`__ptn_objt object $field_key`"  ;;
-		array)   pattern="`__ptn_objt array $field_key`"   ;;
-		boolean) pattern="`__ptn_prim boolean $field_key`" ;;
-		number)  pattern="`__ptn_prim number $field_key`"  ;;
-		string)  pattern="`__ptn_prim string $field_key`"  ;;
+		object|array) pattern="`__ptn_objt "$field_type" $field_key`" ;;
+		boolean|boolean|string) pattern="`__ptn_prim "$field_type" $field_key`" ;;
 	esac
 
 	# Finally, extract package.json data.
@@ -100,14 +97,13 @@ function __yarn_get_package_fields() {
 
 # Perl script path.
 prune_args_script=~/.nodecliac/registry/yarn/scripts/prune_args.pl
+# Run completion script if it exists: [https://stackoverflow.com/a/21164441]
+if [[ ! -f "$prune_args_script" ]]; then exit; fi
+
 # Store action arguments for later pruning.
 args=""
 
 # Depending on provided action run appropriate logic...
-
-# Run completion script if it exists: [https://stackoverflow.com/a/21164441]
-if [[ ! -f "$prune_args_script" ]]; then exit; fi
-
 case "$action" in
 	remove|outdated|unplug|upgrade)
 		# Get (dev)dependencies.

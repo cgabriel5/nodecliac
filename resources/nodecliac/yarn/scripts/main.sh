@@ -146,7 +146,7 @@ case "$action" in
 	;;
 	workspace)
 		# Get workspaces info via yarn.
-		workspaces_info=$(LC_ALL=C yarn workspaces info -s 2> /dev/null)
+		workspaces_info="`LC_ALL=C yarn workspaces info -s 2> /dev/null`"
 
 		# Get args count.
 		args_count="$NODECLIAC_ARG_COUNT"

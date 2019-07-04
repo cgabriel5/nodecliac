@@ -21,7 +21,8 @@ declare cwd="$PWD" opt OPTARG # OPTIND
 # [http://defindit.com/readme_files/perl_one_liners.html]
 # [https://www.perlmonks.org/?node_id=1004245]
 # Get workspace name if auto-completing workspace.
-workspace=$(echo "$oinput" | perl -ne 'print "$1" if /^[ \t]*yarn[ \t]+workspace[ \t]+([a-zA-Z][-_a-zA-Z0-9]*)[ \t]*.*/')
+# [https://askubuntu.com/questions/678915/whats-the-difference-between-and-in-bash]
+workspace="`LC_ALL=C perl -ne 'print "$1" if /^[ \t]*yarn[ \t]+workspace[ \t]+([a-zA-Z][-_a-zA-Z0-9]*)[ \t]*.*/' <<< "$oinput"`"
 
 # If workspace flag is set then we are auto-completing a workspace.
 # Therefore, reset CWD to workspace's location.

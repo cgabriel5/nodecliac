@@ -6,9 +6,8 @@ useglobal_pkg="$2"
 
 # Get package.json JSON file path.
 package_info=`"$HOME/.nodecliac/registry/yarn/scripts/pkg_path.sh" "$NODECLIAC_INPUT_ORIGINAL" "$useglobal_pkg"`
-read -r firstline <<< "$package_info"
-field_type="${firstline%%:*}"
-package_dot_json="${firstline#*:}"
+field_type="${package_info%%:*}"
+package_dot_json="${package_info#*:}"
 
 # package.json file must exist to continue.
 [[ ! -f "$package_dot_json" ]] && exit

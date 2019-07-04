@@ -103,7 +103,7 @@ function __yarn_get_package_fields() {
 	# args=`LC_ALL=C perl -0777 -ne 'print "$2" while /"(dependencies|devDependencies)"\s*:\s*{([\s\S]*?)}(,|$)/g' package.json | LC_ALL=C perl -ne 'print "$1\n" while /"([a-zA-Z][-a-zA-Z0-9]*)"\s*:\s*"/g'`
 	# args=`LC_ALL=C perl -0777 -ne 'print "$2" while /"(scripts)"\s*:\s*{([\s\S]*?)}(,|$)/g' package.json | LC_ALL=C perl -ne 'print "$1\n" while /"([a-zA-Z][-a-zA-Z0-9]*)"\s*:\s*"/g'`
 	# Perl only solution:
-	LC_ALL=C perl -0777 -ne "print \"\$2\" while /\"($1)\"\\s*:\\s*{([\\s\\S]*?)}(,|$)/g" "$package_dot_json" | LC_ALL=C perl -ne "print \"\$1\\n\" while /\"([a-zA-Z][-a-zA-Z0-9]*)\"\\s*:\\s*\"/g"
+	LC_ALL=C perl -0777 -ne "print \"\$2\" while /\"($1)\"\\s*:\\s*{([\\s\\S]*?)}(,|$)/g" "$package_dot_json" | LC_ALL=C perl -ne "print \"\$1\\n\" while /\"([a-zA-Z][-a-zA-Z0-9]*)\"\\s*:\\s*\"/g" 2> /dev/null
 }
 
 # Perl script path.

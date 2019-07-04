@@ -961,6 +961,10 @@ sub __extractor {
 		# Skip quoted (string) items.
 		if (__is_lquoted($item)) {
 			next;
+		} else {
+			# Else if the argument is not quoted check if item contains
+			# an escape sequences. If so skip the item.
+			if ($item =~ /\\./) { next; }
 		}
 
 		# Reset next item if it's the last iteration.

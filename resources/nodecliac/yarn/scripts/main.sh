@@ -146,19 +146,22 @@ case "$action" in
 	;;
 	workspace)
 		# Get workspaces info via yarn.
-		workspaces_info=$(yarn workspaces info -s 2> /dev/null)
+		workspaces_info=$(LC_ALL=C yarn workspaces info -s 2> /dev/null)
 
 		# Get args count.
 		args_count="$NODECLIAC_ARG_COUNT"
 
 		if [[ -n "$workspaces_info" && "$args_count" -le 2 ]] || [[ -n "$workspaces_info" && "$args_count" -le 3 && "$NODECLIAC_LAST_CHAR" != " " ]]; then
-			# Get workspace names.
-			# [https://github.com/dsifford/yarn-completion/blob/master/yarn-completion.bash]
-			# [https://www.computerhope.com/unix/bash/mapfile.htm]
-			mapfile -t < <(LC_ALL=C sed -n 's/^ \{2\}"\([^"]*\)": {$/\1/p' <<< "$workspaces_info")
+			# # Get workspace names.
+			# # [https://github.com/dsifford/yarn-completion/blob/master/yarn-completion.bash]
+			# # [https://www.computerhope.com/unix/bash/mapfile.htm]
+			# mapfile -t < <(LC_ALL=C sed -n 's/^ \{2\}"\([^"]*\)": {$/\1/p' <<< "$workspaces_info")
 
-			# Store arguments.
-			args="${MAPFILE[*]}"
+			# # Store arguments.
+			# args="${MAPFILE[*]}"
+
+			# Get workspace names.
+			args="$(LC_ALL=C perl -ne "print \"\$1\\n\" while /\"location\":\\s*\"([^\"]+)\",/g" <<< "$workspaces_info" 2> /dev/null)"
 		fi
 	;;
 esac

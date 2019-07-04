@@ -9,8 +9,8 @@ package_info=`"$HOME/.nodecliac/registry/yarn/scripts/pkg_path.sh" "$NODECLIAC_I
 field_type="${package_info%%:*}"
 package_dot_json="${package_info#*:}"
 
-# package.json file must exist to continue.
-[[ ! -f "$package_dot_json" ]] && exit
+# # package.json file must exist to continue.
+# [[ ! -f "$package_dot_json" ]] && exit
 
 # # Generate the primitive (boolean, number, string) RegExp lookup pattern.
 # #

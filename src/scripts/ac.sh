@@ -1094,7 +1094,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			fi
 
 			# Run Perl auto-completion script.
-			output=`"$acpl_script" "$cline" "$cpoint" "$maincommand" "$acdef"`
+			output=`"$acpl_script" "$COMP_LINE" "$cline" "$cpoint" "$maincommand" "$acdef"`
 			# "$acpl_script" "$cline" "$cpoint" "$maincommand" "$acdef"
 
 			# First line is meta info (completion type, last word, etc.).

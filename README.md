@@ -6,7 +6,8 @@ Easily add Bash tab completion to CLI programs with nodecliac (**node**-**cli**-
 
 ##### Table of Contents
 
-- [Install](#install)
+- [Install](#install-normal)
+  - [Manual](#install-manual)
 - [How It Works](#how-it-works)
 - [ACMAP Syntax](#acmap-syntax)
 - [ACDEF Syntax](#acdef-syntax)
@@ -20,7 +21,7 @@ Easily add Bash tab completion to CLI programs with nodecliac (**node**-**cli**-
 - [Contributing](#contributing)
 - [License](#license)
 
-<a name="install"></a>
+<a name="install-normal"></a>
 
 ## Install
 
@@ -36,8 +37,14 @@ $ sudo npm i -g cgabriel5/nodecliac && nodecliac setup
   <summary>Requirements</summary>
 
 - Node.js `8+`
+  - nodecliac and its CLI tools (`.acmap` to `.acdef` parser, formatter, etc.) are written in JavaScript.
+  - **Note**: However, if you only need tab auto-completion and already have the program's registry package/files (i.e. don't need nodecliac's core CLI tools (parser, formatter, etc.) to generate the needed files) then Node.js is _not_ required. Simply follow the [manual setup](#install-manual) section to easily setup nodecliac.
 - Perl `5+`
+  - Runs needed Perl auto-completion scripts.
+  - Works in tandem with Bash shell scripts.
 - Bash `4.3+`
+  - Glues/setup/runs Perl and Shell auto-completion scripts.
+  - Works in tandem with Perl scripts.
   - `macOS`, by default, comes with with Bash `3.2` so please update it.
     - [Homebrew](https://brew.sh/) can be used to [update bash](https://akrabat.com/upgrading-to-bash-4-on-macos/).
       </details>
@@ -67,6 +74,55 @@ $ sudo npm i -g cgabriel5/nodecliac#BRANCH_NAME && nodecliac setup
 $ git clone -b BRANCH_NAME --single-branch https://github.com/cgabriel5/nodecliac.git
 ```
 
+</details>
+
+<a name="install-manual"></a>
+
+## Install (manual)
+
+At the moment, generating `.acdef` files from `.acmap` files requires Node.js as the parser and all nodecliac's core tools are written in JavaScript. However, if you already have the CLI program(s) registry package/files and really only need tab auto-completion, (you aren't generating `.acdef` files, for example) nodecliac can be setup manually with the commands below.
+
+<details><summary>Show manual install guide/script.</summary>
+
+```sh
+#!/bin/bash
+
+# 1) Clone nodecliac repo to Desktop.
+git clone git@github.com:cgabriel5/nodecliac.git ~/Desktop/nodecliac
+
+# 2) Create nodecliac's directory structure.
+mkdir -p ~/.nodecliac/src && mkdir -p ~/.nodecliac/registry
+
+# 3) Copy the Perl/Shell nodecliac scripts from the cloned repo to ~/.nodecliac/src.
+# [https://superuser.com/a/114198]
+cp -p ~/Desktop/nodecliac/src/scripts/*.* ~/.nodecliac/src
+
+# 3.1) Strip comments/empty lines from copied files.
+perl -pi -e 's/^\s*#(?!!).*?$//g;s/\s{1,}#\s{1,}.+$//g;s!^\s+?$!!' ~/.nodecliac/src/*.{sh,pl}
+# [http://isunix.github.io/blog/2014/07/24/perl-one-liner-to-remove-blank-lines/].
+# [https://stackoverflow.com/a/6995010], [https://unix.stackexchange.com/a/179449]
+
+# 4) Modify your ~/.bashrc to add nodecliac.
+echo 'ncliac=~/.nodecliac/src/main.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;' >> ~/.bashrc
+
+# 5) Delete the cloned repo as it's no longer needed.
+rm -rf ~/Desktop/nodecliac
+
+# 6) Lastly, add the command packages to nodecliac's registry: ~/.nodecliac/registry
+# 7) Start up a new Terminal and enjoy the tab auto-completion!
+```
+
+<details><summary>Uninstall</summary>
+
+```sh
+# 1) Manually or with program (Perl in this case) remove nodecliac from ~/.bashrc.
+perl -pi -e "s/ncliac=~\/.nodecliac\/src\/main.sh;if \[ -f \"\\\$ncliac\" \];then source \"\\\$ncliac\";fi;// if /^ncliac/" ~/.bashrc
+
+# 2) Finally, remove the nodecliac folder and its contents.
+rm -rf ~/.nodecliac
+```
+
+</details>
 </details>
 
 <a name="how-it-works"></a>

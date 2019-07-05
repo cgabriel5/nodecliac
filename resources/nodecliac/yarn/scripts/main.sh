@@ -108,8 +108,8 @@ function __yarn_get_package_fields() {
 
 # Perl script path.
 prune_args_script=~/.nodecliac/registry/yarn/scripts/prune_args.pl
-# Run completion script if it exists: [https://stackoverflow.com/a/21164441]
-if [[ ! -f "$prune_args_script" ]]; then exit; fi
+# # Run completion script if it exists: [https://stackoverflow.com/a/21164441]
+# if [[ ! -f "$prune_args_script" ]]; then exit; fi
 
 # Store action arguments for later pruning.
 args=""

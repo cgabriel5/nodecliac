@@ -960,11 +960,20 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		function __printer() {
 			if [[ "$type" == "command" ]]; then
 				# Set completions string.
-				while IFS='' read -r line || [[ -n "$line" ]]; do
-					COMPREPLY=($(compgen -W "$line" -- ""))
-					__ltrim_colon_completions "$last"
-					break
-				done < <(tail -n +2 <<< "$output")
+				# while IFS='' read -r line || [[ -n "$line" ]]; do
+				# 	# [https://debian-administration.org/article/317/An_introduction_to_bash_completion_part_2]
+				# 	COMPREPLY=($(compgen -W "$line" -- ""))
+				# 	# COMPREPLY=(`echo -e "$line"`)
+				# 	__ltrim_colon_completions "$last"
+				# 	break
+				# done < <(tail -n +2 <<< "$output")
+				#
+				# [https://stackoverflow.com/a/18551488], [https://stackoverflow.com/a/35164798]
+				# COMPREPLY=($(compgen -W "`perl -ne '$. == 2 and print, close ARGV' <<< "$output"`"))
+				# COMPREPLY=($(compgen -W "`perl -ne 'print if $. == 2' <<< "$output"`"))
+				# COMPREPLY=($(echo -e "`perl -ne '$. == 2 and print $_ =~ s/ /\n/rg' <<< "$output"`"))
+				COMPREPLY=($(echo -e "`perl -ne 'print if $. == 2' <<< "$output"`"))
+				__ltrim_colon_completions "$last"
 
 				# When COMPREPLY is empty, meaning no autocompletion values
 				# are in COMPREPLY array, the command was registered with
@@ -1028,7 +1037,9 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 					COMPREPLY+=("$line")
 				# Start reading at second line: [https://askubuntu.com/a/289235]
 				# [https://stackoverflow.com/a/24894628]
-				done < <(tail -n +2 <<< "$output")
+				# done < <(tail -n +2 <<< "$output")
+				done < <(perl -ne '$. != 1 and print' <<< "$output")
+
 				# done <<< "$output"
 
 				# # Print and add right pad spacing to possibilities where necessary.

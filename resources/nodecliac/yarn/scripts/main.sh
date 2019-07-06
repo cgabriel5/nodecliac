@@ -4,10 +4,15 @@
 action="$1"
 useglobal_pkg="$2"
 
-# Get package.json JSON file path.
+# Get package.json paths/info.
 package_info=`"$HOME/.nodecliac/registry/yarn/scripts/pkg_path.sh" "$NODECLIAC_INPUT_ORIGINAL" "$useglobal_pkg"`
+# [https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html]
+# [https://wiki.bash-hackers.org/syntax/pe#substring_removal]
 field_type="${package_info%%:*}"
-package_dot_json="${package_info#*:}"
+# Reset variable to contain package.json and the cache path.
+package_info="${package_info#*:}"
+package_dot_json="${package_info%%:*}"
+cache_path="${package_info##*:}"
 
 # # package.json file must exist to continue.
 # [[ ! -f "$package_dot_json" ]] && exit
@@ -124,7 +129,14 @@ case "$action" in
 		# [https://www.inmotionhosting.com/support/website/ssh/speed-up-grep-searches-with-lc-all]
 		# [https://stackoverflow.com/questions/13913014/grepping-a-huge-file-80gb-any-way-to-speed-it-up]
 		# args=`LC_ALL=C perl -0777 -nle 'print "$2" while /"(dependencies|devDependencies)"\s*:\s*{([\s\S]*?)}/g' "$package_dot_json" | LC_ALL=C grep -o '\"\(.\+\)\":' | LC_ALL=C grep -o '[^\": ]\+'`
-		args=`__yarn_get_package_fields "dependencies|devDependencies"`
+		cached="$cache_path/repodeps"
+		if [[ -n "$cache_path" && -f "$cached" ]]; then
+			args=`<"$cached"` # Use cached dependencies.
+		else
+			args=`__yarn_get_package_fields "dependencies|devDependencies"`
+			# Store results to a cache file.
+			echo -e "$args" > "$cached"
+		fi
 
 		# # Get (dev)dependencies.
 		# dev=`__yarn_get_package_fields dependencies`
@@ -144,7 +156,14 @@ case "$action" in
 		# args="$(LC_ALL=C perl -0777 -ne "print \"\$1\" if /\"scripts\"\\s*:\\s*{([\\s\\S]*?)}(,|$)/" "$package_dot_json" | LC_ALL=C perl -ne "print \"\$1\\n\" while /\"([a-zA-Z][-a-zA-Z0-9]*)\"\\s*:\\s*\"/g" 2> /dev/null)"
 		# args="$(LC_ALL=C perl -0777 -ne "print \"\$1\" if /\"scripts\"\\s*:\\s*{([\\s\\S]*?)}(,|$)/" "$package_dot_json" | LC_ALL=C perl -ne "print \"\$1\\n\" while /\"([^\"]*)\"\\s*:\\s*\"/g" 2> /dev/null)"
 		# args="$(LC_ALL=C perl -0777 -ne "if (/\"scripts\"\\s*:\\s*{([\\s\\S]*?)}(,|$)/) { if (\$1) { @matches = \$1 =~ /\"([^\"]*)\"\\s*:\\s*\"/g; foreach (@matches) { print \"\$_\\n\"; } }}" <<< `<"$package_dot_json"` 2> /dev/null)"
-		args="$(LC_ALL=C perl -0777 -ne "if (/\"scripts\"\\s*:\\s*{([\\s\\S]*?)}(,|$)/) { if (\$1) { my @matches = \$1 =~ /\"([^\"]*)\"\\s*:\\s*\"/g; print \"@matches\"; }}" <<< `<"$package_dot_json"` 2> /dev/null)"
+		cached="$cache_path/reposcripts"
+		if [[ -n "$cache_path" && -f "$cached" ]]; then
+			args=`<"$cached"` # Use cached dependencies.
+		else
+			args="$(LC_ALL=C perl -0777 -ne "if (/\"scripts\"\\s*:\\s*{([\\s\\S]*?)}(,|$)/) { if (\$1) { my @matches = \$1 =~ /\"([^\"]*)\"\\s*:\\s*\"/g; print \"@matches\"; }}" <<< `<"$package_dot_json"` 2> /dev/null)"
+			# Store results to a cache file.
+			echo -e "$args" > "$cached"
+		fi
 
 		# Get script names and store arguments.
 		# args=`__yarn_get_package_fields scripts`
@@ -172,7 +191,7 @@ case "$action" in
 esac
 
 # If output exists run the pruning arguments script and return result.
-if [[ ! -z "$args"  ]]; then
+if [[ -n "$args"  ]]; then
 	# Run argument pruning script.
 	output=`"$prune_args_script" "$args"`
 	echo -e "\n$output"

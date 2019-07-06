@@ -140,7 +140,11 @@ case "$action" in
 		# Get script names and store arguments.
 		# [https://www.rexegg.com/regex-perl-one-liners.html]
 		# args=`LC_ALL=C perl -0777 -ne 'print "$1" if /"scripts"\s*:\s*{([\s\S]*?)}/s' "$package_dot_json" | LC_ALL=C grep -o '\"\(.\+\)\":' | LC_ALL=C grep -o '[^\": ]\+'`
-		args=`__yarn_get_package_fields "scripts"`
+		# args=`__yarn_get_package_fields "scripts"`
+		# args="$(LC_ALL=C perl -0777 -ne "print \"\$1\" if /\"scripts\"\\s*:\\s*{([\\s\\S]*?)}(,|$)/" "$package_dot_json" | LC_ALL=C perl -ne "print \"\$1\\n\" while /\"([a-zA-Z][-a-zA-Z0-9]*)\"\\s*:\\s*\"/g" 2> /dev/null)"
+		# args="$(LC_ALL=C perl -0777 -ne "print \"\$1\" if /\"scripts\"\\s*:\\s*{([\\s\\S]*?)}(,|$)/" "$package_dot_json" | LC_ALL=C perl -ne "print \"\$1\\n\" while /\"([^\"]*)\"\\s*:\\s*\"/g" 2> /dev/null)"
+		# args="$(LC_ALL=C perl -0777 -ne "if (/\"scripts\"\\s*:\\s*{([\\s\\S]*?)}(,|$)/) { if (\$1) { @matches = \$1 =~ /\"([^\"]*)\"\\s*:\\s*\"/g; foreach (@matches) { print \"\$_\\n\"; } }}" <<< `<"$package_dot_json"` 2> /dev/null)"
+		args="$(LC_ALL=C perl -0777 -ne "if (/\"scripts\"\\s*:\\s*{([\\s\\S]*?)}(,|$)/) { if (\$1) { my @matches = \$1 =~ /\"([^\"]*)\"\\s*:\\s*\"/g; print \"@matches\"; }}" <<< `<"$package_dot_json"` 2> /dev/null)"
 
 		# Get script names and store arguments.
 		# args=`__yarn_get_package_fields scripts`

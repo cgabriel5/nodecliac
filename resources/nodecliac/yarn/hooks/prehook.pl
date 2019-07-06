@@ -22,39 +22,35 @@ my $input = $ARGV[0]; # Original (complete) CLI input.
 # my $acdef = $ARGV[1]; # Command's acdef file contents.
 
 # Store output.
-my $output = "";
+my $output = "\n";
 
 # Input logic...
 
 # Check input with RegExp...
-if ($input =~ /^([ \t]*yarn)([ \t]+workspace[ \t]+[a-zA-Z][-_a-zA-Z0-9]*[ \t]{1,})(.*)/) {
-	$output .= "$1 $3";
-} else {
-	$output .= "\n";
-}
+if ($input =~ /^([ \t]*yarn)([ \t]+workspace[ \t]+[a-zA-Z][-_a-zA-Z0-9]*[ \t]{1,})(.*)/) { $output = "$1 $3"; }
 
 # ACDEF logic...
 
 # Only run when input is only the yarn command or yarn and completing a subcommand.
 # [https://perldoc.perl.org/perlrequick.html]
-if ($input !~ /^[ \t]*yarn[ \t]+([a-zA-Z][-_a-zA-Z0-9]*)*$/) { exit; }
+if ($input =~ /^[ \t]*yarn[ \t]+([a-zA-Z][-_a-zA-Z0-9]*)*$/) {
+	# Create main script file path.
+	my $mainscript = $ENV{"HOME"} . "/.nodecliac/registry/yarn/scripts/main.sh";
 
-# Create main script file path.
-my $mainscript = $ENV{"HOME"} . "/.nodecliac/registry/yarn/scripts/main.sh";
+	# Run main script to get script names.
+	my $scriptnames = `$mainscript run 2> /dev/null`;
+	# Trim string.
+	$scriptnames =~ s/\s+$//g;
 
-# Run main script to get script names.
-my $scriptnames = `$mainscript run 2> /dev/null`;
-# Trim string.
-$scriptnames =~ s/^\s+|\s+$//g;
+	# Script names must exist to proceed.
+	if ($scriptnames) {
+		# Split string into individual items.
+		my @scripts = split(/\n/, $scriptnames);
 
-# Script names must exist to proceed.
-if (!$scriptnames) { exit; }
-
-# Split string into individual items.
-my @scripts = split(/\n/, $scriptnames);
-
-# Store ACDEF addon.
-foreach my $script (@scripts) { $output .= "\n.$script --"; }
+		# Store ACDEF addon.
+		foreach my $script (@scripts) { $output .= "\n.$script --"; }
+	}
+}
 
 # Return output.
 print "$output";

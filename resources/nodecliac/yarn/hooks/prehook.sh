@@ -13,7 +13,7 @@
 output=`"$HOME/.nodecliac/registry/yarn/hooks/prehook.pl" "$1"`
 
 # First line is meta info (completion type, last word, etc.).
-firstline=`LC_ALL=C perl -pe "exit if $. > 1" <<< "$output"`
+firstline=`LC_ALL=C perl -npe "exit if $. > 1" <<< "$output"`
 # [https://stackoverflow.com/q/30649640]
 if [[ -n "$firstline" ]]; then cline="$firstline"; fi
 

@@ -983,7 +983,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 
 					# '-o' option had to have been used when registered else
 					# if not then we do not resort to using _filedir.
-					registry=`complete -p | grep "_nodecliac $maincommand"`
+					registry=$(LC_ALL=C grep -F "_nodecliac $maincommand" <<< "`complete -p`")
 					if [[ "$registry" != *" -o "*  ]]; then return; fi
 
 					# Build config path.

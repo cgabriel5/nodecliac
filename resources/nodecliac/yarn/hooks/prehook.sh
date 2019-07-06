@@ -8,12 +8,15 @@
 
 # The script will run the needed Perl scripts and return the modified output.
 
-# Run input hook script.
-output=`"$HOME/.nodecliac/registry/yarn/hooks/input.pl" "$1"`
-# Reset variable if output exists.
-if [[ ! -z "$output" ]]; then cline="$output"; fi
+# Note: The first line of the output will be the modified CLI input. All
+# lines after will be the new line to add to the acdef.
+output=`"$HOME/.nodecliac/registry/yarn/hooks/prehook.pl" "$1"`
 
-# Run acdef hook script.
-output=`"$HOME/.nodecliac/registry/yarn/hooks/acdef.pl" "$1" "$4"`
-# Reset variable if output exists.
-if [[ ! -z "$output" ]]; then acdef="$4$output"; fi
+# First line is meta info (completion type, last word, etc.).
+firstline=`LC_ALL=C perl -pe "exit if $. > 1" <<< "$output"`
+# [https://stackoverflow.com/q/30649640]
+if [[ -n "$firstline" ]]; then cline="$firstline"; fi
+
+# Get acdef addon entries.
+addon=`LC_ALL=C perl -ne "print if $. > 1" <<< "$output"`
+if [[ -n "$addon" ]]; then acdef+=$'\n'"$addon"; fi

@@ -98,7 +98,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# # Remove array item by its index.
 		# #
 		# # @param {array} 1) - The array to remove item from.
-		# # @return {undefined} - Noting is returned.
+		# # @return {undefined} - Nothing is returned.
 		# #
 		# # @resource [https://stackoverflow.com/a/25436989]
 		# function __rm_aitem() {
@@ -361,7 +361,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# #     Adapted from argsplit module.
 		# #
 		# # @param {string} 1) - The string to parse.
-		# # @return {undefined} - Noting is returned.
+		# # @return {undefined} - Nothing is returned.
 		# #
 		# # @resource [https://github.com/evanlucas/argsplit]
 		# # @resource - Other CLI input parsers:

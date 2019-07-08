@@ -1,4 +1,4 @@
-# DON'T EDIT FILE —— GENERATED: Sun Jul 07 2019 13:16:06 GMT-0700 (PDT)(1562530566124)
+# DON'T EDIT FILE —— GENERATED: Mon Jul 08 2019 00:05:38 GMT-0700 (PDT)(1562569538007)
 
  --cache-folder|--check-files|--cwd|--disable-pnp|--emoji?|--enable-pnp|--flat|--focus|--force|--frozen-lockfile|--global-folder|--har|--help|--https-proxy|--ignore-engines|--ignore-optional|--ignore-platform|--ignore-scripts|--json|--link-duplicates|--link-folder|--modules-folder|--mutex|--network-concurrency|--network-timeout|--no-bin-links|--no-default-rc|--no-lockfile|--no-node-version-check|--no-progress|--non-interactive|--offline|--otp|--prefer-offline|--preferred-cache-folder|--production|--proxy|--pure-lockfile|--registry|--scripts-prepend-node-path?|--silent|--skip-integrity-check|--strict-semver|--update-checksums|--use-yarnrc|--verbose|--version
 .access --
@@ -101,9 +101,9 @@
 .workspaces.run --
 
 .add default $('bash -c "ls -lF ~/.cache/yarn/v4 \| grep -Po \"npm-([-a-z]+)-\\d\" \| sed -e \"s/^npm-//\" -e \"s/-[0-9]$//\""')
-.config.delete default $("~/.nodecliac/registry/yarn/scripts/config.sh")
-.config.get default $("~/.nodecliac/registry/yarn/scripts/config.sh")
-.config.set default $("~/.nodecliac/registry/yarn/scripts/config.sh")
+.config.delete default $("~/.nodecliac/registry/yarn/scripts/config.pl")
+.config.get default $("~/.nodecliac/registry/yarn/scripts/config.pl")
+.config.set default $("~/.nodecliac/registry/yarn/scripts/config.pl")
 .global.add default $('bash -c "ls -lF ~/.cache/yarn/v4 \| grep -Po \"npm-([-a-z]+)-\\d\" \| sed -e \"s/^npm-//\" -e \"s/-[0-9]$//\""')
 .global.remove default $("~/.nodecliac/registry/yarn/scripts/main.pl remove -g")
 .global.upgrade default $("~/.nodecliac/registry/yarn/scripts/main.pl upgrade -g")

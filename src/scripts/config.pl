@@ -55,7 +55,7 @@ for (my $i = 0; $i < $l; $i++) {
 	}
 
 	# Add value to output string.
-	$output .= ($i ? "\n" : "") . "$value";
+	$output .= ($i ? ":" : "") . "$value";
 }
 
 # Return values.

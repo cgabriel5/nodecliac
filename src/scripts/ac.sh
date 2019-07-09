@@ -1124,8 +1124,8 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 
 	# Get 'default' and 'disable' config settings.
 	settings=`"$HOME/.nodecliac/src/config.pl" "default;disable" "$1"`
-	config_default=`LC_ALL=C perl -npe "exit if $. > 1" <<< "$settings"`
-	config_disable=`LC_ALL=C perl -ne "print if $. == 2" <<< "$settings"`
+	config_default="${settings%%:*}"
+	config_disable="${settings#*:}"
 
 	# Don't register script to command if disable setting set to true.
 	if [[ "$config_disable" == "true" ]]; then return; fi

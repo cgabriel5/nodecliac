@@ -6,17 +6,22 @@
 # use warnings;
 # use diagnostics;
 
-# Get command name from sourced passed-in argument.
-# my $maincommand = $ARGV[0];
-# Get the config definitions file.
-my $config = $ARGV[0];
-# Get config setting to find.
-# my $setting = $ARGV[1];
+# Get arguments.
+my $names = $ARGV[0]; # The settings to retrieve.
+my $maincommand = $ARGV[1];
+
+# Get command's config file.
+my $configpath = "$ENV{'HOME'}/.nodecliac/registry/$maincommand/.$maincommand.config.acdef";
+# Config file has to exist.
+if (not -f $configpath) { exit; }
+my $config = do{local(@ARGV,$/)="$configpath";<>};
+
+# Store output.
 my $output = "";
 
 # Split settings string.
-my @settings = split(";", $ARGV[1]);
-my $l = scalar(@settings);
+my @settings = split(";", $names);
+my $l = $#settings + 1;
 
 # Allowed comp-option values.
 # [http://www.gnu.org/software/bash/manual/bash.html#Programmable-Completion]
@@ -26,13 +31,14 @@ my $def_default = "default";
 
 # Loop over settings to get their values.
 for (my $i = 0; $i < $l; $i++) {
+	# Get current setting.
 	my $setting = $settings[$i];
 
 	# Get config value.
 	my $value = "";
 	my $pattern = '^\@' . $setting . '\s*\=\s*(.*)$';
 	# Get setting's value.
-	if ($config =~ /$pattern/m) { if ($1) { $value = $1; } }
+	if ($config =~ /$pattern/m) { $value = $1; }
 
 	# If value is quoted, unquote it.
 	if ($value =~ /^("|').*\1$/) { $value = substr($value, 1, -1); }
@@ -49,7 +55,7 @@ for (my $i = 0; $i < $l; $i++) {
 	}
 
 	# Add value to output string.
-	$output .= "[$i] => $value\; ";
+	$output .= ($i ? "\n" : "") . "$value";
 }
 
 # Return values.

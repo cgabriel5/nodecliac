@@ -986,37 +986,23 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 					registry=$(LC_ALL=C grep -F "_nodecliac $maincommand" <<< "`complete -p`")
 					if [[ "$registry" != *" -o "*  ]]; then return; fi
 
-					# Build config path.
-					acdef_configpath="$HOME/.nodecliac/registry/$maincommand/.$maincommand.config.acdef"
-					if [[ -f "$acdef_configpath" ]]; then
-						# Get acdef config file contents.
-						config="$(<"$acdef_configpath")"
+					# Get 'filedir' config setting.
+					local filedirvalue=`"$HOME/.nodecliac/src/config.pl" "filedir" "$maincommand"`
 
-						# Check whether a comp-option was provided. If so set use that.
-						acpl_script=~/.nodecliac/src/config.pl
-						# Run config.pl to get default value.
-						settings=`"$acpl_script" "$config" "filedir"`
+					# Run function with or without arguments.
+					if [[ ! -z "$filedirvalue" && "$filedirvalue" != "false" ]]; then
+						# Reset value if no pattern was provided.
+						if [[ "$filedirvalue" == "true" ]]; then filedirvalue=""; fi
 
-						# Get setting value.
-						local filedirvalue=`__setting 0`
-
-						# Run function with or without arguments.
-						if [[ ! -z "$filedirvalue" && "$filedirvalue" != "false" ]]; then
-							# Reset value if no pattern was provided.
-							if [[ "$filedirvalue" == "true" ]]; then
-								filedirvalue=""
-							fi
-
-							# [https://github.com/gftg85/bash-completion/blob/bb0e3a1777e387e7fd77c3abcaa379744d0d87b3/bash_completion#L549]
-							# [https://unix.stackexchange.com/a/463342]
-							# [https://unix.stackexchange.com/a/463336]
-							# [https://github.com/scop/bash-completion/blob/master/completions/java]
-							# [https://stackoverflow.com/a/23999768]
-							# [https://unix.stackexchange.com/a/190004]
-							# [https://unix.stackexchange.com/a/198025]
-							local cur="$last"
-							_filedir "$filedirvalue"
-						fi
+						# [https://github.com/gftg85/bash-completion/blob/bb0e3a1777e387e7fd77c3abcaa379744d0d87b3/bash_completion#L549]
+						# [https://unix.stackexchange.com/a/463342]
+						# [https://unix.stackexchange.com/a/463336]
+						# [https://github.com/scop/bash-completion/blob/master/completions/java]
+						# [https://stackoverflow.com/a/23999768]
+						# [https://unix.stackexchange.com/a/190004]
+						# [https://unix.stackexchange.com/a/198025]
+						local cur="$last"
+						_filedir "$filedirvalue"
 					fi
 				fi
 
@@ -1119,51 +1105,39 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		fi
 	}
 
-	# Extract setting value from values strings.
-	#
-	# @param {string} 1) - The index of the value to extract.
-	# @return {string} - The value at the provided index.
-	#
-	# @resource [https://github.com/evanlucas/argsplit]
-	function __setting() {
-		# Template setting string.
-		t="\[$1\][[:space:]]=>[[:space:]]([^;]*);[[:space:]]"
+	# # Extract setting value from values strings.
+	# #
+	# # @param {string} 1) - The index of the value to extract.
+	# # @return {string} - The value at the provided index.
+	# #
+	# # @resource [https://github.com/evanlucas/argsplit]
+	# function __setting() {
+	# 	# Template setting string.
+	# 	t="\[$1\][[:space:]]=>[[:space:]]([^;]*);[[:space:]]"
 
-		# Get setting value.
-		[[ "$settings" =~ $t ]]
+	# 	# Get setting value.
+	# 	[[ "$settings" =~ $t ]]
 
-		# Return value.
-		echo "${BASH_REMATCH[1]}"
-	}
+	# 	# Return value.
+	# 	echo "${BASH_REMATCH[1]}"
+	# }
 
-	# Register autocompletion script to command.
-	acdef_configpath="$HOME/.nodecliac/registry/$1/.$1.config.acdef"
-	if [[ -f "$acdef_configpath" ]]; then
-		# Get acdef config file contents.
-		config="$(<"$acdef_configpath")"
+	# Get 'default' and 'disable' config settings.
+	settings=`"$HOME/.nodecliac/src/config.pl" "default;disable" "$1"`
+	config_default=`LC_ALL=C perl -npe "exit if $. > 1" <<< "$settings"`
+	config_disable=`LC_ALL=C perl -ne "print if $. == 2" <<< "$settings"`
 
-		# Check whether a comp-option was provided. If so set use that.
-		acpl_script=~/.nodecliac/src/config.pl
-		# Run config.pl to get default value.
-		settings=`"$acpl_script" "$config" "default;disable"`
-		# `"$acpl_script" "$config" "default;disable"`
+	# Don't register script to command if disable setting set to true.
+	if [[ "$config_disable" == "true" ]]; then return; fi
 
-		# Don't register script to command if disable setting set to true.
-		if [[ "`__setting 1`" == "true" ]]; then return; fi
-
-		# Get setting values.
-		defaultval=`__setting 0`
-
-		# Register autocompletion script with command.
-		if [[ "$defaultval" == "false" ]]; then
-			# Disable bash defaults when no completions are provided.
-			complete -F _nodecliac "$1"
-		else
-			complete -o "$defaultval" -F _nodecliac "$1"
-		fi
+	# Register autocompletion script with command.
+	if [[ "$config_default" == "false" ]]; then
+		# Disable bash defaults when no completions are provided.
+		complete -F _nodecliac "$1"
 	else
 		# The default registration.
-		complete -o default -F _nodecliac "$1"
+		complete -o "$config_default" -F _nodecliac "$1"
+		# complete -o default -F _nodecliac "$1"
 
 		# [https://www.linuxjournal.com/content/more-using-bash-complete-command]
 		# complete -d -X '.[^./]*' -F _nodecliac "$1"

@@ -1108,6 +1108,10 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			# Run prehook(s) if it exists.
 			prehook_script=~/.nodecliac/registry/$1/hooks/prehook.sh
 			if [[ -f "$prehook_script" ]]; then
+				# [https://stackoverflow.com/questions/16217064/change-environment-variable-in-child-process-bash]
+				# [https://stackoverflow.com/questions/192292/how-best-to-include-other-scripts]
+				# [https://www.daveeddy.com/2010/09/20/import-source-files-in-bash/]
+				# [https://tecadmin.net/include-bash-script-in-other-bash-script/]
 				source "$prehook_script" "$cline" "$cpoint" "$maincommand" "$acdef"
 			fi
 

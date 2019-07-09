@@ -1017,14 +1017,35 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 					compopt -o nospace 2> /dev/null
 				fi
 
-				# Split rows by lines: [https://stackoverflow.com/a/11746174]
-				# [https://stackoverflow.com/a/10929511]
-				while IFS='' read -r line || [[ -n "$line" ]]; do
-					COMPREPLY+=("$line")
-				# Start reading at second line: [https://askubuntu.com/a/289235]
-				# [https://stackoverflow.com/a/24894628]
-				# done < <(tail -n +2 <<< "$output")
-				done < <(perl -ne '$. != 1 and print' <<< "$output")
+				# # Split rows by lines: [https://stackoverflow.com/a/11746174]
+				# # [https://stackoverflow.com/a/10929511]
+				# while IFS='' read -r line || [[ -n "$line" ]]; do
+				# 	COMPREPLY+=("$line")
+				# # Start reading at second line: [https://askubuntu.com/a/289235]
+				# # [https://stackoverflow.com/a/24894628]
+				# # done < <(tail -n +2 <<< "$output")
+				# done < <(perl -ne '$. != 1 and print' <<< "$output")
+
+				# Use mapfile/readarray command to populate COMPREPLY w/ flags.
+				# [https://stackoverflow.com/a/30988704]
+				# [https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html#index-mapfile]
+				# [http://mywiki.wooledge.org/BashFAQ/001]
+				# [http://mywiki.wooledge.org/BashFAQ/005?highlight=%28readarray%29#Loading_lines_from_a_file_or_stream]
+				mapfile -t COMPREPLY < <(perl -ne '$. != 1 and print' <<< "$output")
+
+				# Don't for loop file read: [https://stackoverflow.com/a/30735977]
+				# [http://mywiki.wooledge.org/BashFAQ/001]
+				# [http://mywiki.wooledge.org/DontReadLinesWithFor]
+
+				# [https://stackoverflow.com/a/9955728]
+				# [https://catonmat.net/perl-one-liners-explained-part-two]
+				# Add flags directly from output to COMPREPLY array. Skip the
+				# first line and empty lines.
+				# IFS=$'\n' COMPREPLY+=("$(perl -ne 'print if /./ and $. > 1' <<< "$output")")
+				# IFS=$'\n' COMPREPLY=($(perl -ne '$. != 1 and $_ ne "" and print' <<< "$output"))
+				# IFS=$'\n'
+				# COMPREPLY+=($(perl -npe '$. != 1' <<< "$output"))
+				# IFS=$'\n' read -r -a COMPREPLY <<< "$(perl -ne 'print if /./ and $. > 1' <<< "$output")"
 
 				# done <<< "$output"
 

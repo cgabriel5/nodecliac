@@ -1,8 +1,7 @@
 package ARGPruner;
 
-# This script's purpose is to return a pruned list of arguments. In essence,
-# a string of arguments is provided and from those arguments all used
-# arguments are excluded to return all unused arguments.
+# This script is provided the arguments to prune. Pruning consists of
+# removing any already used arguments.
 #
 # Arguments:
 #   0) The list (string) of arguments to purge.
@@ -33,46 +32,48 @@ sub main {
 	# Trim string.
 	$args =~ s/^\s+|\s+$//g;
 	# Split string into individual items.
-	my @arguments = split(/[\n ]/, $args);
+	my @items = split(/[\n ]/, $args);
+	my %arguments; # This arguments hash will get pruned of used arguments.
+	my $is_last_arg_valid = 0;
+	# Add arguments to hashes.
+	foreach my $arg (@items) {
+		$arguments{$arg} = "";
+		# Take advantage of loop to check if the last word is an existing arg.
+		if ($arg eq $last) { $is_last_arg_valid = 1; }
+	}
 
-	# Array will store unused items.
-	my @cleaned_args = ();
+	# Remove used arguments from arguments list.
+	# [https://perldoc.perl.org/perlfaq4.html#How-can-I-remove-duplicate-elements-from-a-list-or-array%3f]
+	foreach my $usedarg (@used_args) {
+		if (exists($arguments{$usedarg})) { delete $arguments{$usedarg}; }
+	}
 
-	# Remove already used items.
-	foreach my $arg (@arguments) {
-		# If the argument is in the used_args array then skip it.
-		# [https://stackoverflow.com/a/20570606]
-		if (!grep(/^$arg$/, @used_args)) {
-			# If a last character exists then we need only return completion
-			# items that start with the last word.
-			if ($lchar) {
-				if (index($arg, $last) == 0) { push(@cleaned_args, $arg);}
-			}
-			# ..else return all completion items.
-			else {
-				push(@cleaned_args, $arg);
-			}
+	# If last char exists only return args starting with last word.
+	if ($lchar) {
+		foreach $arg (keys %arguments) {
+			if (index($arg, $last)) { delete $arguments{$arg}; }
 		}
 	}
 
-	# Return unused items string.
-	my $final_args = join("\n", @cleaned_args);
+	# Store final arguments (output).
+	my $output = "";
+	# Get final arguments list.
+	my @final_args = (keys %arguments);
 
-	# If no completion items exist do some final checks...
-	if (
-		# If no auto-completion arguments exist...
-		!$final_args &&
+	# If no auto-completion arguments exist...
+	if (!@final_args &&
 		# ...and if there is no next char or the next char is a space...
 		(!$nchar || $nchar eq " ") &&
 		# ...and if the last item is in the provided arguments array...
-		grep(/^$last$/, @arguments)
+		$is_last_arg_valid
 	) {
-		# Add the currently last item to the completion items.
-		print "\n$last";
+		$output = $last; # Add the currently last item to the completion items.
+	} else {
+		$output = join("\n", @final_args);
 	}
 
-	# Return unused items string.
-	return "$final_args";
+	# Return the final output.
+	return $output;
 }
 
 1;

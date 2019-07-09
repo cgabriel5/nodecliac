@@ -1,9 +1,7 @@
 #!/usr/bin/perl
 
-# - This script will modify the ACDEF content by adding rows for
-# provided script names. The final ACDEF output will be returned.
-# - This script will modify the CLI input. The final, modified input
-# will be returned.
+# - Script will return repo scripts to add to ACDEF.
+# - Script will return the modified CLI input.
 #
 # [https://stackoverflow.com/questions/8023959/why-use-strict-and-warnings]
 # [http://perldoc.perl.org/functions/use.html]
@@ -68,8 +66,13 @@ if ($input =~ /^[ \t]*yarn[ \t]+([^ \t]*)*$/) {
 	# [https://www.perlmonks.org/?node_id=1438]
 	my $pkgcontents = do{local(@ARGV,$/)="$package_dot_json";<>}; # Get package.json contents.
 	if ($pkgcontents =~ /"scripts"\s*:\s*{([\s\S]*?)}(,|$)/) {
+		my $counter = 0;
 		my @matches = ($1 =~ /"([^"]*)"\s*:\s*"/g);
-		foreach my $match (@matches) { $output .= "\n.$match --"; }
+		foreach my $match (@matches) {
+			# Don't prefix a new line for the first script record.
+			$output .=  ($counter ? "\n" : "") . ".$match --";
+			$counter++;
+		}
 	}
 }
 

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Provide config keys to set|get|delete subcommands.
+# Script will return config keys to set|get|delete subcommands.
 
 # Config keys: [https://stackoverflow.com/a/37222377]
 # [https://yarnpkg.com/lang/en/docs/cli/config/#toc-yarn-config-list]
@@ -10,4 +10,4 @@ my $keys = "ignore-optional ignore-platform ignore-scripts init-author-email ini
 
 # Prune arguments and return remaining.
 require "$ENV{'HOME'}/.nodecliac/registry/yarn/scripts/prune.pl";
-print("\n", ARGPruner::main($keys));
+print(ARGPruner::main($keys));

@@ -3,20 +3,19 @@
 # Prehook script gets provided the following arguments:
 # $1 => $cline        # Original (complete) CLI input.
 # $2 => $cpoint       # Caret index when [tab] key was pressed.
-# $3 => $maincommand  # The acdef definitions file.
+# $3 => $maincommand  # The ACDEF definitions file.
 # $4 => $acdef        # The command name from sourced passed-in argument.
 
-# The script will run the needed Perl scripts and return the modified output.
-
-# Note: The first line of the output will be the modified CLI input. All
-# lines after will be the new line to add to the acdef.
+# This script will run the Perl prehook script. The returned data is in the
+# following format: the 1st line is the modified CLI input while subsequent
+# lines are addons to the ACDEF.
 output=`"$HOME/.nodecliac/registry/yarn/hooks/prehook.pl" "$1"`
 
-# First line is meta info (completion type, last word, etc.).
-firstline=`LC_ALL=C perl -npe "exit if $. > 1" <<< "$output"`
+# Get modified CLI input line (1st line).
 # [https://stackoverflow.com/q/30649640]
+firstline=`LC_ALL=C perl -npe "exit if $. > 1" <<< "$output"`
 if [[ -n "$firstline" ]]; then cline="$firstline"; fi
 
-# Get acdef addon entries.
+# Get ACDEF addon entries.
 addon=`LC_ALL=C perl -ne "print if $. > 1" <<< "$output"`
 if [[ -n "$addon" ]]; then acdef+=$'\n'"$addon"; fi

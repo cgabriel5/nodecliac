@@ -61,17 +61,20 @@ if ($input =~ /^[ \t]*yarn[ \t]+([^ \t]*)*$/) {
 		$cwd = $cwd =~ s/\/((?:\\\/)|[^\/])+$//r; # ((?:\\\/)|[^\/]*?)*$
 	}
 
-	# Get script names and store arguments.
-	# [https://www.perl.com/article/21/2013/4/21/Read-an-entire-file-into-a-string/]
-	# [https://www.perlmonks.org/?node_id=1438]
-	my $pkgcontents = do{local(@ARGV,$/)="$package_dot_json";<>}; # Get package.json contents.
-	if ($pkgcontents =~ /"scripts"\s*:\s*{([\s\S]*?)}(,|$)/) {
-		my $counter = 0;
-		my @matches = ($1 =~ /"([^"]*)"\s*:\s*"/g);
-		foreach my $match (@matches) {
-			# Don't prefix a new line for the first script record.
-			$output .=  ($counter ? "\n" : "") . ".$match --";
-			$counter++;
+	# package.json path has to exist.
+	if ($package_dot_json) {
+		# Get script names and store arguments.
+		# [https://www.perl.com/article/21/2013/4/21/Read-an-entire-file-into-a-string/]
+		# [https://www.perlmonks.org/?node_id=1438]
+		my $pkgcontents = do{local(@ARGV,$/)="$package_dot_json";<>}; # Get package.json contents.
+		if ($pkgcontents =~ /"scripts"\s*:\s*{([\s\S]*?)}(,|$)/) {
+			my $counter = 0;
+			my @matches = ($1 =~ /"([^"]*)"\s*:\s*"/g);
+			foreach my $match (@matches) {
+				# Don't prefix a new line for the first script record.
+				$output .=  ($counter ? "\n" : "") . ".$match --";
+				$counter++;
+			}
 		}
 	}
 }

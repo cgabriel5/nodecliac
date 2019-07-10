@@ -1,4 +1,4 @@
-# DON'T EDIT FILE —— GENERATED: Mon Jul 08 2019 00:05:38 GMT-0700 (PDT)(1562569538007)
+# DON'T EDIT FILE —— GENERATED: Wed Jul 10 2019 13:32:18 GMT-0700 (PDT)(1562790738319)
 
  --cache-folder|--check-files|--cwd|--disable-pnp|--emoji?|--enable-pnp|--flat|--focus|--force|--frozen-lockfile|--global-folder|--har|--help|--https-proxy|--ignore-engines|--ignore-optional|--ignore-platform|--ignore-scripts|--json|--link-duplicates|--link-folder|--modules-folder|--mutex|--network-concurrency|--network-timeout|--no-bin-links|--no-default-rc|--no-lockfile|--no-node-version-check|--no-progress|--non-interactive|--offline|--otp|--prefer-offline|--preferred-cache-folder|--production|--proxy|--pure-lockfile|--registry|--scripts-prepend-node-path?|--silent|--skip-integrity-check|--strict-semver|--update-checksums|--use-yarnrc|--verbose|--version
 .access --
@@ -100,19 +100,19 @@
 .workspaces.info --
 .workspaces.run --
 
-.add default $('bash -c "ls -lF ~/.cache/yarn/v4 \| grep -Po \"npm-([-a-z]+)-\\d\" \| sed -e \"s/^npm-//\" -e \"s/-[0-9]$//\""')
+.add default $('ls -lF ~/.cache/yarn/v4 \| perl -ne "print \"\$1\\n\" if /npm-([-a-z]+)-\\d/"')
 .config.delete default $("~/.nodecliac/registry/yarn/scripts/config.pl")
 .config.get default $("~/.nodecliac/registry/yarn/scripts/config.pl")
 .config.set default $("~/.nodecliac/registry/yarn/scripts/config.pl")
-.global.add default $('bash -c "ls -lF ~/.cache/yarn/v4 \| grep -Po \"npm-([-a-z]+)-\\d\" \| sed -e \"s/^npm-//\" -e \"s/-[0-9]$//\""')
+.global.add default $('ls -lF ~/.cache/yarn/v4 \| perl -ne "print \"\$1\\n\" if /npm-([-a-z]+)-\\d/"')
 .global.remove default $("~/.nodecliac/registry/yarn/scripts/main.pl remove -g")
 .global.upgrade default $("~/.nodecliac/registry/yarn/scripts/main.pl upgrade -g")
-.info default $('bash -c "ls -lF ~/.cache/yarn/v4 \| grep -Po \"npm-([-a-z]+)-\\d\" \| sed -e \"s/^npm-//\" -e \"s/-[0-9]$//\""')
+.info default $('ls -lF ~/.cache/yarn/v4 \| perl -ne "print \"\$1\\n\" if /npm-([-a-z]+)-\\d/"')
 .outdated default $("~/.nodecliac/registry/yarn/scripts/main.pl outdated")
 .remove default $("~/.nodecliac/registry/yarn/scripts/main.pl remove")
 .run default $("~/.nodecliac/registry/yarn/scripts/main.pl run")
 .unplug default $("~/.nodecliac/registry/yarn/scripts/main.pl unplug")
 .upgrade default $("~/.nodecliac/registry/yarn/scripts/main.pl upgrade")
-.why default $('bash -c "yarn list --depth=0 \| perl -wln -e \"/(?! ─ )([-\/_.@(?)a-zA-Z0-9]*)(?=\@)/ and print $&;\""')
+.why default $('yarn list --depth=0 \| perl -wln -e "/(?! ─ )([-\\/_.@(?)a-zA-Z0-9]*)(?=\\@)/ and print $&;"')
 .workspace default $("~/.nodecliac/registry/yarn/scripts/main.pl workspace")
 .workspaces.run default $("~/.nodecliac/registry/yarn/scripts/main.pl run")

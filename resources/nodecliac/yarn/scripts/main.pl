@@ -9,9 +9,8 @@ my $input = $ENV{"NODECLIAC_INPUT_ORIGINAL"};
 
 # Get arguments.
 my $cwd = $pwd; # → Whether to use/look for global yarn package.json.
-my $package_dot_json = "";
+my $pkg = "";
 my $field_type = "object";
-my $workspace = "";
 
 # If no global parameter then look for local package.json.
 if (!$useglobal_pkg) {
@@ -20,39 +19,32 @@ if (!$useglobal_pkg) {
 	# [https://www.perlmonks.org/?node_id=1004245]
 	# Get workspace name if auto-completing workspace.
 	# [https://askubuntu.com/questions/678915/whats-the-difference-between-and-in-bash]
-	if ($input =~ /^[ \t]*yarn[ \t]+workspace[ \t]+([^ \t]*)[ \t]*.*/) { if ($1) { $workspace = $1; } }
-
 	# If completing a workspace, reset CWD to workspace's location.
-	if ($workspace) { $cwd = "$pwd/$workspace"; }
+	if ($input =~ /^[ \t]*yarn[ \t]+workspace[ \t]+([^ \t]*)[ \t]*.*/) { $cwd = "$pwd/$1"; }
 
-		# Find package.json file path.
+	# Find package.json file path.
 	while ($cwd) {
 		# Set package.json file path.
-		if (!$package_dot_json && -f "$cwd/package.json") {
-			$package_dot_json = "$cwd/package.json"; last;
-		}
-
+		if (-f "$cwd/package.json") { $pkg = "$cwd/package.json"; last; }
 		# Stop loop at node_modules directory.
 		if (-d "$cwd/node_modules") { last; }
 
 		# Continuously chip away last level of PWD.
-		$cwd = $cwd =~ s/\/((?:\\\/)|[^\/])+$//r; # ((?:\\\/)|[^\/]*?)*$
+		$cwd =~ s/\/((?:\\\/)|[^\/])+$//; # ((?:\\\/)|[^\/]*?)*$
 	}
 } else { # Else look for global yarn package.json.
-	# Global lookup file locations.
-	my @locations = (
+	# Global lookup file paths.
+	my @paths = (
 		"$hdir/.config/yarn/global/package.json",
 		"$hdir/.local/share/yarn/global/package.json",
 		"$hdir/.yarn/global/package.json"
 	);
 
 	# Default to empty string if no global file exists.
-	$package_dot_json = "";
+	$pkg = "";
 
-	# Loop over locations until one is found, if at all.
-	foreach my $location (@locations) {
-		if (-f $location) { $package_dot_json = $location; last; }
-	}
+	# Loop over paths until one is found, if at all.
+	foreach my $path (@paths) { if (-f $path) { $pkg = $path; last; } }
 }
 
 # Store action arguments for later pruning.
@@ -61,9 +53,9 @@ my $args = "";
 # Depending on provided action run appropriate logic...
 if ($action eq "run") {
 	# Get script names and store arguments.
-	my $pkgcontents = do{local(@ARGV,$/)="$package_dot_json";<>}; # Get package.json contents.
+	my $pkgcontents = do{local(@ARGV,$/)="$pkg";<>}; # Get package.json contents.
 	if ($pkgcontents =~ /"scripts"\s*:\s*{([\s\S]*?)}(,|$)/) {
-		my @matches = ($1 =~ /"([^"]*)"\s*:\s*"/g);
+		my @matches = ($1 =~ /"([^"]*)"\s*:/g);
 		foreach my $match (@matches) { $args .= "\n$match"; }
 	}
 } elsif ($action eq "workspace") {
@@ -78,11 +70,11 @@ if ($action eq "run") {
 	}
 } else { # Note: Default remaining actions to the default to speed up checking (remove|outdated|unplug|upgrade).
 	# Get (dev)dependencies.
-	my $pkgcontents = do{local(@ARGV,$/)="$package_dot_json";<>}; # Get package.json contents.
+	my $pkgcontents = do{local(@ARGV,$/)="$pkg";<>}; # Get package.json contents.
 	# [https://stackoverflow.com/a/2304626]
 	my @matches = ($pkgcontents =~ /"(dependencies|devDependencies)"\s*:\s*{([\s\S]*?)}(,|$)/g);
 	foreach my $match (@matches) {
-		my @deps = ($match =~ /"([^"]*)"\s*:\s*"/g);
+		my @deps = ($match =~ /"([^"]*)"\s*:/g);
 		foreach my $dep (@deps) { $args .= "$dep\n"; }
 	}
 }

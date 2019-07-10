@@ -32,9 +32,8 @@ if ($input =~ /^[ \t]*yarn[ \t]+([^ \t]*)*$/) {
 
 	# Get package.json paths/info.
 	my $cwd = $pwd; # → Whether to use/look for global yarn package.json.
-	my $package_dot_json = "";
+	my $pkg = "";
 	my $field_type = "object";
-	my $workspace = "";
 
 	# If no global parameter then look for local package.json.
 	# [https://stackoverflow.com/a/19031736]
@@ -42,38 +41,31 @@ if ($input =~ /^[ \t]*yarn[ \t]+([^ \t]*)*$/) {
 	# [https://www.perlmonks.org/?node_id=1004245]
 	# Get workspace name if auto-completing workspace.
 	# [https://askubuntu.com/questions/678915/whats-the-difference-between-and-in-bash]
-	if ($input =~ /^[ \t]*yarn[ \t]+workspace[ \t]+([^ \t]*)[ \t]*.*/) { $workspace = $1; }
-
 	# If completing a workspace, reset CWD to workspace's location.
-	if ($workspace) { $cwd = "$pwd/$workspace"; }
+	if ($input =~ /^[ \t]*yarn[ \t]+workspace[ \t]+([^ \t]*)[ \t]*.*/) { $cwd = "$pwd/$1"; }
 
 	# Find package.json file path.
 	while ($cwd) {
 		# Set package.json file path.
-		if (!$package_dot_json && -f "$cwd/package.json") {
-			$package_dot_json = "$cwd/package.json"; last;
-		}
-
+		if (-f "$cwd/package.json") { $pkg = "$cwd/package.json"; last; }
 		# Stop loop at node_modules directory.
 		if (-d "$cwd/node_modules") { last; }
 
 		# Continuously chip away last level of PWD.
-		$cwd = $cwd =~ s/\/((?:\\\/)|[^\/])+$//r; # ((?:\\\/)|[^\/]*?)*$
+		$cwd =~ s/\/((?:\\\/)|[^\/])+$//; # ((?:\\\/)|[^\/]*?)*$
 	}
 
 	# package.json path has to exist.
-	if ($package_dot_json) {
+	if ($pkg) {
 		# Get script names and store arguments.
 		# [https://www.perl.com/article/21/2013/4/21/Read-an-entire-file-into-a-string/]
 		# [https://www.perlmonks.org/?node_id=1438]
-		my $pkgcontents = do{local(@ARGV,$/)="$package_dot_json";<>}; # Get package.json contents.
+		my $pkgcontents = do{local(@ARGV,$/)="$pkg";<>}; # Get package.json contents.
 		if ($pkgcontents =~ /"scripts"\s*:\s*{([\s\S]*?)}(,|$)/) {
-			my $counter = 0;
-			my @matches = ($1 =~ /"([^"]*)"\s*:\s*"/g);
-			foreach my $match (@matches) {
+			my @matches = ($1 =~ /"([^"]*)"\s*:/g);
+			for my $i (0 .. $#matches) { # [https://stackoverflow.com/a/974819]
 				# Don't prefix a new line for the first script record.
-				$output .=  ($counter ? "\n" : "") . ".$match --";
-				$counter++;
+				$output .=  ($i ? "\n" : "") . ".$matches[$i] --";
 			}
 		}
 	}

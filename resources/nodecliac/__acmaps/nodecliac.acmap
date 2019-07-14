@@ -20,4 +20,6 @@ nodecliac.format = --indent|--source|--save?|--print?|--highlight?|--strip-comme
 # [https://unix.stackexchange.com/a/272493]
 # nodecliac.print --command=|--command=$("find ~/.nodecliac/defs/ -maxdepth 1 \( -iname \"*.acdef\" ! -iname \".*\" \) -printf '%f\n' \| grep -Po \"([-a-z]*)(?=.acdef)\"",)
 # [https://stackoverflow.com/questions/9011233/for-files-in-directory-only-echo-filename-no-path]
-nodecliac.print = --command=|--command=$('bash -c "for f in ~/.nodecliac/registry/*/*.acdef; do f=\"\${f##*/}\";c=\"\${f%%.*}\";echo \"\$c\"; done;"')
+# nodecliac.print = --command=|--command=$('bash -c "for f in ~/.nodecliac/registry/*/*.acdef; do f=\"\${f##*/}\";c=\"\${f%%.*}\";echo \"\$c\"; done;"')
+# ^Compared to Bash solution, the Perl solution uses a single pipe and Perl to extract the file/command names.
+nodecliac.print = --command=|--command=$('s="";for f in ~/.nodecliac/registry/*/*.acdef; do s="$s$f\\n"; done; echo -e "$s" \| LC_ALL=C perl -ne "print \"\$1\\n\" while /(?! \\/)([^\\/]*)\\.acdef$/g"')

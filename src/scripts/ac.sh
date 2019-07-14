@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Command name provided from sourced passed-in argument.
-if [[ ! -z "$1" ]] && type complete &>/dev/null; then
+if [[ -n "$1" ]] && type complete &>/dev/null; then
 	# Bash general purpose CLI auto completion script.
 	function _nodecliac() {
 		# Get command name from sourced passed-in argument.
@@ -26,18 +26,18 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# local index="$COMP_CWORD" # Index of current word.
 
 		# Vars.
-		local args=()
+		# local args=()
 		local last=""
 		local type=""
 		# local usedflags=""
-		local completions=()
-		local commandchain=""
+		# local completions=()
+		# local commandchain=""
 		local cline="$COMP_LINE" # Original (unmodified) CLI input.
 		local cpoint="$COMP_POINT" # Caret index when [tab] key was pressed.
-		local lastchar="${cline:$cpoint-1:1}" # Character before caret.
-		local nextchar="${cline:$cpoint:1}" # Character after caret.
-		local cline_length="${#cline}" # Original input's length.
-		local isquoted=false
+		# local lastchar="${cline:$cpoint-1:1}" # Character before caret.
+		# local nextchar="${cline:$cpoint:1}" # Character after caret.
+		# local cline_length="${#cline}" # Original input's length.
+		# local isquoted=false
 		# local autocompletion=true
 		local output=""
 
@@ -67,7 +67,8 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 		# '$ nodecliac uninstall'), if the acdef file does not exist bash
 		# will output an error. Therefore, return when file is not found.
 		if [[ ! -f "$acdefpath" ]]; then return; fi;
-		local acdef="$(<$acdefpath)"
+		local acdef
+		acdef="$(<"$acdefpath")"
 # [https://serverfault.com/questions/72476/clean-way-to-write-complex-multi-line-string-to-a-variable/424601#424601]
 # local acdef=`cat <<EOF
 # # [[__acdef__]]
@@ -972,7 +973,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 				# COMPREPLY=($(compgen -W "`perl -ne '$. == 2 and print, close ARGV' <<< "$output"`"))
 				# COMPREPLY=($(compgen -W "`perl -ne 'print if $. == 2' <<< "$output"`"))
 				# COMPREPLY=($(echo -e "`perl -ne '$. == 2 and print $_ =~ s/ /\n/rg' <<< "$output"`"))
-				COMPREPLY=($(echo -e "`perl -ne 'print if $. == 2' <<< "$output"`"))
+				COMPREPLY=($(echo -e "$(perl -ne 'print if $. == 2' <<< "$output")"))
 				__ltrim_colon_completions "$last"
 
 				# When COMPREPLY is empty, meaning no autocompletion values
@@ -983,14 +984,16 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 
 					# '-o' option had to have been used when registered else
 					# if not then we do not resort to using _filedir.
-					registry=$(LC_ALL=C grep -F "_nodecliac $maincommand" <<< "`complete -p`")
+					registry=$(LC_ALL=C grep -F "_nodecliac $maincommand" <<< "$(complete -p)")
 					if [[ "$registry" != *" -o "*  ]]; then return; fi
 
 					# Get 'filedir' config setting.
-					local filedirvalue=`"$HOME/.nodecliac/src/config.pl" "filedir" "$maincommand"`
+					# local filedirvalue=`"$HOME/.nodecliac/src/config.pl" "filedir" "$maincommand"`
+					local filedirvalue
+					filedirvalue=$("$HOME/.nodecliac/src/config.pl" "filedir" "$maincommand")
 
 					# Run function with or without arguments.
-					if [[ ! -z "$filedirvalue" && "$filedirvalue" != "false" ]]; then
+					if [[ -n "$filedirvalue" && "$filedirvalue" != "false" ]]; then
 						# Reset value if no pattern was provided.
 						if [[ "$filedirvalue" == "true" ]]; then filedirvalue=""; fi
 
@@ -1116,7 +1119,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 			fi
 
 			# Run Perl auto-completion script.
-			output=`"$acpl_script" "$COMP_LINE" "$cline" "$cpoint" "$maincommand" "$acdef"`
+			output=$("$acpl_script" "$COMP_LINE" "$cline" "$cpoint" "$maincommand" "$acdef")
 			# "$acpl_script" "$COMP_LINE" "$cline" "$cpoint" "$maincommand" "$acdef"
 
 			# First line is meta info (completion type, last word, etc.).
@@ -1148,7 +1151,7 @@ if [[ ! -z "$1" ]] && type complete &>/dev/null; then
 	# }
 
 	# Get 'default' and 'disable' config settings.
-	settings=`"$HOME/.nodecliac/src/config.pl" "default;disable" "$1"`
+	settings=$("$HOME/.nodecliac/src/config.pl" "default;disable" "$1")
 	config_default="${settings%%:*}"
 	config_disable="${settings#*:}"
 

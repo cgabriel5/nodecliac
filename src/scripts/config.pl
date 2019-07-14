@@ -17,17 +17,17 @@ if (not -f $configpath) { exit; }
 my $config = do{local(@ARGV,$/)="$configpath";<>};
 
 # Store output.
-my $output = "";
+my $output = '';
 
 # Split settings string.
-my @settings = split(";", $names);
+my @settings = split(';', $names);
 my $l = $#settings + 1;
 
 # Allowed comp-option values.
 # [http://www.gnu.org/software/bash/manual/bash.html#Programmable-Completion]
 # [https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html]
-my $def_compopts = " bashdefault default dirnames filenames noquote nosort nospace plusdirs false ";
-my $def_default = "default";
+my $def_compopts = ' bashdefault default dirnames filenames noquote nosort nospace plusdirs false ';
+my $def_default = 'default';
 
 # Loop over settings to get their values.
 for (my $i = 0; $i < $l; $i++) {
@@ -35,16 +35,16 @@ for (my $i = 0; $i < $l; $i++) {
 	my $setting = $settings[$i];
 
 	# Get config value.
-	my $value = "";
+	my $value = '';
 	my $pattern = '^\@' . $setting . '\s*\=\s*(.*)$';
 	# Get setting's value.
 	if ($config =~ /$pattern/m) { $value = $1; }
 
 	# If value is quoted, unquote it.
-	if ($value =~ /^("|').*\1$/) { $value = substr($value, 1, -1); }
+	if ($value =~ /^(["']).*\1$/) { $value = substr($value, 1, -1); }
 
 	# Custom logic for the 'default' setting.
-	if ($setting eq "default") {
+	if ($setting eq 'default') {
 		if ($value) {
 			# If value is not allowed reset to default value.
 			if (index($def_compopts, $value) == -1) { $value = $def_default; }
@@ -55,8 +55,8 @@ for (my $i = 0; $i < $l; $i++) {
 	}
 
 	# Add value to output string.
-	$output .= ($i ? ":" : "") . "$value";
+	$output .= ($i ? ':' : '') . $value;
 }
 
 # Return values.
-print "$output";
+print $output;

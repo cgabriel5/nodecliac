@@ -1,16 +1,22 @@
 #!/usr/bin/perl
 
+# [https://stackoverflow.com/questions/8023959/why-use-strict-and-warnings]
+# [http://perldoc.perl.org/functions/use.html]
+# use strict;
+# use warnings;
+# use diagnostics;
+
 # Get arguments.
 my $action = $ARGV[0];
 my $pwd = $ENV{'PWD'}; # → Whether to use/look for global yarn package.json.
 my $hdir = $ENV{'HOME'}; # → Whether to use/look for global yarn package.json.
 my $useglobal_pkg = $ARGV[1]; # → Whether to use/look for global yarn package.json.
-my $input = $ENV{"NODECLIAC_INPUT_ORIGINAL"};
+my $input = $ENV{'NODECLIAC_INPUT_ORIGINAL'};
 
 # Get arguments.
 my $cwd = $pwd; # → Whether to use/look for global yarn package.json.
-my $pkg = "";
-my $field_type = "object";
+my $pkg = '';
+my $field_type = 'object';
 
 # If no global parameter then look for local package.json.
 if (!$useglobal_pkg) {
@@ -41,30 +47,30 @@ if (!$useglobal_pkg) {
 	);
 
 	# Default to empty string if no global file exists.
-	$pkg = "";
+	$pkg = '';
 
 	# Loop over paths until one is found, if at all.
 	foreach my $path (@paths) { if (-f $path) { $pkg = $path; last; } }
 }
 
 # Store action arguments for later pruning.
-my $args = "";
+my $args = '';
 
 # Depending on provided action run appropriate logic...
-if ($action eq "run") {
+if ($action eq 'run') {
 	# Get script names and store arguments.
 	my $pkgcontents = do{local(@ARGV,$/)="$pkg";<>}; # Get package.json contents.
 	if ($pkgcontents =~ /"scripts"\s*:\s*{([\s\S]*?)}(,|$)/) {
 		my @matches = ($1 =~ /"([^"]*)"\s*:/g);
 		foreach my $match (@matches) { $args .= "\n$match"; }
 	}
-} elsif ($action eq "workspace") {
+} elsif ($action eq 'workspace') {
 	# Get workspaces info via yarn.
 	my $workspaces_info = `LC_ALL=C yarn workspaces info -s 2> /dev/null`;
 	# Get args count.
-	my $args_count = $ENV{"NODECLIAC_ARG_COUNT"};
+	my $args_count = $ENV{'NODECLIAC_ARG_COUNT'};
 
-	if (($workspaces_info && $args_count <= 2) || ($workspaces_info && $args_count <= 3 && $ENV{"NODECLIAC_LAST_CHAR"})) {
+	if (($workspaces_info && $args_count <= 2) || ($workspaces_info && $args_count <= 3 && $ENV{'NODECLIAC_LAST_CHAR'})) {
 		# Get workspace names.
 		while ($workspaces_info =~ /"location":\s*"([^"]+)",/g) { $args .= "$1\n"; }
 	}

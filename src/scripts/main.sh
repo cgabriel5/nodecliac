@@ -87,7 +87,7 @@ if [[ vmajor -ge 4 ]]; then
 			command="${filename%%.*}"
 
 			# Only register script to command if command exists in filename.
-			if [[ ! -z "$command" ]]; then
+			if [[ -n "$command" ]]; then
 				# If command exists then register completion script to command.
 				# Note: Command is provided to script as the first parameter.
 				source "$acscript" "${command##*/}"

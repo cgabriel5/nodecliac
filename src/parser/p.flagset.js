@@ -111,7 +111,7 @@ module.exports = (params = {}) => {
 		let nchar = string.charAt(i + 1);
 
 		// End loop on a new line char.
-		if (r_echar.test(char)) {
+		if (r_echar.test(char) && pchar !== "\\") {
 			// If char is a pipe delimiter and it's the last character
 			// of the line give a warning.
 			if (char === "|" && (!nchar || /[^-a-z]/.test(nchar))) {

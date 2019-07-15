@@ -26,14 +26,14 @@ if ($input =~ /^([ \t]*yarn)([ \t]+workspace[ \t]+[^ \t]*[ \t]{1,})(.*)/) { $out
 # [https://perldoc.perl.org/perlrequick.html]
 if ($input =~ /^[ \t]*yarn[ \t]+([^ \t]*)*$/) {
 	# Get arguments.
-	my $action = "run";
+	my $action = 'run';
 	my $pwd = $ENV{'PWD'}; # → Whether to use/look for global yarn package.json.
 	my $hdir = $ENV{'HOME'}; # → Whether to use/look for global yarn package.json.
 
 	# Get package.json paths/info.
 	my $cwd = $pwd; # → Whether to use/look for global yarn package.json.
-	my $pkg = "";
-	my $field_type = "object";
+	my $pkg = '';
+	my $field_type = 'object';
 
 	# If no global parameter then look for local package.json.
 	# [https://stackoverflow.com/a/19031736]
@@ -65,11 +65,11 @@ if ($input =~ /^[ \t]*yarn[ \t]+([^ \t]*)*$/) {
 			my @matches = ($1 =~ /"([^"]*)"\s*:/g);
 			for my $i (0 .. $#matches) { # [https://stackoverflow.com/a/974819]
 				# Don't prefix a new line for the first script record.
-				$output .=  ($i ? "\n" : "") . ".$matches[$i] --";
+				$output .=  ($i ? "\n" : '') . ".$matches[$i] --";
 			}
 		}
 	}
 }
 
 # Return output.
-print "$output";
+print $output;

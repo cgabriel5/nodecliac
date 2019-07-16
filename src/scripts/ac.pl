@@ -1159,11 +1159,7 @@ sub __extractor {
 	# Set last word. If the last char is a space then the last word
 	# will be empty. Else set it to the last word.
 	# Switch statement: [https://stackoverflow.com/a/22575299]
-	if ($lastchar eq ' ') {
-		$last = '';
-	} else {
-		$last = $args[-1];
-	}
+	$last = ($lastchar eq ' ') ? '' : $args[-1];
 
 	# Check whether last word is quoted or not.
 	if (__is_lquoted($last)) { $isquoted = 1; }

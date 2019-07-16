@@ -1105,18 +1105,18 @@ sub __extractor {
 
 	}
 
-	# Get the first non empty command chain.
-	my $oldchain = '';
-	for (my $i = ($#oldchains); $i >= 0; $i--) {
-		my $chain = $oldchains[$i];
-		if ($chain) {
-			$oldchain = $chain;
-			last;
-		}
-	}
-
 	# Revert commandchain to old chain if empty.
-	if (!$commandchain) { $commandchain = $oldchain; }
+	if (!$commandchain) {
+		# Get the first non empty command chain.
+		my $oldchain = '';
+		for (my $i = ($#oldchains); $i >= 0; $i--) {
+			my $chain = $oldchains[$i];
+			if ($chain) { $oldchain = $chain; last; }
+		}
+
+		# Revert commandchain to old chain.
+		$commandchain = $oldchain;
+	}
 	# Prepend main command to chain.
 	$commandchain = __validate_command($commandchain);
 

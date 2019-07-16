@@ -340,9 +340,6 @@ sub __execute_command {
 	# Get arguments.
 	my ($command_str, $flags, $last_fkey) = @_;
 
-	# Unescape pipe chars (better if unescaped args individually?).
-	$command_str =~ s/\\\|/\|/g;
-
 	# Cache captured string command.
 	my @arguments = __paramparse($command_str);
 	my $args_count = pop(@arguments);
@@ -516,19 +513,19 @@ sub __paramparse {
 	# argument is to be encapsulated with strings. User can decide which to
 	# use, either single or double. As long as their contents are properly
 	# escaped.
-	my @arguments = ();
-	my $argument = '';
-	my $cmdstr_length = length($input);
-	my $state = 0; # Start closed.
-	my $quote_type = '';
-	my $args_count = 0;
 
-	# Return empty string when input is empty.
-	if (!$input || !$cmdstr_length) {
-		# Push 0 for arg count to array.
-		push(@arguments, 0);
-		return @arguments;
-	}
+	# Vars.
+	my $argument = '';
+	my @arguments = ();
+	my $l = length($input);
+	my $ll = $l - 1;
+	my $args_count = 0;
+	my $qchar = '';
+	# Loop character variables (current, previous, next characters).
+	my $c; my $p; my $n;
+
+	# Input must not be empty.
+	if (!$input) { push(@arguments, 0); return; }
 
 	# Command flag syntax:
 	# $("COMMAND-STRING" [, [<ARG1>, <ARGN> [, "<DELIMITER>"]]])
@@ -537,78 +534,56 @@ sub __paramparse {
 	# [https://stackoverflow.com/q/18906514]
 	# [https://stackoverflow.com/q/13952870]
 	# [https://stackoverflow.com/q/1007981]
-	for (my $i = 0; $i < $cmdstr_length; $i++) {
+	for (my $i = 0; $i < $l; $i++) {
 		# Cache current/previous/next chars.
-		my $char = substr($input, $i, 1);
-		my $pchar = substr($input, $i - 1, 1);
-		my $nchar = substr($input, $i + 1, 1);
+		# Note: Reset prev word for 1st char as Perl gets the last string char.
+		$p = $c // substr($input, $i - 1, !($i - 1 < 0) || 0);
+		$c = $n // substr($input, $i, 1);
+		# Note: Reset next word for last char as Perl gets the first char.
+		# Can't cache for next word by looking back. One must look forward
+		# which breaks the point of caching.
+		$n = substr($input, $i + 1, !($i == $ll) || 0);
 
-		# Check if current character is a quote and unescaped.
-		my $is_unesc_quote = (($char eq '"' || $char eq "'") && $pchar ne "\\");
-
-		# If character is an unescaped quote.
-		if (!$state && $is_unesc_quote) {
-			# Check if the previous character is a dollar sign. This
-			# means the command should run as a command.
-			if ($pchar && $pchar eq "\$") { $argument .= "\$"; }
-			# Set state to open.
-			$state = 1;
-			# Set quote type.
-			$quote_type = $char;
-			# Store the character.
-			$argument .= $char;
-
-		# If char is an unescaped quote + status is open...reset.
-		} elsif ($state && $is_unesc_quote && $quote_type eq $char) {
-			# Set state to close.
-			$state = 0;
-			# Reset quote type.
-			$quote_type = '';
-			# Store the character.
-			$argument .= $char;
-
-		# If char is a "'" and status is open due to being wrapped in '"'
-		# double quotes then allow the single quotes through.
-		# Example: yarn list --depth=0 \| grep -Po 'RegExp_PATTERN'
-		# -----------------------------------------^--------------^
-		# ^-This will include the "'" (single quote characters).
-		} elsif ($state && $is_unesc_quote) { # && $quote_type eq '"'
-			# Store the character.
-			$argument .= $char;
-
-		# Handle escaped characters.
-		} elsif ($char eq "\\") {
-			if ($nchar) {
-				# Store the character.
-				$argument .= "$char$nchar";
-				$i++;
-			} else {
-				# Store the character.
-				$argument .= $char;
+		# State is open and looking for an unescaped quote character.
+		if (!$qchar) {
+			if (($c eq '"' || $c eq "'") && $p ne '\\') {
+				# Set qchar as the opening quote character.
+				$qchar = $c;
+				# Capture character.
+				$argument .= $c;
 			}
 
-		# For anything that is not a quote char.
-		} elsif ($char !~ /["']/) {
-			# If we hit a comma and the state is closed.
-			# We store the current argument and reset
-			# everything.
-			if (!$state && $char eq ',') {
+			# Continuing will ignore all characters outside of quotes.
+			# For example, take the example input string: "'name', 'age'".
+			# Since the ", " (minus the quotes) is outside of a quoted
+			# region and only serve as a delimiter, they don't need to be
+			# captured. This means they can be ignored.
+			next;
+
+		# Else if state is open (qchar is set), grab all characters until an
+		# unescaped qchar is hit.
+		} else {
+			# Unescape '|' (pipe) characters.
+			if ($c eq '\\' && $n eq '|') { next; }
+
+			# Capture character.
+			$argument .= $c;
+
+			if ($c eq $qchar && $p ne '\\') {
+				# Store argument and reset vars.
 				push(@arguments, $argument);
 				$args_count++;
+				# Clear/reset variables.
 				$argument = '';
-			} elsif ($state) {
-				# Store the character.
-				$argument .= $char;
+				$qchar = '';
 			}
 		}
 	}
-	# Add remaining argument if string is not empty.
-	if ($argument) {
-		push(@arguments, $argument);
-		$args_count++;
-	}
 
-	# Push arg count to array.
+	# Get last argument.
+	if ($argument) { push(@arguments, $argument); }
+
+	# Push argument counter to array.
 	push(@arguments, $args_count);
 
 	# Return arguments array.
@@ -849,86 +824,69 @@ sub __set_envs {
 # @return {undefined} - Nothing is returned.
 sub __parser {
 	# Vars.
-	my $current = '';
-	my $quote_char = '';
-	my $l = length($input); # Input length.
+	my $argument = '';
+	my $qchar = '';
+	my $l = length($input);  # Input length.
+	my $ll = $l - 1;
+	# Loop character variables (current, previous, next characters).
+	my $c; my $p; my $n;
 
 	# Input must not be empty.
 	if (!$input) { return; }
 
 	# Loop over every input char: [https://stackoverflow.com/q/10487316]
-	for (my $i = 0; $i < $cline_length; $i++) {
+	for (my $i = 0; $i < $l; $i++) {
 		# Cache current/previous/next chars.
-		my $c = substr($input, $i, 1);
-		my $p = substr($input, $i - 1, 1);
-		my $n = substr($input, $i + 1, 1);
+		# Note: Reset prev word for 1st char as Perl gets the last string char.
+		$p = $c // substr($input, $i - 1, !($i - 1 < 0) || 0);
+		$c = $n // substr($input, $i, 1);
+		# Note: Reset next word for last char as Perl gets the first char.
+		# Can't cache for next word by looking back. One must look forward
+		# which breaks the point of caching.
+		$n = substr($input, $i + 1, !($i == $ll) || 0);
 
-		# Reset prev word for 1st char as bash gets the last char.
-		if (!$i) {
-			$p = '';
-		# Reset next word for last char as bash gets the first char.
-		} elsif ($i == ($cline_length - 1)) {
-			$n = '';
-		}
+		# State is open and looking for an unescaped quote character.
+		if (!$qchar) {
+			# Check if current character is a quote character.
+			if (($c eq '"' || $c eq "'") && $p ne '\\') {
+				# Set qchar as the opening quote character.
+				$qchar = $c;
+				# Capture character.
+				$argument .= $c;
 
-		# Stop loop once it hits the caret position character.
-		if ($i >= ($l - 1)) {
-			# Only add if not a space character.
-			if ($c ne ' ' || $c eq ' ' && $p eq "\\") {
-				$current .= $c;
-			}
-
-			# Store last char.
-			$lastchar = $c;
-			# If last char is an escaped space then reset lastchar.
-			if ($c eq ' ' && $p eq "\\") { $lastchar = ''; }
-
-			last;
-		}
-
-		# If char is a space.
-		if ($c eq ' ' && $p ne "\\") {
-			if (length($quote_char) != 0) {
-				$current .= $c;
+			# For non quote characters add all except non-escaped spaces.
+			} elsif ($p ne '\\' && $c =~ /[ \t]/) {
+				# Store argument and reset vars.
+				push(@args, $argument);
+				# Clear/reset variables.
+				$argument = '';
+				$qchar = '';
 			} else {
-				if ($current) {
-					push(@args, $current);
-					$current = '';
-				}
+				# Capture character.
+				$argument .= $c;
 			}
-		# Non space chars.
-		} elsif (($c eq '"' || $c eq "'") && $p ne "\\") {
-			if ($quote_char) {
-				# To end the current string encapsulation, the next
-				# char must be a space or nothing (meaning) the end
-				# if the input string. This is done to prevent
-				# this edge case: 'myapp run "some"--'. Without this
-				# check the following args get parsed:
-				# args=(myapp run "some" --). What we actually want
-				# is args=(myapp run "some"--).
-				#
-				if ($quote_char eq $c && ($n eq "" || $n eq ' ')) {
-					$current .= $c;
-					push(@args, $current);
-					$quote_char = '';
-					$current = '';
-				} elsif (($quote_char eq '"' || $quote_char eq "'") && $p ne "\\") {
-					$current .= $c;
-				} else {
-					$current .= $c;
-					$quote_char = $c;
-				}
-			} else {
-				$current .= $c;
-				$quote_char = $c;
-			}
+
+		# Else if state is open (qchar is set), grab all characters until an
+		# unescaped qchar is hit.
 		} else {
-			$current .= $c;
+			# Capture character.
+			$argument .= $c;
+
+			if ($c eq $qchar && $p ne '\\') {
+				# Store argument and reset vars.
+				push(@args, $argument);
+				# Clear/reset variables.
+				$argument = '';
+				$qchar = '';
+			}
 		}
 	}
 
-	# Add the remaining word.
-	if ($current) { push(@args, $current); }
+	# Get last argument.
+	if ($argument) { push(@args, $argument); }
+
+	# Get/store last character of input.
+	$lastchar = !($c ne ' ' && $p ne '\\') ? $c : '';
 
 	return;
 }

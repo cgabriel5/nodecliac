@@ -26,6 +26,12 @@ my $cpoint = int($ARGV[2]); # Caret index when [tab] key was pressed.
 my $maincommand = $ARGV[3]; # Get command name from sourced passed-in argument.
 my $acdef = $ARGV[4]; # Get the acdef definitions file.
 
+# Vars - ACDEF file parsing variables.
+my %db;
+my %seen;
+# $db{'levels'};
+$db{'fallbacks'} = {};
+
 # # Get the command's ACDEF file.
 # my $acdefpath = "$hdir/.nodecliac/registry/$maincommand/$maincommand.acdef";
 # # If the ACDEF file does not exist then exit script.
@@ -35,9 +41,10 @@ my $acdef = $ARGV[4]; # Get the acdef definitions file.
 # Vars.
 my @args = ();
 my $last = '';
-my $elast_ptn = ''; # Escaped last word pattern.
+# my $elast_ptn = ''; # Escaped last word pattern.
 my $type = '';
 my %usedflags;
+my $usedflags_empty = 1;
 my @foundflags = ();
 my @completions = ();
 my $commandchain = '';
@@ -60,9 +67,10 @@ my $collect_used_pa_args = '';
 my $prefix = 'NODECLIAC_';
 
 # RegExp Patterns: [https://stackoverflow.com/a/953076]
-my $flgopt = qr/-{1,2}[-.a-zA-Z0-9]*\=/; # "--flag/-flag="
-my $flgoptvalue = qr/^-{1,2}[a-zA-Z0-9]*\=\*?.{1,}/; # "--flag/-flag=value"
-my $flagcommand = qr/^-{1,2}[a-zA-Z0-9]*\=\*?\$\((.{1,})\)$/; # "--flag/-flag=$("<COMMAND-STRING>")"
+# my $flgopt = qr/-{1,2}[^=]*\=/; # "--flag/-flag="
+# my $flgoptvalue = qr/^-{1,2}[^=*]*\=\*?.{1,}/; # "--flag/-flag=value"
+# my $flagcommand = qr/^-{1,2}[^=*]*\=\*?\$\((.{1,})\)$/; # "--flag/-flag=$("<COMMAND-STRING>")"
+# my $flagcommand = qr/^\$\(.{1,}\)$/; # "--flag/-flag=$("<COMMAND-STRING>")"
 
 # # RegExp Patterns:
 # # my $flgopt = '-{1,2}[-.a-zA-Z0-9]*='; # "--flag/-flag="
@@ -85,91 +93,98 @@ my $flagcommand = qr/^-{1,2}[a-zA-Z0-9]*\=\*?\$\((.{1,})\)$/; # "--flag/-flag=$(
 # 	print "autocompletion: '$autocompletion'\n";
 # }
 
-# Return provided arrays length.
-#
-# @param {array} 1) - The array's reference.
-# @return {number} - The array's size.
-#
-# @resource [https://perlmaven.com/passing-two-arrays-to-a-function]
-sub __len {
-	# Get arguments.
-	my ($array_ref) = @_;
-	# Dereference and use array.
-	my @array = @{ $array_ref };
+# # Return provided arrays length.
+# #
+# # @param {array} 1) - The array's reference.
+# # @return {number} - The array's size.
+# #
+# # @resource [https://perlmaven.com/passing-two-arrays-to-a-function]
+# sub __len {
+# 	# Get arguments.
+# 	my ($array_ref) = @_;
+# 	# Dereference and use array.
+# 	my @array = @{ $array_ref };
 
-	# [https://alvinalexander.com/blog/post/perl/how-determine-size-number-elements-length-perl-array]
-	# [https://stackoverflow.com/questions/7406807/find-size-of-an-array-in-perl]
-	return $#array + 1; # scalar(@array);
-}
+# 	# [https://alvinalexander.com/blog/post/perl/how-determine-size-number-elements-length-perl-array]
+# 	# [https://stackoverflow.com/questions/7406807/find-size-of-an-array-in-perl]
+# 	return $#array + 1; # scalar(@array);
+# }
 
 # Global flag only to be used for __dupecheck function.
 my %__dc_multiflags;
+my $__dc_value;
 
-# Check whether provided flag is already used or not.
-#
-# @param {string} 1) - The flag to check.
-# @return {boolean} - True if duplicate. Else false.
-sub __dupecheck {
-	# Get provided flag arg.
-	my (
-		$flag,
-		$flag_fkey,
-		$flag_isbool,
-		$flag_eqsign,
-		$flag_multif,
-		$flag_value
-	) = @_;
+# # Check whether provided flag is already used or not.
+# #
+# # @param {string} 1) - The flag to check.
+# # @return {boolean} - True if duplicate. Else false.
+# sub __dupecheck {
+# 	# Get provided flag arg.
+# 	my (
+# 		$flag,
+# 		$flag_fkey,
+# 		$flag_isbool,
+# 		$flag_eqsign,
+# 		$flag_multif,
+# 		$flag_value
+# 	) = @_;
 
-	# If used flags hash is empty, breakdown used flags and populate hash.
-	if (!%usedflags) {
-		# [https://perlmaven.com/multi-dimensional-hashes]
-		foreach my $uflag (@foundflags) {
-			# Breakup last word into flag/value.
-			my @matches = $uflag =~ /^([^=]+)((?:=\*?)(.*))?/;
-			# Default to empty string if no match.
-			# [https://perlmaven.com/how-to-set-default-values-in-perl]
-			my $uflag_fkey = $matches[0] // '';
-			my $uflag_value = $matches[2] // '';
+# 	# If used flags hash is empty, breakdown used flags and populate hash.
+# 	# if (!%usedflags) {
+# 	if ($usedflags_empty) {
+# 		# [https://perlmaven.com/multi-dimensional-hashes]
+# 		foreach my $uflag (@foundflags) {
+# 			# Breakup last word into flag/value.
+# 			my @matches = $uflag =~ /^([^=]+)((?:=\*?)(.*))?/;
+# 			# Default to empty string if no match.
+# 			# [https://perlmaven.com/how-to-set-default-values-in-perl]
+# 			my $uflag_fkey = $matches[0] // '';
+# 			my $uflag_value = $matches[2] // '';
 
-			# Store flag key and its value in hashes.
-			# [https://perlmaven.com/multi-dimensional-hashes]
-			$usedflags{$uflag_fkey}{$uflag_value} = 1;
-		}
-	}
+# 			# Store flag key and its value in hashes.
+# 			# [https://perlmaven.com/multi-dimensional-hashes]
+# 			$usedflags{$uflag_fkey}{$uflag_value} = 1;
+# 			$usedflags_empty = 0;
+# 		}
+# 	}
 
-	# Var boolean.
-	my $dupe = 0;
+# 	# Var boolean.
+# 	my $dupe = 0;
 
-	# If its a multi-flag then let it through.
-	if (exists($__dc_multiflags{$flag_fkey})) {
-		$dupe = 0;
+# 	# If its a multi-flag then let it through.
+# 	if (exists($__dc_multiflags{$flag_fkey})) {
+# 		$dupe = 0;
 
-		# Although a multi-starred flag, check if value has been used or not.
-		if (exists($usedflags{$flag_fkey}{$flag_value})) { $dupe = 1; }
+# 		# Although a multi-starred flag, check if value has been used or not.
+# 		if (exists($usedflags{$flag_fkey}{$flag_value})) { $dupe = 1; }
 
-	} elsif (!$flag_eqsign) { # Valueless flag dupe check.
+# 	} elsif (!$flag_eqsign) { # Valueless flag dupe check.
 
-		# Check for --flag (no-value) and --flag=<Value> (with value).
-		if (exists($usedflags{$flag_fkey})) { $dupe = 1; }
+# 		# Check for --flag (no-value) and --flag=<Value> (with value).
+# 		if (exists($usedflags{$flag_fkey})) { $dupe = 1; }
 
-	} else { # Flag with value dupe check.
-		# Count substring occurrences: [https://stackoverflow.com/a/9538604]
-		# Dereference before use: [https://stackoverflow.com/a/37438262]
-		my $flag_values = $usedflags{$flag_fkey};
-		my $count = (keys %$flag_values);
+# 	} else { # Flag with value dupe check.
+# 		# Count substring occurrences: [https://stackoverflow.com/a/9538604]
+# 		# Dereference before use: [https://stackoverflow.com/a/37438262]
+# 		my $flag_values = $usedflags{$flag_fkey};
+# 		my $count = (keys %$flag_values);
 
-		# More than 1 occurrence flag has been used.
-		if ($count > 0) { $dupe = 1; }
+# 		# More than 1 occurrence flag has been used.
+# 		if ($count > 0) { $dupe = 1; }
 
-		# If there is exactly 1 occurrence and the flag matches the
-		# RegExp pattern we undupe flag as the 1 occurrence is being
-		# completed (i.e. a value is being completed).
-		if ($count == 1 && $flag =~ $flgoptvalue) { $dupe = 0; }
-	}
+# 		# If there is exactly 1 occurrence and the flag matches the
+# 		# RegExp pattern we undupe flag as the 1 occurrence is being
+# 		# completed (i.e. a value is being completed).
+# 		# if ($count == 1 && $flag =~ $flgoptvalue) { $dupe = 0; }
+# 		if ($count == 1 && $flag_value) { $dupe = 0; }
+# 	}
 
-	# Return dupe boolean result.
-	return $dupe;
-}
+
+# 	$__dc_value = $dupe;
+
+# 	# Return dupe boolean result.
+# 	# return \$dupe;
+# }
 
 # Check whether string is left quoted (i.e. starts with a quote).
 #
@@ -177,49 +192,51 @@ sub __dupecheck {
 # @return {boolean} - True means it's left quoted.
 sub __is_lquoted {
 	# Get first character's numerical value.
-	my $res = ord($_[0]);
-	return ($res == 34 || $res == 39); # Single quote: 39, double quote: 34.
+	# my $res = ord($_[0]);
+	# return ($res == 34 || $res == 39); # Single quote: 39, double quote: 34.
+	# return (rindex($_[0], '"', 0) == 0 || rindex($_[0], '\'', 0) == 0); # Single quote: 39, double quote: 34.
+	return (substr($_[0], 0, 1) =~ tr/"'//); # Single quote: 39, double quote: 34.
 }
 
-# Get last command in chain: 'mc.sc1.sc2' → 'sc2'
-#
-# @param {string} 1) - The row to extract command from.
-# @param {number} 2) - The chain replacement type.
-# @return {string} - The last command in chain.
-sub __last_command {
-	# Get arguments.
-	my ($row, $type, $lchain) = @_;
+# # Get last command in chain: 'mc.sc1.sc2' → 'sc2'
+# #
+# # @param {string} 1) - The row to extract command from.
+# # @param {number} 2) - The chain replacement type.
+# # @return {string} - The last command in chain.
+# sub __last_command {
+# 	# Get arguments.
+# 	my ($row, $type, $lchain) = @_;
 
-	# Extract command chain from row.
-	# ($row) = $row =~ /^[^ ]*/g;
-	if ($row =~ /^([^ ]*)/) { $row = $1; }
+# 	# Extract command chain from row.
+# 	# ($row) = $row =~ /^[^ ]*/g;
+# 	if ($row =~ /^([^ ]*)/) { $row = $1; }
 
-	# Chain replacement depends on completion type.
-	if ($type == 2) {
-		# # Get the last command in chain.
-		# my @cparts = split(/(?<!\\)\./, $row);
-		# $row = pop(@cparts);
+# 	# Chain replacement depends on completion type.
+# 	if ($type == 2) {
+# 		# # Get the last command in chain.
+# 		# my @cparts = split(/(?<!\\)\./, $row);
+# 		# $row = pop(@cparts);
 
-		# Get the last command in chain.
-		$row = (split(/(?<!\\)\./, $row))[-1];
+# 		# Get the last command in chain.
+# 		$row = (split(/(?<!\\)\./, $row))[-1];
 
-		# Slower then split/pop^.
-		# if ($row =~ /((?!\.)((?:\\\.)|[^\.])+)$/) { $row = $1; }
-	} else {
-		$row = substr($row, $lchain + 1, length($row));
-		# $row =~ s/$commandchain\.//;
-	}
+# 		# Slower then split/pop^.
+# 		# if ($row =~ /((?!\.)((?:\\\.)|[^\.])+)$/) { $row = $1; }
+# 	} else {
+# 		$row = substr($row, $lchain + 1, length($row));
+# 		# $row =~ s/$commandchain\.//;
+# 	}
 
-	# Extract next command in chain.
-	my $lastcommand;
-	if ($row =~ /^([^\s]*)(?=(?<!\\)\.)/) { $lastcommand = $1; }
-	$lastcommand //= $row;
+# 	# Extract next command in chain.
+# 	my $lastcommand;
+# 	if ($row =~ /^([^\s]*)(?=(?<!\\)\.)/) { $lastcommand = $1; }
+# 	$lastcommand //= $row;
 
-	# Remove any slashes from command.
-	if (__includes($lastcommand, "\\")) { $lastcommand =~ s/\\//; }
+# 	# Remove any slashes from command.
+# 	if (__includes($lastcommand, "\\")) { $lastcommand =~ s/\\//; }
 
-	return $lastcommand;
-}
+# 	return $lastcommand;
+# }
 
 # Check whether string starts with a hyphen.
 #
@@ -228,13 +245,16 @@ sub __last_command {
 #
 # @resource [https://stackoverflow.com/a/34951053]
 # @resource [https://www.thoughtco.com/perl-chr-ord-functions-quick-tutorial-2641190]
-sub __starts_with_hyphen { return ord($_[0]) == 45; }
+# sub __starts_with_hyphen { return ord($_[0]) == 45; }
+sub __starts_with_hyphen { return rindex($_[0], '-', 0) == 0; }
+# sub __starts_with_hyphen { return substr($_[0], 0, 1) =~ tr/-//; }
+# sub __starts_with_hyphen { return substr($_[0], 0, 1) eq '-'; }
 
 # Check whether string contains provided substring.
 #
 # @param {string} 1) - The string to check.
 # @return {boolean} - 1 means substring is found in string.
-sub __includes { return index($_[0], $_[1]) + 1; }
+sub __includes { return rindex($_[0], $_[1]) + 1; }
 
 # # Removes duplicate values from provided array.
 # #
@@ -261,7 +281,7 @@ sub __is_file_or_dir {
 	my ($item) = @_;
 
 	# If arg contains a '/' sign check if it's a path. If so let it pass.
-	return (__includes($item, '/') || $item eq '~');
+	return ($item =~ tr/\/// || $item eq '~');
 	# $item =~ s/^~/$hdir/; # Expand tilde in path.
 
 	# With tilde expanded, check if string is a path.
@@ -382,7 +402,7 @@ sub __execute_command {
 			my $arg = $arguments[$i];
 
 			# Run command if '$' is prefix to string.
-			if ($arg =~ /^\$/) {
+			if (rindex($arg, '$', 0) == 0) {
 				# Remove '$' command indicator.
 				$arg = substr($arg, 1);
 				# Get the used quote type.
@@ -485,7 +505,7 @@ sub __execute_command {
 						# Since we are completing a command we only
 						# want words that start with the current
 						# command we are trying to complete.
-						if ($line =~ /$elast_ptn/) {
+						if (rindex($line, $last, 0) == 0) {
 							# Finally, add to flags array.
 							push(@completions, $line);
 						}
@@ -495,6 +515,10 @@ sub __execute_command {
 					}
 				}
 			}
+
+			# If completions array is still empty then add last word to
+			# completions array to append a trailing space.
+			if (!@completions) { push(@completions, $last); }
 		}
 	}
 
@@ -537,6 +561,7 @@ sub __paramparse {
 	for (my $i = 0; $i < $l; $i++) {
 		# Cache current/previous/next chars.
 		# Note: Reset prev word for 1st char as Perl gets the last string char.
+		# [https://perlmaven.com/how-to-set-default-values-in-perl]
 		$p = $c // substr($input, $i - 1, !($i - 1 < 0) || 0);
 		$c = $n // substr($input, $i, 1);
 		# Note: Reset next word for last char as Perl gets the first char.
@@ -624,7 +649,8 @@ sub __paramparse {
 # @return {undefined} - Nothing is returned.
 sub __set_envs {
 	# Get parsed arguments count.
-	my $l = __len(\@args);
+	# my $l = __len(\@args);
+	my $l = $#args + 1;
 
 	# Use hash to store environment variables: [https://perlmaven.com/perl-hashes]
 	my %envs = (
@@ -838,6 +864,7 @@ sub __parser {
 	for (my $i = 0; $i < $l; $i++) {
 		# Cache current/previous/next chars.
 		# Note: Reset prev word for 1st char as Perl gets the last string char.
+		# [https://perlmaven.com/how-to-set-default-values-in-perl]
 		$p = $c // substr($input, $i - 1, !($i - 1 < 0) || 0);
 		$c = $n // substr($input, $i, 1);
 		# Note: Reset next word for last char as Perl gets the first char.
@@ -912,10 +939,14 @@ sub __parser {
 # myapp run -u $(id -u $USER):$(id -g $USER )
 sub __extractor {
 	# Vars.
-	my $l = __len(\@args);
+	# my $l = __len(\@args);
+	my $l = $#args + 1;
+
 	my @oldchains = ();
 	# Following variables are used when validating command chain.
 	my $last_valid_chain = '';
+
+	# my @list;
 
 	# Loop over CLI arguments.
 	for (my $i = 1; $i < $l; $i++) {
@@ -952,6 +983,13 @@ sub __extractor {
 			# Store command.
 			$commandchain .= '.' . __normalize_command($item);
 
+			# if (!@list) {
+			# 	@list = keys %{ $db{'dict'}{substr($commandchain, 1, 1)} };
+			# }
+			# # Check that command chain exists in acdef.
+			# my $pattern = '^' . quotemeta($commandchain);
+			# if (grep(/$pattern/o, @list)) {
+
 			# Check that command chain exists in acdef.
 			# my $pattern = '^' . quotemeta($commandchain) . '.* ';
 			my $pattern = '^(?![#|\n])' . quotemeta($commandchain) . '[^ ]*? ';
@@ -980,7 +1018,7 @@ sub __extractor {
 			$collect_used_pa_args = 0;
 
 			# If the flag contains an eq sign don't look ahead.
-			if (__includes($item, '=')) {
+			if ($item =~ tr/=//) {
 				push(@foundflags, $item);
 				next;
 			}
@@ -1000,6 +1038,13 @@ sub __extractor {
 						my $chain = $oldchains[$j];
 						if ($chain) {
 							$oldchain = $chain;
+
+							# # Lookup flag definitions from acdef.
+							# my $letter = substr($oldchain, 1, 1);
+							# if ($db{dict}{$letter}{$oldchain}) {
+							# 	my $pattern = "${item}\\?(\\||\$)";
+							# 	if ($db{dict}{$letter}{$oldchain}{flags} =~ /$pattern/) { $skipflagval = 1; }
+							# }
 
 							# Lookup flag definitions from acdef.
 							my $pattern = '^' . $oldchain . ' (-{1,2}.*)$';
@@ -1039,6 +1084,13 @@ sub __extractor {
 					my $chain = $oldchains[$j];
 					if ($chain) {
 						$oldchain = $chain;
+
+						# # Lookup flag definitions from acdef.
+						# my $letter = substr($oldchain, 1, 1);
+						# if ($db{dict}{$letter}{$oldchain}) {
+						# 	my $pattern = "${item}\\?(\\||\$)";
+						# 	if ($db{dict}{$letter}{$oldchain}{flags} =~ /$pattern/) { $skipflagval = 1; }
+						# }
 
 						# Lookup flag definitions from acdef.
 						my $pattern = '^' . $oldchain . ' (-{1,2}.*)$';
@@ -1083,22 +1135,14 @@ sub __extractor {
 	my $lword = $args[-1];
 	if ($lastchar eq ' ') {
 		if (__starts_with_hyphen($lword)) {
-			if (__includes($lword, '?') || __includes($lword, '=')) {
-				$autocompletion = 1;
-			} else {
-				$autocompletion = 0;
-			}
+			$autocompletion = ($lword =~ tr/=?//);
 		}
 	} else {
 		if (!__starts_with_hyphen($lword)) {
 			# Check if the second to last word is a flag.
 			my $sword = $args[-2];
 			if (__starts_with_hyphen($sword)) {
-				if (__includes($sword, '?') || __includes($sword, '=')) {
-					$autocompletion = 1;
-				} else {
-					$autocompletion = 0;
-				}
+				$autocompletion = ($sword =~ tr/=?//);
 			}
 		}
 	}
@@ -1122,6 +1166,55 @@ sub __extractor {
 	# Check whether last word is quoted or not.
 	if (__is_lquoted($last)) { $isquoted = 1; }
 
+	# # Note: If autocompletion is off check whether we have one of the
+	# # following cases: '$ maincommand --flag ' or '$ maincommand --flag val'.
+	# # If we do then we show the possible value options for the flag or
+	# # try and complete the currently started value option.
+	# if (!$autocompletion && $nextchar ne '-') {
+	# 	my $islast_aspace = ($lastchar eq ' ');
+	# 	# Get correct last word.
+	# 	my $nlast = $args[($islast_aspace ? -1 : -2)];
+	# 	# acdef commandchain lookup Regex.
+	# 	my $pattern = '^' . $commandchain . ' (-{1,2}.*)';
+	# 	my $letter = substr($commandchain, 1, 1);
+	# 	# The last word (either last or second last word) must be a flag
+	# 	# and cannot have contain an eq sign.
+	# 	if (__starts_with_hyphen($nlast) && !__includes($nlast, '=')) {
+	# 		# Show all available flag option values.
+	# 		if ($islast_aspace) {
+	# 			# Check if the flag exists in the following format: '--flag='
+	# 			if ($db{dict}{$letter}{$commandchain}) {
+	# 				# Check if flag exists with option(s).
+	# 				my $pattern = $nlast . '=(?!\*).*?(\||$)';
+	# 				if ($db{dict}{$letter}{$commandchain}{flags} =~ /$pattern/) {
+	# 					# Reset needed data.
+	# 					# Modify last used flag.
+	# 					# [https://www.perl.com/article/6/2013/3/28/Find-the-index-of-the-last-element-in-an-array/]
+	# 					$foundflags[-1] = $foundflags[-1] . '=';
+	# 					$last = $nlast . '=';
+	# 					$lastchar = '=';
+	# 					$autocompletion = 1;
+	# 				}
+	# 			}
+	# 		} else { # Complete currently started value option.
+	# 			# Check if the flag exists in the following format: '--flag='
+	# 			if ($db{dict}{$letter}{$commandchain}) {
+	# 				# Escape special chars: [https://stackoverflow.com/a/576459]
+	# 				# [http://perldoc.perl.org/functions/quotemeta.html]
+	# 				my $pattern = $nlast . '=' . quotemeta($last) . '.*?(\||$)';
+
+	# 				# Check if flag exists with option(s).
+	# 				if ($db{dict}{$letter}{$commandchain}{flags} =~ /$pattern/) {
+	# 					# Reset needed data.
+	# 					$last = $nlast . '=' . $last;
+	# 					$lastchar = substr($last, -1);
+	# 					$autocompletion = 1;
+	# 				}
+	# 			}
+	# 		}
+	# 	}
+	# }
+
 	# Note: If autocompletion is off check whether we have one of the
 	# following cases: '$ maincommand --flag ' or '$ maincommand --flag val'.
 	# If we do then we show the possible value options for the flag or
@@ -1132,9 +1225,10 @@ sub __extractor {
 		my $nlast = $args[($islast_aspace ? -1 : -2)];
 		# acdef commandchain lookup Regex.
 		my $pattern = '^' . $commandchain . ' (-{1,2}.*)';
+
 		# The last word (either last or second last word) must be a flag
 		# and cannot have contain an eq sign.
-		if (__starts_with_hyphen($nlast) && !__includes($nlast, '=')) {
+		if (__starts_with_hyphen($nlast) && $nlast !~ tr/=//) {
 			# Show all available flag option values.
 			if ($islast_aspace) {
 				# Check if the flag exists in the following format: '--flag='
@@ -1170,11 +1264,11 @@ sub __extractor {
 		}
 	}
 
-	# Escape last word pattern.
-	# Escape special chars: [https://stackoverflow.com/a/576459]
-	# [http://perldoc.perl.org/functions/quotemeta.html]
-	# [https://stackoverflow.com/a/2458538]
-	$elast_ptn = '^' . quotemeta($last);
+	# # Escape last word pattern.
+	# # Escape special chars: [https://stackoverflow.com/a/576459]
+	# # [http://perldoc.perl.org/functions/quotemeta.html]
+	# # [https://stackoverflow.com/a/2458538]
+	# $elast_ptn = '^' . quotemeta($last);
 
 	return;
 }
@@ -1183,235 +1277,288 @@ sub __extractor {
 #     possible completions list.
 sub __lookup {
 	# Skip logic if last word is quoted or completion variable is off.
-	if ($isquoted || !$autocompletion) {
-		return;
-	}
+	if ($isquoted || !$autocompletion) { return; }
 
 	# Flag completion (last word starts with a hyphen):
 	if (__starts_with_hyphen($last)) {
 		# Lookup flag definitions from acdef.
-		my $pattern = '^' . $commandchain . ' (-{1,2}.*)';
-
-		if ($acdef =~ /$pattern/m) {
+		my $letter = substr($commandchain, 1, 1) // '';
+		if ($db{dict}{$letter}{$commandchain}) {
 			# Continue if rows exist.
 			my @used = ();
+
+			# Get flags list.
+			my $flag_list = $db{dict}{$letter}{$commandchain}{flags};
 
 			# Set completion type:
 			$type = 'flag';
 
 			# If no flags exist skip line.
-			if ($1 eq '--') { return; }
+			if ($flag_list eq '--') { return; }
 
 			# Split by unescaped pipe '|' characters:
 			# [https://www.perlmonks.org/bare/?node_id=319761]
-			# my @flags = split(/(?<!\\)\|/, $1);
-			my @flags = split(/(?:\\\\\|)|(?:(?<!\\)\|)/, $1);
+			# my @flags = split(/(?:\\\\\|)|(?:(?<!\\)\|)/, $flag_list);
+			my @flags = split(/(?<!\\)\|/, $flag_list);
 
-			# Breakup last word into flag/value.
-			my @matches = $last =~ /^([^=]+)((=)(\*)?(.*))?/;
-			# Default to empty string if no match.
-			# [https://perlmaven.com/how-to-set-default-values-in-perl]
-			my $last_fkey = $matches[0] // '';
-			my $last_eqsign = $matches[2] // '';
-			my $last_multif = $matches[3] // '';
-			my $last_value = $matches[4] // '';
-			# my $nohyphen_last = $last =~ s/^-*//r;
-			# my $last_fletter = substr($nohyphen_last, 0, 1);
+			# Parse last flag without RegEx.
+			my $last_fkey = $last;
+			# my $flag_isbool
+			my $last_eqsign = '';
+			my $last_multif = '';
+			my $last_value = '';
+
+			# If flag contains an eq sign.
+			# [https://stackoverflow.com/a/87565]
+			# [https://perldoc.perl.org/perlvar.html]
+			# [https://www.perlmonks.org/?node_id=327021]
+			if ($last_fkey =~ tr/\=//) {
+				# Get eq sign index.
+				my $eqsign_index = index($last, '=');
+				$last_fkey = substr($last, 0, $eqsign_index);
+				$last_value = substr($last, $eqsign_index + 1);
+
+				# Check for multi-flag indicator.
+				if (rindex($last_value, '*', 0) == 0) {
+					$last_multif = '*';
+					$last_value = substr($last_value, 1);
+				}
+
+				$last_eqsign = '=';
+			}
 			my $last_val_quoted = __is_lquoted($last_value);
-
-			# Get the last words first non-hyphen character.
-			my ($fchar_last) = $last =~ /([^-])/;
-			$fchar_last = $fchar_last // ''; # Set default value.
-			my $last_not_hyphens = ($last !~ /^-{1,2}$/);
 
 			# Loop over flags to process.
 			foreach my $flag (@flags) {
-				# Skip flags not starting with same char as last word.
-				my ($fchar_flag) = $flag =~ /([^-])/;
-				$fchar_flag = $fchar_flag // ''; # Set default value.
-				if ($fchar_last ne $fchar_flag && $last_not_hyphens) { next; }
+				# # Skip flags not starting with same char as last word.
+				# [https://stackoverflow.com/a/55455061]
+				if (rindex($flag, $last_fkey, 0) != 0) { next; }
 
 				# Breakup flag into its components (flag/value/etc.).
-				@matches = $flag =~ /^([^?=]+)(\?)?((=)(\*)?(.*))?/;
-				# Default to empty string if no match.
-				# [https://perlmaven.com/how-to-set-default-values-in-perl]
-				my $flag_fkey = $matches[0] // '';
-				my $flag_isbool = $matches[1] // '';
-				my $flag_eqsign = $matches[3] // '';
-				my $flag_multif = $matches[4] // '';
-				my $flag_value = $matches[5] // '';
-				# my $nohyphen_flag = $flag =~ s/^-*//r;
-				# my $flag_fletter = substr($nohyphen_flag, 0, 1);
-				# my $flag_val_quoted = __is_lquoted($flag_value);
+				# [https://stackoverflow.com/q/19968618]
 
-				# # Preliminary checks:
-				# if (
-				# # Before continuing with full on flag logic checks, check
-				# # whether the flag even starts with the same character. If
-				# # the last word is only made up of hyphens then let it
-				# # through.
-				# 	$nohyphen_last && $last_fletter ne $flag_fletter ||
-				# # Flag must start with the last word. Escape special chars:
-				# # [https://stackoverflow.com/a/576459]
-				# # [http://perldoc.perl.org/functions/quotemeta.html]
-				# # $pattern = '^' . $last_fkey;
-				# # if (!($flag_fkey =~ /$pattern/)) { next; }
-				# 	index($flag_fkey, $last_fkey) != 0
-				# ) { next; }
+				my $flag_fkey = $flag;
+				my $flag_isbool = '';
+				my $flag_eqsign = '';
+				my $flag_multif = '';
+				my $flag_value = '';
+				my $cflag = '';
 
-				# Reset flag to only include flag key and possible value.
-				$flag = $flag_fkey .
-					# Check for value.
-					($flag_eqsign ? ($flag_value) ? "=$flag_value" : '=' : '');
+				# If flag contains an eq sign.
+				# [https://stackoverflow.com/a/87565]
+				# [https://perldoc.perl.org/perlvar.html]
+				# [https://www.perlmonks.org/?node_id=327021]
+				if ($flag_fkey =~ tr/\=//) {
+					my $eqsign_index = index($flag, '=');
+					$flag_fkey = substr($flag, 0, $eqsign_index);
+					$flag_value = substr($flag, $eqsign_index + 1);
+					$flag_eqsign = '=';
 
-				# Track multi-starred flags.
-				if ($flag_multif) { $__dc_multiflags{$flag_fkey} = 1; }
+					# Extract boolean indicator.
+					if (rindex($flag_fkey, '?') > -1) {
+						# Remove boolean indicator.
+						$flag_isbool = chop($flag_fkey);
+					}
 
-				# Unescape flag.
-				# $flag = __unescape($flag);
+					# Check for multi-flag indicator.
+					if (rindex($flag_value, '*', 0) == 0) {
+						$flag_multif = '*';
+						$flag_value = substr($flag_value, 1);
 
-				# If a command-flag: --flag=$("<COMMAND-STRING>"), run
-				# command and add returned words to completion options.
-				if ($last_eqsign) {
-					# If fkey starts with flag and is a command flag.
-					if (!index($flag, $last_fkey) && $flag =~ $flagcommand) {
-						# *Pass flags array as a ref to access in function.
-						# Parse user provided command-flag command.
-						__execute_command($1, \@flags, $last_fkey);
+						# Track multi-starred flags.
+						$__dc_multiflags{$flag_fkey} = undef;
+					}
+
+					# Create completion item flag.
+					$cflag = "$flag_fkey=$flag_value";
+
+					# If value is a command-flag: --flag=$("<COMMAND-STRING>"),
+					# run command and add returned words to flags array.
+					if (rindex($flag_value, "\$(", 0) == 0 && substr($flag_value, -1) eq ')') {
+						__execute_command($flag_value, \@flags, $last_fkey);
 						# [https://stackoverflow.com/a/31288153]
 						# Skip flag to not add literal command to completions.
 						next;
 					}
-				}
-
-				# Flag must start with the last word.
-				if ($flag =~ /$elast_ptn/) {
-					# Note: If the last word is "--" or if the last
-					# word is not in the form "--form= + a character",
-					# don't show flags with values (--flag=value).
-					if (!$last_eqsign && $flag =~ $flgoptvalue && !$flag_multif) {
-						next;
+				} else {
+					# Check for boolean indicator.
+					if (rindex($flag_fkey, '?') > -1) {
+						# Remove boolean indicator and reset vars.
+						$flag_isbool = chop($flag_fkey);
 					}
 
-					# No dupes unless it's a multi-starred flag.
-					if (!__dupecheck(
-							$flag,
-							$flag_fkey,
-							$flag_isbool,
-							$flag_eqsign,
-							$flag_multif,
-							$flag_value
-						)
-					) {
-						# If last word is in the form → "--flag=" then we
-						# need to remove the last word from the flag to
-						# only return its options/values.
-						if ($last =~ $flgopt) {
-							# Copy flag to later reset flag key if no
-							# option was provided for it.
-							my $flagcopy = $flag;
-
-							# Reset flag to its option. If option is empty
-							# (no option) then default to flag's key.
-							# flag+="value"
-							$flag = $flag_value ? $flag_value : $flagcopy;
-						}
-
-						# Note: This is more of a hack check. Values with
-						# special characters will sometime by-pass the
-						# previous checks so do one file check. If the
-						# flag is in the following form:
-						# --flags="value-string" then we do not add is to
-						# the completions list. Final option/value check.
-						# my $__isquoted = ($flag_eqsign && $flag_val_quoted);
-
-						# Add flag/options if all checks pass.
-						# if (!$__isquoted && $flag ne $last) {
-						if ($flag && $flag ne $last) {
-							push(@completions, $flag);
-						}
-					} else {
-						# If flag exits and is already used then add a
-						# space after it.
-						if ($flag eq $last) {
-							if (!$last_eqsign) {
-								push(@used, $last);
-							} else {
-								$flag = $flag_value;
-								if ($flag) {
-									push(@completions, $flag);
-								}
-							}
-						}
-					}
+					# Create completion item flag.
+					$cflag = $flag_fkey;
 				}
+
+				# Unescape flag?
+				# $flag = __unescape($flag);
+
+				# If the last flag/word does not have an eq-sign, skip flags
+				# with values as it's pointless to parse them. Basically, if
+				# the last word is not in the form "--form= + a character",
+				# don't show flags with values (--flag=value).
+				if (!$last_eqsign && $flag_value && !$flag_multif) { next; }
+
+				# # START: DE-DUPE FLAG LOGIC CHECKS. ########################
+				# # No dupes unless it's a multi-starred flag.
+				# # [https://stackoverflow.com/a/3255750]
+
+				# # If used flags hash is empty, breakdown used flags and populate hash.
+				# if ($usedflags_empty) {
+				# 	# [https://perlmaven.com/multi-dimensional-hashes]
+				# 	foreach my $uflag (@foundflags) {
+				# 		# # Breakup last word into flag/value.
+				# 		# my @matches = $uflag =~ /^([^=]+)((?:=\*?)(.*))?/;
+				# 		# # Default to empty string if no match.
+				# 		# # [https://perlmaven.com/how-to-set-default-values-in-perl]
+				# 		# my $uflag_fkey = $matches[0] // '';
+				# 		# my $uflag_value = $matches[2] // '';
+
+				# 		# Breakup last word into flag/value (without RegEx).
+				# 		my $uflag_fkey = $uflag;
+				# 		my $uflag_value = '';
+
+				# 		# If flag contains an eq sign.
+				# 		if ($uflag_fkey =~ tr/\=//) {
+				# 			# Get eq sign index.
+				# 			my $eqsign_index = index($uflag, '=');
+				# 			$uflag_fkey = substr($uflag, 0, $eqsign_index);
+				# 			$uflag_value = substr($uflag, $eqsign_index + 1);
+				# 		}
+
+				# 		# Store flag key and its value in hashes.
+				# 		# [https://perlmaven.com/multi-dimensional-hashes]
+				# 		$usedflags{$uflag_fkey}{$uflag_value} = 1;
+				# 		$usedflags_empty = 0;
+				# 	}
+				# }
+
+				# # Var boolean.
+				# my $dupe = 0;
+
+				# # If its a multi-flag then let it through.
+				# if (exists($__dc_multiflags{$flag_fkey})) {
+				# 	$dupe = 0;
+
+				# 	# Although a multi-starred flag, check if value has been used or not.
+				# 	if (exists($usedflags{$flag_fkey}{$flag_value})) { $dupe = 1; }
+
+				# } elsif (!$flag_eqsign) { # Valueless flag dupe check.
+
+				# 	# Check for --flag (no-value) and --flag=<Value> (with value).
+				# 	if (exists($usedflags{$flag_fkey})) { $dupe = 1; }
+
+				# } else { # Flag with value dupe check.
+				# 	# Count substring occurrences: [https://stackoverflow.com/a/9538604]
+				# 	# Dereference before use: [https://stackoverflow.com/a/37438262]
+				# 	my $flag_values = $usedflags{$flag_fkey};
+				# 	my $count = (keys %$flag_values);
+
+				# 	# More than 1 occurrence flag has been used.
+				# 	if ($count > 0) { $dupe = 1; }
+
+				# 	# If there is exactly 1 occurrence and the flag matches the
+				# 	# RegExp pattern we undupe flag as the 1 occurrence is being
+				# 	# completed (i.e. a value is being completed).
+				# 	if ($count == 1 && $flag_value) { $dupe = 0; }
+				# }
+
+				# # END: DE-DUPE FLAG LOGIC CHECKS. ##########################
+
+				# # If the flag is a dupe...
+				# if ($dupe) {
+				# 	# If flag exits and is already used, add a space after it.
+				# 	if ($flag eq $last && !$last_eqsign) {
+				# 		push(@used, $last);
+				# 	} else {
+				# 		if ($flag_value) { push(@completions, $flag_value); }
+				# 	}
+
+				# 	next;
+				# }
+
+				# If last word is in the form → "--flag=" then we need to
+				# remove the last word from the flag to only return its
+				# options/values.
+				if ($last_eqsign) {
+					# Flag value has to start with last flag value.
+					if (rindex($flag_value, $last_value, 0) != 0 || (!$flag_value)) { next; }
+					# Reset completions array value.
+					$cflag = $flag_value;
+				}
+
+				# Note: This is more of a hack check. Values with
+				# special characters will sometime by-pass the
+				# previous checks so do one file check. If the
+				# flag is in the following form:
+				# --flags="value-string" then we do not add is to
+				# the completions list. Final option/value check.
+				# my $__isquoted = ($flag_eqsign && $flag_val_quoted);
+				# if (!$__isquoted && $flag ne $last) {
+
+				push(@completions, $cflag);
 			}
 
-			# Note: If the last word (the flag in this case) is an
-			# options flag (i.e. --flag=val) we need to remove the
-			# possible already used value. For example take the
-			# following scenario. Say we are completing the following
-			# flag '--flag=7' and our two options are '7' and '77'.
-			# Since '7' is already used we remove that value to leave
-			# '77' so that on the next tab it can be completed to
-			# '--flag=77'.
-			my $l = $#completions;
+			# # Note: If the last word (the flag in this case) is an
+			# # options flag (i.e. --flag=val) we need to remove the
+			# # possible already used value. For example take the
+			# # following scenario. Say we are completing the following
+			# # flag '--flag=7' and our two options are '7' and '77'.
+			# # Since '7' is already used we remove that value to leave
+			# # '77' so that on the next tab it can be completed to
+			# # '--flag=77'.
+			# my $l = $#completions;
 
-			# Note: Account for quoted strings. If the last value is
-			# quoted, then add closing quote.
-			if ($last_val_quoted) {
-				# Get starting quote (i.e. " or ').
-				my $quote = substr($last_value, 0, 1);
+			# # Note: Account for quoted strings. If the last value is
+			# # quoted, then add closing quote.
+			# if ($last_val_quoted) {
+			# 	# Get starting quote (i.e. " or ').
+			# 	my $quote = substr($last_value, 0, 1);
 
-				# Close string with matching quote if not already.
-				if (substr($last_value, -1) ne $quote) {
-					$last_value .= $quote;
-				}
+			# 	# Close string with matching quote if not already.
+			# 	if (substr($last_value, -1) ne $quote) {
+			# 		$last_value .= $quote;
+			# 	}
 
-				# Add quoted indicator to type string to later escape
-				# for double quoted strings.
-				$type = 'flag;quoted';
-				if ($quote eq '"') {
-					$type .= ';noescape';
-				}
+			# 	# Add quoted indicator to type string to later escape
+			# 	# for double quoted strings.
+			# 	$type = 'flag;quoted';
+			# 	if ($quote eq '"') {
+			# 		$type .= ';noescape';
+			# 	}
 
-				# If the value is empty return.
-				if (length($last_value) == 2) {
-					push(@completions, "$quote$quote");
-					return;
-				}
-			}
+			# 	# If the value is empty return.
+			# 	if (length($last_value) == 2) {
+			# 		push(@completions, "$quote$quote");
+			# 		return;
+			# 	}
+			# }
 
-			# If the last word contains an eq sign, it has a value
-			# option, and there are more than 2 possible completions
-			# we remove the already used option.
-			if ($last_value && ($l + 1) >= 2) {
-				for (my $i = $l; $i >= 0; $i--) {
-					if (length($completions[$i]) == length($last_value)) {
-						# Remove item from array.
-						splice(@completions, $i, 1);
-					}
-				}
-			}
+			# # If the last word contains an eq sign, it has a value
+			# # option, and there are more than 2 possible completions
+			# # we remove the already used option.
+			# if ($last_value && ($l + 1) >= 2) {
+			# 	for (my $i = $l; $i >= 0; $i--) {
+			# 		if (length($completions[$i]) == length($last_value)) {
+			# 			# Remove item from array.
+			# 			splice(@completions, $i, 1);
+			# 		}
+			# 	}
+			# }
 
-			# Note: If there are no completions but there is a single
-			# used flag, this means no completions exist and the
-			# current flag exist. Therefore, add the current word (the
-			# used flag) so that bash appends a space to it.
-			if (!@completions && @used == 1) {
-				push(@completions, $used[0]);
-			}
+			# # Note: If there are no completions but there is a single
+			# # used flag, this means no completions exist and the
+			# # current flag exist. Therefore, add the current word (the
+			# # used flag) so that bash appends a space to it.
+			# if (!@completions && @used == 1) {
+			# 	push(@completions, $used[0]);
+			# }
 		}
 	} else { # Command completion:
 
 		# Set completion type:
 		$type = 'command';
-
-		# Store command completions in a hash to only keep unique entries.
-		# [https://stackoverflow.com/a/15894780]
-		# [https://stackoverflow.com/a/3810548]
-		# [https://stackoverflow.com/a/11437184]
-		# my %lookup;
 
 		# If command chain and used flags exits, don't complete.
 		if (%usedflags && $commandchain) {
@@ -1419,179 +1566,61 @@ sub __lookup {
 			$commandchain = "" . (!$last ? "" : $last);
 		}
 
-		# Lookup all command tree rows from acdef once and store.
-		# my $pattern = '^' . $commandchain . '.*$'; # Original.
-		# my $pattern = '^' . substr($commandchain, 0, 2) . '.*$'; # 2 char RegExp pattern.
-		# The following RegExp does not seem to work:
-		# my $pattern = '^(?!(\\#|\\s))' . quotemeta(substr($commandchain, 0, 2)) . '.*$';
-		# Make initial acdef file lookup. Ignore comments/empty lines.
-		# my $pattern = '^(?![#|\n])' . quotemeta(substr($commandchain, 0, 2)) . '.*$';
-		# my $pattern = '^(?![#|\n])' . $commandchain . '.+$';
+		# my $pattern = '^' . quotemeta($commandchain);
+		my $pattern = '^' . $commandchain;
 
-		# Built ACDEF lookup pattern.
-		my $minipattern = $last . '$';
-		# Escape the command chain.
-		my $escaped_cc = quotemeta($commandchain);
-		my $pattern = '^(?![#|\n])' .
-			(
-				# If last variable is set and command chain doesn't equal it...
-				($last && $commandchain ne ".$last")
-				?
-					(
-						# If command chain ends with last variable...
-						($escaped_cc =~ /$minipattern/)
-							# If so, use command chain.
-						?  $escaped_cc
-							# Else, use command + last variable.
-						: ($escaped_cc . quotemeta(".$last"))
-					)
-					# Else, use first 2 characters of command chain.
-				: substr($commandchain, 0, 2)
-			)
-			. '.+ --'; # Get row from start to first flag indicator ' --'.
-
-		my @data = $acdef =~ /$pattern/mg;
-		my @rows = (); # Store filtered data.
-		my $lastchar_notspace = ($lastchar ne ' ');
-
-		# Determine last command replacement type and initial data filter.
-		$pattern = '^' . $commandchain . '\\.[^.\\s]+ ';
-		my $rtype = 1; # Replacement type.
-		if ($lastchar_notspace) {
-			# [https://stackoverflow.com/questions/15573652/regex-to-exclude-unless-preceded-by]
-			# [https://stackoverflow.com/a/7124976]
-			# [https://stackoverflow.com/a/9306228]
-			# [https://stackoverflow.com/a/11819111]
-			# [https://stackoverflow.com/a/6464500]
-			# [https://stackoverflow.com/a/6525975]
-			$pattern = '^' . $commandchain . '[^\.]([^\\.]|(?<=\\\\)\\.)* ';
-			$rtype = 2;
-		}
-		# Filter rows instead of looking up entire file again.
-		@rows = grep(/$pattern/, @data);
-
-		# If no upper level exists for the commandchain check that
-		# the current chain is valid. If valid, add the last command
-		# to the completions array to bash can append a space when
-		# the user presses the [tab] key to show the completion is
-		# complete for that word.
-		if (!@rows) {
-			$pattern = '^' . $commandchain . ' ';
-			# Filter rows instead of looking up entire file again.
-			@rows = grep(/$pattern/, @data);
-
-			if (@rows && $lastchar_notspace) {
-				# Get commandchain length.
-				my $lchain = length($commandchain);
-				# Get the last command in command chain.
-				my $last_command = __last_command($rows[0], $rtype, $lchain);
-
-				# If the last command in the chain is equal to the last word
-				# then add the last command to the lookup table.
-				if ($last_command eq $last) {
-					# Add last command in chain.
-					# $lookup{$last_command} = 1;
-					push(@completions, $last_command);
-				}
-			}
+		# When there is no command chain get the first level commands.
+		if (!$commandchain && !$last) {
+			@completions = keys %{ $db{levels}{1} };
 		} else {
-			# # Last word checks:
-			# $pattern = '^' . $commandchain . ' ';
-			# # Filter rows instead of looking up entire file again.
-			# my $check1 = scalar(grep(/$pattern/, @data));
+			my $letter = substr($commandchain, 1, 1);
+			# [https://stackoverflow.com/a/33102092]
+			my @rows = (keys %{ $db{dict}{$letter} } );
+			my $lastchar_notspace = ($lastchar ne ' ');
 
-			# # [https://stackoverflow.com/questions/15573652/regex-to-exclude-unless-preceded-by]
-			# # [https://stackoverflow.com/a/7124976]
-			# # [https://stackoverflow.com/a/9306228]
-			# # [https://stackoverflow.com/a/11819111]
-			# # [https://stackoverflow.com/a/6464500]
-			# # [https://stackoverflow.com/a/6525975]
-			# $pattern = '^' . $commandchain . '([^\\.]|(?<=\\\\)\\.)+ ';
-			# # Filter rows instead of looking up entire file again.
-			# my $check2 = scalar(grep(/$pattern/, @data));
+			# If no rows...
+			if (!@rows) { return;}
 
-			# Last word checks:
-			# [https://stackoverflow.com/questions/15573652/regex-to-exclude-unless-preceded-by]
-			# [https://stackoverflow.com/a/7124976]
-			# [https://stackoverflow.com/a/9306228]
-			# [https://stackoverflow.com/a/11819111]
-			# [https://stackoverflow.com/a/6464500]
-			# [https://stackoverflow.com/a/6525975]
-			$pattern = '^' . $commandchain . '([^\\.]|(?<=\\\\)\\.)+ ';
-			# Filter rows instead of looking up entire file again.
-			my @fcheck2 = grep(/$pattern/, @rows);
-			my $ccheck2 = scalar(@fcheck2);
-			#
-			my $ccheck1 = 0;
-			if ($ccheck2) {
-				# Last word checks:
-				$pattern = '^' . $commandchain . ' ';
-				# Filter rows instead of looking up entire file again.
-				$ccheck1 = scalar(grep(/$pattern/, @fcheck2));
-			}
+			my %usedcommands;
+			my @commands = split(/(?<!\\)\./, substr($commandchain, 1));
+			my $level = $#commands;
+			# Increment level if completing a new command level.
+			if ($lastchar eq ' ') { $level++; }
 
-			if (
-				# If caret is in the last position (not a space)...
-				$lastchar_notspace &&
-				# ...the command tree exists...
-				$ccheck1 &&
-				# ...and the command chain does not contain any upper levels
-				# then add the last word so that bash can add a space to it.
-				!$ccheck2
-			) {
-				# $lookup{$last} = 1; # Add last command in chain.
-				push(@completions, $last);
-			} else {
-				# Get commandchain length.
-				my $lchain = length($commandchain);
-				my %usedcommands;
+			# Get commandchains for specific letter outside of loop.
+			my %h = %{ $db{dict}{$letter} };
 
-				# # Filter rows further for type 1 completion.
-				# if ($rtype == 1) {
-				# 	$pattern = '^' . $commandchain . '\\.[^.\\s]+ ';
-				# 	@rows = grep(/$pattern/, @rows);
-				# }
+			# Split rows by lines: [https://stackoverflow.com/a/11746174]
+			foreach my $row (@rows) {
+				# Skip rows not passing pattern.
+				# if (index($row, $commandchain)) { next; }
+				if (rindex($row, $commandchain, 0)) { next; }
 
-				# Split rows by lines: [https://stackoverflow.com/a/11746174]
-				foreach my $row (@rows) {
-					# Get last command in chain.
-					$row = __last_command($row, $rtype, $lchain);
+				my @cmds = @{ $h{$row}{commands} };
+				# Get the needed level.
+				$row = $cmds[$level] // undef;
 
-					# Add last command it not yet already added.
-					if ($row && !exists($usedcommands{$row})) {
-						# If the character before the caret is not a
-						# space then we assume we are completing a
-						# command. (should we check that the character
-						# is one of the allowed command chars,
-						# i.e. [a-zA-Z-:]).
-						if ($lastchar_notspace) {
-							# Since we are completing a command we only
-							# want words that start with the current
-							# command we are trying to complete.
-							if ($row =~ /$elast_ptn/) {
-								# $lookup{$row} = 1;
-								push(@completions, $row);
-							}
-						} else {
-							# If we are not completing a command then
-							# we return all possible word completions.
-							# $lookup{$row} = 1;
-							push(@completions, $row);
-						}
-
-						# Store command in hash.
-						$usedcommands{$row} = 1;
-					}
+				# Add last command it not yet already added.
+				if (!$row || exists($usedcommands{$row})) { next; }
+				# If the character before the caret is not a
+				# space then we assume we are completing a
+				# command.
+				if ($lastchar_notspace) {
+					# Since we are completing a command we only
+					# want words that start with the current
+					# command we are trying to complete.
+					if (rindex($row, $last, 0) == 0) { push(@completions, $row); }
+					# if (index($row, $last) == 0) { push(@completions, $row); }
+				} else {
+					# If we are not completing a command then
+					# we return all possible word completions.
+					push(@completions, $row);
 				}
+
+				# Store command in hash.
+				$usedcommands{$row} = undef;
 			}
 		}
-
-		# # Get hash values as an array.
-		# # [https://stackoverflow.com/a/2907303]
-		# # @completions = values %lookup;
-		# # Use a loop for better compatibility.
-		# # [https://stackoverflow.com/a/3360]
-		# foreach my $key (keys %lookup) { push(@completions, $key); }
 
 		# Note: If there is only one command in the command completions
 		# array, check whether the command is already in the commandchain.
@@ -1611,10 +1640,10 @@ sub __lookup {
 			# Loop over command chains to build individual chain levels.
 			while ($copy_commandchain) {
 				# Get command-string, parse it, then run it...
-				my $pattern = '^' . quotemeta($copy_commandchain) . " $keyword" . '[ \t]{1,}(.*?)$';
-				if ($acdef =~ /$pattern/m) {
+				my $command_str = $db{fallbacks}{$copy_commandchain};
+				if ($command_str) {
 					# Store matched RegExp pattern value.
-					my $value = $1;
+					my $value = $command_str;
 					# If match exists...
 					# Check if it is a command-string.
 					my $pattern = '^\$\((.*?)\)$';
@@ -1633,7 +1662,8 @@ sub __lookup {
 							# Since we are completing a command we only
 							# want words that start with the current
 							# command we are trying to complete.
-							if ($value =~ /$elast_ptn/) {
+							if (rindex($value, $last, 0) == 0) {
+							# if ($value =~ /$elast_ptn/) {
 								# Finally, add to flags array.
 								push(@completions, $value);
 							}
@@ -1678,32 +1708,31 @@ sub __printer {
 	# Determine what list delimiter to use.
 	my $sep = ($iscommand) ? ' ' : "\n";
 	# Check completing flags.
-	my $isflag_type = $type =~ /^f/;
+	my $isflag_type = rindex($type, 'f', 0) == 0;
 
+	# [https://perlmaven.com/transforming-a-perl-array-using-map]
+	# [https://stackoverflow.com/a/2725641]
 	# Loop over completions and append to list.
-	for my $i (0 .. $#completions) {
-		# Cache completion.
-		my $completion = $completions[$i];
-
-		# Append completion line.
-		$lines .= "$sep$completion";
-
+	@completions = map {
 		# Add trailing space to all completions except to flag
 		# completions that end with a trailing eq sign, commands
 		# that have trailing characters (commands that are being
 		# completed in the middle), and flag string completions
 		# (i.e. --flag="some-word...).
-		if ($isflag_type
-			&& !__includes($completion, '=')
-			&& !__is_lquoted($completion)
+		my $final_space = (
+			$isflag_type
+			# Item cannot be quoted.
+			&& !(rindex($_, '=') + 1)
+			&& ((rindex $_, '"', 0) == -1 || (rindex $_, '\'', 0) == -1)
 			&& !$nextchar
-		) {
-			$lines .= ' ';
-		}
-	}
+		) ? ' ' : '';
+
+		# Final returned item.
+		"$sep$_$final_space";
+	} @completions;
 
 	# Return data.
-	print $lines;
+	print $lines . join('', @completions);
 
 	return;
 }
@@ -1716,6 +1745,150 @@ sub __printer {
 # # if ($hpaths) { __hook_acdef();__hook_input(); }
 # __hook_pre();
 
+sub __makedb {
+	# # Set cache variable to false.
+	# my $cache = 0;
+	# my $last_mtime;
+	# my $basedir = "$hdir/.nodecliac/registry/$maincommand";
+	# my $cachedir = "$basedir/cache";
+	# # Check for cached db data directory exists.
+	# if (-d $cachedir) {
+	# 	# Get last modified .acdef file time to compare.
+	# 	my $resourcepath = "$cachedir/last_modified.text";
+	# 	if (-f $resourcepath) {
+	# 		my $last_modified = do{local(@ARGV,$/)=$resourcepath;<>};
+	# 		chomp($last_modified); # Remove trailing new line.
+	# 		# Get ACDEF file's last modified time.
+	# 		$last_mtime = (stat("$basedir/$maincommand.acdef"))[9];
+	# 		# Set cache variable.
+	# 		$cache = (($last_modified > $last_mtime) || 0);
+	# 	}
+	# }
+
+	# To list all commandchains/flags without a commandchain.
+	if (!$commandchain) {
+
+		# Note: Although not DRY, per say, dedicating specific logic routes
+		# speeds up auto-completion tremendously.
+
+		# For first level commands only...
+		if (!$last) {
+
+			# if ($cache) {
+			# 	# Get the command's ACDEF file.
+			# 	my $resourcepath = "$cachedir/l1commands.text";
+			# 	# If the ACDEF file does not exist then exit script.
+			# 	# exit if (not -f $acdefpath);
+			# 	my $commands = do{local(@ARGV,$/)=$resourcepath;<>}; # Get the acdef definitions file.
+			# 	chomp($commands); # Remove trailing new line.
+
+			# 	# for (split /\n/, $commands) { $db{levels}{1}{$_} = undef; }
+			# 	# [https://stackoverflow.com/a/16157433]
+			# 	$db{levels}{1}{$_}++ for (split /\n/, $commands);
+
+			# 	return;
+			# }
+
+			for my $line (split /\n/, $acdef) {
+				# First character must be a period or a space.
+				if (rindex($line, '.', 0) != 0) { next; }
+
+				# Get command/flags/fallbacks from each line.
+				my $space_index = index($line, ' ');
+				my $chain = substr($line, 1, $space_index - 1 );
+
+				# Parse chain.
+				my $dot_index = index($chain, '.');
+				my $command = substr($chain, 0, $dot_index != -1 ? $dot_index : $space_index);
+				$db{levels}{1}{$command} = undef;
+				# $db{levels}{1}{$command}++;
+			}
+
+		# For first level flags...
+		} else {
+
+			# Get main command flags.
+			if ($acdef =~ /^ ([^\n]+)/m) {$db{dict}{''}{''} = { flags => $1 }; }
+
+			# my %letters;
+			# for my $line (split /\n/, $acdef) {
+			# 	# First character must be a period or a space.
+			# 	if (rindex($line, '.', 0) != 0) { next; }
+
+			# 	# Get command/flags/fallbacks from each line.
+			# 	my $space_index = index($line, ' ');
+			# 	my $chain = substr($line, 0, $space_index - 1);
+
+			# 	# Create dict entry if it doesn't already exist.
+			# 	$letters{substr($chain, 1, 1)}{$chain} = {
+			# 		flags => substr($line, $space_index + 1)
+			# 	};
+			# }
+			# # Add letters hash to db (main) hash.
+			# $db{dict} = \%letters;
+		}
+
+	# General auto-completion. Parse entire .acdef file contents.
+	} else {
+		# Get the first letter of commandchain to better filter ACDEF data.
+		my $fletter = substr($commandchain, 1, 1);
+		my %letters;
+
+		# Extract and place command chains and fallbacks into their own arrays.
+		# [https://www.perlmonks.org/?node_id=745018], [https://perlmaven.com/for-loop-in-perl]
+		for my $line (split /\n/, $acdef) {
+			# Get first and second characters.
+			my $schar = substr($line, 1, 1);
+
+			# First character must be a period or a space. Or if the command
+			# line does not start with the first letter of the command chain
+			# then we skip all line parsing logic.
+			if ($schar ne $fletter) { next; }
+
+			# Get command/flags/fallbacks from each line.
+			my $space_index = index($line, ' ');
+			my $chain = substr($line, 1, $space_index - 1);
+			my $remainder = substr($line, $space_index + 1);
+
+			# Parse chain.
+			# [https://stackoverflow.com/questions/87380/how-can-i-find-the-location-of-a-regex-match-in-perl]
+			my @commands = split(/(?<!\\)\./, $chain);
+			$db{levels}{1}{$commands[0]} = undef;
+
+			# [https://stackoverflow.com/a/6973660]
+			# $db{levels}{$counter++}{$commands[0]} = undef;
+			# push(@{ $db{'levels'}{$counter} }, $command);
+
+			# Cleanup remainder (flag/command-string).
+			if (ord($remainder) == 45) {
+				# Create dict entry letter/command chain.
+				# [https://stackoverflow.com/questions/6565286/storing-a-hash-in-a-hash]
+				# [https://perlmonks.org/?node=References+quick+reference]
+				my %h = ("commands", \@commands, "flags", $remainder);
+				$letters{$schar}{".$chain"} = \%h;
+
+				# $db{dict}{$letter}{$chain ? ".$chain" : ''} = {
+				# 	commands => \@commands,
+				# 	flags => $remainder
+				# };
+			} else {
+				# Store fallback.
+				$db{fallbacks}{".$chain"} = substr($remainder, 8);
+			}
+		}
+
+		# Add letters hash to db (main) hash.
+		$db{dict} = \%letters;
+	}
+
+	# delete($db{'levels'});
+	# delete($db{'dict'});
+	# delete($db{'fallbacks'});
+	# use Data::Dumper qw(Dumper);
+	# print Dumper \%db;
+}
+
+
 # (cli_input*) → parser → extractor → lookup → printer
 # *Supply CLI input from start to caret index.
-__parser();__extractor();__lookup();__printer();
+__parser();__extractor();__makedb();__lookup();__printer();

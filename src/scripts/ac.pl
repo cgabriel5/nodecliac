@@ -408,7 +408,7 @@ sub __paramparse {
 
 		# State is open and looking for an unescaped quote character.
 		if (!$qchar) {
-			if (($c eq '"' || $c eq "'") && $p ne '\\') {
+			if ($c =~ tr/"'// && $p ne '\\') {
 				# Set qchar as the opening quote character.
 				$qchar = $c;
 				# Capture character.
@@ -544,14 +544,14 @@ sub __parser {
 		# State is open and looking for an unescaped quote character.
 		if (!$qchar) {
 			# Check if current character is a quote character.
-			if (($c eq '"' || $c eq "'") && $p ne '\\') {
+			if ($c =~ tr/"'// && $p ne '\\') {
 				# Set qchar as the opening quote character.
 				$qchar = $c;
 				# Capture character.
 				$argument .= $c;
 
 			# For non quote characters add all except non-escaped spaces.
-			} elsif ($p ne '\\' && $c =~ /[ \t]/) {
+			} elsif ($p ne '\\' && $c =~ tr/ \t//) {
 				# Store argument and reset vars.
 				push(@args, $argument);
 				# Clear/reset variables.

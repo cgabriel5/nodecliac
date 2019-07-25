@@ -43,8 +43,6 @@ my @args = ();
 my $last = '';
 # my $elast_ptn = ''; # Escaped last word pattern.
 my $type = '';
-my %usedflags;
-my $usedflags_empty = 1;
 my @foundflags = ();
 my @completions = ();
 my $commandchain = '';
@@ -55,6 +53,11 @@ my $isquoted = 0;
 my $autocompletion = 1;
 my $input = substr($cline, 0, $cpoint); # CLI input from start to caret index.
 my $input_remainder = substr($cline, $cpoint, -1); # CLI input from caret index to input string end.
+
+# Used flags variables.
+my %usedflags;
+$usedflags{'valueless'};
+$usedflags{'multi'};
 
 # Vars to be used for storing used default positional arguments.
 my $used_default_pa_args = '';
@@ -108,82 +111,6 @@ my $prefix = 'NODECLIAC_';
 # 	# [https://alvinalexander.com/blog/post/perl/how-determine-size-number-elements-length-perl-array]
 # 	# [https://stackoverflow.com/questions/7406807/find-size-of-an-array-in-perl]
 # 	return $#array + 1; # scalar(@array);
-# }
-
-# Global flag only to be used for __dupecheck function.
-my %__dc_multiflags;
-my $__dc_value;
-
-# # Check whether provided flag is already used or not.
-# #
-# # @param {string} 1) - The flag to check.
-# # @return {boolean} - True if duplicate. Else false.
-# sub __dupecheck {
-# 	# Get provided flag arg.
-# 	my (
-# 		$flag,
-# 		$flag_fkey,
-# 		$flag_isbool,
-# 		$flag_eqsign,
-# 		$flag_multif,
-# 		$flag_value
-# 	) = @_;
-
-# 	# If used flags hash is empty, breakdown used flags and populate hash.
-# 	# if (!%usedflags) {
-# 	if ($usedflags_empty) {
-# 		# [https://perlmaven.com/multi-dimensional-hashes]
-# 		foreach my $uflag (@foundflags) {
-# 			# Breakup last word into flag/value.
-# 			my @matches = $uflag =~ /^([^=]+)((?:=\*?)(.*))?/;
-# 			# Default to empty string if no match.
-# 			# [https://perlmaven.com/how-to-set-default-values-in-perl]
-# 			my $uflag_fkey = $matches[0] // '';
-# 			my $uflag_value = $matches[2] // '';
-
-# 			# Store flag key and its value in hashes.
-# 			# [https://perlmaven.com/multi-dimensional-hashes]
-# 			$usedflags{$uflag_fkey}{$uflag_value} = 1;
-# 			$usedflags_empty = 0;
-# 		}
-# 	}
-
-# 	# Var boolean.
-# 	my $dupe = 0;
-
-# 	# If its a multi-flag then let it through.
-# 	if (exists($__dc_multiflags{$flag_fkey})) {
-# 		$dupe = 0;
-
-# 		# Although a multi-starred flag, check if value has been used or not.
-# 		if (exists($usedflags{$flag_fkey}{$flag_value})) { $dupe = 1; }
-
-# 	} elsif (!$flag_eqsign) { # Valueless flag dupe check.
-
-# 		# Check for --flag (no-value) and --flag=<Value> (with value).
-# 		if (exists($usedflags{$flag_fkey})) { $dupe = 1; }
-
-# 	} else { # Flag with value dupe check.
-# 		# Count substring occurrences: [https://stackoverflow.com/a/9538604]
-# 		# Dereference before use: [https://stackoverflow.com/a/37438262]
-# 		my $flag_values = $usedflags{$flag_fkey};
-# 		my $count = (keys %$flag_values);
-
-# 		# More than 1 occurrence flag has been used.
-# 		if ($count > 0) { $dupe = 1; }
-
-# 		# If there is exactly 1 occurrence and the flag matches the
-# 		# RegExp pattern we undupe flag as the 1 occurrence is being
-# 		# completed (i.e. a value is being completed).
-# 		# if ($count == 1 && $flag =~ $flgoptvalue) { $dupe = 0; }
-# 		if ($count == 1 && $flag_value) { $dupe = 0; }
-# 	}
-
-
-# 	$__dc_value = $dupe;
-
-# 	# Return dupe boolean result.
-# 	# return \$dupe;
 # }
 
 # Check whether string is left quoted (i.e. starts with a quote).
@@ -1270,6 +1197,31 @@ sub __extractor {
 	# # [https://stackoverflow.com/a/2458538]
 	# $elast_ptn = '^' . quotemeta($last);
 
+	# Parse used flags into a hash for quick lookup later on.
+	# [https://perlmaven.com/multi-dimensional-hashes]
+	foreach my $uflag (@foundflags) {
+		# Parse used flag without RegEx.
+		my $uflag_fkey = $uflag;
+		my $uflag_value = '';
+
+		# If flag contains an eq sign.
+		# [https://stackoverflow.com/a/87565]
+		# [https://perldoc.perl.org/perlvar.html]
+		# [https://www.perlmonks.org/?node_id=327021]
+		if ($uflag_fkey =~ tr/\=//) {
+			# Get eq sign index.
+			my $eqsign_index = index($uflag, '=');
+			$uflag_fkey = substr($uflag, 0, $eqsign_index);
+			$uflag_value = substr($uflag, $eqsign_index + 1);
+		}
+
+		# Store flag key and its value in hashes.
+		# [https://perlmaven.com/multi-dimensional-hashes]
+
+		if ($uflag_value) {$usedflags{$uflag_fkey}{$uflag_value} = 1;}
+		else { $usedflags{valueless}{$uflag_fkey} = undef; }
+	}
+
 	return;
 }
 
@@ -1285,7 +1237,7 @@ sub __lookup {
 		my $letter = substr($commandchain, 1, 1) // '';
 		if ($db{dict}{$letter}{$commandchain}) {
 			# Continue if rows exist.
-			my @used = ();
+			my %parsedflags;
 
 			# Get flags list.
 			my $flag_list = $db{dict}{$letter}{$commandchain}{flags};
@@ -1366,7 +1318,7 @@ sub __lookup {
 						$flag_value = substr($flag_value, 1);
 
 						# Track multi-starred flags.
-						$__dc_multiflags{$flag_fkey} = undef;
+						$usedflags{multi}{$flag_fkey} = undef;
 					}
 
 					# Create completion item flag.
@@ -1380,6 +1332,9 @@ sub __lookup {
 						# Skip flag to not add literal command to completions.
 						next;
 					}
+
+					# Store flag for later checks...
+					$parsedflags{"$flag_fkey=$flag_value"} = undef;
 				} else {
 					# Check for boolean indicator.
 					if (rindex($flag_fkey, '?') > -1) {
@@ -1389,6 +1344,9 @@ sub __lookup {
 
 					# Create completion item flag.
 					$cflag = $flag_fkey;
+
+					# Store flag for later checks...
+					$parsedflags{"$flag_fkey"} = undef;
 				}
 
 				# Unescape flag?
@@ -1400,83 +1358,44 @@ sub __lookup {
 				# don't show flags with values (--flag=value).
 				if (!$last_eqsign && $flag_value && !$flag_multif) { next; }
 
-				# # START: DE-DUPE FLAG LOGIC CHECKS. ########################
-				# # No dupes unless it's a multi-starred flag.
-				# # [https://stackoverflow.com/a/3255750]
+				# START: Remove duplicate flag logic. ==========================
 
-				# # If used flags hash is empty, breakdown used flags and populate hash.
-				# if ($usedflags_empty) {
-				# 	# [https://perlmaven.com/multi-dimensional-hashes]
-				# 	foreach my $uflag (@foundflags) {
-				# 		# # Breakup last word into flag/value.
-				# 		# my @matches = $uflag =~ /^([^=]+)((?:=\*?)(.*))?/;
-				# 		# # Default to empty string if no match.
-				# 		# # [https://perlmaven.com/how-to-set-default-values-in-perl]
-				# 		# my $uflag_fkey = $matches[0] // '';
-				# 		# my $uflag_value = $matches[2] // '';
+				# Dupe value defaults to false.
+				my $dupe = 0;
 
-				# 		# Breakup last word into flag/value (without RegEx).
-				# 		my $uflag_fkey = $uflag;
-				# 		my $uflag_value = '';
+				# If it's a multi-flag then let it through.
+				if (exists($usedflags{multi}{$flag_fkey})) {
 
-				# 		# If flag contains an eq sign.
-				# 		if ($uflag_fkey =~ tr/\=//) {
-				# 			# Get eq sign index.
-				# 			my $eqsign_index = index($uflag, '=');
-				# 			$uflag_fkey = substr($uflag, 0, $eqsign_index);
-				# 			$uflag_value = substr($uflag, $eqsign_index + 1);
-				# 		}
+					# Although a multi-starred flag, check if value has been used or not.
+					if ($flag_value && exists($usedflags{$flag_fkey}{$flag_value})) { $dupe = 1; }
 
-				# 		# Store flag key and its value in hashes.
-				# 		# [https://perlmaven.com/multi-dimensional-hashes]
-				# 		$usedflags{$uflag_fkey}{$uflag_value} = 1;
-				# 		$usedflags_empty = 0;
-				# 	}
-				# }
+				} elsif (!$flag_eqsign) {
 
-				# # Var boolean.
-				# my $dupe = 0;
+					# Valueless --flag (no-value) dupe check.
+					if (exists($usedflags{valueless}{$flag_fkey})) { $dupe = 1; }
 
-				# # If its a multi-flag then let it through.
-				# if (exists($__dc_multiflags{$flag_fkey})) {
-				# 	$dupe = 0;
+				} else { # --flag=<value> (with value) dupe check.
 
-				# 	# Although a multi-starred flag, check if value has been used or not.
-				# 	if (exists($usedflags{$flag_fkey}{$flag_value})) { $dupe = 1; }
+					# Count substring occurrences: [https://stackoverflow.com/a/9538604]
+					# Dereference before use: [https://stackoverflow.com/a/37438262]
+					my $flag_values = $usedflags{$flag_fkey};
+					# my @count = (keys %$flag_values);
 
-				# } elsif (!$flag_eqsign) { # Valueless flag dupe check.
+					# If at least 1 occurrence in used hash, flag has been used.
+					# if (@count && $flag_value) { $dupe = 1; }
+					# if (@count) { $dupe = 1; }
+					if ($flag_values && !$flag_value) { $dupe = 1; }
 
-				# 	# Check for --flag (no-value) and --flag=<Value> (with value).
-				# 	if (exists($usedflags{$flag_fkey})) { $dupe = 1; }
+					# If there is exactly 1 occurrence and the flag matches the
+					# RegExp pattern we undupe flag as the 1 occurrence is being
+					# completed (i.e. a value is being completed).
+					# if ($flag_value) { $dupe = 0; }
+				}
 
-				# } else { # Flag with value dupe check.
-				# 	# Count substring occurrences: [https://stackoverflow.com/a/9538604]
-				# 	# Dereference before use: [https://stackoverflow.com/a/37438262]
-				# 	my $flag_values = $usedflags{$flag_fkey};
-				# 	my $count = (keys %$flag_values);
+				# If flag is a dupe skip it.
+				if ($dupe) { next; }
 
-				# 	# More than 1 occurrence flag has been used.
-				# 	if ($count > 0) { $dupe = 1; }
-
-				# 	# If there is exactly 1 occurrence and the flag matches the
-				# 	# RegExp pattern we undupe flag as the 1 occurrence is being
-				# 	# completed (i.e. a value is being completed).
-				# 	if ($count == 1 && $flag_value) { $dupe = 0; }
-				# }
-
-				# # END: DE-DUPE FLAG LOGIC CHECKS. ##########################
-
-				# # If the flag is a dupe...
-				# if ($dupe) {
-				# 	# If flag exits and is already used, add a space after it.
-				# 	if ($flag eq $last && !$last_eqsign) {
-				# 		push(@used, $last);
-				# 	} else {
-				# 		if ($flag_value) { push(@completions, $flag_value); }
-				# 	}
-
-				# 	next;
-				# }
+				# END: Remove duplicate flag logic. ============================
 
 				# If last word is in the form → "--flag=" then we need to
 				# remove the last word from the flag to only return its
@@ -1547,13 +1466,28 @@ sub __lookup {
 			# 	}
 			# }
 
-			# # Note: If there are no completions but there is a single
-			# # used flag, this means no completions exist and the
-			# # current flag exist. Therefore, add the current word (the
-			# # used flag) so that bash appends a space to it.
-			# if (!@completions && @used == 1) {
-			# 	push(@completions, $used[0]);
-			# }
+			# If no completions exists then simply add last item to Bash
+			# completion can add append a space to it.
+			if (!@completions) {
+				my $key = $last_fkey . (!$last_value ? "" : "=$last_value");
+				my $item = (!$last_value ? $last : $last_value);
+				# [https://www.perlmonks.org/?node_id=1003939]
+				if (exists($parsedflags{$key})) { push(@completions, $item); }
+			} else {
+				# Note: If the last word (the flag in this case) is an options
+				# flag (i.e. --flag=val) we need to remove the possibly already
+				# used value. For example take the following scenario. Say we
+				# are completing the following flag '--flag=7' and our two
+				# options are '7' and '77'. Since '7' is already used we remove
+				# that value to leave '77' so that on the next tab it can be
+				# completed to '--flag=77'.
+				if ($last_value && @completions >= 2) {
+					my $last_val_length = length($last_value);
+					# Remove values of same length as current value.
+					# [https://stackoverflow.com/a/15952649]
+					@completions = grep {length != $last_val_length} @completions;
+				}
+			}
 		}
 	} else { # Command completion:
 

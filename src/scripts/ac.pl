@@ -29,19 +29,11 @@ my $acdef = $ARGV[4]; # Get the acdef definitions file.
 # Vars - ACDEF file parsing variables.
 my %db;
 my %seen;
-# $db{'levels'};
 $db{'fallbacks'} = {};
-
-# # Get the command's ACDEF file.
-# my $acdefpath = "$hdir/.nodecliac/registry/$maincommand/$maincommand.acdef";
-# # If the ACDEF file does not exist then exit script.
-# exit if (not -f $acdefpath);
-# my $acdef = do{local(@ARGV,$/)="$acdefpath";<>}; # Get the acdef definitions file.
 
 # Vars.
 my @args = ();
 my $last = '';
-# my $elast_ptn = ''; # Escaped last word pattern.
 my $type = '';
 my @foundflags = ();
 my @completions = ();
@@ -63,24 +55,10 @@ $usedflags{'multi'};
 my $used_default_pa_args = '';
 my $collect_used_pa_args = '';
 
-# # Store hook scripts paths.
-# my $hpaths = '';
-
 # Set environment vars so command has access.
 my $prefix = 'NODECLIAC_';
 
 # RegExp Patterns: [https://stackoverflow.com/a/953076]
-# my $flgopt = qr/-{1,2}[^=]*\=/; # "--flag/-flag="
-# my $flgoptvalue = qr/^-{1,2}[^=*]*\=\*?.{1,}/; # "--flag/-flag=value"
-# my $flagcommand = qr/^-{1,2}[^=*]*\=\*?\$\((.{1,})\)$/; # "--flag/-flag=$("<COMMAND-STRING>")"
-# my $flagcommand = qr/^\$\(.{1,}\)$/; # "--flag/-flag=$("<COMMAND-STRING>")"
-
-# # RegExp Patterns:
-# # my $flgopt = '-{1,2}[-.a-zA-Z0-9]*='; # "--flag/-flag="
-# my $flagstartr = '^-{1,2}[a-zA-Z0-9]([-.a-zA-Z0-9]{1,})?\=\*?'; # "--flag/-flag=*"
-# # my $flgoptvalue = $flagstartr . '.{1,}$'; # "--flag/-flag=value"
-# my $commandstr = '\$\((.{1,})\)$'; # $("<COMMAND-STRING>")
-# my $flagcommand = $flagstartr . $commandstr; # "--flag/-flag=$("<COMMAND-STRING>")"
 
 # # Log local variables and their values.
 # sub __debug {
@@ -96,74 +74,11 @@ my $prefix = 'NODECLIAC_';
 # 	print "autocompletion: '$autocompletion'\n";
 # }
 
-# # Return provided arrays length.
-# #
-# # @param {array} 1) - The array's reference.
-# # @return {number} - The array's size.
-# #
-# # @resource [https://perlmaven.com/passing-two-arrays-to-a-function]
-# sub __len {
-# 	# Get arguments.
-# 	my ($array_ref) = @_;
-# 	# Dereference and use array.
-# 	my @array = @{ $array_ref };
-
-# 	# [https://alvinalexander.com/blog/post/perl/how-determine-size-number-elements-length-perl-array]
-# 	# [https://stackoverflow.com/questions/7406807/find-size-of-an-array-in-perl]
-# 	return $#array + 1; # scalar(@array);
-# }
-
 # Check whether string is left quoted (i.e. starts with a quote).
 #
 # @param {string} 1) - The string to check.
 # @return {boolean} - True means it's left quoted.
-sub __is_lquoted {
-	# Get first character's numerical value.
-	# my $res = ord($_[0]);
-	# return ($res == 34 || $res == 39); # Single quote: 39, double quote: 34.
-	# return (rindex($_[0], '"', 0) == 0 || rindex($_[0], '\'', 0) == 0); # Single quote: 39, double quote: 34.
-	return (substr($_[0], 0, 1) =~ tr/"'//); # Single quote: 39, double quote: 34.
-}
-
-# # Get last command in chain: 'mc.sc1.sc2' → 'sc2'
-# #
-# # @param {string} 1) - The row to extract command from.
-# # @param {number} 2) - The chain replacement type.
-# # @return {string} - The last command in chain.
-# sub __last_command {
-# 	# Get arguments.
-# 	my ($row, $type, $lchain) = @_;
-
-# 	# Extract command chain from row.
-# 	# ($row) = $row =~ /^[^ ]*/g;
-# 	if ($row =~ /^([^ ]*)/) { $row = $1; }
-
-# 	# Chain replacement depends on completion type.
-# 	if ($type == 2) {
-# 		# # Get the last command in chain.
-# 		# my @cparts = split(/(?<!\\)\./, $row);
-# 		# $row = pop(@cparts);
-
-# 		# Get the last command in chain.
-# 		$row = (split(/(?<!\\)\./, $row))[-1];
-
-# 		# Slower then split/pop^.
-# 		# if ($row =~ /((?!\.)((?:\\\.)|[^\.])+)$/) { $row = $1; }
-# 	} else {
-# 		$row = substr($row, $lchain + 1, length($row));
-# 		# $row =~ s/$commandchain\.//;
-# 	}
-
-# 	# Extract next command in chain.
-# 	my $lastcommand;
-# 	if ($row =~ /^([^\s]*)(?=(?<!\\)\.)/) { $lastcommand = $1; }
-# 	$lastcommand //= $row;
-
-# 	# Remove any slashes from command.
-# 	if (__includes($lastcommand, "\\")) { $lastcommand =~ s/\\//; }
-
-# 	return $lastcommand;
-# }
+sub __is_lquoted { return (substr($_[0], 0, 1) =~ tr/"'//); }
 
 # Check whether string starts with a hyphen.
 #
@@ -172,27 +87,13 @@ sub __is_lquoted {
 #
 # @resource [https://stackoverflow.com/a/34951053]
 # @resource [https://www.thoughtco.com/perl-chr-ord-functions-quick-tutorial-2641190]
-# sub __starts_with_hyphen { return ord($_[0]) == 45; }
 sub __starts_with_hyphen { return rindex($_[0], '-', 0) == 0; }
-# sub __starts_with_hyphen { return substr($_[0], 0, 1) =~ tr/-//; }
-# sub __starts_with_hyphen { return substr($_[0], 0, 1) eq '-'; }
 
 # Check whether string contains provided substring.
 #
 # @param {string} 1) - The string to check.
 # @return {boolean} - 1 means substring is found in string.
 sub __includes { return rindex($_[0], $_[1]) + 1; }
-
-# # Removes duplicate values from provided array.
-# #
-# # @param {string} 1) - The provided array.
-# # @return {undefined} - Nothing is returned.
-# #
-# # @resource [https://stackoverflow.com/a/7657]
-# sub __unique {
-# 	my %seen;
-# 	grep(!$seen{$_}++, @_);
-# }
 
 # Checks whether the provided string is a valid file or directory.
 #
@@ -277,6 +178,15 @@ sub __validate_command {
 	if ($item =~ tr/-._:\\a-zA-Z0-9//c) { exit; }
 	return $item;
 }
+
+# This is for future reference on how to escape code for the shell,
+# bash -c command, and a Perl one-liner. The following lines of code
+# can be copy/pasted into the terminal.
+# [https://stackoverflow.com/a/20796575]
+# [https://stackoverflow.com/questions/17420994/bash-regex-match-string]
+# perl -e 'print `bash -c "for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ \\\"\\\${f##*/}\\\" =~ ^(acdef|input)\\.[a-zA-Z]+\$ ]] && echo \"\\\$f\"; done;"`';
+#                 bash -c "for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ \"\${f##*/}\" =~ ^(acdef|input)\\.[a-zA-Z]+$ ]] && echo \"\$f\"; done;"
+#                          for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ "${f##*/}" =~ ^(acdef|input)\.[a-zA-Z]+$ ]] && echo "$f"; done
 
 # Parse and run command-flag (flag) or default command chain command
 #     (commandchain).
@@ -543,40 +453,11 @@ sub __paramparse {
 	return @arguments;
 }
 
-# # Checks whether provided file (path) exists.
-# #
-# # @param {string} 1) - The file's path.
-# # @return {boolean} - True if file exists. Otherwise false.
-# sub __file_exists {
-# 	# Get arguments.
-# 	my ($scriptpath) = @_;
-
-# 	# [https://stackoverflow.com/a/2601042]
-# 	# [https://stackoverflow.com/a/8584617]
-# 	# [https://www.perlmonks.org/?node_id=510490]
-# 	return (-e "$scriptpath");
-# }
-
-# # Checks whether provided file (path) is executable.
-# #
-# # @param {string} 1) - The file's path.
-# # @return {boolean} - True if file is executable. Otherwise false.
-# sub __file_exec {
-# 	# Get arguments.
-# 	my ($scriptpath) = @_;
-
-# 	# [https://stackoverflow.com/a/2601042]
-# 	# [https://stackoverflow.com/a/8584617]
-# 	# [https://www.perlmonks.org/?node_id=510490]
-# 	return (-x "$scriptpath");
-# }
-
 # Set environment variables to access in custom scripts.
 #
 # @return {undefined} - Nothing is returned.
 sub __set_envs {
 	# Get parsed arguments count.
-	# my $l = __len(\@args);
 	my $l = $#args + 1;
 
 	# Use hash to store environment variables: [https://perlmaven.com/perl-hashes]
@@ -630,145 +511,6 @@ sub __set_envs {
 
 	return;
 }
-
-# # Get hook scripts file paths list. Used for hook scripts.
-# #
-# # @return {undefined} - Nothing is returned.
-# sub __hook_filepaths {
-# 	# Use shell commands over Perl's glob function. The glob function is much
-# 	# slower than Bash commands. Once the command is run store the commands
-# 	# for later use/lookup.
-# 	# [https://stackoverflow.com/a/6364244]
-# 	# [https://stackoverflow.com/a/34195247]
-# 	# [https://zybuluo.com/ysongzybl/note/96951]
-# 	# $hpaths = `bash -c "for f in ~/.nodecliac/registry/$maincommand/hooks/{acdef,input}.*; do [ -e \"\$f\" ] && echo \"\\\$f\" || echo \"\"; done 2> /dev/null"`;
-# 	# $hpaths = `bash -c "for f in ~/.nodecliac/registry/$maincommand/hooks/*.*; do [[ \\\"\\\${f##*/}\\\" =~ ^(acdef|input)\\.[a-zA-Z]+\$ ]] && echo \"\\\$f\"; done;"`;
-# 	$hpaths = `bash -c "for f in ~/.nodecliac/registry/$maincommand/hooks/*.*; do [[ \\\"\\\${f##*/}\\\" =~ ^(prehook)\\.[a-zA-Z]+\$ ]] && echo \"\\\$f\"; done;"`;
-
-# 	# $hpaths = `for f in ~/.nodecliac/registry/yarn/hooks/*.*; do file=\"\${f##*/}\"; name=\"\${file%%.*}\"; filter=\"\`echo \"\$name\" | grep ^prehook\$)\`\"; [ -z \"\$filter\" ] || echo \"\$f\"; done`;
-
-# 	# $hpaths = `ls ~/.nodecliac/registry/$maincommand/hooks/*.* -u`;
-# 	# Test in command line with Perl: [https://stackoverflow.com/a/3374281]
-# 	# perl -e 'print `bash -c "for f in ~/.nodecliac/registry/yarn/hooks/{acdef,input}.*; do [ -e \"\$f\" ] && echo \"\\\$f\" || echo \"\"; done 2> /dev/null"`';
-
-# 	# This is for future reference on how to escape code for the shell,
-# 	# bash -c command, and a Perl one-liner. The following lines of code
-# 	# can be copy/pasted into the terminal.
-# 	# [https://stackoverflow.com/a/20796575]
-# 	# [https://stackoverflow.com/questions/17420994/bash-regex-match-string]
-# 	# perl -e 'print `bash -c "for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ \\\"\\\${f##*/}\\\" =~ ^(acdef|input)\\.[a-zA-Z]+\$ ]] && echo \"\\\$f\"; done;"`';
-# 	#                 bash -c "for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ \"\${f##*/}\" =~ ^(acdef|input)\\.[a-zA-Z]+$ ]] && echo \"\$f\"; done;"
-# 	#                          for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ "${f##*/}" =~ ^(acdef|input)\.[a-zA-Z]+$ ]] && echo "$f"; done
-# }
-
-# # Runs acdef hook script. This is pre-parsing hook.
-# #
-# # @return {undefined} - Nothing is returned.
-# sub __hook_acdef {
-# 	my $scriptpath = ''; # Store hook script file path.
-# 	# ACDEF RegExp file pattern.
-# 	my $pattern = '^(.*' . "\\/acdef\\." . '.*?)$';
-# 	if ($hpaths =~ /$pattern/m) { $scriptpath = $1; }
-
-# 	# If path does not exist then return from function.
-# 	if (!$scriptpath) { return; }
-
-# 	# File checks - Is this needed as any error will be are suppressed?
-# 	# if (!(__file_exists($scriptpath) && __file_exec($scriptpath))) { return; }
-
-# 	# Set env variable to access in hook script.
-# 	__set_envs('ACDEF');
-
-# 	# Run command string.
-# 	my $output = `\"$scriptpath\" 2> /dev/null`;
-
-# 	# Set acdef variable to returned output.
-# 	if ($output) { $acdef = $output; }
-# }
-
-# # Runs input hook script. This is pre-parsing hook.
-# #
-# # @return {undefined} - Nothing is returned.
-# sub __hook_input {
-# 	my $scriptpath = ''; # Store hook script file path.
-# 	# Input RegExp file pattern.
-# 	my $pattern = '^(.*' . "\\/input\\." . '.*?)$';
-# 	if ($hpaths =~ /$pattern/m) { $scriptpath = $1; }
-
-# 	# If path does not exist then return from function.
-# 	if (!$scriptpath) { return; }
-
-# 	# File checks - Is this needed as any error will be are suppressed?
-# 	# if (!(__file_exists($scriptpath) && __file_exec($scriptpath))) { return; }
-
-# 	# Set env variable to access in hook script.
-# 	__set_envs('INPUT');
-
-# 	# Run command string.
-# 	my $output = `\"$scriptpath\" 2> /dev/null`;
-# 	# Trim newlines from output.
-# 	$output =~ s/^\n+|\n+$//g;
-
-# 	# If output is empty then return from function.
-# 	if (!$output) { return; };
-
-# 	# Reset variable(s).
-# 	$input = $output;
-# 	$cline = "$input$input_remainder"; # Original (complete) CLI input.
-# 	$cpoint = length($input); # Caret index when [tab] key was pressed.
-# 	$lastchar = substr($cline, $cpoint - 1, 1); # Character before caret.
-# 	$nextchar = substr($cline, $cpoint, 1); # Character after caret.
-# 	$cline_length = length($cline); # Original input's length.
-# 	# $input = substr($cline, 0, $cpoint); # CLI input from start to caret index.
-# 	# $input_remainder = substr($cline, $cpoint, -1); # CLI input from caret index to input string end.
-# }
-
-# # Runs pre hook script.
-# #
-# # @return {undefined} - Nothing is returned.
-# sub __hook_pre {
-# 	# Hook directory path.
-# 	my $hookdir = "$hdir/.nodecliac/registry/yarn/hooks";
-# 	# my $scriptpath = "$hookdir/prehook.sh";
-
-# 	my $scriptpath = ''; # Store hook script file path.
-# 	my $pattern = '^(.*' . "\\/prehook\\." . '.*?)$';
-# 	if ($hpaths =~ /$pattern/m) { $scriptpath = $1; }
-
-# 	# If path does not exist then return from function.
-# 	# [https://www.perlmonks.org/?node_id=510490]
-# 	if (!$scriptpath || not -e $scriptpath) { return; }
-# 	# if (not -e $scriptpath) { return; }
-
-# 	# Set env variable to access in hook script.
-# 	# __set_envs('INPUT', 'ACDEF', 'MAIN_COMMAND');
-# 	__set_envs('INPUT', 'MAIN_COMMAND', 'INPUT_ORIGINAL');
-
-# 	# Run command string.
-# 	my $output = `\"$scriptpath\" 2> /dev/null`;
-
-# 	# If output is empty then return from function.
-# 	if (!$output) { return; };
-
-# 	# Modify input variable if key is in output string.
-# 	if (__includes($output, 'input')) {
-# 		# Reset variable(s).
-# 		$input = `cat $hookdir/.input.data`; # Get file contents.
-# 		$cline = "$input$input_remainder"; # Original (complete) CLI input.
-# 		$cpoint = length($input); # Caret index when [tab] key was pressed.
-# 		$lastchar = substr($cline, $cpoint - 1, 1); # Character before caret.
-# 		$nextchar = substr($cline, $cpoint, 1); # Character after caret.
-# 		$cline_length = length($cline); # Original input's length.
-# 		# $input = substr($cline, 0, $cpoint); # CLI input from start to caret index.
-# 		# $input_remainder = substr($cline, $cpoint, -1); # CLI input from caret index to input string end.
-# 	}
-
-# 	# Modify acdef variable if key is in output string.
-# 	if (__includes($output, 'acdef')) {
-# 		# Get file contents and set acdef variable to returned output.
-# 		$acdef = `cat "$hookdir/.acdef.data"`;
-# 	}
-# }
 
 # Parses CLI input. Returns input similar to that of process.argv.slice(2).
 #     Adapted from argsplit module.
@@ -866,7 +608,6 @@ sub __parser {
 # myapp run -u $(id -u $USER):$(id -g $USER )
 sub __extractor {
 	# Vars.
-	# my $l = __len(\@args);
 	my $l = $#args + 1;
 
 	my @oldchains = ();
@@ -1191,12 +932,6 @@ sub __extractor {
 		}
 	}
 
-	# # Escape last word pattern.
-	# # Escape special chars: [https://stackoverflow.com/a/576459]
-	# # [http://perldoc.perl.org/functions/quotemeta.html]
-	# # [https://stackoverflow.com/a/2458538]
-	# $elast_ptn = '^' . quotemeta($last);
-
 	# Parse used flags into a hash for quick lookup later on.
 	# [https://perlmaven.com/multi-dimensional-hashes]
 	foreach my $uflag (@foundflags) {
@@ -1419,52 +1154,30 @@ sub __lookup {
 				push(@completions, $cflag);
 			}
 
-			# # Note: If the last word (the flag in this case) is an
-			# # options flag (i.e. --flag=val) we need to remove the
-			# # possible already used value. For example take the
-			# # following scenario. Say we are completing the following
-			# # flag '--flag=7' and our two options are '7' and '77'.
-			# # Since '7' is already used we remove that value to leave
-			# # '77' so that on the next tab it can be completed to
-			# # '--flag=77'.
-			# my $l = $#completions;
+			# Note: Account for quoted strings. If last value is quoted, then
+			# add closing quote.
+			if ($last_val_quoted) {
+				# Get starting quote (i.e. " or ').
+				my $quote = substr($last_value, 0, 1);
 
-			# # Note: Account for quoted strings. If the last value is
-			# # quoted, then add closing quote.
-			# if ($last_val_quoted) {
-			# 	# Get starting quote (i.e. " or ').
-			# 	my $quote = substr($last_value, 0, 1);
+				# Close string with matching quote if not already.
+				if (substr($last_value, -1) ne $quote) {
+					$last_value .= $quote;
+				}
 
-			# 	# Close string with matching quote if not already.
-			# 	if (substr($last_value, -1) ne $quote) {
-			# 		$last_value .= $quote;
-			# 	}
+				# Add quoted indicator to type string to later escape
+				# for double quoted strings.
+				$type = 'flag;quoted';
+				if ($quote eq '"') {
+					$type .= ';noescape';
+				}
 
-			# 	# Add quoted indicator to type string to later escape
-			# 	# for double quoted strings.
-			# 	$type = 'flag;quoted';
-			# 	if ($quote eq '"') {
-			# 		$type .= ';noescape';
-			# 	}
-
-			# 	# If the value is empty return.
-			# 	if (length($last_value) == 2) {
-			# 		push(@completions, "$quote$quote");
-			# 		return;
-			# 	}
-			# }
-
-			# # If the last word contains an eq sign, it has a value
-			# # option, and there are more than 2 possible completions
-			# # we remove the already used option.
-			# if ($last_value && ($l + 1) >= 2) {
-			# 	for (my $i = $l; $i >= 0; $i--) {
-			# 		if (length($completions[$i]) == length($last_value)) {
-			# 			# Remove item from array.
-			# 			splice(@completions, $i, 1);
-			# 		}
-			# 	}
-			# }
+				# If the value is empty return.
+				if (length($last_value) == 2) {
+					push(@completions, "$quote$quote");
+					return;
+				}
+			}
 
 			# If no completions exists then simply add last item to Bash
 			# completion can add append a space to it.
@@ -1671,58 +1384,14 @@ sub __printer {
 	return;
 }
 
-# Completion logic:
-
-# # # Run [pre-parse] hooks.
-# __hook_filepaths();
-# # # Variable must be populated with hook file paths to run scripts.
-# # if ($hpaths) { __hook_acdef();__hook_input(); }
-# __hook_pre();
-
 sub __makedb {
-	# # Set cache variable to false.
-	# my $cache = 0;
-	# my $last_mtime;
-	# my $basedir = "$hdir/.nodecliac/registry/$maincommand";
-	# my $cachedir = "$basedir/cache";
-	# # Check for cached db data directory exists.
-	# if (-d $cachedir) {
-	# 	# Get last modified .acdef file time to compare.
-	# 	my $resourcepath = "$cachedir/last_modified.text";
-	# 	if (-f $resourcepath) {
-	# 		my $last_modified = do{local(@ARGV,$/)=$resourcepath;<>};
-	# 		chomp($last_modified); # Remove trailing new line.
-	# 		# Get ACDEF file's last modified time.
-	# 		$last_mtime = (stat("$basedir/$maincommand.acdef"))[9];
-	# 		# Set cache variable.
-	# 		$cache = (($last_modified > $last_mtime) || 0);
-	# 	}
-	# }
-
 	# To list all commandchains/flags without a commandchain.
 	if (!$commandchain) {
-
 		# Note: Although not DRY, per say, dedicating specific logic routes
 		# speeds up auto-completion tremendously.
 
 		# For first level commands only...
 		if (!$last) {
-
-			# if ($cache) {
-			# 	# Get the command's ACDEF file.
-			# 	my $resourcepath = "$cachedir/l1commands.text";
-			# 	# If the ACDEF file does not exist then exit script.
-			# 	# exit if (not -f $acdefpath);
-			# 	my $commands = do{local(@ARGV,$/)=$resourcepath;<>}; # Get the acdef definitions file.
-			# 	chomp($commands); # Remove trailing new line.
-
-			# 	# for (split /\n/, $commands) { $db{levels}{1}{$_} = undef; }
-			# 	# [https://stackoverflow.com/a/16157433]
-			# 	$db{levels}{1}{$_}++ for (split /\n/, $commands);
-
-			# 	return;
-			# }
-
 			for my $line (split /\n/, $acdef) {
 				# First character must be a period or a space.
 				if (rindex($line, '.', 0) != 0) { next; }
@@ -1735,31 +1404,12 @@ sub __makedb {
 				my $dot_index = index($chain, '.');
 				my $command = substr($chain, 0, $dot_index != -1 ? $dot_index : $space_index);
 				$db{levels}{1}{$command} = undef;
-				# $db{levels}{1}{$command}++;
 			}
 
 		# For first level flags...
 		} else {
-
 			# Get main command flags.
 			if ($acdef =~ /^ ([^\n]+)/m) {$db{dict}{''}{''} = { flags => $1 }; }
-
-			# my %letters;
-			# for my $line (split /\n/, $acdef) {
-			# 	# First character must be a period or a space.
-			# 	if (rindex($line, '.', 0) != 0) { next; }
-
-			# 	# Get command/flags/fallbacks from each line.
-			# 	my $space_index = index($line, ' ');
-			# 	my $chain = substr($line, 0, $space_index - 1);
-
-			# 	# Create dict entry if it doesn't already exist.
-			# 	$letters{substr($chain, 1, 1)}{$chain} = {
-			# 		flags => substr($line, $space_index + 1)
-			# 	};
-			# }
-			# # Add letters hash to db (main) hash.
-			# $db{dict} = \%letters;
 		}
 
 	# General auto-completion. Parse entire .acdef file contents.
@@ -1800,11 +1450,6 @@ sub __makedb {
 				# [https://perlmonks.org/?node=References+quick+reference]
 				my %h = ("commands", \@commands, "flags", $remainder);
 				$letters{$schar}{".$chain"} = \%h;
-
-				# $db{dict}{$letter}{$chain ? ".$chain" : ''} = {
-				# 	commands => \@commands,
-				# 	flags => $remainder
-				# };
 			} else {
 				# Store fallback.
 				$db{fallbacks}{".$chain"} = substr($remainder, 8);
@@ -1814,12 +1459,6 @@ sub __makedb {
 		# Add letters hash to db (main) hash.
 		$db{dict} = \%letters;
 	}
-
-	# delete($db{'levels'});
-	# delete($db{'dict'});
-	# delete($db{'fallbacks'});
-	# use Data::Dumper qw(Dumper);
-	# print Dumper \%db;
 }
 
 

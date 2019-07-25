@@ -26,11 +26,6 @@ my $cpoint = int($ARGV[2]); # Caret index when [tab] key was pressed.
 my $maincommand = $ARGV[3]; # Get command name from sourced passed-in argument.
 my $acdef = $ARGV[4]; # Get the acdef definitions file.
 
-# Vars - ACDEF file parsing variables.
-my %db;
-my %seen;
-$db{'fallbacks'} = {};
-
 # Vars.
 my @args = ();
 my $last = '';
@@ -46,6 +41,11 @@ my $autocompletion = 1;
 my $input = substr($cline, 0, $cpoint); # CLI input from start to caret index.
 my $input_remainder = substr($cline, $cpoint, -1); # CLI input from caret index to input string end.
 
+# Vars - ACDEF file parsing variables.
+my %db;
+my %seen;
+$db{'fallbacks'} = {};
+
 # Used flags variables.
 my %usedflags;
 $usedflags{'valueless'};
@@ -53,7 +53,6 @@ $usedflags{'multi'};
 
 # Vars to be used for storing used default positional arguments.
 my $used_default_pa_args = '';
-my $collect_used_pa_args = '';
 
 # Set environment vars so command has access.
 my $prefix = 'NODECLIAC_';
@@ -587,8 +586,9 @@ sub __parser {
 	return;
 }
 
-# Lookup command/subcommand/flag definitions from the acdef to return
-#     possible completions list.
+# Determine command chain, used flags, and set needed variables (i.e.
+#     commandchain, autocompletion, last, lastchar, isquoted,
+#     collect_used_pa_args, used_default_pa_args).
 #
 # Test input:
 # myapp run example go --global-flag value
@@ -609,12 +609,10 @@ sub __parser {
 sub __extractor {
 	# Vars.
 	my $l = $#args + 1;
-
 	my @oldchains = ();
 	# Following variables are used when validating command chain.
 	my $last_valid_chain = '';
-
-	# my @list;
+	my $collect_used_pa_args = '';
 
 	# Loop over CLI arguments.
 	for (my $i = 1; $i < $l; $i++) {
@@ -637,25 +635,15 @@ sub __extractor {
 		if (!__starts_with_hyphen($item)) {
 			# Store default positional argument if flag is set.
 			if ($collect_used_pa_args) {
-				# Add used argument.
-				$used_default_pa_args .= "\n$item";
-				# Skip all following logic.
-				next;
+				$used_default_pa_args .= "\n$item"; # Add used argument.
+				next; # Skip all following logic.
 			}
 
 			# Store command.
 			$commandchain .= '.' . __normalize_command($item);
 
-			# if (!@list) {
-			# 	@list = keys %{ $db{'dict'}{substr($commandchain, 1, 1)} };
-			# }
-			# # Check that command chain exists in acdef.
-			# my $pattern = '^' . quotemeta($commandchain);
-			# if (grep(/$pattern/o, @list)) {
-
 			# Check that command chain exists in acdef.
-			# my $pattern = '^' . quotemeta($commandchain) . '.* ';
-			my $pattern = '^(?![#|\n])' . quotemeta($commandchain) . '[^ ]*? ';
+			my $pattern = '^' . quotemeta($commandchain) . '[^ ]* ';
 			if ($acdef =~ /$pattern/m) {
 				# If there is a match then store chain.
 				$last_valid_chain = $commandchain;
@@ -673,7 +661,7 @@ sub __extractor {
 			@foundflags = ();
 		} else { # We have a flag.
 			# Store commandchain to revert to it if needed.
-			push(@oldchains, $commandchain);
+			if ($commandchain) { push(@oldchains, $commandchain); }
 			$commandchain = '';
 
 			# Clear stored used default positional arguments string.
@@ -686,6 +674,11 @@ sub __extractor {
 				next;
 			}
 
+			# Validate argument.
+			my $vitem = __validate_flag($item);
+			# Check whether flag is a boolean:
+			my $skipflagval = 0;
+
 			# Look ahead to check if next item exists. If a word
 			# exists then we need to check whether is a value option
 			# for the current flag or if it's another flag and do
@@ -693,118 +686,66 @@ sub __extractor {
 			if ($nitem) {
 				# If the next word is a value...
 				if (!__starts_with_hyphen($nitem)) {
-					# Check whether flag is a boolean:
-					# Get the first non empty command chain.
-					my $oldchain = '';
-					my $skipflagval = 0;
-					for (my $j = ($#oldchains); $j >= 0; $j--) {
-						my $chain = $oldchains[$j];
-						if ($chain) {
-							$oldchain = $chain;
-
-							# # Lookup flag definitions from acdef.
-							# my $letter = substr($oldchain, 1, 1);
-							# if ($db{dict}{$letter}{$oldchain}) {
-							# 	my $pattern = "${item}\\?(\\||\$)";
-							# 	if ($db{dict}{$letter}{$oldchain}{flags} =~ /$pattern/) { $skipflagval = 1; }
-							# }
-
-							# Lookup flag definitions from acdef.
-							my $pattern = '^' . $oldchain . ' (-{1,2}.*)$';
-							if ($acdef =~ /$pattern/m) {
-								my $pattern = "${item}\\?" . '(\\||$)';
-								if ($1 =~ /$pattern/) { $skipflagval = 1; }
-							}
-
-							last;
-						}
+					# Get flag lists for command from ACDEF.
+					my $pattern = '^' . quotemeta($oldchains[-1]) . ' (.+)$';
+					if ($acdef =~ /$pattern/m) {
+						# Check if the item (flag) exists as a boolean
+						# in the flag lists. If so turn on flag.
+						$pattern = "$item\\?(\\||\$)";
+						if ($1 =~ /$pattern/) { $skipflagval = 1; }
 					}
 
 					# If the flag is not found then simply add the
 					# next item as its value.
 					if (!$skipflagval) {
-						push(@foundflags, __validate_flag($item) . "=$nitem");
+						$vitem .= "=$nitem";
 
 						# Increase index to skip added flag value.
 						$i++;
-					} else {
-						# It's a boolean flag. Add boolean marker (?).
-						$args[$i] = $args[$i] . '?';
 
-						push(@foundflags, __validate_flag($item));
-					}
-
-				} else { # The next word is a another flag.
-					push(@foundflags, __validate_flag($item));
+					# It's a boolean flag so add boolean marker (?).
+					} else { $args[$i] = $args[$i] . '?'; }
 				}
+
+				# Add argument (flag) to found flags array.
+				push(@foundflags, $vitem);
 
 			} else {
-				# Check whether flag is a boolean
-				# Get the first non empty command chain.
-				my $oldchain = '';
-				my $skipflagval = 0;
-				for (my $j = ($#oldchains); $j >= 0; $j--) {
-					my $chain = $oldchains[$j];
-					if ($chain) {
-						$oldchain = $chain;
-
-						# # Lookup flag definitions from acdef.
-						# my $letter = substr($oldchain, 1, 1);
-						# if ($db{dict}{$letter}{$oldchain}) {
-						# 	my $pattern = "${item}\\?(\\||\$)";
-						# 	if ($db{dict}{$letter}{$oldchain}{flags} =~ /$pattern/) { $skipflagval = 1; }
-						# }
-
-						# Lookup flag definitions from acdef.
-						my $pattern = '^' . $oldchain . ' (-{1,2}.*)$';
-						if ($acdef =~ /$pattern/m) {
-							my $pattern = "${item}\\?" . '(\\||$)';
-							if ($1 =~ /$pattern/) { $skipflagval = 1; }
-						}
-
-						last;
-					}
+				# Get flag lists for command from ACDEF.
+				my $pattern = '^' . quotemeta($oldchains[-1]) . ' (.+)$';
+				if ($acdef =~ /$pattern/m) {
+					# Check if the item (flag) exists as a boolean
+					# in the flag lists. If so turn on flag.
+					$pattern = "$item\\?(\\||\$)";
+					if ($1 =~ /$pattern/) { $skipflagval = 1; }
 				}
 
-				# If the flag is found then add marker to item.
-				if ($skipflagval != 0) {
-					# It's a boolean flag. Add boolean marker (?).
-					$args[$i] = $args[$i] . '?';
-				}
-				push(@foundflags, __validate_flag($item));
+				# If flag is found then append boolean marker (?).
+				if ($skipflagval) { $args[$i] = $args[$i] . '?'; }
 
+				# Add argument (flag) to found flags array.
+				push(@foundflags, $vitem);
 			}
 		}
 
 	}
 
 	# Revert commandchain to old chain if empty.
-	if (!$commandchain) {
-		# Get the first non empty command chain.
-		my $oldchain = '';
-		for (my $i = ($#oldchains); $i >= 0; $i--) {
-			my $chain = $oldchains[$i];
-			if ($chain) { $oldchain = $chain; last; }
-		}
-
-		# Revert commandchain to old chain.
-		$commandchain = $oldchain;
-	}
-	# Prepend main command to chain.
-	$commandchain = __validate_command($commandchain);
+	$commandchain = __validate_command($commandchain || $oldchains[-1]);
 
 	# Determine whether to turn off autocompletion or not.
-	# Get the last word item.
-	my $lword = $args[-1];
+	my $lword = $args[-1]; # Get last word item.
 	if ($lastchar eq ' ') {
 		if (__starts_with_hyphen($lword)) {
+			# Turn on for flags with an eq-sign or a boolean indicator (?).
 			$autocompletion = ($lword =~ tr/=?//);
 		}
 	} else {
 		if (!__starts_with_hyphen($lword)) {
-			# Check if the second to last word is a flag.
-			my $sword = $args[-2];
+			my $sword = $args[-2]; # Get second to last word item.
+			# Check if second to last word is a flag.
 			if (__starts_with_hyphen($sword)) {
+				# Turn on for flags with an eq-sign or a boolean indicator (?).
 				$autocompletion = ($sword =~ tr/=?//);
 			}
 		}
@@ -812,12 +753,13 @@ sub __extractor {
 
 	# Remove boolean indicator from flags.
 	for my $i (0 .. $#args) {
-		# Check for valid flag pattern?
-		if (__starts_with_hyphen($args[$i])) {
-			# Remove boolean marker from flag.
-			if (substr($args[$i], -1) eq '?') {
-				$args[$i] = substr($args[$i], 0, -1);
-			}
+		# Cache argument.
+		my $arg = $args[$i];
+		# If argument starts with a hyphen, does not contain an eq sign, and
+		# last character is a boolean - remove boolean indicator and reset the
+		# argument in array.
+		if (rindex($arg, '-', 0) == 0 && $arg !~ tr/=// && chop($arg) eq '?') {
+			$args[$i] = $arg; # Reset argument to exclude boolean indicator.
 		}
 	}
 
@@ -829,55 +771,6 @@ sub __extractor {
 	# Check whether last word is quoted or not.
 	if (__is_lquoted($last)) { $isquoted = 1; }
 
-	# # Note: If autocompletion is off check whether we have one of the
-	# # following cases: '$ maincommand --flag ' or '$ maincommand --flag val'.
-	# # If we do then we show the possible value options for the flag or
-	# # try and complete the currently started value option.
-	# if (!$autocompletion && $nextchar ne '-') {
-	# 	my $islast_aspace = ($lastchar eq ' ');
-	# 	# Get correct last word.
-	# 	my $nlast = $args[($islast_aspace ? -1 : -2)];
-	# 	# acdef commandchain lookup Regex.
-	# 	my $pattern = '^' . $commandchain . ' (-{1,2}.*)';
-	# 	my $letter = substr($commandchain, 1, 1);
-	# 	# The last word (either last or second last word) must be a flag
-	# 	# and cannot have contain an eq sign.
-	# 	if (__starts_with_hyphen($nlast) && !__includes($nlast, '=')) {
-	# 		# Show all available flag option values.
-	# 		if ($islast_aspace) {
-	# 			# Check if the flag exists in the following format: '--flag='
-	# 			if ($db{dict}{$letter}{$commandchain}) {
-	# 				# Check if flag exists with option(s).
-	# 				my $pattern = $nlast . '=(?!\*).*?(\||$)';
-	# 				if ($db{dict}{$letter}{$commandchain}{flags} =~ /$pattern/) {
-	# 					# Reset needed data.
-	# 					# Modify last used flag.
-	# 					# [https://www.perl.com/article/6/2013/3/28/Find-the-index-of-the-last-element-in-an-array/]
-	# 					$foundflags[-1] = $foundflags[-1] . '=';
-	# 					$last = $nlast . '=';
-	# 					$lastchar = '=';
-	# 					$autocompletion = 1;
-	# 				}
-	# 			}
-	# 		} else { # Complete currently started value option.
-	# 			# Check if the flag exists in the following format: '--flag='
-	# 			if ($db{dict}{$letter}{$commandchain}) {
-	# 				# Escape special chars: [https://stackoverflow.com/a/576459]
-	# 				# [http://perldoc.perl.org/functions/quotemeta.html]
-	# 				my $pattern = $nlast . '=' . quotemeta($last) . '.*?(\||$)';
-
-	# 				# Check if flag exists with option(s).
-	# 				if ($db{dict}{$letter}{$commandchain}{flags} =~ /$pattern/) {
-	# 					# Reset needed data.
-	# 					$last = $nlast . '=' . $last;
-	# 					$lastchar = substr($last, -1);
-	# 					$autocompletion = 1;
-	# 				}
-	# 			}
-	# 		}
-	# 	}
-	# }
-
 	# Note: If autocompletion is off check whether we have one of the
 	# following cases: '$ maincommand --flag ' or '$ maincommand --flag val'.
 	# If we do then we show the possible value options for the flag or
@@ -887,7 +780,7 @@ sub __extractor {
 		# Get correct last word.
 		my $nlast = $args[($islast_aspace ? -1 : -2)];
 		# acdef commandchain lookup Regex.
-		my $pattern = '^' . $commandchain . ' (-{1,2}.*)';
+		my $pattern = '^' . $commandchain . ' (.*)$';
 
 		# The last word (either last or second last word) must be a flag
 		# and cannot have contain an eq sign.
@@ -927,7 +820,7 @@ sub __extractor {
 		}
 	}
 
-	# Parse used flags into a hash for quick lookup later on.
+	# Parse used flags and place into a hash for quick lookup later on.
 	# [https://perlmaven.com/multi-dimensional-hashes]
 	foreach my $uflag (@foundflags) {
 		# Parse used flag without RegEx.

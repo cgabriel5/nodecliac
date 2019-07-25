@@ -631,11 +631,6 @@ sub __extractor {
 			if ($item =~ /\\./) { next; }
 		}
 
-		# Reset next item if it's the last iteration.
-		if ($i == $l - 1) {
-			$nitem = '';
-		}
-
 		# If a command (does not start with a hyphen.)
 		# [https://stackoverflow.com/a/34951053]
 		# [https://www.thoughtco.com/perl-chr-ord-functions-quick-tutorial-2641190]

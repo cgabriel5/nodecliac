@@ -377,12 +377,12 @@ sub __paramparse {
 	# Vars.
 	my $argument = '';
 	my @arguments = ();
-	my $l = length($input);
-	my $ll = $l - 1;
+	# my $l = length($input);
+	# my $ll = $l - 1;
 	my $args_count = 0;
 	my $qchar = '';
-	# Loop character variables (current, previous, next characters).
-	my $c; my $p; my $n;
+	# Loop character variables (current, previous characters).
+	my $c; my $p;
 
 	# Input must not be empty.
 	if (!$input) { push(@arguments, 0); return; }
@@ -394,18 +394,13 @@ sub __paramparse {
 	# [https://stackoverflow.com/q/18906514]
 	# [https://stackoverflow.com/q/13952870]
 	# [https://stackoverflow.com/q/1007981]
-	for (my $i = 0; $i < $l; $i++) {
-		# Cache current/previous/next chars.
-		# Note: Reset prev word for 1st char as Perl gets the last string char.
-		# [https://perlmaven.com/how-to-set-default-values-in-perl]
-		$p = $c // substr($input, $i - 1, !($i - 1 < 0) || 0);
-		$c = $n // substr($input, $i, 1);
-		# Note: Reset next word for last char as Perl gets the first char.
-		# Can't cache for next word by looking back. One must look forward
-		# which breaks the point of caching.
-		$n = substr($input, $i + 1, !($i == $ll) || 0);
+	while ($input) {
+		# Get needed characters.
+		$c = substr($input, 0, 1, ''); # 'Chop' first char from string.
+		$p = chop($argument); # Remove last char from string and store value.
+		$argument .= $p; # Re-add last character.
 
-		# State is open and looking for an unescaped quote character.
+		# qchar is set, grab all chars until an unescaped qchar is hit.
 		if (!$qchar) {
 			if ($c =~ tr/"'// && $p ne '\\') {
 				# Set qchar as the opening quote character.
@@ -419,13 +414,12 @@ sub __paramparse {
 			# Since the ", " (minus the quotes) is outside of a quoted
 			# region and only serve as a delimiter, they don't need to be
 			# captured. This means they can be ignored.
-			next;
-
-		# Else if state is open (qchar is set), grab all characters until an
-		# unescaped qchar is hit.
+			# next;
 		} else {
 			# Unescape '|' (pipe) characters.
-			if ($c eq '\\' && $n eq '|') { next; }
+			if ($c eq '|' && $p eq '\\') {
+				chop($argument); # Remove last escaping slash to unescape pipe.
+			}
 
 			# Capture character.
 			$argument .= $c;
@@ -520,50 +514,39 @@ sub __parser {
 	# Vars.
 	my $argument = '';
 	my $qchar = '';
-	my $l = length($input);  # Input length.
-	my $ll = $l - 1;
-	# Loop character variables (current, previous, next characters).
-	my $c; my $p; my $n;
+	my $input = $input; # Copy string since it ill be destroyed during loop.
+	# Loop character variables (current, previous characters).
+	my $c; my $p;
 
 	# Input must not be empty.
 	if (!$input) { return; }
 
-	# Loop over every input char: [https://stackoverflow.com/q/10487316]
-	for (my $i = 0; $i < $l; $i++) {
-		# Cache current/previous/next chars.
-		# Note: Reset prev word for 1st char as Perl gets the last string char.
-		# [https://perlmaven.com/how-to-set-default-values-in-perl]
-		$p = $c // substr($input, $i - 1, !($i - 1 < 0) || 0);
-		$c = $n // substr($input, $i, 1);
-		# Note: Reset next word for last char as Perl gets the first char.
-		# Can't cache for next word by looking back. One must look forward
-		# which breaks the point of caching.
-		$n = substr($input, $i + 1, !($i == $ll) || 0);
+	while ($input) {
+		# [https://www.perlmonks.org/?node_id=873068]
+		# [https://www.perlmonks.org/?node_id=833345]
+		# [https://www.perlmonks.org/?node_id=223573]
+		# [https://www.tek-tips.com/viewthread.cfm?qid=1056438]
+		# [https://www.oreilly.com/library/view/perl-cookbook/1565922433/ch01s06.html]
+		# [https://stackoverflow.com/questions/1083269/is-perls-unpack-ever-faster-than-substr]
+		# Note: Of all methods tried to parse a string of text char-by-char
+		# this method seems the fastest. Here's how it works. Using a while
+		# loop we chip away at the first character from the string. Therefore,
+		# the loop will end once the string is empty (no more characters).
+		# The way substr is used here is basically a reverse chop and is
+		# surprisingly pretty fast. Also, this method does not require the
+		# need of using the length method to loop. Moreover, we need also need
+		# the previous char. To get it, instead of making another call to
+		# substr we use the chop method which is super fast. Once the last
+		# character is chopped we just append it right back. This combination
+		# is the fastest of all methods tried.
 
-		# State is open and looking for an unescaped quote character.
-		if (!$qchar) {
-			# Check if current character is a quote character.
-			if ($c =~ tr/"'// && $p ne '\\') {
-				# Set qchar as the opening quote character.
-				$qchar = $c;
-				# Capture character.
-				$argument .= $c;
+		# Get needed characters.
+		$c = substr($input, 0, 1, ''); # 'Chop' first char from string.
+		$p = chop($argument); # Remove last char from string and store value.
+		$argument .= $p; # Re-add last character.
 
-			# For non quote characters add all except non-escaped spaces.
-			} elsif ($p ne '\\' && $c =~ tr/ \t//) {
-				# Store argument and reset vars.
-				push(@args, $argument);
-				# Clear/reset variables.
-				$argument = '';
-				$qchar = '';
-			} else {
-				# Capture character.
-				$argument .= $c;
-			}
-
-		# Else if state is open (qchar is set), grab all characters until an
-		# unescaped qchar is hit.
-		} else {
+		# qchar is set, grab all chars until an unescaped qchar is hit.
+		if ($qchar) {
 			# Capture character.
 			$argument .= $c;
 
@@ -573,6 +556,25 @@ sub __parser {
 				# Clear/reset variables.
 				$argument = '';
 				$qchar = '';
+			}
+		} else {
+			# Check if current character is a quote character.
+			if ($c =~ tr/"'// && $p ne '\\') {
+				# Set qchar as the opening quote character.
+				$qchar = $c;
+				# Capture character.
+				$argument .= $c;
+
+			# For non quote characters add all except non-escaped spaces.
+			} elsif ($c =~ tr/ \t// && $p ne '\\') {
+				# Store argument and reset vars.
+				push(@args, $argument);
+				# Clear/reset variables.
+				$argument = '';
+				$qchar = '';
+			} else {
+				# Capture character.
+				$argument .= $c;
 			}
 		}
 	}

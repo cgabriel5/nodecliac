@@ -26,13 +26,13 @@ if ($input =~ /^([ \t]*yarn)([ \t]+workspace[ \t]+[^ \t]*[ \t]{1,})(.*)/) { $out
 # [https://perldoc.perl.org/perlrequick.html]
 if ($input =~ /^[ \t]*yarn[ \t]+([^ \t]*)*$/) {
 	# Get arguments.
-	my $action = 'run';
+	# my $action = 'run';
 	my $cwd = $ENV{'PWD'};
-	my $hdir = $ENV{'HOME'};
+	# my $hdir = $ENV{'HOME'};
 
 	# Get package.json paths/info.
 	my $pkg = '';
-	my $field_type = 'object';
+	# my $field_type = 'object';
 
 	# If no global parameter then look for local package.json.
 	# [https://stackoverflow.com/a/19031736]

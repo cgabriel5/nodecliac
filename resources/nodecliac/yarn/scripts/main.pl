@@ -16,7 +16,7 @@ my $input = $ENV{'NODECLIAC_INPUT_ORIGINAL'};
 # Get arguments.
 my $cwd = $pwd; # → Whether to use/look for global yarn package.json.
 my $pkg = '';
-my $field_type = 'object';
+# my $field_type = 'object';
 
 # If no global parameter then look for local package.json.
 if (!$useglobal_pkg) {

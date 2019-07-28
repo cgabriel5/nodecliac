@@ -31,7 +31,6 @@ if ($input =~ /^[ \t]*yarn[ \t]+([^ \t]*)*$/) {
 	my $hdir = $ENV{'HOME'};
 
 	# Get package.json paths/info.
-
 	my $pkg = '';
 	my $field_type = 'object';
 
@@ -45,14 +44,30 @@ if ($input =~ /^[ \t]*yarn[ \t]+([^ \t]*)*$/) {
 	if ($input =~ /^[ \t]*yarn[ \t]+workspace[ \t]+([^ \t]*)[ \t]*.*/) { $cwd .= "/$1"; }
 
 	# Find package.json file path.
+	# my $slash_index = -1;
+	# my $l = length($cwd);
 	while ($cwd) {
 		# Set package.json file path.
 		if (-f "$cwd/package.json") { $pkg = "$cwd/package.json"; last; }
 		# Stop loop at node_modules directory.
-		if (-d "$cwd/node_modules") { last; }
+		# if (-d "$cwd/node_modules") { last; }
 
 		# Continuously chip away last level of PWD.
-		$cwd =~ s/\/((?:\\\/)|[^\/])+$//; # ((?:\\\/)|[^\/]*?)*$
+		# $cwd =~ s/\/((?:\\\/)|[^\/])+$//; # ((?:\\\/)|[^\/]*?)*$
+		$cwd = substr($cwd, 0, rindex($cwd, '/'));
+
+		# # Get last '/' (forward-slash) index.
+		# $slash_index = rindex($cwd, '/');
+		# # Once no slashes exist, stop loop.
+		# # last if ($slash_index < 0);
+
+		# # If path contains a slash remove last path plus the slash.
+		# # Reset the length.
+		# # [https://stackoverflow.com/a/43964356]
+		# my $diff = $l - $slash_index; # Find amount of chars to chop.
+		# $l -= $diff; # Reset string length.
+		# # Remove n ending characters from last index (including slash).
+		# foreach (0 .. $diff - 1) { chop($cwd); }
 	}
 
 	# package.json path has to exist.

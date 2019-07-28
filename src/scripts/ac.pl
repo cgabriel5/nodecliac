@@ -73,21 +73,6 @@ my $prefix = 'NODECLIAC_';
 # 	print "autocompletion: '$autocompletion'\n";
 # }
 
-# Check whether string is left quoted (i.e. starts with a quote).
-#
-# @param {string} 1) - The string to check.
-# @return {boolean} - True means it's left quoted.
-sub __is_lquoted { return (substr($_[0], 0, 1) =~ tr/"'//); }
-
-# Check whether string starts with a hyphen.
-#
-# @param {string} 1) - The string to check.
-# @return {boolean} - 1 means it starts with a hyphen.
-#
-# @resource [https://stackoverflow.com/a/34951053]
-# @resource [https://www.thoughtco.com/perl-chr-ord-functions-quick-tutorial-2641190]
-sub __starts_with_hyphen { return rindex($_[0], '-', 0) == 0; }
-
 # Check whether string contains provided substring.
 #
 # @param {string} 1) - The string to check.
@@ -621,18 +606,17 @@ sub __extractor {
 		my $nitem = $args[$i + 1];
 
 		# Skip quoted (string) items.
-		if (__is_lquoted($item)) {
+		if (substr($item, 0, 1) =~ tr/"'//) { # If first char is a quote...
 			next;
-		} else {
-			# Else if the argument is not quoted check if item contains
-			# an escape sequences. If so skip the item.
-			if ($item =~ tr/\\//) { next; }
-		}
+
+		# Else if the argument is not quoted check if item contains
+		# an escape sequences. If so skip the item.
+		} elsif ($item =~ tr/\\//) { next; }
 
 		# If a command (does not start with a hyphen.)
 		# [https://stackoverflow.com/a/34951053]
 		# [https://www.thoughtco.com/perl-chr-ord-functions-quick-tutorial-2641190]
-		if (!__starts_with_hyphen($item)) {
+		if (rindex($item, '-', 0)) { # If not a flag...
 			# Store default positional argument if flag is set.
 			if ($collect_used_pa_args) {
 				$used_default_pa_args .= "\n$item"; # Add used argument.
@@ -685,7 +669,7 @@ sub __extractor {
 			# the proper actions for both.
 			if ($nitem) {
 				# If the next word is a value...
-				if (!__starts_with_hyphen($nitem)) {
+				if (rindex($nitem, '-', 0)) { # If not a flag...
 					# Get flag lists for command from ACDEF.
 					my $pattern = '^' . quotemeta($oldchains[-1]) . ' (.+)$';
 					if ($acdef =~ /$pattern/m) {
@@ -736,15 +720,17 @@ sub __extractor {
 	# Determine whether to turn off autocompletion or not.
 	my $lword = $args[-1]; # Get last word item.
 	if ($lastchar eq ' ') {
-		if (__starts_with_hyphen($lword)) {
+		# Must start with a hyphen.
+		if (rindex($lword, '-', 0) == 0) { # If a flag...
 			# Turn on for flags with an eq-sign or a boolean indicator (?).
 			$autocompletion = ($lword =~ tr/=?//);
 		}
 	} else {
-		if (!__starts_with_hyphen($lword)) {
+		# Does not start with a hyphen.
+		if (rindex($lword, '-', 0)) { # If not a flag...
 			my $sword = $args[-2]; # Get second to last word item.
 			# Check if second to last word is a flag.
-			if (__starts_with_hyphen($sword)) {
+			if (rindex($sword, '-', 0) == 0) { # If a flag...
 				# Turn on for flags with an eq-sign or a boolean indicator (?).
 				$autocompletion = ($sword =~ tr/=?//);
 			}
@@ -769,7 +755,7 @@ sub __extractor {
 	$last = ($lastchar eq ' ') ? '' : $args[-1];
 
 	# Check whether last word is quoted or not.
-	if (__is_lquoted($last)) { $isquoted = 1; }
+	if (substr($last, 0, 1) =~ tr/"'//) { $isquoted = 1; }
 
 	# Note: If autocompletion is off check whether we have one of the
 	# following cases: '$ maincommand --flag ' or '$ maincommand --flag val'.
@@ -784,7 +770,7 @@ sub __extractor {
 
 		# The last word (either last or second last word) must be a flag
 		# and cannot have contain an eq sign.
-		if (__starts_with_hyphen($nlast) && $nlast !~ tr/=//) {
+		if (rindex($nlast, '-', 0) == 0 && $nlast !~ tr/=//) {
 			# Show all available flag option values.
 			if ($islast_aspace) {
 				# Check if the flag exists in the following format: '--flag='
@@ -855,7 +841,7 @@ sub __lookup {
 	if ($isquoted || !$autocompletion) { return; }
 
 	# Flag completion (last word starts with a hyphen):
-	if (__starts_with_hyphen($last)) {
+	if (rindex($last, '-', 0) == 0) { # If a flag...
 		# Lookup flag definitions from acdef.
 		my $letter = substr($commandchain, 1, 1) // '';
 		if ($db{dict}{$letter}{$commandchain}) {
@@ -901,7 +887,8 @@ sub __lookup {
 
 				$last_eqsign = '=';
 			}
-			my $last_val_quoted = __is_lquoted($last_value);
+			# Check whether last value is quoted.
+			my $last_val_quoted = (substr($last_value, 0, 1) =~ tr/"'//);
 
 			# Loop over flags to process.
 			foreach my $flag (@flags) {
@@ -1128,7 +1115,6 @@ sub __lookup {
 			# Split rows by lines: [https://stackoverflow.com/a/11746174]
 			foreach my $row (@rows) {
 				# Skip rows not passing pattern.
-				# if (index($row, $commandchain)) { next; }
 				if (rindex($row, $commandchain, 0)) { next; }
 
 				my @cmds = @{ $h{$row}{commands} };

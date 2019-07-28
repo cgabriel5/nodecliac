@@ -1266,9 +1266,9 @@ sub __makedb {
 
 		# For first level commands only...
 		if (!$last) {
-			for my $line (split /\n/, $acdef) {
+			foreach my $line (split /\n/, $acdef) {
 				# First character must be a period or a space.
-				if (rindex($line, '.', 0) != 0) { next; }
+				next if rindex($line, '.', 0) != 0;
 
 				# Get command/flags/fallbacks from each line.
 				my $space_index = index($line, ' ');
@@ -1294,39 +1294,48 @@ sub __makedb {
 
 		# Extract and place command chains and fallbacks into their own arrays.
 		# [https://www.perlmonks.org/?node_id=745018], [https://perlmaven.com/for-loop-in-perl]
-		for my $line (split /\n/, $acdef) {
-			# Get first and second characters.
+		foreach my $line (split /\n/, $acdef) {
+			# Get first letter of chain.
 			my $schar = substr($line, 1, 1);
 
 			# First character must be a period or a space. Or if the command
 			# line does not start with the first letter of the command chain
 			# then we skip all line parsing logic.
-			if ($schar ne $fletter) { next; }
+			# [https://stackoverflow.com/q/30403331]
+			next if $schar ne $fletter;
 
 			# Get command/flags/fallbacks from each line.
-			my $space_index = index($line, ' ');
-			my $chain = substr($line, 1, $space_index - 1);
-			my $remainder = substr($line, $space_index + 1);
+			# my $space_index = index($line, ' ');
+			# my $chain = substr($line, 1, $space_index - 1);
+			# my $remainder = substr($line, $space_index + 1);
+			#
+			# [https://stackoverflow.com/a/33192235]
+			# **Note: From this point forward to not copy the line string,
+			# the remainder (flags part of the line) is now the line itself.
+			# my $remainder = $line;
+			my $chain = substr($line, 0, index($line, ' ') + 1, '');
+			chop($chain);
 
 			# Parse chain.
 			# [https://stackoverflow.com/questions/87380/how-can-i-find-the-location-of-a-regex-match-in-perl]
-			my @commands = split(/(?<!\\)\./, $chain);
-			$db{levels}{1}{$commands[0]} = undef;
+			my @commands = split(/(?<!\\)\./, substr($chain, 1));
+			# my @commands = split(/(?<!\\)\./, $chain);
+			# $db{levels}{1}{$commands[0]} = undef;
 
 			# [https://stackoverflow.com/a/6973660]
 			# $db{levels}{$counter++}{$commands[0]} = undef;
 			# push(@{ $db{'levels'}{$counter} }, $command);
 
 			# Cleanup remainder (flag/command-string).
-			if (ord($remainder) == 45) {
+			if (ord($line) == 45) {
 				# Create dict entry letter/command chain.
 				# [https://stackoverflow.com/questions/6565286/storing-a-hash-in-a-hash]
 				# [https://perlmonks.org/?node=References+quick+reference]
-				my %h = ("commands", \@commands, "flags", $remainder);
-				$letters{$schar}{".$chain"} = \%h;
+				my %h = ("commands", \@commands, "flags", $line);
+				$letters{$schar}{$chain} = \%h;
 			} else {
 				# Store fallback.
-				$db{fallbacks}{".$chain"} = substr($remainder, 8);
+				$db{fallbacks}{$chain} = substr($line, 8);
 			}
 		}
 

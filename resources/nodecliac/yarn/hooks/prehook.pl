@@ -78,10 +78,15 @@ if ($input =~ /^[ \t]*yarn[ \t]+([^ \t]*)*$/) {
 		my $pkgcontents = do{local(@ARGV,$/)="$pkg";<>}; # Get package.json contents.
 		if ($pkgcontents =~ /"scripts"\s*:\s*{([\s\S]*?)}(,|$)/) {
 			my @matches = ($1 =~ /"([^"]*)"\s*:/g);
-			for my $i (0 .. $#matches) { # [https://stackoverflow.com/a/974819]
-				# Don't prefix a new line for the first script record.
-				$output .=  ($i ? "\n" : '') . ".$matches[$i] --";
-			}
+			# for my $i (0 .. $#matches) { # [https://stackoverflow.com/a/974819]
+			# 	# Don't prefix a new line for the first script record.
+			# 	$output .=  ($i ? "\n" : '') . ".$matches[$i] --";
+			# }
+
+			# [https://stackoverflow.com/a/974819]
+			foreach (@matches) { $output .=  '.' . $_ . " --\n"; }
+			# Remove last newline.
+			chomp($output);
 		}
 	}
 }

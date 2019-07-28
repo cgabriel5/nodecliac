@@ -27,11 +27,11 @@ if ($input =~ /^([ \t]*yarn)([ \t]+workspace[ \t]+[^ \t]*[ \t]{1,})(.*)/) { $out
 if ($input =~ /^[ \t]*yarn[ \t]+([^ \t]*)*$/) {
 	# Get arguments.
 	my $action = 'run';
-	my $pwd = $ENV{'PWD'}; # → Whether to use/look for global yarn package.json.
-	my $hdir = $ENV{'HOME'}; # → Whether to use/look for global yarn package.json.
+	my $pwd = $ENV{'PWD'};
+	my $hdir = $ENV{'HOME'};
 
 	# Get package.json paths/info.
-	my $cwd = $pwd; # → Whether to use/look for global yarn package.json.
+	my $cwd = $pwd;
 	my $pkg = '';
 	my $field_type = 'object';
 

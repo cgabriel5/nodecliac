@@ -27,11 +27,11 @@ if ($input =~ /^([ \t]*yarn)([ \t]+workspace[ \t]+[^ \t]*[ \t]{1,})(.*)/) { $out
 if ($input =~ /^[ \t]*yarn[ \t]+([^ \t]*)*$/) {
 	# Get arguments.
 	my $action = 'run';
-	my $pwd = $ENV{'PWD'};
+	my $cwd = $ENV{'PWD'};
 	my $hdir = $ENV{'HOME'};
 
 	# Get package.json paths/info.
-	my $cwd = $pwd;
+
 	my $pkg = '';
 	my $field_type = 'object';
 
@@ -42,7 +42,7 @@ if ($input =~ /^[ \t]*yarn[ \t]+([^ \t]*)*$/) {
 	# Get workspace name if auto-completing workspace.
 	# [https://askubuntu.com/questions/678915/whats-the-difference-between-and-in-bash]
 	# If completing a workspace, reset CWD to workspace's location.
-	if ($input =~ /^[ \t]*yarn[ \t]+workspace[ \t]+([^ \t]*)[ \t]*.*/) { $cwd = "$pwd/$1"; }
+	if ($input =~ /^[ \t]*yarn[ \t]+workspace[ \t]+([^ \t]*)[ \t]*.*/) { $cwd .= "/$1"; }
 
 	# Find package.json file path.
 	while ($cwd) {

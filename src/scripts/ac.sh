@@ -973,7 +973,8 @@ if [[ -n "$1" ]] && type complete &>/dev/null; then
 				# COMPREPLY=($(compgen -W "`perl -ne '$. == 2 and print, close ARGV' <<< "$output"`"))
 				# COMPREPLY=($(compgen -W "`perl -ne 'print if $. == 2' <<< "$output"`"))
 				# COMPREPLY=($(echo -e "`perl -ne '$. == 2 and print $_ =~ s/ /\n/rg' <<< "$output"`"))
-				COMPREPLY=($(echo -e "$(perl -ne 'print if $. == 2' <<< "$output")"))
+				# COMPREPLY=($(echo -e "$(perl -ne 'print if $. == 2' <<< "$output")"))
+				COMPREPLY=($(echo -e "$(awk 'NR>1' <<< "$output")"))
 				__ltrim_colon_completions "$last"
 
 				# When COMPREPLY is empty, meaning no autocompletion values
@@ -1034,7 +1035,8 @@ if [[ -n "$1" ]] && type complete &>/dev/null; then
 				# [https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html#index-mapfile]
 				# [http://mywiki.wooledge.org/BashFAQ/001]
 				# [http://mywiki.wooledge.org/BashFAQ/005?highlight=%28readarray%29#Loading_lines_from_a_file_or_stream]
-				mapfile -t COMPREPLY < <(perl -ne '$. != 1 and print' <<< "$output")
+				# mapfile -t COMPREPLY < <(perl -ne '$. != 1 and print' <<< "$output")
+				mapfile -t COMPREPLY < <(awk 'NR>1' <<< "$output")
 
 				# Don't for loop file read: [https://stackoverflow.com/a/30735977]
 				# [http://mywiki.wooledge.org/BashFAQ/001]

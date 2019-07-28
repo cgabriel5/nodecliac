@@ -358,7 +358,7 @@ sub __execute_command {
 		}
 	}
 
-	return;
+	# return;
 }
 
 # Parse string command flag ($("")) arguments.
@@ -508,7 +508,7 @@ sub __set_envs {
 		}
 	}
 
-	return;
+	# return;
 }
 
 # Parses CLI input. Returns input similar to that of process.argv.slice(2).
@@ -582,8 +582,6 @@ sub __parser {
 
 	# Get/store last character of input.
 	$lastchar = !($c ne ' ' && $p ne '\\') ? $c : '';
-
-	return;
 }
 
 # Determine command chain, used flags, and set needed variables (i.e.
@@ -845,7 +843,7 @@ sub __extractor {
 		else { $usedflags{valueless}{$uflag_fkey} = undef; }
 	}
 
-	return;
+	# return;
 }
 
 # Lookup command/subcommand/flag definitions from the acdef to return
@@ -1226,7 +1224,7 @@ sub __lookup {
 		}
 	}
 
-	return;
+	# return;
 }
 
 # Send all possible completions to bash.
@@ -1269,7 +1267,7 @@ sub __printer {
 	# Return data.
 	print $lines . join('', @completions);
 
-	return;
+	# return;
 }
 
 sub __makedb {

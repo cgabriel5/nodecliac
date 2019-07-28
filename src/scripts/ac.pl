@@ -624,7 +624,7 @@ sub __extractor {
 		} else {
 			# Else if the argument is not quoted check if item contains
 			# an escape sequences. If so skip the item.
-			if ($item =~ /\\./) { next; }
+			if ($item =~ tr/\\//) { next; }
 		}
 
 		# If a command (does not start with a hyphen.)

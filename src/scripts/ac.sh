@@ -957,8 +957,180 @@ if [[ -n "$1" ]] && type complete &>/dev/null; then
 		# 	fi
 		# }
 
-		# Send all possible completions to bash.
-		function __printer() {
+		# # Send all possible completions to bash.
+		# function __printer() {
+		# 	if [[ "$type" == "command" ]]; then
+		# 		# Set completions string.
+		# 		# while IFS='' read -r line || [[ -n "$line" ]]; do
+		# 		# 	# [https://debian-administration.org/article/317/An_introduction_to_bash_completion_part_2]
+		# 		# 	COMPREPLY=($(compgen -W "$line" -- ""))
+		# 		# 	# COMPREPLY=(`echo -e "$line"`)
+		# 		# 	__ltrim_colon_completions "$last"
+		# 		# 	break
+		# 		# done < <(tail -n +2 <<< "$output")
+		# 		#
+		# 		# [https://stackoverflow.com/a/18551488], [https://stackoverflow.com/a/35164798]
+		# 		# COMPREPLY=($(compgen -W "`perl -ne '$. == 2 and print, close ARGV' <<< "$output"`"))
+		# 		# COMPREPLY=($(compgen -W "`perl -ne 'print if $. == 2' <<< "$output"`"))
+		# 		# COMPREPLY=($(echo -e "`perl -ne '$. == 2 and print $_ =~ s/ /\n/rg' <<< "$output"`"))
+		# 		COMPREPLY=($(echo -e "$(perl -ne 'print if $. == 2' <<< "$output")"))
+		# 		__ltrim_colon_completions "$last"
+
+		# 		# When COMPREPLY is empty, meaning no autocompletion values
+		# 		# are in COMPREPLY array, the command was registered with
+		# 		# the '-o' flag, and the config setting 'filedir' is set then
+		# 		# run bash completion's _filedir function.
+		# 		if [[ "${#COMPREPLY[@]}" -eq 0 ]]; then
+
+		# 			# '-o' option had to have been used when registered else
+		# 			# if not then we do not resort to using _filedir.
+		# 			registry=$(LC_ALL=C grep -F "_nodecliac $maincommand" <<< "$(complete -p)")
+		# 			if [[ "$registry" != *" -o "*  ]]; then return; fi
+
+		# 			# Get 'filedir' config setting.
+		# 			# local filedirvalue=`"$HOME/.nodecliac/src/config.pl" "filedir" "$maincommand"`
+		# 			local filedirvalue
+		# 			filedirvalue=$("$HOME/.nodecliac/src/config.pl" "filedir" "$maincommand")
+
+		# 			# Run function with or without arguments.
+		# 			if [[ -n "$filedirvalue" && "$filedirvalue" != "false" ]]; then
+		# 				# Reset value if no pattern was provided.
+		# 				if [[ "$filedirvalue" == "true" ]]; then filedirvalue=""; fi
+
+		# 				# [https://github.com/gftg85/bash-completion/blob/bb0e3a1777e387e7fd77c3abcaa379744d0d87b3/bash_completion#L549]
+		# 				# [https://unix.stackexchange.com/a/463342]
+		# 				# [https://unix.stackexchange.com/a/463336]
+		# 				# [https://github.com/scop/bash-completion/blob/master/completions/java]
+		# 				# [https://stackoverflow.com/a/23999768]
+		# 				# [https://unix.stackexchange.com/a/190004]
+		# 				# [https://unix.stackexchange.com/a/198025]
+		# 				local cur="$last"
+		# 				_filedir "$filedirvalue"
+		# 			fi
+		# 		fi
+
+		# 	elif [[ "$type" == *"flag"* ]]; then
+		# 		# Note: Disable bash's default behavior of adding a trailing space
+		# 		# to completions when hitting the [tab] key. This will be handle
+		# 		# manually. Unless completing a quoted flag value. Then it is
+		# 		# left on.
+		# 		# [https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html]
+		# 		# [https://github.com/llvm-mirror/clang/blob/master/utils/bash-autocomplete.sh#L59]
+		# 		if [[ "$type" != *"quoted"* ]]; then
+		# 			compopt -o nospace 2> /dev/null
+		# 		fi
+
+		# 		# # Split rows by lines: [https://stackoverflow.com/a/11746174]
+		# 		# # [https://stackoverflow.com/a/10929511]
+		# 		# while IFS='' read -r line || [[ -n "$line" ]]; do
+		# 		# 	COMPREPLY+=("$line")
+		# 		# # Start reading at second line: [https://askubuntu.com/a/289235]
+		# 		# # [https://stackoverflow.com/a/24894628]
+		# 		# # done < <(tail -n +2 <<< "$output")
+		# 		# done < <(perl -ne '$. != 1 and print' <<< "$output")
+
+		# 		# Use mapfile/readarray command to populate COMPREPLY w/ flags.
+		# 		# [https://stackoverflow.com/a/30988704]
+		# 		# [https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html#index-mapfile]
+		# 		# [http://mywiki.wooledge.org/BashFAQ/001]
+		# 		# [http://mywiki.wooledge.org/BashFAQ/005?highlight=%28readarray%29#Loading_lines_from_a_file_or_stream]
+		# 		mapfile -t COMPREPLY < <(perl -ne '$. != 1 and print' <<< "$output")
+
+		# 		# Don't for loop file read: [https://stackoverflow.com/a/30735977]
+		# 		# [http://mywiki.wooledge.org/BashFAQ/001]
+		# 		# [http://mywiki.wooledge.org/DontReadLinesWithFor]
+
+		# 		# [https://stackoverflow.com/a/9955728]
+		# 		# [https://catonmat.net/perl-one-liners-explained-part-two]
+		# 		# Add flags directly from output to COMPREPLY array. Skip the
+		# 		# first line and empty lines.
+		# 		# IFS=$'\n' COMPREPLY+=("$(perl -ne 'print if /./ and $. > 1' <<< "$output")")
+		# 		# IFS=$'\n' COMPREPLY=($(perl -ne '$. != 1 and $_ ne "" and print' <<< "$output"))
+		# 		# IFS=$'\n'
+		# 		# COMPREPLY+=($(perl -npe '$. != 1' <<< "$output"))
+		# 		# IFS=$'\n' read -r -a COMPREPLY <<< "$(perl -ne 'print if /./ and $. > 1' <<< "$output")"
+
+		# 		# done <<< "$output"
+
+		# 		# # Print and add right pad spacing to possibilities where necessary.
+		# 		# for ((i = 0; i < "${#completions[@]}"; i++)); do
+		# 		# 	local word="${completions[i]}"
+
+		# 		# 	# if [[ "$type" != *"noescape"* ]]; then
+		# 		# 	# 	# Escape word.
+		# 		# 	# 	word="`__escape "$word"`"
+		# 		# 	# fi
+
+		# 		# 	# # Note: bash-completion handles colons in a weird manner.
+		# 		# 	# # When a word completion contains a colon it will append
+		# 		# 	# # the current completion word with the last word. For,
+		# 		# 	# # example: say the last word is "js:" and the completion
+		# 		# 	# # word is "js:bundle". Bash will output to console:
+		# 		# 	# # "js:js:bundle". Therefore, we need to left trim the
+		# 		# 	# # 'coloned' part of the completion word. In other words,
+		# 		# 	# # we turn the completion word, for example, "js:bundle" to
+		# 		# 	# # "bundle" so that bash could then properly complete the word.
+		# 		# 	# # [https://github.com/scop/bash-completion/blob/master/bash_completion#L498]
+		# 		# 	# if [[ "$word" == *":"* ]]; then
+		# 		# 	# 	# Remove colon-word prefix from COMPREPLY items
+		# 		# 	# 	# Example: 'js:build'
+		# 		# 	# 	colon_prefix=${word%"${word##*:}"} # 'js:'
+		# 		# 	# 	word="${word#"$colon_prefix"}" # 'build'
+
+		# 		# 	# 	# # Remove colon-word prefix from COMPREPLY items
+		# 		# 	# 	# local colon_word=${word%"${word##*:}"}
+		# 		# 	# 	# word="${word#"$colon_word"}"
+		# 		# 	# fi
+
+		# 		# 	# # Add trailing space to all completions except to flag
+		# 		# 	# # completions that end with a trailing eq sign, commands
+		# 		# 	# # that have trailing characters (commands that are being
+		# 		# 	# # completed in the middle), and flag string completions
+		# 		# 	# # (i.e. --flag="some-word...).
+		# 		# 	# if [[ "$word" != *"="
+		# 		# 	# 	&& `__is_lquoted "$word"` == false
+		# 		# 	# 	&& -z "$nextchar" ]]; then
+		# 		# 	# 	word+=" "
+		# 		# 	# fi
+
+		# 		# 	# Log possibility for bash.
+		# 		# 	COMPREPLY+=("$word")
+		# 		# done
+		# 	fi
+		# }
+
+		# Completion logic:
+		# <cli_input> → parser → extractor → lookup → printer
+		# Note: Supply CLI input from start to caret index.
+		# __parser "${cline:0:$cpoint}";__extractor;__lookup;__printer
+
+		# Run ac perl script to get completions.
+		acpl_script=~/.nodecliac/src/ac.pl
+		# Run completion script if it exists.
+		if [[ -f "$acpl_script" ]]; then
+			# Run prehook(s) if it exists.
+			prehook_script=~/.nodecliac/registry/$1/hooks/prehook.sh
+			if [[ -f "$prehook_script" ]]; then
+				# [https://stackoverflow.com/questions/16217064/change-environment-variable-in-child-process-bash]
+				# [https://stackoverflow.com/questions/192292/how-best-to-include-other-scripts]
+				# [https://www.daveeddy.com/2010/09/20/import-source-files-in-bash/]
+				# [https://tecadmin.net/include-bash-script-in-other-bash-script/]
+				source "$prehook_script" "$cline" "$cpoint" "$maincommand" "$acdef"
+			fi
+
+			# Run Perl auto-completion script.
+			output=$("$acpl_script" "$COMP_LINE" "$cline" "$cpoint" "$maincommand" "$acdef")
+			# "$acpl_script" "$COMP_LINE" "$cline" "$cpoint" "$maincommand" "$acdef"
+
+			# First line is meta info (completion type, last word, etc.).
+			# [https://stackoverflow.com/a/2440685]
+			read -r firstline <<< "$output"
+			type="${firstline%%:*}"
+			last="${firstline#*:}"
+
+			# Inline printer logic:
+
+			# Finally, add words to COMPREPLY.
 			if [[ "$type" == "command" ]]; then
 				# Set completions string.
 				# while IFS='' read -r line || [[ -n "$line" ]]; do
@@ -1099,39 +1271,6 @@ if [[ -n "$1" ]] && type complete &>/dev/null; then
 				# 	COMPREPLY+=("$word")
 				# done
 			fi
-		}
-
-		# Completion logic:
-		# <cli_input> → parser → extractor → lookup → printer
-		# Note: Supply CLI input from start to caret index.
-		# __parser "${cline:0:$cpoint}";__extractor;__lookup;__printer
-
-		# Run ac perl script to get completions.
-		acpl_script=~/.nodecliac/src/ac.pl
-		# Run completion script if it exists.
-		if [[ -f "$acpl_script" ]]; then
-			# Run prehook(s) if it exists.
-			prehook_script=~/.nodecliac/registry/$1/hooks/prehook.sh
-			if [[ -f "$prehook_script" ]]; then
-				# [https://stackoverflow.com/questions/16217064/change-environment-variable-in-child-process-bash]
-				# [https://stackoverflow.com/questions/192292/how-best-to-include-other-scripts]
-				# [https://www.daveeddy.com/2010/09/20/import-source-files-in-bash/]
-				# [https://tecadmin.net/include-bash-script-in-other-bash-script/]
-				source "$prehook_script" "$cline" "$cpoint" "$maincommand" "$acdef"
-			fi
-
-			# Run Perl auto-completion script.
-			output=$("$acpl_script" "$COMP_LINE" "$cline" "$cpoint" "$maincommand" "$acdef")
-			# "$acpl_script" "$COMP_LINE" "$cline" "$cpoint" "$maincommand" "$acdef"
-
-			# First line is meta info (completion type, last word, etc.).
-			# [https://stackoverflow.com/a/2440685]
-			read -r firstline <<< "$output"
-			type="${firstline%%:*}"
-			last="${firstline#*:}"
-
-			# Finally, add words to COMPREPLY.
-			__printer
 		fi
 	}
 

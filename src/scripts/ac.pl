@@ -1257,6 +1257,9 @@ sub __makedb {
 
 		# For first level commands only...
 		if (!$last) {
+			# # Interim array to contain future hash value (command:undef) pairs.
+			# my @array;
+
 			foreach my $line (split /\n/, $acdef) {
 				# First character must be a period or a space.
 				next if rindex($line, '.', 0) != 0;
@@ -1269,7 +1272,18 @@ sub __makedb {
 				my $dot_index = index($chain, '.');
 				my $command = substr($chain, 0, $dot_index != -1 ? $dot_index : $space_index);
 				$db{levels}{1}{$command} = undef;
+				# # Add (command:undef) future pair to array.
+				# push(
+				# 	@array,
+				# 	substr($chain, 0, $dot_index != -1 ? $dot_index : $space_index),
+				# 	undef
+				# );
 			}
+
+			# # Convert array (command:undef) pairs to hash key:value pair items.
+			# # [https://stackoverflow.com/a/7876448]
+			# my %hash = @array;
+			# $db{levels}{1} = \%hash;
 
 		# For first level flags...
 		} else {

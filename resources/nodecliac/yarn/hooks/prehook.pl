@@ -15,16 +15,19 @@ my $input = $ARGV[0]; # Original (complete) CLI input. ($NODECLIAC_INPUT_ORIGINA
 # Store output.
 my $output = "\n";
 
+# Get needed RegEx matches from CLI input.
+my ($workspace_name, $cli_remainder) = $input =~ /^[ \t]*?yarn[ \t]+?workspace[ \t]+?([^ \t]+?)[ \t]+?(.*)/;
+
 # ----- Input logic -----
 
 # Check input with RegExp...
-if ($input =~ /^([ \t]*yarn)([ \t]+workspace[ \t]+[^ \t]*[ \t]{1,})(.*)/) { $output = "$1 $3"; }
+if ($cli_remainder) { $output = "yarn $cli_remainder"; }
 
 # ----- ACDEF logic -----
 
 # Only run when input is only the yarn command or yarn and completing a subcommand.
 # [https://perldoc.perl.org/perlrequick.html]
-if ($input =~ /^[ \t]*yarn[ \t]+([^ \t]*)*$/) {
+if ($input =~ /^[ \t]*?yarn[ \t]+?([^ \t]*?)$/) {
 	# Get arguments.
 	# my $action = 'run';
 	my $cwd = $ENV{'PWD'};
@@ -41,7 +44,7 @@ if ($input =~ /^[ \t]*yarn[ \t]+([^ \t]*)*$/) {
 	# Get workspace name if auto-completing workspace.
 	# [https://askubuntu.com/questions/678915/whats-the-difference-between-and-in-bash]
 	# If completing a workspace, reset CWD to workspace's location.
-	if ($input =~ /^[ \t]*yarn[ \t]+workspace[ \t]+([^ \t]*)[ \t]*.*/) { $cwd .= "/$1"; }
+	if ($workspace_name) { $cwd .= "/$1"; }
 
 	# Find package.json file path.
 	# my $slash_index = -1;

@@ -73,12 +73,6 @@ my $prefix = 'NODECLIAC_';
 # 	print "autocompletion: '$autocompletion'\n";
 # }
 
-# Check whether string contains provided substring.
-#
-# @param {string} 1) - The string to check.
-# @return {boolean} - 1 means substring is found in string.
-sub __includes { return rindex($_[0], $_[1]) + 1; }
-
 # Checks whether the provided string is a valid file or directory.
 #
 # @param {string} 1) - The string to check.

@@ -1114,9 +1114,6 @@ sub __lookup {
 
 			# Split rows by lines: [https://stackoverflow.com/a/11746174]
 			foreach my $row (@rows) {
-				# Skip rows not passing pattern.
-				if (rindex($row, $commandchain, 0)) { next; }
-
 				my @cmds = @{ $h{$row}{commands} };
 				# Get the needed level.
 				$row = $cmds[$level] // undef;
@@ -1295,14 +1292,11 @@ sub __makedb {
 		# Extract and place command chains and fallbacks into their own arrays.
 		# [https://www.perlmonks.org/?node_id=745018], [https://perlmaven.com/for-loop-in-perl]
 		foreach my $line (split /\n/, $acdef) {
-			# Get first letter of chain.
-			my $schar = substr($line, 1, 1);
-
-			# First character must be a period or a space. Or if the command
-			# line does not start with the first letter of the command chain
-			# then we skip all line parsing logic.
+			# First filter: First character must be a period or a space. Or
+			# if the command line does not start with the first letter of the
+			# command chain then we skip all line parsing logic.
 			# [https://stackoverflow.com/q/30403331]
-			next if $schar ne $fletter;
+			next if (rindex($line, $commandchain, 0) != 0);
 
 			# Get command/flags/fallbacks from each line.
 			# my $space_index = index($line, ' ');
@@ -1313,8 +1307,15 @@ sub __makedb {
 			# **Note: From this point forward to not copy the line string,
 			# the remainder (flags part of the line) is now the line itself.
 			# my $remainder = $line;
+			# [https://stackoverflow.com/a/92935]
 			my $chain = substr($line, 0, index($line, ' ') + 1, '');
 			chop($chain);
+
+			# Second filter: If retrieving the next possible levels for the
+			# command chain, the lastchar must be an empty space and and
+			# the commandchain does not equal the chain of the line then
+			# we skip the line.
+			next if ($lastchar eq ' ' && rindex($chain . '.', $commandchain . '.', 0) != 0);
 
 			# Parse chain.
 			# [https://stackoverflow.com/questions/87380/how-can-i-find-the-location-of-a-regex-match-in-perl]
@@ -1332,7 +1333,7 @@ sub __makedb {
 				# [https://stackoverflow.com/questions/6565286/storing-a-hash-in-a-hash]
 				# [https://perlmonks.org/?node=References+quick+reference]
 				my %h = ("commands", \@commands, "flags", $line);
-				$letters{$schar}{$chain} = \%h;
+				$letters{substr($chain, 1, 1)}{$chain} = \%h;
 			} else {
 				# Store fallback.
 				$db{fallbacks}{$chain} = substr($line, 8);

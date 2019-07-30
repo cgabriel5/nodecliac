@@ -1095,7 +1095,7 @@ sub __lookup {
 			my $lastchar_notspace = ($lastchar ne ' ');
 
 			# If no rows...
-			if (!@rows) { return;}
+			if (!@rows) { return; }
 
 			my %usedcommands;
 			my @commands = split(/(?<!\\)\./, substr($commandchain, 1));

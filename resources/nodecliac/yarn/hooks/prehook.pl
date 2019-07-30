@@ -78,7 +78,7 @@ if ($input =~ /^[ \t]*?yarn[ \t]+?([^ \t]*?)$/) {
 		# Get script names and store arguments.
 		# [https://www.perl.com/article/21/2013/4/21/Read-an-entire-file-into-a-string/]
 		# [https://www.perlmonks.org/?node_id=1438]
-		my $pkgcontents = do{local(@ARGV,$/)="$pkg";<>}; # Get package.json contents.
+		my $pkgcontents = do{local(@ARGV,$/)=$pkg;<>}; # Get package.json contents.
 		if ($pkgcontents =~ /"scripts"\s*:\s*{([\s\S]*?)}(,|$)/) {
 			my @matches = ($1 =~ /"([^"]*)"\s*:/g);
 			# for my $i (0 .. $#matches) { # [https://stackoverflow.com/a/974819]

@@ -59,7 +59,7 @@ my $args = '';
 # Depending on provided action run appropriate logic...
 if ($action eq 'run') {
 	# Get script names and store arguments.
-	my $pkgcontents = do{local(@ARGV,$/)="$pkg";<>}; # Get package.json contents.
+	my $pkgcontents = do{local(@ARGV,$/)=$pkg;<>}; # Get package.json contents.
 	if ($pkgcontents =~ /"scripts"\s*:\s*{([\s\S]*?)}(,|$)/) {
 		my @matches = ($1 =~ /"([^"]*)"\s*:/g);
 		foreach my $match (@matches) { $args .= "\n$match"; }
@@ -76,7 +76,7 @@ if ($action eq 'run') {
 	}
 } else { # Note: Default remaining actions to the default to speed up checking (remove|outdated|unplug|upgrade).
 	# Get (dev)dependencies.
-	my $pkgcontents = do{local(@ARGV,$/)="$pkg";<>}; # Get package.json contents.
+	my $pkgcontents = do{local(@ARGV,$/)=$pkg;<>}; # Get package.json contents.
 	# [https://stackoverflow.com/a/2304626]
 	my @matches = ($pkgcontents =~ /"(dependencies|devDependencies)"\s*:\s*{([\s\S]*?)}(,|$)/g);
 	foreach my $match (@matches) {

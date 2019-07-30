@@ -8,35 +8,48 @@
 
 # Get arguments.
 my $action = $ARGV[0];
-my $pwd = $ENV{'PWD'}; # → Whether to use/look for global yarn package.json.
-my $hdir = $ENV{'HOME'}; # → Whether to use/look for global yarn package.json.
-my $useglobal_pkg = $ARGV[1]; # → Whether to use/look for global yarn package.json.
+my $useglobal = $ARGV[1]; # Whether to use/look for global yarn package.json.
+my $cwd = $ENV{'PWD'};
+my $hdir = $ENV{'HOME'};
 my $input = $ENV{'NODECLIAC_INPUT_ORIGINAL'};
 
-# Get arguments.
-my $cwd = $pwd; # → Whether to use/look for global yarn package.json.
+# Get package.json paths/info.
 my $pkg = '';
 # my $field_type = 'object';
 
 # If no global parameter then look for local package.json.
-if (!$useglobal_pkg) {
+if (!$useglobal) {
 	# [https://stackoverflow.com/a/19031736]
 	# [http://defindit.com/readme_files/perl_one_liners.html]
 	# [https://www.perlmonks.org/?node_id=1004245]
 	# Get workspace name if auto-completing workspace.
 	# [https://askubuntu.com/questions/678915/whats-the-difference-between-and-in-bash]
 	# If completing a workspace, reset CWD to workspace's location.
-	if ($input =~ /^[ \t]*yarn[ \t]+workspace[ \t]+([^ \t]*)[ \t]*.*/) { $cwd = "$pwd/$1"; }
+	if ($input =~ /^[ \t]*?yarn[ \t]+?workspace[ \t]+?([^ \t]+?)[ \t]+?.*/) { $cwd = "/$1"; }
 
 	# Find package.json file path.
 	while ($cwd) {
 		# Set package.json file path.
 		if (-f "$cwd/package.json") { $pkg = "$cwd/package.json"; last; }
 		# Stop loop at node_modules directory.
-		if (-d "$cwd/node_modules") { last; }
+		# if (-d "$cwd/node_modules") { last; }
 
 		# Continuously chip away last level of PWD.
-		$cwd =~ s/\/((?:\\\/)|[^\/])+$//; # ((?:\\\/)|[^\/]*?)*$
+		# $cwd =~ s/\/((?:\\\/)|[^\/])+$//; # ((?:\\\/)|[^\/]*?)*$
+		$cwd = substr($cwd, 0, rindex($cwd, '/'));
+
+		# # Get last '/' (forward-slash) index.
+		# $slash_index = rindex($cwd, '/');
+		# # Once no slashes exist, stop loop.
+		# # last if ($slash_index < 0);
+
+		# # If path contains a slash remove last path plus the slash.
+		# # Reset the length.
+		# # [https://stackoverflow.com/a/43964356]
+		# my $diff = $l - $slash_index; # Find amount of chars to chop.
+		# $l -= $diff; # Reset string length.
+		# # Remove n ending characters from last index (including slash).
+		# foreach (0 .. $diff - 1) { chop($cwd); }
 	}
 } else { # Else look for global yarn package.json.
 	# Global lookup file paths.
@@ -62,7 +75,7 @@ if ($action eq 'run') {
 	my $pkgcontents = do{local(@ARGV,$/)=$pkg;<>}; # Get package.json contents.
 	if ($pkgcontents =~ /"scripts"\s*:\s*{([\s\S]*?)}(,|$)/) {
 		my @matches = ($1 =~ /"([^"]*)"\s*:/g);
-		foreach my $match (@matches) { $args .= "\n$match"; }
+		foreach (@matches) { $args .= "\n$_"; }
 	}
 } elsif ($action eq 'workspace') {
 	# Get workspaces info via yarn.
@@ -81,9 +94,12 @@ if ($action eq 'run') {
 	my @matches = ($pkgcontents =~ /"(dependencies|devDependencies)"\s*:\s*{([\s\S]*?)}(,|$)/g);
 	foreach my $match (@matches) {
 		my @deps = ($match =~ /"([^"]*)"\s*:/g);
-		foreach my $dep (@deps) { $args .= "$dep\n"; }
+		foreach (@deps) { $args .= "$_\n"; }
 	}
 }
+
+# Remove last newline from arguments.
+chomp($args);
 
 # Function is provided the arguments to prune. Pruning consists of
 # removing any already used arguments.

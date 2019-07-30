@@ -30,7 +30,7 @@ if (!$useglobal) {
 	# Find package.json file path.
 	while ($cwd) {
 		# Set package.json file path.
-		if (-f "$cwd/package.json") { $pkg = "$cwd/package.json"; last; }
+		if (-e "$cwd/package.json") { $pkg = "$cwd/package.json"; last; }
 		# Stop loop at node_modules directory.
 		# if (-d "$cwd/node_modules") { last; }
 

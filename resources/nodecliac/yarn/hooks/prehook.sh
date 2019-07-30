@@ -13,9 +13,18 @@ output=$("$HOME/.nodecliac/registry/yarn/hooks/prehook.pl" "$1")
 
 # Get modified CLI input line (1st line).
 # [https://stackoverflow.com/q/30649640]
-firstline=$(LC_ALL=C perl -npe "exit if $. > 1" <<< "$output")
+# firstline=$(LC_ALL=C perl -npe "exit if $. > 1" <<< "$output")
+read -r firstline <<< "$output"
 if [[ -n "$firstline" ]]; then cline="$firstline"; fi
 
 # Get ACDEF addon entries.
-addon=$(LC_ALL=C perl -ne "print if $. > 1" <<< "$output")
+# addon=$(LC_ALL=C perl -ne "print if $. > 1" <<< "$output")
+# [https://stackoverflow.com/a/24542788]
+# addon=$(awk 'NR>1' <<< "$output")
+
+# Remove first line from output. Remaining text, if any, is the ACDEF output.
+len="${#firstline}"
+# If length is zero, reset length to 1 to remove starting new line.
+if [ $len == 0 ]; then len=1; fi
+addon="${output:$len}"
 if [[ -n "$addon" ]]; then acdef+=$'\n'"$addon"; fi

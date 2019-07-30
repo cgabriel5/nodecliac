@@ -14,7 +14,7 @@ my $maincommand = $ARGV[1];
 my $configpath = "$ENV{'HOME'}/.nodecliac/registry/$maincommand/.$maincommand.config.acdef";
 # Config file has to exist.
 if (not -f $configpath) { exit; }
-my $config = do{local(@ARGV,$/)="$configpath";<>};
+my $config = do{local(@ARGV,$/)=$configpath;<>};
 
 # Store output.
 my $output = '';

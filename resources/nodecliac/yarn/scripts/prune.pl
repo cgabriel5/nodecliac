@@ -26,12 +26,15 @@ sub main {
 	# Get environment variable containing used default positional arguments.
 	my $used = $ENV{'NODECLIAC_USED_DEFAULT_POSITIONAL_ARGS'};
 	# Trim string.
-	$used =~ s/^\s+|\s+$//g;
+	# $used =~ s/^\s+|\s+$//g;
+	chomp($used);
 	# Split string into individual items.
 	my @used_args = split(/[\n ]/, $used);
 
 	# Trim string.
-	$args =~ s/^\s+|\s+$//g;
+	# $args =~ s/^\s+|\s+$//g;
+	chomp($args);
+
 	# Split string into individual items.
 	my @items = split(/[\n ]/, $args);
 	my %arguments; # This arguments hash will get pruned of used arguments.

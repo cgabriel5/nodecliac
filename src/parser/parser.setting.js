@@ -4,7 +4,7 @@
 // const ptemplatestr = require("./p.template-string.js");
 // Get RegExp patterns.
 let { r_schars, r_nl } = require("./h.patterns.js");
-let issue = require("./parser.issue.js");
+let issue = require("./helper.issue.js");
 
 /**
  * Parses settings line to extract setting name and its value.

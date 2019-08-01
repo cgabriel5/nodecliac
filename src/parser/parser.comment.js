@@ -4,7 +4,7 @@
 // const issuefunc = require("./p.error.js");
 // Get RegExp patterns.
 let { r_nl, r_whitespace } = require("./h.patterns.js");
-let issue = require("./parser.issue.js");
+let issue = require("./helper.issue.js");
 
 /**
  * Parses comment lines.

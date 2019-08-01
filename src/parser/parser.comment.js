@@ -3,39 +3,39 @@
 // // Get needed modules.
 // const issuefunc = require("./p.error.js");
 // Get RegExp patterns.
-let { r_nl } = require("./h.patterns.js");
+let { r_nl, r_whitespace } = require("./h.patterns.js");
+let issue = require("./parser.issue.js");
 
 /**
  * Parses comment lines.
  *
  * ---------- Parsing States Breakdown -----------------------------------------
  * # Some comment.
- * ^-Symbol.
+ * ^-Symbol (Sigil).
  *  ^-Whitespace-Boundary (Space/Tab - At least 1 after the symbol).
  *   ^-Comment-Char *(All characters until newline '\n').
  * -----------------------------------------------------------------------------
  *
- * @param  {string} string - The line to parse.
+ * @param  {object} object - Main loop state object.
  * @return {object} - Object containing parsed information.
  */
 module.exports = STATE => {
-	// // Trace parser.
-	// require("./h.trace.js")(__filename);
+	// require("./h.trace.js")(__filename); // Trace parser.
 
 	// Get global loop state variables.
-	let { line, /* column, i, */ l, string } = STATE;
+	let { line, column, i, l, string } = STATE;
 
 	// Parsing vars.
-	let state = "sigil"; // Parsing state.
+	let state = "sigil"; // Initial parsing state.
 	let warnings = []; // Collect all parsing warnings.
 	let DATA = {
-		type: "COMMENT",
+		node: "COMMENT",
 		sigil: { start: null, end: null },
 		wsb: { start: null, end: null },
-		comment: { start: null, end: null, string: "" },
+		comment: { start: null, end: null, value: "" },
 		line,
 		startpoint: STATE.i,
-		endpoint: null // Then index what which parsing was ended.
+		endpoint: null // Then index at which parsing was ended.
 	};
 
 	// Loop over string.
@@ -52,6 +52,8 @@ module.exports = STATE => {
 			break;
 		}
 
+		STATE.column++; // Increment column position.
+
 		// Default parse state.
 		switch (state) {
 			case "sigil":
@@ -65,9 +67,10 @@ module.exports = STATE => {
 				break;
 
 			case "wsb-sigil":
-				// Character must be a whitespace (space or tab) character.
-				if (char !== " " || char !== "\t") {
-					// Give error as character is not valid.
+				// Character must be a whitespace (space or tab) character
+				// else give an error for an invalid character.
+				if (!r_whitespace.test(char)) {
+					issue.error(STATE, 0, __filename);
 				}
 
 				// Else, it's valid so store positions.
@@ -97,4 +100,5 @@ module.exports = STATE => {
 	// console.log(DATA);
 	// console.log();
 	return;
+	return DATA;
 };

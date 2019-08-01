@@ -1,7 +1,7 @@
 "use strict";
 
 // Get needed modules.
-// const ptemplatestr = require("./p.template-string.js");
+const p_tstring = require("./parser.template-string.js");
 // Get RegExp patterns.
 let { r_schars, r_nl } = require("./h.patterns.js");
 let issue = require("./helper.issue.js");
@@ -199,22 +199,31 @@ module.exports = STATE => {
 					if (qchar) {
 						// Get previous character.
 						let pchar = string.charAt(STATE.i - 1);
+						let nchar = string.charAt(STATE.i + 1);
 
 						// Once quoted string is closed change state.
 						if (char === qchar && pchar !== "\\") {
 							state = "eol-wsb";
 						}
 
-						// Store index positions.
-						DATA.value.end = STATE.i;
-						// Continue building the value string.
-						DATA.value.value += char;
+						// Check for template strings (variables).
+						if (char === "$" && pchar !== "\\" && nchar === "{") {
+							// Note: Reduce column counter by 1 since parser loop will
+							// commence at the start of the first non whitespace char.
+							// A char that has already been looped over in the main loop.
+							STATE.column--;
 
-						// // Check for template strings (variables).
-						// if (char === "$" && pchar !== "\\" && nchar === "{") {
-						// 	// Run template-string parser from here...
-						// 	let pvalue = ptemplatestr();
-						// }
+							// Store result in variable to access the
+							// interpolated variable's value.
+							let res = p_tstring(STATE); // Run template-string parser...
+							// Add interpolated value to string.
+							DATA.value.value += res.variable.value;
+						} else {
+							// Store index positions.
+							DATA.value.end = STATE.i;
+							// Continue building the value string.
+							DATA.value.value += char;
+						}
 
 						// Not quoted.
 					} else {

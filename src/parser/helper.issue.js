@@ -12,6 +12,9 @@ let errors = {
 	},
 	setting: {
 		0: "Invalid character:"
+	},
+	"template-string": {
+		0: "Invalid character:"
 	}
 };
 

@@ -172,7 +172,7 @@ module.exports = STATE => {
 
 			case "value":
 				// If this is the first char is must be either one of the
-				// following: ", ', or a-zA-Z0-9
+				// following: ", ', or a-zA-Z0-9.
 				if (!DATA.value.value) {
 					// Character must be one of the following:
 					if (!/["'a-zA-Z0-9]/.test(char)) {

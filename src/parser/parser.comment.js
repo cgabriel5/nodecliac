@@ -32,7 +32,7 @@ module.exports = STATE => {
 		node: "COMMENT",
 		sigil: { start: null, end: null },
 		wsb: { start: null, end: null },
-		comment: { start: null, end: null, value: "" },
+		comment: { start: null, end: null, value: null },
 		line,
 		startpoint: STATE.i,
 		endpoint: null // Then index at which parsing was ended.
@@ -93,7 +93,11 @@ module.exports = STATE => {
 		}
 
 		// Allow for any characters in comments.
-		DATA.comment.string += char;
+		if (!DATA.comment.value) {
+			DATA.comment.value = char;
+		} else {
+			DATA.comment.value += char;
+		}
 	}
 
 	// console.log(DATA);

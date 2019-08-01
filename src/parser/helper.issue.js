@@ -10,6 +10,9 @@ let errors = {
 	comment: {
 		0: "Invalid character:"
 	},
+	variable: {
+		0: "Invalid character:"
+	},
 	setting: {
 		0: "Invalid character:"
 	},

@@ -29,8 +29,8 @@ module.exports = (
 
 	const PARSERS = {
 		// "command": function() {},
-		comment: require("./parser.comment.js")
-		// "setting": function() {},
+		comment: require("./parser.comment.js"),
+		setting: require("./parser.setting.js")
 		// "variable": function() {},
 		// "close-bracket": function() {},
 		// "close-parenthesis": function() {},

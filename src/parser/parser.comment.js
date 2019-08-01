@@ -54,7 +54,6 @@ module.exports = STATE => {
 
 		STATE.column++; // Increment column position.
 
-		// Default parse state.
 		switch (state) {
 			case "sigil":
 				// Store '#' sigil index positions.

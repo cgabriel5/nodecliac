@@ -92,6 +92,11 @@ module.exports = (
 				process.exit();
 			}
 
+			// Note: Reduce column counter by 1 since parser loop will
+			// commence at the start of the first non whitespace char.
+			// A char that has already been looped over in the main loop.
+			STATE.column--;
+
 			// Get the line type.
 			line_type = LINE_TYPES[char];
 			// Run the line type's function.

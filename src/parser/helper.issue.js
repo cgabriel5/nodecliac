@@ -7,6 +7,9 @@ const { exit } = require("../utils/exit.js");
 
 // Error lookup table.
 let errors = {
+	command: {
+		0: "Invalid character:"
+	},
 	comment: {
 		0: "Invalid character:"
 	},

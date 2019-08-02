@@ -19,7 +19,7 @@ module.exports = (
 
 	// Possible line types lookup table.
 	const LINE_TYPES = {
-		".": "command",
+		// ".": "command",
 		"#": "comment",
 		"@": "setting",
 		$: "variable",
@@ -28,7 +28,7 @@ module.exports = (
 	};
 
 	const PARSERS = {
-		// "command": function() {},
+		command: require("./parser.command.js"),
 		comment: require("./parser.comment.js"),
 		setting: require("./parser.setting.js"),
 		variable: require("./parser.variable.js")
@@ -99,6 +99,9 @@ module.exports = (
 
 			// Get the line type.
 			line_type = LINE_TYPES[char];
+			if (!line_type && /[a-zA-Z]/.test(char)) {
+				line_type = "command";
+			}
 			// Run the line type's function.
 			if (PARSERS[line_type]) {
 				PARSERS[line_type](STATE);

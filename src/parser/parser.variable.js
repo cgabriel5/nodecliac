@@ -254,9 +254,10 @@ module.exports = STATE => {
 
 			case "eol-wsb":
 				if (!/[ \t]/.test(char)) {
-					// Note: At this point states have been gone through. ALl
-					// that should remain, if anything, are trailing whitespace
-					// Anything other than trailing whitespace is invalid.
+					// Note: At this point all states have been gone through.
+					// All that should remain, if anything, are trailing
+					// whitespace Anything other than trailing whitespace is
+					// invalid.
 					issue.error(STATE, 0, __filename);
 				}
 

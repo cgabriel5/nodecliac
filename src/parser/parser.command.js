@@ -2,6 +2,7 @@
 
 // Get needed modules.
 let issue = require("./helper.issue.js");
+const p_flag = require("./parser.flag.js");
 // const pflagset = require("./p.flagset.js");
 // Get RegExp patterns.
 let { r_nl, r_whitespace } = require("./h.patterns.js");
@@ -302,21 +303,10 @@ module.exports = STATE => {
 
 				// Store result in variable to access the
 				// interpolated variable's value.
-				// let res = p_oneliner(STATE); // Run flag oneliner parser...
+				let res = p_flag(STATE); // Parse flag oneliner...
 
 				// // Add interpolated value to string.
 				// DATA.value.value += res.variable.value;
-
-				// // With RegExp to parse on unescaped '|' characters it would be
-				// // something like this: String.split(/(?<=[^\\]|^|$)\|/);
-				// // [https://stackoverflow.com/a/25895905]
-				// // [https://stackoverflow.com/a/12281034]
-
-				// // Get individual flag sets. Use unescaped '|' as the delimiter.
-				// if (char === "|" && pchar !== "\\") {
-				// 	// Run flag value parser from here...
-				// 	let pvalue = pflagset();
-				// }
 
 				break;
 

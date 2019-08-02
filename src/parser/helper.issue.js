@@ -13,6 +13,9 @@ let errors = {
 	comment: {
 		0: "Invalid character:"
 	},
+	flag: {
+		0: "Invalid character:"
+	},
 	variable: {
 		0: "Invalid character:"
 	},

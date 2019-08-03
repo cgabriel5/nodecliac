@@ -100,8 +100,8 @@ module.exports = STATE => {
 		}
 	}
 
-	// console.log(DATA);
-	// console.log();
-	return;
+	console.log(DATA);
+	console.log();
+	console.log();
 	return DATA;
 };

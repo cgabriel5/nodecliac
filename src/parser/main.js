@@ -19,6 +19,7 @@ module.exports = (
 
 	// Possible line types lookup table.
 	const LINE_TYPES = {
+		";": "eof",
 		// ".": "command",
 		"#": "comment",
 		"@": "setting",
@@ -84,11 +85,7 @@ module.exports = (
 			// +---------------------------------------------+
 			if (!r_start_line_char.test(char)) {
 				// Error as first lien character is now allowed.
-				console.log(
-					"char it not allowed",
-					`line:${STATE.line}, column:${STATE.column}`
-				);
-				console.log(r_start_line_char, char);
+				console.log(`INVALID_CHAR << ${STATE.line}:${STATE.column}`);
 				process.exit();
 			}
 
@@ -102,6 +99,11 @@ module.exports = (
 			if (!line_type && /[a-zA-Z]/.test(char)) {
 				line_type = "command";
 			}
+
+			if (line_type === "eof") {
+				break;
+			}
+
 			// Run the line type's function.
 			if (PARSERS[line_type]) {
 				PARSERS[line_type](STATE);

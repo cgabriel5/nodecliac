@@ -31,7 +31,7 @@ let issue = (STATE, code, filepath) => {};
 issue.error = (STATE, code, filepath) => {
 	// Get file name from file path.
 	let filename = path.basename(filepath).replace(/^parser\.|\.js/g, "");
-	console.log("Error", code, `${STATE.line}:${STATE.column}`);
+	console.log("Error", code, `${STATE.line}:${STATE.column}`, filename);
 
 	// Get error from lookup table.
 	let error = errors[filename][code];

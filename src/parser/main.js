@@ -22,6 +22,7 @@ module.exports = (
 		";": "eof",
 		// ".": "command",
 		"#": "comment",
+		"-": "flag",
 		"@": "setting",
 		$: "variable",
 		"]": "close-bracket",
@@ -32,7 +33,8 @@ module.exports = (
 		command: require("./parser.command.js"),
 		comment: require("./parser.comment.js"),
 		setting: require("./parser.setting.js"),
-		variable: require("./parser.variable.js")
+		variable: require("./parser.variable.js"),
+		flag: require("./parser.flag.js")
 		// "close-bracket": function() {},
 		// "close-parenthesis": function() {},
 	};

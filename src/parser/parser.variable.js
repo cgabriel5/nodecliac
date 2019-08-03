@@ -35,7 +35,7 @@ module.exports = STATE => {
 	let DATA = {
 		node: "VARIABLE",
 		sigil: { start: null, end: null },
-		name: { start: null, end: null, value: "" },
+		name: { start: null, end: null, value: null },
 		assignment: { start: null, end: null, value: null },
 		value: { start: null, end: null, value: null },
 		// wsb: { start: null, end: null },
@@ -85,7 +85,7 @@ module.exports = STATE => {
 					DATA.name.end = STATE.i;
 
 					// Start building setting name string.
-					DATA.name.value += char;
+					DATA.name.value = char;
 
 					// Continue building setting name string.
 				} else {
@@ -206,24 +206,24 @@ module.exports = STATE => {
 							state = "eol-wsb";
 						}
 
-						// Check for template strings (variables).
-						if (char === "$" && pchar !== "\\" && nchar === "{") {
-							// Note: Reduce column counter by 1 since parser loop will
-							// commence at the start of the first non whitespace char.
-							// A char that has already been looped over in the main loop.
-							STATE.column--;
+						// // Check for template strings (variables).
+						// if (char === "$" && pchar !== "\\" && nchar === "{") {
+						// 	// Note: Reduce column counter by 1 since parser loop will
+						// 	// commence at the start of the first non whitespace char.
+						// 	// A char that has already been looped over in the main loop.
+						// 	STATE.column--;
 
-							// Store result in variable to access the
-							// interpolated variable's value.
-							let res = p_tstring(STATE); // Run template-string parser...
-							// Add interpolated value to string.
-							DATA.value.value += res.variable.value;
-						} else {
-							// Store index positions.
-							DATA.value.end = STATE.i;
-							// Continue building the value string.
-							DATA.value.value += char;
-						}
+						// 	// Store result in variable to access the
+						// 	// interpolated variable's value.
+						// 	let res = p_tstring(STATE); // Run template-string parser...
+						// 	// Add interpolated value to string.
+						// 	DATA.value.value += res.variable.value;
+						// } else {
+						// Store index positions.
+						DATA.value.end = STATE.i;
+						// Continue building the value string.
+						DATA.value.value += char;
+						// }
 
 						// Not quoted.
 					} else {

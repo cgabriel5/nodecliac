@@ -71,8 +71,6 @@ module.exports = STATE => {
 
 		STATE.column++; // Increment column position.
 
-		console.log(2222222222222, char, state);
-
 		// Default parse state.
 
 		switch (state) {

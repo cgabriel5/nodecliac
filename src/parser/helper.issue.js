@@ -24,13 +24,18 @@ let errors = {
 	},
 	"template-string": {
 		0: "Invalid character:"
+	},
+	"validate-value": {
+		0: "Invalid character:"
 	}
 };
 
 let issue = (STATE, code, filepath) => {};
 issue.error = (STATE, code, filepath) => {
 	// Get file name from file path.
-	let filename = path.basename(filepath).replace(/^parser\.|\.js/g, "");
+	let filename = path
+		.basename(filepath)
+		.replace(/^(parser|helper)\.|\.js/g, "");
 	console.log("Error", code, `${STATE.line}:${STATE.column}`, filename);
 
 	// Get error from lookup table.

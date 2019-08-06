@@ -39,13 +39,21 @@ module.exports = (
 		// "close-parenthesis": function() {},
 	};
 
+	// Parsing database.
+	const DB = {
+		variables: {}, // Contain variable_name:value pairs.
+		linestarts: {} // Contain line index start points.
+	};
+
 	// Loop global state variables.
 	const STATE = {
 		line: 1,
 		column: 0,
 		i: 0,
 		l: string.length,
-		string
+		string,
+		// Attach database to access across parsers.
+		DB
 	};
 	// Loop local vars.
 	let first_non_whitespace_char = "";
@@ -66,6 +74,8 @@ module.exports = (
 		}
 
 		STATE.column++; // Increment column position.
+		// Store startpoint.
+		DB.linestarts[STATE.line] = STATE.i;
 
 		// Find first non-whitespace character of line.
 		if (!first_non_whitespace_char && !/[ \t]/.test(char)) {

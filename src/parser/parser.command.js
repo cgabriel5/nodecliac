@@ -258,6 +258,9 @@ module.exports = STATE => {
 				// Store index positions.
 				DATA.brackets.start = STATE.i;
 
+				// Store assignment character.
+				DATA.value.value = char;
+
 				// Allow for any number of white spaces after open-bracket.
 				state = "open-bracket-wsb";
 
@@ -286,6 +289,9 @@ module.exports = STATE => {
 
 				// Store index positions.
 				DATA.brackets.end = STATE.i;
+
+				// Store assignment character.
+				DATA.value.value += char;
 
 				// Only whitespace is allowed now so set state to
 				// end-of-line whitespace boundary.

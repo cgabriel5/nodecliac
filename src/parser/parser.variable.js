@@ -265,6 +265,16 @@ module.exports = STATE => {
 		}
 	}
 
+	// Finally unquote value.
+	// [https://stackoverflow.com/a/21873245]
+	let value = DATA.value.value;
+	value = value.substring(1, value.length - 1);
+	// Unquote value. [https://stackoverflow.com/a/19156197]
+	// 	value = value.replace(/^(["'])(.+(?=\1$))\1$/, "$2");
+
+	// Store where variable was declared.
+	STATE.DB.variables[DATA.name.value] = value;
+
 	console.log(DATA);
 	console.log();
 	console.log();

@@ -264,6 +264,8 @@ module.exports = STATE => {
 		}
 	}
 
+	// Validate extracted variable value.
+	require("./helper.validate-value.js")(DATA, STATE);
 	// Finally unquote value.
 	// [https://stackoverflow.com/a/21873245]
 	let value = DATA.value.value;

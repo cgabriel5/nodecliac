@@ -331,8 +331,8 @@ module.exports = STATE => {
 		}
 	}
 
-	console.log(DATA);
-	console.log();
+	// Validate extracted variable value.
+	require("./helper.validate-value.js")(DATA, STATE);
 	console.log();
 	return DATA;
 

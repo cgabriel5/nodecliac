@@ -10,7 +10,7 @@ let issue = require("./helper.issue.js");
  * Parses comment lines.
  *
  * ---------- Parsing States Breakdown -----------------------------------------
- * # Some comment.
+ * # Some body.
  * ^-Symbol (Sigil).
  *  ^-Whitespace-Boundary (Space/Tab - At least 1 after the symbol).
  *   ^-Comment-Char *(All characters until newline '\n').
@@ -85,7 +85,7 @@ module.exports = STATE => {
 				// Store comment index positions.
 				// Store start index if not already stored.
 				if (!DATA.comment.start) {
-					DATA.comment.start = STATE.i;
+					DATA.comment.start = DATA.sigil.start;
 				}
 				DATA.comment.end = STATE.i;
 

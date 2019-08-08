@@ -1,7 +1,6 @@
 "use strict";
 
 // Get needed modules.
-const p_tstring = require("./parser.template-string.js");
 // Get RegExp patterns.
 let { r_schars, r_nl } = require("./h.patterns.js");
 let issue = require("./helper.issue.js");
@@ -38,7 +37,6 @@ module.exports = STATE => {
 		name: { start: null, end: null, value: "" },
 		assignment: { start: null, end: null, value: null },
 		value: { start: null, end: null, value: null },
-		// wsb: { start: null, end: null },
 		line,
 		startpoint: STATE.i,
 		endpoint: null // Then index at which parsing was ended.
@@ -206,24 +204,24 @@ module.exports = STATE => {
 							state = "eol-wsb";
 						}
 
-						// Check for template strings (variables).
-						if (char === "$" && pchar !== "\\" && nchar === "{") {
-							// Note: Reduce column counter by 1 since parser loop will
-							// commence at the start of the first non whitespace char.
-							// A char that has already been looped over in the main loop.
-							STATE.column--;
+						// // Check for template strings (variables).
+						// if (char === "$" && pchar !== "\\" && nchar === "{") {
+						// 	// Note: Reduce column counter by 1 since parser loop will
+						// 	// commence at the start of the first non whitespace char.
+						// 	// A char that has already been looped over in the main loop.
+						// 	STATE.column--;
 
-							// Store result in variable to access the
-							// interpolated variable's value.
-							let res = p_tstring(STATE); // Run template-string parser...
-							// Add interpolated value to string.
-							DATA.value.value += res.variable.value;
-						} else {
-							// Store index positions.
-							DATA.value.end = STATE.i;
-							// Continue building the value string.
-							DATA.value.value += char;
-						}
+						// 	// Store result in variable to access the
+						// 	// interpolated variable's value.
+						// 	let res = p_tstring(STATE); // Run template-string parser...
+						// 	// Add interpolated value to string.
+						// 	DATA.value.value += res.variable.value;
+						// } else {
+						// Store index positions.
+						DATA.value.end = STATE.i;
+						// Continue building the value string.
+						DATA.value.value += char;
+						// }
 
 						// Not quoted.
 					} else {
@@ -265,66 +263,23 @@ module.exports = STATE => {
 		}
 	}
 
+	// Validate extracted variable value.
+	require("./helper.validate-value.js")(DATA, STATE);
+
 	// Add node to tree.
 	require("./helper.tree-add.js")(STATE, DATA);
 
 	return DATA;
 
-	// // Check for dangling '@'.
-	// if (name === "@") {
-	// 	// Reset index so it points to '@' symbol.
-	// 	i = indices.symbol.index;
+	// Check for dangling '@'.
+	// if (name === "@") {}
 
-	// 	return issue("error", 2, "@");
-	// }
+	// If assignment but not value give warning.
+	// if (assignment && !value) {}
 
-	// // If value exists and is quoted, check that is properly quoted.
-	// if (qchar) {
-	// 	// If building quoted string check if it's closed off.
-	// 	if (value.charAt(value.length - 1) !== qchar) {
-	// 		// Set index to first quote.
-	// 		i = indices.value.start;
+	// If no value was provided give warning.
+	// if (!assignment) {}
 
-	// 		return issue("error", 4);
-	// 	}
-	// }
-
-	// // If assignment but not value give warning.
-	// if (assignment && !value) {
-	// 	// Reset index to point to eq sign.
-	// 	i = indices.assignment.index;
-
-	// 	// Add warning.
-	// 	issue("warning", 6, "=");
-	// }
-
-	// // If no value was provided give warning.
-	// if (!assignment) {
-	// 	// Reset index to point to original index.
-	// 	i = indices.name.end;
-
-	// 	// Add warning.
-	// 	issue("warning", 8, "=");
-	// }
-
-	// // If setting exists give an dupe/override warning.
-	// if (settings.hasOwnProperty(name)) {
-	// 	// Reset index to point to name.
-	// 	i = indices.name.end;
-
-	// 	issue("warning", 7, "=");
-	// }
-
-	// // Return relevant parsing information.
-	// return {
-	// 	name,
-	// 	value,
-	// 	nl_index,
-	// 	warnings,
-	// 	h: {
-	// 		// Add syntax highlighting.
-	// 		name: h(name, "setting"),
-	// 		value: h(hvalue, "value")
-	// 	}
-	// };
+	// If setting exists give an dupe/override warning.
+	// if (settings.hasOwnProperty(name)) {}
 };

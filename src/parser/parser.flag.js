@@ -40,15 +40,13 @@ module.exports = STATE => {
 	let end_comsuming;
 	let DATA = {
 		node: "FLAG",
-		begin: { start: null, end: null, value: null },
-		end: { start: null, end: null, value: null },
+		hyphens: { start: null, end: null, value: null },
 		variable: { start: null, end: null, value: null },
 		name: { start: null, end: null, value: null },
 		boolean: { start: null, end: null, value: null },
 		assignment: { start: null, end: null, value: null },
 		multi: { start: null, end: null, value: null },
 		value: { start: null, end: null, value: null, type: null },
-		// wsb: { start: null, end: null },
 		line,
 		startpoint: STATE.i,
 		endpoint: null // Then index at which parsing was ended.
@@ -84,7 +82,7 @@ module.exports = STATE => {
 				// }
 
 				// Only hyphens are allowed at this point.
-				if (!DATA.begin.value) {
+				if (!DATA.hyphens.value) {
 					// Character must be one of the following:
 					if (char !== "-") {
 						// Note: Hitting this block means an invalid
@@ -93,10 +91,10 @@ module.exports = STATE => {
 					}
 
 					// Store index positions.
-					DATA.begin.start = STATE.i;
-					DATA.begin.end = STATE.i;
+					DATA.hyphens.start = STATE.i;
+					DATA.hyphens.end = STATE.i;
 					// Start building the value string.
-					DATA.begin.value = char;
+					DATA.hyphens.value = char;
 
 					// Continue building hyphen string.
 				} else {
@@ -110,9 +108,9 @@ module.exports = STATE => {
 						STATE.column--;
 					} else {
 						// Store index positions.
-						DATA.begin.end = STATE.i;
+						DATA.hyphens.end = STATE.i;
 						// Continue building the value string.
-						DATA.begin.value += char;
+						DATA.hyphens.value += char;
 					}
 				}
 
@@ -170,6 +168,56 @@ module.exports = STATE => {
 						STATE.i -= 1;
 						STATE.column--;
 
+						// If char is whitespace change state/reset index.
+					} else if (/[ \t]/.test(char)) {
+						state = "wsb-postname";
+
+						// Note: Rollback index by 1 to allow parser to
+						// start at new state on next iteration.
+						STATE.i -= 1;
+						STATE.column--;
+
+						// Anything else the character is not allowed.
+					} else {
+						// Note: Hitting this block means an invalid
+						// character was encountered so give an error.
+						issue.error(STATE, 0, __filename);
+					}
+				}
+
+				break;
+
+			case "wsb-postname":
+				// Note: The only allowed characters here are whitespace(s).
+				// Anything else like an eq-sign, boolean-indicator, or pipe
+				// require a state change.
+				if (!/[ \t]/.test(char)) {
+					if (char === "=") {
+						state = "assignment";
+
+						// Note: Rollback index by 1 to allow parser to
+						// start at new state on next iteration.
+						STATE.i -= 1;
+						STATE.column--;
+
+						// 	// If char is a question mark change state/reset index.
+						// } else if (char === "?") {
+						// 	state = "boolean-indicator";
+
+						// 	// Note: Rollback index by 1 to allow parser to
+						// 	// start at new state on next iteration.
+						// 	STATE.i -= 1;
+						// 	STATE.column--;
+
+						// If char is a pipe change state/reset index.
+					} else if (char === "|") {
+						state = "pipe-delimiter";
+
+						// Note: Rollback index by 1 to allow parser to
+						// start at new state on next iteration.
+						STATE.i -= 1;
+						STATE.column--;
+
 						// Anything else the character is not allowed.
 					} else {
 						// Note: Hitting this block means an invalid
@@ -208,21 +256,22 @@ module.exports = STATE => {
 			case "multi-indicator":
 				// If character is indeed a '*' then store information,
 				// else continue to value state.
-				if (char !== "*") {
-					// Note: Rollback index by 1 to allow parser to
-					// start at new state on next iteration.
-					STATE.i -= 1;
-					STATE.column--;
-				} else {
+				if (char === "*") {
 					// Store index positions.
 					DATA.multi.start = STATE.i;
 					DATA.multi.end = STATE.i;
 					// Store assignment character.
 					DATA.multi.value = char;
+				} else {
+					// Note: Rollback index by 1 to allow parser to
+					// start at new state on next iteration.
+					STATE.i -= 1;
+					STATE.column--;
 				}
 
 				// Now start looking the value.
-				state = "value";
+				// state = "value";
+				state = "wsb-prevalue";
 
 				break;
 
@@ -238,6 +287,20 @@ module.exports = STATE => {
 				}
 
 				stop = true;
+
+				break;
+
+			case "wsb-prevalue":
+				// Note: Allow any whitespace until first non-whitespace
+				// character is hit.
+				if (!/[ \t]/.test(char)) {
+					// Note: Rollback index by 1 to allow parser to
+					// start at new state on next iteration.
+					STATE.i -= 1;
+					STATE.column--;
+
+					state = "value";
+				}
 
 				break;
 
@@ -289,9 +352,6 @@ module.exports = STATE => {
 					if (end_comsuming) {
 						issue.error(STATE, 0, __filename);
 					}
-
-					// Note: Handle improperly quoted strings, endings, and
-					// escaped-unescaped characters.
 
 					// Get string type.
 					let stype = DATA.value.type;
@@ -347,36 +407,13 @@ module.exports = STATE => {
 	// // Lookup variable's value.
 	// let lookup = variables[`$${name}`];
 
-	// // Check that variable exists here.
-	// if (!lookup) {
-	// 	// Reset index to point to original index.
-	// 	ci = indices["template-string"].variable.start;
-
-	// 	return issue("error", 9, void 0);
-	// }
+	// Check that variable exists here.
+	// if (!lookup) {}
 
 	// // If not formatting then reset variable to actual value.
-	// if (!formatting) {
-	// 	value = lookup;
-	// }
+	// if (!formatting) {}
 
 	// // Track used count.
 	// let used_counter = variables.__used__[name];
 	// variables.__used__[name] = used_counter + 1;
-
-	// // Return relevant parsing information.
-	// return {
-	// 	value,
-	// 	name,
-	// 	index: i,
-	// 	ci,
-	// 	warnings,
-	// 	nl_index,
-	// 	h: {
-	// 		// The highlighted string.
-	// 		value: !formatting
-	// 			? value
-	// 			: h("${", "keyword") + h(name, "variable") + h("}", "keyword")
-	// 	}
-	// };
 };

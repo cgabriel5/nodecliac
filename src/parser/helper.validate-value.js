@@ -20,9 +20,26 @@ module.exports = (DATA, STATE) => {
 	// If a value does not exist then return.
 	if (!value) {
 		// Attach empty args array to DATA object.
-		DATA.args = [`${DATA.begin.value}${DATA.name.value}`];
+		DATA.args = [`${DATA.hyphens.value}${DATA.name.value}`];
 
 		return;
+	}
+
+	// If type was not provided then determine it on the fly.
+	if (!type) {
+		let fvchar = value.charAt(0); // Get first character from value.
+		if (fvchar === "$") {
+			type = "command-flag";
+		} else if (fvchar === "(") {
+			type = "list";
+		} else if (/["']/.test(fvchar)) {
+			type = "quoted";
+		} else {
+			type = "escaped";
+		}
+
+		// Finally set type.
+		DATA.value.type = type;
 	}
 
 	// The column index to resume error checks at.

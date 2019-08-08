@@ -37,7 +37,6 @@ module.exports = STATE => {
 		name: { start: null, end: null, value: null },
 		assignment: { start: null, end: null, value: null },
 		value: { start: null, end: null, value: null },
-		// wsb: { start: null, end: null },
 		line,
 		startpoint: STATE.i,
 		endpoint: null // Then index at which parsing was ended.

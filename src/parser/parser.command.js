@@ -49,7 +49,6 @@ module.exports = STATE => {
 		assignment: { start: null, end: null, value: null },
 		delimiter: { start: null, end: null, value: null },
 		value: { start: null, end: null, value: null },
-		// wsb: { start: null, end: null },
 		flags: [],
 		line,
 		startpoint: STATE.i,
@@ -339,155 +338,21 @@ module.exports = STATE => {
 
 	return DATA;
 
-	// // If brace index is set it was never closed.
-	// if (indices.shortcut.open) {
-	// 	// Reset index opened shortcut brace.
-	// 	i = indices.shortcut.open;
-	// 	return issue("error", 7, "{");
-	// }
-
-	// // Add the last command.
-	// if (command) {
-	// 	commands.push(command);
-	// }
-
-	// // Join command parts and reset chain to normalized chain string.
-	// chain = commands.join("");
-
-	// // Store chain as a global.
-	// setchain(chain);
-
-	// // [TODO] Use a function to not repeat followed pflagset logic.
-
-	// // Add final flag set.
-	// if (flagset) {
-	// 	// Run flag value parser from here...
-	// 	let pvalue = pflagset({
-	// 		str: [indices.oneliner.start], // Index to resume parsing at.
-	// 		usepipe: true // End parsing either on newlines or pipe chars.
-	// 	});
-
-	// 	// Join warnings.
-	// 	if (pvalue.warnings.length) {
-	// 		warnings = warnings.concat(pvalue.warnings);
-	// 	}
-	// 	// If error exists return error.
-	// 	if (pvalue.code) {
-	// 		return pvalue;
-	// 	}
-
-	// 	// Get result values.
-	// 	let symbol = pvalue.symbol;
-	// 	let keyword = pvalue.keyword;
-	// 	let name = pvalue.name;
-	// 	let hname = pvalue.h.name;
-	// 	let assignment = pvalue.assignment;
-	// 	let value = pvalue.args;
-	// 	let hvalue = pvalue.h.hargs;
-	// 	let nl_index = pvalue.nl_index;
-
-	// 	// For keyword declarations.
-	// 	if (keyword) {
-	// 		// Get highlighted/non-highlighted keywords.
-	// 		let [, hkeyword] = keyword;
-	// 		keyword = keyword[0];
-
-	// 		// Store the provided command string fallback (default/always).
-	// 		store_fallback(keyword, hkeyword, value, hvalue, chain);
-
-	// 		// Reset flag to newly parsed value.
-	// 		flagset = `${keyword} ${value}`;
-	// 		// Set highlighted version.
-	// 		hflagset = `${hkeyword} ${hvalue}`;
-	// 	} else {
-	// 		// If value is not a string (therefore an array) join values.
-	// 		if (typeof value !== "string" && value.length > 1) {
-	// 			value = `(${value.join(" ")})`;
-	// 			hvalue = `(${hvalue.join(" ")})`;
-	// 		}
-
-	// 		// Reset flag to newly parsed value.
-	// 		flagset = `${symbol}${name}${assignment}${value}`;
-	// 		// Set highlighted version.
-	// 		hflagset = `${symbol}${hname}${assignment}${hvalue}`;
-	// 	}
-
-	// 	// Reset oneliner start index.
-	// 	indices.oneliner.start = (nl_index || i) + 1;
-
-	// 	// Don't add fallback (default/always) to flagsets as they have
-	// 	// their own section (bottom of output) unless formatting.
-	// 	if (!keyword || formatting) {
-	// 		// Store current flag set.
-	// 		flagsets.push(flagset);
-	// 		// Set highlighted version.
-	// 		hflagsets.push(hflagset);
-	// 	}
-
-	// 	// Reset flag set string.
-	// 	flagset = "";
-	// 	hflagset = "";
-	// }
+	// If brace index is set it was never closed.
+	// if (indices.shortcut.open) {}
 
 	// // If there was assignment do some value checks.
 	// if (assignment && !flagsets.length) {
 	// 	// Determine brace state.
-	// 	brstate =
-	// 		value === "[]" ? "closed" : value === "[" ? "open" : undefined;
+	// 	brstate = value === "[]" ? "closed" : value === "[" ? "open" : undefined;
 
 	// 	// If assignment but not value give warning.
-	// 	if (!value) {
-	// 		// Reset index to point to eq sign.
-	// 		i = indices.assignment.index;
-
-	// 		// Add warning.
-	// 		issue("warning", 5, "=");
-	// 	}
+	// 	// if (!value) {}
 
 	// 	// If assignment but not value give warning.
-	// 	if (brstate === "closed") {
-	// 		// Reset index to point to opening brace'['.
-	// 		i = indices.value.start;
-
-	// 		// Add warning.
-	// 		issue("warning", 6);
-	// 	}
+	// 	// if (brstate === "closed") {}
 	// }
 
-	// // Check if command chain is a duplicate.
-	// if (lookup[chain]) {
-	// 	// Reset index.
-	// 	i = indices.chain.end;
-
-	// 	// Add warning.
-	// 	issue("warning", 10, chain);
-	// }
-
-	// // Unset global oneliner flag set used for dupe checks.
-	// if (global.$app.vars.oneliner) {
-	// 	delete global.$app.vars.oneliner;
-	// 	global.$app.size(-1); // Decrease size by 1.
-	// }
-
-	// // Return relevant parsing information.
-	// return {
-	// 	chain,
-	// 	value,
-	// 	brstate,
-	// 	assignment,
-	// 	flagsets,
-	// 	hflagsets,
-	// 	nl_index,
-	// 	delimiter,
-	// 	warnings,
-	// 	has_shortcuts,
-	// 	is_oneliner,
-	// 	// Return brace opening index for later error checks.
-	// 	br_open_index: indices.braces.open - line_fchar + 1, // Add 1 to account for 0 index.
-	// 	// Return delimiter index for later error checks.
-	// 	delimiter_index: indices.delimiter.index - line_fchar + 1,
-	// 	h: {
-	// 		chain: h(chain, "command")
-	// 	}
-	// };
+	// Check if command chain is a duplicate.
+	// if (lookup[chain]) {}
 };

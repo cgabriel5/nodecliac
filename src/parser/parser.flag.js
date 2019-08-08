@@ -161,6 +161,15 @@ module.exports = STATE => {
 						STATE.i -= 1;
 						STATE.column--;
 
+						// If char is a pipe change state/reset index.
+					} else if (char === "|") {
+						state = "pipe-delimiter";
+
+						// Note: Rollback index by 1 to allow parser to
+						// start at new state on next iteration.
+						STATE.i -= 1;
+						STATE.column--;
+
 						// Anything else the character is not allowed.
 					} else {
 						// Note: Hitting this block means an invalid
@@ -180,7 +189,7 @@ module.exports = STATE => {
 
 				// Note: A boolean-indicator means the flag does not contain
 				// a value. More of a switch than a parameter.
-				state = "eol-wsb";
+				state = "pipe-delimiter";
 
 				break;
 
@@ -223,6 +232,10 @@ module.exports = STATE => {
 				// something like this: String.split(/(?<=[^\\]|^|$)\|/);
 				// [https://stackoverflow.com/a/25895905]
 				// [https://stackoverflow.com/a/12281034]
+
+				if (char !== "|") {
+					issue.error(STATE, 0, __filename);
+				}
 
 				stop = true;
 

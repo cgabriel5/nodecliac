@@ -50,6 +50,7 @@ module.exports = STATE => {
 		delimiter: { start: null, end: null, value: null },
 		value: { start: null, end: null, value: null },
 		// wsb: { start: null, end: null },
+		flags: [],
 		line,
 		startpoint: STATE.i,
 		endpoint: null // Then index at which parsing was ended.
@@ -307,10 +308,7 @@ module.exports = STATE => {
 
 				// Store result in variable to access the
 				// interpolated variable's value.
-				let res = p_flag(STATE); // Parse flag oneliner...
-
-				// // Add interpolated value to string.
-				// DATA.value.value += res.variable.value;
+				DATA.flags.push(p_flag(STATE)); // Parse flag oneliner...
 
 				break;
 
@@ -327,9 +325,18 @@ module.exports = STATE => {
 		}
 	}
 
-	console.log(DATA);
-	console.log();
-	console.log();
+	// Add command data object before any flag objects.
+	let adder = require("./helper.tree-add.js");
+	adder(STATE, DATA);
+	// Add any flags.
+	// Description...
+	for (let i = 0, l = DATA.flags.length; i < l; i++) {
+		// Cache current loop item.
+		let item = DATA.flags[i];
+
+		adder(STATE, item);
+	}
+
 	return DATA;
 
 	// // If brace index is set it was never closed.

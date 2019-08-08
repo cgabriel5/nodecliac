@@ -265,9 +265,9 @@ module.exports = STATE => {
 		}
 	}
 
-	console.log(DATA);
-	console.log();
-	console.log();
+	// Add node to tree.
+	require("./helper.tree-add.js")(STATE, DATA);
+
 	return DATA;
 
 	// // Check for dangling '@'.

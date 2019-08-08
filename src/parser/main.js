@@ -42,7 +42,9 @@ module.exports = (
 	// Parsing database.
 	const DB = {
 		variables: {}, // Contain variable_name:value pairs.
-		linestarts: {} // Contain line index start points.
+		linestarts: {}, // Contain line index start points.
+		table: {}, // Contain command-chains/flag sets.
+		tree: {} // Line by line parsed tree nodes.
 	};
 
 	// Loop global state variables.
@@ -53,7 +55,10 @@ module.exports = (
 		l: string.length,
 		string,
 		// Attach database to access across parsers.
-		DB
+		DB,
+		// Have quick access to the last parsed command-chain/flag.
+		lastcc: null,
+		lastflag: null
 	};
 	// Loop local vars.
 	let first_non_whitespace_char = "";
@@ -115,6 +120,10 @@ module.exports = (
 
 			if (line_type === "eof") {
 				break;
+			}
+
+			if (line_type === "flag") {
+				STATE.singleton = true;
 			}
 
 			// Run the line type's function.

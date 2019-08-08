@@ -266,6 +266,9 @@ module.exports = STATE => {
 
 	// Validate extracted variable value.
 	require("./helper.validate-value.js")(DATA, STATE);
+
+	// Add node to tree.
+	require("./helper.tree-add.js")(STATE, DATA);
 	// Finally unquote value.
 	// [https://stackoverflow.com/a/21873245]
 	let value = DATA.value.value;

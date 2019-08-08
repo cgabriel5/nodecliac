@@ -333,7 +333,15 @@ module.exports = STATE => {
 
 	// Validate extracted variable value.
 	require("./helper.validate-value.js")(DATA, STATE);
-	console.log();
+
+	if (STATE.singleton) {
+		// Add node to tree.
+		require("./helper.tree-add.js")(STATE, DATA);
+
+		// Finally, remove the singleton key from STATE object.
+		delete STATE.singleton;
+	}
+
 	return DATA;
 
 	// // Lookup variable's value.

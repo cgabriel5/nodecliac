@@ -19,6 +19,9 @@ module.exports = (DATA, STATE) => {
 
 	// If a value does not exist then return.
 	if (!value) {
+		// Attach empty args array to DATA object.
+		DATA.args = [`${DATA.begin.value}${DATA.name.value}`];
+
 		return;
 	}
 
@@ -78,6 +81,9 @@ module.exports = (DATA, STATE) => {
 				return value;
 			});
 
+			// Attach args array to DATA object.
+			DATA.args = [value];
+
 			// Update value in object.
 			DATA.value.value = value;
 
@@ -85,6 +91,9 @@ module.exports = (DATA, STATE) => {
 
 		case "escaped":
 			// Pass the escaped value for the time begin.being
+
+			// Attach args array to DATA object.
+			DATA.args = [value];
 
 			break;
 		case "command-flag":
@@ -200,6 +209,9 @@ module.exports = (DATA, STATE) => {
 				if (argument) {
 					args.push(argument);
 				}
+
+				// Attach args array to DATA object.
+				DATA.args = args;
 
 				// Reset value to cleaned arguments command-flag.
 				DATA.value.value = value = `$(${args.join(",")})`;
@@ -393,6 +405,9 @@ module.exports = (DATA, STATE) => {
 				args.forEach(item => {
 					cvalues.push(item[0]);
 				});
+
+				// Attach args array to DATA object.
+				DATA.args = cvalues;
 
 				// Reset value to cleaned arguments command-flag.
 				DATA.value.value = value = `(${cvalues.join(" ")})`;

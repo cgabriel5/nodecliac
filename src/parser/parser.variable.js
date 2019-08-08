@@ -269,6 +269,21 @@ module.exports = STATE => {
 
 	// Add node to tree.
 	require("./helper.tree-add.js")(STATE, DATA);
+
+	// [TODO] Add following variable checks later on.
+
+	// Check for dangling '$'.
+	// if (name === "$") {}
+
+	// If assignment but not value give warning.
+	// if (assignment && !value) {}
+
+	// If no value was provided give warning.
+	// if (!assignment) {}
+
+	// If variable exists give an dupe/override warning.
+	// if (variables.hasOwnProperty(name)) {}
+
 	// Finally unquote value.
 	// [https://stackoverflow.com/a/21873245]
 	let value = DATA.value.value;

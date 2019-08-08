@@ -96,9 +96,10 @@ module.exports = (
 			// | ]         |  Closing long-flag form.        |
 			// +---------------------------------------------+
 			if (!r_start_line_char.test(char)) {
+				console.log("TREE", STATE.DB.tree);
 				// Error as first lien character is now allowed.
-				console.log(`INVALID_CHAR << ${STATE.line}:${STATE.column}`);
-				process.exit();
+				// console.log(`INVALID_CHAR << ${STATE.line}:${STATE.column}`);
+				break;
 			}
 
 			// Note: Reduce column counter by 1 since parser loop will

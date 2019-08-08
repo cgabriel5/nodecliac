@@ -1,7 +1,6 @@
 "use strict";
 
 // Get needed modules.
-const p_tstring = require("./parser.template-string.js");
 // Get RegExp patterns.
 let { r_schars, r_nl } = require("./h.patterns.js");
 let issue = require("./helper.issue.js");
@@ -275,75 +274,5 @@ module.exports = STATE => {
 	// Store where variable was declared.
 	STATE.DB.variables[DATA.name.value] = value;
 
-	console.log(DATA);
-	console.log();
-	console.log();
 	return DATA;
-
-	// // Check for dangling '$'.
-	// if (name === "$") {
-	// 	// Reset index so it points to '$' symbol.
-	// 	i = indices.symbol.index;
-
-	// 	return issue("error", 2, "$");
-	// }
-
-	// // If value exists and is quoted, check that is properly quoted.
-	// if (qchar) {
-	// 	// If building quoted string check if it's closed off.
-	// 	if (value.charAt(value.length - 1) !== qchar) {
-	// 		// Set index to first quote.
-	// 		i = indices.value.start;
-
-	// 		return issue("error", 4);
-	// 	}
-	// }
-
-	// // If assignment but not value give warning.
-	// if (assignment && !value) {
-	// 	// Reset index to point to eq sign.
-	// 	i = indices.assignment.index;
-
-	// 	// Add warning.
-	// 	issue("warning", 6, "=");
-	// }
-
-	// // If no value was provided give warning.
-	// if (!assignment) {
-	// 	// Reset index to point to original index.
-	// 	i = indices.name.end;
-
-	// 	// Add warning.
-	// 	issue("warning", 8, "=");
-	// }
-
-	// // If variable exists give an dupe/override warning.
-	// if (variables.hasOwnProperty(name)) {
-	// 	// Reset index to point to name.
-	// 	i = indices.name.end;
-
-	// 	issue("warning", 7, "=");
-	// }
-
-	// if (!formatting) {
-	// 	// Unquote value. [https://stackoverflow.com/a/19156197]
-	// 	value = value.replace(/^(["'])(.+(?=\1$))\1$/, "$2");
-	// 	hvalue = hvalue.replace(/^(["'])(.+(?=\1$))\1$/, "$2");
-	// }
-
-	// // Store where variable was declared.
-	// variables.__defs__[name.slice(1)] = [line_num, 0];
-
-	// // Return relevant parsing information.
-	// return {
-	// 	name,
-	// 	value,
-	// 	nl_index,
-	// 	warnings,
-	// 	h: {
-	// 		// Add syntax highlighting.
-	// 		name: h(name, "variable"),
-	// 		value: h(hvalue, "value")
-	// 	}
-	// };
 };

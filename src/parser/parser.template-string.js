@@ -175,9 +175,6 @@ module.exports = STATE => {
 		}
 	}
 
-	console.log(DATA);
-	console.log();
-	console.log();
 	return DATA;
 
 	// // Lookup variable's value.
@@ -199,20 +196,4 @@ module.exports = STATE => {
 	// // Track used count.
 	// let used_counter = variables.__used__[name];
 	// variables.__used__[name] = used_counter + 1;
-
-	// // Return relevant parsing information.
-	// return {
-	// 	value,
-	// 	name,
-	// 	index: i,
-	// 	ci,
-	// 	warnings,
-	// 	nl_index,
-	// 	h: {
-	// 		// The highlighted string.
-	// 		value: !formatting
-	// 			? value
-	// 			: h("${", "keyword") + h(name, "variable") + h("}", "keyword")
-	// 	}
-	// };
 };

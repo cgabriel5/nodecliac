@@ -140,11 +140,13 @@ module.exports = (DATA, STATE) => {
 				let qchar;
 				let delimiter_count = 0;
 				let delimiter_index;
+				let value_start_index;
+				let i = 2;
 
 				// Validate that command-flag string is valid.
 				// Note: Start loop at index 2 and stop before the last
 				// character to ignore the starting '$(' and ending ')'.
-				for (let i = 2, l = value.length - 1; i < l; i++) {
+				for (let l = value.length - 1; i < l; i++) {
 					// Cache current loop item.
 					let char = value.charAt(i);
 					let pchar = value.charAt(i - 1);
@@ -154,6 +156,8 @@ module.exports = (DATA, STATE) => {
 					if (!qchar) {
 						// Look for unescaped quote characters.
 						if (/["']/.test(char) && pchar !== "\\") {
+							// Store the index at which the value starts.
+							value_start_index = DATA.value.start + i;
 							// Set qchar as the opening quote character.
 							qchar = char;
 							// Capture character.
@@ -201,6 +205,17 @@ module.exports = (DATA, STATE) => {
 						argument += char;
 
 						if (char === qchar && pchar !== "\\") {
+							// Validate value.
+							let tmpDATA = {
+								value: {
+									start: value_start_index,
+									end: argument.length - 1,
+									value: argument,
+									type: "quoted"
+								}
+							};
+							argument = module.exports(tmpDATA, STATE);
+
 							// Store argument and reset vars.
 							args.push(argument);
 							// Clear/reset variables.
@@ -214,7 +229,7 @@ module.exports = (DATA, STATE) => {
 
 				// Note: If delimiter_index flag is still set then we have a
 				// trailing comma delimiter so give an error.
-				if (delimiter_index) {
+				if (delimiter_index && !argument) {
 					// Reset STATE column index position.
 					STATE.column = resumepoint + delimiter_index;
 
@@ -224,6 +239,21 @@ module.exports = (DATA, STATE) => {
 
 				// Get last argument.
 				if (argument) {
+					// Note: Reduce i to account for last completed iteration.
+					i--;
+
+					// Validate value.
+					let tmpDATA = {
+						value: {
+							start: value_start_index,
+							end: argument.length - 1,
+							value: argument,
+							type: "quoted"
+						}
+					};
+					argument = module.exports(tmpDATA, STATE);
+
+					// Store argument and reset vars.
 					args.push(argument);
 				}
 
@@ -287,7 +317,7 @@ module.exports = (DATA, STATE) => {
 						if (/["']/.test(char) && pchar !== "\\") {
 							// Store the index at which the value starts.
 							value_start_index = DATA.value.start + i;
-							mode = "string"; // Set mode.
+							mode = "quoted"; // Set mode.
 							qchar = char; // Store quote char for later reference.
 						} else if (char === "$" && pchar !== "\\") {
 							// Store the index at which the value starts.
@@ -323,7 +353,7 @@ module.exports = (DATA, STATE) => {
 
 						argument += char; // Store character.
 					} else if (mode) {
-						if (mode === "string") {
+						if (mode === "quoted") {
 							// Stop collecting chars once an unescaped same-style quote is hit.
 							if (char === qchar && pchar !== "\\") {
 								argument += char; // Store character.

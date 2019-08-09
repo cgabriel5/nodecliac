@@ -80,7 +80,9 @@ module.exports = (
 
 		STATE.column++; // Increment column position.
 		// Store startpoint.
-		DB.linestarts[STATE.line] = STATE.i;
+		if (!DB.linestarts[STATE.line]) {
+			DB.linestarts[STATE.line] = STATE.i;
+		}
 
 		// Find first non-whitespace character of line.
 		if (!first_non_whitespace_char && !/[ \t]/.test(char)) {

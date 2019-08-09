@@ -257,11 +257,14 @@ module.exports = (DATA, STATE) => {
 					args.push(argument);
 				}
 
+				// Create cleaned command-flag.
+				let cvalue = `$(${args.join(",")})`;
+
 				// Attach args array to DATA object.
-				DATA.args = args;
+				DATA.args = [cvalue];
 
 				// Reset value to cleaned arguments command-flag.
-				DATA.value.value = value = `$(${args.join(",")})`;
+				DATA.value.value = value = cvalue;
 			}
 
 			break;

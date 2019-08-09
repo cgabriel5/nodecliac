@@ -25,6 +25,16 @@ module.exports = (DATA, STATE) => {
 		return;
 	}
 
+	// Check for long-form flag list. If the value is '(' then it's a
+	// long-form flag list.
+	if (value === "(") {
+		// Add some key-identifying properties to object.
+		DATA.openbrace = true;
+
+		// Skip remaining logic as it's not needed to execute.
+		return;
+	}
+
 	// If type was not provided then determine it on the fly.
 	if (!type) {
 		let fvchar = value.charAt(0); // Get first character from value.

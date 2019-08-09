@@ -34,7 +34,8 @@ module.exports = (
 		comment: require("./parser.comment.js"),
 		setting: require("./parser.setting.js"),
 		variable: require("./parser.variable.js"),
-		flag: require("./parser.flag.js")
+		flag: require("./parser.flag.js"),
+		option: require("./parser.option.js")
 		// "close-bracket": function() {},
 		// "close-parenthesis": function() {},
 	};
@@ -68,6 +69,7 @@ module.exports = (
 	for (; STATE.i < STATE.l; STATE.i++) {
 		// Cache current loop item.
 		let char = string.charAt(STATE.i);
+		let nchar = string.charAt(STATE.i + 1);
 
 		if (char === "\n") {
 			STATE.line++; // Increment line count.
@@ -125,7 +127,13 @@ module.exports = (
 			}
 
 			if (line_type === "flag") {
-				STATE.singleton = true;
+				// Check if a flag value.
+				if (nchar && /[ \t]/.test(nchar)) {
+					// The line is actually a flag option so reset parser.
+					line_type = "option";
+				} else {
+					STATE.singleton = true;
+				}
 			}
 
 			// Run the line type's function.

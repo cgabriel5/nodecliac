@@ -16,6 +16,9 @@ let errors = {
 	flag: {
 		0: "Invalid character:"
 	},
+	option: {
+		0: "Invalid character:"
+	},
 	variable: {
 		0: "Invalid character:"
 	},

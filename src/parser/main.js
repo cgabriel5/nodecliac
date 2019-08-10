@@ -1,5 +1,8 @@
 "use strict";
 
+// Get needed modules.
+let issue = require("./helper.issue.js");
+
 module.exports = (
 	string,
 	commandname,
@@ -107,7 +110,7 @@ module.exports = (
 				console.log("TREE", STATE.DB.tree);
 				// Error as first lien character is now allowed.
 				// console.log(`INVALID_CHAR << ${STATE.line}:${STATE.column}`);
-				break;
+				issue.error(STATE, 0, __filename);
 			}
 
 			// Note: Reduce column counter by 1 since parser loop will

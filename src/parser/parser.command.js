@@ -45,7 +45,7 @@ module.exports = STATE => {
 		sigil: { start: null, end: null },
 		command: { start: null, end: null, value: "" },
 		name: { start: null, end: null, value: "" },
-		brackets: { start: null, end: null },
+		brackets: { start: null, end: null, value: null },
 		assignment: { start: null, end: null, value: null },
 		delimiter: { start: null, end: null, value: null },
 		value: { start: null, end: null, value: null },
@@ -257,6 +257,8 @@ module.exports = STATE => {
 
 				// Store index positions.
 				DATA.brackets.start = STATE.i;
+				// Store bracket character.
+				DATA.brackets.value = char;
 
 				// Store assignment character.
 				DATA.value.value = char;

@@ -25,8 +25,8 @@ module.exports = (
 		"-": "flag",
 		"@": "setting",
 		$: "variable",
-		"]": "close-bracket",
-		"-": "close-parenthesis"
+		"]": "close-brace",
+		")": "close-brace"
 	};
 
 	const PARSERS = {
@@ -35,9 +35,8 @@ module.exports = (
 		setting: require("./parser.setting.js"),
 		variable: require("./parser.variable.js"),
 		flag: require("./parser.flag.js"),
-		option: require("./parser.option.js")
-		// "close-bracket": function() {},
-		// "close-parenthesis": function() {},
+		option: require("./parser.option.js"),
+		"close-brace": require("./parser.close-brace.js")
 	};
 
 	// Parsing database.

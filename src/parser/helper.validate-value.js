@@ -6,11 +6,11 @@ let issue = require("./helper.issue.js");
 /**
  * Performs checks on string as well as interpolates any variables.
  *
- * @param  {object} DATA - The DATA object.
  * @param  {object} STATE - The STATE object.
+ * @param  {object} DATA - The DATA object.
  * @return {object} - Object containing parsed information.
  */
-module.exports = (DATA, STATE) => {
+module.exports = (STATE, DATA) => {
 	// require("./h.trace.js")(__filename); // Trace parser.
 
 	// Get string value.

@@ -395,7 +395,7 @@ module.exports = STATE => {
 	}
 
 	// Validate extracted variable value.
-	require("./helper.validate-value.js")(DATA, STATE);
+	require("./helper.validate-value.js")(STATE, DATA);
 
 	if (STATE.singleton) {
 		// Add node to tree.

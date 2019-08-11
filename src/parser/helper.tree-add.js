@@ -6,15 +6,15 @@
  * @param  {object} object - Main loop state object.
  * @return {object} - Object containing parsed information (node).
  */
-module.exports = (STATE, DATA) => {
+module.exports = (STATE, NODE) => {
 	// Get line.
 	let line = STATE.line;
 	let tree = STATE.DB.tree;
 
 	// If line exists in tree add to it else create it first.
 	if (tree[line]) {
-		tree[line].push(DATA);
+		tree[line].push(NODE);
 	} else {
-		tree[line] = [DATA];
+		tree[line] = [NODE];
 	}
 };

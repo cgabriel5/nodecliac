@@ -6,12 +6,12 @@ let issue = require("./helper.issue.js");
 /**
  * Check that command/flag scopes are properly closed.
  *
- * @param  {object} DATA - The DATA object.
+ * @param  {object} NODE - The NODE object.
  * @param  {object} STATE - The STATE object.
  * @param  {string} checktype - The check to run.
  * @return {undefined} - Nothing is returned.
  */
-module.exports = (STATE, DATA, checktype) => {
+module.exports = (STATE, NODE, checktype) => {
 	switch (checktype) {
 		// Check whether a pre-existing command scope exists.
 		case "pre-existing-cs": {
@@ -34,7 +34,7 @@ module.exports = (STATE, DATA, checktype) => {
 
 		case "reset-scope": {
 			// Check brace type. If the scope does not exist then give error.
-			let type = DATA.brace.value === "]" ? "command" : "flag";
+			let type = NODE.brace.value === "]" ? "command" : "flag";
 
 			// Note: Scope should exist. Otherwise the closing brace is being used
 			// invalidly. Clear scope if it does exist.

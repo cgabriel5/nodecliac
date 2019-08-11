@@ -7,20 +7,20 @@ let issue = require("./helper.issue.js");
  * Performs checks on string as well as interpolates any variables.
  *
  * @param  {object} STATE - The STATE object.
- * @param  {object} DATA - The DATA object.
+ * @param  {object} NODE - The NODE object.
  * @return {object} - Object containing parsed information.
  */
-module.exports = (STATE, DATA) => {
+module.exports = (STATE, NODE) => {
 	// require("./h.trace.js")(__filename); // Trace parser.
 
 	// Get string value.
-	let value = DATA.value.value;
-	let type = DATA.value.type;
+	let value = NODE.value.value;
+	let type = NODE.value.type;
 
 	// If a value does not exist then return.
 	if (!value) {
-		// Attach empty args array to DATA object.
-		DATA.args = [`${DATA.hyphens.value}${DATA.name.value}`];
+		// Attach empty args array to NODE object.
+		NODE.args = [`${NODE.hyphens.value}${NODE.name.value}`];
 
 		return;
 	}
@@ -29,7 +29,7 @@ module.exports = (STATE, DATA) => {
 	// long-form flag list.
 	if (value === "(") {
 		// Add some key-identifying properties to object.
-		DATA.openbrace = true;
+		NODE.openbrace = true;
 
 		// Skip remaining logic as it's not needed to execute.
 		return;
@@ -49,11 +49,11 @@ module.exports = (STATE, DATA) => {
 		}
 
 		// Finally set type.
-		DATA.value.type = type;
+		NODE.value.type = type;
 	}
 
 	// The column index to resume error checks at.
-	let resumepoint = DATA.value.start - STATE.DB.linestarts[STATE.line];
+	let resumepoint = NODE.value.start - STATE.DB.linestarts[STATE.line];
 	// Note: Add 1 to resumepoint to account for 0 base indexing, as column
 	// value starts count at 1.
 	resumepoint++;
@@ -108,19 +108,19 @@ module.exports = (STATE, DATA) => {
 				return value;
 			});
 
-			// Attach args array to DATA object.
-			DATA.args = [value];
+			// Attach args array to NODE object.
+			NODE.args = [value];
 
 			// Update value in object.
-			DATA.value.value = value;
+			NODE.value.value = value;
 
 			break;
 
 		case "escaped":
 			// Pass the escaped value for the time begin.being
 
-			// Attach args array to DATA object.
-			DATA.args = [value];
+			// Attach args array to NODE object.
+			NODE.args = [value];
 
 			break;
 		case "command-flag":
@@ -167,7 +167,7 @@ module.exports = (STATE, DATA) => {
 						// Look for unescaped quote characters.
 						if (/["']/.test(char) && pchar !== "\\") {
 							// Store the index at which the value starts.
-							value_start_index = DATA.value.start + i;
+							value_start_index = NODE.value.start + i;
 							// Set qchar as the opening quote character.
 							qchar = char;
 							// Capture character.
@@ -270,11 +270,11 @@ module.exports = (STATE, DATA) => {
 				// Create cleaned command-flag.
 				let cvalue = `$(${args.join(",")})`;
 
-				// Attach args array to DATA object.
-				DATA.args = [cvalue];
+				// Attach args array to NODE object.
+				NODE.args = [cvalue];
 
 				// Reset value to cleaned arguments command-flag.
-				DATA.value.value = value = cvalue;
+				NODE.value.value = value = cvalue;
 			}
 
 			break;
@@ -310,7 +310,7 @@ module.exports = (STATE, DATA) => {
 				let value_start_index;
 				let i = 1;
 
-				let testc = DATA.value.start + 1;
+				let testc = NODE.value.start + 1;
 
 				// Validate that command-flag string is valid.
 				// Note: Start loop at index 1 and stop before the last
@@ -329,16 +329,16 @@ module.exports = (STATE, DATA) => {
 						// Set mode depending on the character.
 						if (/["']/.test(char) && pchar !== "\\") {
 							// Store the index at which the value starts.
-							value_start_index = DATA.value.start + i;
+							value_start_index = NODE.value.start + i;
 							mode = "quoted"; // Set mode.
 							qchar = char; // Store quote char for later reference.
 						} else if (char === "$" && pchar !== "\\") {
 							// Store the index at which the value starts.
-							value_start_index = DATA.value.start + i;
+							value_start_index = NODE.value.start + i;
 							mode = "command-flag"; // Set mode.
 						} else if (!/[ \t]/.test(char)) {
 							// Store the index at which the value starts.
-							value_start_index = DATA.value.start + i;
+							value_start_index = NODE.value.start + i;
 							mode = "escaped"; // Set mode.
 
 							// All other characters are invalid so give error.
@@ -466,11 +466,11 @@ module.exports = (STATE, DATA) => {
 					cvalues.push(item[0]);
 				});
 
-				// Attach args array to DATA object.
-				DATA.args = cvalues;
+				// Attach args array to NODE object.
+				NODE.args = cvalues;
 
 				// Reset value to cleaned arguments command-flag.
-				DATA.value.value = value = `(${cvalues.join(" ")})`;
+				NODE.value.value = value = `(${cvalues.join(" ")})`;
 			}
 
 			break;

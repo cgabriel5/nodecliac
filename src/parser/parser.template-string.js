@@ -30,7 +30,7 @@ module.exports = STATE => {
 	let stop; // Flag indicating whether to stop parser.
 	let qchar;
 	let warnings = []; // Collect all parsing warnings.
-	let DATA = {
+	let NODE = {
 		node: "TEMPLATE-STRING",
 		begin: { start: null, end: null, value: null },
 		end: { start: null, end: null, value: null },
@@ -49,7 +49,7 @@ module.exports = STATE => {
 			// Note: When setting the endpoint make sure to subtract index
 			// by 1 so that when it returns to its previous loop is can run
 			// the newline character code block.
-			DATA.endpoint = STATE.i - 1; // Store newline index.
+			NODE.endpoint = STATE.i - 1; // Store newline index.
 			STATE.i = STATE.i - 1; // Store newline index.
 			break;
 		}
@@ -59,11 +59,11 @@ module.exports = STATE => {
 		switch (state) {
 			case "dollar-sign":
 				// Store '$' symbol (part of begin '${').
-				DATA.begin.start = STATE.i;
-				DATA.begin.end = STATE.i;
+				NODE.begin.start = STATE.i;
+				NODE.begin.end = STATE.i;
 
 				// Start building setting name string.
-				DATA.begin.value = char;
+				NODE.begin.value = char;
 
 				// Now look for next part of beginning: '{'.
 				state = "open-brace";
@@ -78,9 +78,9 @@ module.exports = STATE => {
 				}
 
 				// Set name index positions.
-				DATA.begin.end = STATE.i;
+				NODE.begin.end = STATE.i;
 				// Start building setting name string.
-				DATA.begin.value += char;
+				NODE.begin.value += char;
 
 				// Set new state.
 				state = "open-brace-wsb";
@@ -104,7 +104,7 @@ module.exports = STATE => {
 			case "variable":
 				// If this is the first char is must be either one of the
 				// following: _ or a-zA-Z.
-				if (!DATA.variable.value) {
+				if (!NODE.variable.value) {
 					// Character must be one of the following:
 					if (!/[_a-zA-Z]/.test(char)) {
 						// Note: Hitting this block means an invalid
@@ -113,10 +113,10 @@ module.exports = STATE => {
 					}
 
 					// Store index positions.
-					DATA.variable.start = STATE.i;
-					DATA.variable.end = STATE.i;
+					NODE.variable.start = STATE.i;
+					NODE.variable.end = STATE.i;
 					// Start building the value string.
-					DATA.variable.value = char;
+					NODE.variable.value = char;
 
 					// Continue building variable string.
 				} else {
@@ -130,9 +130,9 @@ module.exports = STATE => {
 						STATE.column--;
 					} else {
 						// Store index positions.
-						DATA.variable.end = STATE.i;
+						NODE.variable.end = STATE.i;
 						// Continue building the value string.
-						DATA.variable.value += char;
+						NODE.variable.value += char;
 					}
 				}
 
@@ -159,10 +159,10 @@ module.exports = STATE => {
 				}
 
 				// Set name index positions.
-				DATA.end.start = STATE.i;
-				DATA.end.end = STATE.i;
+				NODE.end.start = STATE.i;
+				NODE.end.end = STATE.i;
 				// Start building setting name string.
-				DATA.end.value = char;
+				NODE.end.value = char;
 
 				// Note: Once template-string has been fully parsed stop
 				// this parser to return to parent parser.
@@ -172,7 +172,7 @@ module.exports = STATE => {
 		}
 	}
 
-	return DATA;
+	return NODE;
 
 	// // Lookup variable's value.
 	// let lookup = variables[`$${name}`];

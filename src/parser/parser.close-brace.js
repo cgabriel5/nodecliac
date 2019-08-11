@@ -29,7 +29,7 @@ module.exports = STATE => {
 	let state = "brace"; // Initial parsing state.
 	let warnings = []; // Collect all parsing warnings.
 	let end_comsuming;
-	let DATA = {
+	let NODE = {
 		node: "BRACE",
 		brace: { start: null, end: null, value: null },
 		line,
@@ -46,7 +46,7 @@ module.exports = STATE => {
 			// Note: When setting the endpoint make sure to subtract index
 			// by 1 so that when it returns to its previous loop is can run
 			// the newline character code block.
-			DATA.endpoint = STATE.i - 1; // Store newline index.
+			NODE.endpoint = STATE.i - 1; // Store newline index.
 			STATE.i = STATE.i - 1; // Store newline index.
 			break;
 		}
@@ -56,11 +56,11 @@ module.exports = STATE => {
 		switch (state) {
 			case "brace":
 				// Store ']'/')' brace index positions.
-				DATA.brace.start = STATE.i;
-				DATA.brace.end = STATE.i;
+				NODE.brace.start = STATE.i;
+				NODE.brace.end = STATE.i;
 
 				// Store brace character.
-				DATA.brace.value = char;
+				NODE.brace.value = char;
 
 				// Set state to collect comment characters.
 				state = "eol-wsb";
@@ -81,10 +81,10 @@ module.exports = STATE => {
 	}
 
 	// Note: If a command-chain scope exists, error as scope was never closed.
-	require("./helper.brace-checks.js")(STATE, DATA, "reset-scope");
+	require("./helper.brace-checks.js")(STATE, NODE, "reset-scope");
 
 	// Add node to tree.
-	require("./helper.tree-add.js")(STATE, DATA);
+	require("./helper.tree-add.js")(STATE, NODE);
 
-	return DATA;
+	return NODE;
 };

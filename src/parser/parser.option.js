@@ -33,7 +33,7 @@ module.exports = STATE => {
 	let qchar;
 	let warnings = []; // Collect all parsing warnings.
 	let end_comsuming;
-	let DATA = {
+	let NODE = {
 		node: "OPTION",
 		bullet: { start: null, end: null, value: null },
 		value: { start: null, end: null, value: null, type: null },
@@ -51,7 +51,7 @@ module.exports = STATE => {
 			// Note: When setting the endpoint make sure to subtract index
 			// by 1 so that when it returns to its previous loop is can run
 			// the newline character code block.
-			DATA.endpoint = STATE.i - 1; // Store newline index.
+			NODE.endpoint = STATE.i - 1; // Store newline index.
 			STATE.i = STATE.i - 1; // Store newline index.
 			break;
 		}
@@ -61,8 +61,8 @@ module.exports = STATE => {
 		switch (state) {
 			case "bullet":
 				// Store '-' bullet index positions.
-				DATA.bullet.start = STATE.i;
-				DATA.bullet.end = STATE.i;
+				NODE.bullet.start = STATE.i;
+				NODE.bullet.end = STATE.i;
 
 				// Change state to whitespace-boundary after bullet.
 				state = "spacer";
@@ -104,22 +104,22 @@ module.exports = STATE => {
 				let pchar = string.charAt(STATE.i - 1);
 
 				// Determine value type.
-				if (!DATA.value.value) {
+				if (!NODE.value.value) {
 					if (char === "$") {
-						DATA.value.type = "command-flag";
+						NODE.value.type = "command-flag";
 					} else if (char === "(") {
-						DATA.value.type = "list";
+						NODE.value.type = "list";
 					} else if (/["']/.test(char)) {
-						DATA.value.type = "quoted";
+						NODE.value.type = "quoted";
 					} else {
-						DATA.value.type = "escaped";
+						NODE.value.type = "escaped";
 					}
 
 					// Store index positions.
-					DATA.value.start = STATE.i;
-					DATA.value.end = STATE.i;
+					NODE.value.start = STATE.i;
+					NODE.value.end = STATE.i;
 					// Start building the value string.
-					DATA.value.value = char;
+					NODE.value.value = char;
 				} else {
 					// If flag is set and characters can still be consumed
 					// then there is a syntax error. For example, string may
@@ -129,7 +129,7 @@ module.exports = STATE => {
 					}
 
 					// Get string type.
-					let stype = DATA.value.type;
+					let stype = NODE.value.type;
 
 					// Escaped string logic.
 					if (stype === "escaped") {
@@ -139,16 +139,16 @@ module.exports = STATE => {
 
 						// Quoted string logic.
 					} else if (stype === "quoted") {
-						let value_fchar = DATA.value.value.charAt(0);
+						let value_fchar = NODE.value.value.charAt(0);
 						if (char === value_fchar && pchar !== "\\") {
 							end_comsuming = true; // Set flag.
 						}
 					}
 
 					// Store index positions.
-					DATA.value.end = STATE.i;
+					NODE.value.end = STATE.i;
 					// Continue building the value string.
-					DATA.value.value += char;
+					NODE.value.value += char;
 				}
 
 				break;
@@ -156,10 +156,10 @@ module.exports = STATE => {
 	}
 
 	// Validate extracted variable value.
-	require("./helper.validate-value.js")(STATE, DATA);
+	require("./helper.validate-value.js")(STATE, NODE);
 
 	// Add node to tree.
-	require("./helper.tree-add.js")(STATE, DATA);
+	require("./helper.tree-add.js")(STATE, NODE);
 
-	return DATA;
+	return NODE;
 };

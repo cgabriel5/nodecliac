@@ -31,7 +31,7 @@ module.exports = STATE => {
 	let state = "sigil"; // Initial parsing state.
 	let qchar;
 	let warnings = []; // Collect all parsing warnings.
-	let DATA = {
+	let NODE = {
 		node: "VARIABLE",
 		sigil: { start: null, end: null },
 		name: { start: null, end: null, value: null },
@@ -51,7 +51,7 @@ module.exports = STATE => {
 			// Note: When setting the endpoint make sure to subtract index
 			// by 1 so that when it returns to its previous loop is can run
 			// the newline character code block.
-			DATA.endpoint = STATE.i - 1; // Store newline index.
+			NODE.endpoint = STATE.i - 1; // Store newline index.
 			STATE.i = STATE.i - 1; // Store newline index.
 			break;
 		}
@@ -61,8 +61,8 @@ module.exports = STATE => {
 		switch (state) {
 			case "sigil":
 				// Store '$' sigil index positions.
-				DATA.sigil.start = STATE.i;
-				DATA.sigil.end = STATE.i;
+				NODE.sigil.start = STATE.i;
+				NODE.sigil.end = STATE.i;
 
 				// Now start looking for setting name.
 				state = "name";
@@ -71,7 +71,7 @@ module.exports = STATE => {
 
 			case "name":
 				// If the name value is empty check for first letter of setting.
-				if (!DATA.name.value) {
+				if (!NODE.name.value) {
 					// Name must start with a letter.
 					if (!/[a-zA-Z]/.test(char)) {
 						// [TODO]: Specify Error: Setting must start with a letter.
@@ -79,20 +79,20 @@ module.exports = STATE => {
 					}
 
 					// Set name index positions.
-					DATA.name.start = STATE.i;
-					DATA.name.end = STATE.i;
+					NODE.name.start = STATE.i;
+					NODE.name.end = STATE.i;
 
 					// Start building setting name string.
-					DATA.name.value = char;
+					NODE.name.value = char;
 
 					// Continue building setting name string.
 				} else {
 					// If char is allowed keep building string.
 					if (/[-_a-zA-Z]/.test(char)) {
 						// Set name index positions.
-						DATA.name.end = STATE.i;
+						NODE.name.end = STATE.i;
 						// Continue building setting name string.
-						DATA.name.value += char;
+						NODE.name.value += char;
 
 						// If we encounter a whitespace character, everything
 						// after this point must be a space until we encounter
@@ -143,10 +143,10 @@ module.exports = STATE => {
 
 			case "assignment":
 				// Store index positions.
-				DATA.assignment.start = STATE.i;
-				DATA.assignment.end = STATE.i;
+				NODE.assignment.start = STATE.i;
+				NODE.assignment.end = STATE.i;
 				// Store assignment character.
-				DATA.assignment.value = char;
+				NODE.assignment.value = char;
 
 				// Change state to look for any space post assignment but
 				// before the actual setting's value.
@@ -171,7 +171,7 @@ module.exports = STATE => {
 			case "value":
 				// If this is the first char is must be either one of the
 				// following: ", ', or a-zA-Z0-9.
-				if (!DATA.value.value) {
+				if (!NODE.value.value) {
 					// Character must be one of the following:
 					if (!/["'a-zA-Z0-9]/.test(char)) {
 						// Note: Hitting this block means an invalid
@@ -185,10 +185,10 @@ module.exports = STATE => {
 					}
 
 					// Store index positions.
-					DATA.value.start = STATE.i;
-					DATA.value.end = STATE.i;
+					NODE.value.start = STATE.i;
+					NODE.value.end = STATE.i;
 					// Start building the value string.
-					DATA.value.value = char;
+					NODE.value.value = char;
 
 					// Continue building setting's value string.
 				} else {
@@ -215,12 +215,12 @@ module.exports = STATE => {
 						// 	// interpolated variable's value.
 						// 	let res = p_tstring(STATE); // Run template-string parser...
 						// 	// Add interpolated value to string.
-						// 	DATA.value.value += res.variable.value;
+						// 	NODE.value.value += res.variable.value;
 						// } else {
 						// Store index positions.
-						DATA.value.end = STATE.i;
+						NODE.value.end = STATE.i;
 						// Continue building the value string.
-						DATA.value.value += char;
+						NODE.value.value += char;
 						// }
 
 						// Not quoted.
@@ -241,9 +241,9 @@ module.exports = STATE => {
 							// }
 
 							// Store index positions.
-							DATA.value.end = STATE.i;
+							NODE.value.end = STATE.i;
 							// Continue building the value string.
-							DATA.value.value += char;
+							NODE.value.value += char;
 						}
 					}
 				}
@@ -264,10 +264,10 @@ module.exports = STATE => {
 	}
 
 	// Validate extracted variable value.
-	require("./helper.validate-value.js")(STATE, DATA);
+	require("./helper.validate-value.js")(STATE, NODE);
 
 	// Add node to tree.
-	require("./helper.tree-add.js")(STATE, DATA);
+	require("./helper.tree-add.js")(STATE, NODE);
 
 	// [TODO] Add following variable checks later on.
 
@@ -285,13 +285,13 @@ module.exports = STATE => {
 
 	// Finally unquote value.
 	// [https://stackoverflow.com/a/21873245]
-	let value = DATA.value.value;
+	let value = NODE.value.value;
 	value = value.substring(1, value.length - 1);
 	// Unquote value. [https://stackoverflow.com/a/19156197]
 	// 	value = value.replace(/^(["'])(.+(?=\1$))\1$/, "$2");
 
 	// Store where variable was declared.
-	STATE.DB.variables[DATA.name.value] = value;
+	STATE.DB.variables[NODE.name.value] = value;
 
-	return DATA;
+	return NODE;
 };

@@ -28,7 +28,7 @@ module.exports = STATE => {
 	// Parsing vars.
 	let state = "sigil"; // Initial parsing state.
 	let warnings = []; // Collect all parsing warnings.
-	let DATA = {
+	let NODE = {
 		node: "COMMENT",
 		sigil: { start: null, end: null },
 		wsb: { start: null, end: null },
@@ -47,7 +47,7 @@ module.exports = STATE => {
 			// Note: When setting the endpoint make sure to subtract index
 			// by 1 so that when it returns to its previous loop is can run
 			// the newline character code block.
-			DATA.endpoint = STATE.i - 1; // Store newline index.
+			NODE.endpoint = STATE.i - 1; // Store newline index.
 			STATE.i = STATE.i - 1; // Store newline index.
 			break;
 		}
@@ -57,8 +57,8 @@ module.exports = STATE => {
 		switch (state) {
 			case "sigil":
 				// Store '#' sigil index positions.
-				DATA.sigil.start = STATE.i;
-				DATA.sigil.end = STATE.i;
+				NODE.sigil.start = STATE.i;
+				NODE.sigil.end = STATE.i;
 
 				// Change state to whitespace-boundary after sigil.
 				state = "wsb-sigil";
@@ -73,8 +73,8 @@ module.exports = STATE => {
 				}
 
 				// Else, it's valid so store positions.
-				DATA.wsb.start = STATE.i;
-				DATA.wsb.end = STATE.i;
+				NODE.wsb.start = STATE.i;
+				NODE.wsb.end = STATE.i;
 
 				// Set state to collect comment characters.
 				state = "comment";
@@ -84,24 +84,24 @@ module.exports = STATE => {
 			case "comment":
 				// Store comment index positions.
 				// Store start index if not already stored.
-				if (!DATA.comment.start) {
-					DATA.comment.start = DATA.sigil.start;
+				if (!NODE.comment.start) {
+					NODE.comment.start = NODE.sigil.start;
 				}
-				DATA.comment.end = STATE.i;
+				NODE.comment.end = STATE.i;
 
 				break;
 		}
 
 		// Allow for any characters in comments.
-		if (!DATA.comment.value) {
-			DATA.comment.value = char;
+		if (!NODE.comment.value) {
+			NODE.comment.value = char;
 		} else {
-			DATA.comment.value += char;
+			NODE.comment.value += char;
 		}
 	}
 
 	// Add node to tree.
-	require("./helper.tree-add.js")(STATE, DATA);
+	require("./helper.tree-add.js")(STATE, NODE);
 
-	return DATA;
+	return NODE;
 };

@@ -43,7 +43,7 @@ module.exports = STATE => {
 	let state = "command"; // Initial parsing state.
 	let qchar;
 	let warnings = []; // Collect all parsing warnings.
-	let DATA = {
+	let NODE = {
 		node: "COMMAND",
 		sigil: { start: null, end: null },
 		command: { start: null, end: null, value: "" },
@@ -67,7 +67,7 @@ module.exports = STATE => {
 			// Note: When setting the endpoint make sure to subtract index
 			// by 1 so that when it returns to its previous loop is can run
 			// the newline character code block.
-			DATA.endpoint = STATE.i - 1; // Store newline index.
+			NODE.endpoint = STATE.i - 1; // Store newline index.
 			STATE.i = STATE.i - 1; // Store newline index.
 			break;
 		}
@@ -79,7 +79,7 @@ module.exports = STATE => {
 		switch (state) {
 			case "command":
 				// If command value is empty check for first letter of command.
-				if (!DATA.command.value) {
+				if (!NODE.command.value) {
 					// First char of command must be a letter or semicolon.
 					if (!/[:a-zA-Z]/.test(char)) {
 						// [TODO]: Specify Error: Setting must start with a letter.
@@ -87,20 +87,20 @@ module.exports = STATE => {
 					}
 
 					// Set command index positions.
-					DATA.command.start = STATE.i;
-					DATA.command.end = STATE.i;
+					NODE.command.start = STATE.i;
+					NODE.command.end = STATE.i;
 
 					// Start building setting command string.
-					DATA.command.value += char;
+					NODE.command.value += char;
 
 					// Continue building setting command string.
 				} else {
 					// If char is allowed keep building string.
 					if (/[-_.:+\\/a-zA-Z0-9]/.test(char)) {
 						// Set command index positions.
-						DATA.command.end = STATE.i;
+						NODE.command.end = STATE.i;
 						// Continue building setting command string.
-						DATA.command.value += char;
+						NODE.command.value += char;
 
 						// When escaping anything but a dot do not include
 						// the '\' as it is not needed. For example, if the
@@ -125,8 +125,8 @@ module.exports = STATE => {
 								issue.error(STATE, 0, __filename);
 
 								// Remove last escape char as it is not needed.
-								let command = DATA.command.value.slice(0, -1);
-								DATA.command.value = command;
+								let command = NODE.command.value.slice(0, -1);
+								NODE.command.value = command;
 							}
 						}
 
@@ -197,10 +197,10 @@ module.exports = STATE => {
 
 			case "assignment":
 				// Store index positions.
-				DATA.assignment.start = STATE.i;
-				DATA.assignment.end = STATE.i;
+				NODE.assignment.start = STATE.i;
+				NODE.assignment.end = STATE.i;
 				// Store assignment character.
-				DATA.assignment.value = char;
+				NODE.assignment.value = char;
 
 				// Change state to look for any space post assignment but
 				// before the actual setting's value.
@@ -210,10 +210,10 @@ module.exports = STATE => {
 
 			case "delimiter":
 				// Store index positions.
-				DATA.delimiter.start = STATE.i;
-				DATA.delimiter.end = STATE.i;
+				NODE.delimiter.start = STATE.i;
+				NODE.delimiter.end = STATE.i;
 				// Store assignment character.
-				DATA.delimiter.value = char;
+				NODE.delimiter.value = char;
 
 				// Only whitespace is allowed after a chain delimiter so set
 				// state to end-of-line whitespace boundary.
@@ -259,12 +259,12 @@ module.exports = STATE => {
 				// Note: This will be an intermediary step. May be removed?
 
 				// Store index positions.
-				DATA.brackets.start = STATE.i;
+				NODE.brackets.start = STATE.i;
 				// Store bracket character.
-				DATA.brackets.value = char;
+				NODE.brackets.value = char;
 
 				// Store assignment character.
-				DATA.value.value = char;
+				NODE.value.value = char;
 
 				// Allow for any number of white spaces after open-bracket.
 				state = "open-bracket-wsb";
@@ -293,10 +293,10 @@ module.exports = STATE => {
 				}
 
 				// Store index positions.
-				DATA.brackets.end = STATE.i;
+				NODE.brackets.end = STATE.i;
 
 				// Store assignment character.
-				DATA.value.value += char;
+				NODE.value.value += char;
 
 				// Only whitespace is allowed now so set state to
 				// end-of-line whitespace boundary.
@@ -312,7 +312,7 @@ module.exports = STATE => {
 
 				// Store result in variable to access the
 				// interpolated variable's value.
-				DATA.flags.push(p_flag(STATE)); // Parse flag oneliner...
+				NODE.flags.push(p_flag(STATE)); // Parse flag oneliner...
 
 				break;
 
@@ -331,22 +331,22 @@ module.exports = STATE => {
 
 	// Add command data object before any flag objects.
 	let adder = require("./helper.tree-add.js");
-	adder(STATE, DATA);
+	adder(STATE, NODE);
 	// Add any flags.
 	// Description...
-	for (let i = 0, l = DATA.flags.length; i < l; i++) {
+	for (let i = 0, l = NODE.flags.length; i < l; i++) {
 		// Cache current loop item.
-		let item = DATA.flags[i];
+		let item = NODE.flags[i];
 
 		adder(STATE, item);
 	}
 
 	// If command starts a scope block, store reference to node object.
-	if (DATA.value.value === "[") {
-		STATE.scopes.command = DATA;
+	if (NODE.value.value === "[") {
+		STATE.scopes.command = NODE;
 	}
 
-	return DATA;
+	return NODE;
 
 	// If brace index is set it was never closed.
 	// if (indices.shortcut.open) {}

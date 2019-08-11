@@ -38,7 +38,7 @@ module.exports = STATE => {
 	let qchar;
 	let warnings = []; // Collect all parsing warnings.
 	let end_comsuming;
-	let DATA = {
+	let NODE = {
 		node: "FLAG",
 		hyphens: { start: null, end: null, value: null },
 		variable: { start: null, end: null, value: null },
@@ -62,7 +62,7 @@ module.exports = STATE => {
 			// Note: When setting the endpoint make sure to subtract index
 			// by 1 so that when it returns to its previous loop is can run
 			// the newline character code block.
-			DATA.endpoint = STATE.i - 1; // Store newline index.
+			NODE.endpoint = STATE.i - 1; // Store newline index.
 			STATE.i = STATE.i - 1; // Store newline index.
 			break;
 		}
@@ -83,7 +83,7 @@ module.exports = STATE => {
 				// }
 
 				// Only hyphens are allowed at this point.
-				if (!DATA.hyphens.value) {
+				if (!NODE.hyphens.value) {
 					// Character must be one of the following:
 					if (char !== "-") {
 						// Note: Hitting this block means an invalid
@@ -92,10 +92,10 @@ module.exports = STATE => {
 					}
 
 					// Store index positions.
-					DATA.hyphens.start = STATE.i;
-					DATA.hyphens.end = STATE.i;
+					NODE.hyphens.start = STATE.i;
+					NODE.hyphens.end = STATE.i;
 					// Start building the value string.
-					DATA.hyphens.value = char;
+					NODE.hyphens.value = char;
 
 					// Continue building hyphen string.
 				} else {
@@ -109,9 +109,9 @@ module.exports = STATE => {
 						STATE.column--;
 					} else {
 						// Store index positions.
-						DATA.hyphens.end = STATE.i;
+						NODE.hyphens.end = STATE.i;
 						// Continue building the value string.
-						DATA.hyphens.value += char;
+						NODE.hyphens.value += char;
 					}
 				}
 
@@ -119,7 +119,7 @@ module.exports = STATE => {
 
 			case "name":
 				// Only hyphens are allowed at this point.
-				if (!DATA.name.value) {
+				if (!NODE.name.value) {
 					// Character must be one of the following:
 					if (!/[a-zA-Z]/.test(char)) {
 						// Note: Hitting this block means an invalid
@@ -128,19 +128,19 @@ module.exports = STATE => {
 					}
 
 					// Store index positions.
-					DATA.name.start = STATE.i;
-					DATA.name.end = STATE.i;
+					NODE.name.start = STATE.i;
+					NODE.name.end = STATE.i;
 					// Start building the value string.
-					DATA.name.value = char;
+					NODE.name.value = char;
 
 					// Continue building hyphen string.
 				} else {
 					// If char is allowed keep building string.
 					if (/[-a-zA-Z0-9]/.test(char)) {
 						// Set name index positions.
-						DATA.name.end = STATE.i;
+						NODE.name.end = STATE.i;
 						// Continue building setting name string.
-						DATA.name.value += char;
+						NODE.name.value += char;
 
 						// If char is an eq sign change state/reset index.
 					} else if (char === "=") {
@@ -231,10 +231,10 @@ module.exports = STATE => {
 
 			case "boolean-indicator":
 				// Store index positions.
-				DATA.boolean.start = STATE.i;
-				DATA.boolean.end = STATE.i;
+				NODE.boolean.start = STATE.i;
+				NODE.boolean.end = STATE.i;
 				// Store assignment character.
-				DATA.boolean.value = char;
+				NODE.boolean.value = char;
 
 				// Note: A boolean-indicator means the flag does not contain
 				// a value. More of a switch than a parameter.
@@ -244,10 +244,10 @@ module.exports = STATE => {
 
 			case "assignment":
 				// Store index positions.
-				DATA.assignment.start = STATE.i;
-				DATA.assignment.end = STATE.i;
+				NODE.assignment.start = STATE.i;
+				NODE.assignment.end = STATE.i;
 				// Store assignment character.
-				DATA.assignment.value = char;
+				NODE.assignment.value = char;
 
 				// Now we look for the assignment operator.
 				state = "multi-indicator";
@@ -259,10 +259,10 @@ module.exports = STATE => {
 				// else continue to value state.
 				if (char === "*") {
 					// Store index positions.
-					DATA.multi.start = STATE.i;
-					DATA.multi.end = STATE.i;
+					NODE.multi.start = STATE.i;
+					NODE.multi.end = STATE.i;
 					// Store assignment character.
-					DATA.multi.value = char;
+					NODE.multi.value = char;
 				} else {
 					// Note: Rollback index by 1 to allow parser to
 					// start at new state on next iteration.
@@ -316,22 +316,22 @@ module.exports = STATE => {
 				let pchar = string.charAt(STATE.i - 1);
 
 				// Determine value type.
-				if (!DATA.value.value) {
+				if (!NODE.value.value) {
 					if (char === "$") {
-						DATA.value.type = "command-flag";
+						NODE.value.type = "command-flag";
 					} else if (char === "(") {
-						DATA.value.type = "list";
+						NODE.value.type = "list";
 					} else if (/["']/.test(char)) {
-						DATA.value.type = "quoted";
+						NODE.value.type = "quoted";
 					} else {
-						DATA.value.type = "escaped";
+						NODE.value.type = "escaped";
 					}
 
 					// Store index positions.
-					DATA.value.start = STATE.i;
-					DATA.value.end = STATE.i;
+					NODE.value.start = STATE.i;
+					NODE.value.end = STATE.i;
 					// Start building the value string.
-					DATA.value.value = char;
+					NODE.value.value = char;
 				} else {
 					// Check if character is a delimiter.
 					if (char === "|" && pchar !== "\\") {
@@ -355,7 +355,7 @@ module.exports = STATE => {
 					}
 
 					// Get string type.
-					let stype = DATA.value.type;
+					let stype = NODE.value.type;
 
 					// Escaped string logic.
 					if (stype === "escaped") {
@@ -365,16 +365,16 @@ module.exports = STATE => {
 
 						// Quoted string logic.
 					} else if (stype === "quoted") {
-						let value_fchar = DATA.value.value.charAt(0);
+						let value_fchar = NODE.value.value.charAt(0);
 						if (char === value_fchar && pchar !== "\\") {
 							end_comsuming = true; // Set flag.
 						}
 					}
 
 					// Store index positions.
-					DATA.value.end = STATE.i;
+					NODE.value.end = STATE.i;
 					// Continue building the value string.
-					DATA.value.value += char;
+					NODE.value.value += char;
 				}
 
 				break;
@@ -382,30 +382,30 @@ module.exports = STATE => {
 	}
 
 	// If flag starts a scope block, store reference to node object.
-	if (DATA.value.value === "(") {
+	if (NODE.value.value === "(") {
 		// Store relevant information.
-		DATA.brackets = {
-			start: DATA.value.start,
-			end: DATA.value.start,
-			value: DATA.value.value
+		NODE.brackets = {
+			start: NODE.value.start,
+			end: NODE.value.start,
+			value: NODE.value.value
 		};
 
 		// Store reference to node object.
-		STATE.scopes.flag = DATA;
+		STATE.scopes.flag = NODE;
 	}
 
 	// Validate extracted variable value.
-	require("./helper.validate-value.js")(STATE, DATA);
+	require("./helper.validate-value.js")(STATE, NODE);
 
 	if (STATE.singleton) {
 		// Add node to tree.
-		require("./helper.tree-add.js")(STATE, DATA);
+		require("./helper.tree-add.js")(STATE, NODE);
 
 		// Finally, remove the singleton key from STATE object.
 		delete STATE.singleton;
 	}
 
-	return DATA;
+	return NODE;
 
 	// // Lookup variable's value.
 	// let lookup = variables[`$${name}`];

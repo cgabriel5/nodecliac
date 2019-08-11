@@ -216,7 +216,7 @@ module.exports = (STATE, NODE) => {
 
 						if (char === qchar && pchar !== "\\") {
 							// Validate value.
-							let tmpDATA = {
+							let tmpNODE = {
 								value: {
 									start: value_start_index,
 									end: argument.length - 1,
@@ -224,7 +224,7 @@ module.exports = (STATE, NODE) => {
 									type: "quoted"
 								}
 							};
-							argument = module.exports(tmpDATA, STATE);
+							argument = module.exports(STATE, tmpNODE);
 
 							// Store argument and reset vars.
 							args.push(argument);
@@ -253,7 +253,7 @@ module.exports = (STATE, NODE) => {
 					i--;
 
 					// Validate value.
-					let tmpDATA = {
+					let tmpNODE = {
 						value: {
 							start: value_start_index,
 							end: argument.length - 1,
@@ -261,7 +261,7 @@ module.exports = (STATE, NODE) => {
 							type: "quoted"
 						}
 					};
-					argument = module.exports(tmpDATA, STATE);
+					argument = module.exports(STATE, tmpNODE);
 
 					// Store argument and reset vars.
 					args.push(argument);
@@ -371,7 +371,7 @@ module.exports = (STATE, NODE) => {
 							if (char === qchar && pchar !== "\\") {
 								argument += char; // Store character.
 								// Validate value.
-								let tmpDATA = {
+								let tmpNODE = {
 									value: {
 										start: value_start_index,
 										end: argument.length - 1,
@@ -379,7 +379,7 @@ module.exports = (STATE, NODE) => {
 										type: mode
 									}
 								};
-								argument = module.exports(tmpDATA, STATE);
+								argument = module.exports(STATE, tmpNODE);
 								args.push([argument, mode]); // Store argument.
 								argument = ""; // Clear argument string.
 								mode = null; // Clear mode flag.
@@ -393,7 +393,7 @@ module.exports = (STATE, NODE) => {
 							if (/[ \t]/.test(char) && pchar !== "\\") {
 								// argument += char; // Store character.
 								// Validate value.
-								let tmpDATA = {
+								let tmpNODE = {
 									value: {
 										start: value_start_index,
 										end: argument.length - 1,
@@ -401,7 +401,7 @@ module.exports = (STATE, NODE) => {
 										type: mode
 									}
 								};
-								argument = module.exports(tmpDATA, STATE);
+								argument = module.exports(STATE, tmpNODE);
 								args.push([argument, mode]); // Store argument.
 								argument = ""; // Clear argument string.
 								mode = null; // Clear mode flag.
@@ -414,7 +414,7 @@ module.exports = (STATE, NODE) => {
 							if (char === ")" && pchar !== "\\") {
 								argument += char; // Store character.
 								// Validate value.
-								let tmpDATA = {
+								let tmpNODE = {
 									value: {
 										start: value_start_index,
 										end: argument.length - 1,
@@ -423,7 +423,7 @@ module.exports = (STATE, NODE) => {
 									}
 								};
 
-								argument = module.exports(tmpDATA, STATE);
+								argument = module.exports(STATE, tmpNODE);
 								args.push([argument, mode]); // Store argument.
 								argument = ""; // Clear argument string.
 								mode = null; // Clear mode flag.
@@ -448,7 +448,7 @@ module.exports = (STATE, NODE) => {
 				// Get last argument.
 				if (argument) {
 					// Validate value.
-					let tmpDATA = {
+					let tmpNODE = {
 						value: {
 							start: value_start_index,
 							end: argument.length - 1,
@@ -456,7 +456,7 @@ module.exports = (STATE, NODE) => {
 							type: mode
 						}
 					};
-					argument = module.exports(tmpDATA, STATE);
+					argument = module.exports(STATE, tmpNODE);
 					args.push([argument, mode]);
 				}
 

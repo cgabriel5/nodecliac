@@ -78,7 +78,11 @@ module.exports = (
 		specificity: 0, // Default to allow anything.
 		// Have quick access to the last parsed command-chain/flag.
 		lastcc: null,
-		lastflag: null
+		lastflag: null,
+		scopes: {
+			command: null,
+			flag: null
+		}
 	};
 	// Loop local vars.
 	let first_non_whitespace_char = "";
@@ -183,6 +187,10 @@ module.exports = (
 			}
 		}
 	}
+
+	// Note: If a command-chain scope still exists after parsing then a scope
+	// was never closed so give an error.
+	require("./helper.brace-checks.js")(STATE, null, "post-standing-scope");
 
 	let time = process.hrtime(stime);
 	const duration = ((time[0] * 1e3 + time[1] / 1e6) / 1e3).toFixed(3);

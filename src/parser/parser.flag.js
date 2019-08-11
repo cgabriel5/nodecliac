@@ -46,6 +46,7 @@ module.exports = STATE => {
 		boolean: { start: null, end: null, value: null },
 		assignment: { start: null, end: null, value: null },
 		multi: { start: null, end: null, value: null },
+		brackets: { start: null, end: null, value: null },
 		value: { start: null, end: null, value: null, type: null },
 		line,
 		startpoint: STATE.i,
@@ -378,6 +379,19 @@ module.exports = STATE => {
 
 				break;
 		}
+	}
+
+	// If flag starts a scope block, store reference to node object.
+	if (DATA.value.value === "(") {
+		// Store relevant information.
+		DATA.brackets = {
+			start: DATA.value.start,
+			end: DATA.value.start,
+			value: DATA.value.value
+		};
+
+		// Store reference to node object.
+		STATE.scopes.flag = DATA;
 	}
 
 	// Validate extracted variable value.

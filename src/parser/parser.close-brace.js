@@ -80,6 +80,9 @@ module.exports = STATE => {
 		}
 	}
 
+	// Note: If a command-chain scope exists, error as scope was never closed.
+	require("./helper.brace-checks.js")(STATE, DATA, "reset-scope");
+
 	// Add node to tree.
 	require("./helper.tree-add.js")(STATE, DATA);
 

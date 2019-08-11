@@ -22,6 +22,9 @@ let { r_nl, r_whitespace } = require("./h.patterns.js");
 module.exports = STATE => {
 	// require("./h.trace.js")(__filename); // Trace parser.
 
+	// Note: If a flag scope doesn't exist, error as it needs to.
+	require("./helper.brace-checks.js")(STATE, null, "pre-existing-fs");
+
 	// Get global loop state variables.
 	let { line, l, string } = STATE;
 

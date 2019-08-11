@@ -33,6 +33,9 @@ let { r_nl, r_whitespace } = require("./h.patterns.js");
 module.exports = STATE => {
 	// require("./h.trace.js")(__filename); // Trace parser.
 
+	// Note: If a command-chain scope exists, error as scope was never closed.
+	require("./helper.brace-checks.js")(STATE, null, "pre-existing-cs");
+
 	// Get global loop state variables.
 	let { line, l, string } = STATE;
 
@@ -336,6 +339,11 @@ module.exports = STATE => {
 		let item = DATA.flags[i];
 
 		adder(STATE, item);
+	}
+
+	// If command starts a scope block, store reference to node object.
+	if (DATA.value.value === "[") {
+		STATE.scopes.command = DATA;
 	}
 
 	return DATA;

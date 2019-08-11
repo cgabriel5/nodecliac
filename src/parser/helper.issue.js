@@ -31,6 +31,9 @@ let errors = {
 	"close-brace": {
 		0: "Invalid character:"
 	},
+	"brace-checks": {
+		0: "Invalid character:"
+	},
 	"template-string": {
 		0: "Invalid character:"
 	},

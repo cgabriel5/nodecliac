@@ -127,7 +127,10 @@ module.exports = (
 				console.log("TREE", STATE.DB.tree);
 				// Error as first lien character is now allowed.
 				// console.log(`INVALID_CHAR << ${STATE.line}:${STATE.column}`);
-				issue.error(STATE, 0, __filename);
+				// Don't issue warning for ';' parsing terminator.
+				if (char !== ";") {
+					issue.error(STATE, 0, __filename);
+				}
 			}
 
 			// Note: Reduce column counter by 1 since parser loop will

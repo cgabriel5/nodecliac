@@ -30,7 +30,7 @@ module.exports = STATE => {
 	let warnings = []; // Collect all parsing warnings.
 	let end_comsuming;
 	let DATA = {
-		node: "OPTION",
+		node: "BRACE",
 		brace: { start: null, end: null, value: null },
 		line,
 		startpoint: STATE.i,

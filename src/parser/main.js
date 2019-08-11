@@ -32,6 +32,20 @@ module.exports = (
 		")": "close-brace"
 	};
 
+	// Note: [Hierarchy lookup table] The lower the number the higher its
+	// precedence, therefore: command > flag > option. Variables, settings,
+	// and command chains have the same precedence as they are same-level
+	// defined (cannot be nested). Comments can be placed anywhere so
+	// they don't have a listed precedence.
+	const SPECIFICITIES = {
+		setting: 5,
+		variable: 4,
+		command: 3,
+		flag: 2,
+		option: 1,
+		comment: 0
+	};
+
 	const PARSERS = {
 		command: require("./parser.command.js"),
 		comment: require("./parser.comment.js"),
@@ -59,6 +73,9 @@ module.exports = (
 		string,
 		// Attach database to access across parsers.
 		DB,
+		//
+		SPECIFICITIES,
+		specificity: 0, // Default to allow anything.
 		// Have quick access to the last parsed command-chain/flag.
 		lastcc: null,
 		lastflag: null
@@ -137,6 +154,25 @@ module.exports = (
 					STATE.singleton = true;
 				}
 			}
+
+			// Get line specificity and store value.
+			// let old_specificity = STATE.specificity;
+			let line_specificity = SPECIFICITIES[line_type] || 0;
+
+			// However, if we are in a scope then the scope's specificity
+			// trumps the line specificity.
+			let state_specificity = STATE.scopes.flag
+				? SPECIFICITIES.flag
+				: STATE.scopes.command
+				? SPECIFICITIES.command
+				: STATE.specificity;
+
+			// Note: Check whether specificity hierarchy is allowed.
+			if (state_specificity && state_specificity <= line_specificity) {
+				issue.error(STATE, 0, __filename);
+			}
+			// Set state specificity.
+			state_specificity = line_specificity;
 
 			// Run the line type's function.
 			if (PARSERS[line_type]) {

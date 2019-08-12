@@ -64,7 +64,7 @@ module.exports = (STATE, NODE) => {
 			// If a value was extracted make sure it's a valid string. =========
 
 			// Make sure string is properly quoted.
-			if (!/^("|').*?\1$/.test(value)) {
+			if (!/^\$?("|').*?\1$/.test(value)) {
 				// Reset STATE column index position.
 				STATE.column = resumepoint;
 

@@ -150,13 +150,15 @@ module.exports = (STATE, NODE) => {
 				let qchar;
 				let delimiter_count = 0;
 				let delimiter_index;
+				let i = 2; // Offset start index due to syntax '$('.
+				// Resume incrementing index for error purposes.
+				let resume_index = NODE.value.start + i;
 				let value_start_index;
-				let i = 2;
 
 				// Validate that command-flag string is valid.
 				// Note: Start loop at index 2 and stop before the last
 				// character to ignore the starting '$(' and ending ')'.
-				for (let l = value.length - 1; i < l; i++) {
+				for (let l = value.length - 1; i < l; i++, resume_index++) {
 					// Cache current loop item.
 					let char = value.charAt(i);
 					let pchar = value.charAt(i - 1);
@@ -167,7 +169,7 @@ module.exports = (STATE, NODE) => {
 						// Look for unescaped quote characters.
 						if (/["']/.test(char) && pchar !== "\\") {
 							// Store the index at which the value starts.
-							value_start_index = NODE.value.start + i;
+							value_start_index = resume_index;
 							// Set qchar as the opening quote character.
 							qchar = char;
 							// Capture character.
@@ -195,7 +197,9 @@ module.exports = (STATE, NODE) => {
 							qchar = nchar;
 							// Capture character.
 							argument += `${char}${nchar}`;
+							resume_index++;
 							i++;
+							value_start_index = resume_index;
 						} else {
 							// Give error as anything else is not allowed. For
 							// example, hitting this block means a character
@@ -307,15 +311,15 @@ module.exports = (STATE, NODE) => {
 				let delimiter_count = 0;
 				let delimiter_index;
 				let mode;
+				let i = 1; // Offset start index due to syntax '('.
+				// Resume incrementing index for error purposes.
+				let resume_index = NODE.value.start + i;
 				let value_start_index;
-				let i = 1;
-
-				let testc = NODE.value.start + 1;
 
 				// Validate that command-flag string is valid.
 				// Note: Start loop at index 1 and stop before the last
 				// character to ignore the starting '(' and ending ')'.
-				for (let l = value.length - 1; i < l; i++, testc++) {
+				for (let l = value.length - 1; i < l; i++, resume_index++) {
 					// Cache current loop item.
 					let char = value.charAt(i);
 					let pchar = value.charAt(i - 1);
@@ -329,16 +333,16 @@ module.exports = (STATE, NODE) => {
 						// Set mode depending on the character.
 						if (/["']/.test(char) && pchar !== "\\") {
 							// Store the index at which the value starts.
-							value_start_index = NODE.value.start + i;
+							value_start_index = resume_index;
 							mode = "quoted"; // Set mode.
 							qchar = char; // Store quote char for later reference.
 						} else if (char === "$" && pchar !== "\\") {
 							// Store the index at which the value starts.
-							value_start_index = NODE.value.start + i;
+							value_start_index = resume_index;
 							mode = "command-flag"; // Set mode.
 						} else if (!/[ \t]/.test(char)) {
 							// Store the index at which the value starts.
-							value_start_index = NODE.value.start + i;
+							value_start_index = resume_index;
 							mode = "escaped"; // Set mode.
 
 							// All other characters are invalid so give error.

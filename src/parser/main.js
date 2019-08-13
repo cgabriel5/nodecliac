@@ -133,7 +133,6 @@ module.exports = (
 			// | ]         |  Closing long-flag form.        |
 			// +---------------------------------------------+
 			if (!r_start_line_char.test(char)) {
-				console.log("TREE", STATE.DB.tree);
 				// Error as first lien character is now allowed.
 				// console.log(`INVALID_CHAR << ${STATE.line}:${STATE.column}`);
 				// Don't issue warning for ';' parsing terminator.
@@ -195,6 +194,8 @@ module.exports = (
 	// Note: If a command-chain scope still exists after parsing then a scope
 	// was never closed so give an error.
 	require("./helper.brace-checks.js")(STATE, null, "post-standing-scope");
+
+	console.log("TREE", STATE.DB.tree);
 
 	let time = process.hrtime(stime);
 	const duration = ((time[0] * 1e3 + time[1] / 1e6) / 1e3).toFixed(3);

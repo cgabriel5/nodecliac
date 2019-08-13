@@ -242,7 +242,7 @@ module.exports = STATE => {
 				// commence 'oneliner' route.
 
 				// Before determining path, check that character is valid.
-				if (!/[-\[]/.test(char)) {
+				if (!/[-d\[]/.test(char)) {
 					issue.error(STATE, 0, __filename);
 				}
 

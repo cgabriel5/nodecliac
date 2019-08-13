@@ -39,7 +39,7 @@ module.exports = (STATE, isoneliner) => {
 	let { line, l, string } = STATE;
 
 	// Parsing vars.
-	let state = "hyphen"; // Initial parsing state.
+	let state = string.charAt(STATE.i) === "-" ? "hyphen" : "keyword"; // Initial parsing state.
 	let stop; // Flag indicating whether to stop parser.
 	let qchar;
 	let warnings = []; // Collect all parsing warnings.
@@ -54,6 +54,7 @@ module.exports = (STATE, isoneliner) => {
 		multi: { start: null, end: null, value: null },
 		brackets: { start: null, end: null, value: null },
 		value: { start: null, end: null, value: null, type: null },
+		keyword: { start: null, end: null, value: null },
 		line,
 		startpoint: STATE.i,
 		endpoint: null // Then index at which parsing was ended.
@@ -120,6 +121,41 @@ module.exports = (STATE, isoneliner) => {
 						NODE.hyphens.value += char;
 					}
 				}
+
+				break;
+
+			case "keyword":
+				// Only letters are allowed.
+				let keyword_len = 7;
+				let keyword = string.substr(STATE.i, keyword_len);
+
+				// Note: If the keyword is not 'default' then error.
+				if (keyword !== "default") {
+					issue.error(STATE, 0, __filename);
+				}
+
+				// Store index positions.
+				NODE.keyword.start = STATE.i;
+				NODE.keyword.end = STATE.i + keyword_len - 1;
+				// Store keyword value.
+				NODE.keyword.value = keyword;
+
+				// Note: A whitespace character must follow keyword.
+				state = "keyword-spacer";
+
+				// Note: Forward loop index to skip keyword characters.
+				STATE.i += keyword_len - 1;
+
+				break;
+
+			case "keyword-spacer":
+				// The character must be a whitespace character.
+				if (!/[ \t]/.test(char)) {
+					issue.error(STATE, 0, __filename);
+				}
+
+				// Now start looking the value.
+				state = "wsb-prevalue";
 
 				break;
 

@@ -166,6 +166,13 @@ module.exports = (
 				}
 			}
 
+			if (line_type === "command") {
+				// Check for 'default' keyword.
+				if (string.substr(STATE.i, 7) === "default") {
+					line_type = "flag";
+				}
+			}
+
 			// Get line specificity and store value.
 			let line_specificity = SPECIFICITIES[line_type] || 0;
 

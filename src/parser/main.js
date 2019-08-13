@@ -168,7 +168,6 @@ module.exports = (
 			}
 
 			// Get line specificity and store value.
-			// let old_specificity = STATE.specificity;
 			let line_specificity = SPECIFICITIES[line_type] || 0;
 
 			// However, if we are in a scope then the scope's specificity
@@ -180,11 +179,11 @@ module.exports = (
 				: STATE.specificity;
 
 			// Note: Check whether specificity hierarchy is allowed.
-			if (state_specificity && state_specificity <= line_specificity) {
+			if (state_specificity && state_specificity < line_specificity) {
 				issue.error(STATE, 0, __filename);
 			}
 			// Set state specificity.
-			state_specificity = line_specificity;
+			STATE.specificity = line_specificity;
 
 			// Run the line type's function.
 			if (PARSERS[line_type]) {

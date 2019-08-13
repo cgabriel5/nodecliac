@@ -26,8 +26,14 @@ let { r_nl } = require("./h.patterns.js");
  * @param  {string} string - The line to parse.
  * @return {object} - Object containing parsed information.
  */
-module.exports = STATE => {
+module.exports = (STATE, isoneliner) => {
 	// require("./h.trace.js")(__filename); // Trace parser.
+
+	// Note: If not a oneliner or there is no command scope then the
+	// flag is being declared out of scope.
+	if (!(isoneliner || STATE.scopes.command)) {
+		issue.error(STATE, 0, __filename);
+	}
 
 	// Get global loop state variables.
 	let { line, l, string } = STATE;

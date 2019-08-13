@@ -312,7 +312,7 @@ module.exports = STATE => {
 
 				// Store result in variable to access the
 				// interpolated variable's value.
-				NODE.flags.push(p_flag(STATE)); // Parse flag oneliner...
+				NODE.flags.push(p_flag(STATE, "oneliner")); // Parse flag oneliner...
 
 				break;
 

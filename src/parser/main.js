@@ -29,7 +29,8 @@ module.exports = (
 		"@": "setting",
 		$: "variable",
 		"]": "close-brace",
-		")": "close-brace"
+		")": "close-brace",
+		_: "empty-line"
 	};
 
 	// Note: [Hierarchy lookup table] The lower the number the higher its
@@ -53,7 +54,8 @@ module.exports = (
 		variable: require("./parser.variable.js"),
 		flag: require("./parser.flag.js"),
 		option: require("./parser.option.js"),
-		"close-brace": require("./parser.close-brace.js")
+		"close-brace": require("./parser.close-brace.js"),
+		"empty-line": require("./parser.empty-line.js")
 	};
 
 	// Parsing database.
@@ -95,6 +97,9 @@ module.exports = (
 		let nchar = string.charAt(STATE.i + 1);
 
 		if (char === "\n") {
+			// Run empty line parser.
+			PARSERS["empty-line"](STATE);
+
 			STATE.line++; // Increment line count.
 			STATE.column = 0; // Reset column to zero.
 			first_non_whitespace_char = "";

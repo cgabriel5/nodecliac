@@ -173,6 +173,17 @@ module.exports = (
 				}
 			}
 
+			// Following commands cannot begin with any whitespace.
+			if (
+				DB.linestarts[STATE.line] !== STATE.i &&
+				/(setting|variable|command)/.test(line_type)
+			) {
+				// Reset column/index to first start of line.
+				STATE.column = 1;
+
+				// Note: Line cannot begin begin with whitespace.
+				issue.error(STATE, 0, __filename);
+			}
 			// Get line specificity and store value.
 			let line_specificity = SPECIFICITIES[line_type] || 0;
 

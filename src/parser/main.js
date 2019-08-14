@@ -96,6 +96,8 @@ module.exports = (
 		let char = string.charAt(STATE.i);
 		let nchar = string.charAt(STATE.i + 1);
 
+		// Handle new lines. ===================================================
+
 		if (char === "\n") {
 			// Run empty line parser.
 			PARSERS["empty-line"](STATE);
@@ -109,7 +111,8 @@ module.exports = (
 		}
 
 		STATE.column++; // Increment column position.
-		// Store startpoint.
+
+		// Store line start points. ============================================
 		if (!DB.linestarts[STATE.line]) {
 			DB.linestarts[STATE.line] = STATE.i;
 		}
@@ -146,16 +149,16 @@ module.exports = (
 			// A char that has already been looped over in the main loop.
 			STATE.column--;
 
+			// Determine line's type. ==========================================
+
 			// Get the line type.
 			line_type = LINE_TYPES[char];
 			if (!line_type && /[a-zA-Z]/.test(char)) {
 				line_type = "command";
 			}
-
 			if (line_type === "eof") {
 				break;
 			}
-
 			if (line_type === "flag") {
 				// Check if a flag value.
 				if (nchar && /[ \t]/.test(nchar)) {
@@ -165,13 +168,14 @@ module.exports = (
 					STATE.singleton = true;
 				}
 			}
-
 			if (line_type === "command") {
 				// Check for 'default' keyword.
 				if (string.substr(STATE.i, 7) === "default") {
 					line_type = "flag";
 				}
 			}
+
+			// Check line indentation. =========================================
 
 			// Following commands cannot begin with any whitespace.
 			if (
@@ -184,6 +188,9 @@ module.exports = (
 				// Note: Line cannot begin begin with whitespace.
 				issue.error(STATE, 0, __filename);
 			}
+
+			// Check line specificity hierarchy. ===============================
+
 			// Get line specificity and store value.
 			let line_specificity = SPECIFICITIES[line_type] || 0;
 
@@ -201,6 +208,8 @@ module.exports = (
 			}
 			// Set state specificity.
 			STATE.specificity = line_specificity;
+
+			// Finally, run parser. ============================================
 
 			// Run the line type's function.
 			if (PARSERS[line_type]) {

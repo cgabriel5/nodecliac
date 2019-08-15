@@ -20,7 +20,7 @@ module.exports = (STATE, NODE) => {
 	// If a value does not exist then return.
 	if (!value) {
 		// Attach empty args array to NODE object.
-		NODE.args = [`${NODE.hyphens.value}${NODE.name.value}`];
+		NODE.args = [];
 
 		return;
 	}

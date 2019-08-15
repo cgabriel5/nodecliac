@@ -439,12 +439,12 @@ module.exports = (STATE, isoneliner) => {
 	// Validate extracted variable value.
 	require("./helper.validate-value.js")(STATE, NODE);
 
-	if (STATE.singleton) {
+	if (STATE.singletonflag) {
 		// Add node to tree.
 		require("./helper.tree-add.js")(STATE, NODE);
 
-		// Finally, remove the singleton key from STATE object.
-		delete STATE.singleton;
+		// Finally, remove the singletonflag key from STATE object.
+		delete STATE.singletonflag;
 	}
 
 	return NODE;

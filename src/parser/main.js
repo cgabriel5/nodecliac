@@ -165,13 +165,18 @@ module.exports = (
 					// The line is actually a flag option so reset parser.
 					line_type = "option";
 				} else {
-					STATE.singleton = true;
+					// Note: (Set flag) This is needed to let flag parser
+					// know to add the parsed Node to the parsing tree.
+					STATE.singletonflag = true;
 				}
 			}
 			if (line_type === "command") {
 				// Check for 'default' keyword.
 				if (string.substr(STATE.i, 7) === "default") {
 					line_type = "flag";
+					// Note: (Set flag) This is needed to let flag parser
+					// know to add the parsed Node to the parsing tree.
+					STATE.singletonflag = true;
 				}
 			}
 

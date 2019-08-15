@@ -8,13 +8,20 @@
  */
 module.exports = (STATE, NODE) => {
 	// Get line.
-	let line = STATE.line;
+	// let line = STATE.line;
 	let tree = STATE.DB.tree;
 
-	// If line exists in tree add to it else create it first.
-	if (tree[line]) {
-		tree[line].push(NODE);
+	// Add nodes entry if not already added.
+	if (!tree.nodes) {
+		tree.nodes = [NODE];
 	} else {
-		tree[line] = [NODE];
+		tree.nodes.push(NODE);
 	}
+
+	// // If line exists in tree add to it else create it first.
+	// if (tree[line]) {
+	// 	tree[line].push(NODE);
+	// } else {
+	// 	tree[line] = [NODE];
+	// }
 };

@@ -305,16 +305,22 @@ module.exports = (STATE, isoneliner) => {
 					NODE.multi.end = STATE.i;
 					// Store assignment character.
 					NODE.multi.value = char;
+
+					// Now start looking the value.
+					state = "wsb-prevalue";
 				} else {
 					// Note: Rollback index by 1 to allow parser to
 					// start at new state on next iteration.
 					STATE.i -= 1;
 					STATE.column--;
-				}
 
-				// Now start looking the value.
-				// state = "value";
-				state = "wsb-prevalue";
+					// Set state based on character.
+					if (char === "|") {
+						state = "pipe-delimiter";
+					} else {
+						state = "wsb-prevalue";
+					}
+				}
 
 				break;
 

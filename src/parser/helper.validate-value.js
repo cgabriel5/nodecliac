@@ -88,7 +88,7 @@ module.exports = (STATE, NODE) => {
 
 			// Interpolate any template-string variables.
 			// [https://stackoverflow.com/a/40329720]
-			value = value.replace(/(?<!\\)\$\{\s*[^\s]*\s*\}/g, function(
+			value = value.replace(/(?<!\\)\$\{\s*[^}]*\s*\}/g, function(
 				match,
 				index
 			) {

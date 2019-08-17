@@ -348,7 +348,12 @@ module.exports = (STATE, isoneliner) => {
 					STATE.i -= 1;
 					STATE.column--;
 
-					state = "value";
+					// Set state based on character.
+					if (char === "|") {
+						state = "pipe-delimiter";
+					} else {
+						state = "value";
+					}
 				}
 
 				break;

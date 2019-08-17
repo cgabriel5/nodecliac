@@ -31,6 +31,9 @@ module.exports = (STATE, NODE) => {
 		// Add some key-identifying properties to object.
 		NODE.openbrace = true;
 
+		// Attach empty args array to NODE object.
+		NODE.args = [];
+
 		// Skip remaining logic as it's not needed to execute.
 		return;
 	}

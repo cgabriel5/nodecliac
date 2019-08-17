@@ -1,8 +1,5 @@
 "use strict";
 
-// Get needed modules.
-let issue = require("./helper.issue.js");
-
 module.exports = (STATE, commandname) => {
 	let BATCHES = {};
 	let SETS = {};

@@ -178,7 +178,7 @@ module.exports = (STATE, isoneliner) => {
 					// Continue building hyphen string.
 				} else {
 					// If char is allowed keep building string.
-					if (/[-a-zA-Z0-9]/.test(char)) {
+					if (/[-.a-zA-Z0-9]/.test(char)) {
 						// Set name index positions.
 						NODE.name.end = STATE.i;
 						// Continue building setting name string.

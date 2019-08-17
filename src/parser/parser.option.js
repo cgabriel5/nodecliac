@@ -63,6 +63,8 @@ module.exports = STATE => {
 				// Store '-' bullet index positions.
 				NODE.bullet.start = STATE.i;
 				NODE.bullet.end = STATE.i;
+				// Start building the value string.
+				NODE.bullet.value = char;
 
 				// Change state to whitespace-boundary after bullet.
 				state = "spacer";

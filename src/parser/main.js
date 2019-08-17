@@ -227,7 +227,7 @@ module.exports = (
 	// was never closed so give an error.
 	require("./helper.brace-checks.js")(STATE, null, "post-standing-scope");
 
-	console.log("TREE", STATE.DB.tree);
+	let { acdef, config } = require("./helper.acdef.js")(STATE, commandname);
 
 	let time = process.hrtime(stime);
 	const duration = ((time[0] * 1e3 + time[1] / 1e6) / 1e3).toFixed(3);

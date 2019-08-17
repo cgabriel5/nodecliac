@@ -31,7 +31,7 @@ module.exports = STATE => {
 	};
 
 	// Add node to tree.
-	// require("./helper.tree-add.js")(STATE, NODE);
+	require("./helper.tree-add.js")(STATE, NODE);
 
 	return NODE;
 };

@@ -456,6 +456,9 @@ module.exports = (STATE, isoneliner) => {
 
 		// Finally, remove the singletonflag key from STATE object.
 		delete STATE.singletonflag;
+
+		// Add property to help distinguish node if later needed.
+		NODE.singletonflag = true;
 	}
 
 	return NODE;

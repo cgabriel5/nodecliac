@@ -1,6 +1,6 @@
 "use strict";
 
-module.exports = (STATE, commandname) => {
+module.exports = STATE => {
 	let TREE = STATE.DB.tree;
 	let output = "";
 

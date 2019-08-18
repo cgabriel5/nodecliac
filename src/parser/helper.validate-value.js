@@ -95,6 +95,11 @@ module.exports = (STATE, NODE) => {
 				// Remove syntax decorations to get variable name.
 				match = match.replace(/^\$\{\s*|\s*\}$/g, "");
 
+				// Note: Skip string interpolation logic if formatting.
+				if (STATE.args.formatting) {
+					return `\${${match}}`;
+				}
+
 				// Lookup variable's value in database.
 				let value = STATE.DB.variables[match];
 

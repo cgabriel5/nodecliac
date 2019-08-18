@@ -78,16 +78,10 @@ module.exports = (STATE, isoneliner) => {
 
 		switch (state) {
 			case "hyphen":
-				// // With RegExp to parse on unescaped '|' characters it would be
-				// // something like this: String.split(/(?<=[^\\]|^|$)\|/);
-				// // [https://stackoverflow.com/a/25895905]
-				// // [https://stackoverflow.com/a/12281034]
-
-				// // Get individual flag sets. Use unescaped '|' as the delimiter.
-				// if (char === "|" && pchar !== "\\") {
-				// 	// Run flag value parser from here...
-				// 	let pvalue = pflagset();
-				// }
+				// With RegExp to parse on unescaped '|' characters it would be
+				// something like this: String.split(/(?<=[^\\]|^|$)\|/);
+				// [https://stackoverflow.com/a/25895905]
+				// [https://stackoverflow.com/a/12281034]
 
 				// Only hyphens are allowed at this point.
 				if (!NODE.hyphens.value) {

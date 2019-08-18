@@ -150,7 +150,7 @@ module.exports = (
 				// console.log(`INVALID_CHAR << ${STATE.line}:${STATE.column}`);
 				// Don't issue warning for ';' parsing terminator.
 				if (char !== ";") {
-					issue.error(STATE, 0, __filename);
+					issue.error(STATE);
 				}
 			}
 
@@ -201,7 +201,7 @@ module.exports = (
 				STATE.column = 1;
 
 				// Note: Line cannot begin begin with whitespace.
-				issue.error(STATE, 0, __filename);
+				issue.error(STATE);
 			}
 
 			// Check line specificity hierarchy. ===============================
@@ -219,7 +219,7 @@ module.exports = (
 
 			// Note: Check whether specificity hierarchy is allowed.
 			if (state_specificity && state_specificity < line_specificity) {
-				issue.error(STATE, 0, __filename);
+				issue.error(STATE);
 			}
 			// Set state specificity.
 			STATE.specificity = line_specificity;

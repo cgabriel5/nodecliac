@@ -83,7 +83,7 @@ module.exports = STATE => {
 					// First char of command must be a letter or semicolon.
 					if (!/[:a-zA-Z]/.test(char)) {
 						// [TODO]: Specify Error: Setting must start with a letter.
-						issue.error(STATE, 0, __filename);
+						issue.error(STATE);
 					}
 
 					// Set command index positions.
@@ -113,7 +113,7 @@ module.exports = STATE => {
 							// Note: If the next char does not exist then the
 							// '\' is escaping nothing so error.
 							if (!nchar) {
-								issue.error(STATE, 0, __filename);
+								issue.error(STATE);
 							}
 
 							// Next char must be a space for it to be a valid
@@ -121,8 +121,8 @@ module.exports = STATE => {
 							if (nchar !== ".") {
 								// Note: Escaping anything but a dot give is
 								// not allowed, so give error.
-								// issue.warning(STATE, 0, __filename);
-								issue.error(STATE, 0, __filename);
+								// issue.warning(STATE, 0);
+								issue.error(STATE);
 
 								// Remove last escape char as it is not needed.
 								let command = NODE.command.value.slice(0, -1);
@@ -159,7 +159,7 @@ module.exports = STATE => {
 					} else {
 						// Note: Hitting this block means an invalid
 						// character was encountered so give an error.
-						issue.error(STATE, 0, __filename);
+						issue.error(STATE);
 					}
 				}
 
@@ -189,7 +189,7 @@ module.exports = STATE => {
 					} else {
 						// Note: Hitting this block means an invalid
 						// character was encountered so give an error.
-						issue.error(STATE, 0, __filename);
+						issue.error(STATE);
 					}
 				}
 
@@ -243,7 +243,7 @@ module.exports = STATE => {
 
 				// Before determining path, check that character is valid.
 				if (!/[-d\[]/.test(char)) {
-					issue.error(STATE, 0, __filename);
+					issue.error(STATE);
 				}
 
 				state = char === "[" ? "open-bracket" : "oneliner";
@@ -289,7 +289,7 @@ module.exports = STATE => {
 				// At this point the char must be a closing bracket ']'.
 				// Anything else is invalid.
 				if (char !== "]") {
-					issue.error(STATE, 0, __filename);
+					issue.error(STATE);
 				}
 
 				// Store index positions.
@@ -322,7 +322,7 @@ module.exports = STATE => {
 					// All that should remain, if anything, are trailing
 					// whitespace Anything other than trailing whitespace is
 					// invalid.
-					issue.error(STATE, 0, __filename);
+					issue.error(STATE);
 				}
 
 				break;

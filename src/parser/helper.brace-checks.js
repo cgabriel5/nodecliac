@@ -27,7 +27,7 @@ module.exports = (STATE, NODE, checktype) => {
 					// Note: Add 1 to account for 0 base indexing (column starts at 1).
 					1;
 
-				issue.error(STATE, 0, __filename);
+				issue.error(STATE);
 			}
 			break;
 		}
@@ -44,7 +44,7 @@ module.exports = (STATE, NODE, checktype) => {
 
 				// Else, if scope does not exist give an error.
 			} else {
-				issue.error(STATE, 0, __filename);
+				issue.error(STATE);
 			}
 
 			break;
@@ -75,7 +75,7 @@ module.exports = (STATE, NODE, checktype) => {
 					// Note: Add 1 to account for 0 base indexing (column starts at 1).
 					1;
 
-				issue.error(STATE, 0, __filename);
+				issue.error(STATE);
 			}
 
 			break;
@@ -92,7 +92,7 @@ module.exports = (STATE, NODE, checktype) => {
 					// Note: Add 1 to account for 0 base indexing (column starts at 1).
 					1;
 
-				issue.error(STATE, 0, __filename);
+				issue.error(STATE);
 			}
 			break;
 		}

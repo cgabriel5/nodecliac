@@ -32,7 +32,7 @@ module.exports = (STATE, isoneliner) => {
 	// Note: If not a oneliner or there is no command scope then the
 	// flag is being declared out of scope.
 	if (!(isoneliner || STATE.scopes.command)) {
-		issue.error(STATE, 0, __filename);
+		issue.error(STATE);
 	}
 
 	// Get global loop state variables.
@@ -95,7 +95,7 @@ module.exports = (STATE, isoneliner) => {
 					if (char !== "-") {
 						// Note: Hitting this block means an invalid
 						// character was encountered so give an error.
-						issue.error(STATE, 0, __filename);
+						issue.error(STATE);
 					}
 
 					// Store index positions.
@@ -131,7 +131,7 @@ module.exports = (STATE, isoneliner) => {
 
 				// Note: If the keyword is not 'default' then error.
 				if (keyword !== "default") {
-					issue.error(STATE, 0, __filename);
+					issue.error(STATE);
 				}
 
 				// Store index positions.
@@ -151,7 +151,7 @@ module.exports = (STATE, isoneliner) => {
 			case "keyword-spacer":
 				// The character must be a whitespace character.
 				if (!/[ \t]/.test(char)) {
-					issue.error(STATE, 0, __filename);
+					issue.error(STATE);
 				}
 
 				// Now start looking the value.
@@ -166,7 +166,7 @@ module.exports = (STATE, isoneliner) => {
 					if (!/[a-zA-Z]/.test(char)) {
 						// Note: Hitting this block means an invalid
 						// character was encountered so give an error.
-						issue.error(STATE, 0, __filename);
+						issue.error(STATE);
 					}
 
 					// Store index positions.
@@ -224,7 +224,7 @@ module.exports = (STATE, isoneliner) => {
 					} else {
 						// Note: Hitting this block means an invalid
 						// character was encountered so give an error.
-						issue.error(STATE, 0, __filename);
+						issue.error(STATE);
 					}
 				}
 
@@ -265,7 +265,7 @@ module.exports = (STATE, isoneliner) => {
 					} else {
 						// Note: Hitting this block means an invalid
 						// character was encountered so give an error.
-						issue.error(STATE, 0, __filename);
+						issue.error(STATE);
 					}
 				}
 
@@ -332,7 +332,7 @@ module.exports = (STATE, isoneliner) => {
 				// [https://stackoverflow.com/a/12281034]
 
 				if (char !== "|") {
-					issue.error(STATE, 0, __filename);
+					issue.error(STATE);
 				}
 
 				stop = true;
@@ -404,7 +404,7 @@ module.exports = (STATE, isoneliner) => {
 					// then there is a syntax error. For example, string may
 					// be improperly quoted/escaped so give error.
 					if (end_comsuming) {
-						issue.error(STATE, 0, __filename);
+						issue.error(STATE);
 					}
 
 					// Get string type.

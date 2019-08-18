@@ -73,7 +73,7 @@ module.exports = STATE => {
 					// All that should remain, if anything, are trailing
 					// whitespace Anything other than trailing whitespace is
 					// invalid.
-					issue.error(STATE, 0, __filename);
+					issue.error(STATE);
 				}
 
 				break;

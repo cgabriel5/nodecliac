@@ -75,7 +75,7 @@ module.exports = STATE => {
 					// Name must start with a letter.
 					if (!/[a-zA-Z]/.test(char)) {
 						// [TODO]: Specify Error: Setting must start with a letter.
-						issue.error(STATE, 0, __filename);
+						issue.error(STATE);
 					}
 
 					// Set name index positions.
@@ -114,7 +114,7 @@ module.exports = STATE => {
 					} else {
 						// Note: Hitting this block means an invalid
 						// character was encountered so give an error.
-						issue.error(STATE, 0, __filename);
+						issue.error(STATE);
 					}
 				}
 
@@ -135,7 +135,7 @@ module.exports = STATE => {
 					} else {
 						// Note: Hitting this block means an invalid
 						// character was encountered so give an error.
-						issue.error(STATE, 0, __filename);
+						issue.error(STATE);
 					}
 				}
 
@@ -176,7 +176,7 @@ module.exports = STATE => {
 					if (!/["'a-zA-Z0-9]/.test(char)) {
 						// Note: Hitting this block means an invalid
 						// character was encountered so give an error.
-						issue.error(STATE, 0, __filename);
+						issue.error(STATE);
 					}
 
 					// Check if character is a quote.
@@ -256,7 +256,7 @@ module.exports = STATE => {
 					// All that should remain, if anything, are trailing
 					// whitespace Anything other than trailing whitespace is
 					// invalid.
-					issue.error(STATE, 0, __filename);
+					issue.error(STATE);
 				}
 
 				break;

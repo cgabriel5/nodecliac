@@ -69,7 +69,7 @@ module.exports = STATE => {
 				// Character must be a whitespace (space or tab) character
 				// else give an error for an invalid character.
 				if (!r_whitespace.test(char)) {
-					issue.error(STATE, 0, __filename);
+					issue.error(STATE);
 				}
 
 				// Else, it's valid so store positions.

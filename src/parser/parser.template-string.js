@@ -74,7 +74,7 @@ module.exports = STATE => {
 				// Note: Character after the '$' must be an open brace. If
 				// not the synatx is invalid so give an error.
 				if (char !== "{") {
-					issue.error(STATE, 0, __filename);
+					issue.error(STATE);
 				}
 
 				// Set name index positions.
@@ -109,7 +109,7 @@ module.exports = STATE => {
 					if (!/[_a-zA-Z]/.test(char)) {
 						// Note: Hitting this block means an invalid
 						// character was encountered so give an error.
-						issue.error(STATE, 0, __filename);
+						issue.error(STATE);
 					}
 
 					// Store index positions.
@@ -155,7 +155,7 @@ module.exports = STATE => {
 			case "close-brace":
 				// Note: Anything other than '}' is invalid so give an error.
 				if (char !== "}") {
-					issue.error(STATE, 0, __filename);
+					issue.error(STATE);
 				}
 
 				// Set name index positions.

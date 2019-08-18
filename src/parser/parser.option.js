@@ -74,7 +74,7 @@ module.exports = STATE => {
 			case "spacer":
 				// A whitespace character must follow the bullet.
 				if (!r_whitespace.test(char)) {
-					issue.error(STATE, 0, __filename);
+					issue.error(STATE);
 				}
 
 				// Set state to collect comment characters.
@@ -127,7 +127,7 @@ module.exports = STATE => {
 					// then there is a syntax error. For example, string may
 					// be improperly quoted/escaped so give error.
 					if (end_comsuming) {
-						issue.error(STATE, 0, __filename);
+						issue.error(STATE);
 					}
 
 					// Get string type.

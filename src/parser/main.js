@@ -84,6 +84,16 @@ module.exports = (
 		scopes: {
 			command: null,
 			flag: null
+		},
+		// Set provided arguments/parameters.
+		args: {
+			commandname,
+			source,
+			formatting,
+			highlight,
+			trace,
+			nowarn,
+			stripcomments
 		}
 	};
 	// Loop local vars.

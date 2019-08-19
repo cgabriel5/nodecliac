@@ -139,6 +139,7 @@ module.exports = (STATE, isoneliner) => {
 
 				// Note: Forward loop index to skip keyword characters.
 				STATE.i += keyword_len - 1;
+				STATE.column += keyword_len - 1;
 
 				break;
 

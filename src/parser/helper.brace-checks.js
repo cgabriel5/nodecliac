@@ -17,15 +17,15 @@ module.exports = (STATE, NODE, checktype) => {
 		case "pre-existing-cs": {
 			let commandscope = STATE.scopes.command;
 			if (commandscope) {
-				// Change line to line number of unclosed command chain.
-				STATE.line = commandscope.line;
+				// // Change line to line number of unclosed command chain.
+				// STATE.line = commandscope.line;
 
-				// Point column to the bracket.
-				STATE.column =
-					commandscope.brackets.start -
-					STATE.DB.linestarts[STATE.line] +
-					// Note: Add 1 to account for 0 base indexing (column starts at 1).
-					1;
+				// // Point column to the bracket.
+				// STATE.column =
+				// 	commandscope.brackets.start -
+				// 	STATE.DB.linestarts[STATE.line] +
+				// 	// Note: Add 1 to account for 0 base indexing (column starts at 1).
+				// 	1;
 
 				// Note: Cannot declare command inside command scope.
 				issue.error(STATE, 10);

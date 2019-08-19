@@ -317,8 +317,6 @@ module.exports = (STATE, NODE) => {
 				let argument = "";
 				let args = [];
 				let qchar;
-				let delimiter_count = 0;
-				let delimiter_index;
 				let mode;
 				let i = 1; // Offset start index due to syntax '('.
 				// Resume incrementing index for error purposes.
@@ -447,16 +445,6 @@ module.exports = (STATE, NODE) => {
 						}
 					}
 				}
-
-				// // Note: If delimiter_index flag is still set then we have a
-				// // trailing comma delimiter so give an error.
-				// if (delimiter_index) {
-				// 	// Reset STATE column index position.
-				// 	STATE.column = resumepoint + delimiter_index;
-
-				// 	// Note: String should not be empty.
-				// 	issue.error(STATE);
-				// }
 
 				// Get last argument.
 				if (argument) {

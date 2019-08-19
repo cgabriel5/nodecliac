@@ -91,8 +91,10 @@ module.exports = async args => {
 	// Extract the command name.
 	let commandname = fi.name.match(/^[-_:+a-z0-9]+/g)[0].replace(/_/g, "-");
 
-	// Turn source path to absolute path.
-	source = path.join(process.cwd(), source);
+	// If path is relative make it absolute.
+	if (!ispath_abs(source)) {
+		source = path.resolve(source);
+	}
 
 	// Also requires one of the following flags to do anything.
 	if (!(save || add || print || indent)) {

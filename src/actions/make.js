@@ -6,7 +6,15 @@ const chalk = require("chalk");
 const flatry = require("flatry");
 const log = require("fancy-log");
 const fe = require("file-exists");
-const { exit, paths, read, write, info } = require("../utils/toolbox.js");
+const de = require("directory-exists");
+const {
+	exit,
+	paths,
+	read,
+	write,
+	info,
+	ispath_abs
+} = require("../utils/toolbox.js");
 
 module.exports = async args => {
 	// Get needed paths.
@@ -17,6 +25,7 @@ module.exports = async args => {
 	// Get CLI args.
 	let {
 		source,
+		output,
 		print,
 		add,
 		save,
@@ -133,11 +142,22 @@ module.exports = async args => {
 	}
 	// Save definitions file to source location when flag is provided.
 	else if (save) {
+		// Note: If an output path is not provided use source location.
+		output = output || fi.dirname;
+
+		// Check if path is actually a directory.
+		[err, res] = await flatry(de(output));
+		if (!res) {
+			exit([
+				`${chalk.bold(output)} (${chalk.blue(
+					"--output"
+				)}) does not exist.`
+			]);
+		}
+
 		let data = acmap.content + keywords.content;
-		await flatry(write(path.join(fi.dirname, savename), data));
-		await flatry(
-			write(path.join(fi.dirname, saveconfigname), config.content)
-		);
+		await flatry(write(path.join(output, savename), data));
+		await flatry(write(path.join(output, saveconfigname), config.content));
 	}
 
 	// Add to maps location if add flag provided.

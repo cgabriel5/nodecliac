@@ -103,7 +103,7 @@ issue.error = (STATE, code) => {
 	let error;
 	if (!code) {
 		// Use default error.
-		error = errors["*"][1];
+		error = errors["*"].error["0"];
 	} else {
 		error = errors[callerfile][code];
 	}

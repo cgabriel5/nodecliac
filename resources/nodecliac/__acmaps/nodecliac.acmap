@@ -2,7 +2,7 @@ nodecliac = --version?
 nodecliac.setup = --rcfilepath?|--force?
 nodecliac.uninstall = --rcfilepath?
 nodecliac.registry
-nodecliac.make = --add?|--force?|--source|--save?|--print?|--highlight?|--trace?|--nowarn?
+nodecliac.make = --add?|--force?|--source|--output|--save?|--print?|--highlight?|--trace?|--nowarn?
 nodecliac.status = --enable?|--disable?
 nodecliac.format = --indent|--source|--save?|--print?|--highlight?|--strip-comments?|--trace?|--nowarn?
 

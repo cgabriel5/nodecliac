@@ -74,7 +74,7 @@ module.exports = STATE => {
 				if (!NODE.name.value) {
 					// Name must start with a letter.
 					if (!/[a-zA-Z]/.test(char)) {
-						// [TODO]: Specify Error: Setting must start with a letter.
+						// Note: Setting must start with a letter.
 						issue.error(STATE);
 					}
 

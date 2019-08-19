@@ -295,7 +295,7 @@ module.exports = (STATE, NODE) => {
 			{
 				// Check that list has correct starting/ending syntax. =========
 
-				// Note: If command-flag doesn't start with '(', give error.
+				// Note: If list doesn't start with '(', give error.
 				if (!/^\(/.test(value)) {
 					// Reset STATE column index position.
 					STATE.column = resumepoint;

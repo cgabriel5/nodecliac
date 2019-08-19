@@ -72,7 +72,7 @@ module.exports = STATE => {
 
 			case "open-brace":
 				// Note: Character after the '$' must be an open brace. If
-				// not the synatx is invalid so give an error.
+				// not the syntax is invalid so give an error.
 				if (char !== "{") {
 					issue.error(STATE);
 				}

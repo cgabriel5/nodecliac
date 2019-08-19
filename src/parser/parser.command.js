@@ -82,7 +82,7 @@ module.exports = STATE => {
 				if (!NODE.command.value) {
 					// First char of command must be a letter or semicolon.
 					if (!/[:a-zA-Z]/.test(char)) {
-						// [TODO]: Specify Error: Setting must start with a letter.
+						// Note: Setting must start with a letter.
 						issue.error(STATE);
 					}
 

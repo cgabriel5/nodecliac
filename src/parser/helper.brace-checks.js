@@ -27,7 +27,8 @@ module.exports = (STATE, NODE, checktype) => {
 					// Note: Add 1 to account for 0 base indexing (column starts at 1).
 					1;
 
-				issue.error(STATE);
+				// Note: Cannot declare command inside command scope.
+				issue.error(STATE, 10);
 			}
 			break;
 		}
@@ -44,7 +45,8 @@ module.exports = (STATE, NODE, checktype) => {
 
 				// Else, if scope does not exist give an error.
 			} else {
-				issue.error(STATE);
+				// Note: Give error when a ']' does not close a scope.
+				issue.error(STATE, 11);
 			}
 
 			break;
@@ -75,7 +77,8 @@ module.exports = (STATE, NODE, checktype) => {
 					// Note: Add 1 to account for 0 base indexing (column starts at 1).
 					1;
 
-				issue.error(STATE);
+				// Note: If a scope is left unclosed give error.
+				issue.error(STATE, 12);
 			}
 
 			break;
@@ -92,7 +95,8 @@ module.exports = (STATE, NODE, checktype) => {
 					// Note: Add 1 to account for 0 base indexing (column starts at 1).
 					1;
 
-				issue.error(STATE);
+				// Note: Cannot declare flag option out of scope.
+				issue.error(STATE, 13);
 			}
 			break;
 		}

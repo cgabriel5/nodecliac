@@ -72,7 +72,7 @@ module.exports = (STATE, NODE) => {
 				STATE.column = resumepoint;
 
 				// Note: Closing quote is missing so give error.
-				issue.error(STATE);
+				issue.error(STATE, 10);
 			}
 
 			// If string is empty give error.
@@ -81,7 +81,7 @@ module.exports = (STATE, NODE) => {
 				STATE.column = resumepoint;
 
 				// Note: String should not be empty.
-				issue.error(STATE);
+				issue.error(STATE, 11);
 			}
 
 			// Next, interpolate any variable template-strings. ================
@@ -109,7 +109,8 @@ module.exports = (STATE, NODE) => {
 					// Reset STATE column index position.
 					STATE.column = resumepoint + index;
 
-					return issue.error(STATE);
+					// Note: Variable does not exist in lookup.
+					return issue.error(STATE, 12);
 				}
 
 				// Else, at this point all is well so return the value.
@@ -141,7 +142,7 @@ module.exports = (STATE, NODE) => {
 					STATE.column = resumepoint + 1;
 
 					// Note: String should not be empty.
-					issue.error(STATE);
+					issue.error(STATE, 13);
 				}
 				// Note: If command-flag doesn't end with ')', give error.
 				if (!/\)$/.test(value)) {
@@ -149,7 +150,7 @@ module.exports = (STATE, NODE) => {
 					STATE.column = resumepoint + value.length - 1;
 
 					// Note: String should not be empty.
-					issue.error(STATE);
+					issue.error(STATE, 13);
 				}
 
 				// Collect parsed arguments.
@@ -196,7 +197,7 @@ module.exports = (STATE, NODE) => {
 								STATE.column = resumepoint + i;
 
 								// Note: String should not be empty.
-								issue.error(STATE);
+								issue.error(STATE, 14);
 							}
 
 							// Look out for '$' prefixed strings.
@@ -256,7 +257,7 @@ module.exports = (STATE, NODE) => {
 					STATE.column = resumepoint + delimiter_index;
 
 					// Note: String should not be empty.
-					issue.error(STATE);
+					issue.error(STATE, 14);
 				}
 
 				// Get last argument.
@@ -301,7 +302,7 @@ module.exports = (STATE, NODE) => {
 					STATE.column = resumepoint;
 
 					// Note: String should not be empty.
-					issue.error(STATE);
+					issue.error(STATE, 15);
 				}
 				// Note: If command-flag doesn't end with ')', give error.
 				if (!/\)$/.test(value)) {
@@ -309,7 +310,7 @@ module.exports = (STATE, NODE) => {
 					STATE.column = resumepoint + value.length - 1;
 
 					// Note: String should not be empty.
-					issue.error(STATE);
+					issue.error(STATE, 15);
 				}
 
 				// Collect parsed arguments.

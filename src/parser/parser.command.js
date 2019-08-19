@@ -113,7 +113,7 @@ module.exports = STATE => {
 							// Note: If the next char does not exist then the
 							// '\' is escaping nothing so error.
 							if (!nchar) {
-								issue.error(STATE);
+								issue.error(STATE, 10);
 							}
 
 							// Next char must be a space for it to be a valid
@@ -121,8 +121,7 @@ module.exports = STATE => {
 							if (nchar !== ".") {
 								// Note: Escaping anything but a dot give is
 								// not allowed, so give error.
-								// issue.warning(STATE, 0);
-								issue.error(STATE);
+								issue.error(STATE, 10);
 
 								// Remove last escape char as it is not needed.
 								let command = NODE.command.value.slice(0, -1);

@@ -32,7 +32,7 @@ module.exports = (STATE, isoneliner) => {
 	// Note: If not a oneliner or there is no command scope then the
 	// flag is being declared out of scope.
 	if (!(isoneliner || STATE.scopes.command)) {
-		issue.error(STATE);
+		issue.error(STATE, 10);
 	}
 
 	// Get global loop state variables.

@@ -9,20 +9,41 @@ const { exit } = require("../utils/exit.js");
 let errors = {
 	"*": {
 		// Universal errors.
-		error: { 0: "Invalid character." },
+		error: { 0: "Unexpected character (syntax error)." },
 		warning: {}
 	},
-	main: {},
-	command: {},
+	main: {
+		10: "Illegal start-of-line character.",
+		11: "Line cannot begin with whitespace.",
+		12: "Check line specificity order."
+	},
+	command: {
+		10: "Illegal escape sequence."
+	},
 	comment: {},
-	flag: {},
+	flag: {
+		10: "Cannot declare flag out of scope.",
+		11: "Cannot declare flag within flag scope."
+	},
 	option: {},
 	variable: {},
 	setting: {},
 	"close-brace": {},
-	"brace-checks": {},
+	"brace-checks": {
+		10: "Cannot declare command within command scope.",
+		11: "Cannot close an unopened command scope.",
+		12: "Unclosed scope.",
+		13: "Cannot declare flag option out of scope."
+	},
 	"template-string": {},
-	"validate-value": {}
+	"validate-value": {
+		10: "Improperly quoted string.",
+		11: "String cannot be empty.",
+		12: "Undefined variable.",
+		13: "Illegal command-flag syntax.",
+		14: "Useless comma delimiter.",
+		15: "Illegal list syntax."
+	}
 };
 
 /**

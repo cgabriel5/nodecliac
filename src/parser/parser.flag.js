@@ -35,6 +35,11 @@ module.exports = (STATE, isoneliner) => {
 		issue.error(STATE, 10);
 	}
 
+	// Note: If flag scope already exists another flag cannot be declared.
+	if (STATE.scopes.flag) {
+		issue.error(STATE, 11);
+	}
+
 	// Get global loop state variables.
 	let { line, l, string } = STATE;
 

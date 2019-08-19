@@ -117,8 +117,50 @@ let readdir = filepath => {
 	});
 };
 
+/**
+ * Check whether resource path is indeed absolute.
+ *
+ * @param  {string} p - The file path to check.
+ * @return {boolean} - True if path is absolute, else false.
+ *
+ * @resource [https://stackoverflow.com/a/30450519]
+ * @resource [https://stackoverflow.com/a/30714706]
+ * @resource [http://www.linfo.org/path.html]
+ * @resource [http://www.linfo.org/root_directory.html]
+ * @resource [https://medium.com/@colinlmcdonald/absolute-vs-relative-paths-7ffd8e31d49c]
+ */
+let ispath_abs = p => {
+	return (
+		path.isAbsolute(p) &&
+		path.normalize(p + "/") === path.normalize(path.resolve(p) + "/")
+	);
+};
+
+/**
+ * Get file paths stats.
+ *
+ * @param  {string} filepath - The file path to use.
+ * @return {object} - The file path's stats object.
+ *
+ * @resource [https://stackoverflow.com/a/15630832]
+ * @resource [https://pubs.opengroup.org/onlinepubs/7908799/xsh/lstat.html]
+ */
+let lstats = filepath => {
+	return new Promise((resolve, reject) => {
+		fs.lstat(filepath, err => {
+			// Reject on error.
+			if (err) reject(err);
+
+			// Return file contents on success.
+			resolve(true);
+		});
+	});
+};
+
 module.exports = {
+	ispath_abs,
 	readdir,
+	lstats,
 	remove,
 	write,
 	info,

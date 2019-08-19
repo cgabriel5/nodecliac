@@ -6,7 +6,15 @@ const { checksum } = require("./checksum.js");
 const { exit } = require("./exit.js");
 const { paths } = require("./paths.js");
 const { strip_comments } = require("./text.js");
-const { readdir, remove, write, info, read } = require("./filesystem.js");
+const {
+	readdir,
+	lstats,
+	remove,
+	write,
+	info,
+	read,
+	ispath_abs
+} = require("./filesystem.js");
 
 module.exports = {
 	strip_comments,
@@ -14,6 +22,8 @@ module.exports = {
 	concat,
 	paths,
 	exit,
+	ispath_abs,
+	lstats,
 	readdir,
 	remove,
 	write,

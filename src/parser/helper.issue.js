@@ -113,10 +113,15 @@ issue.error = (STATE, code) => {
 		code = 0;
 	}
 
-	console.log("Error", code, `${STATE.line}:${STATE.column}`, callerfile);
+	// The text to log to console.
+	let output = [
+		`  ${chalk.bold.red("❌")}  ${STATE.line}:${
+			STATE.column
+		} ${callerfile} (E${code}) ${chalk.bold(error)}`
+	];
 
-	// Log error and exit process.
-	exit([error]);
+	// Print issue.
+	exit.normal(output, undefined /* Since issuing an error, stop script.*/);
 };
 
 /**

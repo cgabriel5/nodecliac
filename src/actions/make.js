@@ -118,7 +118,9 @@ module.exports = async args => {
 	[err, res] = await flatry(fe(source));
 	// If path does not exist, give message and end process.
 	if (!res) {
-		exit([`${chalk.bold(source)} does not exist.`]);
+		exit([
+			`${chalk.bold(source)} (${chalk.blue("--source")}) does not exist.`
+		]);
 	}
 
 	// Generate acmap.

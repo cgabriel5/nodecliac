@@ -2,6 +2,7 @@
 
 module.exports = STATE => {
 	let TREE = STATE.DB.tree;
+	let nodes = TREE.nodes;
 	let output = "";
 
 	let indentations = {
@@ -18,12 +19,22 @@ module.exports = STATE => {
 
 	// Keep track on consecutive newlines.
 	let newline_counter = 0;
+	// Keep track of command/flag scopes.
 	let scopes = [];
 	let indent = (type, count) => {
 		return "\t".repeat(count || indentations[type]);
 	};
 
-	TREE.nodes.forEach((NODE, i, nodes) => {
+	// Filter out comment nodes if flag is provided.
+	if (STATE.args.stripcomments) {
+		nodes = nodes.filter(NODE => {
+			if (NODE.node !== "COMMENT") {
+				return true;
+			}
+		});
+	}
+
+	nodes.forEach((NODE, i, nodes) => {
 		let type = NODE.node;
 
 		switch (type) {

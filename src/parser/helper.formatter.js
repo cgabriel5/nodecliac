@@ -16,7 +16,8 @@ module.exports = STATE => {
 		// TEMPLATE: 0
 	};
 
-	let nls = 0;
+	// Keep track on consecutive newlines.
+	let newline_counter = 0;
 	let scopes = [];
 	let indent = (type, count) => {
 		return "\t".repeat(count || indentations[type]);
@@ -85,13 +86,13 @@ module.exports = STATE => {
 			case "NEWLINE":
 				let nNODE = nodes[i + 1];
 
-				if (nls <= 1) {
+				if (newline_counter <= 1) {
 					output += "\n";
 				}
-				nls++;
+				newline_counter++;
 
 				if (nNODE && nNODE.node !== "NEWLINE") {
-					nls = 0;
+					newline_counter = 0;
 				}
 
 				break;

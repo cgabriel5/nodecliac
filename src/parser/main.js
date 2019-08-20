@@ -239,11 +239,17 @@ module.exports = (
 	// was never closed so give an error.
 	require("./helper.brace-checks.js")(STATE, null, "post-standing-scope");
 
-	let { acdef, config } = require("./helper.acdef.js")(STATE, commandname);
+	if (formatting) {
+		// Return prettified ACMAP.
+		return {
+			time: process.hrtime(stime), // Return end time tuple array.
+			formatted: require("./helper.formatter.js")(STATE)
+		};
+	} else {
+		let res = require("./helper.acdef.js")(STATE, commandname);
+		res.time = process.hrtime(stime); // Return end time tuple array.
 
-	let time = process.hrtime(stime);
-	const duration = ((time[0] * 1e3 + time[1] / 1e6) / 1e3).toFixed(3);
-	// console.log(process.hrtime(stime));
-	console.log(duration);
-	process.exit();
+		// Return acdef, config, etc.
+		return res;
+	}
 };

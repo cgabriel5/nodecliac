@@ -241,8 +241,7 @@ module.exports = (STATE, commandname) => {
 			ACDEF.push(row);
 		}
 	}
-
-	ACDEF = ACDEF.sort(aplhasort).join("\n");
+	ACDEF = header + ACDEF.sort(aplhasort).join("\n");
 
 	// 5) Build defaults list.
 	let defaults = Object.keys(DEFAULTS).sort(aplhasort);
@@ -251,14 +250,8 @@ module.exports = (STATE, commandname) => {
 		defs.push(`${command.replace(r, "")} default ${DEFAULTS[command]}`);
 	});
 	defs = defs.join("\n");
-
-	let output = header;
-	if (ACDEF) {
-		output += ACDEF;
-	}
 	if (defs) {
-		output += "\n\n";
-		output += defs;
+		defs = `\n\n${defs}`;
 	}
 
 	// Build settings contents string.
@@ -269,8 +262,23 @@ module.exports = (STATE, commandname) => {
 		}
 	}
 
+	// Make sure to right trim all strings.
+	ACDEF = ACDEF.replace(/\s*$/g, "");
+	CONFIG = CONFIG.replace(/\s*$/g, "");
+	defs = defs.replace(/\s*$/g, "");
+
 	return {
-		acdef: output,
-		config: CONFIG
+		acdef: {
+			content: ACDEF,
+			print: ACDEF
+		},
+		config: {
+			content: CONFIG,
+			print: CONFIG
+		},
+		keywords: {
+			content: defs,
+			print:  defs
+		}
 	};
 };

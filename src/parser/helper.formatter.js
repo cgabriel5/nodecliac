@@ -114,5 +114,5 @@ module.exports = STATE => {
 		.replace(/\n{2}([ \t]*)(\]|\))$/gm, "\n$1$2")
 		.replace(/^\s*|\s*$/g, "");
 
-	return { content: output };
+	return { content: output, print: output };
 };

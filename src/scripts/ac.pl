@@ -530,6 +530,15 @@ sub __parser {
 			$argument .= $c;
 
 			if ($c eq $qchar && $p ne '\\') {
+				# Note: Check that argument is spaced out. For example, this
+				# is invalid: '$ nodecliac format --indent="t:1"--sa'
+				# ----------------------------------------------^. Should be:
+				#          '$ nodecliac format --indent="t:1" --sa'
+				# -------------------------------------------^Whitespace char.
+				# If argument is not spaced out or at the end of the input
+				# don not add it to the array. Just skip to next iteration.
+				if ($input && rindex($input, ' ', 0) != 0) { next; }
+
 				# Store argument and reset vars.
 				push(@args, $argument);
 				# Clear/reset variables.
@@ -546,6 +555,9 @@ sub __parser {
 
 			# For non quote characters add all except non-escaped spaces.
 			} elsif ($c =~ tr/ \t// && $p ne '\\') {
+				# If argument variable is not populated don't add to array.
+				if (!$argument) { next; }
+
 				# Store argument and reset vars.
 				push(@args, $argument);
 				# Clear/reset variables.

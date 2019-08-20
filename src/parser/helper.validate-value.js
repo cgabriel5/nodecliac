@@ -6,7 +6,7 @@ let issue = require("./helper.issue.js");
 /**
  * Performs checks on string as well as interpolates any variables.
  *
- * @param  {object} STATE - The STATE object.
+ * @param  {object} STATE - Main loop state object.
  * @param  {object} NODE - The NODE object.
  * @return {object} - Object containing parsed information.
  */

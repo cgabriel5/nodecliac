@@ -6,9 +6,9 @@ let issue = require("./helper.issue.js");
 /**
  * Check that command/flag scopes are properly closed.
  *
- * @param  {object} NODE - The NODE object.
  * @param  {object} STATE - The STATE object.
- * @param  {string} checktype - The check to run.
+ * @param  {object} NODE - The NODE object.
+ * @param  {string} checktype - Name of check to run.
  * @return {undefined} - Nothing is returned.
  */
 module.exports = (STATE, NODE, checktype) => {

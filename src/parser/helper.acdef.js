@@ -1,7 +1,14 @@
 "use strict";
 
+/**
+ * Generate .acdef, .config.acdef file contents from parse tree ob nodes.
+ *
+ * @param  {object} STATE - Main loop state object.
+ * @param  {string} commandname - Name of <command>.acdef being parsed.
+ * @return {object} - Object containing acdef, config, and keywords contents.
+ */
 module.exports = (STATE, commandname) => {
-	let BATCHES = {};
+	// Vars.
 	let SETS = {};
 	let TABLE = {};
 	let DEFAULTS = {};
@@ -14,7 +21,7 @@ module.exports = (STATE, commandname) => {
 	let header = `# DON'T EDIT FILE —— GENERATED: ${new Date()}(${Date.now()})\n\n`;
 
 	/**
-	 * Add base flag to Set. Basically, add '--flag=' or '--flag=*' to Set.
+	 * Add base flag to Set (adds '--flag=' or '--flag=*' to Set).
 	 *
 	 * @param  {object} fNODE - The flag object Node.
 	 * @param  {array} COMMANDS - The list of commands to attach flags to.
@@ -56,11 +63,10 @@ module.exports = (STATE, commandname) => {
 	 * @return {number} - The sort number result.
 	 */
 	let aplhasort = (a, b) => {
-		// Remove ansi coloring before sorting.
 		return a.localeCompare(b);
 	};
 
-	// Vars.
+	// 1) Filter out unnecessary Nodes. ========================================
 	let has_root = false;
 	// RegExp to match main command/first command in chain to remove.
 	let r = new RegExp(
@@ -83,7 +89,7 @@ module.exports = (STATE, commandname) => {
 		}
 	});
 
-	// 2) Batch commands with their flags.
+	// 2) Batch commands with their flags. =====================================
 	for (let i = 0, l = nodes.length; i < l; i++) {
 		// Cache current loop item.
 		let NODE = nodes[i];
@@ -106,7 +112,7 @@ module.exports = (STATE, commandname) => {
 			if (!SETS.hasOwnProperty(NODE.command.value)) {
 				SETS[NODE.command.value] = new Set();
 
-				// Note: Create any missing parent chains. =================
+				// Note: Create any missing parent chains. =====================
 				let commands = NODE.command.value.split(/(?<!\\)\./);
 				// Remove the last command as it was already made.
 				commands.pop();
@@ -122,8 +128,7 @@ module.exports = (STATE, commandname) => {
 
 					// Finally, remove the last element.
 					commands.pop();
-				}
-				// =========================================================
+				} // ===========================================================
 			}
 
 			// Increment counter to start another batch.
@@ -147,7 +152,7 @@ module.exports = (STATE, commandname) => {
 		}
 	}
 
-	// 3) Populate Sets SETS.
+	// 3) Populate Sets SETS. ==================================================
 	for (let i in BATCHES) {
 		//The current property is not a direct property of p
 		if (!BATCHES.hasOwnProperty(i)) {
@@ -210,7 +215,7 @@ module.exports = (STATE, commandname) => {
 		}
 	}
 
-	// 4) Generate final ACDEF before sorting.
+	// 4) Generate final ACDEF before sorting. =================================
 	for (let command in SETS) {
 		if (command && SETS.hasOwnProperty(command)) {
 			// Get the Sets object.
@@ -243,7 +248,7 @@ module.exports = (STATE, commandname) => {
 	}
 	ACDEF = header + ACDEF.sort(aplhasort).join("\n");
 
-	// 5) Build defaults list.
+	// 5) Build defaults list. =================================================
 	let defaults = Object.keys(DEFAULTS).sort(aplhasort);
 	let defs = [];
 	defaults.forEach(command => {
@@ -262,7 +267,7 @@ module.exports = (STATE, commandname) => {
 		}
 	}
 
-	// Make sure to right trim all strings.
+	// 6) Right trim all strings. ==============================================
 	ACDEF = ACDEF.replace(/\s*$/g, "");
 	CONFIG = CONFIG.replace(/\s*$/g, "");
 	defs = defs.replace(/\s*$/g, "");

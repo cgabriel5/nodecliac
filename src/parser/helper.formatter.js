@@ -1,20 +1,27 @@
 "use strict";
 
+/**
+ * Format (prettify) provided .addef file.
+ *
+ * @param  {object} STATE - Main loop state object.
+ * @return {string} - The prettied file contents.
+ */
 module.exports = STATE => {
+	// Vars.
 	let TREE = STATE.DB.tree;
 	let nodes = TREE.nodes;
 	let output = "";
 
+	// Indentation level multiplier lookup table.
 	let indentations = {
-		COMMENT: 0, // Scoped: Scope indentation overrides. default
+		COMMENT: 0, // Note: Scope indentation overrides default.
 		COMMAND: 0,
 		FLAG: 1,
 		OPTION: 2,
-		BRACE: 0, // Note: Scope indentation overrides. default
+		BRACE: 0, // Note: Scope indentation overrides default.
 		NEWLINE: 0,
 		SETTING: 0,
 		VARIABLE: 0
-		// TEMPLATE: 0
 	};
 
 	// Keep track on consecutive newlines.
@@ -30,7 +37,7 @@ module.exports = STATE => {
 		);
 	};
 
-	// Filter out comment nodes if flag is provided.
+	// Filter out comment nodes if strip comments flag is provided.
 	if (STATE.args.stripcomments) {
 		nodes = nodes.filter(NODE => {
 			if (NODE.node !== "COMMENT") {
@@ -39,8 +46,9 @@ module.exports = STATE => {
 		});
 	}
 
+	// Loop over all nodes to build formatted .acdef contents file.
 	nodes.forEach((NODE, i, nodes) => {
-		let type = NODE.node;
+		let type = NODE.node; // Get the node type.
 
 		switch (type) {
 			case "COMMENT":
@@ -120,8 +128,6 @@ module.exports = STATE => {
 				output += `\$${NODE.name.value} ${NODE.assignment.value} ${NODE.value.value}`;
 
 				break;
-			// case "TEMPLATE":
-			// 	break;
 		}
 	});
 

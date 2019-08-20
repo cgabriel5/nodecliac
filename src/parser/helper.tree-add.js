@@ -1,10 +1,11 @@
 "use strict";
 
 /**
- * Add parsed node to parsed tree.
+ * Add parsed node to syntax tree.
  *
- * @param  {object} object - Main loop state object.
- * @return {object} - Object containing parsed information (node).
+ * @param  {object} STATE - Main loop state object.
+ * @param  {object} NODE - Object containing parsed information (node).
+ * @return {undefined} - Nothing is returned.
  */
 module.exports = (STATE, NODE) => {
 	// Get line.

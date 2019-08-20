@@ -9,15 +9,24 @@
  */
 module.exports = (STATE, commandname) => {
 	// Vars.
-	let SETS = {};
-	let TABLE = {};
-	let DEFAULTS = {};
 	let counter = 0;
-	let TREE = STATE.DB.tree;
-	let ACDEF = [];
-	let SETTINGS = {};
 	let nodes = [];
 
+	let ACDEF = [];
+	let TABLE = {};
+	let DEFAULTS = {};
+	let SETS = {};
+	let BATCHES = {};
+	let SETTINGS = {};
+	let TREE = STATE.DB.tree;
+
+	let has_root = false;
+	// RegExp to match main command/first command in chain to remove.
+	let r = new RegExp(
+		// Note: Properly escape '+' characters for commands like 'g++'.
+		`^(${commandname.replace(/(\+)/g, "\\$1")}|[-_a-zA-Z0-9]+)`
+	);
+	// The .acdef/.config.acdef file header.
 	let header = `# DON'T EDIT FILE —— GENERATED: ${new Date()}(${Date.now()})\n\n`;
 
 	/**
@@ -67,14 +76,6 @@ module.exports = (STATE, commandname) => {
 	};
 
 	// 1) Filter out unnecessary Nodes. ========================================
-	let has_root = false;
-	// RegExp to match main command/first command in chain to remove.
-	let r = new RegExp(
-		// Note: Properly escape '+' characters for commands like 'g++'.
-		`^(${commandname.replace(/(\+)/g, "\\$1")}|[-_a-zA-Z0-9]+)`
-	);
-
-	// 1) Filter out unnecessary Nodes.
 	TREE.nodes.forEach(NODE => {
 		let type = NODE.node;
 
@@ -249,15 +250,13 @@ module.exports = (STATE, commandname) => {
 	ACDEF = header + ACDEF.sort(aplhasort).join("\n");
 
 	// 5) Build defaults list. =================================================
-	let defaults = Object.keys(DEFAULTS).sort(aplhasort);
 	let defs = [];
-	defaults.forEach(command => {
-		defs.push(`${command.replace(r, "")} default ${DEFAULTS[command]}`);
-	});
-	defs = defs.join("\n");
-	if (defs) {
-		defs = `\n\n${defs}`;
-	}
+	Object.keys(DEFAULTS)
+		.sort(aplhasort)
+		.forEach(command => {
+			defs.push(`${command.replace(r, "")} default ${DEFAULTS[command]}`);
+		});
+	defs = defs.length ? `\n\n${defs.join("\n")}` : "";
 
 	// Build settings contents string.
 	let CONFIG = header;
@@ -283,7 +282,7 @@ module.exports = (STATE, commandname) => {
 		},
 		keywords: {
 			content: defs,
-			print:  defs
+			print: defs
 		}
 	};
 };

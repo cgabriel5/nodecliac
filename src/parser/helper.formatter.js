@@ -58,8 +58,9 @@ module.exports = STATE => {
 
 				break;
 			case "COMMAND":
-				output += `${NODE.command.value} ${NODE.assignment.value ||
-					""} ${NODE.value.value || ""}`;
+				output += `${NODE.command.value}${NODE.delimiter.value ||
+					""} ${NODE.assignment.value || ""} ${NODE.value.value ||
+					""}`;
 
 				if (NODE.value.value && NODE.value.value === "[") {
 					scopes.push(1);
@@ -80,9 +81,10 @@ module.exports = STATE => {
 					}
 				}
 
-				output += `${indentation}${NODE.hyphens.value}${
-					NODE.name.value
-				}${NODE.boolean.value || ""}${NODE.assignment.value || ""}${NODE
+				output += `${indentation}${
+					NODE.keyword.value ? NODE.keyword.value + " " : ""
+				}${NODE.hyphens.value || ""}${NODE.name.value || ""}${NODE
+					.boolean.value || ""}${NODE.assignment.value || ""}${NODE
 					.multi.value || ""}${NODE.value.value ||
 					""}${pipe_delimiter}`;
 
@@ -131,11 +133,14 @@ module.exports = STATE => {
 		}
 	});
 
-	// Final, newline replacements.
+	// Final newline replacements.
 	output = output
 		.replace(/(\[|\()$\n{2}/gm, "$1\n")
 		.replace(/\n{2}([ \t]*)(\]|\))$/gm, "\n$1$2")
-		.replace(/^\s*|\s*$/g, "");
+		.replace(/^\s*|\s*$/g, "")
+		.replace(/ *$/gm, "");
+	// Append a new line to end of output.
+	output += "\n";
 
 	return { content: output, print: output };
 };

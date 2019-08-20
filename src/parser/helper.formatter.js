@@ -21,8 +21,13 @@ module.exports = STATE => {
 	let newline_counter = 0;
 	// Keep track of command/flag scopes.
 	let scopes = [];
+
+	// Get formatting information.
+	let [indent_char, indent_amount] = STATE.args.formatting;
 	let indent = (type, count) => {
-		return "\t".repeat(count || indentations[type]);
+		return indent_char.repeat(
+			(count || indentations[type]) * indent_amount
+		);
 	};
 
 	// Filter out comment nodes if flag is provided.

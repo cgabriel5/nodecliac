@@ -20,7 +20,7 @@ let { r_nl, r_whitespace } = require("./h.patterns.js");
  * @return {object} - Object containing parsed information.
  */
 module.exports = STATE => {
-	// require("./h.trace.js")(__filename); // Trace parser.
+	require("./helper.trace.js")(STATE); // Trace parser.
 
 	// Note: If a flag scope doesn't exist, error as it needs to.
 	require("./helper.brace-checks.js")(STATE, null, "pre-existing-fs");

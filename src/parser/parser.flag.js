@@ -27,7 +27,7 @@ let { r_nl } = require("./h.patterns.js");
  * @return {object} - Object containing parsed information.
  */
 module.exports = (STATE, isoneliner) => {
-	// require("./h.trace.js")(__filename); // Trace parser.
+	require("./helper.trace.js")(STATE); // Trace parser.
 
 	// Note: If not a oneliner or there is no command scope then the
 	// flag is being declared out of scope.

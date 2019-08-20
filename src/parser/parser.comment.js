@@ -20,7 +20,7 @@ let issue = require("./helper.issue.js");
  * @return {object} - Object containing parsed information.
  */
 module.exports = STATE => {
-	// require("./h.trace.js")(__filename); // Trace parser.
+	require("./helper.trace.js")(STATE); // Trace parser.
 
 	// Get global loop state variables.
 	let { line, column, i, l, string } = STATE;

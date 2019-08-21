@@ -1,7 +1,5 @@
 "use strict";
 
-// Get needed modules.
-
 /**
  * Add new line node to tree.
  *

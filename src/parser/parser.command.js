@@ -1,10 +1,8 @@
 "use strict";
 
-// Get needed modules.
+// Needed modules.
 let issue = require("./helper.issue.js");
-const p_flag = require("./parser.flag.js");
-// const pflagset = require("./p.flagset.js");
-// Get RegExp patterns.
+let p_flag = require("./parser.flag.js");
 let { r_nl, r_whitespace } = require("./h.patterns.js");
 
 /**

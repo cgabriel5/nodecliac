@@ -1,9 +1,8 @@
 "use strict";
 
-// Require needed modules.
+// Needed modules.
 let issue = require("./helper.issue.js");
-// Get RegExp patterns.
-let { r_nl } = require("./h.patterns.js");
+let { r_nl, r_whitespace } = require("./h.patterns.js");
 
 /**
  * Parses flag set line to extract flag name, value, and its other components.

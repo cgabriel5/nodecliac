@@ -1,9 +1,8 @@
 "use strict";
 
-// Get needed modules.
-// Get RegExp patterns.
-let { r_schars, r_nl } = require("./h.patterns.js");
+// Needed modules.
 let issue = require("./helper.issue.js");
+let { r_nl, r_whitespace, r_letter, r_quote } = require("./h.patterns.js");
 
 /**
  * Parses settings line to extract setting name and its value.

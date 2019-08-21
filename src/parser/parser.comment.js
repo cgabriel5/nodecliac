@@ -1,10 +1,8 @@
 "use strict";
 
-// // Get needed modules.
-// const issuefunc = require("./p.error.js");
-// Get RegExp patterns.
-let { r_nl, r_whitespace } = require("./h.patterns.js");
+// Needed modules.
 let issue = require("./helper.issue.js");
+let { r_nl, r_whitespace } = require("./h.patterns.js");
 
 /**
  * Parses comment lines.

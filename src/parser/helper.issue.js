@@ -3,7 +3,7 @@
 // Get needed modules.
 const path = require("path");
 const chalk = require("chalk");
-const { exit } = require("../utils/exit.js");
+const { exit } = require("../utils/toolbox.js");
 
 // Error lookup table.
 let errors = {

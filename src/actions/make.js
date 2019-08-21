@@ -24,6 +24,7 @@ module.exports = async args => {
 
 	// Get CLI args.
 	let {
+		engine = 1,
 		source,
 		output,
 		print,
@@ -35,7 +36,17 @@ module.exports = async args => {
 		trace,
 		nowarn
 	} = args;
-	let parser = require("../parser/main.js");
+
+	// Default to original parser/formatter/utils if engine isn't specified.
+	let engines = [1, 2];
+	// If engine does not exist error.
+	if (!engines.includes(engine)) {
+		exit([`Engine: ${chalk.bold(engine)} does not exist.`]);
+	}
+
+	// Require parser engine script.
+	let parser = require(`../parser/v${engine}/index.js`);
+
 	// Formatting indentation values.
 	let indent_char = "\t",
 		indent_amount = 1;

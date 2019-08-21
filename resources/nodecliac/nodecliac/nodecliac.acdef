@@ -1,6 +1,6 @@
-# DON'T EDIT FILE —— GENERATED: Mon Aug 19 2019 14:43:24 GMT-0700 (PDT)(1566251004037)
+# DON'T EDIT FILE —— GENERATED: Tue Aug 20 2019 21:23:08 GMT-0700 (PDT)(1566361388270)
 
- --version?
+ --engine=|--engine=1|--engine=2|--version?
 .format --highlight?|--indent|--nowarn?|--print?|--save?|--source|--strip-comments?|--trace?
 .make --add?|--force?|--highlight?|--nowarn?|--output|--print?|--save?|--source|--trace?
 .print --command=|--command=$('s="";for f in ~/.nodecliac/registry/*/*.acdef; do s="$s$f\\n"; done; echo -e "$s" \| LC_ALL=C perl -ne "print \"\$1\\n\" while /(?! \\/)([^\\/]*)\\.acdef$/g"')

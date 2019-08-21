@@ -1,4 +1,7 @@
-nodecliac = --version?
+nodecliac = [
+	--version?
+	--engine=(1 2)
+]
 nodecliac.setup = --rcfilepath?|--force?
 nodecliac.uninstall = --rcfilepath?
 nodecliac.registry

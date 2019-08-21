@@ -150,7 +150,7 @@ module.exports = (STATE, isoneliner) => {
 
 			case "keyword-spacer":
 				// The character must be a whitespace character.
-				if (!/[ \t]/.test(char)) {
+				if (!r_whitespace.test(char)) {
 					issue.error(STATE);
 				}
 
@@ -163,7 +163,7 @@ module.exports = (STATE, isoneliner) => {
 				// Only hyphens are allowed at this point.
 				if (!NODE.name.value) {
 					// Character must be one of the following:
-					if (!/[a-zA-Z]/.test(char)) {
+					if (!r_letter.test(char)) {
 						// Note: Hitting this block means an invalid
 						// character was encountered so give an error.
 						issue.error(STATE);
@@ -212,7 +212,7 @@ module.exports = (STATE, isoneliner) => {
 						STATE.column--;
 
 						// If char is whitespace change state/reset index.
-					} else if (/[ \t]/.test(char)) {
+					} else if (r_whitespace.test(char)) {
 						state = "wsb-postname";
 
 						// Note: Rollback index by 1 to allow parser to
@@ -234,7 +234,7 @@ module.exports = (STATE, isoneliner) => {
 				// Note: The only allowed characters here are whitespace(s).
 				// Anything else like an eq-sign, boolean-indicator, or pipe
 				// require a state change.
-				if (!/[ \t]/.test(char)) {
+				if (!r_whitespace.test(char)) {
 					if (char === "=") {
 						state = "assignment";
 
@@ -342,7 +342,7 @@ module.exports = (STATE, isoneliner) => {
 			case "wsb-prevalue":
 				// Note: Allow any whitespace until first non-whitespace
 				// character is hit.
-				if (!/[ \t]/.test(char)) {
+				if (!r_whitespace.test(char)) {
 					// Note: Rollback index by 1 to allow parser to
 					// start at new state on next iteration.
 					STATE.i -= 1;
@@ -374,7 +374,7 @@ module.exports = (STATE, isoneliner) => {
 						NODE.value.type = "command-flag";
 					} else if (char === "(") {
 						NODE.value.type = "list";
-					} else if (/["']/.test(char)) {
+					} else if (r_quote.test(char)) {
 						NODE.value.type = "quoted";
 					} else {
 						NODE.value.type = "escaped";
@@ -412,7 +412,7 @@ module.exports = (STATE, isoneliner) => {
 
 					// Escaped string logic.
 					if (stype === "escaped") {
-						if (/[ \t]/.test(char) && pchar !== "\\") {
+						if (r_whitespace.test(char) && pchar !== "\\") {
 							end_comsuming = true; // Set flag.
 						}
 

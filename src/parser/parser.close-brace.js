@@ -67,7 +67,7 @@ module.exports = STATE => {
 				break;
 
 			case "eol-wsb":
-				if (!/[ \t]/.test(char)) {
+				if (!r_whitespace.test(char)) {
 					// Note: At this point all states have been gone through.
 					// All that should remain, if anything, are trailing
 					// whitespace Anything other than trailing whitespace is

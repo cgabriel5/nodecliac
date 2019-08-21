@@ -84,7 +84,7 @@ module.exports = STATE => {
 			case "wsb-prevalue":
 				// Note: Allow any whitespace until first non-whitespace
 				// character is hit.
-				if (!/[ \t]/.test(char)) {
+				if (!r_whitespace.test(char)) {
 					// Note: Rollback index by 1 to allow parser to
 					// start at new state on next iteration.
 					STATE.i -= 1;
@@ -110,7 +110,7 @@ module.exports = STATE => {
 						NODE.value.type = "command-flag";
 					} else if (char === "(") {
 						NODE.value.type = "list";
-					} else if (/["']/.test(char)) {
+					} else if (r_quote.test(char)) {
 						NODE.value.type = "quoted";
 					} else {
 						NODE.value.type = "escaped";
@@ -134,7 +134,7 @@ module.exports = STATE => {
 
 					// Escaped string logic.
 					if (stype === "escaped") {
-						if (/[ \t]/.test(char) && pchar !== "\\") {
+						if (r_whitespace.test(char) && pchar !== "\\") {
 							end_comsuming = true; // Set flag.
 						}
 

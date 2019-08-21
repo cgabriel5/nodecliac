@@ -72,7 +72,7 @@ module.exports = STATE => {
 				// If the name value is empty check for first letter of setting.
 				if (!NODE.name.value) {
 					// Name must start with a letter.
-					if (!/[a-zA-Z]/.test(char)) {
+					if (!r_letter.test(char)) {
 						// Note: Setting must start with a letter.
 						issue.error(STATE);
 					}
@@ -96,7 +96,7 @@ module.exports = STATE => {
 						// If we encounter a whitespace character, everything
 						// after this point must be a space until we encounter
 						// an eq sign or the end-of-line (newline) character.
-					} else if (/[ \t]/.test(char)) {
+					} else if (r_whitespace.test(char)) {
 						state = "name-wsb";
 						continue;
 
@@ -122,7 +122,7 @@ module.exports = STATE => {
 			case "name-wsb":
 				// At this point we are looking for the assignment operator.
 				// Anything but whitespace or an eq-sign are invalid chars.
-				if (!/[ \t]/.test(char)) {
+				if (!r_whitespace.test(char)) {
 					if (char === "=") {
 						// Change sate to assignment.
 						state = "assignment";
@@ -156,7 +156,7 @@ module.exports = STATE => {
 			case "value-wsb":
 				// Ignore consecutive whitespace. Once a non-whitespace
 				// character is hit, switch to value state.
-				if (!/[ \t]/.test(char)) {
+				if (!r_whitespace.test(char)) {
 					state = "value";
 
 					// Note: Rollback index by 1 to allow parser to
@@ -179,7 +179,7 @@ module.exports = STATE => {
 					}
 
 					// Check if character is a quote.
-					if (/["']/.test(char)) {
+					if (r_quote.test(char)) {
 						qchar = char;
 					}
 
@@ -225,7 +225,7 @@ module.exports = STATE => {
 						// Not quoted.
 					} else {
 						// We must stop at the first space char.
-						if (/[ \t]/.test(char)) {
+						if (r_whitespace.test(char)) {
 							state = "eol-wsb";
 
 							// Note: Rollback index by 1 to allow parser to
@@ -250,7 +250,7 @@ module.exports = STATE => {
 				break;
 
 			case "eol-wsb":
-				if (!/[ \t]/.test(char)) {
+				if (!r_whitespace.test(char)) {
 					// Note: At this point all states have been gone through.
 					// All that should remain, if anything, are trailing
 					// whitespace Anything other than trailing whitespace is

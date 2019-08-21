@@ -130,7 +130,7 @@ module.exports = STATE => {
 						// If we encounter a whitespace character, everything
 						// after this point must be a space until we encounter
 						// an eq sign or the end-of-line (newline) character.
-					} else if (/[ \t]/.test(char)) {
+					} else if (r_whitespace.test(char)) {
 						state = "chain-wsb";
 						continue;
 
@@ -166,7 +166,7 @@ module.exports = STATE => {
 				// At this point we are looking for the assignment operator
 				// or a delimiter. Anything but whitespace, eq-sign, or command
 				// are invalid chars.
-				if (!/[ \t]/.test(char)) {
+				if (!r_whitespace.test(char)) {
 					if (char === "=") {
 						// Change sate to assignment.
 						state = "assignment";
@@ -221,7 +221,7 @@ module.exports = STATE => {
 			case "value-wsb":
 				// Ignore consecutive whitespace. Once a non-whitespace
 				// character is hit, switch to value state.
-				if (!/[ \t]/.test(char)) {
+				if (!r_whitespace.test(char)) {
 					state = "value";
 
 					// Note: Rollback index by 1 to allow parser to
@@ -271,7 +271,7 @@ module.exports = STATE => {
 			case "open-bracket-wsb":
 				// Ignore consecutive whitespace. Once a non-whitespace
 				// character is hit, switch to value state.
-				if (!/[ \t]/.test(char)) {
+				if (!r_whitespace.test(char)) {
 					state = "close-bracket";
 
 					// Note: Rollback index by 1 to allow parser to
@@ -314,7 +314,7 @@ module.exports = STATE => {
 				break;
 
 			case "eol-wsb":
-				if (!/[ \t]/.test(char)) {
+				if (!r_whitespace.test(char)) {
 					// Note: At this point all states have been gone through.
 					// All that should remain, if anything, are trailing
 					// whitespace Anything other than trailing whitespace is

@@ -89,7 +89,7 @@ module.exports = STATE => {
 			case "open-brace-wsb":
 				// Ignore consecutive whitespace. Once a non-whitespace
 				// character is hit, switch to variable state.
-				if (!/[ \t]/.test(char)) {
+				if (!r_whitespace.test(char)) {
 					state = "variable";
 
 					// Note: Rollback index by 1 to allow parser to
@@ -140,7 +140,7 @@ module.exports = STATE => {
 			case "variable-wsb":
 				// Only characters allowed are whitespace. Anything else
 				// will change state.
-				if (!/[ \t]/.test(char)) {
+				if (!r_whitespace.test(char)) {
 					state = "close-brace";
 
 					// Note: Rollback index by 1 to allow parser to

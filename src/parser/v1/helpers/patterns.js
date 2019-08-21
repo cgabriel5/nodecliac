@@ -6,6 +6,8 @@
 module.exports = {
 	// Letter.
 	r_letter: /[a-zA-Z]/,
+	// Quotes.
+	r_quote: /["']/,
 	// Whitespace.
 	r_whitespace: /[ \t]/,
 	// New line character.

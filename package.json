@@ -30,7 +30,7 @@
 		"path-exists": "^4.0.0",
 		"prettier": "^1.18.2",
 		"recursive-copy": "^2.0.10",
-		"rimraf": "^2.6.3",
+		"rimraf": "^3.0.0",
 		"strip-ansi": "^5.2.0",
 		"through2": "^3.0.1"
 	},

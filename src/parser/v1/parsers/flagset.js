@@ -1,10 +1,10 @@
 "use strict";
 
 // Require needed modules.
-const issuefunc = require("./p.error.js");
-const pflagvalue = require("./p.flag-value.js");
+const issuefunc = require("../helpers/issue.js");
+const pflagvalue = require("../parsers/flag-value.js");
 // Get RegExp patterns.
-let { r_schars, r_nl, r_nlpipe } = require("./h.patterns.js");
+let { r_schars, r_nl, r_nlpipe } = require("../helpers/patterns.js");
 
 /**
  * Parses flag set line to extract flag name, value, and its other components.
@@ -29,7 +29,7 @@ let { r_schars, r_nl, r_nlpipe } = require("./h.patterns.js");
  */
 module.exports = (params = {}) => {
 	// Trace parser.
-	require("./h.trace.js")(__filename);
+	require("../helpers/trace.js")(__filename);
 
 	// Get params.
 	let { str = [], usepipe = false } = params;

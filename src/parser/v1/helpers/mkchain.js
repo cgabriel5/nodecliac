@@ -1,7 +1,7 @@
 "use strict";
 
 // Needed modules.
-let { concat } = require("../utils/toolbox.js");
+let { concat } = require("../../../utils/toolbox.js");
 
 /**
  * Create needed parent command chain(s). For example, if the current

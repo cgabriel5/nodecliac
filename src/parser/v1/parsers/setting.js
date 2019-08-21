@@ -1,17 +1,17 @@
 "use strict";
 
 // Get needed modules.
-const issuefunc = require("./p.error.js");
-const ptemplatestr = require("./p.template-string.js");
+const issuefunc = require("../helpers/issue.js");
+const ptemplatestr = require("../parsers/template-string.js");
 // Get RegExp patterns.
-let { r_schars, r_nl } = require("./h.patterns.js");
+let { r_schars, r_nl } = require("../helpers/patterns.js");
 
 /**
- * Parses variables line to extract variable name and its value.
+ * Parses settings line to extract setting name and its value.
  *
  * ---------- Parsing States Breakdown -----------------------------------------
- * $variable = "value"
- *         | |       ^-EOL-Whitespace-Boundary 3
+ * @default = true
+ *         | |    ^-EOL-Whitespace-Boundary 3
  *         ^-^-Whitespace-Boundary 1/2
  * ^-Symbol
  *  ^-Name
@@ -24,20 +24,19 @@ let { r_schars, r_nl } = require("./h.patterns.js");
  */
 module.exports = () => {
 	// Trace parser.
-	require("./h.trace.js")(__filename);
+	require("../helpers/trace.js")(__filename);
 
 	// Get globals.
 	let string = global.$app.get("string");
 	let i = global.$app.get("i");
 	let l = global.$app.get("l");
-	let line_num = global.$app.get("line_num");
+	// let line_num = global.$app.get("line_num");
 	// let line_fchar = global.$app.get("line_fchar");
 	let h = global.$app.get("highlighter");
-	let variables = global.$app.get("variables");
-	let formatting = global.$app.get("formatting");
+	let settings = global.$app.get("settings");
 
 	// Parsing vars.
-	let name = "$";
+	let name = "@";
 	let assignment = "";
 	let value = "";
 	let hvalue = ""; // Highlighted version.
@@ -74,7 +73,7 @@ module.exports = () => {
 		});
 	};
 
-	// Increment index by 1 to skip initial '$' variable symbol.
+	// Increment index by 1 to skip initial '@' setting symbol.
 	i++;
 
 	// Loop over string.
@@ -91,12 +90,12 @@ module.exports = () => {
 			break;
 		}
 
-		// Default parse state to 'name' (l → r : $name=value).
+		// Default parse state to 'name' (l → r : @name=value).
 		if (state === "name") {
 			// If char is the first char...
 			if (name.length === 1) {
-				// First char of name must be a letter or underscore.
-				if (!/[_a-zA-Z]/.test(char)) {
+				// First char of name must be a letter.
+				if (!/[a-zA-Z]/.test(char)) {
 					return issue("error", 1, char);
 				}
 				// Store index.
@@ -107,7 +106,7 @@ module.exports = () => {
 			// Keep building name string...
 			else {
 				// If char is allowed keep building string.
-				if (/[_a-zA-Z0-9]/.test(char)) {
+				if (/[-_a-zA-Z]/.test(char)) {
 					// Store index.
 					indices.name.end = i;
 					name += char;
@@ -204,7 +203,7 @@ module.exports = () => {
 						hvalue += pvalue.h.value;
 						let nl_index = pvalue.nl_index;
 
-						// Reset oneliner start index.
+						// Reset index.
 						i = nl_index;
 					} else {
 						// Else keep building value string.
@@ -238,12 +237,12 @@ module.exports = () => {
 		}
 	}
 
-	// Check for dangling '$'.
-	if (name === "$") {
-		// Reset index so it points to '$' symbol.
+	// Check for dangling '@'.
+	if (name === "@") {
+		// Reset index so it points to '@' symbol.
 		i = indices.symbol.index;
 
-		return issue("error", 2, "$");
+		return issue("error", 2, "@");
 	}
 
 	// If value exists and is quoted, check that is properly quoted.
@@ -275,22 +274,13 @@ module.exports = () => {
 		issue("warning", 8, "=");
 	}
 
-	// If variable exists give an dupe/override warning.
-	if (variables.hasOwnProperty(name)) {
+	// If setting exists give an dupe/override warning.
+	if (settings.hasOwnProperty(name)) {
 		// Reset index to point to name.
 		i = indices.name.end;
 
 		issue("warning", 7, "=");
 	}
-
-	if (!formatting) {
-		// Unquote value. [https://stackoverflow.com/a/19156197]
-		value = value.replace(/^(["'])(.+(?=\1$))\1$/, "$2");
-		hvalue = hvalue.replace(/^(["'])(.+(?=\1$))\1$/, "$2");
-	}
-
-	// Store where variable was declared.
-	variables.__defs__[name.slice(1)] = [line_num, 0];
 
 	// Return relevant parsing information.
 	return {
@@ -300,7 +290,7 @@ module.exports = () => {
 		warnings,
 		h: {
 			// Add syntax highlighting.
-			name: h(name, "variable"),
+			name: h(name, "setting"),
 			value: h(hvalue, "value")
 		}
 	};

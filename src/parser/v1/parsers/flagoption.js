@@ -1,10 +1,10 @@
 "use strict";
 
 // Require needed modules.
-const issuefunc = require("./p.error.js");
-const pflagvalue = require("./p.flag-value.js");
+const issuefunc = require("../helpers/issue.js");
+const pflagvalue = require("../parsers/flag-value.js");
 // Get RegExp patterns.
-let { r_nl } = require("./h.patterns.js");
+let { r_nl } = require("../helpers/patterns.js");
 
 /**
  * Parses flag option line.
@@ -22,7 +22,7 @@ let { r_nl } = require("./h.patterns.js");
  */
 module.exports = () => {
 	// Trace parser.
-	require("./h.trace.js")(__filename);
+	require("../helpers/trace.js")(__filename);
 
 	// Get globals.
 	let string = global.$app.get("string");

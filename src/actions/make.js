@@ -6,7 +6,15 @@ const chalk = require("chalk");
 const flatry = require("flatry");
 const log = require("fancy-log");
 const fe = require("file-exists");
-const { exit, paths, read, write, info } = require("../utils/toolbox.js");
+const de = require("directory-exists");
+const {
+	exit,
+	paths,
+	read,
+	write,
+	info,
+	ispath_abs
+} = require("../utils/toolbox.js");
 
 module.exports = async args => {
 	// Get needed paths.
@@ -16,7 +24,9 @@ module.exports = async args => {
 
 	// Get CLI args.
 	let {
+		engine = 1,
 		source,
+		output,
 		print,
 		add,
 		save,
@@ -26,7 +36,17 @@ module.exports = async args => {
 		trace,
 		nowarn
 	} = args;
-	let parser = require("../parser/main.js");
+
+	// Default to original parser/formatter/utils if engine isn't specified.
+	let engines = [1, 2];
+	// If engine does not exist error.
+	if (!engines.includes(engine)) {
+		exit([`Engine: ${chalk.bold(engine)} does not exist.`]);
+	}
+
+	// Require parser engine script.
+	let parser = require(`../parser/v${engine}/index.js`);
+
 	// Formatting indentation values.
 	let indent_char = "\t",
 		indent_amount = 1;
@@ -91,8 +111,10 @@ module.exports = async args => {
 	// Extract the command name.
 	let commandname = fi.name.match(/^[-_:+a-z0-9]+/g)[0].replace(/_/g, "-");
 
-	// Turn source path to absolute path.
-	source = path.join(process.cwd(), source);
+	// If path is relative make it absolute.
+	if (!ispath_abs(source)) {
+		source = path.resolve(source);
+	}
 
 	// Also requires one of the following flags to do anything.
 	if (!(save || add || print || indent)) {
@@ -107,7 +129,9 @@ module.exports = async args => {
 	[err, res] = await flatry(fe(source));
 	// If path does not exist, give message and end process.
 	if (!res) {
-		exit([`${chalk.bold(source)} does not exist.`]);
+		exit([
+			`${chalk.bold(source)} (${chalk.blue("--source")}) does not exist.`
+		]);
 	}
 
 	// Generate acmap.
@@ -131,11 +155,22 @@ module.exports = async args => {
 	}
 	// Save definitions file to source location when flag is provided.
 	else if (save) {
+		// Note: If an output path is not provided use source location.
+		output = output || fi.dirname;
+
+		// Check if path is actually a directory.
+		[err, res] = await flatry(de(output));
+		if (!res) {
+			exit([
+				`${chalk.bold(output)} (${chalk.blue(
+					"--output"
+				)}) does not exist.`
+			]);
+		}
+
 		let data = acmap.content + keywords.content;
-		await flatry(write(path.join(fi.dirname, savename), data));
-		await flatry(
-			write(path.join(fi.dirname, saveconfigname), config.content)
-		);
+		await flatry(write(path.join(output, savename), data));
+		await flatry(write(path.join(output, saveconfigname), config.content));
 	}
 
 	// Add to maps location if add flag provided.

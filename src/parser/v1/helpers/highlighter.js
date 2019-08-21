@@ -6,7 +6,7 @@ const minimist = require("minimist");
 // Get CLI parameters.
 const args = minimist(process.argv.slice(2));
 // Get RegExp patterns.
-const { r_number } = require("./h.patterns.js");
+const { r_number } = require("../helpers/patterns.js");
 
 module.exports = (value, ...scopes) => {
 	// Get globals

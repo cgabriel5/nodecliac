@@ -1,23 +1,23 @@
 "use strict";
 
 // Setup app global variables.
-const globals = require("./h.globals.js");
+const globals = require("./helpers/globals.js");
 
 // Require parsers.
-const psetting = require("./p.setting.js");
-const pvariable = require("./p.variable.js");
-const pcommand = require("./p.command.js");
-const pbrace = require("./p.close-brace.js");
-const pflagset = require("./p.flagset.js");
-const pflagoption = require("./p.flagoption.js");
-const pcomment = require("./p.comment.js");
+const psetting = require("./parsers/setting.js");
+const pvariable = require("./parsers/variable.js");
+const pcommand = require("./parsers/command.js");
+const pbrace = require("./parsers/close-brace.js");
+const pflagset = require("./parsers/flagset.js");
+const pflagoption = require("./parsers/flagoption.js");
+const pcomment = require("./parsers/comment.js");
 
 // Require parser helpers.
-const mkchain = require("./h.mkchain.js");
-const shortcuts = require("./h.shortcuts.js");
-const { formatter, preformat } = require("./h.formatter.js");
+const mkchain = require("./helpers/mkchain.js");
+const shortcuts = require("./helpers/shortcuts.js");
+const { formatter, preformat } = require("./helpers/formatter.js");
 globals.set("stripansi", require("strip-ansi"));
-globals.set("highlighter", require("./h.highlighter.js"));
+globals.set("highlighter", require("./helpers/highlighter.js"));
 
 // Get error checking functions.
 const {
@@ -27,7 +27,7 @@ const {
 	verify: everify,
 	brace_check: ebc,
 	orphaned_cmddel_check
-} = require("./h.error.js");
+} = require("./helpers/error.js");
 
 module.exports = (
 	contents,
@@ -936,15 +936,15 @@ module.exports = (
 
 	// Log any warnings.
 	if (!nowarn) {
-		require("./h.warnings.js")(issue);
+		require("./helpers/warnings.js")(issue);
 	}
 
 	// Return generated acdef, config, and formatted file contents.
 	return {
 		time: process.hrtime(stime), // Return end time tuple array.
 		formatted: formatter(preformat),
-		config: require("./h.config.js")(),
-		keywords: require("./h.keywords.js")(),
-		acdef: require("./h.acdef.js")(lk_size)
+		config: require("./helpers/config.js")(),
+		keywords: require("./helpers/keywords.js")(),
+		acdef: require("./helpers/acdef.js")(lk_size)
 	};
 };

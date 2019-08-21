@@ -48,7 +48,7 @@ module.exports = (...args) => {
 
 	// Add syntax highlight.
 	char = h(char, "value");
-	if (!["p.variable.js", "p.template-string.js"].includes(scriptname)) {
+	if (!["variable.js", "template-string.js"].includes(scriptname)) {
 		name = h(name, name.startsWith("@") ? "setting" : "flag");
 	} else {
 		name = h(name, "variable");
@@ -56,7 +56,7 @@ module.exports = (...args) => {
 
 	// Parsing error reasons.
 	let reasons = {
-		"p.setting.js": {
+		"setting.js": {
 			// 0: "Unexpected token '@'.",
 			1: `Setting started with '${char}'. Expected a letter.`,
 			2: `Unexpected ${ctype}: '${char}'.`,
@@ -68,7 +68,7 @@ module.exports = (...args) => {
 			7: `Dupe setting: '${name}'.`,
 			8: `Empty setting: '${name}'.`
 		},
-		"p.variable.js": {
+		"variable.js": {
 			// 0: "Unexpected token '$'.",
 			1: `Setting started with '${char}'. Expected a letter.`,
 			2: `Unexpected ${ctype}: '${char}'.`,
@@ -81,13 +81,13 @@ module.exports = (...args) => {
 			8: `Empty variable: '${name}'.`,
 			9: `Undefined variable: '${name}'.`
 		},
-		"p.template-string.js": {
+		"template-string.js": {
 			2: `Unexpected ${ctype}: '${char}'.`,
 			3: `Value cannot start with '${char}'.`,
 			// Parsing warning reasons.
 			9: `Undefined variable: '${name}'.`
 		},
-		"p.command.js": {
+		"command.js": {
 			1: `Chain started with: '${char}'. Expected a letter.`,
 			2: `Unnecessary escape ${ctype}: ${h("\\" + s(char), "value")}.`,
 			3: `Illegal escape sequence: ${h("\\" + s(char), "value")}.`,
@@ -100,7 +100,7 @@ module.exports = (...args) => {
 			9: `Illegal shortcut delimiter: '${char}'.`,
 			10: `Dupe command: '${h(s(name), "command")}'.`
 		},
-		"p.flagset.js": {
+		"flagset.js": {
 			1: `Flag started with '${char}'. Expected a letter.`,
 			2: `Unexpected ${ctype}: '${char}'.`,
 			3: `Value cannot start with '${char}'.`,
@@ -120,7 +120,7 @@ module.exports = (...args) => {
 				"keyword"
 			)}' value for command: '${chain}'.`
 		},
-		"p.flag-command.js": {
+		"flag-command.js": {
 			2: `Unexpected ${ctype}: '${char}'.`,
 			3: `Value cannot start with: '${char}'.`,
 			4: `Improperly quoted string.`,
@@ -128,7 +128,7 @@ module.exports = (...args) => {
 			6: `Improperly closed command-flag. Missing '${h(")", "value")}'.`,
 			11: `Empty string '${chalk.yellow(s(char))}'.`
 		},
-		"p.flag-value.js": {
+		"flag-value.js": {
 			2: `Unexpected ${ctype}: '${char}'.`,
 			4: `Improperly quoted string.`,
 			5: `Unescaped ${ctype}: '${char}' in value.`,
@@ -139,7 +139,7 @@ module.exports = (...args) => {
 				`$1${h("$2", "flag")}`
 			)}).`
 		},
-		"p.flagoption.js": {
+		"flagoption.js": {
 			0: `Empty flag option.`,
 			2: `Unexpected ${ctype}: '${char}'.`,
 			3: `Invalid flag option.`,
@@ -150,8 +150,8 @@ module.exports = (...args) => {
 				"keyword"
 			)}' value for command: '${chain}'.`
 		},
-		"p.close-brace.js": { 1: `Unexpected ${ctype}: '${char}'.` },
-		"p.comment.js": {}
+		"close-brace.js": { 1: `Unexpected ${ctype}: '${char}'.` },
+		"comment.js": {}
 	};
 
 	// Generate issue with provided information.

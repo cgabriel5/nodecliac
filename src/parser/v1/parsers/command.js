@@ -1,10 +1,10 @@
 "use strict";
 
 // Get needed modules.
-const issuefunc = require("./p.error.js");
-const pflagset = require("./p.flagset.js");
+const issuefunc = require("../helpers/issue.js");
+const pflagset = require("../parsers/flagset.js");
 // Get RegExp patterns.
-let { r_nl } = require("./h.patterns.js");
+let { r_nl } = require("../helpers/patterns.js");
 
 /**
  * Parses command chain line to extract command chain.
@@ -26,7 +26,7 @@ let { r_nl } = require("./h.patterns.js");
  */
 module.exports = () => {
 	// Trace parser.
-	require("./h.trace.js")(__filename);
+	require("../helpers/trace.js")(__filename);
 
 	// Get globals.
 	let string = global.$app.get("string");

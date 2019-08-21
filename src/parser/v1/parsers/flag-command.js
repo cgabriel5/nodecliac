@@ -1,8 +1,8 @@
 "use strict";
 
 // Get needed modules.
-const issuefunc = require("./p.error.js");
-const ptemplatestr = require("./p.template-string.js");
+const issuefunc = require("../helpers/issue.js");
+const ptemplatestr = require("../parsers/template-string.js");
 
 /**
  * Parses command flag into its individual arguments.
@@ -21,7 +21,7 @@ const ptemplatestr = require("./p.template-string.js");
  */
 module.exports = (params = {}) => {
 	// Trace parser.
-	require("./h.trace.js")(__filename);
+	require("../helpers/trace.js")(__filename);
 
 	// Get params.
 	let { str = [], vsi, type } = params;

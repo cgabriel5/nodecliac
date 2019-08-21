@@ -2,7 +2,7 @@
 
 // Needed modules.
 const chalk = require("chalk");
-const { exit } = require("../utils/toolbox.js");
+const { exit } = require("../../../utils/toolbox.js");
 
 /**
  * Run post operations on command chain and its respective flag set.
@@ -43,9 +43,9 @@ module.exports = lk_size => {
 
 		// If no definitions exist return "empty" object (just headers).
 		return {
-			content: header || '',
-			hcontent: h(header, "comment") || '',
-			print: highlight ? h(header, "comment") : header || ''
+			content: header || "",
+			hcontent: h(header, "comment") || "",
+			print: highlight ? h(header, "comment") : header || ""
 		};
 	}
 

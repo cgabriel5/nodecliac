@@ -4,7 +4,7 @@
 const path = require("path");
 const chalk = require("chalk");
 // Setup app global variables.
-const globals = require("./h.globals.js");
+const globals = require("../helpers/globals.js");
 
 /**
  * Print parser being used.

@@ -17,7 +17,7 @@ let { r_nl, r_whitespace, r_letter, r_quote } = require("./h.patterns.js");
  *            ^-Value.
  * -----------------------------------------------------------------------------
  *
- * @param  {object} object - Main loop state object.
+ * @param  {object} STATE - Main loop state object.
  * @return {object} - Object containing parsed information.
  */
 module.exports = STATE => {

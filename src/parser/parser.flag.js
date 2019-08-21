@@ -22,7 +22,8 @@ let { r_nl, r_whitespace, r_letter, r_quote } = require("./h.patterns.js");
  *           ^-Value.
  * -----------------------------------------------------------------------------
  *
- * @param  {string} string - The line to parse.
+ * @param  {object} STATE - Main loop state object.
+ * @param  {string} isoneliner - Whether to treat flag as a oneliner.
  * @return {object} - Object containing parsed information.
  */
 module.exports = (STATE, isoneliner) => {

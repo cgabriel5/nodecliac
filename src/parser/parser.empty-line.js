@@ -8,7 +8,7 @@
  * ^-New-line character.
  * -----------------------------------------------------------------------------
  *
- * @param  {object} object - Main loop state object.
+ * @param  {object} STATE - Main loop state object.
  * @return {object} - Object containing parsed information.
  */
 module.exports = STATE => {

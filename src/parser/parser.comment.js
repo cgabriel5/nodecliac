@@ -14,7 +14,7 @@ let { r_nl, r_whitespace } = require("./h.patterns.js");
  *   ^-Comment-Char *(All characters until newline '\n').
  * -----------------------------------------------------------------------------
  *
- * @param  {object} object - Main loop state object.
+ * @param  {object} STATE - Main loop state object.
  * @return {object} - Object containing parsed information.
  */
 module.exports = STATE => {

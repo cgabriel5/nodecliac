@@ -15,7 +15,7 @@ let { r_nl, r_whitespace, r_quote } = require("./h.patterns.js");
  *  ^-Value
  * -----------------------------------------------------------------------------
  *
- * @param  {string} string - The line to parse.
+ * @param  {object} STATE - Main loop state object.
  * @return {object} - Object containing parsed information.
  */
 module.exports = STATE => {

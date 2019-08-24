@@ -106,6 +106,7 @@ body {
 	margin-right: 10px;
 	border-radius: 100px;
 	line-height: 28px;
+	min-width: 20px;
 }
 
 code {
@@ -153,6 +154,7 @@ code {
 .section-paragraph {
 	font-size: 18px;
 	font-weight: 300;
+	margin: 0;
 }
 
 .section-list {
@@ -173,8 +175,7 @@ code {
 	border-radius: 5px;
 	padding: 20px;
 	margin: 20px;
-	background: #fffefd;
-	background-color: #fbfbfb;
+	background-color: #fafafa;
 	overflow: auto;
 	-webkit-overflow-scrolling: touch;
 }
@@ -215,7 +216,7 @@ code {
 
 @media (max-width: 850px) {
 	.header-nav {
-		font-size: 14px;
+		font-size: 15px;
 	}
 	.header-cont {
 		padding: 5px 20px;
@@ -248,6 +249,7 @@ code {
 	}
 	.section-title {
 		margin-top: 20px;
+		margin-bottom: 10px;
 		font-size: 20px;
 	}
 	.section-paragraph {
@@ -261,6 +263,14 @@ code {
 	}
 	.code-block {
 		font-size: 13px;
+	}
+	code {
+		font-size: 85%;
+	}
+
+	.code-block-cont,
+	.video-cont {
+		margin: 10px 0;
 	}
 }
 

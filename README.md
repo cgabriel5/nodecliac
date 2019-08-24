@@ -38,7 +38,7 @@ $ sudo npm i -g cgabriel5/nodecliac && nodecliac setup
 
 - Node.js `8+`
   - nodecliac and its CLI tools (`.acmap` to `.acdef` parser, formatter, etc.) are written in JavaScript.
-  - **Note**: However, if you only need tab auto-completion and already have the program's registry package/files (i.e. don't need nodecliac's core CLI tools (parser, formatter, etc.) to generate the needed files) then Node.js is _not_ required. Simply follow the [manual setup](#install-manual) section to easily setup nodecliac.
+  - **Note**: If only tab-completion is needed (i.e. you already have the CLI program's registry package/files and don't need nodecliac's core CLI tools (parser, formatter, etc.)) then Node.js is _not_ required. Simply follow the [manual setup](#install-manual) section to setup nodecliac.
 - Perl `5+`
   - Runs needed Perl auto-completion scripts.
   - Works in tandem with Bash shell scripts.
@@ -80,7 +80,7 @@ $ git clone -b BRANCH_NAME --single-branch https://github.com/cgabriel5/nodeclia
 
 ## Install (manual)
 
-At the moment, generating `.acdef` files from `.acmap` files requires Node.js as the parser and all nodecliac's core tools are written in JavaScript. However, if you already have the CLI program(s) registry package/files and really only need tab auto-completion, (you aren't generating `.acdef` files, for example) nodecliac can be setup manually with the commands below.
+At the moment, generating `.acdef` files from `.acmap` files requires Node.js as the parser and all nodecliac's core tools are written in JavaScript. However, if you already have the CLI program(s) registry package/files and really only need tab-completion, (you aren't generating `.acdef` files, for example) nodecliac can be setup manually with the commands below.
 
 <details><summary>Show manual install guide/script.</summary>
 
@@ -91,7 +91,7 @@ At the moment, generating `.acdef` files from `.acmap` files requires Node.js as
 git clone git@github.com:cgabriel5/nodecliac.git ~/Desktop/nodecliac
 
 # 2) Create nodecliac's directory structure.
-mkdir -p ~/.nodecliac/src && mkdir -p ~/.nodecliac/registry
+mkdir -p ~/.nodecliac/{registry,src}
 
 # 3) Copy the Perl/Shell nodecliac scripts from the cloned repo to ~/.nodecliac/src.
 # [https://superuser.com/a/114198]
@@ -109,7 +109,7 @@ echo 'ncliac=~/.nodecliac/src/main.sh;if [ -f "$ncliac" ];then source "$ncliac";
 rm -rf ~/Desktop/nodecliac
 
 # 6) Lastly, add the command packages to nodecliac's registry: ~/.nodecliac/registry
-# 7) Start up a new Terminal and enjoy the tab auto-completion!
+# 7) Open a new Terminal and enjoy the tab-completion!
 ```
 
 <details><summary>Uninstall</summary>

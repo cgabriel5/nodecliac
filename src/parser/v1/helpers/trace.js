@@ -25,7 +25,7 @@ module.exports = p => {
 	let last_line_num = globals.get("last_line_num");
 	let filename = path
 		.basename(path.relative(process.cwd(), p))
-		.replace(/^p.|\.js$/g, "");
+		.replace(/\.js$/, "");
 
 	// Print header.
 	if (!last_line_num) {

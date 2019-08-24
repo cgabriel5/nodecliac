@@ -9,7 +9,7 @@ const { exit } = require("../../../utils/toolbox.js");
 const h = global.$app.get("highlighter");
 
 // Name of main script file (for error purposes).
-const sourcescript = "p.main.js";
+const sourcescript = "index.js";
 
 /**
  * Issue warnings and or error the parsing result object might contain.
@@ -120,7 +120,7 @@ let issue = (result, type = "error", warnings = []) => {
 		`  ${chalk.bold[color](symbol)}  ${lineinfo}${" ".repeat(
 			// Note: When remainder is negative set to 0.
 			remainder
-		)}  ${h(pname.replace(/(p\.|\.js)/g, ""), "comment")}${" ".repeat(
+		)}  ${h(pname.replace(/\.js$/, ""), "comment")}${" ".repeat(
 			// Note: When remainder is negative set to 0.
 			fremainder
 		)}  ${result.reason}`

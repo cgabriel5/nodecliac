@@ -19,7 +19,7 @@ module.exports = (...args) => {
 	// Get basename from file name.
 	let scriptname = path.basename(filename);
 	// Check if file is an intermediary file.
-	let is_intermediary_file = /^p\.(flag-(command|value)|template-string)\.js$/.test(
+	let is_intermediary_file = /^(flag-(command|value)|template-string)\.js$/.test(
 		scriptname
 	);
 

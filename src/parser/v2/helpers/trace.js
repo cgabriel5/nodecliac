@@ -58,7 +58,7 @@ module.exports = STATE => {
 	let last_line_num = STATE.last_line_num;
 	let filename = path
 		.basename(path.relative(process.cwd(), callerfile))
-		.replace(/^p.|\.js$/g, "");
+		.replace(/\.js$/, "");
 
 	// Print header.
 	if (!last_line_num) {

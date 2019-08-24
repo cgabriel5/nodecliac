@@ -292,7 +292,7 @@ module.exports = (
 							index: 0,
 							reason: `Mixed whitespace characters.`,
 							// Add key to denote file giving issue.
-							source: "p.main.js"
+							source: "index.js"
 						});
 					}
 				}
@@ -928,7 +928,7 @@ module.exports = (
 					index,
 					reason: `Unused variable: '${variable}'.`,
 					// Add key to denote file giving issue.
-					source: "p.main.js"
+					source: "index.js"
 				});
 			}
 		}

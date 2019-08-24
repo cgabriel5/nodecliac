@@ -6,6 +6,7 @@ const chalk = require("chalk");
 const flatry = require("flatry");
 const log = require("fancy-log");
 const fe = require("file-exists");
+const mkdirp = require("make-dir");
 const de = require("directory-exists");
 const {
 	exit,
@@ -183,6 +184,9 @@ module.exports = async args => {
 		// Check if command.acdef file exists.
 		[err, res] = await flatry(fe(commandpath));
 		if (!res || args.force) {
+			// Create needed parent directories.
+			[err, res] = await flatry(mkdirp(commanddir));
+
 			// Save file to map location.
 			await flatry(write(commandpath, acmap.content + keywords.content));
 			await flatry(write(commandconfigpath, config.content));

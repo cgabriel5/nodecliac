@@ -1,0 +1,281 @@
+body {
+	margin: auto;
+	font-family: Hind, sans-serif;
+	color: #24292e;
+}
+
+.header-cont {
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: center;
+	padding: 5px 50px;
+	background: rgb(248, 248, 248);
+}
+
+.header-nav {
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: space-between;
+	align-content: center;
+	align-items: center;
+	width: 800px;
+}
+
+.nav-logo {
+	background: #699935;
+	width: 20px;
+	height: 20px;
+	border-radius: 400px 1000px 0 1000px;
+}
+
+.nav-item {
+	padding: 5px;
+	border-radius: 5px;
+	cursor: pointer;
+}
+
+.topic-cont {
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: center;
+	align-content: center;
+	align-items: center;
+	width: 100%;
+	margin-top: 50px;
+}
+
+.topic {
+	padding-bottom: 40px;
+	border-bottom: 1px dashed #d6d6d6;
+	display: flex;
+	flex-flow: column nowrap;
+	justify-content: center;
+	align-items: center;
+	align-content: center;
+	width: 800px;
+}
+
+.tags-cont {
+	display: flex;
+	align-self: flex-end;
+}
+
+.topic-tag {
+	padding: 0 5px;
+	border-radius: 3px;
+	font-size: 12px;
+	border: 1px solid #333;
+	align-self: flex-end;
+	text-transform: lowercase;
+	font-weight: bold;
+	margin-left: 5px;
+	line-height: 2;
+}
+
+.topic-title {
+	font-size: 38px;
+}
+
+.topic-description {
+	font-size: 18px;
+	font-weight: 300;
+}
+
+.title-name {
+	font-size: 38px;
+}
+
+.message-description {
+	font-size: 18px;
+	font-weight: 300;
+}
+
+.bold {
+	font-weight: 600;
+}
+
+.dim {
+}
+
+.list-bullet {
+	font-size: 16px;
+	font-weight: bold;
+	padding-left: 7px;
+	display: inline-block;
+	vertical-align: middle;
+	margin-right: 10px;
+	border-radius: 100px;
+	line-height: 28px;
+}
+
+code {
+	background: #fff5cc;
+	color: #71471c;
+	margin: 0;
+	border-radius: 3px;
+	padding: 0.2em 3px;
+	font-size: 85%;
+	font-size: 15px;
+	font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier,
+		monospace;
+}
+
+.italic {
+	font-style: italic;
+}
+
+.flag-name {
+	color: #aa0c91;
+}
+
+.link {
+	color: #0d61cb;
+	color: #0088cc;
+	text-decoration: none;
+}
+
+.link:hover {
+	text-decoration: underline;
+}
+
+.main-cont {
+	width: 800px;
+	margin: auto;
+}
+
+.section-title {
+	margin-bottom: 30px;
+	margin-top: 40px;
+	font-size: 25px;
+	font-weight: 700;
+}
+
+.section-paragraph {
+	font-size: 18px;
+	font-weight: 300;
+}
+
+.section-list {
+	margin-bottom: 30px;
+	font-weight: 300;
+}
+
+.list-item {
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: flex-start;
+	align-items: center;
+	align-content: center;
+	font-size: 18px;
+}
+
+.code-block-cont {
+	border-radius: 5px;
+	padding: 20px;
+	margin: 20px;
+	background: #fffefd;
+	background-color: #fbfbfb;
+	overflow: auto;
+	-webkit-overflow-scrolling: touch;
+}
+
+.video-cont {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin: 20px;
+}
+
+.video {
+	border-radius: 5px;
+	outline: none;
+	margin-top: 10px;
+	margin-bottom: 15px;
+	max-width: 100%;
+	height: auto;
+}
+
+.code-block {
+	background: 0 0;
+	padding: 0;
+	white-space: pre;
+	word-break: normal;
+	font-size: 14px;
+	color: #000;
+}
+
+.note-cont {
+	margin-top: 20px;
+	padding: 10px 20px;
+	border-left: 2px solid #ffce54;
+	background: rgb(255, 245, 221);
+	font-size: 14px;
+	font-weight: 400;
+}
+
+@media (max-width: 850px) {
+	.header-nav {
+		font-size: 14px;
+	}
+	.header-cont {
+		padding: 5px 20px;
+	}
+	.main-cont {
+		width: 100%;
+		padding: 20px;
+		margin: auto;
+	}
+	.tags-cont {
+		margin-right: 25px;
+		margin-bottom: 10px;
+		display: flex;
+		align-self: flex-end;
+	}
+	.topic {
+		padding-bottom: 40px;
+		display: flex;
+		flex-flow: column nowrap;
+		justify-content: flex-start;
+		align-items: flex-start;
+		padding-left: 20px;
+		width: 100%;
+	}
+	.topic-title {
+		font-size: 28px;
+	}
+	.topic-description {
+		font-size: 18px;
+	}
+	.section-title {
+		margin-top: 20px;
+		font-size: 20px;
+	}
+	.section-paragraph {
+		font-size: 16px;
+	}
+	.section-list {
+		font-weight: 300;
+	}
+	.list-item {
+		font-size: 16px;
+	}
+	.code-block {
+		font-size: 13px;
+	}
+}
+
+@media (max-width: 330px) {
+	.header-cont {
+		padding: 5px 10px;
+	}
+	.tags-cont {
+		margin-right: 0;
+	}
+	.topic {
+		padding: 10px;
+		padding-bottom: 30px;
+	}
+	.main-cont {
+		padding: 10px;
+	}
+}

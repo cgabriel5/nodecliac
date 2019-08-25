@@ -29,6 +29,11 @@ module.exports = (STATE, commandname) => {
 	// The .acdef/.config.acdef file header.
 	let header = `# DON'T EDIT FILE —— GENERATED: ${new Date()}(${Date.now()})\n\n`;
 
+	// Reset header if testing.
+	if (STATE.args.test) {
+		header = "";
+	}
+
 	/**
 	 * Add base flag to Set (adds '--flag=' or '--flag=*' to Set).
 	 *

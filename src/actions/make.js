@@ -30,6 +30,7 @@ module.exports = async args => {
 		source,
 		output,
 		print,
+		test,
 		add,
 		save,
 		indent,
@@ -129,7 +130,7 @@ module.exports = async args => {
 	}
 
 	// Also requires one of the following flags to do anything.
-	if (!(save || add || print || indent)) {
+	if (!(save || add || print || indent || test)) {
 		exit([
 			`Must also provide one of the following flags: ${chalk.bold(
 				"--save"
@@ -156,7 +157,8 @@ module.exports = async args => {
 		highlight,
 		trace,
 		nowarn,
-		igc
+		igc,
+		test
 	);
 	let savename = `${commandname}.acdef`;
 	let saveconfigname = `.${commandname}.config.acdef`;
@@ -254,5 +256,25 @@ module.exports = async args => {
 		log(`Completed in ${chalk.green(duration + "s")}.`);
 		console.log();
 		// hrtime wrapper: [https://github.com/seriousManual/hirestime]
+	}
+
+	// For test (--test) purposes.
+	if (test) {
+		// Print generated acdef/config file contents.
+		if (!formatting) {
+			if (acmap) {
+				console.log(acmap.print + keywords.print);
+				if (!config) {
+					console.log(); // Bottom padding.
+				}
+			}
+			if (config) {
+				console.log(config.print);
+			}
+		}
+		// If formatting print the output.
+		else {
+			console.log(formatted.print);
+		}
 	}
 };

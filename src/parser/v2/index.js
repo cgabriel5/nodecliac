@@ -11,7 +11,8 @@ module.exports = (
 	highlight,
 	trace,
 	nowarn,
-	stripcomments
+	stripcomments,
+	test
 ) => {
 	// Vars - timers.
 	let stime = process.hrtime(); // Store start time tuple array.
@@ -93,7 +94,8 @@ module.exports = (
 			highlight,
 			trace,
 			nowarn,
-			stripcomments
+			stripcomments,
+			test
 		}
 	};
 	// Loop local vars.

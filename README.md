@@ -40,10 +40,10 @@ $ sudo npm i -g cgabriel5/nodecliac && nodecliac setup
   - nodecliac and its CLI tools (`.acmap` to `.acdef` parser, formatter, etc.) are written in JavaScript.
   - **Note**: If only tab-completion is needed (i.e. you already have the CLI program's registry package/files and don't need nodecliac's core CLI tools (parser, formatter, etc.)) then Node.js is _not_ required. Simply follow the [manual setup](#install-manual) section to setup nodecliac.
 - Perl `5+`
-  - Runs needed Perl auto-completion scripts.
+  - Runs needed Perl tab-completion scripts.
   - Works in tandem with Bash shell scripts.
 - Bash `4.3+`
-  - Glues/setup/runs Perl and Shell auto-completion scripts.
+  - Glues/setup/runs Perl and Shell tab-completion scripts.
   - Works in tandem with Perl scripts.
   - `macOS`, by default, comes with with Bash `3.2` so please update it.
     - [Homebrew](https://brew.sh/) can be used to [update bash](https://akrabat.com/upgrading-to-bash-4-on-macos/).
@@ -146,7 +146,7 @@ nodecliac uses 2 custom file types: **a**uto-**c**ompletion **def**inition (`.ac
 ## ACMAP Syntax
 
 <details>
-  <summary>ACMAP files are text files with a simple language structure and relatively few language constructs.</summary>
+  <summary>auto-completion map (<code>.acmap</code>) files are text files with a simple language structure and relatively few language constructs.</summary>
 
 #### Comments
 
@@ -289,7 +289,7 @@ mycliprogram.command = [
 #### Flags (boolean)
 
 - If flag does not require input and is more a switch (yes/no boolean) then append `?` to the flag.
-- Though not required, doing so will let the auto-completion engine know the flag does not require value auto-completion.
+- Though not required, doing so will let the completion engine know the flag does not require a value.
 
 ```acmap
 mycliprogram.command = [
@@ -300,7 +300,7 @@ mycliprogram.command = [
 #### Flags (multi-flag)
 
 - Sometimes a flag can be supplied multiple times.
-- Let the auto-completion engine know this by using the multi-flag indicator `*`.
+- Let the completion engine know this by using the multi-flag indicator `*`.
 
 ```acmap
 mycliprogram.command = [
@@ -370,7 +370,7 @@ Sometimes hard-coded values are not enough so a `command-flag` can be used. A `c
 If the command requires arguments they can be hard-coded or dynamically supplied.
 
 - `$("cat ~/colors.text", "!red", $"cat ~/names.text", "-")`: This will provide the hard-coded `!red` value and run the `cat ~/names.text` flag command argument. Once all dynamic arguments are ran their outputs along with the hard-coded values are passed to the command `cat ~/colors.text` in the order they were provided. So `!red` will be argument `0` and the output of `cat ~/names.text` will be argument `1`.
-- Once `cat ~/colors.text` is ran the output will be split by hyphens and will finally get passed to the auto-completion engine.
+- Once `cat ~/colors.text` is run the output will be split by hyphens and will finally get passed to the completion engine.
 - **Note**: Arguments prefixed with the `$` character denotes it's a dynamic flag command argument.
 
 **Escaping**: Internally the following characters have special uses: `$` and `|`. This means that when using these characters inside a command they will have to be escaped. Take the following examples:
@@ -386,7 +386,7 @@ mycliprogram.command = [
     # The flag-command's output will be used as option values.
     - $("cat ~/values.text")
 
-    # Hard coded and dynamically generated values will be supplied to auto-completion script.
+    # Hard coded and dynamically generated values will be supplied to completion script.
     - index.js
     - ':task:js'
     - "some-thing"
@@ -426,7 +426,7 @@ Indentation is all allowed but when declaring command chains and settings.
 ## ACDEF Syntax
 
 <details>
-  <summary>ACDEF are easy to read, look similar to ACMAP files, and is what nodecliac uses to provide auto-completion.</summary>
+  <summary>auto-completion definition (<code>.acdef</code>) files are easy to read, look similar to <code>.acmap</code> files, and is what nodecliac references when providing tab-completion.</summary>
 
 #### ACDEF Anatomy
 
@@ -616,7 +616,7 @@ $ mycliprogram [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] 
   - `--strip-comments` : Remove all comments from final output.
   - `--trace` : Used for debugging purposes only.
 - `make`: Generate `.acdef` file from an `.acmap` file.
-  - `--add`: Add generated`.acdef` file to nodecliac auto-completion registry.
+  - `--add`: Add generated`.acdef` file to nodecliac registry.
   - `--print` : Print output to console.
   - `--source`: (**required**): The `.acmap` file path.
   - `--force`: If an `.acdef` file exists for the command then this flag is needed to overwrite old`.acdef` file.
@@ -631,7 +631,7 @@ $ mycliprogram [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] 
   - `--rcfilepath`: By default setup will look for `~/.bashrc` to add modifications to. Supply the path to another rc file if you don't want changes to be made to `~/.bashrc`.
     - **Note**: To be transparent this is what gets added to your rc file:
     - `ncliac=~/.nodecliac/src/main.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;`
-    - The line will load `~/.nodecliac/src/main.sh` if it exists. `main.sh` registers all `~/.nodecliac/registry/*/*.acdef` files with the auto-completion script to work with bash-completion.
+    - The line will load `~/.nodecliac/src/main.sh` if it exists. `main.sh` registers all `~/.nodecliac/registry/*/*.acdef` files with the completion script to work with bash-completion.
 - `status`: Checks whether nodecliac is enabled/disabled.
   - `--enable` : Enables nodecliac if disabled.
   - `--disable`: Disables nodecliac if enabled.
@@ -668,7 +668,7 @@ $ nodecliac format --source path/to/mycliprogram.acmap --print --indent "s:2" --
 
 ## Registry
 
-Some CLI programs are more complicated than others and will require the need of additional custom script files. If this is the case, a command folder should be made under the following path: `~/.nodecliac/registry/COMMAND-NAME/`. For example, say we are creating an `.acmap` file for [yarn](https://yarnpkg.com/en/) and we need to run custom script files for a better auto-completion experience. These files should reside at `~/.nodecliac/registry/yarn/`. [See directory structure/files here](/resources/nodecliac).
+Some CLI programs are more complicated than others and will require the need of additional custom script files. If this is the case, a command folder should be made under the following path: `~/.nodecliac/registry/COMMAND-NAME/`. For example, say we are creating an `.acmap` file for [yarn](https://yarnpkg.com/en/) and we need to run custom script files for a better tab-completion experience. These files should reside at `~/.nodecliac/registry/yarn/`. [See directory structure/files here](/resources/nodecliac).
 
 <details><summary>Show directory structures.</summary>
 
@@ -711,7 +711,7 @@ Available hook scripts:
   - Allows the modification of the in-memory `acdef` contents before starting any parsing.
   - Allows the modification of the in-memory CLI input string before starting any parsing.
 
-**Note**: Using a hook script might sound involved/off-putting but it's not. A hook script is just a regular shell script. The script just has special meaning in the sense that it can be used to **hook** into nodecliac to change some variables used for later auto-completion processing.
+**Note**: Using a hook script might sound involved/off-putting but it's not. A hook script is just a regular shell script. The script just has special meaning in the sense that it can be used to **hook** into nodecliac to change some variables used for later tab-completion processing.
 
 <details><summary>Expand hook section.</summary>
 
@@ -721,7 +721,7 @@ To use a hook script simply create the file in the command's resource `hooks/` d
 
 #### Using Hook Script
 
-This section will use [yarn's prehook script](/resources/nodecliac/yarn) as an example. [`/yarn/hooks/prehook.sh`](/resources/nodecliac/yarn) runs custom Perl scripts to modify the `.acdef` and the CLI input. Since the prehook script is sourced into the main auto-completion script nothing is echoed back to the main script. Instead, the `acdef` and `cline` variables are overwritten, rather. These new values will then be used by nodecliac to provide auto-completion.
+This section will use [yarn's prehook script](/resources/nodecliac/yarn) as an example. [`/yarn/hooks/prehook.sh`](/resources/nodecliac/yarn) runs custom Perl scripts to modify the `.acdef` and the CLI input. Since the prehook script is sourced into the main completion script nothing is echoed back to the main script. Instead, the `acdef` and `cline` variables are overwritten, rather. These new values will then be used by nodecliac to provide tab-completion.
 
 **Note**: Perl is used here for quick text processing as doing it in Bash is slow and cumbersome. _However_, use what you _want/need_ to get the job done. Hook scripts just _need_ to be executable scripts stored in `~/.nodecliac/registry/COMMAND-NAME/hooks/`.
 

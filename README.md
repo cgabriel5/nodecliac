@@ -525,9 +525,9 @@ nodecliac = --version?
 nodecliac.setup = --rcfilepath?|--force?
 nodecliac.uninstall = --rcfilepath?
 nodecliac.registry
-nodecliac.make = --add?|--force?|--source|--save?|--print?|--highlight?|--trace?|--nowarn?
+nodecliac.make = --add?|--force?|--source|--save?|--print?|--trace?|--nowarn?
 nodecliac.status = --enable?|--disable?
-nodecliac.format = --indent|--source|--save?|--print?|--highlight?|--strip-comments?|--trace?|--nowarn?
+nodecliac.format = --indent|--source|--save?|--print?|--strip-comments?|--trace?|--nowarn?
 nodecliac.print = --command=|--command=$("for f in ~/.nodecliac/registry/*/*.acdef; do f=\"\${f##*/}\";c=\"\${f%%.*}\";echo \"\$c\"; done;")
 ```
 
@@ -551,7 +551,6 @@ nodecliac.make = [
   --source
   --save?
   --print?
-  --highlight?
   --trace?
   --nowarn?
 ]
@@ -564,7 +563,6 @@ nodecliac.format = [
   --source
   --save?
   --print?
-  --highlight?
   --strip-comments?
   --trace?
   --nowarn?
@@ -607,7 +605,6 @@ $ mycliprogram [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] 
   <summary>Show nodecliac's commands/flags.</summary>
 
 - `format`: Prettifies .acmap files.
-  - `--highlight` : Syntax highlight output.
   - `--indent="(s|t):Number"`: (**required**): Formatting indentation information:
     - `s` for spaces or `t` for tabs followed by a number.
     - `t:1`: Use 1 tab per indentation level.
@@ -620,7 +617,6 @@ $ mycliprogram [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] 
   - `--trace` : Used for debugging purposes only.
 - `make`: Generate `.acdef` file from an `.acmap` file.
   - `--add`: Add generated`.acdef` file to nodecliac auto-completion registry.
-  - `--highlight`: Syntax highlight output.
   - `--print` : Print output to console.
   - `--source`: (**required**): The `.acmap` file path.
   - `--force`: If an `.acdef` file exists for the command then this flag is needed to overwrite old`.acdef` file.
@@ -654,18 +650,18 @@ $ mycliprogram [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] 
 # Generate mycliprogram.acdef file and add it to registry.
 $ nodecliac make --source path/to/mycliprogram.acmap --add
 
-# Generate mycliprogram.acdef contents but only print to terminal and add syntax highlighting for clarity.
-$ nodecliac make --source path/to/mycliprogram.acmap --print --highlight
+# Generate mycliprogram.acdef contents but only print to terminal.
+$ nodecliac make --source path/to/mycliprogram.acmap --print
 ```
 
 #### Prettify ACMAP file
 
 ```sh
-# Prettify mycliprogram.acmap file using 2 spaces per indentation level and log/highlight output.
-$ nodecliac format --source path/to/mycliprogram.acmap --print --highlight --indent "s:2"
+# Prettify mycliprogram.acmap file using 2 spaces per indentation level and log output.
+$ nodecliac format --source path/to/mycliprogram.acmap --print --indent "s:2"
 
 # As above but overwrite source file with prettified output.
-$ nodecliac format --source path/to/mycliprogram.acmap --print --highlight --indent "s:2" --save
+$ nodecliac format --source path/to/mycliprogram.acmap --print --indent "s:2" --save
 ```
 
 <a name="registry"></a>

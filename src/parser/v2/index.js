@@ -34,14 +34,14 @@ module.exports = (
 		_: "empty-line"
 	};
 
-	// Note: [Hierarchy lookup table] The lower the number the higher its
+	// Note: [Hierarchy lookup table] The higher the number the higher its
 	// precedence, therefore: command > flag > option. Variables, settings,
 	// and command chains have the same precedence as they are same-level
 	// defined (cannot be nested). Comments can be placed anywhere so
 	// they don't have a listed precedence.
 	const SPECIFICITIES = {
-		setting: 5,
-		variable: 4,
+		setting: 3,
+		variable: 3,
 		command: 3,
 		flag: 2,
 		option: 1,

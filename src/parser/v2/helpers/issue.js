@@ -12,7 +12,7 @@ let errors = {
 		error: { 0: "Unexpected character (syntax error)." },
 		warning: {}
 	},
-	main: {
+	index: {
 		10: "Illegal start-of-line character.",
 		11: "Line cannot begin with whitespace.",
 		12: "Check line specificity order."

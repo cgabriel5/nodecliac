@@ -14,6 +14,7 @@ const {
 	read,
 	write,
 	info,
+	readdir,
 	ispath_abs
 } = require("../utils/toolbox.js");
 
@@ -25,7 +26,7 @@ module.exports = async args => {
 
 	// Get CLI args.
 	let {
-		engine = 1,
+		engine,
 		source,
 		output,
 		print,
@@ -38,8 +39,18 @@ module.exports = async args => {
 		nowarn
 	} = args;
 
-	// Default to original parser/formatter/utils if engine isn't specified.
-	let engines = [1, 2];
+	// Get list of available engines.
+	[err, res] = await flatry(
+		readdir(path.join(path.parse(__dirname).dir, "/parser"))
+	);
+	// Filter content to only return version directories.
+	let engines = res
+		.filter(item => /^v\d+$/.test(item))
+		.map(item => +item.replace("v", ""));
+
+	// Default to latest engine if engine version isn't specified.
+	engine = engine || engines[engines.length - 1];
+
 	// If engine does not exist error.
 	if (!engines.includes(engine)) {
 		exit([`Engine: ${chalk.bold(engine)} does not exist.`]);

@@ -79,9 +79,6 @@ module.exports = (
 		//
 		SPECIFICITIES,
 		specificity: 0, // Default to allow anything.
-		// Have quick access to the last parsed command-chain/flag.
-		lastcc: null,
-		lastflag: null,
 		scopes: {
 			command: null,
 			flag: null

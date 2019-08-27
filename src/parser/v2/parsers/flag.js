@@ -74,11 +74,10 @@ module.exports = (STATE, isoneliner) => {
 
 		// End loop on a new line char.
 		if (stop || r_nl.test(char)) {
-			// Note: When setting the endpoint make sure to subtract index
-			// by 1 so that when it returns to its previous loop is can run
-			// the newline character code block.
-			NODE.endpoint = STATE.i - 1; // Store newline index.
-			STATE.i = STATE.i - 1; // Store newline index.
+			// Note: Subtract index by 1 to run newline character logic code
+			// block on next iteration
+			NODE.endpoint = --STATE.i; // Store newline index.
+
 			break;
 		}
 

@@ -464,17 +464,4 @@ module.exports = (STATE, isoneliner) => {
 	}
 
 	return NODE;
-
-	// // Lookup variable's value.
-	// let lookup = variables[`$${name}`];
-
-	// Check that variable exists here.
-	// if (!lookup) {}
-
-	// // If not formatting then reset variable to actual value.
-	// if (!formatting) {}
-
-	// // Track used count.
-	// let used_counter = variables.__used__[name];
-	// variables.__used__[name] = used_counter + 1;
 };

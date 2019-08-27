@@ -341,22 +341,4 @@ module.exports = STATE => {
 	}
 
 	return NODE;
-
-	// If brace index is set it was never closed.
-	// if (indices.shortcut.open) {}
-
-	// // If there was assignment do some value checks.
-	// if (assignment && !flagsets.length) {
-	// 	// Determine brace state.
-	// 	brstate = value === "[]" ? "closed" : value === "[" ? "open" : undefined;
-
-	// 	// If assignment but not value give warning.
-	// 	// if (!value) {}
-
-	// 	// If assignment but not value give warning.
-	// 	// if (brstate === "closed") {}
-	// }
-
-	// Check if command chain is a duplicate.
-	// if (lookup[chain]) {}
 };

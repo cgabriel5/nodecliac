@@ -205,24 +205,10 @@ module.exports = STATE => {
 							state = "eol-wsb";
 						}
 
-						// // Check for template strings (variables).
-						// if (char === "$" && pchar !== "\\" && nchar === "{") {
-						// 	// Note: Reduce column counter by 1 since parser loop will
-						// 	// commence at the start of the first non whitespace char.
-						// 	// A char that has already been looped over in the main loop.
-						// 	STATE.column--;
-
-						// 	// Store result in variable to access the
-						// 	// interpolated variable's value.
-						// 	let res = p_tstring(STATE); // Run template-string parser...
-						// 	// Add interpolated value to string.
-						// 	NODE.value.value += res.variable.value;
-						// } else {
 						// Store index positions.
 						NODE.value.end = STATE.i;
 						// Continue building the value string.
 						NODE.value.value += char;
-						// }
 
 						// Not quoted.
 					} else {
@@ -270,22 +256,7 @@ module.exports = STATE => {
 	// Add node to tree.
 	require("../helpers/tree-add.js")(STATE, NODE);
 
-	// [TODO] Add following variable checks later on.
-
-	// Check for dangling '$'.
-	// if (name === "$") {}
-
-	// If assignment but not value give warning.
-	// if (assignment && !value) {}
-
-	// If no value was provided give warning.
-	// if (!assignment) {}
-
-	// If variable exists give an dupe/override warning.
-	// if (variables.hasOwnProperty(name)) {}
-
-	// Finally unquote value.
-	// [https://stackoverflow.com/a/21873245]
+	// Finally unquote value. [https://stackoverflow.com/a/21873245]
 	let value = NODE.value.value || "";
 	value = value.substring(1, value.length - 1);
 	// Unquote value. [https://stackoverflow.com/a/19156197]

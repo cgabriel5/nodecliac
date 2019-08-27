@@ -49,7 +49,7 @@ module.exports = STATE => {
 		flags: [],
 		line,
 		startpoint: STATE.i,
-		endpoint: null // Then index at which parsing was ended.
+		endpoint: null // Index where parsing ended.
 	};
 
 	// Loop over string.
@@ -67,13 +67,11 @@ module.exports = STATE => {
 
 		STATE.column++; // Increment column position.
 
-		// Default parse state.
-
 		switch (state) {
 			case "command":
-				// If command value is empty check for first letter of command.
+				// Check first letter of command.
 				if (!NODE.command.value) {
-					// First char of command must be a letter or semicolon.
+					// First char must be a letter/semicolon.
 					if (!/[:a-zA-Z]/.test(char)) {
 						// Note: Setting must start with a letter.
 						issue.error(STATE);
@@ -289,10 +287,7 @@ module.exports = STATE => {
 
 			case "eol-wsb":
 				if (!r_whitespace.test(char)) {
-					// Note: At this point all states have been gone through.
-					// All that should remain, if anything, are trailing
-					// whitespace Anything other than trailing whitespace is
-					// invalid.
+					// Note: Only trailing whitespace should remain now.
 					issue.error(STATE);
 				}
 

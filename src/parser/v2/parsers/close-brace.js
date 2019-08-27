@@ -5,14 +5,14 @@ let issue = require("../helpers/issue.js");
 let { r_nl, r_whitespace } = require("../helpers/patterns.js");
 
 /**
- * Parses flag option line.
+ * Parses closing brace line.
  *
  * ---------- Parsing States Breakdown -----------------------------------------
  * - value
  *  |     ^-EOL-Whitespace-Boundary 2
  *  ^-Whitespace-Boundary 1
  * ^-Bullet
- *  ^-Value
+ *   ^-Value
  * -----------------------------------------------------------------------------
  *
  * @param  {object} STATE - Main loop state object.
@@ -29,7 +29,7 @@ module.exports = STATE => {
 		brace: { start: null, end: null, value: null },
 		line,
 		startpoint: STATE.i,
-		endpoint: null // Then index at which parsing was ended.
+		endpoint: null // Index where parsing ended.
 	};
 
 	// Loop over string.
@@ -63,10 +63,7 @@ module.exports = STATE => {
 
 			case "eol-wsb":
 				if (!r_whitespace.test(char)) {
-					// Note: At this point all states have been gone through.
-					// All that should remain, if anything, are trailing
-					// whitespace Anything other than trailing whitespace is
-					// invalid.
+					// Note: Only trailing whitespace should remain now.
 					issue.error(STATE);
 				}
 

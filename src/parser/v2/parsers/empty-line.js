@@ -24,7 +24,7 @@ module.exports = STATE => {
 		sigil: { start: STATE.i, end: STATE.i },
 		line,
 		startpoint: STATE.i,
-		endpoint: STATE.i // Then index at which parsing was ended.
+		endpoint: STATE.i // Index where parsing ended.
 	};
 
 	// Add node to tree.

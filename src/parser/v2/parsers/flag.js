@@ -63,7 +63,7 @@ module.exports = (STATE, isoneliner) => {
 		keyword: { start: null, end: null, value: null },
 		line,
 		startpoint: STATE.i,
-		endpoint: null // Then index at which parsing was ended.
+		endpoint: null // Index where parsing ended.
 	};
 
 	// Loop over string.

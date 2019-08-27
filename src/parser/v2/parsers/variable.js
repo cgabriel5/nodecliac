@@ -40,7 +40,7 @@ module.exports = STATE => {
 		value: { start: null, end: null, value: null },
 		line,
 		startpoint: STATE.i,
-		endpoint: null // Then index at which parsing was ended.
+		endpoint: null // Index where parsing ended.
 	};
 
 	// Loop over string.
@@ -208,12 +208,6 @@ module.exports = STATE => {
 
 							STATE.loop.rollback(STATE); // Rollback loop.
 						} else {
-							// // When building unquoted "strings" warn user
-							// // when using unescaped special characters.
-							// if (r_schars.test(char)) {
-							// 	issue("warning", 5, char);
-							// }
-
 							// Store index positions.
 							NODE.value.end = STATE.i;
 							// Continue building the value string.
@@ -226,10 +220,7 @@ module.exports = STATE => {
 
 			case "eol-wsb":
 				if (!r_whitespace.test(char)) {
-					// Note: At this point all states have been gone through.
-					// All that should remain, if anything, are trailing
-					// whitespace Anything other than trailing whitespace is
-					// invalid.
+					// Note: Only trailing whitespace should remain now.
 					issue.error(STATE);
 				}
 
@@ -247,9 +238,9 @@ module.exports = STATE => {
 	let value = NODE.value.value || "";
 	value = value.substring(1, value.length - 1);
 	// Unquote value. [https://stackoverflow.com/a/19156197]
-	// 	value = value.replace(/^(["'])(.+(?=\1$))\1$/, "$2");
+	// value = value.replace(/^(["'])(.+(?=\1$))\1$/, "$2");
 
-	// Store where variable was declared.
+	// Store variable and its value.
 	STATE.DB.variables[NODE.name.value] = value;
 
 	return NODE;

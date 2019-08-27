@@ -8,7 +8,7 @@
  */
 module.exports = STATE => {
 	// Vars.
-	let TREE = STATE.DB.tree;
+	let TREE = STATE.tables.tree;
 	let nodes = TREE.nodes;
 	let output = "";
 

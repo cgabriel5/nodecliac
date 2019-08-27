@@ -18,7 +18,7 @@ module.exports = (STATE, commandname) => {
 	let SETS = {};
 	let BATCHES = {};
 	let SETTINGS = {};
-	let TREE = STATE.DB.tree;
+	let TREE = STATE.tables.tree;
 
 	let has_root = false;
 	// RegExp to match main command/first command in chain to remove.

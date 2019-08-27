@@ -10,7 +10,7 @@
 module.exports = (STATE, NODE) => {
 	// Get line.
 	// let line = STATE.line;
-	let tree = STATE.DB.tree;
+	let tree = STATE.tables.tree;
 
 	// Add nodes entry if not already added.
 	if (!tree.nodes) {

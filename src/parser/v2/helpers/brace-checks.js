@@ -23,7 +23,7 @@ module.exports = (STATE, NODE, checktype) => {
 				// // Point column to the bracket.
 				// STATE.column =
 				// 	commandscope.brackets.start -
-				// 	STATE.DB.linestarts[STATE.line] +
+				// 	STATE.tables.linestarts[STATE.line] +
 				// 	// Note: Add 1 to account for 0 base indexing (column starts at 1).
 				// 	1;
 
@@ -73,7 +73,7 @@ module.exports = (STATE, NODE, checktype) => {
 				// Point column to the bracket.
 				STATE.column =
 					commandscope.brackets.start -
-					STATE.DB.linestarts[STATE.line] +
+					STATE.tables.linestarts[STATE.line] +
 					// Note: Add 1 to account for 0 base indexing (column starts at 1).
 					1;
 
@@ -91,7 +91,7 @@ module.exports = (STATE, NODE, checktype) => {
 				// Point column to the bracket.
 				STATE.column =
 					STATE.i -
-					STATE.DB.linestarts[STATE.line] +
+					STATE.tables.linestarts[STATE.line] +
 					// Note: Add 1 to account for 0 base indexing (column starts at 1).
 					1;
 

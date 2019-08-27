@@ -26,7 +26,7 @@ module.exports = (string, commandname, source, formatting, ...args) => {
 		specificity: 0, // Default to allow anything initially.
 
 		// Parsing lookup tables.
-		DB: {
+		tables: {
 			variables: {}, // Contain variables: name:value.
 			linestarts: {}, // Contain line index start points.
 			tree: {} // Line by line parsed tree nodes.
@@ -68,8 +68,8 @@ module.exports = (string, commandname, source, formatting, ...args) => {
 		STATE.column++; // Increment column position.
 
 		// Store line start points.
-		if (!STATE.DB.linestarts[STATE.line]) {
-			STATE.DB.linestarts[STATE.line] = STATE.i;
+		if (!STATE.tables.linestarts[STATE.line]) {
+			STATE.tables.linestarts[STATE.line] = STATE.i;
 		}
 
 		// Find first non-whitespace character of line.

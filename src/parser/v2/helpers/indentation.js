@@ -14,7 +14,7 @@ let { r_letter, r_whitespace } = require("./patterns.js");
  */
 module.exports = (STATE, line_type) => {
 	// Vars.
-	let linestarts = STATE.DB.linestarts;
+	let linestarts = STATE.tables.linestarts;
 	// Note: Following line types cannot have any whitespace indentation.
 	let r_line_types = /(setting|variable|command)/;
 

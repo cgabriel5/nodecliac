@@ -54,7 +54,7 @@ module.exports = (STATE, NODE) => {
 	}
 
 	// The column index to resume error checks at.
-	let resumepoint = NODE.value.start - STATE.DB.linestarts[STATE.line];
+	let resumepoint = NODE.value.start - STATE.tables.linestarts[STATE.line];
 	// Note: Add 1 to resumepoint to account for 0 base indexing, as column
 	// value starts count at 1.
 	resumepoint++;
@@ -99,7 +99,7 @@ module.exports = (STATE, NODE) => {
 				}
 
 				// Lookup variable's value in database.
-				let value = STATE.DB.variables[match];
+				let value = STATE.tables.variables[match];
 
 				// Note: If the variable is not in the db then give an error. As
 				// a variable cannot be used before declared.

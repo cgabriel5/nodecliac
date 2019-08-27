@@ -241,7 +241,7 @@ module.exports = STATE => {
 	// value = value.replace(/^(["'])(.+(?=\1$))\1$/, "$2");
 
 	// Store variable and its value.
-	STATE.DB.variables[NODE.name.value] = value;
+	STATE.tables.variables[NODE.name.value] = value;
 
 	return NODE;
 };

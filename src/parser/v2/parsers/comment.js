@@ -23,7 +23,6 @@ module.exports = STATE => {
 
 	// Parsing vars.
 	let state = "sigil"; // Initial parsing state.
-	let warnings = []; // Collect all parsing warnings.
 	let NODE = {
 		node: "COMMENT",
 		sigil: { start: null, end: null },

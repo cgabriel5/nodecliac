@@ -49,8 +49,6 @@ module.exports = (STATE, isoneliner) => {
 	// Parsing vars.
 	let state = string.charAt(STATE.i) === "-" ? "hyphen" : "keyword"; // Initial parsing state.
 	let stop; // Flag indicating whether to stop parser.
-	let qchar;
-	let warnings = []; // Collect all parsing warnings.
 	let end_comsuming;
 	let NODE = {
 		node: "FLAG",

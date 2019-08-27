@@ -27,8 +27,6 @@ module.exports = STATE => {
 
 	// Parsing vars.
 	let state = "bullet"; // Initial parsing state.
-	let qchar;
-	let warnings = []; // Collect all parsing warnings.
 	let end_comsuming;
 	let NODE = {
 		node: "OPTION",

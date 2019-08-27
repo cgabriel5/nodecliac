@@ -24,8 +24,6 @@ module.exports = STATE => {
 
 	// Parsing vars.
 	let state = "brace"; // Initial parsing state.
-	let warnings = []; // Collect all parsing warnings.
-	let end_comsuming;
 	let NODE = {
 		node: "BRACE",
 		brace: { start: null, end: null, value: null },

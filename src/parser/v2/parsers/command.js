@@ -37,8 +37,6 @@ module.exports = STATE => {
 
 	// Parsing vars.
 	let state = "command"; // Initial parsing state.
-	let qchar;
-	let warnings = []; // Collect all parsing warnings.
 	let NODE = {
 		node: "COMMAND",
 		sigil: { start: null, end: null },

@@ -29,8 +29,6 @@ let { r_nl, r_whitespace } = require("../helpers/patterns.js");
  * @return {object} - Object containing parsed information.
  */
 module.exports = STATE => {
-	require("../helpers/trace.js")(STATE); // Trace parser.
-
 	// Note: If a command-chain scope exists, error as scope was never closed.
 	require("../helpers/brace-checks.js")(STATE, null, "pre-existing-cs");
 

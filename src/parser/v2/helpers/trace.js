@@ -5,49 +5,13 @@ const path = require("path");
 const chalk = require("chalk");
 
 /**
- * Get the filename that called the error function.
- *
- * @return {string} - The name of the file that called the function.
- *
- * @resource [https://stackoverflow.com/a/29581862]
- * @resource [https://stackoverflow.com/a/19788257]
- * @resource [https://v8.dev/docs/stack-trace-api]
- */
-let caller_filename = () => {
-	let originalFunc = Error.prepareStackTrace;
-
-	let callerfile;
-	try {
-		let err = new Error();
-		let currentfile;
-
-		Error.prepareStackTrace = function(err, stack) {
-			return stack;
-		};
-
-		currentfile = err.stack.shift().getFileName();
-
-		while (err.stack.length) {
-			callerfile = err.stack.shift().getFileName();
-
-			if (currentfile !== callerfile) break;
-		}
-	} catch (e) {}
-
-	Error.prepareStackTrace = originalFunc;
-
-	// Get file name from file path.
-	return path.basename(callerfile).replace(/^(parser|helper)\.|\.js/g, "");
-};
-
-/**
  * Print parser being used.
  *
  * @return {undefined} - Nothing is returned.
  */
-module.exports = STATE => {
+module.exports = (STATE, parser) => {
 	// Get file invoking issue.
-	let callerfile = caller_filename();
+	let parsername = parser.replace(/\.js$/g, "");
 
 	// Only trace if flag is set.
 	if (!STATE.args.trace) {
@@ -57,7 +21,7 @@ module.exports = STATE => {
 	let line_num = STATE.line;
 	let last_line_num = STATE.last_line_num;
 	let filename = path
-		.basename(path.relative(process.cwd(), callerfile))
+		.basename(path.relative(process.cwd(), parsername))
 		.replace(/\.js$/, "");
 
 	// Print header.

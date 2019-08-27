@@ -19,8 +19,6 @@ let { r_nl, r_whitespace, r_quote } = require("../helpers/patterns.js");
  * @return {object} - Object containing parsed information.
  */
 module.exports = STATE => {
-	require("../helpers/trace.js")(STATE); // Trace parser.
-
 	// Note: If a flag scope doesn't exist, error as it needs to.
 	require("../helpers/brace-checks.js")(STATE, null, "pre-existing-fs");
 

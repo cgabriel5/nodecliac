@@ -228,8 +228,8 @@ module.exports = (
 			// Finally, run parser. ============================================
 
 			// Run the line type's function.
-			if (PARSERS[line_type]) {
-				PARSERS[line_type](STATE);
+			let parser = `${line_type}.js`;
+			require("./helpers/trace.js")(STATE, parser); // Trace parser.
 			}
 		}
 	}

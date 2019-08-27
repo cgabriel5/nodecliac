@@ -19,8 +19,6 @@ let { r_nl, r_whitespace } = require("../helpers/patterns.js");
  * @return {object} - Object containing parsed information.
  */
 module.exports = STATE => {
-	require("../helpers/trace.js")(STATE); // Trace parser.
-
 	// Get global loop state variables.
 	let { line, l, string } = STATE;
 

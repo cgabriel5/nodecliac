@@ -32,8 +32,6 @@ let {
  * @return {object} - Object containing parsed information.
  */
 module.exports = (STATE, isoneliner) => {
-	require("../helpers/trace.js")(STATE); // Trace parser.
-
 	// Note: If not a oneliner or there is no command scope then the
 	// flag is being declared out of scope.
 	if (!(isoneliner || STATE.scopes.command)) {

@@ -11,8 +11,6 @@ let issue = require("../helpers/issue.js");
  * @return {object} - Object containing parsed information.
  */
 module.exports = (STATE, NODE) => {
-	// require("../helpers/trace.js")(__filename); // Trace parser.
-
 	// Get string value.
 	let value = NODE.value.value;
 	let type = NODE.value.type;

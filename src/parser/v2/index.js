@@ -48,17 +48,6 @@ module.exports = (
 		comment: 0
 	};
 
-	const PARSERS = {
-		command: require("./parsers/command.js"),
-		comment: require("./parsers/comment.js"),
-		setting: require("./parsers/setting.js"),
-		variable: require("./parsers/variable.js"),
-		flag: require("./parsers/flag.js"),
-		option: require("./parsers/option.js"),
-		"close-brace": require("./parsers/close-brace.js"),
-		"empty-line": require("./parsers/empty-line.js")
-	};
-
 	// Parsing database.
 	const DB = {
 		variables: {}, // Contain variable_name:value pairs.
@@ -109,7 +98,7 @@ module.exports = (
 
 		if (char === "\n") {
 			// Run empty line parser.
-			PARSERS["empty-line"](STATE);
+			require(`./parsers/empty-line.js`)(STATE);
 
 			STATE.line++; // Increment line count.
 			STATE.column = 0; // Reset column to zero.
@@ -230,7 +219,7 @@ module.exports = (
 			// Run the line type's function.
 			let parser = `${line_type}.js`;
 			require("./helpers/trace.js")(STATE, parser); // Trace parser.
-			}
+			require(`./parsers/${parser}`)(STATE);
 		}
 	}
 

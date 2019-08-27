@@ -133,19 +133,13 @@ module.exports = STATE => {
 					} else if (char === "=") {
 						state = "assignment";
 
-						// Note: Rollback index by 1 to allow parser to
-						// start at assignment case on next iteration.
-						STATE.i -= 1;
-						STATE.column--;
+						STATE.loop.rollback(STATE); // Rollback loop.
 
 						// Anything else the character is not allowed.
 					} else if (char === ",") {
 						state = "delimiter";
 
-						// Note: Rollback index by 1 to allow parser to
-						// start at delimiter case on next iteration.
-						STATE.i -= 1;
-						STATE.column--;
+						STATE.loop.rollback(STATE); // Rollback loop.
 
 						// Anything else the character is not allowed.
 					} else {
@@ -166,18 +160,12 @@ module.exports = STATE => {
 						// Change sate to assignment.
 						state = "assignment";
 
-						// Note: Rollback index by 1 to allow parser to
-						// start at assignment case on next iteration.
-						STATE.i -= 1;
-						STATE.column--;
+						STATE.loop.rollback(STATE); // Rollback loop.
 					} else if (char === ",") {
 						// Change sate to delimiter.
 						state = "delimiter";
 
-						// Note: Rollback index by 1 to allow parser to
-						// start at assignment case on next iteration.
-						STATE.i -= 1;
-						STATE.column--;
+						STATE.loop.rollback(STATE); // Rollback loop.
 					} else {
 						// Note: Hitting this block means an invalid
 						// character was encountered so give an error.
@@ -219,10 +207,7 @@ module.exports = STATE => {
 				if (!r_whitespace.test(char)) {
 					state = "value";
 
-					// Note: Rollback index by 1 to allow parser to
-					// start at assignment case on next iteration.
-					STATE.i -= 1;
-					STATE.column--;
+					STATE.loop.rollback(STATE); // Rollback loop.
 				}
 
 				break;
@@ -240,10 +225,7 @@ module.exports = STATE => {
 
 				state = char === "[" ? "open-bracket" : "oneliner";
 
-				// Note: Rollback index by 1 to allow parser to
-				// start at assignment case on next iteration.
-				STATE.i -= 1;
-				STATE.column--;
+				STATE.loop.rollback(STATE); // Rollback loop.
 
 				break;
 
@@ -269,10 +251,7 @@ module.exports = STATE => {
 				if (!r_whitespace.test(char)) {
 					state = "close-bracket";
 
-					// Note: Rollback index by 1 to allow parser to
-					// start at assignment case on next iteration.
-					STATE.i -= 1;
-					STATE.column--;
+					STATE.loop.rollback(STATE); // Rollback loop.
 				}
 
 				break;

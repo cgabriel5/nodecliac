@@ -109,10 +109,7 @@ module.exports = (STATE, isoneliner) => {
 					if (char !== "-") {
 						state = "name";
 
-						// Note: Rollback index by 1 to allow parser to
-						// start at new state on next iteration.
-						STATE.i -= 1;
-						STATE.column--;
+						STATE.loop.rollback(STATE); // Rollback loop.
 					} else {
 						// Store index positions.
 						NODE.hyphens.end = STATE.i;
@@ -188,37 +185,25 @@ module.exports = (STATE, isoneliner) => {
 					} else if (char === "=") {
 						state = "assignment";
 
-						// Note: Rollback index by 1 to allow parser to
-						// start at new state on next iteration.
-						STATE.i -= 1;
-						STATE.column--;
+						STATE.loop.rollback(STATE); // Rollback loop.
 
 						// If char is a question mark change state/reset index.
 					} else if (char === "?") {
 						state = "boolean-indicator";
 
-						// Note: Rollback index by 1 to allow parser to
-						// start at new state on next iteration.
-						STATE.i -= 1;
-						STATE.column--;
+						STATE.loop.rollback(STATE); // Rollback loop.
 
 						// If char is a pipe change state/reset index.
 					} else if (char === "|") {
 						state = "pipe-delimiter";
 
-						// Note: Rollback index by 1 to allow parser to
-						// start at new state on next iteration.
-						STATE.i -= 1;
-						STATE.column--;
+						STATE.loop.rollback(STATE); // Rollback loop.
 
 						// If char is whitespace change state/reset index.
 					} else if (r_whitespace.test(char)) {
 						state = "wsb-postname";
 
-						// Note: Rollback index by 1 to allow parser to
-						// start at new state on next iteration.
-						STATE.i -= 1;
-						STATE.column--;
+						STATE.loop.rollback(STATE); // Rollback loop.
 
 						// Anything else the character is not allowed.
 					} else {
@@ -238,10 +223,7 @@ module.exports = (STATE, isoneliner) => {
 					if (char === "=") {
 						state = "assignment";
 
-						// Note: Rollback index by 1 to allow parser to
-						// start at new state on next iteration.
-						STATE.i -= 1;
-						STATE.column--;
+						STATE.loop.rollback(STATE); // Rollback loop.
 
 						// 	// If char is a question mark change state/reset index.
 						// } else if (char === "?") {
@@ -256,10 +238,7 @@ module.exports = (STATE, isoneliner) => {
 					} else if (char === "|") {
 						state = "pipe-delimiter";
 
-						// Note: Rollback index by 1 to allow parser to
-						// start at new state on next iteration.
-						STATE.i -= 1;
-						STATE.column--;
+						STATE.loop.rollback(STATE); // Rollback loop.
 
 						// Anything else the character is not allowed.
 					} else {
@@ -309,10 +288,7 @@ module.exports = (STATE, isoneliner) => {
 					// Now start looking the value.
 					state = "wsb-prevalue";
 				} else {
-					// Note: Rollback index by 1 to allow parser to
-					// start at new state on next iteration.
-					STATE.i -= 1;
-					STATE.column--;
+					STATE.loop.rollback(STATE); // Rollback loop.
 
 					// Set state based on character.
 					if (char === "|") {
@@ -343,10 +319,7 @@ module.exports = (STATE, isoneliner) => {
 				// Note: Allow any whitespace until first non-whitespace
 				// character is hit.
 				if (!r_whitespace.test(char)) {
-					// Note: Rollback index by 1 to allow parser to
-					// start at new state on next iteration.
-					STATE.i -= 1;
-					STATE.column--;
+					STATE.loop.rollback(STATE); // Rollback loop.
 
 					// Set state based on character.
 					if (char === "|") {
@@ -391,12 +364,8 @@ module.exports = (STATE, isoneliner) => {
 						// Stop building value and change state.
 						state = "pipe-delimiter";
 
-						// Note: Rollback index by 1 to allow parser to
-						// start at new state on next iteration.
-						STATE.i -= 1;
-						STATE.column--;
+						STATE.loop.rollback(STATE); // Rollback loop.
 
-						// stop = true;
 						break;
 					}
 

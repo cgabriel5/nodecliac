@@ -80,10 +80,7 @@ module.exports = STATE => {
 				// Note: Allow any whitespace until first non-whitespace
 				// character is hit.
 				if (!r_whitespace.test(char)) {
-					// Note: Rollback index by 1 to allow parser to
-					// start at new state on next iteration.
-					STATE.i -= 1;
-					STATE.column--;
+					STATE.loop.rollback(STATE); // Rollback loop.
 
 					state = "value";
 				}

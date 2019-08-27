@@ -82,6 +82,9 @@ module.exports = (
 			nowarn,
 			stripcomments,
 			test
+		},
+		loop: {
+			rollback: require("./helpers/rollback.js")
 		}
 	};
 	// Loop local vars.

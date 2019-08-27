@@ -105,10 +105,7 @@ module.exports = STATE => {
 					} else if (char === "=") {
 						state = "assignment";
 
-						// Note: Rollback index by 1 to allow parser to
-						// start at assignment case on next iteration.
-						STATE.i -= 1;
-						STATE.column--;
+						STATE.loop.rollback(STATE); // Rollback loop.
 
 						// Anything else the character is not allowed.
 					} else {
@@ -128,10 +125,7 @@ module.exports = STATE => {
 						// Change sate to assignment.
 						state = "assignment";
 
-						// Note: Rollback index by 1 to allow parser to
-						// start at assignment case on next iteration.
-						STATE.i -= 1;
-						STATE.column--;
+						STATE.loop.rollback(STATE); // Rollback loop.
 					} else {
 						// Note: Hitting this block means an invalid
 						// character was encountered so give an error.
@@ -160,10 +154,7 @@ module.exports = STATE => {
 				if (!r_whitespace.test(char)) {
 					state = "value";
 
-					// Note: Rollback index by 1 to allow parser to
-					// start at assignment case on next iteration.
-					STATE.i -= 1;
-					STATE.column--;
+					STATE.loop.rollback(STATE); // Rollback loop.
 				}
 
 				break;
@@ -215,10 +206,7 @@ module.exports = STATE => {
 						if (r_whitespace.test(char)) {
 							state = "eol-wsb";
 
-							// Note: Rollback index by 1 to allow parser to
-							// start at assignment case on next iteration.
-							STATE.i -= 1;
-							STATE.column--;
+							STATE.loop.rollback(STATE); // Rollback loop.
 						} else {
 							// // When building unquoted "strings" warn user
 							// // when using unescaped special characters.

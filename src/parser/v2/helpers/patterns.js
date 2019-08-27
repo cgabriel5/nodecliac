@@ -21,7 +21,7 @@ module.exports = {
 	// Close parentheses.
 	r_close_parens: /^[ \t]*\)[ \t]*$/,
 	// Starting line character.
-	r_start_line_char: /[-@a-zA-Z)\]#]/,
+	r_start_line_char: /[-@a-zA-Z)\]$;#]/,
 	// Command setter.
 	r_command_setter: /^[ \t]*=[ \t]*(\[|-{1,2})/,
 	// Flag option.

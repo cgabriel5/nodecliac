@@ -50,6 +50,7 @@ $db{'fallbacks'} = {};
 my %usedflags;
 $usedflags{'valueless'};
 $usedflags{'multi'};
+$usedflags{'counts'};
 
 # Vars to be used for storing used default positional arguments.
 my $used_default_pa_args = '';
@@ -835,6 +836,9 @@ sub __extractor {
 
 		if ($uflag_value) {$usedflags{$uflag_fkey}{$uflag_value} = 1;}
 		else { $usedflags{valueless}{$uflag_fkey} = undef; }
+
+		# Track amount of times flag was used.
+		$usedflags{counts}{$uflag_fkey}++;
 	}
 
 	# return;

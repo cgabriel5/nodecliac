@@ -501,6 +501,52 @@ sub __parser {
 	# Input must not be empty.
 	if (!$input) { return; }
 
+	# Given the following input: '-n5 -abc "val"', the input will be turned
+	#     into '-n 5 -a -b -c "val"'.
+	#
+	# @param {string} 1) - The string to spread.
+	# @return {string} - The remaining argument.
+	sub spread {
+		# Get arguments.
+		my ($argument, $args) = @_;
+
+		# Must pass following checks:
+		# - Start with a hyphen.
+		# - String must be >= 3 chars in length.
+		# - Must only start with a single hyphen.
+		if (length($argument) >= 3 && substr($argument, 1, 1) ne '-') {
+			substr($argument, 0, 1, ""); # Remove hyphen from argument.
+			my $lchar = chop($argument); # Get last letter.
+			$argument .= $lchar; # Re-add last character.
+
+			# If the last character is a number then everything after the
+			# first letter character (the flag) is its value.
+			if ($lchar =~ tr/1234567890//) {
+				# Get the single letter argument.
+				my $argletter = substr($argument, 0, 1);
+				# Remove first char (letter) from argument.
+				substr($argument, 0, 1, "");
+
+				# Add letter argument to args array.
+				push(@$args, "-$argletter");
+
+			# Else, all other characters after are individual flags.
+			} else {
+				# Store last char from argument for later.
+				my $lchar = chop($argument);
+
+				# Add each other characters as single hyphen flags.
+				my @chars = split(//, $argument);
+				foreach my $char (@chars) { push(@$args, "-$char"); }
+
+				# Reset value to final argument.
+				$argument = "-$lchar";
+			}
+		}
+
+		return $argument;
+	}
+
 	while ($input) {
 		# [https://www.perlmonks.org/?node_id=873068]
 		# [https://www.perlmonks.org/?node_id=833345]
@@ -541,7 +587,7 @@ sub __parser {
 				if ($input && rindex($input, ' ', 0) != 0) { next; }
 
 				# Store argument and reset vars.
-				push(@args, $argument);
+				push(@args, rindex($argument, '-', 0) ? $argument : spread($argument, \@args));
 				# Clear/reset variables.
 				$argument = '';
 				$qchar = '';
@@ -560,7 +606,7 @@ sub __parser {
 				if (!$argument) { next; }
 
 				# Store argument and reset vars.
-				push(@args, $argument);
+				push(@args, rindex($argument, '-', 0) ? $argument : spread($argument, \@args));
 				# Clear/reset variables.
 				$argument = '';
 				$qchar = '';
@@ -572,7 +618,7 @@ sub __parser {
 	}
 
 	# Get last argument.
-	if ($argument) { push(@args, $argument); }
+	if ($argument) { push(@args, rindex($argument, '-', 0) ? $argument : spread($argument, \@args)); }
 
 	# Get/store last character of input.
 	$lastchar = !($c ne ' ' && $p ne '\\') ? $c : '';

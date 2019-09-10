@@ -1001,15 +1001,30 @@ sub __lookup {
 					my $flag_values = $usedflags{$flag_fkey};
 					# my @count = (keys %$flag_values);
 
-					# If at least 1 occurrence in used hash, flag has been used.
-					# if (@count && $flag_value) { $dupe = 1; }
-					# if (@count) { $dupe = 1; }
-					if ($flag_values && !$flag_value) { $dupe = 1; }
+					# If usedflags contains <flag:value> at root level...
+					if ($flag_values) {
+						# If no values exists...
+						if (!$flag_value) { $dupe = 1; # subl -n 2, subl -n 23
 
-					# If there is exactly 1 occurrence and the flag matches the
-					# RegExp pattern we undupe flag as the 1 occurrence is being
-					# completed (i.e. a value is being completed).
-					# if ($flag_value) { $dupe = 0; }
+						# Else check that value exists...
+						} elsif (exists($usedflags{$flag_fkey}{$flag_value})) {
+							$dupe = 1; # subl -n 23 -n
+						}
+
+					# If no root level entry...
+					} else {
+						# if ($last eq $flag_fkey) {
+						# 	$dupe = 0; # subl --type, subl --type= --type
+						# } else {}
+
+						# It last word/flag key match and flag value is used.
+						if ($last ne $flag_fkey
+							&& exists($usedflags{valueless}{$flag_fkey})) {
+							if (!exists($usedflags{$flag_fkey}{$flag_value})) {
+								$dupe = 1; # subl --type=, subl --type= --
+							}
+						}
+					}
 				}
 
 				# If flag is a dupe skip it.

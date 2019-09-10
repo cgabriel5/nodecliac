@@ -1015,6 +1015,11 @@ sub __lookup {
 				# If flag is a dupe skip it.
 				if ($dupe) { next; }
 
+				# Note: Don't list single letter flags. Listing them along
+				# with double hyphen flags is awkward. Therefore, only list
+				# then when completing or showing its value(s).
+				if (length($flag_fkey) == 2 && !$flag_value) { next; }
+
 				# END: Remove duplicate flag logic. ============================
 
 				# If last word is in the form → "--flag=" then we need to

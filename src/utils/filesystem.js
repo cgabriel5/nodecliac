@@ -59,6 +59,25 @@ let write = (filepath, data, mode) => {
 		});
 	});
 };
+/**
+ * Wrapper for copyFile method. Returns a Promise.
+ *
+ * @param  {string} filepath - The path of file to copy.
+ * @return {promise} - Promise is returned.
+ *
+ * @resource [https://stackoverflow.com/a/46253698]
+ */
+let copy = (filepath, destination) => {
+	return new Promise((resolve, reject) => {
+		fs.copyFile(filepath, destination, err => {
+			// Reject on error.
+			if (err) reject(err);
+
+			// Return boolean on success.
+			resolve(true);
+		});
+	});
+};
 
 /**
  * Wrapper for unlink method. Returns a Promise.
@@ -164,5 +183,6 @@ module.exports = {
 	remove,
 	write,
 	info,
-	read
+	read,
+	copy
 };

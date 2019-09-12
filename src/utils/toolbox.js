@@ -13,6 +13,7 @@ const {
 	write,
 	info,
 	read,
+	copy,
 	ispath_abs
 } = require("./filesystem.js");
 
@@ -28,5 +29,6 @@ module.exports = {
 	remove,
 	write,
 	info,
-	read
+	read,
+	copy
 };

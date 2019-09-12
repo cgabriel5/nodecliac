@@ -1173,7 +1173,7 @@ sub __lookup {
 		} else {
 			my $letter = substr($commandchain, 1, 1);
 			# [https://stackoverflow.com/a/33102092]
-			my @rows = (keys %{ $db{dict}{$letter} } );
+			my @rows = (keys %{ $db{dict}{$letter} });
 			my $lastchar_notspace = ($lastchar ne ' ');
 
 			# If no rows...
@@ -1348,7 +1348,7 @@ sub __makedb {
 
 				# Get command/flags/fallbacks from each line.
 				my $space_index = index($line, ' ');
-				my $chain = substr($line, 1, $space_index - 1 );
+				my $chain = substr($line, 1, $space_index - 1);
 
 				# Parse chain.
 				my $dot_index = index($chain, '.');

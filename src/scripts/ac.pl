@@ -43,7 +43,6 @@ my $input_remainder = substr($cline, $cpoint, -1); # CLI input from caret index 
 
 # Vars - ACDEF file parsing variables.
 my %db;
-my %seen;
 $db{'fallbacks'} = {};
 
 # Used flags variables.
@@ -130,7 +129,7 @@ sub __normalize_command {
 # @return {string} - The validated argument.
 sub __validate_flag {
 	# Get arguments.
-	my ($item, $type) = @_;
+	my ($item) = @_;
 
 	# If string is a file/directory then return.
 	if (__is_file_or_dir($item)) { return $item; }
@@ -152,7 +151,7 @@ sub __validate_flag {
 }
 # Look at __validate_flag for function details.
 sub __validate_command {
-	my ($item, $type) = @_;
+	my ($item) = @_;
 	if (__is_file_or_dir($item)) { return $item; }
 	if ($item =~ tr/-._:\\a-zA-Z0-9//c) { exit; }
 	return $item;

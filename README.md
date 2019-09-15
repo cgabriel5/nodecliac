@@ -80,46 +80,22 @@ $ git clone -b BRANCH_NAME --single-branch https://github.com/cgabriel5/nodeclia
 
 ## Install (manual)
 
-At the moment, generating `.acdef` files from `.acmap` files requires Node.js as the parser and all nodecliac's core tools are written in JavaScript. However, if you already have the CLI program(s) registry package/files and really only need tab-completion, (you aren't generating `.acdef` files, for example) nodecliac can be setup manually with the commands below.
+At the moment, generating `.acdef` files from `.acmap` files requires Node.js as the parser and all nodecliac's core tools are written in JavaScript. However, if you already have the CLI program(s) registry package/files and really only need tab-completion, (you aren't generating `.acdef` files, for example) nodecliac can be setup for tab-completion only.
 
-<details><summary>Show manual install guide/script.</summary>
+<details><summary>Show manual install/uninstall</summary>
 
 ```sh
-#!/bin/bash
+# Using curl:
+$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/src/scripts/manual/install | bash -s
 
-# 1) Clone nodecliac repo to Desktop.
-git clone git@github.com:cgabriel5/nodecliac.git ~/Desktop/nodecliac
-
-# 2) Create nodecliac's directory structure.
-mkdir -p ~/.nodecliac/{registry,src}
-
-# 3) Copy the Perl/Shell nodecliac scripts from the cloned repo to ~/.nodecliac/src.
-# [https://superuser.com/a/114198]
-cp -p ~/Desktop/nodecliac/src/scripts/*.* ~/.nodecliac/src
-
-# 3.1) Strip comments/empty lines from copied files.
-perl -pi -e 's/^\s*#(?!!).*?$//g;s/\s{1,}#\s{1,}.+$//g;s!^\s+?$!!' ~/.nodecliac/src/*.{sh,pl}
-# [http://isunix.github.io/blog/2014/07/24/perl-one-liner-to-remove-blank-lines/].
-# [https://stackoverflow.com/a/6995010], [https://unix.stackexchange.com/a/179449]
-
-# 4) Modify your ~/.bashrc to add nodecliac.
-echo 'ncliac=~/.nodecliac/src/main.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;' >> ~/.bashrc
-
-# 5) Delete the cloned repo as it's no longer needed.
-rm -rf ~/Desktop/nodecliac
-
-# 6) Lastly, add the command packages to nodecliac's registry: ~/.nodecliac/registry
-# 7) Open a new Terminal and enjoy the tab-completion!
+# Using wget:
+$ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/src/scripts/manual/install | bash -s
 ```
 
 <details><summary>Uninstall</summary>
 
 ```sh
-# 1) Manually or with program (Perl in this case) remove nodecliac from ~/.bashrc.
-perl -pi -e "s/ncliac=~\/.nodecliac\/src\/main.sh;if \[ -f \"\\\$ncliac\" \];then source \"\\\$ncliac\";fi;// if /^ncliac/" ~/.bashrc
-
-# 2) Finally, remove the nodecliac folder and its contents.
-rm -rf ~/.nodecliac
+$ nodecliac uninstall
 ```
 
 </details>

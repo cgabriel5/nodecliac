@@ -1,7 +1,11 @@
 #!/bin/bash
 
+# Only argument allowed for now is a branch name (default to master).
+branch_name="$1"
+if [[ -z "$branch_name" ]]; then branch_name="master"; fi
+
 # Link to github nodecliac tarball.
-tarball_link="https://api.github.com/repos/cgabriel5/nodecliac/tarball"
+tarball_link="https://api.github.com/repos/cgabriel5/nodecliac/tarball/$branch_name"
 outputdir="$HOME/.nodecliac-src"
 
 # 1) Clone repo with first found command. (command order: curl > wget > git)
@@ -43,7 +47,7 @@ if [[ -z "$(grep -o "ncliac=~/.nodecliac/src/main.sh" ~/.bashrc)" ]]; then
 fi
 
 # 5) Create bin file.
-sudo cp -p "$outputdir/src/scripts/manual/uninstall" /usr/local/bin/nodecliac
+sudo cp -p "$outputdir/src"/scripts/manual/uninstall /usr/local/bin/nodecliac
 sudo chmod +x /usr/local/bin/nodecliac
 
 # 6) Delete the cloned repo as it's no longer needed.

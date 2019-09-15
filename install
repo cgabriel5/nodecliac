@@ -47,7 +47,7 @@ if [[ -z "$(grep -o "ncliac=~/.nodecliac/src/main.sh" ~/.bashrc)" ]]; then
 fi
 
 # 5) Create bin file.
-sudo cp -p "$outputdir/src"/scripts/manual/uninstall /usr/local/bin/nodecliac
+sudo cp -p "$outputdir"/uninstall /usr/local/bin/nodecliac
 sudo chmod +x /usr/local/bin/nodecliac
 
 # 6) Delete the cloned repo as it's no longer needed.

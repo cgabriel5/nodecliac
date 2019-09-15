@@ -84,10 +84,10 @@ At the moment, generating `.acdef` files from `.acmap` files requires Node.js as
 
 ```sh
 # Using curl:
-$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/src/scripts/manual/install | bash -s
+$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s
 
 # Using wget:
-$ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/src/scripts/manual/install | bash -s
+$ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s
 ```
 
 <details><summary>Uninstall</summary>

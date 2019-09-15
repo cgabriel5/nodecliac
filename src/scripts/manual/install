@@ -42,13 +42,13 @@ if [[ -z "$(grep -o "ncliac=~/.nodecliac/src/main.sh" ~/.bashrc)" ]]; then
 	echo -e '\nncliac=~/.nodecliac/src/main.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;' >> ~/.bashrc
 fi
 
-# 5) Delete the cloned repo as it's no longer needed.
-rm -rf ~/.nodecliac-src*
-
-# 6) Create bin file.
+# 5) Create bin file.
 # sudo touch /usr/local/bin/nodecliac
 sudo cp -p "$outputdir/src/scripts/manual/uninstall" /usr/local/bin/nodecliac
 sudo chmod +x /usr/local/bin/nodecliac
+
+# 6) Delete the cloned repo as it's no longer needed.
+rm -rf ~/.nodecliac-src*
 
 # 7) Source bash to update terminal of changes.
 source ~/.bashrc

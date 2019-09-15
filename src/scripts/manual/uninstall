@@ -15,6 +15,7 @@ if [[ -z "$(grep -o "manual" "$HOME/.nodecliac/.setup.db.json")" ]]; then exit; 
 if [[ -n "$(grep -o "ncliac=~/.nodecliac/src/main.sh" ~/.bashrc)" ]]; then
 	# [https://stackoverflow.com/a/57813295]
 	perl -0pi -e 's/ncliac=~\/.nodecliac\/src\/main.sh;if \[ -f "\$ncliac" \];then source "\$ncliac";fi;//;s/\n+(\n)$/\1/gs' ~/.bashrc
+	# perl -pi -e "s/ncliac=~\/.nodecliac\/src\/main.sh;if \[ -f \"\\\$ncliac\" \];then source \"\\\$ncliac\";fi;// if /^ncliac/" ~/.bashrc
 fi
 
 # 2) Delete main folder.

@@ -1,14 +1,19 @@
 #!/bin/bash
 
 # Only argument allowed for now is a branch name (default to master).
-branch_name="$1"
-if [[ -z "$branch_name" ]]; then branch_name="master"; fi
+branch_name="$1"; if [[ -z "$branch_name" ]]; then branch_name="master"; fi
 
-# Link to github nodecliac tarball.
-tarball_link="https://api.github.com/repos/cgabriel5/nodecliac/tarball/$branch_name"
+# Vars.
 outputdir="$HOME/.nodecliac-src"
+timestamp=$(($(date +%s%N)/1000000)) # Generate timestamp.
+tarball_link="https://api.github.com/repos/cgabriel5/nodecliac/tarball/$branch_name"
 
-# 1) Clone repo with first found command. (command order: curl > wget > git)
+# If ~/.nodecliac exists rename folder to allow for new one.
+if [[ -e ~/.nodecliac ]]; then
+	mv ~/.nodecliac "$HOME/.nodecliac.bak.$timestamp"
+fi
+
+# Clone repo with first found command. (order: curl > wget > git)
 if [[ -n "$(command -v curl)" ]]; then
 	curl -Ls "$tarball_link" -o ~/.nodecliac-src.tar.gz
 	tar -xzf ~/.nodecliac-src.tar.gz -C ~/
@@ -21,37 +26,35 @@ elif [[ -n "$(command -v git)" ]]; then
 	git clone -q git@github.com:cgabriel5/nodecliac.git "$outputdir"
 fi
 
-# 2) Create nodecliac's directory structure.
+# Create needed directories.
 mkdir -p ~/.nodecliac/{registry,src}
 
-# 3) Copy the Perl/Shell nodecliac scripts from the cloned repo to ~/.nodecliac/src.
-# [https://superuser.com/a/114198]
+# Copy the Perl/Shell nodecliac scripts. [https://superuser.com/a/114198]
 cp -p "$outputdir"/src/scripts/*.* ~/.nodecliac/src
 
-# 3.1) Copy command complete packages.
+# Copy registry completion packages.
 cp -p -r "$outputdir"/resources/nodecliac/* ~/.nodecliac/registry
 rm -rf ~/.nodecliac/registry/__acmaps # Remove acmap files.
 
-# 3.2) Create setup file.
-timestamp=$(($(date +%s%N)/1000000)) # [https://serverfault.com/a/178944]
-echo "{ \"force\": false, \"rcfilepath\": \"$HOME/.bashrc\", \"time\": \"$timestamp\", \"manual\": true }" > ~/.nodecliac/.setup.db.json
+# Create setup file.
+echo "{ \"force\": false, \"rcfilepath\": \"$HOME/.bashrc\", \"time\": \"$timestamp\", \"aconly\": true }" > ~/.nodecliac/.setup.db.json
 
-# 3.4) Strip comments/empty lines from copied files.
+# Strip comments/empty lines from files.
 perl -pi -e 's/^\s*#(?!!).*?$//g;s/\s{1,}#\s{1,}.+$//g;s!^\s+?$!!' ~/.nodecliac/src/*.{sh,pl}
 # [http://isunix.github.io/blog/2014/07/24/perl-one-liner-to-remove-blank-lines/].
 # [https://stackoverflow.com/a/6995010], [https://unix.stackexchange.com/a/179449]
 
-# 4) Modify your ~/.bashrc to add nodecliac if not already.
+# Add nodecliac to ~/.bashrc if not already.
 if [[ -z "$(grep -o "ncliac=~/.nodecliac/src/main.sh" ~/.bashrc)" ]]; then
 	echo -e '\nncliac=~/.nodecliac/src/main.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;' >> ~/.bashrc
 fi
 
-# 5) Create bin file.
+# Modify nodecliac.acdef for aconly.
+perl -i -lne 'if (/^(#|.uninstall --| )/) { if ($1 eq " ") { print "\n --"} elsif ($1 eq ".uninstall --") { print "$1" } else { print } }' ~/.nodecliac/registry/nodecliac/nodecliac.acdef
+
+# Create bin file.
 sudo cp -p "$outputdir"/uninstall /usr/local/bin/nodecliac
 sudo chmod +x /usr/local/bin/nodecliac
 
-# 6) Delete the cloned repo as it's no longer needed.
+# Delete cloned repo.
 rm -rf ~/.nodecliac-src*
-
-# 7) Source bash to update terminal of changes.
-source ~/.bashrc

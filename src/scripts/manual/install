@@ -47,7 +47,7 @@ rm -rf ~/.nodecliac-src*
 
 # 6) Create bin file.
 # sudo touch /usr/local/bin/nodecliac
-sudo cp -p "$outputdir/src/manual/uninstall" /usr/local/bin/nodecliac
+sudo cp -p "$outputdir/src/scripts/manual/uninstall" /usr/local/bin/nodecliac
 sudo chmod +x /usr/local/bin/nodecliac
 
 # 7) Source bash to update terminal of changes.

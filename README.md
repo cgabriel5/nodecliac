@@ -80,7 +80,7 @@ $ git clone -b BRANCH_NAME --single-branch https://github.com/cgabriel5/nodeclia
 
 ## Install (Tab-completion Only)
 
-At the moment, generating `.acdef` files from `.acmap` files requires Node.js as the parser and all nodecliac's core tools are written in JavaScript. However, if you already have the CLI program(s) registry package/files and really only need tab-completion, (you aren't generating `.acdef` files, for example) nodecliac can be setup for tab-completion only.
+At the moment, generating `.acdef` files from `.acmap` files requires Node.js as the parser and all nodecliac's core tools are written in JavaScript. However, if you already have the CLI program(s) registry package/files and only need tab-completion, (you aren't generating `.acdef` files, for example) install via `curl` or `wget` as shown:
 
 ```sh
 # Using curl:

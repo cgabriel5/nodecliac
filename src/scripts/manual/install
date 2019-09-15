@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Link to github nodecliac tarball.
+tarball_link="https://api.github.com/repos/cgabriel5/nodecliac/tarball"
+outputdir="$HOME/.nodecliac-src"
+
+# 1) Clone repo with first found command. (command order: curl > wget > git)
+if [[ -n "$(command -v curl)" ]]; then
+	curl -Ls "$tarball_link" -o ~/.nodecliac-src.tar.gz
+	tar -xzf ~/.nodecliac-src.tar.gz -C ~/
+	mv ~/cgabriel5-nodecliac-* "$outputdir"
+elif [[ -n "$(command -v wget)" ]]; then
+	wget -q -c "$tarball_link" -O ~/.nodecliac-src.tar.gz
+	tar -xzf ~/.nodecliac-src.tar.gz -C ~/
+	mv ~/cgabriel5-nodecliac-* "$outputdir"
+elif [[ -n "$(command -v git)" ]]; then
+	git clone -q git@github.com:cgabriel5/nodecliac.git "$outputdir"
+fi
+
+# 2) Create nodecliac's directory structure.
+mkdir -p ~/.nodecliac/{registry,src}
+
+# 3) Copy the Perl/Shell nodecliac scripts from the cloned repo to ~/.nodecliac/src.
+# [https://superuser.com/a/114198]
+cp -p "$outputdir"/src/scripts/*.* ~/.nodecliac/src
+
+# 3.1) Copy command complete packages.
+cp -p -r "$outputdir"/resources/nodecliac/* ~/.nodecliac/registry
+rm -rf ~/.nodecliac/registry/__acmaps # Remove acmap files.
+
+# 3.2) Create setup file.
+timestamp=$(($(date +%s%N)/1000000)) # [https://serverfault.com/a/178944]
+echo "{ \"force\": false, \"rcfilepath\": \"$HOME/.bashrc\", \"time\": \"$timestamp\", \"manual\": true }" > ~/.nodecliac/.setup.db.json
+
+# 3.4) Strip comments/empty lines from copied files.
+perl -pi -e 's/^\s*#(?!!).*?$//g;s/\s{1,}#\s{1,}.+$//g;s!^\s+?$!!' ~/.nodecliac/src/*.{sh,pl}
+# [http://isunix.github.io/blog/2014/07/24/perl-one-liner-to-remove-blank-lines/].
+# [https://stackoverflow.com/a/6995010], [https://unix.stackexchange.com/a/179449]
+
+# 4) Modify your ~/.bashrc to add nodecliac if not already.
+if [[ -z "$(grep -o "ncliac=~/.nodecliac/src/main.sh" ~/.bashrc)" ]]; then
+	echo -e '\nncliac=~/.nodecliac/src/main.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;' >> ~/.bashrc
+fi
+
+# 5) Delete the cloned repo as it's no longer needed.
+rm -rf ~/.nodecliac-src*
+
+# 6) Create bin file.
+# sudo touch /usr/local/bin/nodecliac
+sudo cp -p "$outputdir/src/manual/uninstall" /usr/local/bin/nodecliac
+sudo chmod +x /usr/local/bin/nodecliac
+
+# 7) Source bash to update terminal of changes.
+source ~/.bashrc

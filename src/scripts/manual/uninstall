@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Remove manual setup.
+
+# Prompt for password early on.
+sudo echo > /dev/null 2>&1
+
+# If arguments count is not 1 or argument is not 'uninstall' exit.
+if [[ $# != 1 || "$1" != "uninstall" ]]; then exit; fi
+
+# Confirm manual setup.
+if [[ -z "$(grep -o "manual" "$HOME/.nodecliac/.setup.db.json")" ]]; then exit; fi
+
+# 1) Remove nodecliac from ~/.bashrc.
+if [[ -n "$(grep -o "ncliac=~/.nodecliac/src/main.sh" ~/.bashrc)" ]]; then
+	# [https://stackoverflow.com/a/57813295]
+	perl -0pi -e 's/ncliac=~\/.nodecliac\/src\/main.sh;if \[ -f "\$ncliac" \];then source "\$ncliac";fi;//;s/\n+(\n)$/\1/gs' ~/.bashrc
+fi
+
+# 2) Delete main folder.
+if [[ -e ~/.nodecliac ]]; then rm -rf ~/.nodecliac; fi
+
+# 3) Remove bin file.
+if [[ -e /usr/local/bin/nodecliac ]]; then sudo rm -r /usr/local/bin/nodecliac; fi
+
+# 4) Source bash to update terminal of changes.
+source ~/.bashrc

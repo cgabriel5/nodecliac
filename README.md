@@ -7,7 +7,7 @@ Easily add Bash tab completion to CLI programs with nodecliac (**node**-**cli**-
 ##### Table of Contents
 
 - [Install](#install-normal)
-  - [Manual](#install-manual)
+  - [Tab-completion Only](#tab-ac-only)
 - [How It Works](#how-it-works)
 - [ACMAP Syntax](#acmap-syntax)
 - [ACDEF Syntax](#acdef-syntax)
@@ -38,7 +38,7 @@ $ sudo npm i -g cgabriel5/nodecliac && nodecliac setup
 
 - Node.js `8+`
   - nodecliac and its CLI tools (`.acmap` to `.acdef` parser, formatter, etc.) are written in JavaScript.
-  - **Note**: If only tab-completion is needed (i.e. you already have the CLI program's registry package/files and don't need nodecliac's core CLI tools (parser, formatter, etc.)) then Node.js is _not_ required. Simply follow the [manual setup](#install-manual) section to setup nodecliac.
+  - **Note**: If only tab-completion is needed (i.e. you already have the CLI program's registry package/files and don't need nodecliac's core CLI tools (parser, formatter, etc.)) then Node.js is _not_ required. Simply follow the [tab-completion only setup](#tab-ac-only) section.
 - Perl `5+`
   - Runs needed Perl tab-completion scripts.
   - Works in tandem with Bash shell scripts.
@@ -76,13 +76,11 @@ $ git clone -b BRANCH_NAME --single-branch https://github.com/cgabriel5/nodeclia
 
 </details>
 
-<a name="install-manual"></a>
+<a name="tab-ac-only"></a>
 
-## Install (manual)
+## Install (Tab-completion Only)
 
 At the moment, generating `.acdef` files from `.acmap` files requires Node.js as the parser and all nodecliac's core tools are written in JavaScript. However, if you already have the CLI program(s) registry package/files and really only need tab-completion, (you aren't generating `.acdef` files, for example) nodecliac can be setup for tab-completion only.
-
-<details><summary>Show manual install/uninstall</summary>
 
 ```sh
 # Using curl:
@@ -98,7 +96,6 @@ $ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/sr
 $ nodecliac uninstall
 ```
 
-</details>
 </details>
 
 <a name="how-it-works"></a>

@@ -1,60 +1,192 @@
 #!/bin/bash
 
-# Only argument allowed for now is a branch name (default to master).
-branch_name="$1"; if [[ -z "$branch_name" ]]; then branch_name="master"; fi
+# ---------------------------------------------------------------------FUNCTIONS
+
+# Get platform name.
+#
+# @return {string} - User's platform.
+#
+# @resource [https://stackoverflow.com/a/18434831]
+function __platform() {
+	case "$OSTYPE" in
+	  solaris*) echo "solaris" ;;
+	  darwin*)  echo "osx" ;;
+	  linux*)   echo "linux" ;;
+	  bsd*)     echo "bsd" ;;
+	  msys*)    echo "windows" ;;
+	  *)        echo "unknown" ;;
+	esac
+}
+
+# Checks whether command exists.
+#
+# @param {string} 1) - Command name.
+# @return {string} - Command path if exists.
+#
+# @resource [https://stackoverflow.com/a/677212]
+function __exists() {
+	echo `command -v "$1"`
+}
+
+# --------------------------------------------------------------------------VARS
+
+# Vars - Args.
+INSTALLER="$([ -z "$1" ] && echo "aconly" || echo "$1")"
+BRANCH_NAME="$([ -z "$2" ] && echo "master" || echo "$2")" # Default to master.
 
 # Vars.
+platform=`__platform`
 outputdir="$HOME/.nodecliac-src"
-timestamp=$(($(date +%s%N)/1000000)) # Generate timestamp.
-tarball_link="https://api.github.com/repos/cgabriel5/nodecliac/tarball/$branch_name"
+# Use python to generate unix timestamp in milliseconds that's cross platform.
+timestamp=$(python -c 'from time import time; print int(round(time() * 1000))')
+# timestamp=$(($(date +%s%N)/1000000)) # Generate timestamp.
+repourl="https://api.github.com/repos/cgabriel5/nodecliac/tarball/$BRANCH_NAME"
+branchurl="https://api.github.com/repos/cgabriel5/nodecliac/branches/$BRANCH_NAME"
+
+# Vars - OS based.
+binfilepath=""
+
+# --------------------------------------------------------POPULATE-PLATFORM-VARS
+
+# Command binary locations: [https://unix.stackexchange.com/a/8664]
+
+# Depending on platform populate variables.
+if [[ "$platform" == "linux" ]]; then
+	binfilepath="/usr/local/bin/nodecliac"
+elif [[ "$platform" == "osx" ]]; then
+	binfilepath="/usr/local/bin/nodecliac"
+fi
+
+# ------------------------------------------------------------------------CHECKS
+
+# Exit script if platform is not supported.
+if [[ " linux osx " != *" $platform "* ]]; then
+	echo "[Error] Platform: '$platform' is not supported."
+	exit
+fi
+
+# Check that needed arguments were provided.
+if [[ $# -gt 2 ]]; then # [https://stackoverflow.com/a/34807585]
+	echo "[Error] 2 arguments are allowed: [installer, branch] but $# provided."
+	exit
+fi
+
+# # Check that git is installed.
+# if [[ -z "$(__exists "git")" ]]; then
+# 	echo "[Error] git is not installed. Please install git and try again."
+# 	exit
+# fi
+
+# Exit if INSTALLER is not valid.
+if [[ " yarn npm aconly " != *" $INSTALLER "* ]]; then
+	echo "[Error] Installer: '$INSTALLER' is invalid. Provide: 'yarn|npm|aconly'."
+	exit
+fi
+# Check that INSTALLER is installed to continue.
+if [[ "$INSTALLER" == "yarn" ]]; then
+	if [[ -z "$(__exists "yarn")" ]]; then
+		echo "[Error] yarn is not installed. Install 'yarn' and try again."
+		exit
+	fi
+elif [[ "$INSTALLER" == "npm" ]]; then
+	if [[ -z "$(__exists "npm")" ]]; then
+		echo "[Error] npm is not installed. Install 'npm' and try again."
+		exit
+	fi
+fi
+
+# Check that repo branch exists: [https://stackoverflow.com/a/23916276]
+if [[ -n "$(command -v wget)" ]]; then
+	if [[ -z "$(wget -qO- "$branchurl" | grep -o tree)" ]]; then
+		echo "[Error] Branch: '$BRANCH_NAME' doesn't exist. Provide a valid branch and try again."
+		exit
+	fi
+elif [[ -n "$(command -v curl)" ]]; then
+	if [[ -z "$(curl -Ls "$branchurl" | grep -o tree)" ]]; then
+		echo "[Error] Branch: '$BRANCH_NAME' doesn't exist. Provide a valid branch and try again."
+		exit
+	fi
+# elif [[ -n "$(command -v git)" ]]; then
+# 	# Check that branch name indeed exists: [https://stackoverflow.com/a/30524983]
+# 	if [[ -z "$(git ls-remote --heads git@github.com:cgabriel5/nodecliac.git "$BRANCH_NAME")" ]]; then
+# 		echo "[Error] Branch: '$BRANCH_NAME' doesn't exist. Provide a valid branch and try again."
+# 		exit
+# 	fi
+fi
+
+# ---------------------------------------------------------------INSTALLER-LOGIC
 
 # If ~/.nodecliac exists rename folder to allow for new one.
 if [[ -e ~/.nodecliac ]]; then
 	mv ~/.nodecliac "$HOME/.nodecliac.bak.$timestamp"
+
+	# Get bin file location.
+	filepath="$(which nodecliac)"
+
+	# If nodecliac exists - uninstall it before installing.
+	if [[ -n "$filepath" ]]; then
+		# Determine what installer method was used (i.e. yarn|npm|aconly).
+		if [[ -n "$(grep -o "yarn" <<< "$filepath")" ]]; then
+			nodecliac uninstall && yarn global remove nodecliac
+		elif [[ -n "$(grep -o "/usr/bin/env node" "$filepath")" ]]; then
+			nodecliac uninstall && sudo npm uninstall -g nodecliac
+		else
+			nodecliac uninstall
+		fi
+	fi
 fi
 
-# Clone repo with first found command. (order: curl > wget > git)
-if [[ -n "$(command -v curl)" ]]; then
-	curl -Ls "$tarball_link" -o ~/.nodecliac-src.tar.gz
-	tar -xzf ~/.nodecliac-src.tar.gz -C ~/
-	mv ~/cgabriel5-nodecliac-* "$outputdir"
-elif [[ -n "$(command -v wget)" ]]; then
-	wget -q -c "$tarball_link" -O ~/.nodecliac-src.tar.gz
-	tar -xzf ~/.nodecliac-src.tar.gz -C ~/
-	mv ~/cgabriel5-nodecliac-* "$outputdir"
-elif [[ -n "$(command -v git)" ]]; then
-	git clone -q git@github.com:cgabriel5/nodecliac.git "$outputdir"
+# ------------------------------------------------------------------------------
+
+if [[ "$INSTALLER" == "aconly" ]]; then
+	# Clone repo with first found command. (order: wget > curl > git)
+	if [[ -n "$(command -v wget)" ]]; then
+		wget -q -c "$repourl" -O ~/.nodecliac-src.tar.gz
+		tar -xzf ~/.nodecliac-src.tar.gz -C ~/
+		mv ~/cgabriel5-nodecliac-* "$outputdir"
+	elif [[ -n "$(command -v curl)" ]]; then
+		curl -Ls "$repourl" -o ~/.nodecliac-src.tar.gz
+		tar -xzf ~/.nodecliac-src.tar.gz -C ~/
+		mv ~/cgabriel5-nodecliac-* "$outputdir"
+	elif [[ -n "$(command -v git)" ]]; then
+		git clone -q git@github.com:cgabriel5/nodecliac.git "$outputdir"
+	fi
+
+	# Create needed directories.
+	mkdir -p ~/.nodecliac/{registry,src}
+
+	# Copy the Perl/Shell nodecliac scripts. [https://superuser.com/a/114198]
+	cp -p "$outputdir"/src/scripts/*.* ~/.nodecliac/src
+
+	# Copy registry completion packages.
+	cp -p -r "$outputdir"/resources/nodecliac/* ~/.nodecliac/registry
+	rm -rf ~/.nodecliac/registry/__acmaps # Remove acmap files.
+
+	# Create setup file.
+	echo "{ \"force\": false, \"rcfilepath\": \"$HOME/.bashrc\", \"time\": \"$timestamp\", \"aconly\": true }" > ~/.nodecliac/.setup.db.json
+
+	# Strip comments/empty lines from files.
+	perl -pi -e 's/^\s*#(?!!).*?$//g;s/\s{1,}#\s{1,}.+$//g;s!^\s+?$!!' ~/.nodecliac/src/*.{sh,pl}
+	# [http://isunix.github.io/blog/2014/07/24/perl-one-liner-to-remove-blank-lines/].
+	# [https://stackoverflow.com/a/6995010], [https://unix.stackexchange.com/a/179449]
+
+	# Add nodecliac to ~/.bashrc if not already.
+	if [[ -z "$(grep -o "ncliac=~/.nodecliac/src/main.sh" ~/.bashrc)" ]]; then
+		echo -e '\nncliac=~/.nodecliac/src/main.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;' >> ~/.bashrc
+	fi
+
+	# Modify nodecliac.acdef for aconly.
+	perl -i -lne 'if (/^(#|.uninstall --| )/) { if ($1 eq " ") { print "\n --"} elsif ($1 eq ".uninstall --") { print "$1" } else { print } }' ~/.nodecliac/registry/nodecliac/nodecliac.acdef
+
+	# Create bin file.
+	sudo cp -p "$outputdir"/uninstall "$binfilepath"
+	sudo chmod +x "$binfilepath"
+
+	# Delete cloned repo.
+	rm -rf ~/.nodecliac-src*
+
+elif [[ "$INSTALLER" == "npm" ]]; then
+	sudo npm i -g cgabriel5/nodecliac && nodecliac setup
+elif [[ "$INSTALLER" == "yarn" ]]; then
+	yarn global add cgabriel5/nodecliac && nodecliac setup
 fi
-
-# Create needed directories.
-mkdir -p ~/.nodecliac/{registry,src}
-
-# Copy the Perl/Shell nodecliac scripts. [https://superuser.com/a/114198]
-cp -p "$outputdir"/src/scripts/*.* ~/.nodecliac/src
-
-# Copy registry completion packages.
-cp -p -r "$outputdir"/resources/nodecliac/* ~/.nodecliac/registry
-rm -rf ~/.nodecliac/registry/__acmaps # Remove acmap files.
-
-# Create setup file.
-echo "{ \"force\": false, \"rcfilepath\": \"$HOME/.bashrc\", \"time\": \"$timestamp\", \"aconly\": true }" > ~/.nodecliac/.setup.db.json
-
-# Strip comments/empty lines from files.
-perl -pi -e 's/^\s*#(?!!).*?$//g;s/\s{1,}#\s{1,}.+$//g;s!^\s+?$!!' ~/.nodecliac/src/*.{sh,pl}
-# [http://isunix.github.io/blog/2014/07/24/perl-one-liner-to-remove-blank-lines/].
-# [https://stackoverflow.com/a/6995010], [https://unix.stackexchange.com/a/179449]
-
-# Add nodecliac to ~/.bashrc if not already.
-if [[ -z "$(grep -o "ncliac=~/.nodecliac/src/main.sh" ~/.bashrc)" ]]; then
-	echo -e '\nncliac=~/.nodecliac/src/main.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;' >> ~/.bashrc
-fi
-
-# Modify nodecliac.acdef for aconly.
-perl -i -lne 'if (/^(#|.uninstall --| )/) { if ($1 eq " ") { print "\n --"} elsif ($1 eq ".uninstall --") { print "$1" } else { print } }' ~/.nodecliac/registry/nodecliac/nodecliac.acdef
-
-# Create bin file.
-sudo cp -p "$outputdir"/uninstall /usr/local/bin/nodecliac
-sudo chmod +x /usr/local/bin/nodecliac
-
-# Delete cloned repo.
-rm -rf ~/.nodecliac-src*

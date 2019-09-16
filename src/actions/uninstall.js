@@ -5,9 +5,10 @@ const chalk = require("chalk");
 const log = require("fancy-log");
 const rimraf = require("rimraf");
 const flatry = require("flatry");
+const shell = require("shelljs");
 const fe = require("file-exists");
 const de = require("directory-exists");
-const { exit, paths, read, write } = require("../utils/toolbox.js");
+const { paths, read, write } = require("../utils/toolbox.js");
 
 module.exports = async args => {
 	// Get CLI args.
@@ -17,26 +18,28 @@ module.exports = async args => {
 	// Declare empty variables to reuse for all await operations.
 	let err, res;
 
+	// Prompt password early on. Also ensures user really wants to uninstall.
+	shell.exec("sudo echo > /dev/null 2>&1");
+
 	// Custom dir needs to exist to completely remove.
 	[err, res] = await flatry(de(customdir));
-
-	// Exit if root directory does not exist.
-	if (!res) {
-		exit(["Already removed or is not installed."]);
-	}
-
-	// Setup file needs to exist to remove .rcfile modifications.
-	[err, res] = await flatry(fe(setupfilepath));
 
 	// If a custom .rcfile path was provided use that instead.
 	if (rcfilepath) {
 		bashrcpath = rcfilepath;
-	} else {
-		// Get rcfile contents.
-		[err, res] = await flatry(read(setupfilepath));
 
-		// Get rcfile path from setup file.
-		bashrcpath = res ? JSON.parse(res).rcfilepath : null;
+		// Else looup up setup file for rcfilepath.
+	} else {
+		// If setup file exists look for .rcfile path.
+		[err, res] = await flatry(fe(setupfilepath));
+		if (res) {
+			// Get rcfile contents.
+			[err, res] = await flatry(read(setupfilepath));
+			if (res) {
+				// Get rcfile path from setup file if available.
+				bashrcpath = JSON.parse(res).rcfilepath || bashrcpath;
+			}
+		}
 	}
 
 	// Wrap rimraf in a promise.
@@ -74,25 +77,68 @@ module.exports = async args => {
 						res.replace(/ncliac=~[\s\S]*?"\$ncliac";\s*fi;/g, "")
 					)
 				);
-			}
 
-			// Reverted .rcfile changes.
-			log(
-				`${chalk.green("Successfully")} reverted ${chalk.bold(
-					bashrcpath
-				)} changes.`
-			);
-		} else {
-			log(`Could not revert ${chalk.bold(bashrcpath)} changes.`);
+				// Reverted .rcfile changes.
+				log(
+					`${chalk.green("Successfully")} reverted ${chalk.bold(
+						bashrcpath
+					)} changes.`
+				);
+			}
 		}
-	} else {
-		log("Could not revert rcfile changes.");
 	}
 
-	// Removed nodecliac root directory.
-	log(
-		`${chalk.green("Successfully")} removed nodecliac ${chalk.bold(
-			customdir
-		)}.`
-	);
+	// Get bin location.
+	res = shell.which("nodecliac");
+	if (res) {
+		// Get output.
+		let binfilepath = res.stdout;
+
+		if (binfilepath.includes("yarn")) {
+			// Proceed if yarn is installed.
+			if (shell.which("yarn")) {
+				shell.exec(
+					"yarn global remove nodecliac",
+					{ silent: true },
+					(code, stdout, stderr) => {
+						// Finally, global module with yarn or npm.
+						log(
+							`${chalk.green(
+								"Successfully"
+							)} removed nodecliac yarn global module ${chalk.bold(
+								customdir
+							)}.`
+						);
+					}
+				);
+			}
+		} else {
+			let res = shell.cat(binfilepath);
+			if (res) {
+				// Get bin file contents.
+				let contents = res.stdout;
+
+				// Read bin file to check whether its npm or aconly.
+				if (contents.includes("/usr/bin/env node")) {
+					// Proceed if npm is installed.
+					if (shell.which("npm")) {
+						shell.exec(
+							"sudo npm uninstall -g nodecliac",
+							{ silent: true },
+							(code, stdout, stderr) => {
+								// Finally, global module with yarn or npm.
+								log(
+									`${chalk.green(
+										"Successfully"
+									)} removed nodecliac npm global module ${chalk.bold(
+										customdir
+									)}.`
+								);
+							}
+						);
+					}
+				}
+			}
+		}
+	}
 };

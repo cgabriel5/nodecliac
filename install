@@ -46,6 +46,29 @@ branchurl="https://api.github.com/repos/cgabriel5/nodecliac/branches/$BRANCH_NAM
 # Vars - OS based.
 binfilepath=""
 
+# ---------------------------------------------------------LANGUAGE-REQUIREMENTS
+
+# Check that Perl is installed.
+if [[ -z "$(__exists "perl")" ]]; then
+	echo "Perl is not installed. Please install Perl 5+ and try again."
+	exit
+fi
+# Check that perl is at least v5.
+perl_majorv="$(perl --version | perl -ne 'print $1 if /\(v([^.]).*\)/')"
+if [[ "$((perl_majorv + 0))" -lt 5 ]]; then
+	echo "Perl 5 is needed. Please update Perl and try again."
+	exit
+fi
+
+# Get version information.
+vmajor=${BASH_VERSINFO[0]}
+vminor=${BASH_VERSINFO[1]}
+# Bash version must be 4.3+ to register completion scripts to commands.
+if [[ $vmajor -lt 4 ]] || [[ $ -eq 4 && $vminor -le 2 ]]; then
+	echo "Bash 4.3+ is needed. Please update Bash and try again."
+	exit
+fi
+
 # --------------------------------------------------------POPULATE-PLATFORM-VARS
 
 # Command binary locations: [https://unix.stackexchange.com/a/8664]

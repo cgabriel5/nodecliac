@@ -64,7 +64,7 @@ fi
 vmajor=${BASH_VERSINFO[0]}
 vminor=${BASH_VERSINFO[1]}
 # Bash version must be 4.3+ to register completion scripts to commands.
-if [[ $vmajor -lt 4 ]] || [[ $ -eq 4 && $vminor -le 2 ]]; then
+if [[ $vmajor -lt 4 ]] || [[ $vmajor -eq 4 && $vminor -le 2 ]]; then
 	echo "Bash 4.3+ is needed. Please update Bash and try again."
 	exit
 fi

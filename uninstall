@@ -20,4 +20,7 @@ fi
 if [[ -e ~/.nodecliac ]]; then rm -rf ~/.nodecliac; fi
 
 # Remove bin file.
-if [[ -e /usr/local/bin/nodecliac ]]; then sudo rm -f /usr/local/bin/nodecliac; fi
+binfilepath=/usr/local/bin/nodecliac
+if [[ -f "$binfilepath" && -n "$(grep -o "\#\!/bin/bash" "$binfilepath")" ]]; then
+	sudo rm -f "$binfilepath"
+fi

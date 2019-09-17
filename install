@@ -141,7 +141,7 @@ fi
 
 # If ~/.nodecliac exists rename folder to allow for new one.
 if [[ -e ~/.nodecliac ]]; then
-	mv ~/.nodecliac "$HOME/.nodecliac.bak.$timestamp"
+	cp -a ~/.nodecliac "$HOME/.nodecliac.bak.$timestamp"
 
 	# Remove nodecliac global module from npm and yarn.
 	# yarn global bin

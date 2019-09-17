@@ -149,11 +149,11 @@ if [[ -e ~/.nodecliac ]]; then
 	# npm list --silent -q -g --depth=0
 
 	# Run uninstall command.
-	if [[ -n "$(__exists "nodecliac")" ]]; then nodecliac uninstall; fi
+	if [[ -n "$(__exists "nodecliac")" ]]; then nodecliac uninstall > /dev/null 2>&1; fi
 	# Uninstall from npm if installed globally.
-	if [[ -n "$(__exists "npm")" ]]; then sudo npm uninstall -g nodecliac; fi
+	if [[ -n "$(__exists "npm")" ]]; then sudo npm uninstall -g nodecliac > /dev/null 2>&1; fi
 	# Uninstall from yarn if installed globally.
-	if [[ -n "$(__exists "yarn")" ]]; then yarn global remove nodecliac; fi
+	if [[ -n "$(__exists "yarn")" ]]; then yarn global remove nodecliac > /dev/null 2>&1; fi
 fi
 
 # ------------------------------------------------------------------------------

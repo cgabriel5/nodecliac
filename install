@@ -143,20 +143,24 @@ fi
 if [[ -e ~/.nodecliac ]]; then
 	mv ~/.nodecliac "$HOME/.nodecliac.bak.$timestamp"
 
-	# Get bin file location.
-	filepath="$(which nodecliac)"
-
-	# If nodecliac exists - uninstall it before installing.
-	if [[ -n "$filepath" ]]; then
-		# Determine what installer method was used (i.e. yarn|npm|aconly).
-		if [[ -n "$(grep -o "yarn" <<< "$filepath")" ]]; then
-			nodecliac uninstall && yarn global remove nodecliac
-		elif [[ -n "$(grep -o "/usr/bin/env node" "$filepath")" ]]; then
-			nodecliac uninstall && sudo npm uninstall -g nodecliac
-		else
-			nodecliac uninstall
-		fi
+	# Run uninstall command.
+	if [[ -n "$(__exists "nodecliac")" ]]; then
+		nodecliac uninstall
 	fi
+
+	# Remove nodecliac global module from npm and yarn.
+	# yarn global bin
+	# yarn global list
+	# npm list --silent -q -g --depth=0
+
+	# Uninstall from npm if installed globally.
+	# if [[ -n "$(npm list -g --depth=0 | grep -o "nodecliac@")" ]]; then
+	sudo npm uninstall -g nodecliac
+	# fi
+	# Uninstall from yarn if installed globally.
+	# if [[ -n "$(yarn global list | grep -o "nodecliac@")" ]]; then
+	yarn global remove nodecliac
+	# fi
 fi
 
 # ------------------------------------------------------------------------------

@@ -88,57 +88,19 @@ module.exports = async args => {
 		}
 	}
 
-	// Get bin location.
-	res = shell.which("nodecliac");
-	if (res) {
-		// Get output.
-		let binfilepath = res.stdout;
-
-		if (binfilepath.includes("yarn")) {
-			// Proceed if yarn is installed.
-			if (shell.which("yarn")) {
-				shell.exec(
-					"yarn global remove nodecliac",
-					{ silent: true },
-					(code, stdout, stderr) => {
-						// Finally, global module with yarn or npm.
-						log(
-							`${chalk.green(
-								"Successfully"
-							)} removed nodecliac yarn global module ${chalk.bold(
-								customdir
-							)}.`
-						);
-					}
-				);
-			}
-		} else {
-			let res = shell.cat(binfilepath);
-			if (res) {
-				// Get bin file contents.
-				let contents = res.stdout;
-
-				// Read bin file to check whether its npm or aconly.
-				if (contents.includes("/usr/bin/env node")) {
-					// Proceed if npm is installed.
-					if (shell.which("npm")) {
-						shell.exec(
-							"sudo npm uninstall -g nodecliac",
-							{ silent: true },
-							(code, stdout, stderr) => {
-								// Finally, global module with yarn or npm.
-								log(
-									`${chalk.green(
-										"Successfully"
-									)} removed nodecliac npm global module ${chalk.bold(
-										customdir
-									)}.`
-								);
-							}
-						);
-					}
-				}
-			}
+	// Remove nodecliac global module from npm and yarn.
+	// yarn global bin
+	// yarn global list
+	// npm list --silent -q -g --depth=0
+	shell.exec(
+		"sudo npm uninstall -g nodecliac > /dev/null 2>&1 && yarn global remove nodecliac > /dev/null 2>&1",
+		{ silent: true },
+		(code, stdout, stderr) => {
+			log(
+				`${chalk.green(
+					"Successfully"
+				)} removed nodecliac global module ${chalk.bold(customdir)}.`
+			);
 		}
-	}
+	);
 };

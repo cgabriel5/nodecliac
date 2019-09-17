@@ -205,8 +205,16 @@ if [[ "$INSTALLER" == "aconly" ]]; then
 	# Delete cloned repo.
 	rm -rf ~/.nodecliac-src*
 
-elif [[ "$INSTALLER" == "npm" ]]; then
-	sudo npm i -g cgabriel5/nodecliac && nodecliac setup
-elif [[ "$INSTALLER" == "yarn" ]]; then
-	yarn global add cgabriel5/nodecliac && nodecliac setup
+else
+	# Reset/force $PATH to rebuild.
+	hash -r # [https://unix.stackexchange.com/a/5610]
+
+	if [[ "$INSTALLER" == "npm" ]]; then
+		sudo npm i -g cgabriel5/nodecliac
+	elif [[ "$INSTALLER" == "yarn" ]]; then
+		yarn global add cgabriel5/nodecliac
+	fi
+
+	# Finally, setup nodecliac.
+	nodecliac setup
 fi

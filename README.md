@@ -7,7 +7,6 @@ Easily add Bash tab completion to CLI programs with nodecliac (**node**-**cli**-
 ##### Table of Contents
 
 - [Install](#install-normal)
-  - [Tab-completion Only](#tab-ac-only)
 - [How It Works](#how-it-works)
 - [ACMAP Syntax](#acmap-syntax)
 - [ACDEF Syntax](#acdef-syntax)
@@ -26,12 +25,54 @@ Easily add Bash tab completion to CLI programs with nodecliac (**node**-**cli**-
 ## Install
 
 ```sh
-# yarn
-$ yarn global add cgabriel5/nodecliac && nodecliac setup
-
-# npm (requires sudo)
-$ sudo npm i -g cgabriel5/nodecliac && nodecliac setup
+$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s
 ```
+
+<details><summary>More installation methods</summary>
+
+##### With `curl`:
+
+```sh
+# Tab-completion only:
+$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s
+# ...same as above.
+$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s aconly master
+
+# Tab-completion + nodecliac CLI tools:
+# Install with Node.js's npm...
+$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s npm master
+# ... or with yarn.
+$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s yarn master
+```
+
+##### With `wget`:
+
+```sh
+# Tab-completion only:
+$ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s
+# ...same as above.
+$ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s aconly master
+
+# Tab-completion + nodecliac CLI tools:
+# Install with Node.js's npm...
+$ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s npm master
+# ... or with yarn.
+$ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s yarn master
+```
+
+</details>
+
+<details><summary>Installation arguments</summary>
+
+- `arg: $1`: `INSTALLER`
+  - Values: `aconly`, `npm`, `yarn`. (default: `aconly`)
+    - `aconly`: At the moment, generating `.acdef` files from `.acmap` files requires Node.js as the parser and all nodecliac's core tools are written in JavaScript. However, if you already have the CLI program(s) registry package/files and only need tab-completion, (you aren't generating `.acdef` files, for example) install this way.
+    - `npm`: Uses Node.js's npm to install.
+    - `yarn`: Uses yarn to install.
+- `arg: $2`: `BRANCH_NAME`
+  - Value: A _valid_ nodecliac branch name. (default: `master`)
+
+</details>
 
 <details>
   <summary>Requirements</summary>
@@ -52,16 +93,12 @@ $ sudo npm i -g cgabriel5/nodecliac && nodecliac setup
 <details><summary>Uninstall</summary>
 
 ```sh
-# yarn
-$ nodecliac uninstall && yarn global remove nodecliac
-
-# npm (requires sudo)
-$ nodecliac uninstall && sudo npm uninstall -g nodecliac
+$ nodecliac uninstall
 ```
 
 </details>
 
-<details><summary>Download <a href="https://stackoverflow.com/a/4568323" target="_blank" rel="nofollow">specific branch</a></summary>
+<!-- <details><summary>Download <a href="https://stackoverflow.com/a/4568323" target="_blank" rel="nofollow">specific branch</a></summary>
 
 ```sh
 # yarn
@@ -74,29 +111,7 @@ $ sudo npm i -g cgabriel5/nodecliac#BRANCH_NAME && nodecliac setup
 $ git clone -b BRANCH_NAME --single-branch https://github.com/cgabriel5/nodecliac.git
 ```
 
-</details>
-
-<a name="tab-ac-only"></a>
-
-## Install (Tab-completion Only)
-
-At the moment, generating `.acdef` files from `.acmap` files requires Node.js as the parser and all nodecliac's core tools are written in JavaScript. However, if you already have the CLI program(s) registry package/files and only need tab-completion, (you aren't generating `.acdef` files, for example) install via `curl` or `wget` as shown:
-
-```sh
-# Using curl:
-$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s
-
-# Using wget:
-$ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s
-```
-
-<details><summary>Uninstall</summary>
-
-```sh
-$ nodecliac uninstall
-```
-
-</details>
+</details> -->
 
 <a name="how-it-works"></a>
 

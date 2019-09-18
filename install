@@ -31,7 +31,17 @@ function __exists() {
 # --------------------------------------------------------------------------VARS
 
 # Vars - Args.
-INSTALLER="$([ -z "$1" ] && echo "aconly" || echo "$1")"
+if [[ -n "$1" ]]; then
+	INSTALLER="$1"
+else # Find first installed command to use.
+	if [[ -n "$(__exists "yarn")" ]]; then
+		INSTALLER="yarn"
+	elif [[ -n "$(__exists "npm")" ]]; then
+		INSTALLER="npm"
+	else
+		INSTALLER="aconly"
+	fi
+fi
 BRANCH_NAME="$([ -z "$2" ] && echo "master" || echo "$2")" # Default to master.
 
 # Vars.
@@ -151,10 +161,10 @@ if [[ -e ~/.nodecliac ]]; then cp -a ~/.nodecliac "$HOME/.nodecliac.bak.$timesta
 
 # Run uninstall command.
 if [[ -n "$(__exists "nodecliac")" ]]; then nodecliac uninstall > /dev/null 2>&1; fi
-# Uninstall from npm if installed globally.
-if [[ -n "$(__exists "npm")" ]]; then sudo npm uninstall -g nodecliac > /dev/null 2>&1; fi
 # Uninstall from yarn if installed globally.
 if [[ -n "$(__exists "yarn")" ]]; then yarn global remove nodecliac > /dev/null 2>&1; fi
+# Uninstall from npm if installed globally.
+if [[ -n "$(__exists "npm")" ]]; then sudo npm uninstall -g nodecliac > /dev/null 2>&1; fi
 
 # ---------------------------------------------------------------INSTALLER-LOGIC
 

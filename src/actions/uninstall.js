@@ -93,7 +93,7 @@ module.exports = async args => {
 	// yarn global list
 	// npm list --silent -q -g --depth=0
 	shell.exec(
-		"sudo npm uninstall -g nodecliac > /dev/null 2>&1 && yarn global remove nodecliac > /dev/null 2>&1",
+		"yarn global remove nodecliac > /dev/null 2>&1 && sudo npm uninstall -g nodecliac > /dev/null 2>&1",
 		{ silent: true },
 		(code, stdout, stderr) => {
 			log(

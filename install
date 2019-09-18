@@ -193,6 +193,9 @@ if [[ "$INSTALLER" == "aconly" ]]; then
 	# Add nodecliac to ~/.bashrc if not already.
 	if [[ -z "$(grep -o "ncliac=~/.nodecliac/src/main.sh" ~/.bashrc)" ]]; then
 		echo -e '\nncliac=~/.nodecliac/src/main.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;' >> ~/.bashrc
+		perl -i -lpe 's/\x0a$//' ~/.bashrc # Ensure newline ending: [https://www.unix.com/shell-programming-and-scripting/229399-how-add-newline-character-end-file.html]
+		# [https://knowledge.ni.com/KnowledgeArticleDetails?id=kA00Z0000019KZDSA2]
+		# [https://stackoverflow.com/a/9021745]
 	fi
 
 	# Modify nodecliac.acdef for aconly.

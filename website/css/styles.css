@@ -248,8 +248,8 @@ code {
 
 .code-block-cont {
 	border-radius: 5px;
-	padding: 20px;
-	margin: 20px;
+	padding: 12px 15px;
+	margin: 20px 0;
 	background-color: #fafafa;
 	overflow: auto;
 	-webkit-overflow-scrolling: touch;
@@ -265,7 +265,7 @@ code {
 	-webkit-box-align: center;
 	-ms-flex-align: center;
 	align-items: center;
-	margin: 20px;
+	margin: 20px 0;
 }
 
 .video {

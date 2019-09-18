@@ -56,15 +56,52 @@
 		</div>
 		<main class="main-cont">
 			<section>
+				<div class="section-title">Install</div>
+				<!-- 				<p class="section-paragraph">
+					As an example, let's add Bash tab-completion to Sublime
+					Text's <code>subl</code> command.
+				</p> -->
+
+				<div class="section-list">
+					<!-- 				<div class="list-item">
+						<div class="list-bullet"><span>1.</span></div>
+						<div>Let nodecliac take over.</div>
+					</div> -->
+					<pre
+						class="code-block-cont"
+					><code class="code-block">$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s</code></pre>
+					<div class="list-item">
+						<!-- <div class="list-bullet"><span>3.</span></div> -->
+
+						<div>
+							<span class="bold">Tip:</span> Don't forget to
+							reload <code>.bashrc</code> by running
+							<code>$ source ~/.bashrc</code>.
+
+							<div>
+								See complete installation methods/arguments
+								<a
+									href="https://github.com/cgabriel5/nodecliac#install"
+									target="_blank"
+									class="link"
+									>here</a
+								>.
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<section>
 				<div class="section-title">Overview</div>
 				<p class="section-paragraph">
 					Bash tab-completion is awesome but adding it to CLI programs
-					can be a pain. nodecliac aims to simplify this. With
-					nodecliac, the idea is to map the program's commands and
-					flags in an
+					can be a pain. nodecliac simplifies this. The idea is to map
+					the program's commands and flags in an
 					<code>.acmap</code> file and well,
 					<span class="italic">that's it</span>. nodecliac handles the
-					rest to make your CLI program Bash tab-completion ready.
+					rest. <span class="italic">The end result?</span> Your
+					program having Bash tab-completion.
 				</p>
 
 				<div class="note-cont">
@@ -84,7 +121,8 @@
 					</div>
 				</div>
 			</section>
-			<section>
+
+			<!-- 			<section>
 				<div class="section-title">Getting Started</div>
 				<div class="section-list">
 					<div class="list-item">
@@ -133,14 +171,18 @@
 						<div>Open a new Terminal and start using!</div>
 					</div>
 				</div>
-			</section>
+			</section> -->
 
 			<section>
-				<div class="section-title">Example:</div>
+				<div class="section-title">
+					Example: Sublime Text Tab-completion
+				</div>
 				<p class="section-paragraph">
 					As an example, let's add Bash tab-completion to Sublime
 					Text's <code>subl</code> command.
 				</p>
+
+				<br />
 
 				<div class="section-list">
 					<div class="list-item">
@@ -178,7 +220,7 @@
 						<video
 							controls=""
 							name="subl bash tab-completion"
-							width="750"
+							width="800"
 							height="200"
 							src="website/media/subl-tab-completion.mov"
 							class="video"

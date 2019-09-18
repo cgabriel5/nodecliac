@@ -15,7 +15,7 @@ Easily add Bash tab completion to CLI programs with nodecliac (**node**-**cli**-
 - [CLI](#cli)
 - [CLI Usage](#cli-usage-examples)
 - [Registry](#registry)
-  - [Hooks](#resources-hooks)
+- [Hooks](#hooks)
 - [Support](#support)
 - [Contributing](#contributing)
 - [License](#license)
@@ -158,7 +158,7 @@ nodecliac uses 2 custom file types: **a**uto-**c**ompletion **def**inition (`.ac
 - Setting values are assigned with `=` followed by the setting value.
 - Any amount of whitespace before and after `=` is fine, but keep things tidy.
 - No amount of indentation can precede a setting declaration.
-- To be clear, settings can be declared _anywhere_ within your `.acmap` file but to quickly see what settings are being declared they should be placed at the top of the file.
+- To be clear, settings can be declared _anywhere_ within your `.acmap` file but to quickly spot them they should be placed at the top of the file.
 
 ```acmap
 # It is ok to have comments before settings.
@@ -175,7 +175,7 @@ nodecliac uses 2 custom file types: **a**uto-**c**ompletion **def**inition (`.ac
 - A variable's value must be enclosed with quotes.
 - Any amount of whitespace before and after `=` is fine, but keep things tidy.
 - No amount of indentation can precede a setting declaration.
-- To be clear, variables can be declared _anywhere_ within your `.acmap` file but to quickly see what settings are being declared they should be placed at the top of the file.
+- To be clear, variables can be declared _anywhere_ within your `.acmap` file but to quickly spot them they should be placed at the top of the file.
 
 ```acmap
 $scriptpath = "~/path/to/script1.sh"
@@ -186,7 +186,7 @@ $scriptpath    =   "~/path/to/script3.sh"
 #### Variable Interpolation (template-string)
 
 - Variables are meant to be used inside quoted strings.
-- Template strings have following structure:
+- Template strings have the following structure:
   - A template string is denoted with starting `${` and closing `}`.
   - Any amount of space between opening/closing syntax is fine, but keep things tidy.
   - The string in between the closing/starting syntax is the variable name.
@@ -202,7 +202,7 @@ yarn.run = default $("${mainscript} run")
 
 #### Command Chains
 
-- Your program's commands/subcommands should be thought of as a chain which reads from left to right.
+- Your program's commands/subcommands should be thought of as a chain that reads from left to right.
 - It starts with your CLI program's name, is followed by any commands/subcommands, and is dot (`.`) delimited.
 - If a subcommand happens to use a dot then simply escape the dot.
 - Non escaped dots will be used as delimiters.
@@ -220,12 +220,15 @@ mycliprogram.uninstall
 
 #### Command Chain Default
 
-Command chains can have a default command-string (runable shell command(s)) be run to dynamically generate auto-completion items. For example, say we are implementing an `.acmap` file for the dependency manager [yarn](https://yarnpkg.com/en/) and would like to return the names of installed modules when removing a package (i.e.`$ yarn remove...`). Basically, we would like to return the `package.json`'s `dependency` and `devDependency` entries. This can be done with a default command-string.
+A command chain's default command-string (a runable shell string) can be used to dynamically generate auto-completion items. This command-string is run when no completion items (commands/flags) are returned. Think of it as a fallback.
+
+For example, say we are implementing an `.acmap` file for the dependency manager [yarn](https://yarnpkg.com/en/) and would like to return the names of installed modules when removing a package (i.e.`$ yarn remove...`). Basically, we would like to return the `package.json`'s `dependency` and `devDependency` entries. Using a command-string one can run a script to return these `package.json` entries.
 
 - Start by using the keyword `default` followed by a space.
 - Follow that with the command-string like so:
   - A command string is denoted with starting `$(` and closing `)`.
   - The string in between the closing/starting syntax is the command-string.
+  - Example command-string: `default $("./path/to/custom/script.sh arg1 arg2")`
 
 **Note**: For more information about `command-string`s please take a look at `ACMAP Syntax > Flags > Flag Variations > Flags (dynamic values)`. The section contains all details for command-strings like special character escaping caveats, dynamic/static arguments, and examples with their breakdowns. Please be aware that the section uses the term `command-flag` due it being used for flags but `command-flag` and `command-string` are effectively the same thing. Here we see it being used for command chains. The naming is based on what it's being used for (i.e. flags or command chains).
 
@@ -235,11 +238,6 @@ yarn.remove = [
   # contain the logic needed to parse package.json to return the installed (dev)dependency
   # packages.
   default $("~/.nodecliac/registry/yarn/config.sh")
-
-  # As shown the script resides within ~/.nodecliac/ in the registry/ sub-directory. Some
-  # CLI programs are more complicated than others. This will require the need to make a folder
-  # under the registry/ directory for the command. In this folder all relevant files should
-  # reside.
 ]
 ```
 
@@ -306,14 +304,13 @@ mycliprogram.command = [
 
 #### Flags Values (one liner)
 
-- This method should be used when the flag value list is short.
-- Otherwise the long form method should be used.
+- This method should be used when the flag value list can be kept to a single line.
 - **Note**: Values must be delimited with spaces.
 - **Note**: When a flag has many values a [long form list](#flags-values-long-form) should be used for clarities sake.
 
 ```acmap
 mycliprogram.command = [
-  # Supplied 1, "2", false, 4 as hard-coded values.
+  # Supply 1, "2", false, 4 as hard-coded values.
   --flag=(1 "2" false 4)
 
   # If multiple values can be supplied to program use the multi-flag indicator '*'.
@@ -326,7 +323,7 @@ mycliprogram.command = [
 
 #### Flags Values (long form)
 
-- Flag long form list are wrapped with `=(` and a closing `)`.
+- Flag long form list are wrapped with starting `=(` and a closing `)`.
 - The `=(` must be on the same line as the flag.
 - The closing `)` must be on its own line and can have any amount of indentation.
 - A flag value option starts with <code>- </code> (a hyphen + a space) followed by the value.
@@ -354,7 +351,7 @@ mycliprogram.uninstall
 
 #### Flags (dynamic values)
 
-Sometimes hard-coded values are not enough so a `command-flag` can be used. A `command-flag` runs a command that expects output. By default the returned command's output expects each completion item to be on its own line (newline delimited list). However, if you need to change the delimiter character to a space, hyphen, etc. then simply add the delimiter character to the command flag. The syntax for a `command-flag` is as follows:
+Sometimes hard-coded values are not enough so a `command-flag` can be used. A `command-flag` runs a shell command string that expects output. By default the returned command's output expects each completion item to be on its own line (newline delimited list). However, if you need to change the delimiter character to a space, hyphen, etc. then simply add the delimiter character to the command flag. The syntax for a `command-flag` is as follows:
 
 - `$("cat ~/colors.text")`: Will run command and split output on newlines to get individual options.
 - `$("cat ~/colors.text", " ")`: Will run command and split output on spaces to get individual options.
@@ -365,7 +362,7 @@ If the command requires arguments they can be hard-coded or dynamically supplied
 - Once `cat ~/colors.text` is run the output will be split by hyphens and will finally get passed to the completion engine.
 - **Note**: Arguments prefixed with the `$` character denotes it's a dynamic flag command argument.
 
-**Escaping**: Internally the following characters have special uses: `$` and `|`. This means that when using these characters inside a command they will have to be escaped. Take the following examples:
+**Escaping**: Internally `$` and `|` are special characters so they need escaping used. Take the following examples:
 
 - `--flag=$("echo \$0-\$1", $"echo 'john'", "doe", "-")`: The `$`s in the command are escaped.
 - `--flag=$("nodecliac registry \| grep -oP \"(?<=─ )([-a-z]*)\"")`: Here the `|` gets escaped as well.
@@ -485,7 +482,7 @@ The following example `yarn.acdef` file will be used to explain how to read `.ac
 ```
 
 **Note**: Command chain lines, lines starting with a single space or a dot (`.`) character, have the program's name removed.
-For example, if the line is `.workspaces.run --` it can be thought of as `yarn.workspaces.run --`.
+For example, the line `.workspaces.run --` can be viewed as `yarn.workspaces.run --`.
 
 #### Command Fallbacks
 
@@ -596,7 +593,7 @@ $ mycliprogram [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] 
 <details>
   <summary>Show nodecliac's commands/flags.</summary>
 
-- `format`: Prettifies .acmap files.
+- `format`: Prettifies `.acmap` files.
   - `--indent="(s|t):Number"`: (**required**): Formatting indentation information:
     - `s` for spaces or `t` for tabs followed by a number.
     - `t:1`: Use 1 tab per indentation level.
@@ -660,11 +657,11 @@ $ nodecliac format --source path/to/mycliprogram.acmap --print --indent "s:2" --
 
 ## Registry
 
-Some CLI programs are more complicated than others and will require the need of additional custom script files. If this is the case, a command folder should be made under the following path: `~/.nodecliac/registry/COMMAND-NAME/`. For example, say we are creating an `.acmap` file for [yarn](https://yarnpkg.com/en/) and we need to run custom script files for a better tab-completion experience. These files should reside at `~/.nodecliac/registry/yarn/`. [See directory structure/files here](/resources/nodecliac).
+The registry (`~/.nodecliac/registry`) is where nodecliac's command completion packages live. All completion packages follow this form: `~/.nodecliac/registry/COMMAND-NAME/`. For example, [yarn's](https://yarnpkg.com/en/) completion package and its files will reside in `~/.nodecliac/registry/yarn/`. See yarn's completion package as well as other completion packages [here](/resources/nodecliac).
 
 <details><summary>Show directory structures.</summary>
 
-- Required directory base structure:
+- Required completion package directory base structure:
 
 ```
 ~/.nodecliac/
@@ -675,7 +672,7 @@ Some CLI programs are more complicated than others and will require the need of 
         └── hooks/
 ```
 
-- Directory structure with yarn as a registry command:
+- Yarn completion package directory structure:
 
 ```
 ~/.nodecliac/
@@ -690,34 +687,34 @@ Some CLI programs are more complicated than others and will require the need of 
 
 </details>
 
-<a name="resources-hooks"></a>
+<a name="hooks"></a>
 
 ## Hooks
 
-As stated in the resources files section some programs are more complicated than others. In the case of [yarn](https://yarnpkg.com/en/) its `yarn.acdef` file needed to be modified before parsing to [dynamically add the repos scripts as commands](https://yarnpkg.com/en/docs/cli/run#toc-yarn-run). One of the easier solutions for this was to use a pre-parsing hook. Basically, before nodecliac does anything
-it is possible to use a hook script to modify the command's `.acdef` file and CLI input (in-memory) values.
+Some programs are more complicated than others. Take [yarn](https://yarnpkg.com/en/) as an example. Its `yarn.acdef` file needs to be modified before parsing to [dynamically add the repos scripts as commands](https://yarnpkg.com/en/docs/cli/run#toc-yarn-run). Doing so will require a pre-parsing hook. Basically, before nodecliac does anything
+it's possible to use a pre-hook script to modify the command's `.acdef` file and CLI input (in-memory) values.
 
 Available hook scripts:
 
 - `hooks/prehook.sh`
-  - Allows the modification of the in-memory `acdef` contents before starting any parsing.
-  - Allows the modification of the in-memory CLI input string before starting any parsing.
+  - Allows for modification of the in-memory `acdef` contents before entering parsing.
+  - Allows for modification of the in-memory CLI input string before entering parsing.
 
-**Note**: Using a hook script might sound involved/off-putting but it's not. A hook script is just a regular shell script. The script just has special meaning in the sense that it can be used to **hook** into nodecliac to change some variables used for later tab-completion processing.
+**Note**: Using a hook script might sound involved/off-putting but it's not. A hook script is just a regular shell script. The script just has special meaning in the sense that it is used to **hook** into nodecliac to change some variables used for later tab-completion processing.
 
 <details><summary>Expand hook section.</summary>
 
 #### Making Hook Script
 
-To use a hook script simply create the file in the command's resource `hooks/` directory: `~/.nodecliac/registry/COMMAND-NAME/hooks`. All hook scripts will reside in the `COMMAND-NAME/hooks` sub directory. For example, creating the `prehook` script for yarn would be: `~/.nodecliac/registry/yarn/hooks/prehook.sh`.
+First create the command's resource `hooks/` directory: `~/.nodecliac/registry/COMMAND-NAME/hooks`. All hook scripts will reside in the `COMMAND-NAME/hooks` sub directory. For example, yarn's `prehook` script will reside at `~/.nodecliac/registry/yarn/hooks/prehook.sh`.
 
 #### Using Hook Script
 
-This section will use [yarn's prehook script](/resources/nodecliac/yarn) as an example. [`/yarn/hooks/prehook.sh`](/resources/nodecliac/yarn) runs custom Perl scripts to modify the `.acdef` and the CLI input. Since the prehook script is sourced into the main completion script nothing is echoed back to the main script. Instead, the `acdef` and `cline` variables are overwritten, rather. These new values will then be used by nodecliac to provide tab-completion.
+This section will continue to use [yarn's prehook script](/resources/nodecliac/yarn) as an example. [`/yarn/hooks/prehook.sh`](/resources/nodecliac/yarn) runs custom Perl scripts to modify the `.acdef` and the CLI input. Since the prehook script is sourced into the main completion script nothing is echoed back to the main script. Instead, the `acdef` and `cline` variables get overwritten. These new values will then be used by nodecliac to provide tab-completion.
 
 **Note**: Perl is used here for quick text processing as doing it in Bash is slow and cumbersome. _However_, use what you _want/need_ to get the job done. Hook scripts just _need_ to be executable scripts stored in `~/.nodecliac/registry/COMMAND-NAME/hooks/`.
 
-**Note**: As a reminder, the provided `.acmap` file gets parsed to generate an `.acdef` file. The created `.acdef` file is what nodecliac actually reads **a**uto-**c**ompletion **def**initions from. Therefore, modifying `.acdef` contents is a _slightly_ advanced topic as it requires knowing `.acdef` syntax.
+**Note**: As a reminder, the provided `.acmap` file gets parsed to generate an `.acdef` file. The created `.acdef` file is what nodecliac actually reads **a**uto-**c**ompletion **def**initions from. Therefore, modifying `.acdef` contents requires knowing `.acdef` syntax.
 
 </details>
 

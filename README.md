@@ -28,6 +28,10 @@ Easily add Bash tab completion to CLI programs with nodecliac (**node**-**cli**-
 $ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s
 ```
 
+<!-- [https://stackoverflow.com/questions/17341122/link-and-execute-external-javascript-file-hosted-on-github] -->
+
+**Note**: Don't forget to reload `.bashrc` by running `$ source ~/.bashrc`.
+
 <details><summary>More installation methods</summary>
 
 ##### With `curl`:

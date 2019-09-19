@@ -200,10 +200,13 @@ if [[ "$INSTALLER" == "aconly" ]]; then
 	# [http://isunix.github.io/blog/2014/07/24/perl-one-liner-to-remove-blank-lines/].
 	# [https://stackoverflow.com/a/6995010], [https://unix.stackexchange.com/a/179449]
 
+	bashrcfile=~/.bashrc
+	# If bashrc file does not exist create it.
+	if [[ ! -e "$bashrcfile" ]]; then touch "$bashrcfile"; fi
 	# Add nodecliac to ~/.bashrc if not already.
-	if [[ -z "$(grep -o "ncliac=~/.nodecliac/src/main.sh" ~/.bashrc)" ]]; then
-		echo -e '\nncliac=~/.nodecliac/src/main.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;' >> ~/.bashrc
-		perl -i -lpe 's/\x0a$//' ~/.bashrc # Ensure newline ending: [https://www.unix.com/shell-programming-and-scripting/229399-how-add-newline-character-end-file.html]
+	if [[ -z "$(grep -o "ncliac=~/.nodecliac/src/main.sh" "$bashrcfile")" ]]; then
+		echo -e '\nncliac=~/.nodecliac/src/main.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;' >> "$bashrcfile"
+		perl -i -lpe 's/\x0a$//' "$bashrcfile" # Ensure newline ending: [https://www.unix.com/shell-programming-and-scripting/229399-how-add-newline-character-end-file.html]
 		# [https://knowledge.ni.com/KnowledgeArticleDetails?id=kA00Z0000019KZDSA2]
 		# [https://stackoverflow.com/a/9021745]
 	fi

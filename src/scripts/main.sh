@@ -71,11 +71,25 @@ if [[ "$vmajor" -ge 4 ]]; then
 
 	# Continue if version is at least 4.3...
 
+	registrypath=~/.nodecliac/registry
 	acscript="$HOME/.nodecliac/src/ac.sh"
 	if [[ -f "$acscript" ]]; then
+		# [https://superuser.com/a/352387]
+		# [https://askubuntu.com/a/427290]
+		# [https://askubuntu.com/a/1137769]
+		# [https://superuser.com/a/1404146]
+		# [https://superuser.com/a/999448]
+		# [https://stackoverflow.com/a/9612232]
+		# [https://askubuntu.com/a/318211]
+		# Get registry directories list.
+		dirlist="$(find "$registrypath" -maxdepth 1 -type d -name "[!.]*")"
+
+		# If registry is empty return from script. Ignores any files (including hidden ones).
+		if [[ "$registrypath" == "$dirlist" ]]; then return; fi
+
 		# Loop over map definition files to source them.
 		# [https://stackoverflow.com/a/43606356]
-		for filepath in ~/.nodecliac/registry/*; do
+		for filepath in $dirlist; do
 			# # Ignore config files.
 			# if [[ "$filepath" == *".config.acdef" ]]; then continue; fi
 
@@ -86,8 +100,9 @@ if [[ "$vmajor" -ge 4 ]]; then
 			# Get command name (everything up to first period).
 			command="${filename%%.*}"
 
-			# Only register script to command if command exists in filename.
-			if [[ -n "$command" ]]; then
+			# Only register script to command if command exists in filename
+			# and if .acdef file exists for the comment.
+			if [[ -n "$command" && -e "$filepath/$command.acdef" ]]; then
 				# If command exists then register completion script to command.
 				# Note: Command is provided to script as the first parameter.
 				source "$acscript" "${command##*/}"

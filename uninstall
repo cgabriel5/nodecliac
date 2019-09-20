@@ -14,6 +14,7 @@ if [[ -n "$(grep -o "ncliac=~/.nodecliac/src/main.sh" ~/.bashrc)" ]]; then
 	# [https://stackoverflow.com/a/57813295]
 	perl -0pi -e 's/ncliac=~\/.nodecliac\/src\/main.sh;if \[ -f "\$ncliac" \];then source "\$ncliac";fi;//;s/\n+(\n)$/\1/gs' ~/.bashrc
 	# perl -pi -e "s/ncliac=~\/.nodecliac\/src\/main.sh;if \[ -f \"\\\$ncliac\" \];then source \"\\\$ncliac\";fi;// if /^ncliac/" ~/.bashrc
+	echo -e "\e[32mSuccessfully\e[0m reverted \e[1m~/.bashrc\e[0m changes."
 fi
 
 # Delete main folder.
@@ -23,4 +24,5 @@ if [[ -e ~/.nodecliac ]]; then rm -rf ~/.nodecliac; fi
 binfilepath=/usr/local/bin/nodecliac
 if [[ -f "$binfilepath" && -n "$(grep -o "\#\!/bin/bash" "$binfilepath")" ]]; then
 	sudo rm -f "$binfilepath"
+	echo -e "\e[32mSuccessfully\e[0m removed nodecliac bin file."
 fi

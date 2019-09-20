@@ -21,11 +21,28 @@ function __platform() {
 # Checks whether command exists.
 #
 # @param {string} 1) - Command name.
-# @return {string} - Command path if exists.
+# @return {string}   - Command path if exists.
 #
 # @resource [https://stackoverflow.com/a/677212]
 function __exists() {
 	echo `command -v "$1"`
+}
+
+# Remove last line from terminal output.
+#
+# @return {undefined} - Nothing is returned.
+#
+# @resource [https://stackoverflow.com/a/27326630]
+function clear_last_line() {
+	tput cuu 1 && tput el
+}
+
+# Print provided message. Exit script if needed.
+#
+# @param {string} 1) - Message to print.
+# @return {undefined} - Nothing is returned.
+function log() {
+	clear_last_line && echo -e "$1" # Clear last line and print message.
 }
 
 # --------------------------------------------------------------------------VARS
@@ -53,31 +70,12 @@ timestamp=$(python -c 'from time import time; print int(round(time() * 1000))')
 repourl="https://api.github.com/repos/cgabriel5/nodecliac/tarball/$BRANCH_NAME"
 branchurl="https://api.github.com/repos/cgabriel5/nodecliac/branches/$BRANCH_NAME"
 
+# [https://www.utf8-chartable.de/unicode-utf8-table.pl?start=9984&number=128&names=-&utf8=string-literal]
+CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m"
+X_MARK="\033[0;31m\xe2\x9c\x98\033[0m"
+
 # Vars - OS based.
 binfilepath=""
-
-# ---------------------------------------------------------LANGUAGE-REQUIREMENTS
-
-# Check that Perl is installed.
-if [[ -z "$(__exists "perl")" ]]; then
-	echo "Perl is not installed. Please install Perl 5+ and try again."
-	exit
-fi
-# Check that perl is at least v5.
-perl_majorv="$(perl --version | perl -ne 'print $1 if /\(v([^.]).*\)/')"
-if [[ "$((perl_majorv + 0))" -lt 5 ]]; then
-	echo "Perl 5 is needed. Please update Perl and try again."
-	exit
-fi
-
-# Get version information.
-vmajor=${BASH_VERSINFO[0]}
-vminor=${BASH_VERSINFO[1]}
-# Bash version must be 4.3+ to register completion scripts to commands.
-if [[ "$vmajor" -lt 4 ]] || [[ "$vmajor" -eq 4 && "$vminor" -le 2 ]]; then
-	echo "Bash 4.3+ is needed. Please update Bash and try again."
-	exit
-fi
 
 # --------------------------------------------------------POPULATE-PLATFORM-VARS
 
@@ -90,67 +88,104 @@ elif [[ "$platform" == "osx" ]]; then
 	binfilepath="/usr/local/bin/nodecliac"
 fi
 
+# ---------------------------------------------------------LANGUAGE-REQUIREMENTS
+
+# Check that Perl is installed.
+echo " - Perl version requirement."
+if [[ -z "$(__exists "perl")" ]]; then
+	log " $X_MARK Perl is not installed. Install Perl 5+ and try again."
+	exit
+fi
+# Check that perl is at least v5.
+perl_majorv="$(perl --version | perl -ne 'print $1 if /\(v([^.]).*\)/')"
+if [[ "$((perl_majorv + 0))" -lt 5 ]]; then
+	log " $X_MARK Perl 5 is needed. Update Perl and try again."
+	exit
+fi
+log " $CHECK_MARK Perl version requirement."
+
+# Get version information.
+vmajor=${BASH_VERSINFO[0]}
+vminor=${BASH_VERSINFO[1]}
+# Bash version must be 4.3+ to register completion scripts to commands.
+echo " - Bash version requirement."
+if [[ "$vmajor" -lt 4 ]] || [[ "$vmajor" -eq 4 && "$vminor" -le 2 ]]; then
+	log " $X_MARK Bash 4.3+ is needed. Update Bash and try again."
+	exit
+fi
+log " $CHECK_MARK Bash version requirement."
+
 # ------------------------------------------------------------------------CHECKS
 
 # Exit script if platform is not supported.
+echo " - Verifying platform..."
 if [[ " linux osx " != *" $platform "* ]]; then
-	echo "[Error] Platform: '$platform' is not supported."
+	log " $X_MARK Platform: '$platform' is not supported."
 	exit
 fi
+log " $CHECK_MARK Installing on '$platform' platform."
 
 # Check that needed arguments were provided.
 if [[ $# -gt 2 ]]; then # [https://stackoverflow.com/a/34807585]
-	echo "[Error] 2 arguments are allowed: [installer, branch] but $# provided."
+	echo -e " $X_MARK 2 arguments are allowed: [installer, branch] but $# provided."
 	exit
 fi
 
 # # Check that git is installed.
 # if [[ -z "$(__exists "git")" ]]; then
-# 	echo "[Error] git is not installed. Please install git and try again."
+# 	echo -e " $X_MARK git is not installed. Install git and try again."
 # 	exit
 # fi
 
 # Exit if INSTALLER is not valid.
+echo " - Verifying installer method..."
 if [[ " yarn npm aconly " != *" $INSTALLER "* ]]; then
-	echo "[Error] Installer: '$INSTALLER' is invalid. Provide: 'yarn|npm|aconly'."
+	log " $X_MARK Installer: '$INSTALLER' is invalid. Provide: 'yarn|npm|aconly'."
 	exit
 fi
 # Check that INSTALLER is installed to continue.
 if [[ "$INSTALLER" == "yarn" ]]; then
 	if [[ -z "$(__exists "yarn")" ]]; then
-		echo "[Error] yarn is not installed. Install 'yarn' and try again."
+		log " $X_MARK yarn is not installed. Install 'yarn' and try again."
 		exit
 	fi
 elif [[ "$INSTALLER" == "npm" ]]; then
 	if [[ -z "$(__exists "npm")" ]]; then
-		echo "[Error] npm is not installed. Install 'npm' and try again."
+		log " $X_MARK npm is not installed. Install 'npm' and try again."
 		exit
 	fi
 fi
+log " $CHECK_MARK Using installer: '$INSTALLER'."
 
 # Check that repo branch exists: [https://stackoverflow.com/a/23916276]
+echo " - Verifying branch name..."
 if [[ -n "$(command -v wget)" ]]; then
 	if [[ -z "$(wget -qO- "$branchurl" | grep -o tree)" ]]; then
-		echo "[Error] Branch: '$BRANCH_NAME' doesn't exist. Provide a valid branch and try again."
+		log " $X_MARK Branch: '$BRANCH_NAME' doesn't exist. Provide a valid branch and try again."
 		exit
 	fi
 elif [[ -n "$(command -v curl)" ]]; then
 	if [[ -z "$(curl -Ls "$branchurl" | grep -o tree)" ]]; then
-		echo "[Error] Branch: '$BRANCH_NAME' doesn't exist. Provide a valid branch and try again."
+		log " $X_MARK Branch: '$BRANCH_NAME' doesn't exist. Provide a valid branch and try again."
 		exit
 	fi
 # elif [[ -n "$(command -v git)" ]]; then
 # 	# Check that branch name indeed exists: [https://stackoverflow.com/a/30524983]
 # 	if [[ -z "$(git ls-remote --heads git@github.com:cgabriel5/nodecliac.git "$BRANCH_NAME")" ]]; then
-# 		echo "[Error] Branch: '$BRANCH_NAME' doesn't exist. Provide a valid branch and try again."
+# 		log " $X_MARK Branch: '$BRANCH_NAME' doesn't exist. Provide a valid branch and try again."
 # 		exit
 # 	fi
 fi
+log " $CHECK_MARK Installing branch: '$BRANCH_NAME'."
 
 # -------------------------------------------------------------BACKUP-OLD-FOLDER
 
 # If ~/.nodecliac exists rename folder to allow for new one.
-if [[ -e ~/.nodecliac ]]; then cp -a ~/.nodecliac "$HOME/.nodecliac.bak.$timestamp"; fi
+if [[ -e ~/.nodecliac ]]; then
+	echo " - Backing up old ~/.nodecliac install..."
+	cp -a ~/.nodecliac "$HOME/.nodecliac.bak.$timestamp"
+	log " $CHECK_MARK Backed up old ~/.nodecliac folder."
+fi
 
 # ---------------------------------------------------------UNINSTALL-OLD-INSTALL
 
@@ -160,77 +195,149 @@ if [[ -e ~/.nodecliac ]]; then cp -a ~/.nodecliac "$HOME/.nodecliac.bak.$timesta
 # npm list --silent -q -g --depth=0
 
 # Run uninstall command.
-if [[ -n "$(__exists "nodecliac")" ]]; then nodecliac uninstall > /dev/null 2>&1; fi
+echo " - Running 'nodecliac uninstall'..."
+if [[ -n "$(__exists "nodecliac")" ]]; then
+	nodecliac uninstall > /dev/null 2>&1
+	log " $CHECK_MARK Uninstalled old nodecliac."
+else
+	clear_last_line
+fi
 # Uninstall from yarn if installed globally.
-if [[ -n "$(__exists "yarn")" ]]; then yarn global remove nodecliac > /dev/null 2>&1; fi
+echo " - Removing global nodecliac from yarn..."
+if [[ -n "$(__exists "yarn")" && -n "$(yarn global list | grep -o "nodecliac@")" ]]; then
+	yarn global remove nodecliac > /dev/null 2>&1
+	log " $CHECK_MARK Removed yarn nodecliac global package."
+else
+	clear_last_line
+fi
 # Uninstall from npm if installed globally.
-if [[ -n "$(__exists "npm")" ]]; then sudo npm uninstall -g nodecliac > /dev/null 2>&1; fi
+echo " - Removing global npm from yarn..."
+if [[ -n "$(__exists "npm")" && -n "$(npm list -g --depth=0 | grep -o "nodecliac@")" ]]; then
+	sudo npm uninstall -g nodecliac > /dev/null 2>&1
+	log " $CHECK_MARK Removed npm nodecliac global package."
+else
+	clear_last_line
+fi
 
 # ---------------------------------------------------------------INSTALLER-LOGIC
 
 if [[ "$INSTALLER" == "aconly" ]]; then
 	# Clone repo with first found command. (order: wget > curl > git)
 	if [[ -n "$(command -v wget)" ]]; then
+		echo " - Downloading $repourl... (wget)"
 		wget -q -c "$repourl" -O ~/.nodecliac-src.tar.gz
+		log " $CHECK_MARK Downloaded nodecliac tarball. (wget)"
+		echo " - Extracting package..."
 		tar -xzf ~/.nodecliac-src.tar.gz -C ~/
-		mv ~/cgabriel5-nodecliac-* "$outputdir"
+		log " $CHECK_MARK Extracted package."
+		echo " - Moving package to $HOME directory..."
+		rm -rf "$outputdir"/* && mv -f ~/cgabriel5-nodecliac-* "$outputdir"
+		log " $CHECK_MARK Moved package to $HOME directory."
 	elif [[ -n "$(command -v curl)" ]]; then
+		echo " - Downloading $repourl... (curl)"
 		curl -Ls "$repourl" -o ~/.nodecliac-src.tar.gz
+		log " $CHECK_MARK Downloaded nodecliac tarball. (curl)"
+		echo " - Extracting package..."
 		tar -xzf ~/.nodecliac-src.tar.gz -C ~/
-		mv ~/cgabriel5-nodecliac-* "$outputdir"
+		log " $CHECK_MARK Extracted package."
+		echo " - Moving package to $HOME directory..."
+		rm -rf "$outputdir"/* && mv -f ~/cgabriel5-nodecliac-* "$outputdir"
+		log " $CHECK_MARK Moved package to $HOME directory."
 	elif [[ -n "$(command -v git)" ]]; then
-		git clone -q git@github.com:cgabriel5/nodecliac.git "$outputdir"
+		echo " - Downloading https://github.com/cgabriel5/nodecliac.git... (git)"
+		git clone -q -b "$BRANCH_NAME" --single-branch https://github.com/cgabriel5/nodecliac.git "$outputdir"
+		log " $CHECK_MARK Downloaded nodecliac.git. (git)"
+		# git clone -q -b "$BRANCH_NAME" --single-branch git@github.com:cgabriel5/nodecliac.git "$outputdir"
 	fi
 
 	# Create needed directories.
+	echo " - Creating project structure: ~/.nodecliac/{registry,src}..."
 	mkdir -p ~/.nodecliac/{registry,src}
+	log " $CHECK_MARK Created project structure."
 
 	# Copy the Perl/Shell nodecliac scripts. [https://superuser.com/a/114198]
+	echo " - Copying Perl/Shell nodecliac scripts..."
 	cp -p "$outputdir"/src/scripts/*.* ~/.nodecliac/src
+	log " $CHECK_MARK Copied Perl/Shell nodecliac scripts."
 
 	# Copy registry completion packages.
+	echo " - Copying registry completion packages..."
 	cp -p -r "$outputdir"/resources/nodecliac/* ~/.nodecliac/registry
+	log " $CHECK_MARK Copied registry completion packages."
+	echo " - Deleting acmaps..."
 	rm -rf ~/.nodecliac/registry/__acmaps # Remove acmap files.
+	log " $CHECK_MARK Deleted acmaps."
 
 	# Create setup file.
+	echo " - Creating ~/.nodecliac/.setup.db.json file..."
 	echo "{ \"force\": false, \"rcfilepath\": \"$HOME/.bashrc\", \"time\": \"$timestamp\", \"aconly\": true }" > ~/.nodecliac/.setup.db.json
+	log " $CHECK_MARK Created ~/.nodecliac/.setup.db.json."
 
 	# Strip comments/empty lines from files.
+	echo " - Stripping comments from Perl/Shell scripts..."
 	perl -pi -e 's/^\s*#(?!!).*?$//g;s/\s{1,}#\s{1,}.+$//g;s!^\s+?$!!' ~/.nodecliac/src/*.{sh,pl}
+	log " $CHECK_MARK Stripped comments from Perl/Shell scripts."
 	# [http://isunix.github.io/blog/2014/07/24/perl-one-liner-to-remove-blank-lines/].
 	# [https://stackoverflow.com/a/6995010], [https://unix.stackexchange.com/a/179449]
 
 	bashrcfile=~/.bashrc
 	# If bashrc file does not exist create it.
-	if [[ ! -e "$bashrcfile" ]]; then touch "$bashrcfile"; fi
+	if [[ ! -e "$bashrcfile" ]]; then
+		echo " - Creating ~/.bashrc file..."
+		touch "$bashrcfile"
+		log " $CHECK_MARK Created ~/.bashrc file."
+	fi
 	# Add nodecliac to ~/.bashrc if not already.
 	if [[ -z "$(grep -o "ncliac=~/.nodecliac/src/main.sh" "$bashrcfile")" ]]; then
+		echo " - Adding nodecliac to ~/.bashrc..."
 		echo -e '\nncliac=~/.nodecliac/src/main.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;' >> "$bashrcfile"
+		log " $CHECK_MARK Added nodecliac to ~/.bashrc."
+		echo " - Adding trailing newline to ~/.bashrc..."
 		perl -i -lpe 's/\x0a$//' "$bashrcfile" # Ensure newline ending: [https://www.unix.com/shell-programming-and-scripting/229399-how-add-newline-character-end-file.html]
+		log " $CHECK_MARK Added trailing newline to ~/.bashrc."
 		# [https://knowledge.ni.com/KnowledgeArticleDetails?id=kA00Z0000019KZDSA2]
 		# [https://stackoverflow.com/a/9021745]
 	fi
 
 	# Modify nodecliac.acdef for aconly.
+	echo " - Modifying nodecliac.acdef for 'aconly' install..."
 	perl -i -lne 'if (/^(#|.uninstall --| )/) { if ($1 eq " ") { print "\n --"} elsif ($1 eq ".uninstall --") { print "$1" } else { print } }' ~/.nodecliac/registry/nodecliac/nodecliac.acdef
+	log " $CHECK_MARK Modified nodecliac.acdef for 'aconly' install."
 
 	# Create bin file.
+	echo " - Creating bin file..."
 	sudo cp -p "$outputdir"/uninstall "$binfilepath"
 	sudo chmod +x "$binfilepath"
+	log " $CHECK_MARK Created bin file."
 
 	# Delete cloned repo.
+	echo " - Deleting repo source..."
 	rm -rf ~/.nodecliac-src*
+	log " $CHECK_MARK Deleted repo source."
 
 else
 	# Reset/force $PATH to rebuild.
+	# echo " - Reseting \$PATH..."
 	hash -r # [https://unix.stackexchange.com/a/5610]
+	# log " $CHECK_MARK \$PATH reset."
 
 	if [[ "$INSTALLER" == "npm" ]]; then
-		sudo npm i -g cgabriel5/nodecliac
+		echo " - Installing nodecliac via npm..."
+		# Global installs can't install shorthand branch method: [https://stackoverflow.com/a/32436218]
+		# sudo npm i -g "cgabriel5/nodecliac#$BRANCH_NAME" > /dev/null 2>&1
+		sudo npm i -g https://github.com/cgabriel5/nodecliac/tarball/master > /dev/null 2>&1
+		log " $CHECK_MARK nodecliac installed."
 	elif [[ "$INSTALLER" == "yarn" ]]; then
-		yarn global add cgabriel5/nodecliac
+		echo " - Installing nodecliac via yarn..."
+		yarn global add "cgabriel5/nodecliac#$BRANCH_NAME" > /dev/null 2>&1
+		log " $CHECK_MARK nodecliac installed."
 	fi
 
 	# Finally, setup nodecliac.
-	nodecliac setup
+	echo " - Setting up nodecliac..."
+	nodecliac setup > /dev/null 2>&1
+	log " $CHECK_MARK nodecliac setup."
 fi
+
+# Use \033 rather than \e: [https://stackoverflow.com/a/37366139], [https://misc.flogisoft.com/bash/tip_colors_and_formatting]
+echo -e " - \033[1;34m[Note]\033[0m Reload bashrc: \033[1m\$ source ~/.bashrc\033[0m"

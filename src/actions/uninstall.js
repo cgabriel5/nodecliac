@@ -99,7 +99,7 @@ module.exports = async args => {
 			log(
 				`${chalk.green(
 					"Successfully"
-				)} removed nodecliac global module ${chalk.bold(customdir)}.`
+				)} removed nodecliac global module.`
 			);
 		}
 	);

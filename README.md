@@ -69,10 +69,10 @@ $ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/in
 <details><summary>Installation arguments</summary>
 
 - `arg: $1`: `INSTALLER`
-  - Values: `aconly`, `npm`, `yarn`. (default: `aconly`)
-    - `aconly`: At the moment, generating `.acdef` files from `.acmap` files requires Node.js as the parser and all nodecliac's core tools are written in JavaScript. However, if you already have the CLI program(s) registry package/files and only need tab-completion, (you aren't generating `.acdef` files, for example) install this way.
-    - `npm`: Uses Node.js's npm to install.
-    - `yarn`: Uses yarn to install.
+  - Values: `yarn`, `npm`, `aconly`. (default: `yarn` > `npm` > `aconly`)
+    - `yarn`: Uses [yarn](https://yarnpkg.com/en/) to install.
+    - `npm`: Uses [Node.js](https://nodejs.org/en/)'s [npm](https://www.npmjs.com/get-npm) to install.
+    - `aconly`: _Only_ tab-completion (no nodecliac JavaScript CLI tools).
 - `arg: $2`: `BRANCH_NAME`
   - Value: A _valid_ nodecliac branch name. (default: `master`)
 
@@ -83,7 +83,7 @@ $ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/in
 
 - Node.js `8+`
   - nodecliac and its CLI tools (`.acmap` to `.acdef` parser, formatter, etc.) are written in JavaScript.
-  - **Note**: If only tab-completion is needed (i.e. you already have the CLI program's registry package/files and don't need nodecliac's core CLI tools (parser, formatter, etc.)) then Node.js is _not_ required. Simply follow the [tab-completion only setup](#tab-ac-only) section.
+  - **Note**: If only tab-completion is needed (i.e. you already have the CLI program's registry package/files and don't need nodecliac's core CLI tools (parser, formatter, etc.)) then Node.js is _not_ required. Install as `aconly`.
 - Perl `5+`
   - Runs needed Perl tab-completion scripts.
   - Works in tandem with Bash shell scripts.

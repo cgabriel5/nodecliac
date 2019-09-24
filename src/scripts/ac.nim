@@ -561,7 +561,8 @@ proc fn_extractor() =
 
             # Check that command chain exists in acdef.
             var pattern = "^" & fn_quotemeta(commandchain) & "[^ ]* "
-            if acdef =~ re(pattern, {reMultiLine}):
+            var matches = findAll(acdef, re(pattern, {reMultiLine}))
+            if matches.len > 0:
                 # If there is a match then store chain.
                 last_valid_chain = commandchain
             else:
@@ -603,12 +604,12 @@ proc fn_extractor() =
                 if not nitem.startsWith('-'): # If not a flag...
                     # Get flag lists for command from ACDEF.
                     var pattern = "^" & fn_quotemeta(fn_last_seq_item(oldchains, -1)) & " (.+)$"
-                    if acdef =~ re(pattern, {reMultiLine}):
+                    var matches = findAll(acdef, re(pattern, {reMultiLine}))
+                    if matches.len > 0:
                         # Check if the item (flag) exists as a boolean
                         # in the flag lists. If so turn on flag.
-                        pattern = item & r"\?(\||$)"
-                        if (matches[0] =~ re(pattern)): skipflagval = true
-
+                        pattern = item & "\\?(\\||$)"
+                        if contains(matches[0], re(pattern)): skipflagval = true
                     # If the flag is not found then simply add the
                     # next item as its value.
                     if not skipflagval:
@@ -626,11 +627,12 @@ proc fn_extractor() =
             else:
                 # Get flag lists for command from ACDEF.
                 var pattern = "^" & fn_quotemeta(fn_last_seq_item(oldchains, -1)) & " (.+)$"
-                if acdef =~ re(pattern, {reMultiLine}):
+                var matches = findAll(acdef, re(pattern, {reMultiLine}))
+                if matches.len > 0:
                     # Check if the item (flag) exists as a boolean
                     # in the flag lists. If so turn on flag.
-                    pattern = item & r"\?(\||$)"
-                    if matches[0] =~ re(pattern): skipflagval = true
+                    pattern = item & "\\?(\\||$)"
+                    if contains(matches[0], re(pattern)): skipflagval = true
 
                 # If flag is found then append boolean marker (?).
                 if skipflagval: args[i] = args[i] & "?"
@@ -694,10 +696,11 @@ proc fn_extractor() =
             # Show all available flag option values.
             if islast_aspace:
                 # Check if the flag exists in the following format: '--flag='
-                if acdef =~ re(pattern, {reMultiLine}):
+                var matches = findAll(acdef, re(pattern, {reMultiLine}))
+                if matches.len > 0:
                     # Check if flag exists with option(s).
-                    var pattern = nlast & r"=(?!\*).*?(\||$)"
-                    if matches[0] =~ re(pattern):
+                    var pattern = nlast & "=(?!\\*).*?(\\||$)"
+                    if contains(matches[0], re(pattern)):
                         # Reset needed data.
                         # Modify last used flag.
                         # [https://www.perl.com/article/6/2013/3/28/Find-the-index-of-the-last-element-in-an-array/]
@@ -707,13 +710,14 @@ proc fn_extractor() =
                         autocompletion = true
             else: # Complete currently started value option.
                 # Check if the flag exists in the following format: '--flag='
-                if acdef =~ re(pattern, {reMultiLine}):
+                var matches = findAll(acdef, re(pattern, {reMultiLine}))
+                if matches.len > 0:
                     # Escape special chars: [https://stackoverflow.com/a/576459]
                     # [http://perldoc.perl.org/functions/quotemeta.html]
-                    var pattern = nlast & "=" & fn_quotemeta(last) & r".*?(\||$)"
+                    var pattern = nlast & "=" & fn_quotemeta(last) & ".*?(\\||$)"
 
                     # Check if flag exists with option(s).
-                    if matches[0] =~ re(pattern):
+                    if contains(matches[0], re(pattern)):
                         # Reset needed data.
                         last = nlast & "=" & last
                         lastchar = fn_lastchar(last)

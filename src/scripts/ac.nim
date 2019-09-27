@@ -53,6 +53,8 @@ var used_default_pa_args = ""
 
 # Set environment vars so command has access.
 # const prefix = "NODECLIAC_"
+# [https://nim-lang.org/docs/strutils.html#10]
+const invalid = AllChars - Letters - Digits - {'-', '.', '_', ':', '\\'}
 
 # # Log local variables and their values.
 # proc fn_debug() =
@@ -77,7 +79,7 @@ var used_default_pa_args = ""
 # $ nodecliac ~ --
 proc fn_is_file_or_dir(item: string): bool =
     # If arg contains a '/' sign check if it's a path. If so let it pass.
-    return (item.contains("/") or item == "~")
+    return ('/' in item or item == "~")
 
 # Escape '\' characters and replace unescaped slashes '/' with '.' (dots)
 #     command strings
@@ -92,7 +94,7 @@ proc fn_normalize_command(item: var string): string =
                .replacef(re"([^\\]|^)\/", "$1.") # Replace unescaped '/' with '.' dots.
 
     # Finally, validate that only allowed characters are in string.
-    if item =~ re"/-._:\\a-zA-Z0-9//c": quit()
+    if item.find(invalid) != -1: quit()
 
     # Returned normalized item string.
     return item
@@ -107,8 +109,10 @@ proc fn_validate_flag(item: string): string =
     # If string is a file/directory then return.
     if fn_is_file_or_dir(item): return item
 
+    # Modified invalid characters.
+    let minvalid = invalid + {'_', ':', '\\'}
     # Finally, validate that only allowed characters are in string.
-    if item =~ re"/-_a-zA-Z0-9/": quit()
+    if item.find(minvalid) != -1: quit()
 
     # Return word.
     return item
@@ -116,7 +120,10 @@ proc fn_validate_flag(item: string): string =
 # Look at fn_validate_flag for function details.
 proc fn_validate_command(item: string): string =
     if fn_is_file_or_dir(item): return item
-    if item =~ re"/-._:\\a-zA-Z0-9/": quit()
+
+    # Finally, validate that only allowed characters are in string.
+    if item.find(invalid) != -1: quit()
+
     return item
 
 # START=========================================================HELPER-FUNCTIONS
@@ -126,15 +133,14 @@ proc fn_validate_command(item: string): string =
 # @param  {string} 1) - The string to use.
 # @return {string}    - The last character of string.
 proc fn_lastchar(input: string): string =
-    return input.substr(input.len - 1)
-    # return input[input.len - 1] # Returns `char`.
+    return $input[^1]
 
 # Return first character of provided string.
 #
 # @param  {string} 1) - The string to use.
 # @return {string}    - The first character of string.
 proc fn_firstchar(input: string): string =
-    return input.substr(0, 0)
+    return $input[0]
 
 # Remove last char from provided string.
 #

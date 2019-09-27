@@ -52,7 +52,8 @@ var usedflags_counts = initTable[string, int]()
 var used_default_pa_args = ""
 
 # Set environment vars so command has access.
-# const prefix = "NODECLIAC_"
+const prefix = "NODECLIAC_"
+
 # [https://nim-lang.org/docs/strutils.html#10]
 const invalid = AllChars - Letters - Digits - {'-', '.', '_', ':', '\\'}
 
@@ -303,31 +304,31 @@ proc fn_set_envs() =
     # Use hash to store environment variables: [https://perlmaven.com/perl-hashes]
     var envs = {
         # Following env vars are provided by bash but exposed via nodecliac.
-        "NODECLIAC_COMP_LINE": cline, # Original (unmodified) CLI input.
-        "NODECLIAC_COMP_POINT": intToStr(cpoint), # Caret index when [tab] key was pressed.
+        fmt"{prefix}COMP_LINE": cline, # Original (unmodified) CLI input.
+        fmt"{prefix}COMP_POINT": intToStr(cpoint), # Caret index when [tab] key was pressed.
 
         # Following env vars are custom and exposed via nodecliac.
-        # "NODECLIAC_ACDEF": acdef,
-        "NODECLIAC_MAIN_COMMAND": maincommand, # The command auto completion is being performed for.
-        "NODECLIAC_COMMAND_CHAIN": commandchain, # The parsed command chain.
-        # "NODECLIAC_USED_FLAGS": usedflags, # The parsed used flags.
-        "NODECLIAC_LAST": last, # The last parsed word item (note: could be a partial word item. This happens
+        # fmt"{prefix}ACDEF": acdef,
+        fmt"{prefix}MAIN_COMMAND": maincommand, # The command auto completion is being performed for.
+        fmt"{prefix}COMMAND_CHAIN": commandchain, # The parsed command chain.
+        # fmt"{prefix}USED_FLAGS": usedflags, # The parsed used flags.
+        fmt"{prefix}LAST": last, # The last parsed word item (note: could be a partial word item. This happens
         # when the [tab] key gets pressed within a word item. For example, take the input 'maincommand command'. If
         # the [tab] key was pressed like so: 'maincommand comm[tab]and' then the last word item is 'comm' and it is
         # a partial as its remaining text is 'and'. This will result in using 'comm' to determine possible auto
         # completion word possibilities.).
-        "NODECLIAC_PREV": args[^2], # The word item preceding the last word item.
-        "NODECLIAC_INPUT": input, # CLI input from start to caret index.
-        "NODECLIAC_INPUT_ORIGINAL": oinput, # Original unmodified CLI input.
-        "NODECLIAC_INPUT_REMAINDER": input_remainder, # CLI input from start to caret index.
-        "NODECLIAC_LAST_CHAR": lastchar, # Character before caret.
-        "NODECLIAC_NEXT_CHAR": nextchar, # Character after caret. If char is not '' (empty) then the last word
+        fmt"{prefix}PREV": args[^2], # The word item preceding the last word item.
+        fmt"{prefix}INPUT": input, # CLI input from start to caret index.
+        fmt"{prefix}INPUT_ORIGINAL": oinput, # Original unmodified CLI input.
+        fmt"{prefix}INPUT_REMAINDER": input_remainder, # CLI input from start to caret index.
+        fmt"{prefix}LAST_CHAR": lastchar, # Character before caret.
+        fmt"{prefix}NEXT_CHAR": nextchar, # Character after caret. If char is not '' (empty) then the last word
         # item is a partial word.
-        "NODECLIAC_COMP_LINE_LENGTH": intToStr(cline_length), # Original input's length.
-        "NODECLIAC_INPUT_LINE_LENGTH": intToStr(cline_length), # CLI input from start to caret index string length.
-        "NODECLIAC_ARG_COUNT": intToStr(l), # Amount arguments parsed before caret position/index.
+        fmt"{prefix}COMP_LINE_LENGTH": intToStr(cline_length), # Original input's length.
+        fmt"{prefix}INPUT_LINE_LENGTH": intToStr(cline_length), # CLI input from start to caret index string length.
+        fmt"{prefix}ARG_COUNT": intToStr(l), # Amount arguments parsed before caret position/index.
         # Store collected positional arguments after validating the command-chain to access in plugin auto-completion scripts.
-        "NODECLIAC_USED_DEFAULT_POSITIONAL_ARGS": used_default_pa_args
+        fmt"{prefix}USED_DEFAULT_POSITIONAL_ARGS": used_default_pa_args
     }.toTable
 
     # Dynamically set arguments.

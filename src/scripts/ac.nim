@@ -129,6 +129,23 @@ proc fn_validate_command(item: string): string =
 
 # START=========================================================HELPER-FUNCTIONS
 
+# Substitute for Perl's chop function. Removes last character of provided
+#     string. Nothing is returned as it modifies the original input.
+#
+# @param  {string} 1) - The string to modify.
+# @return {nothing}   - Nothing is returned.
+proc fn_chop(input: var string) =
+    let l = input.len
+    input.delete(l - 1, l)
+
+# Opposite of the chop() function. Same idea but removes the first character
+#     of provided input from the start of the string.
+#
+# @param  {string} 1) - The string to modify.
+# @return {nothing}   - Nothing is returned.
+proc fn_shift(input: var string) =
+    input.delete(0, 0)
+
 # Return last character of provided string.
 #
 # @param  {string} 1) - The string to use.

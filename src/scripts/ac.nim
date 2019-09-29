@@ -194,14 +194,25 @@ proc fn_validate_command(item: string): string =
 # @param  {string} 1) - The string to use.
 # @return {string}    - The last character of string.
 proc fn_lastchar(input: string): string =
-    return $input[^1]
+    # try:
+    #     return $input[^1]
+    # except:
+    #     return ""
+    return input.substr(input.len - 1)
+    # return input[input.len - 1] # Returns `char`.
 
 # Return first character of provided string.
 #
 # @param  {string} 1) - The string to use.
 # @return {string}    - The first character of string.
 proc fn_firstchar(input: string): string =
-    return $input[0]
+    # try:
+    #     return $input[0]
+    # except:
+    #     return ""
+    return input.substr(0, 0)
+
+# ------------------------------------------------------------------------------
 
 # Remove last char from provided string.
 # Substitute for Perl's chop function. Removes last character of provided
@@ -280,24 +291,16 @@ proc fn_split_by_chars(input: string): seq =
 proc fn_quotemeta(input: string): string =
     return multiReplace(input, [(re"([^A-Za-z_0-9])", "\\$1")])
 
-# Joins all provided strings into a single string.
-#
-# @param  {string} 1) - N amount of arguments (get casted to string if not).
-# @return {string}    - The final concatenated string.
-# @resource [https://nim-by-example.github.io/varargs/]
-# @resource [https://forum.nim-lang.org/t/431]
-# @resource [https://www.rosettacode.org/wiki/String_concatenation#Nim]
-proc fn_concat_str(strs: varargs[string, `$`]): string =
-  var fstring = ""
-  for str in strs: fstring &= str
-  return fstring
+# ------------------------------------------------------------------------------
 
-# Get item from provided sequence at provided index.
+# Get item from provided sequence at provided index. When index is negative
+#    the will return item from the end of the sequence. Note: this function
+#    gracefully handles out-of-bounds index error.
 #
 # @param  {sequence} 1) - The sequence to use.
 # @param  {index} 2)    - The item's index.
 # @return {string}      - The item at the index.
-proc fn_last_seq_item(sequence: seq, position: int): string =
+proc fn_last_seq_item(sequence: seq, position: int = -1): string =
     var l = sequence.len
     var i = position # Copy index to another var else nim complains.
     var ispositive = i >= 0 # Check whether index is positive or not.

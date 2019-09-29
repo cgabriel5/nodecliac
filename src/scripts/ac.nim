@@ -59,7 +59,6 @@ if os.paramCount() == 0: quit()
 # let hdir = os.getEnv("HOME")
 
 # Get arguments.
-# let sourcepath =  os.paramStr(0)
 let oinput = os.paramStr(1) # Original unmodified CLI input.
 let cline = os.paramStr(2) # CLI input (could be modified via prehook).
 let cpoint = os.paramStr(3).parseInt(); # Caret index when [tab] key was pressed.
@@ -73,7 +72,7 @@ var ac_type = ""
 var foundflags: seq[string] = @[]
 var completions: seq[string] = @[]
 var commandchain = ""
-var lastchar = "" # = $cline.substr(cpoint - 1, 1); # Character before caret.
+var lastchar = "" # Character before caret.
 var nextchar = cline.substr(cpoint, 1) # Character after caret.
 var cline_length = cline.len # Original input's length.
 var isquoted = false
@@ -86,7 +85,7 @@ var db_dict = initTable[char, Table[string, Table[string, seq[string]]]]()
 var db_levels = initTable[int, Table[string, int]]()
 var db_fallbacks = initTable[string, string]()
 
-# Used flags variables.
+# Vars - Used flags variables.
 var usedflags = initTable[string, Table[string, int]]()
 var usedflags_valueless = initTable[string, int]()
 var usedflags_multi = initTable[string, int]()
@@ -214,7 +213,6 @@ proc fn_firstchar(input: string): string =
 
 # ------------------------------------------------------------------------------
 
-# Remove last char from provided string.
 # Substitute for Perl's chop function. Removes last character of provided
 #     string. Nothing is returned as it modifies the original input.
 #
@@ -559,7 +557,6 @@ proc fn_execute_command(command_str: var string , flags: var seq = @[""], last_f
     # Run the command.
     # var lines = $(os.execShellCmd(command)) # [https://nim-lang.org/docs/os.html]
     var lines = osproc.execProcess(command) # [https://nim-lang.org/docs/osproc.html]
-
     # Note: command_str (the provided command string) will
     # be injected as is. Meaning it will be provided to
     # 'bash' with the provided surrounding quotes. User
@@ -764,9 +761,6 @@ proc fn_extractor() =
                 # Add argument (flag) to found flags array.
                 foundflags.add(vitem)
 
-
-    # Create a function which gets the last item of an array and handles when array is negative.
-
     # Revert commandchain to old chain if empty.
     var value = if commandchain != "": commandchain else: fn_last_seq_item(oldchains, -1)
     commandchain = fn_validate_command(value)
@@ -863,7 +857,6 @@ proc fn_extractor() =
             var eqsign_index = uflag.find('=')
             uflag_fkey = uflag.substr(0, eqsign_index - 1)
             uflag_value = uflag.substr(eqsign_index + 1, uflag.len)
-
 
         # Store flag key and its value in hashes.
         # [https://perlmaven.com/multi-dimensional-hashes]

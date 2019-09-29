@@ -339,8 +339,7 @@ proc fn_paramparse(input: var string): tuple =
     # var args_count = 0
     var qchar = ""
     # Loop character variables (current, previous characters).
-    var c = ""
-    var p = ""
+    var c, p = ""
 
     # Input must not be empty.
     if input == "":
@@ -356,13 +355,12 @@ proc fn_paramparse(input: var string): tuple =
     # [https://stackoverflow.com/q/1007981]
     while input != "":
         # Get needed characters.
-        c = fn_firstchar(input) # 'Chop' first char from string.
-        input = fn_rm_firstchar(input) # Remove the first char from string.
+        c = fn_shift(input) # 'Chop' first char from string.
         p = fn_lastchar(argument) # Get last char from argument.
 
         # qchar is set, grab all chars until an unescaped qchar is hit.
         if qchar == "":
-            if c in ["\"", "'"] and p != "\\":
+            if c in "\"'" and p != "\\":
                 # Set qchar as the opening quote character.
                 qchar = c
                 # Capture character.
@@ -377,7 +375,7 @@ proc fn_paramparse(input: var string): tuple =
         else:
             # Unescape '|' (pipe) characters.
             if c == "|" and p == "\\":
-                argument = fn_rm_lastchar(argument) # Remove last escaping slash to unescape pipe.
+                discard fn_chop(argument) # Remove last escaping slash to unescape pipe.
 
             # Capture character.
             argument &= c
@@ -385,7 +383,7 @@ proc fn_paramparse(input: var string): tuple =
             if c == qchar and p != "\\":
                 # Store argument and reset vars.
                 args.list.add(argument)
-                args.count = args.count + 1
+                inc(args.count)
                 # Clear/reset variables.
                 argument = ""
                 qchar = ""
@@ -471,9 +469,7 @@ proc fn_set_envs(arguments: varargs[string]) =
 # @return {null} - Nothing is returned.
 proc fn_execute_command(command_str: var string , flags: var seq = @[""], last_fkey: string = "") =
     # Cache captured string command.
-    var r = fn_paramparse(command_str)
-    var arguments = r.list
-    let args_count = r.count
+    var (args_count, arguments) = fn_paramparse(command_str)
 
     # Set defaults.
     var command = arguments[0]
@@ -487,13 +483,12 @@ proc fn_execute_command(command_str: var string , flags: var seq = @[""], last_f
 
     # Start creating command string. Will take the
     # following form: `$command 2> /dev/null`
-    var cmd = fn_rm_firstchar(fn_rm_lastchar(command)) # Remove start/end quotes.
-    # Same as String.substr(1, String.len - 2)
+    var cmd = fn_shift_nchop(command) # Remove start/end quotes.
 
     # Only command and delimiter.
     if args_count > 1:
         # print last element
-        # cdelimiter = arguments[-1]
+        # cdelimiter = arguments[^1]
         var cdelimiter = arguments.pop()
 
         # Set custom delimiter if provided. To be
@@ -501,11 +496,11 @@ proc fn_execute_command(command_str: var string , flags: var seq = @[""], last_f
         # Meaning more than the 2 quotes.
         if cdelimiter.len >= 2:
             # [https://stackoverflow.com/a/5745667]
-            delimiter = fn_rm_firstchar(fn_rm_lastchar(cdelimiter))
+            delimiter = fn_shift_nchop(cdelimiter)
 
         # Reduce arguments count by one since we
         # popped off the last item (the delimiter).
-        # args_count = args_count - 1
+        # dec(args_count)
 
         # Add arguments to command string.
         for i in countup(1, args_count - 1, 1):
@@ -520,17 +515,16 @@ proc fn_execute_command(command_str: var string , flags: var seq = @[""], last_f
                 var quote_char = fn_firstchar(arg)
 
                 # Remove start/end quotes.
-                arg = fn_rm_firstchar(fn_rm_lastchar(arg))
+                arg = fn_shift_nchop(arg)
 
                 # Run command and append result to command string.
-                var cmdarg = fmt"{arg} 2> /dev/null"
-                let res = osproc.execProcess(cmdarg)
-                cmd &= " " & quote_char & res & quote_char
+                var cmdarg = arg & " 2> /dev/null"
+                cmd &= " " & quote_char & osproc.execProcess(cmdarg) & quote_char
 
                 # # If the result is empty after
                 # # trimming then do not append?
-                # my $result = `$cmdarg`;
-                # if ($result =~ s/^\s*|\s*$//rg) {}
+                # var result = osproc.execProcess(cmdarg)
+                # if result =~ re"s/^\s*|\s*$//rg":
             else:
                 # Append non-command argument to
                 # command string.
@@ -591,7 +585,7 @@ proc fn_execute_command(command_str: var string , flags: var seq = @[""], last_f
             for line in lines:
                 # # Remove starting left line break in line,
                 # # if it exists, before adding to flags.
-                # if delimiter == '$':
+                # if delimiter == "$":
                 #   line =~ s/^\n//
 
                 # Line cannot be empty.
@@ -655,10 +649,10 @@ proc fn_extractor() =
 
     # Loop over CLI arguments.
     for i in countup(1, l - 1, 1):
-        var i = i
+        var i = i # Copy for later use.
+
         # Cache current loop item.
         var item = args[i]
-        # var nitem = args[i + 1]
         var nitem = fn_last_seq_item(args, i + 1)
 
         # Skip quoted (string) items.
@@ -724,7 +718,7 @@ proc fn_extractor() =
                 # If the next word is a value...
                 if not nitem.startsWith('-'): # If not a flag...
                     # Get flag lists for command from ACDEF.
-                    var pattern = "^" & fn_quotemeta(fn_last_seq_item(oldchains, -1)) & " (.+)$"
+                    var pattern = "^" & fn_quotemeta(fn_last_seq_item(oldchains)) & " (.+)$"
                     var matches = findAll(acdef, re(pattern, {reMultiLine}))
                     if matches.len > 0:
                         # Check if the item (flag) exists as a boolean
@@ -737,7 +731,7 @@ proc fn_extractor() =
                         vitem &= "=" & nitem
 
                         # Increase index to skip added flag value.
-                        i = i + 1
+                        inc(i)
 
                     # It's a boolean flag so add boolean marker (?).
                     else: args[i] = args[i] & "?"
@@ -747,7 +741,7 @@ proc fn_extractor() =
 
             else:
                 # Get flag lists for command from ACDEF.
-                var pattern = "^" & fn_quotemeta(fn_last_seq_item(oldchains, -1)) & " (.+)$"
+                var pattern = "^" & fn_quotemeta(fn_last_seq_item(oldchains)) & " (.+)$"
                 var matches = findAll(acdef, re(pattern, {reMultiLine}))
                 if matches.len > 0:
                     # Check if the item (flag) exists as a boolean
@@ -762,11 +756,10 @@ proc fn_extractor() =
                 foundflags.add(vitem)
 
     # Revert commandchain to old chain if empty.
-    var value = if commandchain != "": commandchain else: fn_last_seq_item(oldchains, -1)
-    commandchain = fn_validate_command(value)
+    commandchain = fn_validate_command(if commandchain != "": commandchain else: fn_last_seq_item(oldchains))
 
     # Determine whether to turn off autocompletion or not.
-    var lword = fn_last_seq_item(args, -1) # Get last word item.
+    var lword = fn_last_seq_item(args) # Get last word item.
     if lastchar == " ":
         # Must start with a hyphen.
         if lword.startsWith('-'): # If a flag...
@@ -783,16 +776,18 @@ proc fn_extractor() =
 
     # Remove boolean indicator from flags.
     for i, arg in args:
+        # Cache argument.
+        var arg = arg # Copy for later use.
         # If argument starts with a hyphen, does not contain an eq sign, and
         # last character is a boolean - remove boolean indicator and reset the
         # argument in array.
-        if arg.startsWith('-') and not ('=' in arg) and fn_lastchar(arg) == "?":
-            args[i] = fn_rm_lastchar(arg) # Reset argument to exclude boolean indicator.
+        if arg.startsWith('-') and not ('=' in arg) and fn_chop(arg) == "?":
+            args[i] = arg # Reset argument to exclude boolean indicator.
 
     # Set last word. If the last char is a space then the last word
     # will be empty. Else set it to the last word.
     # Switch statement: [https://stackoverflow.com/a/22575299]
-    last = if lastchar == " ": "" else: fn_last_seq_item(args, -1)
+    last = if lastchar == " ": "" else: fn_last_seq_item(args)
 
     # Check whether last word is quoted or not.
     if last.find({'"', '\''}) == 0: isquoted = true
@@ -822,7 +817,7 @@ proc fn_extractor() =
                         # Reset needed data.
                         # Modify last used flag.
                         # [https://www.perl.com/article/6/2013/3/28/Find-the-index-of-the-last-element-in-an-array/]
-                        foundflags[foundflags.len - 1] = foundflags[foundflags.len - 1] & "="
+                        foundflags[^1] = foundflags[^1] & "="
                         last = nlast & "="
                         lastchar = "="
                         autocompletion = true
@@ -856,7 +851,7 @@ proc fn_extractor() =
             # Get eq sign index.
             var eqsign_index = uflag.find('=')
             uflag_fkey = uflag.substr(0, eqsign_index - 1)
-            uflag_value = uflag.substr(eqsign_index + 1, uflag.len)
+            uflag_value = uflag.substr(eqsign_index + 1)
 
         # Store flag key and its value in hashes.
         # [https://perlmaven.com/multi-dimensional-hashes]
@@ -870,8 +865,6 @@ proc fn_extractor() =
         if not usedflags_counts.hasKey(uflag_fkey):
             usedflags_counts[uflag_fkey] = 0
         inc(usedflags_counts[uflag_fkey]) # Increment flag count.
-            var count = usedflags_counts[uflag_fkey]
-            usedflags_counts[uflag_fkey] = count + 1
 
 # Lookup command/subcommand/flag definitions from the acdef to return
 #     possible completions list.
@@ -929,6 +922,8 @@ proc fn_lookup(): string =
             # Check whether last value is quoted.
             var last_val_quoted = last_value.find({'"', '\''}) == 0
 
+            # Note: Use while loop to over for loop to be able to append
+            # items to flags array and avoid array length problems.
             # Loop over flags to process.
             var i = 0
             while i < flags.len:
@@ -937,7 +932,7 @@ proc fn_lookup(): string =
                 # # Skip flags not starting with same char as last word.
                 # [https://stackoverflow.com/a/55455061]
                 if not flag.startsWith(last_fkey):
-                    i = i + 1
+                    inc(i)
                     continue
 
                 # Breakup flag into its components (flag/value/etc.).
@@ -963,8 +958,7 @@ proc fn_lookup(): string =
                     # Extract boolean indicator.
                     if '?' in flag_fkey:
                         # Remove boolean indicator.
-                        flag_isbool = fn_lastchar(flag_fkey)
-                        flag_fkey = fn_rm_lastchar(flag_fkey)
+                        flag_isbool = fn_chop(flag_fkey)
 
                     # Check for multi-flag indicator.
                     if flag_value.startsWith('*'):
@@ -983,7 +977,7 @@ proc fn_lookup(): string =
                         fn_execute_command(flag_value, flags, last_fkey)
                         # [https://stackoverflow.com/a/31288153]
                         # Skip flag to not add literal command to completions.
-                        i = i + 1
+                        inc(i)
                         continue
 
                     # Store flag for later checks...
@@ -992,14 +986,13 @@ proc fn_lookup(): string =
                     # Check for boolean indicator.
                     if '?' in flag_fkey:
                         # Remove boolean indicator and reset vars.
-                        flag_isbool = fn_lastchar(flag_fkey)
-                        flag_fkey = fn_rm_lastchar(flag_fkey)
+                        flag_isbool = fn_chop(flag_fkey)
 
                     # Create completion item flag.
                     cflag = flag_fkey
 
                     # Store flag for later checks...
-                    parsedflags[flag_fkey] = 1;
+                    parsedflags[flag_fkey] = 1
 
                 # Unescape flag?
                 # flag = fn_unescape(flag)
@@ -1009,7 +1002,7 @@ proc fn_lookup(): string =
                 # the last word is not in the form "--form= + a character",
                 # don't show flags with values (--flag=value).
                 if last_eqsign == "" and flag_value != "" and flag_multif == "":
-                    i = i + 1
+                    inc(i)
                     continue
 
                 # START: Remove duplicate flag logic. ==========================
@@ -1074,14 +1067,14 @@ proc fn_lookup(): string =
 
                 # If flag is a dupe skip it.
                 if dupe == 1:
-                    i = i + 1
+                    inc(i)
                     continue
 
                 # Note: Don't list single letter flags. Listing them along
                 # with double hyphen flags is awkward. Therefore, only list
                 # then when completing or showing its value(s).
                 if flag_fkey.len == 2 and flag_value == "":
-                    i = i + 1
+                    inc(i)
                     continue
 
                 # END: Remove duplicate flag logic. ============================
@@ -1092,7 +1085,7 @@ proc fn_lookup(): string =
                 if last_eqsign != "":
                     # Flag value has to start with last flag value.
                     if not flag_value.startsWith(last_value) or flag_value == "":
-                        i = i + 1
+                        inc(i)
                         continue
                     # Reset completions array value.
                     cflag = flag_value
@@ -1108,14 +1101,13 @@ proc fn_lookup(): string =
 
                 completions.add(cflag)
 
-                # inc(i) # Increment counter
-                i = i + 1 # Increment counter
+                inc(i) # Increment counter
 
             # Note: Account for quoted strings. If last value is quoted, then
             # add closing quote.
             if last_val_quoted:
                 # Get starting quote (i.e. " or ').
-                var quote = $(last_value[0])
+                var quote = $last_value[0]
 
                 # Close string with matching quote if not already.
                 if fn_lastchar(last_value) != quote:
@@ -1129,7 +1121,7 @@ proc fn_lookup(): string =
 
                 # If the value is empty return.
                 if last_value.len == 2:
-                    completions.add("$quote$quote")
+                    completions.add(quote & quote)
                     return ""
 
             # If no completions exists then simply add last item to Bash
@@ -1165,7 +1157,7 @@ proc fn_lookup(): string =
             commandchain = if last == "": "" else: last
 
         # var pattern = "^" & fn_quotemeta(commandchain)
-        var pattern = "^" & commandchain
+        # var pattern = "^" & commandchain
 
         # When there is no command chain get the first level commands.
         if commandchain == "" and last == "":
@@ -1184,7 +1176,7 @@ proc fn_lookup(): string =
             var commands = (fn_rm_firstchar(commandchain)).split(re"(?<!\\)\.")
             var level = commands.len - 1
             # Increment level if completing a new command level.
-            if lastchar == " ": level = level + 1
+            if lastchar == " ": inc(level)
 
             # Get commandchains for specific letter outside of loop.
             var h = db_dict[letter]
@@ -1231,7 +1223,7 @@ proc fn_lookup(): string =
             # Copy commandchain string.
             var copy_commandchain = commandchain
             # Keyword to look for.
-            var keyword = "default"
+            # var keyword = "default"
 
             # Loop over command chains to build individual chain levels.
             while copy_commandchain != "":
@@ -1308,16 +1300,18 @@ proc fn_parser() =
         # - String must be >= 3 chars in length.
         # - Must only start with a single hyphen.
         if argument.len >= 3 and argument[1] != '-':
-            argument.removePrefix('-') # Remove hyphen from argument.
+            discard fn_shift(argument) # Remove hyphen from argument.
+            # argument.removePrefix('-') # Remove hyphen from argument.
             var lchar = fn_lastchar(argument) # Get last letter.
 
             # If the last character is a number then everything after the
             # first letter character (the flag) is its value.
-            if lchar in "0123456789":
+            if lchar in "1234567890":
                 # Get the single letter argument.
                 var argletter = argument[0]
                 # Remove first char (letter) from argument.
-                argument.removePrefix(argletter)
+                # argument.removePrefix(argletter)
+                discard fn_shift(argument)
 
                 # Add letter argument to args array.
                 args.add(fmt"-{argletter}")
@@ -1336,7 +1330,7 @@ proc fn_parser() =
                         hyphenref = true
                         break
                     args.add(fmt"-{chr}")
-                    i = i + 1
+                    inc(i)
 
                 # Reset value to final argument.
                 argument = if not hyphenref: fmt"-{lchar}" else: argument.substr(i)
@@ -1363,9 +1357,8 @@ proc fn_parser() =
         # is the fastest of all methods tried.
 
         # Get needed characters.
-        c = fn_firstchar(input) # 'Chop' first char from string.
-        input = fn_rm_firstchar(input) # Remove the first char from string.
-        p = fn_lastchar(argument) # Get last char from argument.
+        c = fn_shift(input) # 'Chop' first char from string.
+        p = fn_lastchar(argument) # Remove last char from string and store value.
 
         # qchar is set, grab all chars until an unescaped qchar is hit.
         if qchar != "":
@@ -1391,14 +1384,14 @@ proc fn_parser() =
 
         else:
             # Check if current character is a quote character.
-            if c in ["\"", "'"] and p != "\\":
+            if c in "\"'" and p != "\\":
                 # Set qchar as the opening quote character.
                 qchar = c
                 # Capture character.
                 argument &= c
 
             # For non quote characters add all except non-escaped spaces.
-            elif c in [" ", "\t"] and p != "\\":
+            elif c in " \t" and p != "\\":
                 # If argument variable is not populated don't add to array.
                 if argument == "": continue
 
@@ -1535,8 +1528,6 @@ proc fn_makedb() =
             if ord(line[0]) == 45:
                 # Create dict entry letter/command chain.
                 var fchar = chain[1]
-                # var cchain = fn_rm_firstchar(chain)
-                var cchain = chain
 
                 # Add letter entry to table if it does not exist.
                 if not db_dict.hasKey(fchar):

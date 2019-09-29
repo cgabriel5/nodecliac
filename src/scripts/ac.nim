@@ -404,8 +404,9 @@ proc fn_paramparse(input: var string): tuple =
 
 # Set environment variables to access in custom scripts.
 #
+# @param  {string} 1) arguments - N amount of env names to set.
 # @return {undefined} - Nothing is returned.
-proc fn_set_envs() =
+proc fn_set_envs(arguments: varargs[string]) =
     # Get parsed arguments count.
     let l = args.len
 
@@ -445,16 +446,16 @@ proc fn_set_envs() =
     # If no arguments are provided then we set all env variables.
     # [https://stackoverflow.com/a/19234273]
     # [https://alvinalexander.com/blog/post/perl/how-access-arguments-perl-subroutine-function]
-    # if @_ == 0:
-    # Set environment variable: [https://alvinalexander.com/blog/post/perl/how-to-traverse-loop-items-elements-perl-hash]
-    for key, value in envs: os.putEnv(key, value) # [https://nim-lang.org/docs/os.html#putEnv%2Cstring%2Cstring]
-    # else:
-    #     # Split rows by lines: [https://stackoverflow.com/a/11746174]
-    #     for env_name @_:
-    #         key = "${prefix}$env_name"
-    #         # Set environment if provided env name exists in envs lookup hash table.
-    #         # [https://alvinalexander.com/blog/post/perl/perl-how-test-hash-contains-key]
-    #         if exists($envs{$key})): $ENV{$key} = $envs{$key}
+    if arguments.len == 0:
+        # Set environment variable: [https://alvinalexander.com/blog/post/perl/how-to-traverse-loop-items-elements-perl-hash]
+        for key, value in envs: os.putEnv(key, value) # [https://nim-lang.org/docs/os.html#putEnv%2Cstring%2Cstring]
+    else:
+        # Split rows by lines: [https://stackoverflow.com/a/11746174]
+        for env_name in arguments:
+            var key = prefix & env_name
+            # Set environment if provided env name exists in envs lookup hash table.
+            # [https://alvinalexander.com/blog/post/perl/perl-how-test-hash-contains-key]
+            if envs.hasKey(key): os.putEnv(key, envs[key])
 
 # This is for future reference on how to escape code for the shell,
 # bash -c command, and a Perl one-liner. The following lines of code

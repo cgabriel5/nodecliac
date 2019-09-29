@@ -172,22 +172,22 @@ proc fn_validate_command(item: string): string =
 
 # START=========================================================HELPER-FUNCTIONS
 
-# Substitute for Perl's chop function. Removes last character of provided
-#     string. Nothing is returned as it modifies the original input.
-#
-# @param  {string} 1) - The string to modify.
-# @return {nothing}   - Nothing is returned.
-proc fn_chop(input: var string) =
-    let l = input.len
-    input.delete(l - 1, l)
+# # Checks whether string, char, or number variable is set.
+# #     For strings/chars not being empty means being set.
+# #     For numbers anyting but 0 means being set.
+# #
+# # @param  {any} 1)  - The string, char, or number to check.
+# # @return {boolean} - True if set, otherwise false.
+# proc isset(input: any): bool =
+#   # Get type info.
+#   const dtype = input.type.name
+#   let uinput = $input
 
-# Opposite of the chop() function. Same idea but removes the first character
-#     of provided input from the start of the string.
-#
-# @param  {string} 1) - The string to modify.
-# @return {nothing}   - Nothing is returned.
-proc fn_shift(input: var string) =
-    input.delete(0, 0)
+#   if dtype in "string char": result = uinput != ""
+#   elif dtype == "int": result = uinput != "0"
+#   elif dtype == "bool": result = uinput == "true"
+
+# ------------------------------------------------------------------------------
 
 # Return last character of provided string.
 #
@@ -209,6 +209,12 @@ proc fn_firstchar(input: string): string =
 # @return {string}    - The string after manipulation.
 proc fn_rm_lastchar(input: string): string =
     return input.substr(0, input.len - 2)
+# # Remove last char from provided string.
+# #
+# # @param  {string} 1) - The string to modify.
+# # @return {string}    - The string after manipulation.
+# proc fn_rm_lastchar(input: string): string =
+#     return input.substr(0, input.len - 2)
 
 # Remove last char from provided string.
 #
@@ -226,6 +232,20 @@ proc fn_rm_firstchar(input: string): string =
 proc fn_split_by_chars(input: string): seq =
     # return str.map(c => c) # ← Requires importing `sugar` module.
     return mapIt(input, it)
+
+# # Joins all provided strings into a single string.
+# #
+# # @param  {string} 1) - N amount of arguments (get casted to string if not).
+# # @return {string}    - The final concatenated string.
+# # @resource [https://nim-by-example.github.io/varargs/]
+# # @resource [https://forum.nim-lang.org/t/431]
+# # @resource [https://www.rosettacode.org/wiki/String_concatenation#Nim]
+# proc fn_concat_str(strs: varargs[string, `$`]): string =
+#   var fstring = ""
+#   for str in strs: fstring &= str
+#   return fstring
+
+# ------------------------------------------------------------------------------
 
 # Substitute for Perl's quotemeta function.
 #

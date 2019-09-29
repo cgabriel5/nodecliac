@@ -1,13 +1,57 @@
 #!/usr/bin/env nim
 
-import os
-import re
-import system
-import tables
-import osproc
-import sequtils
-import strutils
-import strformat
+# import system
+from strformat import fmt
+from osproc import execProcess
+from re import
+    re,
+    find,
+    split,
+    findAll,
+    replace,
+    contains,
+    replacef,
+    reMultiLine,
+    multiReplace
+from sequtils import
+    map,
+    mapIt,
+    toSeq,
+    filter
+from tables import
+    add,
+    len,
+    keys,
+    `[]`,
+    `[]=`,
+    pairs,
+    Table,
+    hasKey,
+    toTable,
+    initTable
+from os import
+    getEnv,
+    putEnv,
+    paramStr,
+    paramCount,
+    execShellCmd
+from strutils import
+    find,
+    join,
+    split,
+    strip,
+    delete,
+    Digits,
+    Letters,
+    replace,
+    contains,
+    endsWith,
+    intToStr,
+    parseInt,
+    startsWith,
+    removePrefix,
+    allCharsInSet
+# from typetraits import name
 
 # If no arguments are passed to script then exit.
 if os.paramCount() == 0: quit()

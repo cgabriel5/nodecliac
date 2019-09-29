@@ -204,11 +204,27 @@ proc fn_firstchar(input: string): string =
     return $input[0]
 
 # Remove last char from provided string.
+# Substitute for Perl's chop function. Removes last character of provided
+#     string. Nothing is returned as it modifies the original input.
 #
 # @param  {string} 1) - The string to modify.
-# @return {string}    - The string after manipulation.
-proc fn_rm_lastchar(input: string): string =
-    return input.substr(0, input.len - 2)
+# @return {string}    - The removed character.
+proc fn_chop(input: var string): string =
+    let l = input.len
+    var lchar = input.substr(input.len - 1) # Get last char before removal.
+    input.delete(l - 1, l)
+    return lchar
+
+# Opposite of the chop() function. Same idea but removes the first character
+#     of provided input from the start of the string.
+#
+# @param  {string} 1) - The string to modify.
+# @return {string}    - The removed character.
+proc fn_shift(input: var string): string =
+    var fchar = input.substr(0, 0) # Get first char before removal.
+    input.delete(0, 0)
+    return fchar
+
 # # Remove last char from provided string.
 # #
 # # @param  {string} 1) - The string to modify.
@@ -223,6 +239,15 @@ proc fn_rm_lastchar(input: string): string =
 proc fn_rm_firstchar(input: string): string =
     # return input.substr(1, input.len - 1)
     return input.substr(1)
+
+# Remove first and last character from provided string.
+#
+# @param  {string} 1) - The string to modify.
+# @return {string}    - The string after manipulation.
+proc fn_shift_nchop(input: string): string =
+    return input.substr(1, input.len - 2)
+
+# ------------------------------------------------------------------------------
 
 # Splits provided string into an its individual characters.
 #

@@ -55,7 +55,8 @@ var used_default_pa_args = ""
 const prefix = "NODECLIAC_"
 
 # [https://nim-lang.org/docs/strutils.html#10]
-const invalid = AllChars - Letters - Digits - {'-', '.', '_', ':', '\\'}
+const valid_cmd_chars = Letters + Digits + {'-', '.', '_', ':', '\\'}
+const valid_flg_chars = Letters + Digits + {'-', '_', }
 
 # # Log local variables and their values.
 # proc fn_debug() =
@@ -95,7 +96,7 @@ proc fn_normalize_command(item: var string): string =
                .replacef(re"([^\\]|^)\/", "$1.") # Replace unescaped '/' with '.' dots.
 
     # Finally, validate that only allowed characters are in string.
-    if item.find(invalid) != -1: quit()
+    if not allCharsInSet(item, valid_cmd_chars): quit()
 
     # Returned normalized item string.
     return item
@@ -110,10 +111,8 @@ proc fn_validate_flag(item: string): string =
     # If string is a file/directory then return.
     if fn_is_file_or_dir(item): return item
 
-    # Modified invalid characters.
-    let minvalid = invalid + {'_', ':', '\\'}
     # Finally, validate that only allowed characters are in string.
-    if item.find(minvalid) != -1: quit()
+    if not allCharsInSet(item, valid_flg_chars): quit()
 
     # Return word.
     return item
@@ -123,7 +122,7 @@ proc fn_validate_command(item: string): string =
     if fn_is_file_or_dir(item): return item
 
     # Finally, validate that only allowed characters are in string.
-    if item.find(invalid) != -1: quit()
+    if not allCharsInSet(item, valid_cmd_chars): quit()
 
     return item
 

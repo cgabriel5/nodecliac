@@ -863,14 +863,13 @@ proc fn_extractor() =
 
         if uflag_value != "":
             if not usedflags.hasKey(uflag_fkey):
-                usedflags[uflag_fkey] = initTable[string, int]()
-                usedflags[uflag_fkey].add(uflag_value, 1)
+                usedflags[uflag_fkey] = {uflag_value: 1}.toTable
         else: usedflags_valueless[uflag_fkey] = 1
 
         # Track amount of times flag was used.
         if not usedflags_counts.hasKey(uflag_fkey):
-            usedflags_counts[uflag_fkey] = 1
-        else:
+            usedflags_counts[uflag_fkey] = 0
+        inc(usedflags_counts[uflag_fkey]) # Increment flag count.
             var count = usedflags_counts[uflag_fkey]
             usedflags_counts[uflag_fkey] = count + 1
 
@@ -1486,10 +1485,11 @@ proc fn_makedb() =
             var matches = findAll(acdef, re("^ ([^\n]+)", {reMultiLine}))
             if matches.len > 0:
                 db_dict['_'] = initTable[string, Table[string, seq[string]]]()
-                db_dict['_']["_"] = initTable[string, seq[string]]()
-                # Left trim match as findAll has odd group matching behavior:
-                # [Bug: https://github.com/nim-lang/Nim/issues/12267]
-                db_dict['_']["_"].add("flags", @[matches[0].strip(trailing = false)])
+                # db_dict['_']["_"] = initTable[string, seq[string]]()
+                # # Left trim match as findAll has odd group matching behavior:
+                # # [Bug: https://github.com/nim-lang/Nim/issues/12267]
+                # db_dict['_']["_"].add("flags", @[matches[0].strip(trailing = false)])
+                db_dict['_']["_"] = {"flags": @[matches[0].strip(trailing = false)]}.toTable
 
     # General auto-completion. Parse entire .acdef file contents.
     else:
@@ -1542,10 +1542,11 @@ proc fn_makedb() =
                 if not db_dict.hasKey(fchar):
                     db_dict[fchar] = initTable[string, Table[string, seq[string]]]()
 
-                # Add entry to table not that entry exists.
-                db_dict[fchar][cchain] = initTable[string, seq[string]]()
-                db_dict[fchar][cchain].add("commands", commands)
-                db_dict[fchar][cchain].add("flags", @[line])
+                # # Add entry to table not that entry exists.
+                # db_dict[fchar][chain] = initTable[string, seq[string]]()
+                # db_dict[fchar][chain].add("commands", commands)
+                # db_dict[fchar][chain].add("flags", @[line])
+                db_dict[fchar][chain] = {"commands": commands, "flags": @[line]}.toTable
 
             else:
                 # Store fallback.

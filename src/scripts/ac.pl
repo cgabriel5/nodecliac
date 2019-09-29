@@ -1068,9 +1068,23 @@ sub __lookup {
 						# It last word/flag key match and flag value is used.
 						if ($last ne $flag_fkey
 							&& exists($usedflags{valueless}{$flag_fkey})) {
+
+							# Autovivication: [https://perlmaven.com/multi-dimensional-hashes]
+							# [https://perlmaven.com/autovivification]
 							if (!exists($usedflags{$flag_fkey}{$flag_value})) {
 								$dupe = 1; # subl --type=, subl --type= --
 							}
+
+							# The following code does the same as the
+							# autovivification line from above:
+
+							# # Add flag to usedflags root level.
+							# if (!exists($usedflags{$flag_fkey})) {
+							# 	$usedflags{$flag_fkey} = {};
+							# }
+							# if (!exists($usedflags{$flag_fkey}{$flag_value})) {
+							# 	$dupe = 1; # subl --type=, subl --type= --
+							# }
 						}
 					}
 				}

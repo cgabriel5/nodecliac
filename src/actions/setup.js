@@ -5,6 +5,7 @@ const path = require("path");
 const chalk = require("chalk");
 const flatry = require("flatry");
 const log = require("fancy-log");
+const shell = require("shelljs");
 const mkdirp = require("make-dir");
 const fe = require("file-exists");
 const copydir = require("recursive-copy");
@@ -55,6 +56,12 @@ module.exports = async args => {
 		bashrcpath = rcfilepath;
 	}
 
+	// Get platform name.
+	let platform_name = shell
+		.exec("uname", { silent: true })
+		.stdout.trim()
+		.toLowerCase();
+
 	// Declare empty variables to reuse for all await operations.
 	let err, res;
 
@@ -100,10 +107,15 @@ module.exports = async args => {
 		);
 	}
 
+	// List of allowed file names/extensions.
+	let allowed_files = new RegExp(
+		`^(ac|main|config)\\.(sh|pl|nim|${platform_name})$`
+	);
+
 	// Get list of directory files.
 	[err, res] = await flatry(readdir(fixpath("scripts")));
 	let files = res.filter(file => {
-		return /^(ac|main|config)\.(sh|pl|nim)$/.test(file);
+		return allowed_files.test(file);
 	});
 
 	// Var to store promises in.
@@ -155,7 +167,10 @@ module.exports = async args => {
 
 	// Just copy file over. No need to do anything to it.
 	[err, res] = await flatry(
-		copy(fixpath(`scripts/ac`), `${acmapssource}/ac`)
+		copy(
+			fixpath(`scripts/ac.${platform_name}`),
+			`${acmapssource}/ac.${platform_name}`
+		)
 	);
 
 	// // Prep allowed commands list.

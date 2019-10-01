@@ -422,6 +422,7 @@ $RECYCLE.BIN/
 build/
 dist/
 markdown/previews/
+tests/outputs
 
 # React-app ignores [https://help.github.com/articles/ignoring-files/]
 

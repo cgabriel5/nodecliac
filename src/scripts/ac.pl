@@ -17,7 +17,7 @@
 # my $hdir = glob('~'); # ← Slowest...
 # my $hdir = `echo "\$HOME"`; # ← Less slow...
 # [https://stackoverflow.com/q/1475357]
-my $hdir = $ENV{'HOME'}; # ← Fastest way but is it reliable?
+# my $hdir = $ENV{'HOME'}; # ← Fastest way but is it reliable?
 
 # Get arguments.
 my $oinput = $ARGV[0]; # Original unmodified CLI input.
@@ -45,7 +45,7 @@ my $input_remainder = substr($cline, $cpoint, -1); # CLI input from caret index 
 my %db;
 $db{'fallbacks'} = {};
 
-# Used flags variables.
+# Vars - Used flags variables.
 my %usedflags;
 $usedflags{'valueless'};
 $usedflags{'multi'};
@@ -53,7 +53,6 @@ $usedflags{'counts'};
 
 # Vars to be used for storing used default positional arguments.
 my $used_default_pa_args = '';
-
 # Set environment vars so command has access.
 my $prefix = 'NODECLIAC_';
 
@@ -221,7 +220,7 @@ sub __execute_command {
 				# Remove '$' command indicator.
 				$arg = substr($arg, 1);
 				# Get the used quote type.
-				my $quote_char =  substr($arg, 0, 1);
+				my $quote_char = substr($arg, 0, 1);
 
 				# Remove start/end quotes.
 				$arg = substr($arg, 1, -1);
@@ -364,7 +363,7 @@ sub __paramparse {
 	my $c; my $p;
 
 	# Input must not be empty.
-	if (!$input) { push(@arguments, 0); return; }
+	if (!$input) { push(@arguments, 0); return @arguments; }
 
 	# Command flag syntax:
 	# $("COMMAND-STRING" [, [<ARG1>, <ARGN> [, "<DELIMITER>"]]])
@@ -427,6 +426,7 @@ sub __paramparse {
 
 # Set environment variables to access in custom scripts.
 #
+# @param  {string} 1) arguments - N amount of env names to set.
 # @return {undefined} - Nothing is returned.
 sub __set_envs {
 	# Get parsed arguments count.
@@ -958,7 +958,7 @@ sub __lookup {
 				# [https://stackoverflow.com/q/19968618]
 
 				my $flag_fkey = $flag;
-				my $flag_isbool = '';
+				# my $flag_isbool = '';
 				my $flag_eqsign = '';
 				my $flag_multif = '';
 				my $flag_value = '';
@@ -977,7 +977,8 @@ sub __lookup {
 					# Extract boolean indicator.
 					if (rindex($flag_fkey, '?') > -1) {
 						# Remove boolean indicator.
-						$flag_isbool = chop($flag_fkey);
+						# $flag_isbool = chop($flag_fkey);
+						chop($flag_fkey);
 					}
 
 					# Check for multi-flag indicator.
@@ -1007,7 +1008,8 @@ sub __lookup {
 					# Check for boolean indicator.
 					if (rindex($flag_fkey, '?') > -1) {
 						# Remove boolean indicator and reset vars.
-						$flag_isbool = chop($flag_fkey);
+						# $flag_isbool = chop($flag_fkey);
+						chop($flag_fkey);
 					}
 
 					# Create completion item flag.
@@ -1068,9 +1070,23 @@ sub __lookup {
 						# It last word/flag key match and flag value is used.
 						if ($last ne $flag_fkey
 							&& exists($usedflags{valueless}{$flag_fkey})) {
+
+							# Autovivication: [https://perlmaven.com/multi-dimensional-hashes]
+							# [https://perlmaven.com/autovivification]
 							if (!exists($usedflags{$flag_fkey}{$flag_value})) {
 								$dupe = 1; # subl --type=, subl --type= --
 							}
+
+							# The following code does the same as the
+							# autovivification line from above:
+
+							# # Add flag to usedflags root level.
+							# if (!exists($usedflags{$flag_fkey})) {
+							# 	$usedflags{$flag_fkey} = {};
+							# }
+							# if (!exists($usedflags{$flag_fkey}{$flag_value})) {
+							# 	$dupe = 1; # subl --type=, subl --type= --
+							# }
 						}
 					}
 				}
@@ -1090,7 +1106,7 @@ sub __lookup {
 				# options/values.
 				if ($last_eqsign) {
 					# Flag value has to start with last flag value.
-					if (rindex($flag_value, $last_value, 0) != 0 || (!$flag_value)) { next; }
+					if (rindex($flag_value, $last_value, 0) != 0 || !$flag_value) { next; }
 					# Reset completions array value.
 					$cflag = $flag_value;
 				}
@@ -1167,7 +1183,7 @@ sub __lookup {
 		}
 
 		# my $pattern = '^' . quotemeta($commandchain);
-		my $pattern = '^' . $commandchain;
+		# my $pattern = '^' . $commandchain;
 
 		# When there is no command chain get the first level commands.
 		if (!$commandchain && !$last) {
@@ -1231,7 +1247,7 @@ sub __lookup {
 			# Copy commandchain string.
 			my $copy_commandchain = $commandchain;
 			# Keyword to look for.
-			my $keyword = 'default';
+			# my $keyword = 'default';
 
 			# Loop over command chains to build individual chain levels.
 			while ($copy_commandchain) {
@@ -1317,8 +1333,8 @@ sub __printer {
 		# (i.e. --flag="some-word...).
 		my $final_space = (
 			$isflag_type
-			# Item cannot be quoted.
 			&& !(rindex($_, '=') + 1)
+			# Item cannot be quoted.
 			&& ((rindex $_, '"', 0) == -1 || (rindex $_, '\'', 0) == -1)
 			&& !$nextchar
 		) ? ' ' : '';
@@ -1372,13 +1388,13 @@ sub __makedb {
 		# For first level flags...
 		} else {
 			# Get main command flags.
-			if ($acdef =~ /^ ([^\n]+)/m) {$db{dict}{''}{''} = { flags => $1 }; }
+			if ($acdef =~ /^ ([^\n]+)/m) {$db{dict}{''}{''} = { flags => $1 };}
 		}
 
 	# General auto-completion. Parse entire .acdef file contents.
 	} else {
 		# Get the first letter of commandchain to better filter ACDEF data.
-		my $fletter = substr($commandchain, 1, 1);
+		# my $fletter = substr($commandchain, 1, 1);
 		my %letters;
 
 		# Extract and place command chains and fallbacks into their own arrays.
@@ -1436,7 +1452,6 @@ sub __makedb {
 		$db{dict} = \%letters;
 	}
 }
-
 
 # (cli_input*) → parser → extractor → lookup → printer
 # *Supply CLI input from start to caret index.

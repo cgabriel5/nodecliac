@@ -1105,7 +1105,7 @@ if [[ -n "$1" ]] && type complete &>/dev/null; then
 		# __parser "${cline:0:$cpoint}";__extractor;__lookup;__printer
 
 		# Run ac perl script to get completions.
-		acpl_script=~/.nodecliac/src/ac.pl
+		acpl_script=~/.nodecliac/src/ac
 		# Run completion script if it exists.
 		if [[ -f "$acpl_script" ]]; then
 			# Run prehook(s) if it exists.

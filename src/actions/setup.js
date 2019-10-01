@@ -15,6 +15,7 @@ const {
 	paths,
 	read,
 	write,
+	copy,
 	readdir,
 	strip_comments
 } = require("../utils/toolbox.js");
@@ -102,7 +103,7 @@ module.exports = async args => {
 	// Get list of directory files.
 	[err, res] = await flatry(readdir(fixpath("scripts")));
 	let files = res.filter(file => {
-		return /^(ac|main|config)\.(sh|pl)$/.test(file);
+		return /^(ac|main|config)\.(sh|pl|nim)$/.test(file);
 	});
 
 	// Var to store promises in.
@@ -150,6 +151,11 @@ module.exports = async args => {
 				"\t"
 			)
 		)
+	);
+
+	// Just copy file over. No need to do anything to it.
+	[err, res] = await flatry(
+		copy(fixpath(`scripts/ac`), `${acmapssource}/ac`)
 	);
 
 	// // Prep allowed commands list.

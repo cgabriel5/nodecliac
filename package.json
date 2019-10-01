@@ -16,7 +16,11 @@
 	},
 	"scripts": {
 		"pretty": "prettier-cli-watcher --configpath='/configs/prettier.config.json'",
-		"lint": "cross-env ESLINT_CFS_VERBOSE=true ./node_modules/eslint/bin/eslint.js -c='configs/eslint.config.js' --ignore-path='configs/eslintignore' --format='simple' '**/*.{js,jsx}'; exit 0"
+		"lint": "cross-env ESLINT_CFS_VERBOSE=true ./node_modules/eslint/bin/eslint.js -c='configs/eslint.config.js' --ignore-path='configs/eslintignore' --format='simple' '**/*.{js,jsx}'; exit 0",
+		"tests": "tests/nodecliac.sh && tests/parser.sh && tests/formatter.sh",
+		"tests-silent": "tests/nodecliac.sh -s && tests/parser.sh -s && tests/formatter.sh -s",
+		"build:acdev": "nim c --run --hints:on --showAllMismatches:on src/scripts/ac.nim && nodecliac setup --force",
+		"build:acprod": "nim c --run --debugger:off --opt:speed --checks:off --threads:on --assertions:off --hints:off --showAllMismatches:on src/scripts/ac.nim && nodecliac setup --force"
 	},
 	"dependencies": {
 		"chalk": "^2.4.1",

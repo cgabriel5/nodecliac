@@ -648,19 +648,18 @@ proc fn_extractor() =
     var collect_used_pa_args = false
 
     # Loop over CLI arguments.
-    for i in countup(1, l - 1, 1):
-        var i = i # Copy for later use.
-
+    var i = 1
+    while i < l:
         # Cache current loop item.
         var item = args[i]
         var nitem = fn_last_seq_item(args, i + 1)
 
         # Skip quoted (string) items.
-        if fn_firstchar(item) in "\"'": continue # If first char is a quote...
+        if fn_firstchar(item) in "\"'": inc(i); continue # If first char is a quote...
 
         # Else if the argument is not quoted check if item contains
         # an escape sequences. If so skip the item.
-        elif "\\" in item: continue
+        elif "\\" in item: inc(i); continue
 
         # If a command (does not start with a hyphen.)
         # [https://stackoverflow.com/a/34951053]
@@ -669,7 +668,7 @@ proc fn_extractor() =
             # Store default positional argument if flag is set.
             if collect_used_pa_args:
                 used_default_pa_args &= "\n" & item # Add used argument.
-                continue # Skip all following logic.
+                inc(i); continue # Skip all following logic.
 
             # Store command.
             commandchain &= "." & fn_normalize_command(item)
@@ -703,7 +702,7 @@ proc fn_extractor() =
             # If the flag contains an eq sign don't look ahead.
             if "=" in item:
                 foundflags.add(item)
-                continue
+                inc(i); continue
 
             # Validate argument.
             var vitem = fn_validate_flag(item)
@@ -754,6 +753,8 @@ proc fn_extractor() =
 
                 # Add argument (flag) to found flags array.
                 foundflags.add(vitem)
+
+        inc(i)
 
     # Revert commandchain to old chain if empty.
     commandchain = fn_validate_command(if commandchain != "": commandchain else: fn_last_seq_item(oldchains))

@@ -27,7 +27,7 @@ indent_size = 2
 
 # Ignore shell tests.
 # [https://stackoverflow.com/a/40348831]
-[*test.sh]
+[/tests/**/*.sh]
 # charset = none
 # end_of_line = none
 # insert_final_newline = none

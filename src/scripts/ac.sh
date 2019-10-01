@@ -1104,8 +1104,13 @@ if [[ -n "$1" ]] && type complete &>/dev/null; then
 		# Note: Supply CLI input from start to caret index.
 		# __parser "${cline:0:$cpoint}";__extractor;__lookup;__printer
 
-		# Run ac perl script to get completions.
-		acpl_script=~/.nodecliac/src/ac
+		# Default to Nim ac script for completion logic.
+		acpl_script=~/.nodecliac/src/ac."$(e=$(uname);e=${e,,};echo $e)"
+		# If Nim script does not exist fallback to Perl script.
+		if [[ ! -f  "$acpl_script" ]]; then
+			acpl_script=~/.nodecliac/src/ac.pl
+		fi
+
 		# Run completion script if it exists.
 		if [[ -f "$acpl_script" ]]; then
 			# Run prehook(s) if it exists.

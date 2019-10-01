@@ -1,5 +1,13 @@
 #!/usr/bin/env nim
 
+# import os
+# import re
+# import osproc
+# import tables
+# import sequtils
+# import strutils
+# import strformat
+
 # import system
 from strformat import fmt
 from osproc import execProcess

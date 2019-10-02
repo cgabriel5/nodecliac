@@ -258,12 +258,13 @@ if [[ "$INSTALLER" == "aconly" ]]; then
 	# Copy nodecliac scripts. [https://superuser.com/a/114198]
 	echo " - Copying nodecliac scripts..."
 	# cp -a "$outputdir"/src/scripts/*.* ~/.nodecliac/src
-	cp -a "$outputdir"/src/scripts/. ~/.nodecliac/src/ # [https://askubuntu.com/a/86891]
+	cp -pr "$outputdir"/src/scripts/. ~/.nodecliac/src/ # [https://askubuntu.com/a/86891]
 	log " $CHECK_MARK Copied nodecliac scripts."
 
 	# Copy registry completion packages.
 	echo " - Copying registry completion packages..."
-	cp -a -r "$outputdir"/resources/nodecliac/* ~/.nodecliac/registry
+	# cp: [https://stackoverflow.com/a/8055544]
+	cp -pr "$outputdir"/resources/nodecliac/* ~/.nodecliac/registry
 	log " $CHECK_MARK Copied registry completion packages."
 	echo " - Deleting acmaps..."
 	rm -rf ~/.nodecliac/registry/__acmaps # Remove acmap files.
@@ -307,7 +308,7 @@ if [[ "$INSTALLER" == "aconly" ]]; then
 
 	# Create bin file.
 	echo " - Creating bin file..."
-	sudo cp -a "$outputdir"/uninstall "$binfilepath"
+	sudo cp -p "$outputdir"/uninstall "$binfilepath"
 	sudo chmod +x "$binfilepath"
 	log " $CHECK_MARK Created bin file."
 

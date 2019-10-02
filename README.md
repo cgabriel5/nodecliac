@@ -619,8 +619,8 @@ $ mycliprogram [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] 
   - `--force` : If nodecliac is already installed this flag is needed for overwrite old install.
   - `--rcfilepath`: By default setup will look for `~/.bashrc` to add modifications to. Supply the path to another rc file if you don't want changes to be made to `~/.bashrc`.
     - **Note**: To be transparent this is what gets added to your rc file:
-    - `ncliac=~/.nodecliac/src/init.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;`
-    - The line will load `~/.nodecliac/src/init.sh` if it exists. `init.sh` registers all `~/.nodecliac/registry/*/*.acdef` files with the completion script to work with bash-completion.
+    - `ncliac=~/.nodecliac/src/main/init.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;`
+    - The line will load `~/.nodecliac/src/main/init.sh` if it exists. `init.sh` registers all `~/.nodecliac/registry/*/*.acdef` files with the completion script to work with bash-completion.
 - `status`: Checks whether nodecliac is enabled/disabled.
   - `--enable` : Enables nodecliac if disabled.
   - `--disable`: Disables nodecliac if enabled.

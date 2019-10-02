@@ -255,11 +255,11 @@ if [[ "$INSTALLER" == "aconly" ]]; then
 	mkdir -p ~/.nodecliac/{registry,src}
 	log " $CHECK_MARK Created project structure."
 
-	# Copy the Perl/Shell nodecliac scripts. [https://superuser.com/a/114198]
-	echo " - Copying Perl/Shell nodecliac scripts..."
+	# Copy nodecliac scripts. [https://superuser.com/a/114198]
+	echo " - Copying nodecliac scripts..."
 	# cp -a "$outputdir"/src/scripts/*.* ~/.nodecliac/src
 	cp -a "$outputdir"/src/scripts/. ~/.nodecliac/src/ # [https://askubuntu.com/a/86891]
-	log " $CHECK_MARK Copied Perl/Shell nodecliac scripts."
+	log " $CHECK_MARK Copied nodecliac scripts."
 
 	# Copy registry completion packages.
 	echo " - Copying registry completion packages..."
@@ -275,9 +275,9 @@ if [[ "$INSTALLER" == "aconly" ]]; then
 	log " $CHECK_MARK Created ~/.nodecliac/.setup.db.json."
 
 	# Strip comments/empty lines from files.
-	echo " - Stripping comments from Perl/Shell scripts..."
+	echo " - Stripping comments from scripts..."
 	perl -pi -e 's/^\s*#(?!!).*?$//g;s/\s{1,}#\s{1,}.+$//g;s!^\s+?$!!' ~/.nodecliac/src/**/*.{sh,pl,nim}
-	log " $CHECK_MARK Stripped comments from Perl/Shell scripts."
+	log " $CHECK_MARK Stripped comments from scripts."
 	# [http://isunix.github.io/blog/2014/07/24/perl-one-liner-to-remove-blank-lines/].
 	# [https://stackoverflow.com/a/6995010], [https://unix.stackexchange.com/a/179449]
 

@@ -193,7 +193,7 @@ $scriptpath    =   "~/path/to/script3.sh"
 
 ```acmap
 # Variables - paths.
-$mainscript = "~/.nodecliac/registry/yarn/main.sh"
+$mainscript = "~/.nodecliac/registry/yarn/init.sh"
 
 # Command chains.
 yarn.remove = default $("${mainscript} remove")
@@ -437,10 +437,10 @@ The following example `yarn.acdef` file will be used to explain how to read `.ac
 .workspaces.info --
 .workspaces.run --
 
-.upgrade default $("~/.nodecliac/registry/yarn/scripts/main.sh upgrade")
+.upgrade default $("~/.nodecliac/registry/yarn/scripts/init.sh upgrade")
 .why default $("yarn list --depth=0 \| perl -wln -e \"/(?! ─ )([-\/_.@(?)a-zA-Z0-9]*)(?=\@)/ and print $&;\"")
-.workspace default $("~/.nodecliac/registry/yarn/scripts/main.sh workspace")
-.workspaces.run default $("~/.nodecliac/registry/yarn/scripts/main.sh run")
+.workspace default $("~/.nodecliac/registry/yarn/scripts/init.sh workspace")
+.workspaces.run default $("~/.nodecliac/registry/yarn/scripts/init.sh run")
 ```
 
 #### ACDEF Header
@@ -491,10 +491,10 @@ For example, the line `.workspaces.run --` can be viewed as `yarn.workspaces.run
 ```acdef
 ...
 
-.upgrade default $("~/.nodecliac/registry/yarn/scripts/main.sh upgrade")
+.upgrade default $("~/.nodecliac/registry/yarn/scripts/init.sh upgrade")
 .why default $("yarn list --depth=0 \| perl -wln -e \"/(?! ─ )([-\/_.@(?)a-zA-Z0-9]*)(?=\@)/ and print $&;\"")
-.workspace default $("~/.nodecliac/registry/yarn/scripts/main.sh workspace")
-.workspaces.run default $("~/.nodecliac/registry/yarn/scripts/main.sh run")
+.workspace default $("~/.nodecliac/registry/yarn/scripts/init.sh workspace")
+.workspaces.run default $("~/.nodecliac/registry/yarn/scripts/init.sh run")
 ```
 
 </details>
@@ -619,8 +619,8 @@ $ mycliprogram [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] 
   - `--force` : If nodecliac is already installed this flag is needed for overwrite old install.
   - `--rcfilepath`: By default setup will look for `~/.bashrc` to add modifications to. Supply the path to another rc file if you don't want changes to be made to `~/.bashrc`.
     - **Note**: To be transparent this is what gets added to your rc file:
-    - `ncliac=~/.nodecliac/src/main.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;`
-    - The line will load `~/.nodecliac/src/main.sh` if it exists. `main.sh` registers all `~/.nodecliac/registry/*/*.acdef` files with the completion script to work with bash-completion.
+    - `ncliac=~/.nodecliac/src/init.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;`
+    - The line will load `~/.nodecliac/src/init.sh` if it exists. `init.sh` registers all `~/.nodecliac/registry/*/*.acdef` files with the completion script to work with bash-completion.
 - `status`: Checks whether nodecliac is enabled/disabled.
   - `--enable` : Enables nodecliac if disabled.
   - `--disable`: Disables nodecliac if enabled.

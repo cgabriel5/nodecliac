@@ -257,12 +257,13 @@ if [[ "$INSTALLER" == "aconly" ]]; then
 
 	# Copy the Perl/Shell nodecliac scripts. [https://superuser.com/a/114198]
 	echo " - Copying Perl/Shell nodecliac scripts..."
-	cp -p "$outputdir"/src/scripts/*.* ~/.nodecliac/src
+	# cp -a "$outputdir"/src/scripts/*.* ~/.nodecliac/src
+	cp -a "$outputdir"/src/scripts/. ~/.nodecliac/src/ # [https://askubuntu.com/a/86891]
 	log " $CHECK_MARK Copied Perl/Shell nodecliac scripts."
 
 	# Copy registry completion packages.
 	echo " - Copying registry completion packages..."
-	cp -p -r "$outputdir"/resources/nodecliac/* ~/.nodecliac/registry
+	cp -a -r "$outputdir"/resources/nodecliac/* ~/.nodecliac/registry
 	log " $CHECK_MARK Copied registry completion packages."
 	echo " - Deleting acmaps..."
 	rm -rf ~/.nodecliac/registry/__acmaps # Remove acmap files.
@@ -288,9 +289,9 @@ if [[ "$INSTALLER" == "aconly" ]]; then
 		log " $CHECK_MARK Created ~/.bashrc file."
 	fi
 	# Add nodecliac to ~/.bashrc if not already.
-	if [[ -z "$(grep -o "ncliac=~/.nodecliac/src/main.sh" "$bashrcfile")" ]]; then
+	if [[ -z "$(grep -o "ncliac=~/.nodecliac/src/main/init.sh" "$bashrcfile")" ]]; then
 		echo " - Adding nodecliac to ~/.bashrc..."
-		echo -e '\nncliac=~/.nodecliac/src/main.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;' >> "$bashrcfile"
+		echo -e '\nncliac=~/.nodecliac/src/main/init.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;' >> "$bashrcfile"
 		log " $CHECK_MARK Added nodecliac to ~/.bashrc."
 		echo " - Adding trailing newline to ~/.bashrc..."
 		perl -i -lpe 's/\x0a$//' "$bashrcfile" # Ensure newline ending: [https://www.unix.com/shell-programming-and-scripting/229399-how-add-newline-character-end-file.html]
@@ -306,7 +307,7 @@ if [[ "$INSTALLER" == "aconly" ]]; then
 
 	# Create bin file.
 	echo " - Creating bin file..."
-	sudo cp -p "$outputdir"/uninstall "$binfilepath"
+	sudo cp -a "$outputdir"/uninstall "$binfilepath"
 	sudo chmod +x "$binfilepath"
 	log " $CHECK_MARK Created bin file."
 

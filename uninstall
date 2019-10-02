@@ -10,10 +10,10 @@ if [[ $# != 1 || "$1" != "uninstall" ]]; then exit; fi
 if [[ -z "$(grep -o "aconly" "$HOME/.nodecliac/.setup.db.json")" ]]; then exit; fi
 
 # Remove nodecliac from ~/.bashrc.
-if [[ -n "$(grep -o "ncliac=~/.nodecliac/src/main.sh" ~/.bashrc)" ]]; then
+if [[ -n "$(grep -o "ncliac=~/.nodecliac/src/main/init.sh" ~/.bashrc)" ]]; then
 	# [https://stackoverflow.com/a/57813295]
-	perl -0pi -e 's/ncliac=~\/.nodecliac\/src\/main.sh;if \[ -f "\$ncliac" \];then source "\$ncliac";fi;//;s/\n+(\n)$/\1/gs' ~/.bashrc
-	# perl -pi -e "s/ncliac=~\/.nodecliac\/src\/main.sh;if \[ -f \"\\\$ncliac\" \];then source \"\\\$ncliac\";fi;// if /^ncliac/" ~/.bashrc
+	perl -0pi -e 's/ncliac=~\/.nodecliac\/src\/main\/init.sh;if \[ -f "\$ncliac" \];then source "\$ncliac";fi;//;s/\n+(\n)$/\1/gs' ~/.bashrc
+	# perl -pi -e "s/ncliac=~\/.nodecliac\/src\/main\/init.sh;if \[ -f \"\\\$ncliac\" \];then source \"\\\$ncliac\";fi;// if /^ncliac/" ~/.bashrc
 	echo -e "\033[32mSuccessfully\033[0m reverted \033[1m~/.bashrc\033[0m changes."
 fi
 

@@ -17,12 +17,13 @@ let paths = (function(os, path) {
 	let cdirname = "nodecliac"; // Custom directory name.
 	let customdir = path.join(homedir, `.${cdirname}`);
 	let bashrcpath = path.join(homedir, ".bashrc");
-	let mainscriptname = "main.sh";
+	let mainscriptname = "init.sh";
 	let registrypaths = path.join(homedir, `.${cdirname}`, "registry");
 	let acmapssource = path.join(homedir, `.${cdirname}`, "src");
 	let setupfilepath = path.join(customdir, `.setup.db.json`);
 	// Path to nodecliac resources.
 	let resourcespath = path.join(cwd, "resources/nodecliac/");
+	let resourcessrcs = path.join(cwd, "src/scripts/");
 
 	return {
 		cwd,
@@ -34,7 +35,8 @@ let paths = (function(os, path) {
 		registrypaths,
 		acmapssource,
 		setupfilepath,
-		resourcespath
+		resourcespath,
+		resourcessrcs
 	};
 })(os, path);
 

@@ -72,7 +72,7 @@ if [[ "$vmajor" -ge 4 ]]; then
 	# Continue if version is at least 4.3...
 
 	registrypath=~/.nodecliac/registry
-	acscript="$HOME/.nodecliac/src/ac.sh"
+	acscript="$HOME/.nodecliac/src/main/connector.sh"
 	if [[ -f "$acscript" ]]; then
 		# [https://superuser.com/a/352387]
 		# [https://askubuntu.com/a/427290]

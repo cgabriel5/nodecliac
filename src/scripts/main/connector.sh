@@ -988,9 +988,9 @@ if [[ -n "$1" ]] && type complete &>/dev/null; then
 		# 			if [[ "$registry" != *" -o "*  ]]; then return; fi
 
 		# 			# Get 'filedir' config setting.
-		# 			# local filedirvalue=`"$HOME/.nodecliac/src/config.pl" "filedir" "$maincommand"`
+		# 			# local filedirvalue=`"$HOME/.nodecliac/src/main/config.pl" "filedir" "$maincommand"`
 		# 			local filedirvalue
-		# 			filedirvalue=$("$HOME/.nodecliac/src/config.pl" "filedir" "$maincommand")
+		# 			filedirvalue=$("$HOME/.nodecliac/src/main/config.pl" "filedir" "$maincommand")
 
 		# 			# Run function with or without arguments.
 		# 			if [[ -n "$filedirvalue" && "$filedirvalue" != "false" ]]; then
@@ -1105,10 +1105,10 @@ if [[ -n "$1" ]] && type complete &>/dev/null; then
 		# __parser "${cline:0:$cpoint}";__extractor;__lookup;__printer
 
 		# Default to Nim ac script for completion logic.
-		acpl_script=~/.nodecliac/src/ac."$(e=$(uname);e=${e,,};echo $e)"
+		acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo $e)"
 		# If Nim script does not exist fallback to Perl script.
 		if [[ ! -f  "$acpl_script" ]]; then
-			acpl_script=~/.nodecliac/src/ac.pl
+			acpl_script=~/.nodecliac/src/ac/ac.pl
 		fi
 
 		# Run completion script if it exists.
@@ -1166,9 +1166,9 @@ if [[ -n "$1" ]] && type complete &>/dev/null; then
 					if [[ "$registry" != *" -o "*  ]]; then return; fi
 
 					# Get 'filedir' config setting.
-					# local filedirvalue=`"$HOME/.nodecliac/src/config.pl" "filedir" "$maincommand"`
+					# local filedirvalue=`"$HOME/.nodecliac/src/main/config.pl" "filedir" "$maincommand"`
 					local filedirvalue
-					filedirvalue=$("$HOME/.nodecliac/src/config.pl" "filedir" "$maincommand")
+					filedirvalue=$("$HOME/.nodecliac/src/main/config.pl" "filedir" "$maincommand")
 
 					# Run function with or without arguments.
 					if [[ -n "$filedirvalue" && "$filedirvalue" != "false" ]]; then
@@ -1297,7 +1297,7 @@ if [[ -n "$1" ]] && type complete &>/dev/null; then
 	# }
 
 	# Get 'default' and 'disable' config settings.
-	settings=$("$HOME/.nodecliac/src/config.pl" "default;disable" "$1")
+	settings=$("$HOME/.nodecliac/src/main/config.pl" "default;disable" "$1")
 	config_default="${settings%%:*}"
 	config_disable="${settings#*:}"
 

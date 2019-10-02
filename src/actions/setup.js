@@ -16,8 +16,8 @@ const {
 	paths,
 	read,
 	write,
-	copy,
-	readdir,
+	// copy,
+	// readdir,
 	strip_comments
 } = require("../utils/toolbox.js");
 
@@ -48,6 +48,7 @@ module.exports = async args => {
 		registrypaths,
 		acmapssource,
 		resourcespath,
+		resourcessrcs,
 		setupfilepath
 	} = paths;
 
@@ -56,11 +57,11 @@ module.exports = async args => {
 		bashrcpath = rcfilepath;
 	}
 
-	// Get platform name.
-	let platform_name = shell
-		.exec("uname", { silent: true })
-		.stdout.trim()
-		.toLowerCase();
+	// // Get platform name.
+	// let platform_name = shell
+	// 	.exec("uname", { silent: true })
+	// 	.stdout.trim()
+	// 	.toLowerCase();
 
 	// Declare empty variables to reuse for all await operations.
 	let err, res;
@@ -102,52 +103,60 @@ module.exports = async args => {
 				`${res.replace(
 					/\n*$/g,
 					""
-				)}\n\nncliac=~/.nodecliac/src/${mainscriptname};if [ -f "$ncliac" ];then source "$ncliac";fi;`
+				)}\n\nncliac=~/.nodecliac/src/main/${mainscriptname};if [ -f "$ncliac" ];then source "$ncliac";fi;`
 			)
 		);
 	}
 
-	// List of allowed file names/extensions.
-	let allowed_files = new RegExp(
-		`^(ac|main|config)\\.(sh|pl|nim|${platform_name})$`
-	);
+	// // List of allowed file names/extensions.
+	// let allowed_files = new RegExp(
+	// 	`^(ac|main|config)\\.(sh|pl|nim|${platform_name})$`
+	// );
 
-	// Get list of directory files.
-	[err, res] = await flatry(readdir(fixpath("scripts")));
-	let files = res.filter(file => {
-		return allowed_files.test(file);
-	});
+	// // Get list of directory files.
+	// [err, res] = await flatry(readdir(fixpath("scripts")));
+	// let files = res.filter(file => {
+	// 	return allowed_files.test(file);
+	// });
 
-	// Var to store promises in.
-	let promises = [];
+	// // Var to store promises in.
+	// let promises = [];
 
-	// Read contents of needed script files.
-	for (let i = 0, l = files.length; i < l; i++) {
-		// Add write promise to promise array.
-		promises.push(read(fixpath(`scripts/${files[i]}`)));
-	}
+	// // Read contents of needed script files.
+	// for (let i = 0, l = files.length; i < l; i++) {
+	// 	// Add write promise to promise array.
+	// 	promises.push(read(fixpath(`scripts/${files[i]}`)));
+	// }
 
-	// Generate needed completion scripts.
-	[err, res] = await flatry(Promise.all(promises));
+	// // Generate needed completion scripts.
+	// [err, res] = await flatry(Promise.all(promises));
 
-	// Clear variable.
-	promises.length = 0;
+	// // Clear variable.
+	// promises.length = 0;
 
-	// Get each file contents from read results.
-	for (let i = 0, l = files.length; i < l; i++) {
-		// Cache current loop item.
-		let file = files[i];
-		// Determine if script needs to be set to executable.
-		let mode = /\.pl$/.test(file) ? "755" : void 0;
+	// // Get each file contents from read results.
+	// for (let i = 0, l = files.length; i < l; i++) {
+	// 	// Cache current loop item.
+	// 	let file = files[i];
+	// 	// Determine if script needs to be set to executable.
+	// 	let mode = /\.pl$/.test(file) ? "755" : void 0;
 
-		// Add write promise to promise array.
-		promises.push(
-			write(`${acmapssource}/${file}`, strip_comments(res[i]), mode)
-		);
-	}
+	// 	// Add write promise to promise array.
+	// 	promises.push(
+	// 		write(`${acmapssource}/${file}`, strip_comments(res[i]), mode)
+	// 	);
+	// }
 
-	// Create script files.
-	await flatry(Promise.all(promises));
+	// // Create script files.
+	// await flatry(Promise.all(promises));
+
+	// // Just copy file over. No need to do anything to it.
+	// [err, res] = await flatry(
+	// 	copy(
+	// 		fixpath(`scripts/ac.${platform_name}`),
+	// 		`${acmapssource}/ac.${platform_name}`
+	// 	)
+	// );
 
 	// Create setup info file to reference on uninstall.
 	[err, res] = await flatry(
@@ -165,18 +174,42 @@ module.exports = async args => {
 		)
 	);
 
-	// Just copy file over. No need to do anything to it.
-	[err, res] = await flatry(
-		copy(
-			fixpath(`scripts/ac.${platform_name}`),
-			`${acmapssource}/ac.${platform_name}`
-		)
-	);
-
 	// // Prep allowed commands list.
 	// commands = commands ? commands.split(/( |,)/) : [];
 	// // Ensure nodecliac.acdef is copied over.
 	// let allowed_commands = ["nodecliac"].concat(commands);
+
+	// Copy nodecliac command packages/files to nodecliac registry.
+	[err, res] = await flatry(
+		copydir(resourcessrcs, acmapssource, {
+			// Copy options.
+			overwrite: true,
+			dot: false,
+			debug: false,
+			filter: function(filename) {
+				// File must pass conditions to be copied.
+				return (
+					// Don't copy hidden directory/files.
+					!/^\._/.test(filename)
+				);
+			},
+			transform: function(src /*dest, stats*/) {
+				// Only modify Shell and Perl script files.
+				if (!/\.(sh|pl)$/.test(path.extname(src))) {
+					return null;
+				}
+
+				// Remove comments from files and return.
+				return through(function(chunk, enc, done) {
+					done(null, strip_comments(chunk.toString()));
+				});
+			}
+		})
+	);
+	// If copying fails give error.
+	if (err) {
+		exit(["Failed to copy source files."]);
+	}
 
 	// Copy nodecliac command packages/files to nodecliac registry.
 	[err, res] = await flatry(

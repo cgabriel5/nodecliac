@@ -177,6 +177,18 @@ proc fn_validate_command(item: string): string =
 
     return item
 
+# # Given a string and a character list, will return an array containing
+# #     the first found character and it's index.
+# #
+# # @param  {string} 1) - The string to search.
+# # @param  {string} 2) - The characters list.
+# # @return {tuple}     - Tuple(index, character) of first found char.
+# proc fn_first_found_char(s: string, chars: set[char]): tuple =
+#     let findex = s.find(chars)
+#     let fchar = if findex > -1: s[findex] else: '\x00'
+#     var r = (index: findex, char: fchar)
+#     return r
+
 # START=========================================================HELPER-FUNCTIONS
 
 # # Checks whether string, char, or number variable is set.

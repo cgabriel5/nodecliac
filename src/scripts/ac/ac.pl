@@ -156,6 +156,30 @@ sub __validate_command {
 	return $item;
 }
 
+# # Given a string and a character list, will return an array containing
+# #     the first found character and it's index.
+# #
+# # @param  {string} 1) - The string to search.
+# # @param  {string} 2) - The characters list.
+# # @return {tuple}     - Tuple(index, character) of first found char.
+# #
+# # @resource: [https://www.perlmonks.org/?node_id=22826]
+# # @resource: [https://stackoverflow.com/a/3638230]
+# # @resource: [https://stackoverflow.com/a/11415232]
+# # @resource: [https://perldoc.perl.org/functions/tr.html#y%2f%2f%2f]
+# sub __first_found_char {
+# 	# Get provided arguments.
+# 	my ($string, $chars) = @_;
+# 	# Escape chars to work with RegEx.
+# 	$chars = quotemeta($chars);
+# 	# If multiple chars, wrap them to work with RegEx.
+# 	if (length($chars) > 1) { $chars = "[$chars]"; }
+# 	# Run string replacement (s///).
+# 	my $index = ($string =~ s/$chars//);
+# 	# Return first found char index.
+# 	return $index ? ($-[0], substr(@_[0], $-[0], 1)) : (-1, '');
+# }
+
 # This is for future reference on how to escape code for the shell,
 # bash -c command, and a Perl one-liner. The following lines of code
 # can be copy/pasted into the terminal.

@@ -177,6 +177,8 @@ proc fn_validate_command(item: string): string =
 
     return item
 
+# START=========================================================HELPER-FUNCTIONS
+
 # # Given a string and a character list, will return an array containing
 # #     the first found character and it's index.
 # #
@@ -188,8 +190,6 @@ proc fn_validate_command(item: string): string =
 #     let fchar = if findex > -1: s[findex] else: '\x00'
 #     var r = (index: findex, char: fchar)
 #     return r
-
-# START=========================================================HELPER-FUNCTIONS
 
 # # Checks whether string, char, or number variable is set.
 # #     For strings/chars not being empty means being set.
@@ -339,139 +339,10 @@ proc fn_last_seq_item(sequence: seq, position: int = -1): string =
 
 # END===========================================================HELPER-FUNCTIONS
 
-# Parse string command flag ($("")) arguments.
-#
-# @param  {string} 1) input - The string command-flag to parse.
-# @return {string} - The cleaned command-flag string.
-# proc fn_paramparse(input: var string): seq[string] =
-proc fn_paramparse(input: var string): tuple =
-    # Parse command string to get individual arguments. Things to note: each
-    # argument is to be encapsulated with strings. User can decide which to
-    # use, either single or double. As long as their contents are properly
-    # escaped.
-
-    # Vars.
-    var argument = ""
-    # var arguments: seq[string] = @[]
-    var args: tuple[count: int, list: seq[string]]
-    # var l = input.len
-    # var ll = l - 1
-    # var args_count = 0
-    var qchar = ""
-    # Loop character variables (current, previous characters).
-    var c, p = ""
-
-    # Input must not be empty.
-    if input == "":
-        args = (count: 0, list: @[""])
-        return args
-
-    # Command flag syntax:
-    # $("COMMAND-STRING" [, [<ARG1>, <ARGN> [, "<DELIMITER>"]]])
-
-    # Loop over every input char: [https://stackoverflow.com/q/10487316]
-    # [https://stackoverflow.com/q/18906514]
-    # [https://stackoverflow.com/q/13952870]
-    # [https://stackoverflow.com/q/1007981]
-    while input != "":
-        # Get needed characters.
-        c = fn_shift(input) # 'Chop' first char from string.
-        p = fn_lastchar(argument) # Get last char from argument.
-
-        # qchar is set, grab all chars until an unescaped qchar is hit.
-        if qchar == "":
-            if c in "\"'" and p != "\\":
-                # Set qchar as the opening quote character.
-                qchar = c
-                # Capture character.
-                argument &= c
-
-            # Continuing will ignore all characters outside of quotes.
-            # For example, take the example input string: "'name', 'age'".
-            # Since the ", " (minus the quotes) is outside of a quoted
-            # region and only serve as a delimiter, they don't need to be
-            # captured. This means they can be ignored.
-            # next;
-        else:
-            # Unescape '|' (pipe) characters.
-            if c == "|" and p == "\\":
-                discard fn_chop(argument) # Remove last escaping slash to unescape pipe.
-
-            # Capture character.
-            argument &= c
-
-            if c == qchar and p != "\\":
-                # Store argument and reset vars.
-                args.list.add(argument)
-                inc(args.count)
-                # Clear/reset variables.
-                argument = ""
-                qchar = ""
-
-    # Get last argument.
-    if argument != "": args.list.add(argument)
-
-    # Push argument counter to array.
-    # args.list.add(args_count)
-
-    # Return args.list array.
-    # [https://stackoverflow.com/a/11303607]
-    return args
-
-# Set environment variables to access in custom scripts.
-#
-# @param  {string} 1) arguments - N amount of env names to set.
-# @return {undefined} - Nothing is returned.
-proc fn_set_envs(arguments: varargs[string]) =
-    # Get parsed arguments count.
-    let l = args.len
-
-    # Use hash to store environment variables: [https://perlmaven.com/perl-hashes]
-    var envs = {
-        # Following env vars are provided by bash but exposed via nodecliac.
-        fmt"{prefix}COMP_LINE": cline, # Original (unmodified) CLI input.
-        fmt"{prefix}COMP_POINT": intToStr(cpoint), # Caret index when [tab] key was pressed.
-
-        # Following env vars are custom and exposed via nodecliac.
-        # fmt"{prefix}ACDEF": acdef,
-        fmt"{prefix}MAIN_COMMAND": maincommand, # The command auto completion is being performed for.
-        fmt"{prefix}COMMAND_CHAIN": commandchain, # The parsed command chain.
-        # fmt"{prefix}USED_FLAGS": usedflags, # The parsed used flags.
-        fmt"{prefix}LAST": last, # The last parsed word item (note: could be a partial word item. This happens
-        # when the [tab] key gets pressed within a word item. For example, take the input 'maincommand command'. If
-        # the [tab] key was pressed like so: 'maincommand comm[tab]and' then the last word item is 'comm' and it is
-        # a partial as its remaining text is 'and'. This will result in using 'comm' to determine possible auto
-        # completion word possibilities.).
-        fmt"{prefix}PREV": args[^2], # The word item preceding the last word item.
-        fmt"{prefix}INPUT": input, # CLI input from start to caret index.
-        fmt"{prefix}INPUT_ORIGINAL": oinput, # Original unmodified CLI input.
-        fmt"{prefix}INPUT_REMAINDER": input_remainder, # CLI input from start to caret index.
-        fmt"{prefix}LAST_CHAR": lastchar, # Character before caret.
-        fmt"{prefix}NEXT_CHAR": nextchar, # Character after caret. If char is not '' (empty) then the last word
-        # item is a partial word.
-        fmt"{prefix}COMP_LINE_LENGTH": intToStr(cline_length), # Original input's length.
-        fmt"{prefix}INPUT_LINE_LENGTH": intToStr(cline_length), # CLI input from start to caret index string length.
-        fmt"{prefix}ARG_COUNT": intToStr(l), # Amount arguments parsed before caret position/index.
-        # Store collected positional arguments after validating the command-chain to access in plugin auto-completion scripts.
-        fmt"{prefix}USED_DEFAULT_POSITIONAL_ARGS": used_default_pa_args
-    }.toTable
-
-    # Dynamically set arguments.
-    # for (my $i = 0; $i < $l; $i++) { $ENV{"${prefix}ARG_${i}"} = $args[$i]; }
-
-    # If no arguments are provided then we set all env variables.
-    # [https://stackoverflow.com/a/19234273]
-    # [https://alvinalexander.com/blog/post/perl/how-access-arguments-perl-subroutine-function]
-    if arguments.len == 0:
-        # Set environment variable: [https://alvinalexander.com/blog/post/perl/how-to-traverse-loop-items-elements-perl-hash]
-        for key, value in envs: os.putEnv(key, value) # [https://nim-lang.org/docs/os.html#putEnv%2Cstring%2Cstring]
-    else:
-        # Split rows by lines: [https://stackoverflow.com/a/11746174]
-        for env_name in arguments:
-            var key = prefix & env_name
-            # Set environment if provided env name exists in envs lookup hash table.
-            # [https://alvinalexander.com/blog/post/perl/perl-how-test-hash-contains-key]
-            if envs.hasKey(key): os.putEnv(key, envs[key])
+# Note: To maintain function order with Perl script the following functions
+# needs to be pre defined to prevent errors:
+proc fn_paramparse(input: var string): tuple
+proc fn_set_envs(arguments: varargs[string])
 
 # This is for future reference on how to escape code for the shell,
 # bash -c command, and a Perl one-liner. The following lines of code
@@ -637,7 +508,282 @@ proc fn_execute_command(command_str: var string , flags: var seq = @[""], last_f
             # completions array to append a trailing space.
             if completions.len == 0: completions.add(last)
 
+# Parse string command flag ($("")) arguments.
+#
+# @param  {string} 1) input - The string command-flag to parse.
+# @return {string} - The cleaned command-flag string.
+# proc fn_paramparse(input: var string): seq[string] =
+proc fn_paramparse(input: var string): tuple =
+    # Parse command string to get individual arguments. Things to note: each
+    # argument is to be encapsulated with strings. User can decide which to
+    # use, either single or double. As long as their contents are properly
+    # escaped.
+
+    # Vars.
+    var argument = ""
+    # var arguments: seq[string] = @[]
+    var args: tuple[count: int, list: seq[string]]
+    # var l = input.len
+    # var ll = l - 1
+    # var args_count = 0
+    var qchar = ""
+    # Loop character variables (current, previous characters).
+    var c, p = ""
+
+    # Input must not be empty.
+    if input == "":
+        args = (count: 0, list: @[""])
+        return args
+
+    # Command flag syntax:
+    # $("COMMAND-STRING" [, [<ARG1>, <ARGN> [, "<DELIMITER>"]]])
+
+    # Loop over every input char: [https://stackoverflow.com/q/10487316]
+    # [https://stackoverflow.com/q/18906514]
+    # [https://stackoverflow.com/q/13952870]
+    # [https://stackoverflow.com/q/1007981]
+    while input != "":
+        # Get needed characters.
+        c = fn_shift(input) # 'Chop' first char from string.
+        p = fn_lastchar(argument) # Get last char from argument.
+
+        # qchar is set, grab all chars until an unescaped qchar is hit.
+        if qchar == "":
+            if c in "\"'" and p != "\\":
+                # Set qchar as the opening quote character.
+                qchar = c
+                # Capture character.
+                argument &= c
+
+            # Continuing will ignore all characters outside of quotes.
+            # For example, take the example input string: "'name', 'age'".
+            # Since the ", " (minus the quotes) is outside of a quoted
+            # region and only serve as a delimiter, they don't need to be
+            # captured. This means they can be ignored.
+            # next;
+        else:
+            # Unescape '|' (pipe) characters.
+            if c == "|" and p == "\\":
+                discard fn_chop(argument) # Remove last escaping slash to unescape pipe.
+
+            # Capture character.
+            argument &= c
+
+            if c == qchar and p != "\\":
+                # Store argument and reset vars.
+                args.list.add(argument)
+                inc(args.count)
+                # Clear/reset variables.
+                argument = ""
+                qchar = ""
+
+    # Get last argument.
+    if argument != "": args.list.add(argument)
+
+    # Push argument counter to array.
+    # args.list.add(args_count)
+
+    # Return args.list array.
+    # [https://stackoverflow.com/a/11303607]
+    return args
+
+# Set environment variables to access in custom scripts.
+#
+# @param  {string} 1) arguments - N amount of env names to set.
+# @return {undefined} - Nothing is returned.
+proc fn_set_envs(arguments: varargs[string]) =
+    # Get parsed arguments count.
+    let l = args.len
+
+    # Use hash to store environment variables: [https://perlmaven.com/perl-hashes]
+    var envs = {
+        # Following env vars are provided by bash but exposed via nodecliac.
+        fmt"{prefix}COMP_LINE": cline, # Original (unmodified) CLI input.
+        fmt"{prefix}COMP_POINT": intToStr(cpoint), # Caret index when [tab] key was pressed.
+
+        # Following env vars are custom and exposed via nodecliac.
+        # fmt"{prefix}ACDEF": acdef,
+        fmt"{prefix}MAIN_COMMAND": maincommand, # The command auto completion is being performed for.
+        fmt"{prefix}COMMAND_CHAIN": commandchain, # The parsed command chain.
+        # fmt"{prefix}USED_FLAGS": usedflags, # The parsed used flags.
+        fmt"{prefix}LAST": last, # The last parsed word item (note: could be a partial word item. This happens
+        # when the [tab] key gets pressed within a word item. For example, take the input 'maincommand command'. If
+        # the [tab] key was pressed like so: 'maincommand comm[tab]and' then the last word item is 'comm' and it is
+        # a partial as its remaining text is 'and'. This will result in using 'comm' to determine possible auto
+        # completion word possibilities.).
+        fmt"{prefix}PREV": args[^2], # The word item preceding the last word item.
+        fmt"{prefix}INPUT": input, # CLI input from start to caret index.
+        fmt"{prefix}INPUT_ORIGINAL": oinput, # Original unmodified CLI input.
+        fmt"{prefix}INPUT_REMAINDER": input_remainder, # CLI input from start to caret index.
+        fmt"{prefix}LAST_CHAR": lastchar, # Character before caret.
+        fmt"{prefix}NEXT_CHAR": nextchar, # Character after caret. If char is not '' (empty) then the last word
+        # item is a partial word.
+        fmt"{prefix}COMP_LINE_LENGTH": intToStr(cline_length), # Original input's length.
+        fmt"{prefix}INPUT_LINE_LENGTH": intToStr(cline_length), # CLI input from start to caret index string length.
+        fmt"{prefix}ARG_COUNT": intToStr(l), # Amount arguments parsed before caret position/index.
+        # Store collected positional arguments after validating the command-chain to access in plugin auto-completion scripts.
+        fmt"{prefix}USED_DEFAULT_POSITIONAL_ARGS": used_default_pa_args
+    }.toTable
+
+    # Dynamically set arguments.
+    # for (my $i = 0; $i < $l; $i++) { $ENV{"${prefix}ARG_${i}"} = $args[$i]; }
+
+    # If no arguments are provided then we set all env variables.
+    # [https://stackoverflow.com/a/19234273]
+    # [https://alvinalexander.com/blog/post/perl/how-access-arguments-perl-subroutine-function]
+    if arguments.len == 0:
+        # Set environment variable: [https://alvinalexander.com/blog/post/perl/how-to-traverse-loop-items-elements-perl-hash]
+        for key, value in envs: os.putEnv(key, value) # [https://nim-lang.org/docs/os.html#putEnv%2Cstring%2Cstring]
+    else:
+        # Split rows by lines: [https://stackoverflow.com/a/11746174]
+        for env_name in arguments:
+            var key = prefix & env_name
+            # Set environment if provided env name exists in envs lookup hash table.
+            # [https://alvinalexander.com/blog/post/perl/perl-how-test-hash-contains-key]
+            if envs.hasKey(key): os.putEnv(key, envs[key])
+
 # ----------------------------------------------------------------MAIN-FUNCTIONS
+
+# Parses CLI input. Returns input similar to that of process.argv.slice(2).
+#     Adapted from argsplit module.
+#
+# @param {string} 1) - The string to parse.
+# @return {undefined} - Nothing is returned.
+proc fn_parser() =
+    # Vars.
+    var argument = ""
+    var qchar = ""
+    var input = input # Copy string since it ill be destroyed during loop.
+    # Loop character variables (current, previous characters).
+    var c, p = ""
+
+    # Input must not be empty.
+    if input == "": return
+
+    # Given the following input: '-n5 -abc "val"', the input will be turned
+    #     into '-n 5 -a -b -c "val"'.
+    #
+    # @param {string} 1) - The string to spread.
+    # @return {string}   - The remaining argument.
+    proc fn_spread(argument: var string): string =
+        # Must pass following checks:
+        # - Start with a hyphen.
+        # - String must be >= 3 chars in length.
+        # - Must only start with a single hyphen.
+        if argument.len >= 3 and argument[1] != '-':
+            discard fn_shift(argument) # Remove hyphen from argument.
+            # argument.removePrefix('-') # Remove hyphen from argument.
+            var lchar = fn_lastchar(argument) # Get last letter.
+
+            # If the last character is a number then everything after the
+            # first letter character (the flag) is its value.
+            if lchar in "1234567890":
+                # Get the single letter argument.
+                var argletter = argument[0]
+                # Remove first char (letter) from argument.
+                # argument.removePrefix(argletter)
+                discard fn_shift(argument)
+
+                # Add letter argument to args array.
+                args.add(fmt"-{argletter}")
+
+            # Else, all other characters after are individual flags.
+            else:
+                # Add each other characters as single hyphen flags.
+                var chars = fn_split_by_chars(argument)
+                var i = 0
+                var hyphenref = false
+                for chr in chars:
+                    # Handle: 'sudo wget -qO- https://foo.sh':
+                    # Hitting a hyphen breaks loop. All characters at hyphen
+                    # and beyond are now the value of the last argument.
+                    if chr == '-':
+                        hyphenref = true
+                        break
+                    args.add(fmt"-{chr}")
+                    inc(i)
+
+                # Reset value to final argument.
+                argument = if not hyphenref: fmt"-{lchar}" else: argument.substr(i)
+
+        return argument
+
+    while input != "":
+        # [https://www.perlmonks.org/?node_id=873068]
+        # [https://www.perlmonks.org/?node_id=833345]
+        # [https://www.perlmonks.org/?node_id=223573]
+        # [https://www.tek-tips.com/viewthread.cfm?qid=1056438]
+        # [https://www.oreilly.com/library/view/perl-cookbook/1565922433/ch01s06.html]
+        # [https://stackoverflow.com/questions/1083269/is-perls-unpack-ever-faster-than-substr]
+        # Note: Of all methods tried to parse a string of text char-by-char
+        # this method seems the fastest. Here's how it works. Using a while
+        # loop we chip away at the first character from the string. Therefore,
+        # the loop will end once the string is empty (no more characters).
+        # The way substr is used here is basically a reverse chop and is
+        # surprisingly pretty fast. Also, this method does not require the
+        # need of using the length method to loop. Moreover, we need also need
+        # the previous char. To get it, instead of making another call to
+        # substr we use the chop method which is super fast. Once the last
+        # character is chopped we just append it right back. This combination
+        # is the fastest of all methods tried.
+
+        # Get needed characters.
+        c = fn_shift(input) # 'Chop' first char from string.
+        p = fn_lastchar(argument) # Remove last char from string and store value.
+
+        # qchar is set, grab all chars until an unescaped qchar is hit.
+        if qchar != "":
+            # Capture character.
+            argument &= c
+
+            if c == qchar and p != "\\":
+                # Note: Check that argument is spaced out. For example, this
+                # is invalid: '$ nodecliac format --indent="t:1"--sa'
+                # ----------------------------------------------^. Should be:
+                #          '$ nodecliac format --indent="t:1" --sa'
+                # -------------------------------------------^Whitespace char.
+                # If argument is not spaced out or at the end of the input
+                # don not add it to the array. Just skip to next iteration.
+                if input != "" and input.startsWith(' '): continue
+
+                # Store argument and reset vars.
+                let value = if not argument.startsWith('-'): argument else: fn_spread(argument)
+                args.add(value)
+                # Clear/reset variables.
+                argument = ""
+                qchar = ""
+
+        else:
+            # Check if current character is a quote character.
+            if c in "\"'" and p != "\\":
+                # Set qchar as the opening quote character.
+                qchar = c
+                # Capture character.
+                argument &= c
+
+            # For non quote characters add all except non-escaped spaces.
+            elif c in " \t" and p != "\\":
+                # If argument variable is not populated don't add to array.
+                if argument == "": continue
+
+                # Store argument and reset vars.
+                let value = if not argument.startsWith('-'): argument else: fn_spread(argument)
+                args.add(value)
+                # Clear/reset variables.
+                argument = ""
+                qchar = ""
+            else:
+                # Capture character.
+                argument &= c
+
+    # # Get last argument.
+    if argument != "":
+        # Store argument and reset vars.
+        let value = if not argument.startsWith('-'): argument else: fn_spread(argument)
+        args.add(value)
+
+    # Get/store last character of input.
+    lastchar = if not (c != " " and p != "\\"): c else: ""
 
 # Determine command chain, used flags, and set needed variables (i.e.
 #     commandchain, autocompletion, last, lastchar, isquoted,
@@ -1315,147 +1461,6 @@ proc fn_lookup(): string =
             # my @chains = ($commandchain);
             # __fallback_cmd_string('always', \@chains);
 
-# Parses CLI input. Returns input similar to that of process.argv.slice(2).
-#     Adapted from argsplit module.
-#
-# @param {string} 1) - The string to parse.
-# @return {undefined} - Nothing is returned.
-proc fn_parser() =
-    # Vars.
-    var argument = ""
-    var qchar = ""
-    var input = input # Copy string since it ill be destroyed during loop.
-    # Loop character variables (current, previous characters).
-    var c, p = ""
-
-    # Input must not be empty.
-    if input == "": return
-
-    # Given the following input: '-n5 -abc "val"', the input will be turned
-    #     into '-n 5 -a -b -c "val"'.
-    #
-    # @param {string} 1) - The string to spread.
-    # @return {string}   - The remaining argument.
-    proc fn_spread(argument: var string): string =
-        # Must pass following checks:
-        # - Start with a hyphen.
-        # - String must be >= 3 chars in length.
-        # - Must only start with a single hyphen.
-        if argument.len >= 3 and argument[1] != '-':
-            discard fn_shift(argument) # Remove hyphen from argument.
-            # argument.removePrefix('-') # Remove hyphen from argument.
-            var lchar = fn_lastchar(argument) # Get last letter.
-
-            # If the last character is a number then everything after the
-            # first letter character (the flag) is its value.
-            if lchar in "1234567890":
-                # Get the single letter argument.
-                var argletter = argument[0]
-                # Remove first char (letter) from argument.
-                # argument.removePrefix(argletter)
-                discard fn_shift(argument)
-
-                # Add letter argument to args array.
-                args.add(fmt"-{argletter}")
-
-            # Else, all other characters after are individual flags.
-            else:
-                # Add each other characters as single hyphen flags.
-                var chars = fn_split_by_chars(argument)
-                var i = 0
-                var hyphenref = false
-                for chr in chars:
-                    # Handle: 'sudo wget -qO- https://foo.sh':
-                    # Hitting a hyphen breaks loop. All characters at hyphen
-                    # and beyond are now the value of the last argument.
-                    if chr == '-':
-                        hyphenref = true
-                        break
-                    args.add(fmt"-{chr}")
-                    inc(i)
-
-                # Reset value to final argument.
-                argument = if not hyphenref: fmt"-{lchar}" else: argument.substr(i)
-
-        return argument
-
-    while input != "":
-        # [https://www.perlmonks.org/?node_id=873068]
-        # [https://www.perlmonks.org/?node_id=833345]
-        # [https://www.perlmonks.org/?node_id=223573]
-        # [https://www.tek-tips.com/viewthread.cfm?qid=1056438]
-        # [https://www.oreilly.com/library/view/perl-cookbook/1565922433/ch01s06.html]
-        # [https://stackoverflow.com/questions/1083269/is-perls-unpack-ever-faster-than-substr]
-        # Note: Of all methods tried to parse a string of text char-by-char
-        # this method seems the fastest. Here's how it works. Using a while
-        # loop we chip away at the first character from the string. Therefore,
-        # the loop will end once the string is empty (no more characters).
-        # The way substr is used here is basically a reverse chop and is
-        # surprisingly pretty fast. Also, this method does not require the
-        # need of using the length method to loop. Moreover, we need also need
-        # the previous char. To get it, instead of making another call to
-        # substr we use the chop method which is super fast. Once the last
-        # character is chopped we just append it right back. This combination
-        # is the fastest of all methods tried.
-
-        # Get needed characters.
-        c = fn_shift(input) # 'Chop' first char from string.
-        p = fn_lastchar(argument) # Remove last char from string and store value.
-
-        # qchar is set, grab all chars until an unescaped qchar is hit.
-        if qchar != "":
-            # Capture character.
-            argument &= c
-
-            if c == qchar and p != "\\":
-                # Note: Check that argument is spaced out. For example, this
-                # is invalid: '$ nodecliac format --indent="t:1"--sa'
-                # ----------------------------------------------^. Should be:
-                #          '$ nodecliac format --indent="t:1" --sa'
-                # -------------------------------------------^Whitespace char.
-                # If argument is not spaced out or at the end of the input
-                # don not add it to the array. Just skip to next iteration.
-                if input != "" and input.startsWith(' '): continue
-
-                # Store argument and reset vars.
-                let value = if not argument.startsWith('-'): argument else: fn_spread(argument)
-                args.add(value)
-                # Clear/reset variables.
-                argument = ""
-                qchar = ""
-
-        else:
-            # Check if current character is a quote character.
-            if c in "\"'" and p != "\\":
-                # Set qchar as the opening quote character.
-                qchar = c
-                # Capture character.
-                argument &= c
-
-            # For non quote characters add all except non-escaped spaces.
-            elif c in " \t" and p != "\\":
-                # If argument variable is not populated don't add to array.
-                if argument == "": continue
-
-                # Store argument and reset vars.
-                let value = if not argument.startsWith('-'): argument else: fn_spread(argument)
-                args.add(value)
-                # Clear/reset variables.
-                argument = ""
-                qchar = ""
-            else:
-                # Capture character.
-                argument &= c
-
-    # # Get last argument.
-    if argument != "":
-        # Store argument and reset vars.
-        let value = if not argument.startsWith('-'): argument else: fn_spread(argument)
-        args.add(value)
-
-    # Get/store last character of input.
-    lastchar = if not (c != " " and p != "\\"): c else: ""
-
 # Send all possible completions to bash.
 proc fn_printer() =
     # Build and contains all completions in a string.
@@ -1587,9 +1592,4 @@ proc fn_makedb() =
 
 # (cli_input*) → parser → extractor → lookup → printer
 # *Supply CLI input from start to caret index.
-fn_parser()
-fn_extractor()
-# fn_debug()
-fn_makedb()
-discard fn_lookup()
-fn_printer()
+fn_parser();fn_extractor();fn_makedb();discard fn_lookup();fn_printer()

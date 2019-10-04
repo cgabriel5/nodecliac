@@ -156,6 +156,8 @@ sub __validate_command {
 	return $item;
 }
 
+# START=========================================================HELPER-FUNCTIONS
+
 # # Given a string and a character list, will return an array containing
 # #     the first found character and it's index.
 # #
@@ -179,6 +181,8 @@ sub __validate_command {
 # 	# Return first found char index.
 # 	return $index ? ($-[0], substr(@_[0], $-[0], 1)) : (-1, '');
 # }
+
+# END===========================================================HELPER-FUNCTIONS
 
 # This is for future reference on how to escape code for the shell,
 # bash -c command, and a Perl one-liner. The following lines of code
@@ -507,6 +511,8 @@ sub __set_envs {
 
 	# return;
 }
+
+# ----------------------------------------------------------------MAIN-FUNCTIONS
 
 # Parses CLI input. Returns input similar to that of process.argv.slice(2).
 #     Adapted from argsplit module.

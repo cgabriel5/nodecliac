@@ -654,6 +654,7 @@ proc fn_extractor() =
     # Following variables are used when validating command chain.
     var last_valid_chain = ""
     var collect_used_pa_args = false
+    var normalized = initTable[int, int]()
 
     # Loop over CLI arguments.
     var i = 1
@@ -707,8 +708,18 @@ proc fn_extractor() =
             used_default_pa_args = ""
             collect_used_pa_args = false
 
+            # Normalize colons in flags. For example, if the arg item is:
+            # '--flag:value' it needs to be turned into '--flag=value'.
+            if not normalized.hasKey(i) and ':' in item:
+                var findex = item.find({':', '='})
+                if findex > -1: # Make changes if char exists.
+                    item[findex] = '=' # Replace colon with an eq-sign.
+                    args[i] = item # Reset item in arguments array.
+                # Store argument id to skip dupe normalization.
+                normalized[i] = 1
+
             # If the flag contains an eq sign don't look ahead.
-            if "=" in item:
+            if '=' in item:
                 foundflags.add(item)
                 inc(i); continue
 
@@ -722,6 +733,16 @@ proc fn_extractor() =
             # for the current flag or if it's another flag and do
             # the proper actions for both.
             if nitem != "":
+                # Normalize colons in flags. For example, if the arg nitem is:
+                # '--flag:value' it needs to be turned into '--flag=value'.
+                if not normalized.hasKey(i) and ':' in nitem:
+                    var findex = nitem.find({':', '='})
+                    if findex > -1: # Make changes if char exists.
+                        nitem[findex] = '=' # Replace colon with an eq-sign.
+                        args[i] = nitem # Reset nitem in arguments array.
+                    # Store argument id to skip dupe normalization.
+                    normalized[i] = 1
+
                 # If the next word is a value...
                 if not nitem.startsWith('-'): # If not a flag...
                     # Get flag lists for command from ACDEF.

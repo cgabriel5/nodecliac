@@ -653,6 +653,7 @@ sub __extractor {
 	# Following variables are used when validating command chain.
 	my $last_valid_chain = '';
 	my $collect_used_pa_args = '';
+	my %normalized;
 
 	# Loop over CLI arguments.
 	for (my $i = 1; $i < $l; $i++) {
@@ -707,6 +708,15 @@ sub __extractor {
 			$used_default_pa_args = '';
 			$collect_used_pa_args = 0;
 
+			# Normalize colons in flags. For example, if the arg item is:
+			# '--flag:value' it needs to be turned into '--flag=value'.
+			if (!exists($normalized{$i}) && $item =~ tr/://) {
+				$item =~ s/[:=]/=/; # Replace colon with an eq-sign.
+				$args[$i] = $item; # Reset item in arguments array.
+				# Store argument id to skip dupe normalization.
+				$normalized{$i} = undef;
+			}
+
 			# If the flag contains an eq sign don't look ahead.
 			if ($item =~ tr/=//) {
 				push(@foundflags, $item);
@@ -723,6 +733,15 @@ sub __extractor {
 			# for the current flag or if it's another flag and do
 			# the proper actions for both.
 			if ($nitem) {
+				# Normalize colons in flags. For example, if the arg nitem is:
+				# '--flag:value' it needs to be turned into '--flag=value'.
+				if (!exists($normalized{$i}) && $nitem =~ tr/://) {
+					$nitem =~ s/[:=]/=/; # Replace colon with an eq-sign.
+					$args[$i] = $nitem; # Reset nitem in arguments array.
+					# Store argument id to skip dupe normalization.
+					$normalized{$i} = undef;
+				}
+
 				# If the next word is a value...
 				if (rindex($nitem, '-', 0)) { # If not a flag...
 					# Get flag lists for command from ACDEF.

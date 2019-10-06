@@ -10,7 +10,7 @@
 function __platform() {
 	case "$OSTYPE" in
 	  solaris*) echo "solaris" ;;
-	  darwin*)  echo "osx" ;;
+	  darwin*)  echo "macosx" ;;
 	  linux*)   echo "linux" ;;
 	  bsd*)     echo "bsd" ;;
 	  msys*)    echo "windows" ;;
@@ -84,7 +84,7 @@ binfilepath=""
 # Depending on platform populate variables.
 if [[ "$platform" == "linux" ]]; then
 	binfilepath="/usr/local/bin/nodecliac"
-elif [[ "$platform" == "osx" ]]; then
+elif [[ "$platform" == "macosx" ]]; then
 	binfilepath="/usr/local/bin/nodecliac"
 fi
 
@@ -119,7 +119,7 @@ log " $CHECK_MARK Bash version requirement."
 
 # Exit script if platform is not supported.
 echo " - Verifying platform..."
-if [[ " linux osx " != *" $platform "* ]]; then
+if [[ " linux macosx " != *" $platform "* ]]; then
 	log " $X_MARK Platform: '$platform' is not supported."
 	exit
 fi

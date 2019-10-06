@@ -8,7 +8,7 @@
 # function __platform() {
 # 	case "$OSTYPE" in
 # 	  solaris*) echo "solaris" ;;
-# 	  darwin*)  echo "osx" ;;
+# 	  darwin*)  echo "macosx" ;;
 # 	  linux*)   echo "linux" ;;
 # 	  bsd*)     echo "bsd" ;;
 # 	  msys*)    echo "windows" ;;
@@ -31,7 +31,7 @@
 # platform=`__platform`
 
 # # If on macOS/OS X check for sed version. Must have GNU version.
-# if [[ "$platform" == "osx" ]]; then
+# if [[ "$platform" == "macosx" ]]; then
 # 	# Check manual for sed flavor.
 # 	# [https://unix.stackexchange.com/a/27111]
 # 	sed_flavor="$(grep -o -m1 -e "BSD" -e "GNU" <<< `man sed` | head -1)"

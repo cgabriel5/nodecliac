@@ -13,6 +13,7 @@ from strformat import fmt
 from osproc import execProcess
 from re import
     re,
+    `=~`,
     find,
     split,
     findAll,
@@ -1015,7 +1016,7 @@ proc fn_extractor() =
                 if matches.len > 0:
                     # Escape special chars: [https://stackoverflow.com/a/576459]
                     # [http://perldoc.perl.org/functions/quotemeta.html]
-                    var pattern = nlast & "=" & fn_quotemeta(last) & ".*?(\\||$)"
+                    var pattern = nlast & "=(" & fn_quotemeta(last) & "|\\$\\().*?(\\||$)"
 
                     # Check if flag exists with option(s).
                     if contains(matches[0], re(pattern)):
@@ -1222,10 +1223,10 @@ proc fn_lookup(): string =
 
                     # Count substring occurrences: [https://stackoverflow.com/a/9538604]
                     # Dereference before use: [https://stackoverflow.com/a/37438262]
-                    var flag_values = usedflags.hasKey(flag_fkey)
+                    # var flag_values = usedflags.hasKey(flag_fkey)
 
                     # If usedflags contains <flag:value> at root level...
-                    if flag_values:
+                    if usedflags.hasKey(flag_fkey):
                         # If no values exists...
                         if flag_value == "": dupe = 1 # subl -n 2, subl -n 23
 
@@ -1238,6 +1239,8 @@ proc fn_lookup(): string =
                                 usedflags[flag_fkey] = initTable[string, int]()
                             if usedflags[flag_fkey].hasKey(flag_value):
                                 dupe = 1 # subl -n 23 -n
+                            elif usedflags_counts.hasKey(flag_fkey):
+                                if usedflags_counts[flag_fkey] > 1: dupe = 1
 
                     # If no root level entry...
                     else:
@@ -1476,21 +1479,34 @@ proc fn_printer() =
     var sep = if iscommand: " " else: "\n"
     # Check completing flags.
     var isflag_type = ac_type.startsWith('f')
+    var skip_map = false
 
-    # [https://perlmaven.com/transforming-a-perl-array-using-map]
-    # [https://stackoverflow.com/a/2725641]
-    # Loop over completions and append to list.
-    completions = map(completions, proc (x: string): string =
-        # Add trailing space to all completions except to flag
-        # completions that end with a trailing eq sign, commands
-        # that have trailing characters (commands that are being
-        # completed in the middle), and flag string completions
-        # (i.e. --flag="some-word...).
-        let final_space = if isflag_type and not x.endsWith('=') and x.find({'"', '\''}) != 0 and nextchar == "": " " else: ""
+    # When for example, completing 'nodecliac print --command' we remove
+    # the first and only completion item's '='. This is better suited for
+    # CLI programs that implement/allow for a colon ':' separator. Maybe
+    # this should be something that should be opted for via an acmap setting?
+    if completions.len == 1 and not iscommand:
+        var fcompletion = completions[0]
+        if fcompletion =~ re"^--?[-a-zA-Z0-9]+\=$" and last != fcompletion and ((fcompletion.len - last.len) > 1):
+            discard fn_chop(fcompletion)
+            completions[0] = "\n" & fcompletion
+            skip_map = true
 
-        # Final returned item.
-        sep & x & final_space
-    )
+    if not skip_map:
+        # [https://perlmaven.com/transforming-a-perl-array-using-map]
+        # [https://stackoverflow.com/a/2725641]
+        # Loop over completions and append to list.
+        completions = map(completions, proc (x: string): string =
+            # Add trailing space to all completions except to flag
+            # completions that end with a trailing eq sign, commands
+            # that have trailing characters (commands that are being
+            # completed in the middle), and flag string completions
+            # (i.e. --flag="some-word...).
+            let final_space = if isflag_type and not x.endsWith('=') and x.find({'"', '\''}) != 0 and nextchar == "": " " else: ""
+
+            # Final returned item.
+            sep & x & final_space
+        )
 
     # Return data.
     echo lines & completions.join("")

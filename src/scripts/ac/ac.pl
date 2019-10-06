@@ -896,7 +896,7 @@ sub __extractor {
 				if ($acdef =~ /$pattern/m) {
 					# Escape special chars: [https://stackoverflow.com/a/576459]
 					# [http://perldoc.perl.org/functions/quotemeta.html]
-					my $pattern = $nlast . '=' . quotemeta($last) . '.*?(\||$)';
+					my $pattern = $nlast . '=(' . quotemeta($last) . '|\$\().*?(\||$)';
 
 					# Check if flag exists with option(s).
 					if ($1 =~ /$pattern/) {
@@ -1097,17 +1097,20 @@ sub __lookup {
 
 					# Count substring occurrences: [https://stackoverflow.com/a/9538604]
 					# Dereference before use: [https://stackoverflow.com/a/37438262]
-					my $flag_values = $usedflags{$flag_fkey};
+					# my $flag_values = $usedflags{$flag_fkey};
 					# my @count = (keys %$flag_values);
 
 					# If usedflags contains <flag:value> at root level...
-					if ($flag_values) {
+					if (exists($usedflags{$flag_fkey})) {
 						# If no values exists...
 						if (!$flag_value) { $dupe = 1; # subl -n 2, subl -n 23
 
 						# Else check that value exists...
 						} elsif (exists($usedflags{$flag_fkey}{$flag_value})) {
 							$dupe = 1; # subl -n 23 -n
+
+						} elsif (exists($usedflags{counts}{$flag_fkey})) {
+							if ($usedflags{counts}{$flag_fkey} > 1) { $dupe = 1; }
 						}
 
 					# If no root level entry...
@@ -1370,27 +1373,46 @@ sub __printer {
 	my $sep = ($iscommand) ? ' ' : "\n";
 	# Check completing flags.
 	my $isflag_type = rindex($type, 'f', 0) == 0;
+	my $skip_map = 0;
 
-	# [https://perlmaven.com/transforming-a-perl-array-using-map]
-	# [https://stackoverflow.com/a/2725641]
-	# Loop over completions and append to list.
-	@completions = map {
-		# Add trailing space to all completions except to flag
-		# completions that end with a trailing eq sign, commands
-		# that have trailing characters (commands that are being
-		# completed in the middle), and flag string completions
-		# (i.e. --flag="some-word...).
-		my $final_space = (
-			$isflag_type
-			&& !(rindex($_, '=') + 1)
-			# Item cannot be quoted.
-			&& ((rindex $_, '"', 0) == -1 || (rindex $_, '\'', 0) == -1)
-			&& !$nextchar
-		) ? ' ' : '';
+    # When for example, completing 'nodecliac print --command' we remove
+    # the first and only completion item's '='. This is better suited for
+    # CLI programs that implement/allow for a colon ':' separator. Maybe
+    # this should be something that should be opted for via an acmap setting?
+	if (@completions == 1 && !$iscommand) {
+		my $fcompletion = $completions[0];
+		if ($fcompletion =~ /^--?[-a-zA-Z0-9]+\=$/ &&
+			$last ne $fcompletion
+			&& (length($fcompletion) - length($last) > 1)
+		) {
+			chop($fcompletion);
+			$completions[0] = "\n" . $fcompletion;
+			$skip_map = 1;
+		}
+	}
 
-		# Final returned item.
-		"$sep$_$final_space";
-	} @completions;
+	if (!$skip_map) {
+		# [https://perlmaven.com/transforming-a-perl-array-using-map]
+		# [https://stackoverflow.com/a/2725641]
+		# Loop over completions and append to list.
+		@completions = map {
+			# Add trailing space to all completions except to flag
+			# completions that end with a trailing eq sign, commands
+			# that have trailing characters (commands that are being
+			# completed in the middle), and flag string completions
+			# (i.e. --flag="some-word...).
+			my $final_space = (
+				$isflag_type
+				&& !(rindex($_, '=') + 1)
+				# Item cannot be quoted.
+				&& ((rindex $_, '"', 0) == -1 || (rindex $_, '\'', 0) == -1)
+				&& !$nextchar
+			) ? ' ' : '';
+
+			# Final returned item.
+			"$sep$_$final_space";
+		} @completions;
+	}
 
 	# Return data.
 	print $lines . join('', @completions);

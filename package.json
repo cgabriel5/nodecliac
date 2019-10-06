@@ -19,8 +19,8 @@
 		"lint": "cross-env ESLINT_CFS_VERBOSE=true ./node_modules/eslint/bin/eslint.js -c='configs/eslint.config.js' --ignore-path='configs/eslintignore' --format='simple' '**/*.{js,jsx}'; exit 0",
 		"tests": "tests/nodecliac.sh && tests/parser.sh && tests/formatter.sh",
 		"tests:silent": "tests/nodecliac.sh -s && tests/parser.sh -s && tests/formatter.sh -s",
-		"build:acdev": "os=`uname`;os=`echo $os | perl -nle 'print lc'`;nim c --run --hints:on --showAllMismatches:on --out:src/scripts/bin/ac.\"$os\" src/scripts/ac/ac.nim",
-		"build:acprod": "os=`uname`;os=`echo $os | perl -nle 'print lc'`;nim c -d:release --debugger:off --opt:speed --checks:off --threads:on --assertions:off --hints:off --showAllMismatches:off --out:src/scripts/bin/ac.\"$os\" src/scripts/ac/ac.nim && if [ $os = \"linux\" ]; then strip -s src/scripts/bin/ac.\"$os\";fi"
+		"build:acdev": "./compile -d",
+		"build:acprod": "./compile -p"
 	},
 	"dependencies": {
 		"chalk": "^2.4.1",

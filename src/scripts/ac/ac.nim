@@ -249,10 +249,11 @@ proc fn_chop(input: var string): string =
 #     of provided input from the start of the string.
 #
 # @param  {string} 1) - The string to modify.
+# @param  {number} 2) - Optional end/cutoff index.
 # @return {string}    - The removed character.
-proc fn_shift(input: var string): string =
+proc fn_shift(input: var string, eindex: int = 0): string =
     var fchar = input.substr(0, 0) # Get first char before removal.
-    input.delete(0, 0)
+    input.delete(0, eindex)
     return fchar
 
 # # Remove last char from provided string.

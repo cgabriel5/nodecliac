@@ -1422,19 +1422,18 @@ proc fn_lookup(): string =
                 # Get command-string, parse it, then run it...
                 var command_str = if db_fallbacks.hasKey(copy_commandchain): db_fallbacks[copy_commandchain] else: ""
                 if command_str != "":
-                    # Store matched RegExp pattern value.
-                    var value = command_str
-                    # If match exists...
-                    # Check if it is a command-string.
-                    var pattern = "^\\$\\((.*?)\\)$"
-                    var matches = findAll(value, re(pattern, {reMultiLine}))
-                    if matches.len > 0:
-                        # Get the command-flag.
-                        # Parse user provided command-flag command.
+                    var lchar = fn_chop(command_str) # Get last character.
+
+                    # It string is indeed a command-string run it.
+                    if command_str.startsWith("$(") and lchar == ")":
+                        discard fn_shift(command_str, 1) # Remove '$(' from string.
                         var empty_seq = @[""]
-                        fn_execute_command(matches[0], empty_seq)
+                        fn_execute_command(command_str, empty_seq) # Run command-string.
+
                     # Else it is a static non command-string value.
                     else:
+                        command_str &= lchar # Re-add last character.
+
                         if last != "":
                             # When last word is present only
                             # add words that start with last
@@ -1443,13 +1442,13 @@ proc fn_lookup(): string =
                             # Since we are completing a command we only
                             # want words that start with the current
                             # command we are trying to complete.
-                            if value.startsWith(last):
-                            # if ($value =~ /$elast_ptn/) {
+                            if command_str.startsWith(last):
+                            # if ($command_str =~ /$elast_ptn/) {
                                 # Finally, add to flags array.
-                                completions.add(value)
+                                completions.add(command_str)
                         else:
                             # Finally, add to flags array.
-                            completions.add(value)
+                            completions.add(command_str)
 
                     # Stop loop once a command-string is found and ran.
                     break

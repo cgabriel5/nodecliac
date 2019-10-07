@@ -1306,18 +1306,17 @@ sub __lookup {
 				# Get command-string, parse it, then run it...
 				my $command_str = $db{fallbacks}{$copy_commandchain};
 				if ($command_str) {
-					# Store matched RegExp pattern value.
-					my $value = $command_str;
-					# If match exists...
-					# Check if it is a command-string.
-					my $pattern = '^\$\((.*?)\)$';
-					if ($value =~ /$pattern/m) {
-						# Get the command-flag.
-						# Parse user provided command-flag command.
-						__execute_command($1);
-					}
+					my $lchar = chop($command_str); # Get last character.
+
+					# It string is indeed a command-string run it.
+					if (rindex($command_str, '$(', 0) == 0 && $lchar eq ')') {
+						substr($command_str, 0, 2, ""); # Remove '$(' from string.
+						__execute_command($command_str); # Run command-string.
+
 					# Else it is a static non command-string value.
-					else {
+					} else {
+						$command_str .= $lchar; # Re-add last character.
+
 						if ($last) {
 							# When last word is present only
 							# add words that start with last
@@ -1326,14 +1325,14 @@ sub __lookup {
 							# Since we are completing a command we only
 							# want words that start with the current
 							# command we are trying to complete.
-							if (rindex($value, $last, 0) == 0) {
-							# if ($value =~ /$elast_ptn/) {
+							if (rindex($command_str, $last, 0) == 0) {
+							# if ($command_str =~ /$elast_ptn/) {
 								# Finally, add to flags array.
-								push(@completions, $value);
+								push(@completions, $command_str);
 							}
 						} else {
 							# Finally, add to flags array.
-							push(@completions, $value);
+							push(@completions, $command_str);
 						}
 					}
 

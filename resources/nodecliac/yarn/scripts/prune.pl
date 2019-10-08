@@ -1,19 +1,18 @@
 package ARGPruner;
 
-# This script is provided the arguments to prune. Pruning consists of
-# removing any already used arguments.
-#
-# Arguments:
-#   0) The list (string) of arguments to purge.
-# **NOTE: All other needed data is obtained from environment variables
-# provided from nodecliac.
-
 # [https://stackoverflow.com/questions/8023959/why-use-strict-and-warnings]
 # [http://perldoc.perl.org/functions/use.html]
 # use strict;
 # use warnings;
 # use diagnostics;
 
+# Function is provided the arguments to prune. Pruning consists of
+# removing any already used arguments.
+#
+# Arguments:
+#   0) The list (string) of arguments to purge.
+# **NOTE: All other needed data is obtained from environment variables
+# provided from nodecliac.
 sub main {
 	# Get passed in argument (i.e. script names, (dev)dependencies).
 	my ($args) = @_;

@@ -288,7 +288,7 @@ sub __execute_command {
 	__set_envs();
 
 	# Run the command.
-	my $lines = `$command`;
+	my $res = `$command`;
 	# Note: command_str (the provided command string) will
 	# be injected as is. Meaning it will be provided to
 	# 'bash' with the provided surrounding quotes. User
@@ -305,16 +305,16 @@ sub __execute_command {
 	# it by lines. Unless a delimiter was provided.
 	# Then split by custom delimiter to then add to
 	# flags array.
-	if ($lines) {
+	if ($res) {
 		# Trim string if using custom delimiter.
 		if ($delimiter ne "\$\\r\?\\n") {
 			# [https://perlmaven.com/trim]
-			$lines =~ s/^\s+|\s+$//g;
+			$res =~ s/^\s+|\s+$//g;
 		}
 
 		# Split output by lines.
 		# [https://stackoverflow.com/a/4226362]
-		my @lines = split(/$delimiter/m, $lines);
+		my @lines = split(/$delimiter/m, $res);
 
 		# Run logic for command-flag command execution.
 		if ($type eq 'flag') {
@@ -352,15 +352,18 @@ sub __execute_command {
 							push(@completions, $line);
 						}
 					} else {
+						# Lines starting with '!' are ignored.
+						if (rindex($line, '!', 0) == 0) { next; }
 						# Finally, add to flags array.
 						push(@completions, $line);
 					}
 				}
 			}
 
-			# If completions array is still empty then add last word to
-			# completions array to append a trailing space.
-			if (!@completions) { push(@completions, $last); }
+			# If completions array is empty and last word is a valid completion
+			# item add add it to completions array to append a trailing space.
+			my $pattern = '^\!?' . quotemeta($last) . '$';
+			if (!@completions && $res =~ /$pattern/m) { push(@completions, $last); }
 		}
 	}
 
@@ -705,7 +708,7 @@ sub __extractor {
 		if (rindex($item, '-', 0)) { # If not a flag...
 			# Store default positional argument if flag is set.
 			if ($collect_used_pa_args) {
-				$used_default_pa_args .= "\n$item"; # Add used argument.
+				$used_default_pa_args .= "$item\n"; # Add used argument.
 				next; # Skip all following logic.
 			}
 
@@ -724,7 +727,7 @@ sub __extractor {
 				# Set flag to start collecting used positional arguments.
 				$collect_used_pa_args = 1;
 				# Store used argument.
-				$used_default_pa_args .= "\n$item";
+				$used_default_pa_args .= "$item\n";
 			}
 
 			# Reset used flags.

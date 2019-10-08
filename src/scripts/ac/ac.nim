@@ -443,7 +443,7 @@ proc fn_execute_command(command_str: var string , flags: var seq = @[""], last_f
 
     # Run the command.
     # var lines = $(os.execShellCmd(command)) # [https://nim-lang.org/docs/os.html]
-    var lines = osproc.execProcess(command) # [https://nim-lang.org/docs/osproc.html]
+    var res = osproc.execProcess(command) # [https://nim-lang.org/docs/osproc.html]
     # Note: command_str (the provided command string) will
     # be injected as is. Meaning it will be provided to
     # 'bash' with the provided surrounding quotes. User
@@ -460,17 +460,17 @@ proc fn_execute_command(command_str: var string , flags: var seq = @[""], last_f
     # it by lines. Unless a delimiter was provided.
     # Then split by custom delimiter to then add to
     # flags array.
-    if lines != "":
+    if res != "":
         # Trim string if using custom delimiter.
         if delimiter != "\\r?\\n":
             # [https://perlmaven.com/trim]
-            lines = lines.strip() # [https://www.rosettacode.org/wiki/Strip_whitespace_from_a_string/Top_and_tail#Nim]
+            res = res.strip() # [https://www.rosettacode.org/wiki/Strip_whitespace_from_a_string/Top_and_tail#Nim]
 
         # Split output by lines.
         # [https://stackoverflow.com/a/4226362]
         # var lines = lines.split(delimiter)
         # var lines = split(lines, re(fmt"{delimiter}"))
-        var lines = split(lines, re(delimiter))
+        var lines = split(res, re(delimiter))
 
         # Run logic for command-flag command execution.
         if ac_type == "flag":
@@ -503,12 +503,16 @@ proc fn_execute_command(command_str: var string , flags: var seq = @[""], last_f
                             # Finally, add to flags array.
                             completions.add(line)
                     else:
+                        # Lines starting with '!' are ignored.
+                        if line.startsWith('!'): continue
                         # Finally, add to flags array.
                         completions.add(line)
 
-            # If completions array is still empty then add last word to
-            # completions array to append a trailing space.
-            if completions.len == 0: completions.add(last)
+            # If completions array is empty and last word is a valid completion
+            # item add add it to completions array to append a trailing space.
+            var pattern = "^\\!?" & fn_quotemeta(last) & "$"
+            var matches = findAll(res, re(pattern, {reMultiLine}))
+            if (completions.len == 0 and matches.len > 0): completions.add(last)
 
 # Parse string command flag ($("")) arguments.
 #
@@ -836,7 +840,7 @@ proc fn_extractor() =
         if not item.startsWith('-'): # If not a flag...
             # Store default positional argument if flag is set.
             if collect_used_pa_args:
-                used_default_pa_args &= "\n" & item # Add used argument.
+                used_default_pa_args &= item & "\n" # Add used argument.
                 inc(i); continue # Skip all following logic.
 
             # Store command.
@@ -855,7 +859,7 @@ proc fn_extractor() =
                 # Set flag to start collecting used positional arguments.
                 collect_used_pa_args = true
                 # Store used argument.
-                used_default_pa_args &= "\n" & item
+                used_default_pa_args &= item & "\n"
 
             # Reset used flags.
             foundflags.setLen(0)

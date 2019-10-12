@@ -57,6 +57,7 @@ from strutils import
     endsWith,
     intToStr,
     parseInt,
+    splitLines,
     startsWith,
     removePrefix,
     allCharsInSet
@@ -1523,7 +1524,7 @@ proc fn_makedb() =
 
         # For first level commands only...
         if last == "":
-            for line in acdef.split("\n"):
+            for line in acdef.splitLines:
                 # First character must be a period or a space.
                 if not line.startsWith('.'): continue
 
@@ -1558,8 +1559,8 @@ proc fn_makedb() =
 
         # Extract and place command chains and fallbacks into their own arrays.
         # [https://www.perlmonks.org/?node_id=745018], [https://perlmaven.com/for-loop-in-perl]
-        for lne in acdef.split("\n"):
-            var line = lne # Create useable copy of line.
+        for line in acdef.splitLines:
+            var line = line # Shadow for loop var: [https://forum.nim-lang.org/t/2721#16811]
 
             # First filter: First character must be a period or a space. Or
             # if the command line does not start with the first letter of the

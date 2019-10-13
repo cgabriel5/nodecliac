@@ -50,6 +50,8 @@ if [[ "$USER_OS" == "linux" ]]; then
 			--hints:on \
 			--showAllMismatches:on \
 			--forceBuild:on \
+			--profiler:on \
+			--stacktrace:on \
 			--out:"$OUTPUT_PATH" \
 			"$INPUT_PATH"
 		elif [[ -n "$COMPILE_PROD" ]]; then

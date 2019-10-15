@@ -1,15 +1,16 @@
 #!/bin/bash
 
-# Prehook script gets provided the following arguments:
-# $1 => $cline        # Original (complete) CLI input.
-# $2 => $cpoint       # Caret index when [tab] key was pressed.
-# $3 => $maincommand  # The ACDEF definitions file.
-# $4 => $acdef        # The command name from sourced passed-in argument.
+# Script has access to connector.sh variables. If changes need to be made
+# use the following and change them accordingly:
+# $COMP_LINE    # Original (complete) CLI input.
+# $cpoint       # Caret index when [tab] key was pressed.
+# $maincommand  # The ACDEF definitions file.
+# $acdef        # The command name from sourced passed-in argument.
 
 # This script will run the Perl prehook script. The returned data is in the
 # following format: the 1st line is the modified CLI input while subsequent
 # lines are addons to the ACDEF.
-output=$("$HOME/.nodecliac/registry/yarn/hooks/prehook.pl" "$1")
+output=$("$HOME/.nodecliac/registry/yarn/hooks/prehook.pl" "$COMP_LINE")
 
 # Get modified CLI input line (1st line).
 # [https://stackoverflow.com/q/30649640]

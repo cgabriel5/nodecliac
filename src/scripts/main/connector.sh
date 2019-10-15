@@ -1121,7 +1121,7 @@ if [[ -n "$1" ]] && type complete &>/dev/null; then
 				# [https://stackoverflow.com/questions/192292/how-best-to-include-other-scripts]
 				# [https://www.daveeddy.com/2010/09/20/import-source-files-in-bash/]
 				# [https://tecadmin.net/include-bash-script-in-other-bash-script/]
-				source "$prehook_script" "$cline" "$cpoint" "$maincommand" "$acdef"
+				source "$prehook_script"
 			fi
 
 			# Run Perl auto-completion script.

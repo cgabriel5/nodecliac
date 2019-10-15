@@ -8,7 +8,7 @@ if [[ -n "$1" ]] && type complete &>/dev/null; then
 		local maincommand="$1"
 
 		# Return if nodecliac is disabled but allow nodecliac completions.
-		if [[ -f "$HOME/.nodecliac/.disable"
+		if [[ -e "$HOME/.nodecliac/.disable"
 			&& "$maincommand" != "nodecliac" ]]; then
 			return
 		fi
@@ -66,7 +66,7 @@ if [[ -n "$1" ]] && type complete &>/dev/null; then
 		# If in the incident that nodecliac gets deleted (i.e. like running
 		# '$ nodecliac uninstall'), if the acdef file does not exist bash
 		# will output an error. Therefore, return when file is not found.
-		if [[ ! -f "$acdefpath" ]]; then return; fi;
+		if [[ ! -e "$acdefpath" ]]; then return; fi;
 		local acdef
 		acdef="$(<"$acdefpath")"
 # [https://serverfault.com/questions/72476/clean-way-to-write-complex-multi-line-string-to-a-variable/424601#424601]
@@ -1107,13 +1107,13 @@ if [[ -n "$1" ]] && type complete &>/dev/null; then
 		# Default to Nim ac script for completion logic.
 		acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo ${e/darwin/macosx})"
 		# If Nim script does not exist fallback to Perl script.
-		if [[ ! -f "$acpl_script" ]]; then acpl_script=~/.nodecliac/src/ac/ac.pl; fi
+		if [[ ! -e "$acpl_script" ]]; then acpl_script=~/.nodecliac/src/ac/ac.pl; fi
 
 		# Run completion script if it exists.
-		if [[ -f "$acpl_script" ]]; then
+		if [[ -e "$acpl_script" ]]; then
 			# Run prehook(s) if it exists.
 			prehook_script=~/.nodecliac/registry/$1/hooks/prehook.sh
-			if [[ -f "$prehook_script" ]]; then
+			if [[ -e "$prehook_script" ]]; then
 				# [https://stackoverflow.com/questions/16217064/change-environment-variable-in-child-process-bash]
 				# [https://stackoverflow.com/questions/192292/how-best-to-include-other-scripts]
 				# [https://www.daveeddy.com/2010/09/20/import-source-files-in-bash/]

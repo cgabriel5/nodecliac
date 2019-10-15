@@ -1105,8 +1105,7 @@ if [[ -n "$1" ]] && type complete &>/dev/null; then
 		# __parser "${cline:0:$cpoint}";__extractor;__lookup;__printer
 
 		# Default to Nim ac script for completion logic.
-		acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo $e)"
-		acpl_script="${acpl_script/darwin/macosx}"
+		acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo ${e/darwin/macosx})"
 		# If Nim script does not exist fallback to Perl script.
 		if [[ ! -f  "$acpl_script" ]]; then
 			acpl_script=~/.nodecliac/src/ac/ac.pl

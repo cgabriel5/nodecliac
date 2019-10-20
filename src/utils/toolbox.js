@@ -1,6 +1,7 @@
 "use strict";
 
 // Needed modules.
+const { md5 } = require("./md5.js");
 const { concat } = require("./sets.js");
 const { checksum } = require("./checksum.js");
 const { exit } = require("./exit.js");
@@ -23,6 +24,7 @@ module.exports = {
 	concat,
 	paths,
 	exit,
+	md5,
 	ispath_abs,
 	lstats,
 	readdir,

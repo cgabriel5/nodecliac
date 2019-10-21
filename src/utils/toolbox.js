@@ -1,7 +1,7 @@
 "use strict";
 
 // Needed modules.
-const { md5 } = require("./md5.js");
+const md5 = require("./md5.js");
 const { concat } = require("./sets.js");
 const { checksum } = require("./checksum.js");
 const { exit } = require("./exit.js");

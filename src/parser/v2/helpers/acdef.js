@@ -1,5 +1,8 @@
 "use strict";
 
+// Get needed modules.
+const { md5 } = require("../../../utils/toolbox.js");
+
 /**
  * Generate .acdef, .config.acdef file contents from parse tree ob nodes.
  *
@@ -19,6 +22,8 @@ module.exports = (STATE, commandname) => {
 	let BATCHES = {};
 	let SETTINGS = {};
 	let TREE = STATE.tables.tree;
+	let PLACEHOLDERS = {};
+	let memtable = {}; // Cache md5 hash to their respective flags string.
 
 	let has_root = false;
 	// RegExp to match main command/first command in chain to remove.
@@ -235,6 +240,22 @@ module.exports = (STATE, commandname) => {
 				flags = [...SET].sort(sorter).join("|");
 			}
 
+			// Note: Place hold extremely long flag set strings. This is
+			// done to allow faster acdef read times by reducing the file's
+			// characters. If the flagset is later needed the specific place
+			// holder file can then be read.
+			if (flags.length >= 100) {
+				// Memoize hashes to prevent re-hashing same flag strings.
+				if (!memtable.hasOwnProperty(flags)) {
+					let md5hash = md5(flags).substr(26); // md5 hash of flags string.
+					PLACEHOLDERS[md5hash] = flags; // Store flags in object.
+					memtable[flags] = md5hash;
+					flags = "--p#" + md5hash; // Reset flags string to md5hash.
+				} else {
+					flags = "--p#" + memtable[flags];
+				}
+			}
+
 			// Remove the main command from the command chain. However,
 			// when the command name is not the main command in (i.e.
 			// when running on a test file) just remove the first command
@@ -288,6 +309,7 @@ module.exports = (STATE, commandname) => {
 		keywords: {
 			content: defs,
 			print: defs
-		}
+		},
+		placeholders: PLACEHOLDERS
 	};
 };

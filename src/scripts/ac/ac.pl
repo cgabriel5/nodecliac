@@ -17,7 +17,7 @@
 # my $hdir = glob('~'); # ← Slowest...
 # my $hdir = `echo "\$HOME"`; # ← Less slow...
 # [https://stackoverflow.com/q/1475357]
-# my $hdir = $ENV{'HOME'}; # ← Fastest way but is it reliable?
+my $hdir = $ENV{'HOME'}; # ← Fastest way but is it reliable?
 
 # Get arguments.
 my $oinput = $ARGV[0]; # Original unmodified CLI input.
@@ -960,6 +960,13 @@ sub __lookup {
 
 			# Get flags list.
 			my $flag_list = $db{dict}{$letter}{$commandchain}{flags};
+
+			# If flag list is a placeholder get its file contents.
+			my $pattern = '^--p#(.{6})$';
+			if ($flag_list =~ /$pattern/) {
+				# Read file contents and reset variable.
+				$flag_list = do{local(@ARGV,$/)="$hdir/.nodecliac/registry/$maincommand/placeholders/$1";<>};
+			}
 
 			# Set completion type:
 			$type = 'flag';

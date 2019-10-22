@@ -61,12 +61,14 @@ from strutils import
     startsWith,
     removePrefix,
     allCharsInSet
+import streams
 # from typetraits import name
 
 # If no arguments are passed to script then exit.
 if os.paramCount() == 0: quit()
 
-# let hdir = os.getEnv("HOME")
+# Get user's home directory.
+let hdir = os.getEnv("HOME")
 
 # Get arguments.
 let oinput = os.paramStr(1) # Original unmodified CLI input.
@@ -1078,6 +1080,13 @@ proc fn_lookup(): string =
 
             # Get flags list.
             var flag_list = db_dict[letter][commandchain]["flags"][0]
+
+            # If flag list is a placeholder get its file contents.
+            if flag_list =~ re"^--p#(.{6})$":
+                # Read file contents and reset variable.
+                var strm = newFileStream(fmt"{hdir}/.nodecliac/registry/{maincommand}/placeholders/{matches[0]}", fmRead)
+                flag_list = strm.readAll()
+                strm.close()
 
             # Set completion type:
             ac_type = "flag"

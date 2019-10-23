@@ -85,11 +85,11 @@ var foundflags: seq[string] = @[]
 var completions: seq[string] = @[]
 var commandchain = ""
 var lastchar = "" # Character before caret.
-var nextchar = cline.substr(cpoint, 1) # Character after caret.
+var nextchar = cline.substr(cpoint, cpoint) # Character after caret.
 var cline_length = cline.len # Original input's length.
 var isquoted = false
 var autocompletion = true
-var input = cline.substr(0, cpoint) # CLI input from start to caret index.
+var input = cline.substr(0, cpoint - 1) # CLI input from start to caret index.
 var input_remainder = cline.substr(cpoint, -1) # CLI input from caret index to input string end.
 
 # Vars - ACDEF file parsing variables.

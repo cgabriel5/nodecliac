@@ -88,4 +88,3 @@ elif [[ "$USER_OS" == "macosx" ]]; then
 	--out:"$OUTPUT_PATH" \
 	"$INPUT_PATH"
 fi
-

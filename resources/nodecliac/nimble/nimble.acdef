@@ -1,0 +1,23 @@
+# DON'T EDIT FILE —— GENERATED: Wed Oct 23 2019 17:41:05 GMT-0700 (PDT)(1571877665399)
+
+ --accept|--debug|--help|--nimbleDir=|--noColor|--reject|--ver|--verbose|--version
+.build --
+.c --
+.cc --
+.check --
+.develop --
+.doc --
+.doc2 --
+.dump --
+.init --
+.install --depsOnly|--passNim
+.js --
+.list --installed|--ver
+.path --
+.publish --
+.refresh --
+.run --
+.search --ver
+.tasks --
+.test --continue
+.uninstall --inclDeps

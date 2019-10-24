@@ -213,31 +213,34 @@ module.exports = async args => {
 
 			// -----------------------------------------------------PLACEHOLDERS
 
-			// Build placeholder directory path.
-			let placeholders_path = path.join(
-				registrypaths,
-				`${commandname}/placeholders`
-			);
+			// Create placeholder files when placeholders object is populated.
+			if (Object.keys(placeholders).length) {
+				// Build placeholder directory path.
+				let placeholders_path = path.join(
+					registrypaths,
+					`${commandname}/placeholders`
+				);
 
-			// Create needed directories.
-			[err, res] = await flatry(mkdirp(placeholders_path));
-			if (res) {
-				let promises = []; // Var to store promises in.
+				// Create needed directories.
+				[err, res] = await flatry(mkdirp(placeholders_path));
+				if (res) {
+					let promises = []; // Var to store promises in.
 
-				// Loop over placeholders to create write promises.
-				for (let key in placeholders) {
-					if (placeholders.hasOwnProperty(key)) {
-						promises.push(
-							write(
-								`${placeholders_path}/${key}`,
-								placeholders[key]
-							)
-						);
+					// Loop over placeholders to create write promises.
+					for (let key in placeholders) {
+						if (placeholders.hasOwnProperty(key)) {
+							promises.push(
+								write(
+									`${placeholders_path}/${key}`,
+									placeholders[key]
+								)
+							);
+						}
 					}
-				}
 
-				// Run promises.
-				[err, res] = await flatry(Promise.all(promises));
+					// Run promises.
+					[err, res] = await flatry(Promise.all(promises));
+				}
 			}
 
 			// -----------------------------------------------------PLACEHOLDERS

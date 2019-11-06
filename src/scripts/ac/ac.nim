@@ -28,6 +28,7 @@ from sequtils import
     toSeq,
     filter
 from tables import
+    `$`,
     add,
     len,
     keys,

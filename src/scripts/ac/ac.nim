@@ -9,6 +9,7 @@
 # import strformat
 
 # import system
+from algorithm import sort
 from strformat import fmt
 from osproc import execProcess
 from re import
@@ -26,6 +27,7 @@ from sequtils import
     map,
     mapIt,
     toSeq,
+    concat,
     filter
 from tables import
     `$`,
@@ -37,6 +39,7 @@ from tables import
     pairs,
     Table,
     hasKey,
+    values,
     toTable,
     initTable
 from os import
@@ -1495,6 +1498,68 @@ proc fn_printer() =
     # Check completing flags.
     var isflag_type = ac_type.startsWith('f')
     var skip_map = false
+
+    # Note: When providing flag completions and only "--" is provided,
+    # collapse (don't show) flags with the same prefix. This aims to
+    # help reduce the `display all n possibilities? (y or n)` message
+    # prompt. Instead, only show the prefix in the following format:
+    # "--prefix..." along with the shortest completion item.
+    if completions.len >= 50 and not iscommand and last == "--":
+        var quad_prefixes = initTable[string, tuple[count: int, indices: seq[int]]]()
+        var rm_indices = initTable[int, bool]()
+        var prefixes: seq[string] = @[]
+
+        # Loop over completions array...
+        for i, completion in completions:
+            # Skip strings less than 4 characters in length after
+            # taking into account the starting '--'.
+            if completion.len - 2 < 4: continue
+
+            # Add quad prefix to table.
+            let quad_prefix = completion[2..5] # Get first 4 chars after "--".
+            if not quad_prefixes.hasKey(quad_prefix):
+                quad_prefixes[quad_prefix] = (count: 0, indices: @[])
+            inc(quad_prefixes[quad_prefix].count) # Increment quad prefix count.
+            quad_prefixes[quad_prefix].indices.add(i)
+
+        # Array sort based on string length (ascending):
+        # [https://stackoverflow.com/a/10630852]
+        proc comparator(a, b: string): int =
+            if a.len < b.len: -1 else: 1
+
+        # Get quad prefixes that occur more than 4 times.
+        for tupe in quad_prefixes.values:
+            if tupe.count <= 3: continue
+            let indices = tupe.indices
+            var prefix_completions: seq[string] = @[]
+
+            # Store index to filter item out later.
+            for i in 0..<indices.len:
+                let index = indices[i]
+                rm_indices[index] = true
+                # Store completion string to later find shortest string.
+                prefix_completions.add(completions[index])
+
+            # Sort array to find the shortest string.
+            prefix_completions.sort(comparator)
+            prefixes.add(prefix_completions[0]) # Add shortest completion item.
+
+            # [https://stackoverflow.com/a/35838357]
+            let first = completions[indices[0]]
+            let last = completions[indices[^1]]
+            var ep = 0 # Index endpoint.
+            # Get common prefix between first and last completion items.
+            while first[ep] == last[ep]: inc(ep)
+            # Add common prefix to prefixes array.
+            prefixes.add(first[0..ep-1] & "...")
+
+        # Finally, remove strings (collapse) from main array.
+        var index = -1
+        completions = filter(completions, proc (x: string): bool =
+            inc(index);not rm_indices.hasKey(index))
+
+        # Join prefixes with remaining prefixes.
+        completions = concat(completions, prefixes)
 
     # When for example, completing 'nodecliac print --command' we remove
     # the first and only completion item's '='. This is better suited for

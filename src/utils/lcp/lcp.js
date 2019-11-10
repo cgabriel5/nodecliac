@@ -129,7 +129,7 @@ let lcp = (strs, options = {}) => {
 	// Loop over each completion string...
 	for (let i = 0; i < l; i++) {
 		let str = strs[i]; // Cache current loop item.
-		let cnode; // Always reference current trie node.
+		// let cnode; // Always reference current trie node.
 		let prefix = ""; // Gradually build prefix.
 
 		// Loop over each character in string...
@@ -183,8 +183,6 @@ let lcp = (strs, options = {}) => {
 
 	let aprefixes = []; // Contain prefixes in array to later check prefix-of-prefixes.
 	let tprefixes = {}; // Contain prefixes in table for later quick lookups.
-
-	// console.log(444, indices);
 
 	// Loop over each prefix in the frequency table...
 	loop1: for (let str in frqz) {

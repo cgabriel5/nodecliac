@@ -195,7 +195,7 @@ module.exports = async args => {
 			},
 			transform: function(src /*dest, stats*/) {
 				// Only modify Shell and Perl script files.
-				if (!/\.(sh|pl)$/.test(path.extname(src))) {
+				if (!/\.(sh|pl|nim)$/.test(path.extname(src))) {
 					return null;
 				}
 

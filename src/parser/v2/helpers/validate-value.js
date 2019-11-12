@@ -58,7 +58,7 @@ module.exports = (STATE, NODE) => {
 	// Note: Add 1 to resumepoint to account for 0 base indexing, as column
 	// value starts count at 1.
 	resumepoint++;
-	let warnings = []; // Collect all parsing warnings.
+	// let warnings = []; // Collect all parsing warnings.
 
 	switch (type) {
 		case "quoted":

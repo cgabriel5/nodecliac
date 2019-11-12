@@ -113,8 +113,7 @@ var ii = function(a, b, c, d, x, s, t) {
 };
 
 var md51 = function(s) {
-	var txt = "",
-		n = s.length,
+	var n = s.length,
 		state = [1732584193, -271733879, -1732584194, 271733878],
 		i;
 	for (i = 64; i <= s.length; i += 64) {
@@ -194,7 +193,7 @@ var add32 = function(a, b) {
 	return (a + b) & 0xffffffff;
 };
 
-if (md5("hello") != "5d41402abc4b2a76b9719d911017c592") {
+if (md5("hello") !== "5d41402abc4b2a76b9719d911017c592") {
 	add32 = function(x, y) {
 		var lsw = (x & 0xffff) + (y & 0xffff),
 			msw = (x >> 16) + (y >> 16) + (lsw >> 16);

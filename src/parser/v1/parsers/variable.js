@@ -276,7 +276,7 @@ module.exports = () => {
 	}
 
 	// If variable exists give an dupe/override warning.
-	if (variables.hasOwnProperty(name)) {
+	if (Object.prototype.hasOwnProperty.call(variables, name)) {
 		// Reset index to point to name.
 		i = indices.name.end;
 

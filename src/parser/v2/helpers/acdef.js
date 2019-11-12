@@ -16,7 +16,7 @@ module.exports = (STATE, commandname) => {
 	let nodes = [];
 
 	let ACDEF = [];
-	let TABLE = {};
+	// let TABLE = {};
 	let DEFAULTS = {};
 	let SETS = {};
 	let BATCHES = {};
@@ -106,7 +106,7 @@ module.exports = (STATE, commandname) => {
 		let NODE = nodes[i];
 		let nNODE = nodes[i + 1] || {};
 		let type = NODE.node;
-		let ntype = nNODE.node;
+		// let ntype = nNODE.node;
 
 		if (type === "COMMAND") {
 			// Store command into current batch.
@@ -120,7 +120,9 @@ module.exports = (STATE, commandname) => {
 			}
 
 			// Add command to SETS if not already.
-			if (!SETS.hasOwnProperty(NODE.command.value)) {
+			if (
+				!Object.prototype.hasOwnProperty.call(SETS, NODE.command.value)
+			) {
 				SETS[NODE.command.value] = new Set();
 
 				// Note: Create any missing parent chains. =====================
@@ -133,7 +135,12 @@ module.exports = (STATE, commandname) => {
 					// let cmd = commands[i];
 					let remainder_chain = commands.join(".");
 
-					if (!SETS.hasOwnProperty(remainder_chain)) {
+					if (
+						!Object.prototype.hasOwnProperty.call(
+							SETS,
+							remainder_chain
+						)
+					) {
 						SETS[remainder_chain] = new Set();
 					}
 
@@ -166,7 +173,7 @@ module.exports = (STATE, commandname) => {
 	// 3) Populate Sets SETS. ==================================================
 	for (let i in BATCHES) {
 		//The current property is not a direct property of p
-		if (!BATCHES.hasOwnProperty(i)) {
+		if (!Object.prototype.hasOwnProperty.call(BATCHES, i)) {
 			continue;
 		}
 
@@ -228,7 +235,7 @@ module.exports = (STATE, commandname) => {
 
 	// 4) Generate final ACDEF before sorting. =================================
 	for (let command in SETS) {
-		if (command && SETS.hasOwnProperty(command)) {
+		if (command && Object.prototype.hasOwnProperty.call(SETS, command)) {
 			// Get the Sets object.
 			let SET = SETS[command];
 			let flags = "--";
@@ -246,7 +253,7 @@ module.exports = (STATE, commandname) => {
 			// holder file can then be read.
 			if (flags.length >= 100) {
 				// Memoize hashes to prevent re-hashing same flag strings.
-				if (!memtable.hasOwnProperty(flags)) {
+				if (!Object.prototype.hasOwnProperty.call(memtable, flags)) {
 					let md5hash = md5(flags).substr(26); // md5 hash of flags string.
 					PLACEHOLDERS[md5hash] = flags; // Store flags in object.
 					memtable[flags] = md5hash;
@@ -287,7 +294,7 @@ module.exports = (STATE, commandname) => {
 	// Build settings contents string.
 	let CONFIG = header;
 	for (let setting in SETTINGS) {
-		if (SETTINGS.hasOwnProperty(setting)) {
+		if (Object.prototype.hasOwnProperty.call(SETTINGS, setting)) {
 			CONFIG += `@${setting} = ${SETTINGS[setting]}\n`;
 		}
 	}

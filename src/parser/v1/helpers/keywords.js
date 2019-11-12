@@ -42,7 +42,7 @@ module.exports = () => {
 
 	// Loop over keywords to build config.
 	for (let chain in keywords) {
-		if (keywords.hasOwnProperty(chain)) {
+		if (Object.prototype.hasOwnProperty.call(keywords, chain)) {
 			// Get keyword value.
 			let [keyword, value] = keywords[chain];
 
@@ -59,7 +59,7 @@ module.exports = () => {
 
 	// Loop over highlighted keywords config object.
 	for (let chain in hkeywords) {
-		if (hkeywords.hasOwnProperty(chain)) {
+		if (Object.prototype.hasOwnProperty.call(hkeywords, chain)) {
 			// Get keyword value.
 			let [hkeyword, hvalue] = hkeywords[chain];
 

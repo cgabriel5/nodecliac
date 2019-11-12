@@ -16,6 +16,7 @@ module.exports = async args => {
 	// Get needed paths.
 	let { customdir, bashrcpath, setupfilepath } = paths;
 	// Declare empty variables to reuse for all await operations.
+	// eslint-disable-next-line no-unused-vars
 	let err, res;
 
 	// Prompt password early on. Also ensures user really wants to uninstall.
@@ -95,7 +96,7 @@ module.exports = async args => {
 	shell.exec(
 		"[ -n $(command -v yarn) ] && yarn global remove nodecliac > /dev/null 2>&1; [ -n $(command -v npm) ] && sudo npm uninstall -g nodecliac > /dev/null 2>&1",
 		{ silent: true },
-		(code, stdout, stderr) => {
+		(/*code, stdout, stderr*/) => {
 			log(
 				`${chalk.green(
 					"Successfully"

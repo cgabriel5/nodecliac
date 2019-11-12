@@ -188,7 +188,7 @@ module.exports = STATE => {
 					if (qchar) {
 						// Get previous character.
 						let pchar = string.charAt(STATE.i - 1);
-						let nchar = string.charAt(STATE.i + 1);
+						// let nchar = string.charAt(STATE.i + 1);
 
 						// Once quoted string is closed change state.
 						if (char === qchar && pchar !== "\\") {

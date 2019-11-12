@@ -68,28 +68,33 @@ module.exports = STATE => {
 
 				break;
 			case "FLAG":
-				let pipe_delimiter = "";
+				{
+					let pipe_delimiter = "";
 
-				pipe_delimiter = NODE.singletonflag ? "" : "|";
-				let indentation = indent(null, NODE.singletonflag ? 1 : null);
+					pipe_delimiter = NODE.singletonflag ? "" : "|";
+					let indentation = indent(
+						null,
+						NODE.singletonflag ? 1 : null
+					);
 
-				if (pipe_delimiter) {
-					let nNODE = nodes[i + 1];
-					// Next node must also be a flag else reset it.
-					if (nNODE && nNODE.node !== "FLAG") {
-						pipe_delimiter = "";
+					if (pipe_delimiter) {
+						let nNODE = nodes[i + 1];
+						// Next node must also be a flag else reset it.
+						if (nNODE && nNODE.node !== "FLAG") {
+							pipe_delimiter = "";
+						}
 					}
-				}
 
-				output += `${indentation}${
-					NODE.keyword.value ? NODE.keyword.value + " " : ""
-				}${NODE.hyphens.value || ""}${NODE.name.value || ""}${NODE
-					.boolean.value || ""}${NODE.assignment.value || ""}${NODE
-					.multi.value || ""}${NODE.value.value ||
-					""}${pipe_delimiter}`;
+					output += `${indentation}${
+						NODE.keyword.value ? NODE.keyword.value + " " : ""
+					}${NODE.hyphens.value || ""}${NODE.name.value || ""}${NODE
+						.boolean.value || ""}${NODE.assignment.value ||
+						""}${NODE.multi.value || ""}${NODE.value.value ||
+						""}${pipe_delimiter}`;
 
-				if (NODE.value.value && NODE.value.value === "(") {
-					scopes.push(2);
+					if (NODE.value.value && NODE.value.value === "(") {
+						scopes.push(2);
+					}
 				}
 
 				break;
@@ -100,25 +105,29 @@ module.exports = STATE => {
 
 				break;
 			case "BRACE":
-				let brace = NODE.brace.value;
+				{
+					let brace = NODE.brace.value;
 
-				output += `${indent(null, brace === "]" ? 0 : 1)}${
-					NODE.brace.value
-				}`;
+					output += `${indent(null, brace === "]" ? 0 : 1)}${
+						NODE.brace.value
+					}`;
 
-				scopes.pop();
+					scopes.pop();
+				}
 
 				break;
 			case "NEWLINE":
-				let nNODE = nodes[i + 1];
+				{
+					let nNODE = nodes[i + 1];
 
-				if (newline_counter <= 1) {
-					output += "\n";
-				}
-				newline_counter++;
+					if (newline_counter <= 1) {
+						output += "\n";
+					}
+					newline_counter++;
 
-				if (nNODE && nNODE.node !== "NEWLINE") {
-					newline_counter = 0;
+					if (nNODE && nNODE.node !== "NEWLINE") {
+						newline_counter = 0;
+					}
 				}
 
 				break;
@@ -127,7 +136,7 @@ module.exports = STATE => {
 
 				break;
 			case "VARIABLE":
-				output += `\$${NODE.name.value} ${NODE.assignment.value} ${NODE.value.value}`;
+				output += `$${NODE.name.value} ${NODE.assignment.value} ${NODE.value.value}`;
 
 				break;
 		}

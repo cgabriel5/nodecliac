@@ -889,7 +889,7 @@ module.exports = (
 	// Expand shortcuts and make any children command chains.
 	for (let chain in lookup) {
 		// Loop through lookup table.
-		if (lookup.hasOwnProperty(chain)) {
+		if (Object.prototype.hasOwnProperty.call(lookup, chain)) {
 			// Get flags.
 			let flags = lookup[chain];
 
@@ -917,7 +917,7 @@ module.exports = (
 	// Warn for unused variables.
 	let varused = variables.__used__;
 	for (let variable in varused) {
-		if (varused.hasOwnProperty(variable)) {
+		if (Object.prototype.hasOwnProperty.call(varused, variable)) {
 			if (!varused[variable]) {
 				// Get line information.
 				let [line, index] = variables.__defs__[variable];

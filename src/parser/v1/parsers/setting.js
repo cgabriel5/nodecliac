@@ -275,7 +275,7 @@ module.exports = () => {
 	}
 
 	// If setting exists give an dupe/override warning.
-	if (settings.hasOwnProperty(name)) {
+	if (Object.prototype.hasOwnProperty.call(settings, name)) {
 		// Reset index to point to name.
 		i = indices.name.end;
 

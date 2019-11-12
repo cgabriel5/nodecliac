@@ -232,7 +232,7 @@ module.exports = () => {
 	if (keyword) {
 		if (currentchain) {
 			// If setting exists give an dupe/override warning.
-			if (keywords.hasOwnProperty(currentchain)) {
+			if (Object.prototype.hasOwnProperty.call(keywords, currentchain)) {
 				// Reset index to point to keyword.
 				i = indices.keyword.start;
 

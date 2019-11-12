@@ -88,60 +88,62 @@ module.exports = STATE => {
 				break;
 
 			case "value":
-				// Value:
-				// - Command-flags: $("cat")
-				// - Strings: "value"
-				// - Escaped-values: val\ ue
+				{
+					// Value:
+					// - Command-flags: $("cat")
+					// - Strings: "value"
+					// - Escaped-values: val\ ue
 
-				// Get the previous char.
-				let pchar = string.charAt(STATE.i - 1);
+					// Get the previous char.
+					let pchar = string.charAt(STATE.i - 1);
 
-				// Determine value type.
-				if (!NODE.value.value) {
-					if (char === "$") {
-						NODE.value.type = "command-flag";
-					} else if (char === "(") {
-						NODE.value.type = "list";
-					} else if (r_quote.test(char)) {
-						NODE.value.type = "quoted";
+					// Determine value type.
+					if (!NODE.value.value) {
+						if (char === "$") {
+							NODE.value.type = "command-flag";
+						} else if (char === "(") {
+							NODE.value.type = "list";
+						} else if (r_quote.test(char)) {
+							NODE.value.type = "quoted";
+						} else {
+							NODE.value.type = "escaped";
+						}
+
+						// Store index positions.
+						NODE.value.start = STATE.i;
+						NODE.value.end = STATE.i;
+						// Start building the value string.
+						NODE.value.value = char;
 					} else {
-						NODE.value.type = "escaped";
-					}
-
-					// Store index positions.
-					NODE.value.start = STATE.i;
-					NODE.value.end = STATE.i;
-					// Start building the value string.
-					NODE.value.value = char;
-				} else {
-					// If flag is set and characters can still be consumed
-					// then there is a syntax error. For example, string may
-					// be improperly quoted/escaped so give error.
-					if (end_comsuming) {
-						issue.error(STATE);
-					}
-
-					// Get string type.
-					let stype = NODE.value.type;
-
-					// Escaped string logic.
-					if (stype === "escaped") {
-						if (r_whitespace.test(char) && pchar !== "\\") {
-							end_comsuming = true; // Set flag.
+						// If flag is set and characters can still be consumed
+						// then there is a syntax error. For example, string may
+						// be improperly quoted/escaped so give error.
+						if (end_comsuming) {
+							issue.error(STATE);
 						}
 
-						// Quoted string logic.
-					} else if (stype === "quoted") {
-						let value_fchar = NODE.value.value.charAt(0);
-						if (char === value_fchar && pchar !== "\\") {
-							end_comsuming = true; // Set flag.
-						}
-					}
+						// Get string type.
+						let stype = NODE.value.type;
 
-					// Store index positions.
-					NODE.value.end = STATE.i;
-					// Continue building the value string.
-					NODE.value.value += char;
+						// Escaped string logic.
+						if (stype === "escaped") {
+							if (r_whitespace.test(char) && pchar !== "\\") {
+								end_comsuming = true; // Set flag.
+							}
+
+							// Quoted string logic.
+						} else if (stype === "quoted") {
+							let value_fchar = NODE.value.value.charAt(0);
+							if (char === value_fchar && pchar !== "\\") {
+								end_comsuming = true; // Set flag.
+							}
+						}
+
+						// Store index positions.
+						NODE.value.end = STATE.i;
+						// Continue building the value string.
+						NODE.value.value += char;
+					}
 				}
 
 				break;

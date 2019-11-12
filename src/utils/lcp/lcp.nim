@@ -50,7 +50,7 @@ proc lcp(
     var indices = initTable[string, Table[int, bool]]()
     var aindices = initTable[string, seq[int]]()
     # var frqz = initTable[string, int]() # Frequency of prefixes.
-    var prefixes: seq[string] = @[] # Final collection of found prefixes.
+    # var prefixes: seq[string] = @[] # Final collection of found prefixes.
 
     # Final result tuple and its sequence values.
     var prxs: seq[string] = @[]

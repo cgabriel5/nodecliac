@@ -79,6 +79,7 @@ module.exports = (value, ...scopes) => {
 						// [https://stackoverflow.com/a/1697749]
 						if (
 							i === 0 &&
+							// eslint-disable-next-line no-control-regex
 							(!value || value === "(" || /^\u001b/.test(value))
 						) {
 							continue;
@@ -185,23 +186,25 @@ module.exports = (value, ...scopes) => {
 
 						break;
 					case "cmd-flag-arg":
-						// Check if argument is a run-able command.
-						let is_carg = /^\$/.test(value);
+						{
+							// Check if argument is a run-able command.
+							let is_carg = /^\$/.test(value);
 
-						// Remove '$' if argument is a run-able command.
-						value = is_carg ? value.slice(1) : value;
+							// Remove '$' if argument is a run-able command.
+							value = is_carg ? value.slice(1) : value;
 
-						// Get first and last characters (quotes).
-						let fchar = value.charAt(0);
-						let lchar = value.charAt(value.length - 1);
+							// Get first and last characters (quotes).
+							let fchar = value.charAt(0);
+							let lchar = value.charAt(value.length - 1);
 
-						// Remove quotes and apply highlighting.
-						value = `${is_carg ? chalk[c.def]("$") : ""}${chalk[
-							c.def
-						](fchar)}${chalk[c.string](
-							// Remove start/closing quotes.
-							value.slice(1, -1)
-						)}${chalk[c.def](lchar)}`;
+							// Remove quotes and apply highlighting.
+							value = `${is_carg ? chalk[c.def]("$") : ""}${chalk[
+								c.def
+							](fchar)}${chalk[c.string](
+								// Remove start/closing quotes.
+								value.slice(1, -1)
+							)}${chalk[c.def](lchar)}`;
+						}
 
 						break;
 				}

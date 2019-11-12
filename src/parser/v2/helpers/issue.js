@@ -74,6 +74,8 @@ let caller_filename = () => {
 
 			if (currentfile !== callerfile) break;
 		}
+
+		// eslint-disable-next-line no-empty
 	} catch (e) {}
 
 	Error.prepareStackTrace = originalFunc;
@@ -131,6 +133,6 @@ issue.error = (STATE, code) => {
  * @param  {number} code - The warning code.
  * @return {undefined} - Nothing is returned.
  */
-issue.warning = (STATE, code) => {};
+// issue.warning = (STATE, code) => {};
 
 module.exports = issue;

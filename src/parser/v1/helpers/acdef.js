@@ -70,7 +70,7 @@ module.exports = lk_size => {
 
 	// Loop over command chain lookup table.
 	for (let chain in lookup) {
-		if (chain && lookup.hasOwnProperty(chain)) {
+		if (chain && Object.prototype.hasOwnProperty.call(lookup, chain)) {
 			// Get flags array.
 			let flags = lookup[chain];
 			// Get highlighted flags.

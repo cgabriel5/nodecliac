@@ -217,7 +217,7 @@ module.exports = STATE => {
 				// commence 'oneliner' route.
 
 				// Before determining path, check that character is valid.
-				if (!/[-d\[]/.test(char)) {
+				if (!/[-d[]/.test(char)) {
 					issue.error(STATE);
 				}
 

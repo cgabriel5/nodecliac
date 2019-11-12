@@ -22,6 +22,7 @@ module.exports = async args => {
 	// Get needed paths.
 	let { registrypaths } = paths;
 	// Declare empty variables to reuse for all await operations.
+	// eslint-disable-next-line no-unused-vars
 	let err, res;
 
 	// Get CLI args.
@@ -228,7 +229,12 @@ module.exports = async args => {
 
 					// Loop over placeholders to create write promises.
 					for (let key in placeholders) {
-						if (placeholders.hasOwnProperty(key)) {
+						if (
+							Object.prototype.hasOwnProperty.call(
+								placeholders,
+								key
+							)
+						) {
 							promises.push(
 								write(
 									`${placeholders_path}/${key}`,

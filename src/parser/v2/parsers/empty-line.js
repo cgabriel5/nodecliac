@@ -15,10 +15,9 @@ module.exports = STATE => {
 	// require("../helpers/trace.js")(__filename); // Trace parser.
 
 	// Get global loop state variables.
-	let { line, column, i, l, string } = STATE;
+	let { line /* column, i, l, string */ } = STATE;
 
 	// Parsing vars.
-	let state = "sigil"; // Initial parsing state.
 	let NODE = {
 		node: "NEWLINE",
 		sigil: { start: STATE.i, end: STATE.i },

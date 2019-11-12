@@ -23,7 +23,7 @@ let lcp = (strs, options = {}) => {
 	let frqz = {}; // Frequency of prefixes.
 	let indices = {}; // Track indices of strings containing any found prefixes.
 	let aindices = {}; // Track indices order.
-	let prefixes = []; // Final collection of found prefixes.
+	// let prefixes = []; // Final collection of found prefixes.
 
 	// Final result tuple and its sequence values.
 	let prxs = [];
@@ -83,14 +83,13 @@ let lcp = (strs, options = {}) => {
 		switch (l) {
 			case 0: // If source array is empty return empty array.
 				return r;
-				break;
 			case 1: // If only a single string is in array return that string.
 				// If only a single string is in array return that string.
 				xids[0] = false; // Add string index to table.
 				r.prefixes.push(stringloop(strs[0]));
 				return r;
-				break;
-			case 2: // If 2 strings exists...
+			case 2: {
+				// If 2 strings exists...
 				// If strings match then return string...
 				if (strs[0] === strs[1]) {
 					xids[0] = false; // Add string indices to table.
@@ -121,8 +120,7 @@ let lcp = (strs, options = {}) => {
 					r.prefixes.push(stringloop(prefix));
 				}
 				return r;
-
-				break;
+			}
 		}
 	}
 
@@ -186,7 +184,7 @@ let lcp = (strs, options = {}) => {
 
 	// Loop over each prefix in the frequency table...
 	loop1: for (let str in frqz) {
-		if (frqz.hasOwnProperty(str)) {
+		if (Object.prototype.hasOwnProperty.call(frqz, str)) {
 			let count = frqz[str]; // Get string frequency.
 
 			// If prefix doesn't exist in table and its frequency is >= 2 continue...
@@ -201,7 +199,7 @@ let lcp = (strs, options = {}) => {
 				// If any string in array is prefix of the current string, skip string.
 				if (aprefixes.length) {
 					// var has_existing_prefix = false;
-					loop2: for (let i = 0, l = aprefixes.length; i < l; i++) {
+					for (let i = 0, l = aprefixes.length; i < l; i++) {
 						let prefix = aprefixes[i]; // Cache current loop item.
 
 						// If array string prefixes the string, continue to main loop.
@@ -238,7 +236,7 @@ let lcp = (strs, options = {}) => {
 		) {
 			let obj = indices[prefix];
 			for (let key in obj) {
-				if (obj.hasOwnProperty(key)) {
+				if (Object.prototype.hasOwnProperty.call(obj, key)) {
 					// Add indices to final table.
 					// ~~: [https://stackoverflow.com/a/43056963]
 					// [https://stackoverflow.com/a/14355500]
@@ -268,7 +266,7 @@ let lcp = (strs, options = {}) => {
 	//  */
 	// let traverse = function(obj, fn) {
 	// 	for (let key in obj) {
-	// 		if (!obj.hasOwnProperty(key)) continue;
+	// 		if (!Object.prototype.hasOwnProperty.call(obj, key)) continue;
 
 	// 		// Get child node object.
 	// 		let child = obj[key];
@@ -330,6 +328,7 @@ let lcp = (strs, options = {}) => {
 
 // Usage examples:
 
+// eslint-disable-next-line no-redeclare
 var strs = [
 	"Call Mike and schedule meeting.",
 	"Call Lisa",
@@ -342,6 +341,7 @@ var strs = [
 ];
 console.log(13, lcp(strs));
 
+// eslint-disable-next-line no-redeclare
 var strs = ["--hintUser=", "--hintUser=", "--hintUser="];
 console.log(
 	-1,
@@ -356,6 +356,7 @@ console.log(
 	})
 );
 
+// eslint-disable-next-line no-redeclare
 var strs = [
 	"--app=",
 	"--assertions=",
@@ -501,6 +502,7 @@ console.log(
 	})
 );
 
+// eslint-disable-next-line no-redeclare
 var strs = [
 	"--app=",
 	"--assertions=",
@@ -524,6 +526,7 @@ console.log(
 	})
 );
 
+// eslint-disable-next-line no-redeclare
 var strs = [
 	"--warningCannotOpenFile",
 	"--warningConfigDeprecated",
@@ -547,6 +550,7 @@ console.log(
 	})
 );
 
+// eslint-disable-next-line no-redeclare
 var strs = [
 	"--skipCfg=",
 	"--skipParentCfg=",
@@ -566,6 +570,7 @@ console.log(
 	})
 );
 
+// eslint-disable-next-line no-redeclare
 var strs = [
 	"--hintCC=",
 	"--hintCodeBegin=",
@@ -609,6 +614,7 @@ console.log(
 	})
 );
 
+// eslint-disable-next-line no-redeclare
 var strs = [
 	"--warnings=",
 	"--warningCannotOpenFile=",
@@ -635,6 +641,7 @@ console.log(
 	})
 );
 
+// eslint-disable-next-line no-redeclare
 var strs = ["--warnings=", "--warningCannotOpenFile="];
 console.log(
 	7,
@@ -649,6 +656,7 @@ console.log(
 	})
 );
 
+// eslint-disable-next-line no-redeclare
 var strs = ["--warnings="];
 console.log(
 	8,
@@ -663,6 +671,7 @@ console.log(
 	})
 );
 
+// eslint-disable-next-line no-redeclare
 var strs = [
 	"--hintCC=",
 	"--hintCodeBegin=",
@@ -707,6 +716,7 @@ console.log(
 	})
 );
 
+// eslint-disable-next-line no-redeclare
 var strs = ["--hintCC="];
 console.log(
 	10,
@@ -721,6 +731,7 @@ console.log(
 	})
 );
 
+// eslint-disable-next-line no-redeclare
 var strs = ["--hintUser=", "--hintUserRaw=", "--hintXDeclaredButNotUsed="];
 console.log(
 	11,
@@ -735,6 +746,7 @@ console.log(
 	})
 );
 
+// eslint-disable-next-line no-redeclare
 var strs = [
 	"--hintSuccessX=",
 	"--hintUser=",
@@ -754,6 +766,7 @@ console.log(
 	})
 );
 
+// eslint-disable-next-line no-redeclare
 var strs = [
 	"Call Mike and schedule meeting.",
 	"Call Lisa",

@@ -121,27 +121,29 @@ module.exports = (STATE, isoneliner) => {
 				break;
 
 			case "keyword":
-				// Only letters are allowed.
-				let keyword_len = 7;
-				let keyword = string.substr(STATE.i, keyword_len);
+				{
+					// Only letters are allowed.
+					let keyword_len = 7;
+					let keyword = string.substr(STATE.i, keyword_len);
 
-				// Note: If the keyword is not 'default' then error.
-				if (keyword !== "default") {
-					issue.error(STATE);
+					// Note: If the keyword is not 'default' then error.
+					if (keyword !== "default") {
+						issue.error(STATE);
+					}
+
+					// Store index positions.
+					NODE.keyword.start = STATE.i;
+					NODE.keyword.end = STATE.i + keyword_len - 1;
+					// Store keyword value.
+					NODE.keyword.value = keyword;
+
+					// Note: A whitespace character must follow keyword.
+					state = "keyword-spacer";
+
+					// Note: Forward loop index to skip keyword characters.
+					STATE.i += keyword_len - 1;
+					STATE.column += keyword_len - 1;
 				}
-
-				// Store index positions.
-				NODE.keyword.start = STATE.i;
-				NODE.keyword.end = STATE.i + keyword_len - 1;
-				// Store keyword value.
-				NODE.keyword.value = keyword;
-
-				// Note: A whitespace character must follow keyword.
-				state = "keyword-spacer";
-
-				// Note: Forward loop index to skip keyword characters.
-				STATE.i += keyword_len - 1;
-				STATE.column += keyword_len - 1;
 
 				break;
 
@@ -332,71 +334,73 @@ module.exports = (STATE, isoneliner) => {
 				break;
 
 			case "value":
-				// Value:
-				// - List: (1,2,3)
-				// - Command-flags: $("cat")
-				// - Strings: "value"
-				// - Escaped-values: val\ ue
+				{
+					// Value:
+					// - List: (1,2,3)
+					// - Command-flags: $("cat")
+					// - Strings: "value"
+					// - Escaped-values: val\ ue
 
-				// Get the previous char.
-				let pchar = string.charAt(STATE.i - 1);
+					// Get the previous char.
+					let pchar = string.charAt(STATE.i - 1);
 
-				// Determine value type.
-				if (!NODE.value.value) {
-					if (char === "$") {
-						NODE.value.type = "command-flag";
-					} else if (char === "(") {
-						NODE.value.type = "list";
-					} else if (r_quote.test(char)) {
-						NODE.value.type = "quoted";
+					// Determine value type.
+					if (!NODE.value.value) {
+						if (char === "$") {
+							NODE.value.type = "command-flag";
+						} else if (char === "(") {
+							NODE.value.type = "list";
+						} else if (r_quote.test(char)) {
+							NODE.value.type = "quoted";
+						} else {
+							NODE.value.type = "escaped";
+						}
+
+						// Store index positions.
+						NODE.value.start = STATE.i;
+						NODE.value.end = STATE.i;
+						// Start building the value string.
+						NODE.value.value = char;
 					} else {
-						NODE.value.type = "escaped";
-					}
+						// Check if character is a delimiter.
+						if (char === "|" && pchar !== "\\") {
+							// Stop building value and change state.
+							state = "pipe-delimiter";
 
-					// Store index positions.
-					NODE.value.start = STATE.i;
-					NODE.value.end = STATE.i;
-					// Start building the value string.
-					NODE.value.value = char;
-				} else {
-					// Check if character is a delimiter.
-					if (char === "|" && pchar !== "\\") {
-						// Stop building value and change state.
-						state = "pipe-delimiter";
+							STATE.loop.rollback(STATE); // Rollback loop.
 
-						STATE.loop.rollback(STATE); // Rollback loop.
-
-						break;
-					}
-
-					// If flag is set and characters can still be consumed
-					// then there is a syntax error. For example, string may
-					// be improperly quoted/escaped so give error.
-					if (end_comsuming) {
-						issue.error(STATE);
-					}
-
-					// Get string type.
-					let stype = NODE.value.type;
-
-					// Escaped string logic.
-					if (stype === "escaped") {
-						if (r_whitespace.test(char) && pchar !== "\\") {
-							end_comsuming = true; // Set flag.
+							break;
 						}
 
-						// Quoted string logic.
-					} else if (stype === "quoted") {
-						let value_fchar = NODE.value.value.charAt(0);
-						if (char === value_fchar && pchar !== "\\") {
-							end_comsuming = true; // Set flag.
+						// If flag is set and characters can still be consumed
+						// then there is a syntax error. For example, string may
+						// be improperly quoted/escaped so give error.
+						if (end_comsuming) {
+							issue.error(STATE);
 						}
-					}
 
-					// Store index positions.
-					NODE.value.end = STATE.i;
-					// Continue building the value string.
-					NODE.value.value += char;
+						// Get string type.
+						let stype = NODE.value.type;
+
+						// Escaped string logic.
+						if (stype === "escaped") {
+							if (r_whitespace.test(char) && pchar !== "\\") {
+								end_comsuming = true; // Set flag.
+							}
+
+							// Quoted string logic.
+						} else if (stype === "quoted") {
+							let value_fchar = NODE.value.value.charAt(0);
+							if (char === value_fchar && pchar !== "\\") {
+								end_comsuming = true; // Set flag.
+							}
+						}
+
+						// Store index positions.
+						NODE.value.end = STATE.i;
+						// Continue building the value string.
+						NODE.value.value += char;
+					}
 				}
 
 				break;

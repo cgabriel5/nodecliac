@@ -15,6 +15,7 @@ module.exports = async () => {
 	let files = [];
 
 	// Declare empty variables to reuse for all await operations.
+	// eslint-disable-next-line no-unused-vars
 	let err, res;
 
 	// Maps path needs to exist to list acdef files.

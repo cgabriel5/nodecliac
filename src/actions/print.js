@@ -12,6 +12,7 @@ module.exports = async args => {
 	// Get CLI args.
 	let { command } = args;
 	// Declare empty variables to reuse for all await operations.
+	// eslint-disable-next-line no-unused-vars
 	let err, res;
 
 	// Source must be provided.

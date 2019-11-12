@@ -23,9 +23,9 @@ module.exports = () => {
 	// If settings object is empty return "empty" object (just headers).
 	if (!settings.__count__) {
 		return {
-			content: header || '',
-			hcontent: h(header, "comment") || '',
-			print: highlight ? h(header, "comment") : header || ''
+			content: header || "",
+			hcontent: h(header, "comment") || "",
+			print: highlight ? h(header, "comment") : header || ""
 		};
 	}
 	// Remove size/count key.
@@ -35,7 +35,7 @@ module.exports = () => {
 
 	// Loop over settings to build config.
 	for (let setting in settings) {
-		if (settings.hasOwnProperty(setting)) {
+		if (Object.prototype.hasOwnProperty.call(settings, setting)) {
 			// Get setting value.
 			let value = settings[setting];
 			// Store setting/value line.
@@ -44,7 +44,7 @@ module.exports = () => {
 	}
 	// Loop over highlighted settings config object.
 	for (let hsetting in hsettings) {
-		if (hsettings.hasOwnProperty(hsetting)) {
+		if (Object.prototype.hasOwnProperty.call(hsettings, hsetting)) {
 			// Get setting value.
 			let hvalue = hsettings[hsetting];
 			// Store setting/value line.

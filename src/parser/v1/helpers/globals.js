@@ -6,7 +6,7 @@ let count = 0;
 let ref;
 
 // Attach to global namespace if not already.
-if (!global.hasOwnProperty("$app")) {
+if (!Object.prototype.hasOwnProperty.call(global, "$app")) {
 	global.$app = {
 		vars: {}
 	};
@@ -70,7 +70,7 @@ f.has = name => {
  * @return {undefined} - Nothing is returned.
  */
 f.unset = name => {
-	if (ref.hasOwnProperty(name)) {
+	if (Object.prototype.hasOwnProperty.call(ref, name)) {
 		// Remove from object
 		delete ref[name];
 

@@ -5,7 +5,7 @@ const path = require("path");
 const chalk = require("chalk");
 const flatry = require("flatry");
 const log = require("fancy-log");
-const shell = require("shelljs");
+// const shell = require("shelljs");
 const mkdirp = require("make-dir");
 const fe = require("file-exists");
 const copydir = require("recursive-copy");
@@ -28,9 +28,9 @@ module.exports = async args => {
 	 * @param  {string} filepath - The source's file path.
 	 * @return {string} - The corrected source's file path.
 	 */
-	let fixpath = filepath => {
-		return path.join(path.dirname(__dirname), filepath);
-	};
+	// let fixpath = filepath => {
+	// 	return path.join(path.dirname(__dirname), filepath);
+	// };
 
 	// Get CLI args.
 	let { force, rcfilepath, commands } = args;

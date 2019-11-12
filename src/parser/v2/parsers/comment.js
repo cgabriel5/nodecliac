@@ -19,7 +19,7 @@ let { r_nl, r_whitespace } = require("../helpers/patterns.js");
  */
 module.exports = STATE => {
 	// Get global loop state variables.
-	let { line, column, i, l, string } = STATE;
+	let { line, /* column, i, */ l, string } = STATE;
 
 	// Parsing vars.
 	let state = "sigil"; // Initial parsing state.

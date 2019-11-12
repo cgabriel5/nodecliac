@@ -63,7 +63,7 @@ sub __lcp {
 	my %frqz; # Frequency of prefixes.
 	my %indices; # Track indices of strings containing any found prefixes.
 	my %aindices; # Track indices order.
-	my $prefixes = (); # Final collection of found prefixes.
+	# my @prefixes = (); # Final collection of found prefixes.
 
 	# Final result tuple and its sequence values.
 	my @prxs = ();

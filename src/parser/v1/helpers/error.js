@@ -57,7 +57,7 @@ let verify = result => {
 	}
 
 	// Issue error if present.
-	if (result.hasOwnProperty("code")) {
+	if (Object.prototype.hasOwnProperty.call(result, "code")) {
 		// Calculate max column lengths.
 		max_col_lengths(result);
 

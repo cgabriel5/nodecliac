@@ -6,7 +6,7 @@ let { r_start_line_char } = require("./helpers/patterns.js");
 
 module.exports = (string, commandname, source, formatting, ...args) => {
 	// Vars - second set of args.
-	let [highlight, trace, nowarn, stripcomments, test] = args;
+	let [highlight, trace /* nowarn*/, , stripcomments, test] = args;
 
 	// Vars - timers.
 	let stime = process.hrtime(); // Store start time tuple array.

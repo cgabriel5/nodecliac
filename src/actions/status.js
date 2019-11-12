@@ -16,6 +16,7 @@ module.exports = async args => {
 	// Dot file path.
 	let dotfile = path.join(customdir, ".disable");
 	// Declare empty variables to reuse for all await operations.
+	// eslint-disable-next-line no-unused-vars
 	let err, res;
 
 	// If no flag is supplied then only print the status.

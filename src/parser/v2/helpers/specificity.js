@@ -2,7 +2,6 @@
 
 // Get needed modules.
 let issue = require("./issue.js");
-let { r_letter, r_whitespace } = require("./patterns.js");
 
 /**
  * Check that line specificity is allowed.

@@ -53,6 +53,7 @@
 	},
 	"devDependencies": {
 		"cross-env": "^5.2.0",
+		"eslint": "^6.6.0",
 		"eslint-config-simple": "^0.0.7",
 		"eslint-formatter-simple": "^0.0.7",
 		"prettier-cli-watcher": "^0.3.4"

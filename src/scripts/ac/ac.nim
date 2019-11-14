@@ -1378,6 +1378,10 @@ proc fn_lookup(): string =
         else:
             var letter = if commandchain != "": commandchain[1] else: '_'
             # [https://stackoverflow.com/a/33102092]
+
+            # To proceed the letter must exists in dictionary.
+            if not db_dict.hasKey(letter): quit()
+
             var rows = toSeq(db_dict[letter].keys)
             var lastchar_notspace = lastchar != " "
 

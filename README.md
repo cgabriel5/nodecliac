@@ -88,7 +88,7 @@ $ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/in
   - Runs needed Perl tab-completion scripts.
   - Works in tandem with Bash shell scripts.
 - Bash `4.3+`
-  - Glues/setup/runs Perl, Nim, and Shell tab-completion scripts.
+  - Runs bash tab-completion scripts.
   - Works in tandem with Perl/Nim scripts.
   - `macOS`, by default, comes with with Bash `3.2` so please update it.
     - [Homebrew](https://brew.sh/) can be used to [update bash](https://akrabat.com/upgrading-to-bash-4-on-macos/).
@@ -163,8 +163,8 @@ nodecliac uses 2 custom file types: **a**uto-**c**ompletion **def**inition (`.ac
 - Setting values are assigned with `=` followed by the setting value.
 - Any amount of whitespace before and after `=` is fine, but keep things tidy.
 - No amount of indentation can precede a setting declaration.
-- **Note**: Settings can be declared _anywhere_ within your `.acmap`.
-  - However, best if declared at start of file to quickly spot them.
+- **Note**: Settings can be declared _anywhere_ within your `.acmap` file.
+  - However, it's best if declared at the start of file to quickly spot them.
 
 ```acmap
 # It is ok to have comments before settings.
@@ -212,8 +212,8 @@ yarn.run = default $("${mainscript} run")
 #### Command Chains
 
 - Commands/subcommands should seen as chains which read from left to right.
-- They start with your CLI program's name, followed by any commands/subcommands, and are dot (`.`) delimited.
-- If a subcommand happens to use a dot then simply escape the dot.
+- They start with the CLI program's name, are followed by any commands/subcommands, and are dot (`.`) delimited.
+- If a (sub)command happens to use a dot then simply escape the dot.
   - Non escaped dots will be used as delimiters.
 - No amount of indentation can precede a command chain.
 
@@ -244,12 +244,12 @@ For example, say we are implementing an `.acmap` file for the dependency manager
 yarn.remove = [
   # The default command will run on '$ yarn remove [TAB]'. In this example, the shell script
   # 'script.sh' should contain the logic needed to parse package.json to return the installed
-  # (dev)dependency packages.
+  # (dev)dependency package names.
   default $("~/.nodecliac/registry/yarn/script.sh")
 ]
 ```
 
-**Note**: For more information about `command-string`s please take a look at `ACMAP Syntax > Flags > Flag Variations > Flags (dynamic values)`. The section contains complete details for `command-string`s like special character escaping caveats, dynamic/static arguments, and examples with their breakdowns. Please be aware that the section uses the term `command-flag` due it being used for flags but `command-flag` and `command-string` are effectively the same thing — _just a runable shell command string_. Here we see it being used for command-chains. The naming (`command-{string|flag}`) is based on its application (i.e. for command-chains or flags).
+**Note**: For more information about `command-string`s please take a look at `ACMAP Syntax > Flags > Flag Variations > Flags (dynamic values)`. The section contains complete details for `command-string`s like special character escaping caveats, dynamic/static arguments, and examples with their breakdowns. Please be aware that the section uses the term `command-flag` due it being used for flags but `command-flag` and `command-string` are effectively the same thing — _just a runable shell command string_. The naming (`command-{string|flag}`) is based on its application (i.e. for command-chains or flags).
 
 </details>
 
@@ -288,8 +288,8 @@ mycliprogram.command = [
 
 #### Flags (boolean)
 
-- If flag does not require input but a switch (yes/no boolean) then append `?` to the flag.
-  - Not required but doing so will let the completion engine know the flag does not require a value.
+- If flag is a switch (yes/no boolean) then append `?` to the flag.
+  - This lets the completion engine know the flag does not require value completion.
 
 ```acmap
 mycliprogram.command = [
@@ -361,7 +361,7 @@ mycliprogram.uninstall
 
 #### Flags (dynamic values)
 
-Sometimes hard-coded values are not enough so a `command-flag` can be used. A `command-flag` runs a shell command string. By default the returned command's output expects each completion item to be on its own line (newline `\n` delimited list). However, if you need to change the delimiter character to a space, hyphen, etc. then simply add the delimiter character to the `command-flag`. The syntax for a `command-flag` is as follows:
+Sometimes hard-coded values are not enough so a `command-flag` can be used. A `command-flag` runs a shell command string. By default the returned command's output expects each completion item to be on its own line (newline (`\n`) delimited list). However, if you need to change the delimiter character to a space, hyphen, etc. then simply add the delimiter character to the `command-flag`. The syntax for a `command-flag` is as follows:
 
 - `$("cat ~/colors.text")`: Will run command and split output on newlines to get individual options.
 - `$("cat ~/colors.text", " ")`: Will run command and split output on spaces to get individual options.
@@ -372,10 +372,10 @@ If the command requires arguments they can be _hard-coded_ or _dynamically_ supp
   - This will provide the hard-coded `!red` value and run the `cat ~/names.text` flag command argument.
   - Once all dynamic arguments are ran their outputs along with the hard-coded values are passed to the command `cat ~/colors.text` in the order they were provided.
   - So `!red` will be argument `0` and the output of `cat ~/names.text` will be argument `1`.
-  - Once `cat ~/colors.text` is run the output will be split by hyphens and will finally get passed to the completion engine.
-- **Note**: Arguments prefixed with the dollar-sign (`$`) character are _dynamic_ flag command arguments.
+  - Once `cat ~/colors.text` is run, its output will be split by hyphens.
+- **Note**: _dynamic_ flag command arguments must be prefixed with a dollar-sign (`$`) character.
 
-**Escaping**: `$` and `|` are used by nodecliac so they are special characters. Therefore, if used they need escaping. Take the following examples:
+**Escaping**: `$` and `|` are used internally by nodecliac so they have special meaning. Therefore, if used they need escaping. Take the following examples:
 
 - `--flag=$("echo \$0-\$1", $"echo 'john'", "doe", "-")`:
   - The `$`s in the command are escaped.
@@ -383,7 +383,7 @@ If the command requires arguments they can be _hard-coded_ or _dynamically_ supp
   - Here the `|` gets escaped as well.
   - **Note**: Inner quotes are also escaped for obvious reasons.
 
-**Example**: Showcasing dynamic and hard-coded values.
+**Example**: Showcases dynamic and hard-coded values.
 
 ```acmap
 mycliprogram.command = [
@@ -431,7 +431,7 @@ Indentation is allowed except when declaring command-chains and settings.
 ## ACDEF Syntax
 
 <details>
-  <summary>auto-completion definition (<code>.acdef</code>) are easy to read and is what nodecliac references when providing completions.</summary>
+  <summary>auto-completion definition (<code>.acdef</code>) files are easy to read and is what nodecliac references when providing completions.</summary>
 
 #### ACDEF Anatomy
 
@@ -462,7 +462,7 @@ The following example `yarn.acdef` file will be used to explain how to read `.ac
 #### ACDEF Header
 
 - The first line is the `.acdef` file's header.
-  - Header contains a warning to not modify the file as well as the file's creation data.
+  - Header contains a warning to not modify the file as well as the file's creation information.
 
 ```acdef
 # DON'T EDIT FILE —— GENERATED: Fri Jun 21 2019 19:59:33 GMT-0700 (PDT)(1561172373941)
@@ -475,8 +475,8 @@ The following example `yarn.acdef` file will be used to explain how to read `.ac
 - The following section contains the command-chains and their respective flags.
 - Each line represents a _row_ which starts with the command chain and is followed by single space.
 - Whatever comes after the single space are the command's flags.
+  - Flags are delimited by pipe (`|`) characters.
 - Rows that do not have flags will contain `--` after the single space character.
-- Flags are separated by pipe (`|`) characters.
 
 ```acdef
 ...
@@ -517,9 +517,9 @@ For example, the line `.workspaces.run --` can be viewed as `yarn.workspaces.run
 
 - Depending how complex an `.acmap` is, sometimes placeholders might be needed.
 - Placeholder syntax:
-  - Begin with `--p#` and is followed by a fixed number of hexadecimal characters.
+  - Begin with `--p#` and are followed by a fixed number of hexadecimal characters.
   - **Example**: `--p#d2eef1`
-- **Note**: They are used internally to speed up reading `.acdef` files.
+- **Note**: They are used internally to speed up reading, what would be otherwise large, `.acdef` files.
 
 </details>
 

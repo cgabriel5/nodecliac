@@ -157,7 +157,7 @@ proc fn_normalize_command(item: var string): string =
                .replacef(re"([^\\]|^)\/", "$1.") # Replace unescaped '/' with '.' dots.
 
     # Finally, validate that only allowed characters are in string.
-    if not allCharsInSet(item, valid_cmd_chars): quit()
+    # if not allCharsInSet(item, valid_cmd_chars): quit() # Is this really needed?
 
     # Returned normalized item string.
     return item

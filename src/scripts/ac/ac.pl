@@ -114,7 +114,7 @@ sub __normalize_command {
 	# tr///c does not do any variable interpolation do character sets need
 	# to be hardcoded: [https://www.perlmonks.org/?node_id=445971]
 	# [https://stackoverflow.com/a/15534516]
-	if ($item =~ tr/-._:\\a-zA-Z0-9//c) { exit; }
+	# if ($item =~ tr/-._:\\a-zA-Z0-9//c) { exit; } # Is this really needed?
 
 	# Returned normalized item string.
 	return $item;

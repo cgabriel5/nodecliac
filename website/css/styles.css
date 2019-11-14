@@ -179,11 +179,11 @@ code {
 	color: #71471c;
 	margin: 0;
 	border-radius: 3px;
-	padding: 0.2em 3px;
+	padding: 0 3px;
 	font-size: 85%;
-	font-size: 15px;
 	font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier,
 		monospace;
+	display: inline-block;
 }
 
 .italic {
@@ -291,6 +291,15 @@ code {
 	padding: 10px 20px;
 	border-left: 2px solid #ffce54;
 	background: rgb(255, 245, 221);
+	font-size: 14px;
+	font-weight: 400;
+}
+
+.note-tip {
+	margin-top: 0px;
+	padding: 10px 20px;
+	border-left: 2px solid transparent;
+	background: transparent;
 	font-size: 14px;
 	font-weight: 400;
 }

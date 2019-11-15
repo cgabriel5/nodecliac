@@ -146,7 +146,7 @@ nim.objc = [
 	--skipProjCfg=(on off)
 	--gc=(refc markAndSweep boehm go none regions)
 	--index=(on off)
-	--putenv=(key=value)
+	--putenv=
 	--NimblePath=
 	--noNimblePath
 	--noCppExceptions

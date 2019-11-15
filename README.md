@@ -821,6 +821,34 @@ This section will continue to use [yarn's prehook script](/resources/nodecliac/y
 
 **Note**: As a reminder, the provided `.acmap` file gets parsed to generate an `.acdef` file. The created `.acdef` file is what nodecliac actually reads **a**uto-**c**ompletion **def**initions from. Therefore, modifying `.acdef` contents requires knowing `.acdef` syntax.
 
+#### Ignoring Options
+
+When an option(s) should be ignored by the completion engine simply prefix the option with an exclamation-mark (`!`). This indicator is meant to be used when an option has already been used to not show the option again, for example.
+
+#### Environment Variables
+
+Hook scripts are provided environment variables:
+
+- Following environment variables are provided by `bash` but exposed by nodecliac.
+
+  - `NODECLIAC_COMP_LINE`: Original (unmodified) CLI input.
+  - `NODECLIAC_COMP_POINT`: Caret index when `[TAB]` key was pressed.
+
+- Following environment variables are custom and exposed by nodecliac.
+  - `NODECLIAC_MAIN_COMMAND`: The command auto completion is being performed for.
+  - `NODECLIAC_COMMAND_CHAIN`: The parsed command chain.
+  - `NODECLIAC_LAST`: The last parsed word item (**Note**: could be a partial word item. This happens when the `[TAB]` key gets pressed within a word item. For example, take the input `maincommand command`. If the `[TAB]` key was pressed like so: `maincommand comm[TAB]and` then the last word item is `comm` and it is a partial as its remaining text is `and`. This will result in using `comm` to determine possible auto completion word possibilities.).
+  - `NODECLIAC_PREV`: The word item preceding the last word item.
+  - `NODECLIAC_INPUT`: CLI input from start to caret index.
+  - `NODECLIAC_INPUT_ORIGINAL`: Original unmodified CLI input.
+  - `NODECLIAC_INPUT_REMAINDER`: CLI input from start to caret index.
+  - `NODECLIAC_LAST_CHAR`: Character before caret.
+  - `NODECLIAC_NEXT_CHAR`: Character after caret. If char is not `''` (empty) then the last word item is a partial word.
+  - `NODECLIAC_COMP_LINE_LENGTH`: Original input's length.
+  - `NODECLIAC_INPUT_LINE_LENGTH`: CLI input from start to caret index string length.
+  - `NODECLIAC_ARG_COUNT`: Amount arguments parsed before caret position/index.
+  - `NODECLIAC_USED_DEFAULT_POSITIONAL_ARGS`: Collected positional arguments after validating the command-chain.
+
 </details>
 
 <a name="support"></a>

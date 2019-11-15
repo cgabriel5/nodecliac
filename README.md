@@ -249,6 +249,83 @@ yarn.remove = [
 ]
 ```
 
+<details>
+  <summary>Show command-string escaping</summary>
+
+<hr></hr>
+
+_Keep in mind, if escaping gets to be too much, simply running the code from a file will be the easiest way._
+
+**Example**: Varying levels of escaping.
+
+Take the hypothetical `file.sh` with the following contents:
+
+```sh
+for f in ~/.nodecliac/registry/yarn/hooks/*.*; do
+  [[ "${f##*/}" =~ ^(prehook)\.[a-zA-Z]+$ ]] && echo "$f"
+done
+```
+
+- **Code Breakdown**
+  - The code will loop over the `~/.nodecliac/registry/yarn/hooks` directory.
+  - File names matching the pattern (`^(prehook).[a-zA-Z]+$`) will print to console.
+
+**Level 1**: If `bash` is one's default shell then running this as a one-liner can be as simple as pasting the following into a Terminal:
+
+```bash
+for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ "${f##*/}" =~ ^(prehook)\.[a-zA-Z]+$ ]] && echo "$f"; done
+```
+
+**Level 2**: Now say we want to run the same line of code via `bash -c`. Paste the following into a Terminal.
+
+```bash
+bash -c "for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ \"\${f##*/}\" =~ ^(prehook)\\.[a-zA-Z]+$ ]] && echo \"\$f\"; done;"
+```
+
+**Level 3**: How about using `Perl` to run `bash -c` to execute the command?
+
+```bash
+perl -e 'print `bash -c "for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ \\\"\\\${f##*/}\\\" =~ ^(prehook)\\.[a-zA-Z]+\$ ]] && echo \"\\\$f\"; done;"`';
+```
+
+**Note**: As seen, the more programs involved the more escaping required due to the string being passed from program to program.
+
+**Example**: Command-string escaping.
+
+Now let's make a `command-string` to print all `.acdef` file names (without extension) in the nodecliac registry:
+
+```bash
+$ s="";for f in ~/.nodecliac/registry/*/*.acdef; do s="$s$f\n"; done; echo -e "$s" | LC_ALL=C perl -ne "print \"\$1\n\" while /(?! \/)([^\/]*)\.acdef$/g"
+```
+
+Using the following `.acmap` contents the `command-string` would be the following:
+
+- **Note**: Ensure the `|` is properly escaped.
+- **Note**: Ensure `\` character(s) get escaped.
+
+```acmap
+# The escaped command-string.
+$cmdstr = 's="";for f in ~/.nodecliac/registry/*/*.acdef; do s="$s$f\\n"; done; echo -e "$s" \| LC_ALL=C perl -ne "print \"\$1\\n\" while /(?! \\/)([^\\/]*)\\.acdef$/g"'
+
+nodecliac.print = [
+  --command=
+  --command=$('${cmdstr}')
+]
+```
+
+Will generate the following `.acdef` file:
+
+```acdef
+# DON'T EDIT FILE —— GENERATED: Thu Nov 14 2019 21:27:45 GMT-0800 (PST)(1573795665206)
+
+ --
+.print --command=|--command=$('s="";for f in ~/.nodecliac/registry/*/*.acdef; do s="$s$f\\n"; done; echo -e "$s" \| LC_ALL=C perl -ne "print \"\$1\\n\" while /(?! \\/)([^\\/]*)\\.acdef$/g"')
+```
+
+<hr></hr>
+
+</details>
+
 **Note**: For more information about `command-string`s please take a look at `ACMAP Syntax > Flags > Flag Variations > Flags (dynamic values)`. The section contains complete details for `command-string`s like special character escaping caveats, dynamic/static arguments, and examples with their breakdowns. Please be aware that the section uses the term `command-flag` due it being used for flags but `command-flag` and `command-string` are effectively the same thing — _just a runable shell command string_. The naming (`command-{string|flag}`) is based on its application (i.e. for command-chains or flags).
 
 </details>

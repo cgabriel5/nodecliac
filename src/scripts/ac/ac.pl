@@ -184,15 +184,6 @@ sub __validate_command {
 
 # END===========================================================HELPER-FUNCTIONS
 
-# This is for future reference on how to escape code for the shell,
-# bash -c command, and a Perl one-liner. The following lines of code
-# can be copy/pasted into the terminal.
-# [https://stackoverflow.com/a/20796575]
-# [https://stackoverflow.com/questions/17420994/bash-regex-match-string]
-# perl -e 'print `bash -c "for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ \\\"\\\${f##*/}\\\" =~ ^(acdef|input)\\.[a-zA-Z]+\$ ]] && echo \"\\\$f\"; done;"`';
-#                 bash -c "for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ \"\${f##*/}\" =~ ^(acdef|input)\\.[a-zA-Z]+$ ]] && echo \"\$f\"; done;"
-#                          for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ "${f##*/}" =~ ^(acdef|input)\.[a-zA-Z]+$ ]] && echo "$f"; done
-
 # Parse and run command-flag (flag) or default command chain command
 #     (commandchain).
 #

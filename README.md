@@ -307,10 +307,7 @@ Using the following `.acmap` contents the `command-string` would be the followin
 # The escaped command-string.
 $cmdstr = 's="";for f in ~/.nodecliac/registry/*/*.acdef; do s="$s$f\\n"; done; echo -e "$s" \| LC_ALL=C perl -ne "print \"\$1\\n\" while /(?! \\/)([^\\/]*)\\.acdef$/g"'
 
-nodecliac.print = [
-  --command=
-  --command=$('${cmdstr}')
-]
+nodecliac.print = --command=$('${cmdstr}')
 ```
 
 Will generate the following `.acdef` file:

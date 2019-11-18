@@ -702,6 +702,7 @@ $ mycliprogram [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] 
   - `--source`: (**required**): The `.acmap` file path.
   - `--strip-comments` : Remove all comments from final output.
   - `--trace` : Used for debugging purposes only.
+  - `--test`: Prints output without file headers (for test suite).
 - `make`: Generate `.acdef` file from an `.acmap` file.
   - `--add`: Add generated`.acdef` file to nodecliac registry.
   - `--print` : Print output to console.
@@ -712,6 +713,7 @@ $ mycliprogram [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] 
   - `--nowarn` : Don't print parser warnings.
   - `--save`: Will save generated `.acdef` file to source location.
   - `--trace` : Used for debugging purposes only.
+  - `--test`: Prints output without file headers (for test suite).
 - `print`: Print acmap/def file contents for files in registry.
   - `--command=`: The file to print (list dynamically generated based on available files in registry).
 - `registry`: Lists `.acdef` files in registry.

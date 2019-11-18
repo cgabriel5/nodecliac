@@ -74,6 +74,8 @@ if [[ "$USER_OS" == "linux" ]]; then
 			"$INPUT_PATH"
 			strip -s "$OUTPUT_PATH"
 		fi
+
+		chmod +x "$OUTPUT_PATH" # Finally, make file executable.
 	else
 		echo "[ABORTED]: -p or -d switch not provided."
 	fi
@@ -89,4 +91,6 @@ elif [[ "$USER_OS" == "macosx" ]]; then
 	--forceBuild:on \
 	--out:"$OUTPUT_PATH" \
 	"$INPUT_PATH"
+
+	chmod +x "$OUTPUT_PATH" # Finally, make file executable.
 fi

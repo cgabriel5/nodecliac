@@ -1371,7 +1371,7 @@ proc fn_lookup(): string =
             # [https://stackoverflow.com/a/33102092]
 
             # To proceed the letter must exists in dictionary.
-            if not db_dict.hasKey(letter): quit()
+            if not db_dict.hasKey(letter): return ""
 
             var rows = toSeq(db_dict[letter].keys)
             var lastchar_notspace = lastchar != " "

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Run test suit pre-commits.
+
+# [https://www.utf8-chartable.de/unicode-utf8-table.pl?start=9984&number=128&names=-&utf8=string-literal]
+X_MARK="\033[0;31m\xe2\x9c\x98\033[0m"
+
+# First try with yarn then with npm.
+if [[ "$(command -v yarn)" ]]; then
+	yarn run tests
+elif [[ "$(command -v npm)" ]]; then
+	npm run tests
+else
+	echo -e " $X_MARK Tests require yarn or npm to run. Install one then run again."
+	exit 1 # Throw error as yarn or npm is needed.
+fi

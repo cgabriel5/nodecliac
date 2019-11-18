@@ -5,9 +5,9 @@ nodecliac = [
 nodecliac.setup = --rcfilepath?|--force?
 nodecliac.uninstall = --rcfilepath?
 nodecliac.registry
-nodecliac.make = --add?|--force?|--source|--output|--save?|--print?|--trace?|--nowarn?
+nodecliac.make = --add?|--force?|--source|--output|--save?|--print?|--trace?|--nowarn?|--test?
 nodecliac.status = --enable?|--disable?
-nodecliac.format = --indent|--source|--save?|--print?|--strip-comments?|--trace?|--nowarn?
+nodecliac.format = --indent|--source|--save?|--print?|--strip-comments?|--trace?|--nowarn?|--test?
 
 # nodecliac.print --command=|--command=$("nodecliac registry \| grep -oP \"(?<=─ )([-a-z]*)\"",)
 # Get file from ~/.nodecliac/defs/*.acdef. Excludes hidden files. Returns only the file names.

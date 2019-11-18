@@ -1,8 +1,8 @@
-# DON'T EDIT FILE —— GENERATED: Sat Aug 24 2019 23:08:35 GMT-0700 (PDT)(1566713315893)
+# DON'T EDIT FILE —— GENERATED: Mon Nov 18 2019 10:31:01 GMT-0800 (PST)(1574101861579)
 
  --engine=|--engine=1|--engine=2|--version?
-.format --indent|--nowarn?|--print?|--save?|--source|--strip-comments?|--trace?
-.make --add?|--force?|--nowarn?|--output|--print?|--save?|--source|--trace?
+.format --indent|--nowarn?|--print?|--save?|--source|--strip-comments?|--test?|--trace?
+.make --add?|--force?|--nowarn?|--output|--print?|--save?|--source|--test?|--trace?
 .print --command=|--command=$('s="";for f in ~/.nodecliac/registry/*/*.acdef; do s="$s$f\\n"; done; echo -e "$s" \| LC_ALL=C perl -ne "print \"\$1\\n\" while /(?! \\/)([^\\/]*)\\.acdef$/g"')
 .registry --
 .setup --force?|--rcfilepath?

@@ -15,26 +15,47 @@ while getopts 'sh' flag; do
 	esac
 done
 
+# ---------------------------------------------------------------------FUNCTIONS
+
+# [https://stackoverflow.com/questions/10986794/remove-part-of-path-on-unix]
+chipdir() {
+	local dir="$1" # The provided directory path.
+	# Remove last directory from path.
+	for ((x=0; x<"$2"; x++)); do dir="${dir%/*}"; done
+	echo "$dir" # Return modified path.
+
+	# Note: The built-in function `dirname` can also be used
+	# to remove the last directory from a path.
+	# [https://unix.stackexchange.com/a/28773]
+	# Example: $(dirname "$dir")
+	
+	# Or parameter expansion with a loop can be used to remove
+	# the last directory.
+	# [https://stackoverflow.com/a/4170409]
+}
+
+# Get path of current script. [https://stackoverflow.com/a/246128]
+fpath() {
+	echo "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+}
+
 # --------------------------------------------------------------------------VARS
 
 # [https://www.utf8-chartable.de/unicode-utf8-table.pl?start=9984&number=128&names=-&utf8=string-literal]
 CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m"
 X_MARK="\033[0;31m\xe2\x9c\x98\033[0m"
 
-# Get path test directory path.
-# [https://stackoverflow.com/a/246128]
-# Remove current directory from path. [https://unix.stackexchange.com/a/28773]
-DIR="$(dirname $( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd ))"
+TESTDIR=$(chipdir "$(fpath)" 1) # The tests script's path.
 
 # The output path.
 output_path="outputs/formatted"
 # Create needed folder it not already created.
-mkdir -p "$DIR/$output_path"
+mkdir -p "$TESTDIR/$output_path"
 
 # populate=0
 # # If output folder is not yet populated, populate it.
 # # [https://superuser.com/a/352290]
-# if [[ -z "$(ls -A $DIR/$output_path)" ]]; then
+# if [[ -z "$(ls -A $TESTDIR/$output_path)" ]]; then
 # 	populate=1
 # fi
 
@@ -48,7 +69,7 @@ if [[ "$LOG_SILENT" == 0 && "$SKIP_HEADER" == 0 ]]; then
 	echo -e "\033[1m[Testing Formatter]\033[0m"
 fi
 
-for f in "$DIR"/acmaps/*.acmap; do
+for f in "$TESTDIR"/acmaps/*.acmap; do
 	((files_count++))
 
 	forg="$f"
@@ -71,7 +92,7 @@ for f in "$DIR"/acmaps/*.acmap; do
 	fi
 
 	# The output file path.
-	foutput="$DIR/$output_path/$f.acmap"
+	foutput="$TESTDIR/$output_path/$f.acmap"
 
 	# If output folder is not yet populated, populate it.
 	# if [[ "$populate" == "1" ]]; then
@@ -105,7 +126,7 @@ done
 if [[ "$passed_count" == "0" ]]; then
 	# [https://stackoverflow.com/a/42069449]
 	scriptname="$(basename "$0")"
-	. "$DIR/$scriptname" -h -s
+	. "$TESTDIR/$scriptname" -h -s
 else
 	# [https://misc.flogisoft.com/bash/tip_colors_and_formatting]
 	if [[ "$LOG_SILENT" == 0 ]]; then

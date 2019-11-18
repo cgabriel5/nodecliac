@@ -15,6 +15,7 @@
 		"url": "git+https://github.com/cgabriel5/nodecliac.git"
 	},
 	"scripts": {
+		"preinstall": "git config core.hooksPath .githooks",
 		"pretty": "prettier-cli-watcher --configpath='/configs/prettier.config.json'",
 		"lint": "cross-env ESLINT_CFS_VERBOSE=true ./node_modules/eslint/bin/eslint.js -c='configs/eslint.config.js' --ignore-path='configs/eslintignore' --format='simple' '**/*.{js,jsx}'; exit 0",
 		"tests": "tests/nodecliac.sh && tests/parser.sh && tests/formatter.sh",

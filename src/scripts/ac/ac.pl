@@ -609,7 +609,7 @@ sub __parser {
 				#          '$ nodecliac format --indent="t:1" --sa'
 				# -------------------------------------------^Whitespace char.
 				# If argument is not spaced out or at the end of the input
-				# don not add it to the array. Just skip to next iteration.
+				# do not add it to the array. Just skip to next iteration.
 				if ($input && rindex($input, ' ', 0) != 0) { next; }
 
 				# Store argument and reset vars.

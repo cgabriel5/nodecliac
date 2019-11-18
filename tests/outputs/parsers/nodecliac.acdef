@@ -1,0 +1,8 @@
+ --engine=|--engine=1|--engine=2|--version?
+.format --indent|--nowarn?|--print?|--save?|--source|--strip-comments?|--test?|--trace?
+.make --add?|--force?|--nowarn?|--output|--print?|--save?|--source|--test?|--trace?
+.print --p#1b7780
+.registry --
+.setup --force?|--rcfilepath?
+.status --disable?|--enable?
+.uninstall --rcfilepath?

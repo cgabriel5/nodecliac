@@ -1,0 +1,51 @@
+# [FORMATTED COMMAND ACMAP]
+
+# comment
+# comment
+@setting = value
+# comment
+# comment
+
+program.oneliner = --flag|--FLAG=|--dir=$("cat",$"string")|--other-flag|--file
+
+# comment
+
+program.nothing = []
+
+program.notempty = [
+	--flag=()
+]
+
+program.command = [
+	# comment
+
+	# comment
+
+	--flag=(
+		# comment
+
+		- value
+		- value
+		- value
+		- value
+	)
+
+	# comment
+]
+
+program.command = --flag
+
+# comment
+program.command = [
+	# comment
+	--flag=(
+		- value
+		- value
+		- value
+		- value
+		- value
+	)
+	# comment
+]
+
+# comment

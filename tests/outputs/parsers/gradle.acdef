@@ -1,0 +1,37 @@
+ --
+.command --print=|--print=$("\"$HOME/Desktop/list.sh\"")
+.double --test=|--test=$("echo \$0-\$1",$"echo john","doe","-")
+.file --print=|--print=$("cat \"$HOME/Desktop/list.text\"")
+.gh --p#514126
+.gradle --p#1aadaa
+.GRADLE -Dorg=|-Dorg=debug|-Dorg=info|-Dorg=lifecycle|-Dorg=quiet|-Dorg=warn
+.gradle.next --string
+.gt --p#bc5526
+.hyphen --print=|--print=$("cat \"$HOME/Desktop/text.text\"","-")
+.keyword --null
+.keyword.::ytfavorites --flag
+.longform --
+.longform.case1 --p#50ea80
+.longform.case2 --p#50ea80
+.longform.case3 --p#50ea80
+.longform.case4 --p#cec7c9
+.print --command=|--command=--command=string|--command=value|--FLAG
+.quoted --test=|--test=$("echo \$0-\$1",$"echo \"\'string str\'\"","doe","-")
+.single --test=|--test=$('echo $0-$1',"john","doe","-")
+.test --
+.test.command --print=|--print=$("\"$HOME/Desktop/list.sh\"")
+.test.double --test=|--test=$("echo \$0-\$1",$"echo 'john'","doe","-")
+.test.file --print=|--print=$("cat \"$HOME/Desktop/list.text\"")
+.test.gh --p#514126
+.test.gradle --p#bb649f
+.test.GRADLE -Dorg=|-Dorg=debug|-Dorg=info|-Dorg=lifecycle|-Dorg=quiet|-Dorg=warn
+.test.gradle.next --string
+.test.gt --p#dd746d
+.test.hyphen --print=|--print=$("cat \"$HOME/Desktop/text.text\"","-")
+.test.keyword --null
+.test.keyword.::ytfavorites --flag
+.test.print --command=|--command=string|--command=value|--FLAG
+.test.quoted --test=|--test=$("echo \$0-\$1",$"echo \"\'string str\'\"","doe","-")
+.test.single --test=|--test=$('echo $0-$1',"john","doe","-")
+.test.upper --p#6c08e6
+.upper --p#6c08e6

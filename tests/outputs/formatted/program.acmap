@@ -1,0 +1,35 @@
+# [RANDOM `program` COMMAND ACMAP]
+
+program.default = [
+	--flag=$("cat")
+	default $("cat")
+]
+program.default = default $("cat")
+
+program.default = [
+	--flag=$("cat")
+	default $("cat")
+]
+program.default = [
+	--flag=$("cat")
+	default $("cat")
+]
+
+program.default.add = [
+	default $("cat")
+	default $("cat")
+]
+
+program.default.add = [
+	default $("cat")
+	default $("cat")
+]
+
+# default = default $("cat")|default 12
+program.default = default $("cat")|default $("nodecliac")|--a=b|--c=d|default $("cat")|-c=90
+# default = default $("grep")
+
+# default = default $("cat")
+# default $("cat")
+
+program.default = --a=b|--c=d|default $("cat")|-c=90|default $("cat")

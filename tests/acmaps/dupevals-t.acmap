@@ -1,0 +1,174 @@
+# [RANDOM duplicate values COMMAND ACMAP
+# File checks for duplicate commands, flags, and flag values checks.]
+
+@setting = "string"
+@setting = "str\ing"
+@setting = 1233
+@setting = value
+@setting = val\ue
+@setting = false
+@setting = true
+@setting
+@path =
+@config = 12
+
+program = [
+	--flag=()
+	--flag=*("command" \"str)
+	--flag=*("command" \"s)
+	--flag=*("command" \"\")
+	--flag=*("a" \"\")
+	--flag=*("a" "\"\"")
+	--flag=*("c"    "a")
+	--flag=*("c" "a")
+	# One-liners must be space delimited. Commands are seen as values
+	# in the following lines.
+	--flag=*("c"    1,,,   "a" , 	           	 )
+	--flag=*("c"    1 ,    "a"  	           	 )
+	--flag=*("c"    1,    \"a\"  	           	 )
+	--flag=*("c"    1,    \"a\"  12.00	 str\*\(i\'n \g  value   $("c\at", $"cat", $"", "a", "a", "\a")  value	 )
+	--flag=*("a" value $("comma\nd", $"cat", $"", "a", "a", "\a")  value	 )
+	--flag=*(12.00 -12.00 .00 12. -.00 --023 -0012 1e10)
+	--flag="a"
+	--flag=("a")
+	--flag=("a" 'a')
+	--flag=$("a")
+	--flag=(
+		# - ""
+		# - ''
+	)
+]
+
+program.command = [
+	--flag
+	--flag=(
+		- value
+		- value
+		- value
+	)
+	--flag=(
+		- value
+		- value
+		- value
+		- 11
+		- 11
+		- $("cat")
+		- $("cat")
+		# Empty values will give an error:
+		# -
+		# - ""
+		- "str"
+		- "str"
+	)
+	--nums=(1 2 3 44 44)
+	--nums=(0 1 2)
+	--nums=(0 1 2 3 4 44 3 3 3 5 6 value)
+]
+
+program.oneliner   		=    		--flag=$("cat",      $"string")
+
+program.command = [
+	--flag=(
+		- value
+		- value
+		- value
+	)
+	--flag=(
+		- value
+		- value
+		- value
+	)
+	--flag=(
+		# comment
+		- value
+		- value
+		- value
+	)
+	--flag=(
+		- value
+	)
+]
+
+program.command\.name = [
+	--nums=()
+	--nums=122
+	--nums=()
+	--nums=(1 2 3 44 44)
+	--flag=(44)
+	--nums=(
+		- value
+		- value
+		- $("cat")
+		- $("cat")
+	)
+	--nums=(1 2 3 44 44)
+	--flag=(44 1 3 4 4)
+]
+
+program.command\.name = [
+	--nums=122
+]
+
+program.command\.name = --flag=true|--website?
+program.command\.name = --flag=true|--website?|--nums=44
+
+# This is a comment.
+program.command\.name = [
+	--flag=true
+	--flag=un\quoted
+	--flag="string"
+	--flag=$("string")
+	--flag=(1 1 1)
+
+	# One-liner:
+	# Following like will error due to extra closing parenthesis: Unexpected character.
+	# --nums=(str\ing 13 "str" false "\n" true 1 2 str\&ing $("cat", $"CAT")))
+	--nums=(str\ing 13 "str" false "\n" true 1 2 str\&ing $("cat", $"CAT"))
+
+	--nums=122
+	--nums=("string")
+	--nums=(1 2 3 44 44)
+	--flag=(44)
+	# Long form flag values below:
+	--nums=*(
+		- stri\ ng
+		- value
+		- "str\\i\ng"
+		- value
+		- value
+		- $("cat")
+		- $("cat")
+		- false
+		- true
+		- 1222
+	)
+	--nums=(1 2 3 44 44)
+	--flag=*(44 1 3 4 4)
+]
+
+program.command\.name = [
+	--nums=122
+	--flag=
+	-f=
+	-a
+]
+
+program.command.name = [
+	--flag = str\ing
+	--flag= "string"
+	--name = false
+	--name = (stri\ng value true 123 val\ue "str" value)
+	--name =$("string", $"string")
+]
+
+program.command = [
+	--flag?
+	--flag2=(1 2 3)
+	--flag3=4
+	--flag4=(
+		- 5
+		- 6
+	)
+]
+
+program.empty = []

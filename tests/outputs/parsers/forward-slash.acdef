@@ -1,0 +1,19 @@
+ --p#741702
+./command/subcommand --make
+.delete --p#741702
+.re\.d --rgb
+.re\.d.green --rgb
+.re\.d.green.blue --rgb=|--rgb=$("cat \"$HOME/Desktop/list.text\"")
+.red --
+.red.green --
+.red.green.blu\.e --make
+.test --flag1
+.test.keyword --
+.test.keyword.::ytfavorites --flag
+.test\.run --flag2
+/command --
+/command.subcommand --p#ea6052
+/test --color
+/test\.run/comm\.and/comm_and/command\.123 --flag2
+
+@default = false

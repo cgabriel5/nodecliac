@@ -1,0 +1,112 @@
+# [RANDOM `gradle` (dot) in command chains test COMMAND ACMAP]
+
+# [https://github.com/gradle/gradle-completion]
+
+gradle.command = --print=*|--print=$("\"$HOME/Desktop/list.sh\"")
+gradle.double = --test=|--test=$("echo \$0-\$1",$"echo john","doe","-")
+gradle.file = --print=*|--print=$("cat \"$HOME/Desktop/list.text\"")
+gradle.gh = -dorg-gradle-logging-level=|-dorg-gradle-logging-level=debug|-dorg-gradle-logging-level=info|-dorg-gradle-logging-level=lifecycle|-dorg-gradle-logging-level=quiet|-dorg-gradle-logging-level=warn
+gradle.gradle = --FLG|-dorg.gradle.logging.level=|-dorg.gradle.logging.level=-dorg.gradle.logging.level=debug|-dorg.gradle.logging.level=info|-dorg.gradle.logging.level=lifecycle|-dorg.gradle.logging.level=quiet|-dorg.gradle.logging.level=warn
+gradle.GRADLE = -Dorg=|-Dorg=debug|-Dorg=info|-Dorg=lifecycle|-Dorg=quiet|-Dorg=warn
+gradle.gradle.next = --string
+gradle.gt = --dorg=|--dorg="--dorg=(string \nstring)"|--dorg=debug|--dorg=info|--dorg=lifecycle|--dorg=quiet|--dorg=warn
+gradle.hyphen = --print=*|--print=$("cat \"$HOME/Desktop/text.text\"","-")
+gradle.keyword = --
+gradle.keyword.::ytfavorites = --flag
+gradle.print = --FLAG|--command=|--command=--command=string|--command=value|--FLAG
+gradle.quoted = --test=|--test=$("echo \$0-\$1",$"echo \"\'string str\'\"","doe","-")
+gradle.single = --test=|--test=$('echo $0-$1',"john","doe","-")
+gradle.upper = --FLG|-Dorg.gradle.Logging.level=|-Dorg.gradle.Logging.level=debug|-Dorg.gradle.Logging.level=info|-Dorg.gradle.Logging.level=lifecycle|-Dorg.gradle.Logging.level=quiet|-Dorg.gradle.Logging.level=warn
+
+# ------------- The next portion is similar to the above half just in long form.
+
+# command-flags with arguments.
+gradle.test.single = --test=|--test=$('echo $0-$1',"john","doe","-")
+gradle.test.double = --test=|--test=$("echo \$0-\$1",$"echo 'john'","doe","-")
+# command-flag with dynamic arguments.
+gradle.test.quoted = --test=|--test=$("echo \$0-\$1",$"echo \"\'string str\'\"","doe","-")
+
+# Simple command-flag.
+gradle.test.command = --print=*|--print=$("\"$HOME/Desktop/list.sh\"")
+gradle.test.file = --print=*|--print=$("cat \"$HOME/Desktop/list.text\"")
+gradle.test.hyphen = --print=*|--print=$("cat \"$HOME/Desktop/text.text\"","-")
+
+# Long form flag syntax.
+gradle.test.print = [
+	--command=
+	--command=(string value)
+	--FLAG
+]
+# ^Duplicate long form syntax.
+gradle.test.print = [
+	--command=
+	--command=(string value)
+	--FLAG
+]
+
+# [https://gist.github.com/Dineshs91/268ea78376bf8e9bbbb1]
+# [https://github.com/Bash-it/bash-it/pull/1296]
+# [https://github.com/rg3/youtube-dl/blob/c3bcd206eb031de30179c88ac7acd806a477ceae/devscripts/bash-completion.in]
+# [https://github.com/rg3/youtube-dl/pull/3890#issuecomment-58134852]
+gradle.test.keyword = --
+gradle.test.keyword.::ytfavorites = --flag
+
+# Short single hyphenated flags. [https://github.com/gradle/gradle-completion]
+gradle.test.gradle = [
+	-dorg.gradle.logging.level=
+	-dorg.gradle.logging.level=(debug info lifecycle quiet warn)
+	--FLG
+]
+gradle.test.upper = [
+	-Dorg.gradle.Logging.level=(debug info lifecycle quiet warn)
+	--FLG
+]
+gradle.test.gradle.next = --string
+gradle.test.gh = [
+	-dorg-gradle-logging-level=(debug info lifecycle quiet warn)
+]
+gradle.test.GRADLE = [
+	-Dorg=(debug info lifecycle quiet warn)
+]
+gradle.test.gt = [
+	--dorg=(debug info lifecycle quiet warn)
+]
+
+gradle.test.gt = [
+	--dorg=(debug info lifecycle quiet "--dorg=(string \\nvalue)" warn)
+]
+gradle.test.gt = [
+	--dorg=(
+		- debug
+		- info
+		- lifecycle
+		- q:uiet
+		- "--dorg=(string value)"
+		- warn_ing
+	)
+	--dorg=(debug info lifecycle quiet warn)
+	--FLAG
+]
+
+# -------------------------------------------------------- More long form cases.
+
+# Normal usage.
+gradle.longform.case1 = [
+	--DORG=(debug info lifecycle quiet "--dorg=(fname \\lname)" warn)
+]
+
+# Normal with comment/empty lines.
+gradle.longform.case2 = [
+	--DORG=(debug info lifecycle quiet "--dorg=(fname \\lname)" warn)
+
+	# This is a comment.
+]
+
+# One-liner single flag set usage.
+gradle.longform.case3 = --DORG=(debug info lifecycle quiet "--dorg=(fname \\lname)" warn)
+
+# One-liner + line ending mix.
+gradle.longform.case4 = [
+	--flag1=(debug info lifecycle quiet "--dorg=(fname \\lname)" warn)
+	--flag2=(debug info lifecycle quiet "--dorg=(fname \\lname)")
+]

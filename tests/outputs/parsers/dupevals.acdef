@@ -1,0 +1,10 @@
+ --p#29a8ca
+.command --p#1ac535
+.command.name --p#bfd15a
+.command\.name --p#8813dd
+.empty --flag?|--flag2=|--flag2=1|--flag2=2|--flag2=3|--flag3=|--flag3=4|--flag4=|--flag4=5|--flag4=6
+.oneliner --flag=|--flag=$("cat",$"string")
+
+@setting = null
+@path = null
+@config = 12

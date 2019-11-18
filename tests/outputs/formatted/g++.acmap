@@ -1,0 +1,38 @@
+# [RANDOM `g++` COMMAND ACMAP]
+
+# [https://stackoverflow.com/a/29082054]
+
+# Main command flags.
+g++ = [
+	--bootclasspath=
+	--CLASSPATH
+	--extdirs=
+	--help=
+	--target-help
+	--classpath=
+	--encoding=
+	--help
+	--param
+	--version
+]
+
+g++.command = -x=|-x=c++|-std=|-std=c++98
+# Exaggerated long duplicate flag/values.
+g++.command = -x=|-x=c++|-x=|-x=c++|-std=|-std=c++98|-x=|-x=c++|-x=|-x=c++|-std=|-std=c++98|-x=|-x=c++|-x=|-x=c++|-std=|-std=c++98
+g++.command = [
+	-x=(
+		- c++-5
+		- c++-4
+		- c++-3
+		- c++-2
+		- c++-1
+	)
+	-std=(
+		- c++98
+		- c++97
+		- c++96
+		- c++95
+		- c++94
+		- c++93
+	)
+]

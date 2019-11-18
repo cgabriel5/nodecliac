@@ -1,0 +1,168 @@
+# Nim CLI Compiler: [https://nim-lang.org/docs/nimc.html]
+
+# nim command [options] [projectfile] [arguments]
+
+nim = [
+	--help
+	--version
+]
+
+nim.js,
+nim.e,
+nim.rst2html,
+nim.rst2tex,
+nim.jsondoc,
+nim.ctags,
+nim.buildIndex,
+nim.genDepend,
+nim.dump,
+nim.check,
+
+nim.c,
+nim.compile,
+nim.cc,
+nim.compileToC,
+nim.cpp,
+nim.compileToCpp,
+nim.compileToOC,
+nim.objc = [
+	--path=
+	--define=
+	--undef=
+	--forceBuild=(on off)
+	--stackTrace=(on off)
+	--lineTrace=(on off)
+	--threads=(on off)
+	--checks=(on off)
+	--assertions=(on off)
+	--opt=(none speed size)
+	--debugger=(native)
+	--app=(console gui lib staticlib)
+	--run
+	--fullhelp
+	--help
+	--version
+
+	# Checks:
+	--objChecks=(on off)
+	--fieldChecks=(on off)
+	--rangeChecks=(on off)
+	--boundChecks=(on off)
+	--overflowChecks=(on off)
+	--floatChecks=(on off)
+	--nanChecks=(on off)
+	--infChecks=(on off)
+	--nilChecks=(on off)
+	--refChecks=(on off)
+
+	# Advanced options:
+	--out=
+	--outdir=
+	--stdout=(on off)
+	--colors=(on off)
+	--listFullPaths=(on off)
+
+	--warnings=(on off list)
+	# Available warnings:
+	--warningCannotOpenFile=(on off)
+	--warningOctalEscape=(on off)
+	--warningDeprecated=(on off)
+	--warningConfigDeprecated=(on off)
+	--warningSmallLshouldNotBeUsed=(on off)
+	--warningEachIdentIsTuple=(on off)
+	--warningUser=(on off)
+
+	--hints=(on off list)
+	# Available hints:
+	--hintCC=(on off)
+	--hintCodeBegin=(on off)
+	--hintCodeEnd=(on off)
+	--hintCondTrue=(on off)
+	--hintConf=(on off)
+	--hintConvToBaseNotNeeded=(on off)
+	--hintConvFromXtoItselfNotNeeded=(on off)
+	--hintDependency=(on off)
+	--hintExec=(on off)
+	--hintExprAlwaysX=(on off)
+	--hintExtendedContext=(on off)
+	--hintGCStats=(on off)
+	--hintGlobalVar=(on off)
+	--hintLineTooLong=(on off)
+	--hintLink=(on off)
+	--hintName=(on off)
+	--hintPath=(on off)
+	--hintPattern=(on off)
+	--hintPerformance=(on off)
+	--hintProcessing=(on off)
+	--hintQuitCalled=(on off)
+	--hintSource=(on off)
+	--hintStackTrace=(on off)
+	--hintSuccess=(on off)
+	--hintSuccessX=(on off)
+	--hintUser=(on off)
+	--hintUserRaw=(on off)
+	--hintXDeclaredButNotUsed=(on off)
+
+	--styleCheck=(off hint error)
+	--showAllMismatches=(on off)
+	--lib=
+	--import=
+	--include=
+	--nimcache=
+	--compileOnly=(on off)
+	--noLinking=(on off)
+	--noMain=(on off)
+	--genScript=(on off)
+	--genDeps=(on off)
+	--os=
+	--cpu=
+	--debuginfo=(on off)
+	--passC=
+	--passL=
+	--cincludes=
+	--clibdir=
+	--clib=
+	--project
+	--docSeeSrcUrl=(url)
+	--docInternal
+	--lineDir=(on off)
+	--embedsrc=(on off)
+	--threadanalysis=(on off)
+	--tlsEmulation=(on off)
+	--taintMode=(on off)
+	--implicitStatic=(on off)
+	--trmacros=(on off)
+	--multimethods=(on off)
+	--memTracker=(on off)
+	--hotCodeReloading=(on off)
+	--excessiveStackTrace=(on off)
+	--oldNewlines=(on off)
+	--laxStrings=(on off)
+	--nilseqs=(on off)
+	--oldast=(on off)
+	--skipCfg=(on off)
+	--skipUserCfg=(on off)
+	--skipParentCfg=(on off)
+	--skipProjCfg=(on off)
+	--gc=(refc markAndSweep boehm go none regions)
+	--index=(on off)
+	--putenv=
+	--NimblePath=
+	--noNimblePath
+	--noCppExceptions
+	--cppCompileToNamespace=(namespace)
+	--expandMacro=
+	--excludePath=
+	--dynlibOverride=
+	--dynlibOverrideAll
+	--listCmd
+	--parallelBuild=
+	--incremental=(on off)
+	--verbosity=(0 1 2 3)
+	--errorMax=
+	--experimental=
+	--legacy=
+	--useVersion=
+	--newruntime
+	--profiler=(on off)
+]

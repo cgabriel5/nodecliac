@@ -1,0 +1,7 @@
+ --
+.command --flag|--flag=|--flag=value
+.notempty --flag=
+.nothing --
+.oneliner --dir=|--dir=$("cat",$"string")|--file|--flag|--FLAG=|--other-flag
+
+@setting = value

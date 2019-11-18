@@ -1,0 +1,14 @@
+ --p#6694d8
+.command1 --
+.command1.command2 --
+.command1.command2.command3 --
+.command1.command2.command3.command4 --
+.command1.command2.command3.command4.command5 --
+.command1.command2.command3.command4.command5.command6 --
+.command1.command2.command3.command4.command5.command6.command7 --
+.config --reset?
+.config.delete --p#18df4f
+.config.delete.setting --someflag=
+.config.dump --file|--last
+.config.noflags --
+.config.noflags2 --

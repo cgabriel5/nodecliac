@@ -1,0 +1,59 @@
+# [RANDOM `program` COMMAND ACMAP
+# Checks for the use of '/' in command-chains.]
+
+@default = false
+
+program = [
+	--test=*
+	--test=(
+		- $("cat ~/file.text"," ")
+		- index.js
+		- "string"
+		- 'string'
+		- value
+		- 12
+		- str
+		- false
+		- true
+	)
+	--one-liner=(
+		- value
+		- $("cat ~/file.text","-")
+		- index.js
+	)
+	--dirs=*(
+		- $("cat $(\"string\")\"$HOME/file.text\"","-")
+		- index.js
+	)
+	--file=*(
+		- value
+		- value
+	)
+]
+program.delete =
+
+program.test = --flag1
+program.test\.run = --flag2
+program.test.keyword
+program.test.keyword.::ytfavorites = --flag
+program/test\.run/comm\.and/comm_and/command\.123 = --flag2
+program/test = --color
+program./command/subcommand = --make
+program.red.green.blu\.e = --make
+
+program.re\.d = --rgb
+program.re\.d.green = --rgb
+program.re\.d.green.blue = --rgb=*|--rgb=$("cat \"$HOME/Desktop/list.text\"")
+
+program/command.subcommand = [
+	--flag
+	--flag2=*(
+		- value
+		- value
+		- false
+		- true
+		- 'string'
+		- "string"
+		- $("cat ~/.folder/file.text"," ")
+	)
+]

@@ -1,0 +1,18 @@
+ --
+.command --flag
+.command2 --
+.config --
+.config.delete --
+.config.get --
+.config.list --
+.config.set --global
+.tests --p#6b5ce1
+\.test --p#6b5ce1
+
+.command default $("remove")
+.command2 default $("cat ~/.nodecliac/resources/program/config.sh")
+.config.delete default $("~/.nodecliac/resources/program/config.sh")
+.config.get default $("~/.nodecliac/resources/program/config.sh")
+.config.set default $("~/.nodecliac/resources/program/config.sh")
+
+@setting = "\${firstname} Doe"

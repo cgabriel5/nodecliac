@@ -1,0 +1,99 @@
+# Nimble: [https://github.com/nim-lang/nimble#nimble-usage]
+# nimble --version = nimble v0.11.0 compiled at 2019-09-25 15:58:40
+
+# Usage: nimble COMMAND [opts]
+
+# Commands:
+#   install      [pkgname, ...]     Installs a list of packages.
+#                [-d, --depsOnly]   Install only dependencies.
+#                [-p, --passNim]    Forward specified flag to compiler.
+#   develop      [pkgname, ...]     Clones a list of packages for development.
+#                                   Symlinks the cloned packages or any package
+#                                   in the current working directory.
+#   check                           Verifies the validity of a package in the
+#                                   current working directory.
+#   init         [pkgname]          Initializes a new Nimble project in the
+#                                   current directory or if a name is provided a
+#                                   new directory of the same name.
+#   publish                         Publishes a package on nim-lang/packages.
+#                                   The current working directory needs to be the
+#                                   toplevel directory of the Nimble package.
+#   uninstall    [pkgname, ...]     Uninstalls a list of packages.
+#                [-i, --inclDeps]   Uninstall package and dependent package(s).
+#   build        [opts, ...] [bin]  Builds a package.
+#   run          [opts, ...] bin    Builds and runs a package.
+#                                   A binary name needs
+#                                   to be specified after any compilation options,
+#                                   any flags after the binary name are passed to
+#                                   the binary when it is run.
+#   c, cc, js    [opts, ...] f.nim  Builds a file inside a package. Passes options
+#                                   to the Nim compiler.
+#   test                            Compiles and executes tests
+#                [-c, --continue]   Don't stop execution on a failed test.
+#   doc, doc2    [opts, ...] f.nim  Builds documentation for a file inside a
+#                                   package. Passes options to the Nim compiler.
+#   refresh      [url]              Refreshes the package list. A package list URL
+#                                   can be optionally specified.
+#   search       pkg/tag            Searches for a specified package. Search is
+#                                   performed by tag and by name.
+#                [--ver]            Query remote server for package version.
+#   list                            Lists all packages.
+#                [--ver]            Query remote server for package version.
+#                [-i, --installed]  Lists all installed packages.
+#   tasks                           Lists the tasks specified in the Nimble
+#                                   package's Nimble file.
+#   path         pkgname ...        Shows absolute path to the installed packages
+#                                   specified.
+#   dump         [pkgname]          Outputs Nimble package information for
+#                                   external tools. The argument can be a
+#                                   .nimble file, a project directory or
+#                                   the name of an installed package.
+
+# Options:
+#   -h, --help                      Print this help message.
+#   -v, --version                   Print version information.
+#   -y, --accept                    Accept all interactive prompts.
+#   -n, --reject                    Reject all interactive prompts.
+#       --ver                       Query remote server for package version
+#                                   information when searching or listing packages
+#       --nimbleDir:dirname         Set the Nimble directory.
+#       --verbose                   Show all non-debug output.
+#       --debug                     Show all output including debug messages.
+#       --noColor                   Don't colorise output.
+
+# For more information read the Github readme:
+# 	https://github.com/nim-lang/nimble#readme
+
+nimble = [
+	# Options:
+	--help
+	--version
+	--accept
+	--reject
+	--ver
+	--nimbleDir=
+	--verbose
+	--debug
+	--noColor
+]
+
+nimble.install = --depsOnly|--passNim
+nimble.develop
+nimble.check
+nimble.init
+nimble.publish
+nimble.uninstall = --inclDeps
+nimble.build
+nimble.run
+nimble.c
+nimble.cc
+nimble.js
+nimble.test = --continue
+nimble.doc
+nimble.doc2
+nimble.refresh
+nimble.search = --ver
+nimble.list = --ver|--installed
+nimble.tasks
+nimble.path
+nimble.dump

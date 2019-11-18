@@ -1,0 +1,64 @@
+# [FILE CONTAINS VARIABLE USE CASES]
+
+# Uncommenting following line will give an error: Undefined variable.
+# $fullname = "jane ${lastname}"
+
+# Test variables.
+$lastname = "Doe"
+$fullname = "Jane ${		lastname}"
+
+# Use variable to define script path once.
+$argument = "remove"
+$scriptpath = "~/.nodecliac/resources/program/config.sh"
+$cmdstring =            "${scriptpath} ${  argument  		}"
+$cmdstring =            "${scriptpath} ${  argument  		}"
+
+# Following line, if uncommented, will give error: Undefined variable.
+# $cmdstring =            "${scriptpath} ${  argument  		}${  argument2}"
+
+# `firstname` var doesn't exist but `${` is escaped so no interpolation occurs.
+@setting = "\${firstname} ${lastname}"
+
+program.command = --flag
+program.command = default $("${cmdstring}\${   argument}")
+# This line will overwrite the previous `program.command` declaration.
+program.command = default $("${argument}")
+program.command2 = default $("cat ${scriptpath}")
+
+program.config.set = [
+	--global
+	default $("${scriptpath}")
+]
+program.config.get = [
+	default $("${scriptpath}")
+]
+program.config.delete = [
+	default $("${scriptpath}")
+]
+program.config.list
+
+
+$filename = "list.text"
+
+command\.test = [
+	--flag=$("cat \"$HOME/Desktop/${filename}\"")
+	--something=$("string ${filename}")
+	--nums=(strin\gs 13 "str ${filename}" false "\n" true 1 2 stri\&ng $("cat ${filename}", $"CAT ${filename}"))
+	--nums=("string ${filename}")
+	--nums=*(
+		- "st\\ri\\ng ${filename}"
+		- $("cat ${filename}")
+		- $("cat ${filename}", "${filename}")
+	)
+]
+
+command.tests = [
+	--flag= "string ${filename}"
+	--name = false
+	--name = (string\ string str true 123 s\tring "str ${filename}" string)
+	--name =$("string ${filename}", $"string ${			 filename   }")
+]
+
+command.tests = [
+	--flag= "string ${filename}"
+]

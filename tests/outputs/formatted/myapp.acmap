@@ -1,0 +1,57 @@
+# [RANDOM `myapp` COMMAND ACMAP]
+
+# This is a comment.
+# This is another comment.
+
+myapp = [
+	--file=(
+		# Just a comment.
+		- true
+		- value2
+		- index.js
+		- some-thing
+		- someother
+	)
+	--Wno-strict-overflow=("string" "str" "string \"string" 25 2 5 7 1 2 false string)
+	--file=*
+	--file=
+	--version
+	-V
+	--verbose
+	--help
+]
+myapp = --STRING
+
+# Following line will give an error: Unexpected character.
+# myapp.config = false
+
+myapp.config.delete =
+myapp.config.delete = [
+	--Wno-strict-overflow=(2 5)
+	--file=(
+		- index.js
+		- "string"
+		- 'string'
+		- value2
+		- 12
+		- str
+		- false
+		- true
+		- string
+	)
+	--one-liner=(index.js "string" 'string' value2 12 str false true string)
+	--center
+	--last
+	--dir=*
+	--first
+]
+myapp.config.delete = --FLAG=string.js|--version=12|-v=false|--string=string
+myapp.config = --reset?
+myapp.config.noflags
+myapp.config.noflags2 =
+myapp.config.dump = --file|--last
+myapp.config.delete =
+myapp.config.delete.setting = --someflag=
+myapp.config
+
+myapp.command1.command2.command3.command4.command5.command6.command7

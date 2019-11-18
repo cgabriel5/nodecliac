@@ -1,0 +1,36 @@
+# [RANDOM `gcc` COMMAND ACMAP]
+
+# [https://stackoverflow.com/a/29082054]
+
+# Main command flags.
+gcc = [
+	--bootclasspath=
+	--encoding=
+	--help=
+	--classpath=
+	--extdirs=
+	--param
+	--CLASSPATH
+	--help
+	--target-help
+	--version
+]
+
+gcc.command = -x=|-x=c++|-std=|-std=c++98
+gcc.command = [
+	-x=(
+		- c++-5
+		- c++-4
+		- c++-3
+		- c++-2
+		- c++-1
+	)
+	-std=(
+		- c++98
+		- c++97
+		- c++96
+		- c++95
+		- c++94
+		- c++93
+	)
+]

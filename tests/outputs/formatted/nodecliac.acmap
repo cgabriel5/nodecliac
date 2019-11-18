@@ -1,0 +1,30 @@
+nodecliac = [
+	--version?
+	--engine=(1 2)
+]
+nodecliac.setup = --rcfilepath?|--force?
+nodecliac.uninstall = --rcfilepath?
+nodecliac.registry
+nodecliac.make = --add?|--force?|--source|--output|--save?|--print?|--trace?|--nowarn?|--test?
+nodecliac.status = --enable?|--disable?
+nodecliac.format = --indent|--source|--save?|--print?|--strip-comments?|--trace?|--nowarn?|--test?
+
+# nodecliac.print --command=|--command=$("nodecliac registry \| grep -oP \"(?<=─ )([-a-z]*)\"",)
+# Get file from ~/.nodecliac/defs/*.acdef. Excludes hidden files. Returns only the file names.
+# [https://stackoverflow.com/a/8602970]
+# [https://stackoverflow.com/a/7265287]
+# [https://www.cyberciti.biz/faq/find-command-exclude-ignore-files/]
+# [https://serverfault.com/a/354407]
+# [https://stackoverflow.com/a/4538293]
+# macOS lacks -printf support:
+# [https://github.com/DerrickWood/kraken/issues/48#issuecomment-320018811]
+# [https://stackoverflow.com/questions/752818/find-lacks-the-option-printf-now-what]
+# [https://serverfault.com/a/598631]
+# [https://unix.stackexchange.com/a/272493]
+# nodecliac.print --command=|--command=$("find ~/.nodecliac/defs/ -maxdepth 1 \( -iname \"*.acdef\" ! -iname \".*\" \) -printf '%f\n' \| grep -Po \"([-a-z]*)(?=.acdef)\"",)
+# [https://stackoverflow.com/questions/9011233/for-files-in-directory-only-echo-filename-no-path]
+# [https://stackoverflow.com/a/20796575]
+# [https://stackoverflow.com/questions/17420994/bash-regex-match-string]
+# nodecliac.print = --command=|--command=$('bash -c "for f in ~/.nodecliac/registry/*/*.acdef; do f=\"\${f##*/}\";c=\"\${f%%.*}\";echo \"\$c\"; done;"')
+# ^Compared to Bash solution, the Perl solution uses a single pipe and Perl to extract the file/command names.
+nodecliac.print = --command=|--command=$('s="";for f in ~/.nodecliac/registry/*/*.acdef; do s="$s$f\\n"; done; echo -e "$s" \| LC_ALL=C perl -ne "print \"\$1\\n\" while /(?! \\/)([^\\/]*)\\.acdef$/g"')

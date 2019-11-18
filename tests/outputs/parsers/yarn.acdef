@@ -1,0 +1,116 @@
+ --p#ad786d
+.access --
+.add --audit|--dev|--exact|--ignore-workspace-root-check|--optional|--peer|--tilde
+.audit --groups|--json|--level|--summary|--verbose
+.autoclean --force|--init
+.bin --
+.cache --
+.cache.clean --
+.cache.dir --
+.cache.list --pattern
+.check --integrity|--verify-tree
+.config --
+.config.current --
+.config.delete --
+.config.get --
+.config.list --
+.config.set --global
+.create --
+.exec --
+.generate-lock-entry --resolved|--use-manifest
+.global --latest|--prefix
+.global.add --latest|--prefix
+.global.bin --latest|--prefix
+.global.dir --
+.global.list --latest|--prefix
+.global.remove --latest|--prefix
+.global.upgrade --latest|--prefix
+.global.upgrade-interactive --latest|--prefix
+.help --
+.import --
+.info --json
+.info.author --json
+.info.bin --json
+.info.bugs --json
+.info.contributors --json
+.info.dependencies --json
+.info.description --json
+.info.devDependencies --json
+.info.dist-tags --json
+.info.engines --json
+.info.files --json
+.info.homepage --json
+.info.keywords --json
+.info.license --json
+.info.main --json
+.info.maintainers --json
+.info.name --json
+.info.optionalDependencies --json
+.info.peerDependencies --json
+.info.readme --json
+.info.repository --json
+.info.version --json
+.info.versions --json
+.init --private|--yes
+.install --p#c8bcd8
+.licenses --
+.licenses.generate-disclaimer --
+.licenses.list --
+.link --
+.list --depth|--pattern
+.login --
+.logout --
+.node --info
+.outdated --
+.owner --
+.owner.add --
+.owner.list --
+.owner.remove --
+.pack --filename
+.policies --
+.policies.latest --
+.policies.nightly --
+.policies.rc --
+.policies.set-version --rc
+.publish --p#77ceaa
+.remove --
+.run --
+.tag --
+.tag.add --
+.tag.list --
+.tag.remove --
+.team --
+.team.add --
+.team.create --
+.team.destroy --
+.team.list --
+.team.remove --
+.test --
+.unlink --
+.unplug --clear|--clear-all
+.upgrade --caret|--exact|--latest|--pattern|--scope|--tilde
+.upgrade-interactive --caret|--exact|--latest|--scope|--tilde
+.version --major|--message|--minor|--new-version|--no-commit-hooks|--no-git-tag-version|--patch
+.versions --
+.why --
+.workspace --
+.workspaces --
+.workspaces.info --
+.workspaces.run --
+
+.add default $('ls -lF ~/.cache/yarn/v4 \| perl -ne "print \"\$1\\n\" if /npm-([-a-z]+)-\\d/"')
+.config.delete default $("~/.nodecliac/registry/yarn/scripts/config.pl")
+.config.get default $("~/.nodecliac/registry/yarn/scripts/config.pl")
+.config.set default $("~/.nodecliac/registry/yarn/scripts/config.pl")
+.global.add default $('ls -lF ~/.cache/yarn/v4 \| perl -ne "print \"\$1\\n\" if /npm-([-a-z]+)-\\d/"')
+.global.remove default $("~/.nodecliac/registry/yarn/scripts/main.pl remove -g")
+.global.upgrade default $("~/.nodecliac/registry/yarn/scripts/main.pl upgrade -g")
+.info default $('ls -lF ~/.cache/yarn/v4 \| perl -ne "print \"\$1\\n\" if /npm-([-a-z]+)-\\d/"')
+.outdated default $("~/.nodecliac/registry/yarn/scripts/main.pl outdated")
+.remove default $("~/.nodecliac/registry/yarn/scripts/main.pl remove")
+.run default $("~/.nodecliac/registry/yarn/scripts/main.pl run")
+.unplug default $("~/.nodecliac/registry/yarn/scripts/main.pl unplug")
+.upgrade default $("~/.nodecliac/registry/yarn/scripts/main.pl upgrade")
+.why default $('yarn list --depth=0 \| perl -wln -e "/(?! ─ )([-\\/_.@(?)a-zA-Z0-9]*)(?=\\@)/ and print $&;"')
+.workspace default $("~/.nodecliac/registry/yarn/scripts/main.pl workspace")
+.workspaces.run default $("~/.nodecliac/registry/yarn/scripts/main.pl run")

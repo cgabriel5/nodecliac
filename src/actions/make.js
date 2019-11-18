@@ -311,11 +311,10 @@ module.exports = async args => {
 		if (!formatting) {
 			if (acmap) {
 				console.log(acmap.print + keywords.print);
-				if (!config) {
-					console.log(); // Bottom padding.
-				}
+				if (!config) console.log(); // Bottom padding.
 			}
 			if (config) {
+				if (acmap) console.log(); // Pad before config.
 				console.log(config.print);
 			}
 		}

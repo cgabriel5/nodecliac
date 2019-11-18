@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Compiles ac binary for OS.
+# Example usage: $ ./compile -p -i ~/Desktop/ac.nim -o ~/Desktop/
+
 # Nim has to be intalled to proceed.
 if [[ -z "$(command -v nim)" ]]; then
 	echo "[ABORTED]: Nim is not installed."
@@ -75,7 +78,6 @@ if [[ "$USER_OS" == "linux" ]]; then
 		echo "[ABORTED]: -p or -d switch not provided."
 	fi
 elif [[ "$USER_OS" == "macosx" ]]; then
-	# Example usage: $ ./compile -p -i ~/Desktop/ac.nim -o ~/Desktop/
 	nim c -d:release \
 	--debugger:off \
 	--opt:speed \

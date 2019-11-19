@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# If .git folder exists link .githooks with git. For this to work
+# git must >= v2.9.0. [https://stackoverflow.com/a/39338979]
+if [[ -d "$PWD/.git" && -n "$(command -v "git")" ]]; then
+	git config core.hooksPath .githooks
+	# git config --list --local
+fi
+
+exit 0

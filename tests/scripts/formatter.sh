@@ -45,6 +45,9 @@ fpath() {
 CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m"
 X_MARK="\033[0;31m\xe2\x9c\x98\033[0m"
 
+# Get list of staged files. [https://stackoverflow.com/a/33610683]
+files=$(git diff --name-only --cached)
+
 TESTDIR=$(chipdir "$(fpath)" 1) # The tests script's path.
 
 # The output path.
@@ -67,6 +70,14 @@ passed_count=0
 # Print header.
 if [[ "$LOG_SILENT" == 0 && "$SKIP_HEADER" == 0 ]]; then
 	echo -e "\033[1m[Testing Formatter]\033[0m"
+fi
+
+# To run tests there needs to be modified src/ files. If there are none exit.
+if [[ "$files" != *"src/"* ]]; then
+	if [[ "$LOG_SILENT" == 0 ]]; then
+		echo -e " $CHECK_MARK [skipped] No staged \033[1;34msrc/\033[0m files."
+		exit 0
+	fi
 fi
 
 for f in "$TESTDIR"/acmaps/*.acmap; do

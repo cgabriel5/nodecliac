@@ -56,7 +56,8 @@ if [[ -z "$files" ]]; then
 	fi
 
 	if [[ "$LOG_SILENT" == 0 ]]; then
-		echo -e " $CHECK_MARK No binaries staged."
+		echo -e " $CHECK_MARK [skipped] No staged binaries."
+		echo ""
 	fi
 
 	exit 0
@@ -98,5 +99,19 @@ if [[ ${#binaries[@]} -ne 0 ]]; then # [https://serverfault.com/a/477506]
 		done
 	fi
 	
+	echo ""
 	exit 1 # Give error to stop git.
 fi
+
+# If this block gets is there were no staged binaries so give message.
+# Print header.
+if [[ "$LOG_SILENT" == 0 && "$SKIP_HEADER" == 0 ]]; then
+	echo -e "\033[1m[Binary Executables]\033[0m"
+fi
+
+if [[ "$LOG_SILENT" == 0 ]]; then
+	echo -e " $CHECK_MARK No staged binaries."
+	echo ""
+fi
+
+exit 0

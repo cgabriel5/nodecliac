@@ -32,6 +32,9 @@ shift $((OPTIND - 1))
 CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m"
 X_MARK="\033[0;31m\xe2\x9c\x98\033[0m"
 
+# Get list of staged files. [https://stackoverflow.com/a/33610683]
+files=$(git diff --name-only --cached)
+
 # [https://www.thegeekstuff.com/2010/06/bash-array-tutorial/]
 declare -a scripts=() # Create scripts array.
 perlscript_path=~/.nodecliac/src/ac/ac.pl # The Perl ac script path.
@@ -63,6 +66,25 @@ fi
 
 test_count=0
 passed_count=0
+
+# Note: If nodecliac is not installed tests cannot run so exit.
+if [[ -z "$(command -v nodecliac)" ]]; then
+	# Print header.
+	if [[ "$LOG_SILENT" == 0 ]]; then
+		echo -e "\033[1m[Testing Completion Script]\033[0m [script=, override=$SCRIPT_LANG_OVERRIDE]"
+		echo -e " $X_MARK [skipped] \033[1;36mnodecliac\033[0m is not installed."
+	fi
+	exit 0
+fi
+
+# To run tests there needs to be modified src/ files. If there are none exit.
+if [[ "$files" != *"src/"* ]]; then
+	if [[ "$LOG_SILENT" == 0 ]]; then
+		echo -e "\033[1m[Testing Completion Script]\033[0m [script=, override=$SCRIPT_LANG_OVERRIDE]"
+		echo -e " $CHECK_MARK [skipped] No staged \033[1;34msrc/\033[0m files."
+		exit 0
+	fi
+fi
 
 # ---------------------------------------------------------------------FUNCTIONS
 

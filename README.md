@@ -1,8 +1,8 @@
 # nodecliac
 
-Easily add Bash tab completion to CLI programs with nodecliac (**node**-**cli**-**a**uto-**c**ompletion).
+Easily add Bash completion to CLI programs with nodecliac (**node**-**cli**-**a**uto-**c**ompletion).
 
-<p align="center"><img src="./resources/images/nodecliac-tab-completion.gif?raw=true" alt="nodecliac tab completion" title="nodecliac tab completion" width="auto"></p>
+<p align="center"><img src="./resources/images/nodecliac-completion.gif?raw=true" alt="nodecliac completion" title="nodecliac completion" width="auto"></p>
 
 ##### Table of Contents
 
@@ -30,19 +30,19 @@ $ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/ins
 
 <!-- [https://stackoverflow.com/questions/17341122/link-and-execute-external-javascript-file-hosted-on-github] -->
 
-**Note**: Reload `.bashrc` (by running `$ source ~/.bashrc`) or open a new Terminal to use Bash tab completions!
+**Note**: After installing reload `.bashrc` (by running `$ source ~/.bashrc`) or open a new Terminal to start using.
 
 <details><summary>More installation methods</summary>
 
 ##### With `curl`:
 
 ```sh
-# Tab-completion only:
+# Bash completion only:
 $ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s
 # ...same as above.
 $ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s aconly master
 
-# Tab-completion + nodecliac CLI tools:
+# Bash completion + nodecliac CLI tools:
 # Install with Node.js's npm...
 $ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s npm master
 # ...or with yarn.
@@ -52,12 +52,12 @@ $ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/ins
 ##### With `wget`:
 
 ```sh
-# Tab-completion only:
+# Bash completion only:
 $ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s
 # ...same as above.
 $ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s aconly master
 
-# Tab-completion + nodecliac CLI tools:
+# Bash completion + nodecliac CLI tools:
 # Install with Node.js's npm...
 $ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s npm master
 # ...or with yarn.
@@ -72,7 +72,7 @@ $ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/in
   - Values: `yarn`, `npm`, `aconly`. (default: `yarn` > `npm` > `aconly`)
     - `yarn`: Uses [yarn](https://yarnpkg.com/en/) to install.
     - `npm`: Uses [Node.js](https://nodejs.org/en/)'s [npm](https://www.npmjs.com/get-npm) to install.
-    - `aconly`: _Only_ tab-completion (no nodecliac JavaScript CLI tools).
+    - `aconly`: _Only_ Bash completion (no nodecliac JavaScript CLI tools).
 - `arg: $2`: `BRANCH_NAME`
   - Value: An _existing_ nodecliac branch name. (default: `master`)
 
@@ -83,12 +83,12 @@ $ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/in
 
 - Node.js `8+`
   - nodecliac and its CLI tools (`.acmap` to `.acdef` parser, formatter, etc.) are written in JavaScript.
-  - **Note**: If _only_ tab-completion is needed (i.e. one already has the CLI program's registry package/files and don't need nodecliac's core CLI tools (parser, formatter, etc.)) then Node.js is _not_ required. Simply install with `aconly` installer.
+  - **Note**: If _only_ Bash completion is needed (i.e. one already has the CLI program's registry package/files and don't need nodecliac's core CLI tools (parser, formatter, etc.)) then Node.js is _not_ required. Simply install with `aconly` installer.
 - Perl `5+`
-  - Runs needed Perl tab-completion scripts.
+  - Runs needed Perl Bash completion scripts.
   - Works in tandem with Bash shell scripts.
 - Bash `4.3+`
-  - Runs bash tab-completion scripts.
+  - Runs Bash completion scripts.
   - Works in tandem with Perl/Nim scripts.
   - `macOS`, by default, comes with with Bash `3.2` so please update it.
     - [Homebrew](https://brew.sh/) can be used to [update bash](https://akrabat.com/upgrading-to-bash-4-on-macos/).
@@ -123,7 +123,7 @@ $ git clone -b BRANCH_NAME --single-branch https://github.com/cgabriel5/nodeclia
 
 ###### Text Summary:
 
-nodecliac uses 2 custom file types: **a**uto-**c**ompletion **def**inition (`.acdef`) and **a**uto-**c**ompletion **map** (`.acmap`) files. The idea here is to create an `.acmap` file to map the CLI app's (sub)commands with their respective flags. `mycliprogram.acmap` then gets passed to nodecliac via the command line to generate an `.acdef` file. This generated `mycliprogram.acdef` definitions file can now be used by nodecliac to provide CLI tab completions.
+nodecliac uses 2 custom file types: **a**uto-**c**ompletion **def**inition (`.acdef`) and **a**uto-**c**ompletion **map** (`.acmap`) files. The idea here is to create an `.acmap` file to map the CLI app's (sub)commands with their respective flags. `mycliprogram.acmap` then gets passed to nodecliac via the command line to generate an `.acdef` file. This generated `mycliprogram.acdef` definitions file can now be used by nodecliac to provide Bash completions.
 
 ###### Bullet Breakdown:
 
@@ -133,7 +133,7 @@ nodecliac uses 2 custom file types: **a**uto-**c**ompletion **def**inition (`.ac
 1. [Create CLI app's](#cli-usage-examples) `mycliprogram.acmap` file.
 2. Using nodecliac's `make` command, provide `mycliprogram.acmap` to generate app's `mycliprogram.acdef` file.
 3. Add generated `mycliprogram.acdef` file to [nodecliac's registry](#cli-usage-examples) via `make`'s `--add` flag.
-4. Reload `.bashrc` (by running `$ source ~/.bashrc`) or open a new Terminal to use Bash tab completions!
+4. After installing reload `.bashrc` (by running `$ source ~/.bashrc`) or open a new Terminal to start using.
 5. See [CLI Usage](#cli-usage-examples) section for examples.
 
 </details>
@@ -806,7 +806,7 @@ it's possible to use a pre-hook script to modify the command's `.acdef` file and
   - Allows for modification of the in-memory `acdef` contents before entering parsing.
   - Allows for modification of the in-memory CLI input string before entering parsing.
 
-**Note**: Using a hook script might sound involved/off-putting but it's not. A hook script is _just a regular shell script_. The script simply has special meaning in the sense that it is used to **hook** into nodecliac to change some variables used for later tab-completion processing.
+**Note**: Using a hook script might sound involved/off-putting but it's not. A hook script is _just a regular shell script_. The script simply has special meaning in the sense that it is used to **hook** into nodecliac to change some variables used for later Bash completion processing.
 
 #### Making Hook Script
 
@@ -814,7 +814,7 @@ First create the command's resource `hooks/` directory: `~/.nodecliac/registry/C
 
 #### Using Hook Script
 
-This section will continue to use [yarn's prehook script](/resources/nodecliac/yarn/hooks/prehook.sh) as an example. [`/yarn/hooks/prehook.sh`](/resources/nodecliac/yarn/hooks/prehook.sh) runs custom Perl scripts to modify the `.acdef` and the CLI input. Since the prehook script is sourced into the main completion script nothing is echoed back to the main script. Instead, the `acdef` and `cline` variables get overwritten. These new values will then be used by nodecliac to provide tab-completion.
+This section will continue to use [yarn's prehook script](/resources/nodecliac/yarn/hooks/prehook.sh) as an example. [`/yarn/hooks/prehook.sh`](/resources/nodecliac/yarn/hooks/prehook.sh) runs custom Perl scripts to modify the `.acdef` and the CLI input. Since the prehook script is sourced into the main completion script nothing is echoed back to the main script. Instead, the `acdef` and `cline` variables get overwritten. These new values will then be used by nodecliac to provide Bash completions.
 
 **Note**: Perl is used here for quick text processing as doing it in Bash is slow and cumbersome. _However_, use what you _want/need_ to get the job done. Hook scripts just _need_ to be executable scripts stored in `~/.nodecliac/registry/COMMAND-NAME/hooks/`.
 

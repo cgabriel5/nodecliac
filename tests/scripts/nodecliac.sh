@@ -25,15 +25,14 @@ while getopts 'so:' flag; do
 done
 shift $((OPTIND - 1))
 
+# Get path of current script. [https://stackoverflow.com/a/246128]
+__filepath="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+
+# -----------------------------------------------------------------------IMPORTS
+
+. "$__filepath/common.sh" # Import functions/variables.
+
 # --------------------------------------------------------------------------VARS
-
-# [https://www.utf8-chartable.de/unicode-utf8-table.pl?start=9984&number=128&names=-&utf8=string-literal]
-# [https://stackoverflow.com/a/42449998]
-CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m"
-X_MARK="\033[0;31m\xe2\x9c\x98\033[0m"
-
-# Get list of staged files. [https://stackoverflow.com/a/33610683]
-files=$(git diff --name-only --cached)
 
 # [https://www.thegeekstuff.com/2010/06/bash-array-tutorial/]
 declare -a scripts=() # Create scripts array.
@@ -78,7 +77,7 @@ if [[ -z "$(command -v nodecliac)" ]]; then
 fi
 
 # To run tests there needs to be modified src/ files. If there are none exit.
-if [[ "$files" != *"src/"* ]]; then
+if [[ "$STAGED_FILES" != *"src/"* ]]; then
 	if [[ "$LOG_SILENT" == 0 ]]; then
 		echo -e "\033[1m[Testing Completion Script]\033[0m [script=, override=$SCRIPT_LANG_OVERRIDE]"
 		echo -e " $CHECK_MARK [skipped] No staged \033[1;34msrc/\033[0m files."

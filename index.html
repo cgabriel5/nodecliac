@@ -4,7 +4,7 @@
 		<meta charset="utf-8" />
 		<meta
 			name="description"
-			content="Easy Bash tab-completion for CLI programs"
+			content="Easy Bash completion for CLI programs"
 		/>
 		<meta http-equiv="x-ua-compatible" content="ie=edge" />
 		<meta
@@ -50,15 +50,18 @@
 					><span class="dim">ompletion</span>
 				</div>
 				<div class="topic-description">
-					Easy Bash tab-completion for CLI programs
+					Easy Bash completion for CLI programs
 				</div>
 			</div>
 		</div>
 		<main class="main-cont">
 			<section>
-				<div class="section-title">Install</div>
+				<div class="section-title">
+					<a class="anchor" href="#install">Install</a>
+					<a name="install"></a>
+				</div>
 				<!-- 				<p class="section-paragraph">
-					As an example, let's add Bash tab-completion to Sublime
+					As an example, let's add Bash completion to Sublime
 					Text's <code>subl</code> command.
 				</p> -->
 
@@ -81,16 +84,16 @@
 									After installing reload
 									<code>.bashrc</code> (by running
 									<code>$ source ~/.bashrc</code>) or open a
-									new Terminal to use Bash tab completions.
+									new Terminal to start using.
 								</div>
 								<div>
 									<span class="bold">2.</span>
-									See complete installation methods/arguments
+									See complete
 									<a
 										href="https://github.com/cgabriel5/nodecliac#install"
 										target="_blank"
 										class="link"
-										>here</a
+										>installation methods/arguments</a
 									>.
 								</div>
 							</div>
@@ -100,14 +103,17 @@
 			</section>
 
 			<section>
-				<div class="section-title">Overview</div>
+				<div class="section-title">
+					<a class="anchor" href="#overview">Overview</a>
+					<a name="overview"></a>
+				</div>
 				<p class="section-paragraph">
-					Bash tab-completion is awesome but adding it to CLI programs
-					can be a pain. nodecliac makes it easy. Simply map a
-					program's commands with their flags in an
+					Bash completion is awesome but adding it to CLI programs can
+					be a pain. nodecliac makes it easy. Simply map a program's
+					commands with their flags in an
 					<code>.acmap</code> file and well,
 					<span class="italic">that's it</span>. nodecliac handles the
-					reset — leaving your program Bash tab-completion ready.
+					reset — leaving your program Bash completion ready.
 				</p>
 
 				<div class="note-cont">
@@ -121,15 +127,18 @@
 					<div>
 						<span class="bold">2.</span> <code>Bash</code>,
 						<code>Perl</code>, and <code>Nim</code> are used to
-						provide tab-completion. nodecliac's tools (parser,
+						provide completion logic. nodecliac's tools (parser,
 						formatter, etc.) are written in<code>JavaScript</code>
 						and therefore require <code>NodeJS</code>.
 					</div>
 				</div>
 			</section>
 
-			<!-- 			<section>
-				<div class="section-title">Getting Started</div>
+			<!-- <section>
+				<div class="section-title">
+					<a class="anchor" href="#getting-started">Getting Started</a>
+					<a name="getting-started"></a>
+				</div>
 				<div class="section-list">
 					<div class="list-item">
 						<div class="list-bullet"><span>1.</span></div>
@@ -181,11 +190,15 @@
 
 			<section>
 				<div class="section-title">
-					Example: Sublime Text Tab-completion
+					<a class="anchor" href="#example-st"
+						>Example: Sublime Text</a
+					>
+					<a name="example-st"></a>
 				</div>
+
 				<p class="section-paragraph">
-					As an example, let's add Bash tab-completion to Sublime
-					Text's <code>subl</code> command.
+					Let's add bash-completion to Sublime Text's
+					<code>subl</code> command.
 				</p>
 
 				<br />
@@ -220,15 +233,18 @@
 					><code class="code-block">$ nodecliac make --source=path/to/subl.acmap --add</code></pre>
 					<div class="list-item">
 						<div class="list-bullet"><span>3.</span></div>
-						<div>Finally, open a new Terminal and start using!</div>
+						<div>
+							Finally, reload <code>.bashrc</code> or open a new
+							Terminal to start using.
+						</div>
 					</div>
 					<div class="video-cont">
 						<video
 							controls=""
-							name="subl bash tab-completion"
+							name="subl bash completion"
 							width="800"
 							height="200"
-							src="website/media/subl-tab-completion.mov"
+							src="website/media/subl-completion.mov"
 							class="video"
 						></video>
 					</div>

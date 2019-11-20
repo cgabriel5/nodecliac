@@ -156,6 +156,16 @@ code {
 	margin: auto;
 }
 
+.anchor {
+	text-decoration: none;
+	color: inherit;
+	cursor: pointer;
+}
+
+.anchor:hover {
+	text-decoration: underline;
+}
+
 .section-title {
 	margin-bottom: 30px;
 	margin-top: 40px;

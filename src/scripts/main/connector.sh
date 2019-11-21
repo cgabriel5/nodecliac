@@ -1294,21 +1294,21 @@ if [[ -n "$1" ]] && type complete &>/dev/null; then
 	# 	echo "${BASH_REMATCH[1]}"
 	# }
 
-	# Get 'default' and 'disable' config settings.
-	settings=$("$HOME/.nodecliac/src/main/config.pl" "default;disable" "$1")
-	config_default="${settings%%:*}"
+	# Get 'compopt' and 'disable' config settings.
+	settings=$("$HOME/.nodecliac/src/main/config.pl" "compopt;disable" "$1")
+	config_compopt="${settings%%:*}"
 	config_disable="${settings#*:}"
 
 	# Don't register script to command if disable setting set to true.
 	if [[ "$config_disable" == "true" ]]; then return; fi
 
 	# Register autocompletion script with command.
-	if [[ "$config_default" == "false" ]]; then
+	if [[ "$config_compopt" == "false" ]]; then
 		# Disable bash defaults when no completions are provided.
 		complete -F _nodecliac "$1"
 	else
 		# The default registration.
-		complete -o "$config_default" -F _nodecliac "$1"
+		complete -o "$config_compopt" -F _nodecliac "$1"
 		# complete -o default -F _nodecliac "$1"
 
 		# [https://www.linuxjournal.com/content/more-using-bash-complete-command]

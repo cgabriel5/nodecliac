@@ -27,7 +27,7 @@ my $l = $#settings + 1;
 # [http://www.gnu.org/software/bash/manual/bash.html#Programmable-Completion]
 # [https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html]
 my $def_compopts = ' bashdefault default dirnames filenames noquote nosort nospace plusdirs false ';
-my $def_default = 'default';
+my $def_compopt = 'default';
 
 # Loop over settings to get their values.
 for (my $i = 0; $i < $l; $i++) {
@@ -43,14 +43,14 @@ for (my $i = 0; $i < $l; $i++) {
 	# If value is quoted, unquote it.
 	if ($value =~ /^(["']).*\1$/) { $value = substr($value, 1, -1); }
 
-	# Custom logic for the 'default' setting.
-	if ($setting eq 'default') {
+	# Custom logic for the 'compopt' setting.
+	if ($setting eq 'compopt') {
 		if ($value) {
-			# If value is not allowed reset to default value.
-			if (index($def_compopts, $value) == -1) { $value = $def_default; }
+			# If value is not allowed reset to compopt value.
+			if (index($def_compopts, $value) == -1) { $value = $def_compopt; }
 		} else {
-			# If no value was found then set to default value.
-			$value = $def_default;
+			# If no value was found then set to compopt value.
+			$value = $def_compopt;
 		}
 	}
 

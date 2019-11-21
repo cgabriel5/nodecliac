@@ -1,7 +1,7 @@
 # [RANDOM `program` COMMAND ACMAP
 # Checks for the use of '/' in command-chains.]
 
-@default = false
+@compopt = false
 
 program = [
 	--test=*

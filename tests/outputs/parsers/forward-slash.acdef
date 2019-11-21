@@ -16,4 +16,4 @@
 /test --color
 /test\.run/comm\.and/comm_and/command\.123 --flag2
 
-@default = false
+@compopt = false

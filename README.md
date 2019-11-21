@@ -167,11 +167,25 @@ nodecliac uses 2 custom file types: **a**uto-**c**ompletion **def**inition (`.ac
   - However, it's best if declared at the start of file to quickly spot them.
 
 ```acmap
-# It is ok to have comments before settings.
-@default = "default"
-@filedir=true
-@disable    =   false
+# Comments before settings are allowed.
+@compopt   = "default"
+@filedir   = ""
+@disable   = false
+@placehold = true
 ```
+
+###### Available Settings:
+
+- `@compopt`: The [`comp-option`](https://gerardnico.com/lang/bash/edition/complete#o_comp-option) ([`-o`](https://www.thegeekstuff.com/2013/12/bash-completion-complete/)) value to provide bash-completion's [`complete`](https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html#Programmable-Completion-Builtins) function.
+  - Values: `false` (no value), `true` (default: `false`)
+- `@filedir`: The pattern to provide bash-completion's [`_filedir`](https://github.com/gftg85/bash-completion/blob/bb0e3a1777e387e7fd77c3abcaa379744d0d87b3/bash_completion#L549) function.
+  - Values: A string value (i.e. `"@(pdf)"`). (default: `""`)
+  - `_filedir` resources: [\[1\]](https://unix.stackexchange.com/a/463342), [\[2\]](https://unix.stackexchange.com/a/463336), [\[3\]](https://github.com/scop/bash-completion/blob/master/completions/java), [\[4\]](https://stackoverflow.com/a/23999768), [\[5\]](https://unix.stackexchange.com/a/190004), [\[6\]](https://unix.stackexchange.com/a/198025)
+- `@disable`: Disables bash-completion for command.
+  - Values: `false`, `true` (default: `false`)
+- `@placehold`: Placehold long `.acdef` rows to provide faster file lookups.
+  - Values: `false`, `true` (default: `false`)
+  - **Note**: Used only when generating `.acdef` files.
 
 #### Variables
 

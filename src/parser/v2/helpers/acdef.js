@@ -233,6 +233,10 @@ module.exports = (STATE, commandname) => {
 		}
 	}
 
+	// Check if `placehold` flag was provided.
+	let PLACEHOLD = SETTINGS["placehold"];
+	PLACEHOLD = PLACEHOLD && PLACEHOLD === "true";
+
 	// 4) Generate final ACDEF before sorting. =================================
 	for (let command in SETS) {
 		if (command && Object.prototype.hasOwnProperty.call(SETS, command)) {
@@ -251,7 +255,7 @@ module.exports = (STATE, commandname) => {
 			// done to allow faster acdef read times by reducing the file's
 			// characters. If the flagset is later needed the specific place
 			// holder file can then be read.
-			if (flags.length >= 100) {
+			if (PLACEHOLD && flags.length >= 100) {
 				// Memoize hashes to prevent re-hashing same flag strings.
 				if (!Object.prototype.hasOwnProperty.call(memtable, flags)) {
 					let md5hash = md5(flags).substr(26); // md5 hash of flags string.

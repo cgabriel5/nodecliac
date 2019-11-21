@@ -29,7 +29,7 @@ my %args = (
 	'version-git-message' => undef,
 	'version-git-sign' => undef,
 	'version-git-tag' => undef,
-	'version-tag-prefix' => undef,
+	'version-tag-prefix' => undef
 );
 
 # Get environment variables.

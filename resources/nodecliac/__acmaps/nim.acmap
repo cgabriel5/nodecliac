@@ -2,6 +2,8 @@
 
 # nim command [options] [projectfile] [arguments]
 
+@placehold = true
+
 nim = [
 	--help
 	--version

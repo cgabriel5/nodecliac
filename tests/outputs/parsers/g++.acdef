@@ -1,2 +1,2 @@
- --p#1cafcc
-.command --p#78e8e5
+ --bootclasspath=|--CLASSPATH|--classpath=|--encoding=|--extdirs=|--help|--help=|--param|--target-help|--version
+.command -std=|-std=c++93|-std=c++94|-std=c++95|-std=c++96|-std=c++97|-std=c++98|-x=|-x=c++|-x=c++-1|-x=c++-2|-x=c++-3|-x=c++-4|-x=c++-5

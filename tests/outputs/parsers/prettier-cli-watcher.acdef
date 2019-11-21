@@ -1,1 +1,1 @@
- --p#0547f6
+ --configpath=|--dir=|--dtime=|--extensions=|--ignoredirs=|--nolog|--nonotify|--watcher=|--watcher=chokidar|--watcher=hound

@@ -1,4 +1,4 @@
- --p#ad786d
+ --cache-folder|--check-files|--cwd|--disable-pnp|--emoji?|--enable-pnp|--flat|--focus|--force|--frozen-lockfile|--global-folder|--har|--help|--https-proxy|--ignore-engines|--ignore-optional|--ignore-platform|--ignore-scripts|--json|--link-duplicates|--link-folder|--modules-folder|--mutex|--network-concurrency|--network-timeout|--no-bin-links|--no-default-rc|--no-lockfile|--no-node-version-check|--no-progress|--non-interactive|--offline|--otp|--prefer-offline|--preferred-cache-folder|--production|--proxy|--pure-lockfile|--registry|--scripts-prepend-node-path?|--silent|--skip-integrity-check|--strict-semver|--update-checksums|--use-yarnrc|--verbose|--version
 .access --
 .add --audit|--dev|--exact|--ignore-workspace-root-check|--optional|--peer|--tilde
 .audit --groups|--json|--level|--summary|--verbose
@@ -52,7 +52,7 @@
 .info.version --json
 .info.versions --json
 .init --private|--yes
-.install --p#c8bcd8
+.install --audit|--check-files|--flat|--focus|--force|--frozen-lockfile|--har|--ignore-engines|--ignore-optional|--ignore-scripts|--link-duplicates|--modules-folder|--no-bin-links|--no-lockfile|--non-interactive|--offline|--production=|--production=false|--production=true|--pure-lockfile|--silent|--update-checksums
 .licenses --
 .licenses.generate-disclaimer --
 .licenses.list --
@@ -72,7 +72,7 @@
 .policies.nightly --
 .policies.rc --
 .policies.set-version --rc
-.publish --p#77ceaa
+.publish --access|--major|--message|--minor|--new-version|--no-commit-hooks|--no-git-tag-version|--patch|--tag
 .remove --
 .run --
 .tag --

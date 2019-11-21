@@ -17,3 +17,5 @@
 .objc --p#082f08
 .rst2html --p#082f08
 .rst2tex --p#082f08
+
+@placehold = true

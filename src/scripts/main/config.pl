@@ -28,7 +28,18 @@ my $l = $#settings + 1;
 # [https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html]
 # [https://gerardnico.com/lang/bash/edition/complete#o_comp-option]
 # [https://www.thegeekstuff.com/2013/12/bash-completion-complete/]
-my $def_compopts = ' bashdefault default dirnames filenames noquote nosort nospace plusdirs false ';
+my %def_compopts = (
+	'bashdefault' => undef,
+	'default' => undef,
+	'dirnames' => undef,
+	'filenames' => undef,
+	'noquote' => undef,
+	'nosort' => undef,
+	'nospace' => undef,
+	'plusdirs' => undef,
+	'false' => undef
+);
+
 my $def_compopt = 'default';
 
 # Loop over settings to get their values.
@@ -49,7 +60,7 @@ for (my $i = 0; $i < $l; $i++) {
 	if ($setting eq 'compopt') {
 		if ($value) {
 			# If value is not allowed reset to compopt value.
-			if (index($def_compopts, $value) == -1) { $value = $def_compopt; }
+			if (!exists($def_compopts{$value})) { $value = $def_compopt; }
 		} else {
 			# If no value was found then set to compopt value.
 			$value = $def_compopt;

@@ -26,6 +26,8 @@ my $l = $#settings + 1;
 # Allowed comp-option values.
 # [http://www.gnu.org/software/bash/manual/bash.html#Programmable-Completion]
 # [https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html]
+# [https://gerardnico.com/lang/bash/edition/complete#o_comp-option]
+# [https://www.thegeekstuff.com/2013/12/bash-completion-complete/]
 my $def_compopts = ' bashdefault default dirnames filenames noquote nosort nospace plusdirs false ';
 my $def_compopt = 'default';
 

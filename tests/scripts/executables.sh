@@ -5,15 +5,20 @@
 
 # -----------------------------------------------------------------CLI-ARGUMENTS
 
-LOG_SILENT=0
-SKIP_HEADER=0
+PRINT=""
 
-while getopts 'sh' flag; do
+OPTIND=1 # Reset variable: [https://unix.stackexchange.com/a/233737]
+while getopts 'p:f:o:' flag; do # [https://stackoverflow.com/a/18003735]
 	case "$flag" in
-		s) LOG_SILENT=1 ;;
-		h) SKIP_HEADER=1 ;;
+		p)
+			case "$OPTARG" in
+				true) PRINT="$OPTARG" ;;
+				false) PRINT="" ;;
+				*) PRINT="true" ;;
+			esac
 	esac
 done
+shift $((OPTIND - 1))
 
 # Get path of current script. [https://stackoverflow.com/a/246128]
 __filepath="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
@@ -27,11 +32,11 @@ __filepath="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 # If no files are staged then exit.
 if [[ -z "$STAGED_FILES" ]]; then
 	# Print header.
-	if [[ "$LOG_SILENT" == 0 && "$SKIP_HEADER" == 0 ]]; then
+	if [[ $(isset "$PRINT") ]]; then
 		echo -e "\033[1m[Binary Executables]\033[0m"
 	fi
 
-	if [[ "$LOG_SILENT" == 0 ]]; then
+	if [[ $(isset "$PRINT") ]]; then
 		echo -e " $CHECK_MARK [skipped] No staged binaries."
 		echo ""
 	fi
@@ -65,11 +70,11 @@ done
 # If array is populated there are errors.
 if [[ ${#binaries[@]} -ne 0 ]]; then # [https://serverfault.com/a/477506]
 	# Print header.
-	if [[ "$LOG_SILENT" == 0 && "$SKIP_HEADER" == 0 ]]; then
+	if [[ $(isset "$PRINT") ]]; then
 		echo -e "\033[1m[Binary Executables]\033[0m"
 	fi
 
-	if [[ "$LOG_SILENT" == 0 ]]; then
+	if [[ $(isset "$PRINT") ]]; then
 		for binfile in "${binaries[@]}"; do		
 			echo -e " $X_MARK Make executable: \033[1;36m$binfile\033[0m"
 		done
@@ -81,11 +86,11 @@ fi
 
 # If this block gets is there were no staged binaries so give message.
 # Print header.
-if [[ "$LOG_SILENT" == 0 && "$SKIP_HEADER" == 0 ]]; then
+if [[ $(isset "$PRINT") ]]; then
 	echo -e "\033[1m[Binary Executables]\033[0m"
 fi
 
-if [[ "$LOG_SILENT" == 0 ]]; then
+if [[ $(isset "$PRINT") ]]; then
 	echo -e " $CHECK_MARK No staged binaries."
 	echo ""
 fi

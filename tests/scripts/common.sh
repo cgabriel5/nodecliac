@@ -21,7 +21,21 @@ chipdir() {
 	# [https://stackoverflow.com/a/4170409]
 }
 
-# ---------------------------------------------------------------------VARIABLES
+# If provided value is not empty return 1, else return "".
+# Note: o is not returned because it is considered true by Bash so 
+# "" is returned instead: [https://stackoverflow.com/a/3924230]
+# [https://stackoverflow.com/a/3601734]
+isset() {
+	echo $([[ -n "$1" ]] && echo 1 || echo "")
+}
+# If provided value is empty return 1, else return "".
+# Note: o is not returned because it is considered true by Bash so 
+# "" is returned instead: [https://stackoverflow.com/a/3924230]
+notset() {
+	echo $([[ -z "$1" ]] && echo 1 || echo "")
+}
+
+# --------------------------------------------------------------------------VARS
 
 # [https://www.utf8-chartable.de/unicode-utf8-table.pl?start=9984&number=128&names=-&utf8=string-literal]
 # [https://misc.flogisoft.com/bash/tip_colors_and_formatting]

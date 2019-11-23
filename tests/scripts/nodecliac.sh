@@ -5,21 +5,28 @@
 
 # -----------------------------------------------------------------CLI-ARGUMENTS
 
-LOG_SILENT=0
-SCRIPT_LANG_OVERRIDE=""
+PRINT=""
+FORCE=""
+OVERRIDE=""
 
-# [https://stackoverflow.com/a/18003735]
-while getopts 'so:' flag; do
+OPTIND=1 # Reset variable: [https://unix.stackexchange.com/a/233737]
+while getopts 'p:f:o:' flag; do # [https://stackoverflow.com/a/18003735]
 	case "$flag" in
-		s) LOG_SILENT=1 ;;
+		p)
+			case "$OPTARG" in
+				true) PRINT="$OPTARG" ;;
+				false) PRINT="" ;;
+				*) PRINT="true" ;;
+			esac ;;
+		f)
+			case "$OPTARG" in
+				true) FORCE="$OPTARG" ;;
+				*) FORCE="" ;;
+			esac ;;
 		o)
 			case "$OPTARG" in
-				nim | perl)
-					SCRIPT_LANG_OVERRIDE="$OPTARG"
-					;;
-				*)
-					SCRIPT_LANG_OVERRIDE=""
-					;;
+				nim | pl) OVERRIDE="$OPTARG" ;;
+				*) OVERRIDE="" ;;
 			esac
 	esac
 done
@@ -40,14 +47,14 @@ perlscript_path=~/.nodecliac/src/ac/ac.pl # The Perl ac script path.
 
 # Detect which nodecliac ac script is being used (bin or Perl script).
 acpl_script=""
-if [[ -n "$SCRIPT_LANG_OVERRIDE" ]]; then
-	if [[ "$SCRIPT_LANG_OVERRIDE" == "nim" ]]; then
+if [[ $(isset "$OVERRIDE") ]]; then
+	if [[ "$OVERRIDE" == "nim" ]]; then
 		acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo ${e/darwin/macosx})"
 	else
 		acpl_script="$perlscript_path"
 	fi
 	
-	scripts=("${scripts[@]}" "$acpl_script") # Add script to array.
+	scripts=("$acpl_script") # Add script to array.
 else
 	acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo ${e/darwin/macosx})"
 	# acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo $e)"
@@ -56,33 +63,33 @@ else
 	# Fallback to Perl script if Nim os binary is not supported.
 	if [[ ! -e "$acpl_script"  ]]; then
 		acpl_script="$perlscript_path"
-		scripts=("${scripts[@]}" "$acpl_script") # Add script to array.
+		scripts=("$acpl_script") # Add script to array.
 	else
 		# Add script to array.
-		scripts=("${scripts[@]}" "$acpl_script" "$perlscript_path")
+		scripts=("$perlscript_path" "$acpl_script")
 	fi
 fi
 
 test_count=0
 passed_count=0
 
-# Note: If nodecliac is not installed tests cannot run so exit.
-if [[ -z "$(command -v nodecliac)" ]]; then
-	# Print header.
-	if [[ "$LOG_SILENT" == 0 ]]; then
-		echo -e "\033[1m[Testing Completion Script]\033[0m [script=, override=$SCRIPT_LANG_OVERRIDE]"
-		echo -e " $X_MARK [skipped] \033[1;36mnodecliac\033[0m is not installed."
+# Note: If nodecliac is not installed tests cannot run so exit with message.
+if [[ $(notset "$(command -v nodecliac)") ]]; then
+	if [[ $(isset "$PRINT") ]]; then # Print header.
+		echo -e "\033[1m[Testing Completion Script]\033[0m [script=, override=$OVERRIDE]"
+		echo -e " $X_MARK [skipped] \033[1;36mnodecliac\033[0m is not installed.\n"
 	fi
 	exit 0
 fi
 
-# To run tests there needs to be modified src/ files. If there are none exit.
-if [[ "$STAGED_FILES" != *"src/"* ]]; then
-	if [[ "$LOG_SILENT" == 0 ]]; then
-		echo -e "\033[1m[Testing Completion Script]\033[0m [script=, override=$SCRIPT_LANG_OVERRIDE]"
-		echo -e " $CHECK_MARK [skipped] No staged \033[1;34msrc/\033[0m files."
-		exit 0
+# To run tests there needs to be modified src/ files or force flag.
+if [[ "$STAGED_FILES" != *"src/"* && $(notset "$FORCE") ]]; then
+	if [[ $(isset "$PRINT") ]]; then
+		echo -e "\033[1m[Testing Completion Script]\033[0m [script=, override=$OVERRIDE]"
+		echo -e " $CHECK_MARK [skipped] No staged \033[1;34msrc/\033[0m files.\n"
 	fi
+	
+	if [[ $(notset "$FORCE") ]]; then exit 0; fi # Exit if not forced.
 fi
 
 # ---------------------------------------------------------------------FUNCTIONS
@@ -121,12 +128,12 @@ function xtest {
 	((test_count++))
 
 	if [[ "$r" == "1" ]]; then
-		if [[ "$LOG_SILENT" == 0 ]]; then
+		if [[ $(isset "$PRINT") ]]; then
 			echo -e " $CHECK_MARK ${testname:0:1} '$teststring'"
 		fi
 		((passed_count++))
 	else
-		if [[ "$LOG_SILENT" == 0 ]]; then
+		if [[ $(isset "$PRINT") ]]; then
 			echo -e " $X_MARK ${testname:0:1} '$teststring'"
 			# exit 1
 		fi
@@ -174,14 +181,14 @@ function xtest_omits {
 
 # -------------------------------------------------------------------------TESTS
 
-# Note: When `SCRIPT_LANG_OVERRIDE` is present then we only test that
+# Note: When `OVERRIDE` is present then we only test that
 # specificity script once. Else we test both the Nim and Perl scripts.
 for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-in-bash-script]
 	acpl_script="$script" # Reset variable.
 
 	# Print header.
-	if [[ "$LOG_SILENT" == 0 ]]; then
-		echo -e "\033[1m[Testing Completion Script]\033[0m [script=\033[1;32m$(basename -- $script)\033[0m, override=$SCRIPT_LANG_OVERRIDE]"
+	if [[ $(isset "$PRINT") ]]; then
+		echo -e "\033[1m[Testing Completion Script]\033[0m [script=\033[1;32m$(basename -- $script)\033[0m, override=$OVERRIDE]"
 	fi
 
 	# [test-suite: nodecliac]
@@ -241,18 +248,20 @@ for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-i
 	xtest contains "nim compile --app=con" "console"
 	xtest contains "nim compile --app:con" "console"
 
-	echo ""
+	if [[ $(isset "$PRINT") ]]; then echo ""; fi # Pad output.
 done
 
 # r="$(xnodecliac "")"
 # echo ">$r<"
 
 # [https://misc.flogisoft.com/bash/tip_colors_and_formatting]
-if [[ "$LOG_SILENT" == 0 ]]; then
+if [[ $(isset "$PRINT") ]]; then
 	# Perl round number: [https://stackoverflow.com/a/178576]
 	percent=$(perl -e "printf \"%.2f\", $passed_count/$test_count*100")
 	echo -e " \033[1;34mResult\033[0m: $passed_count/$test_count — (coverage: \033[1m$percent%\033[0m)"
 fi
+
+if [[ $(isset "$PRINT") ]]; then echo ""; fi # Pad output.
 
 # Set exist code. If all tests pass then set to 0.
 # [https://shapeshed.com/unix-exit-codes/]

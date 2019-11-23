@@ -19,7 +19,8 @@
 		"pretty": "prettier-cli-watcher --configpath='/configs/prettier.config.json'",
 		"lint": "cross-env ESLINT_CFS_VERBOSE=true ./node_modules/eslint/bin/eslint.js -c='configs/eslint.config.js' --ignore-path='configs/eslintignore' --format='simple' '**/*.{js,jsx}'; exit 0",
 		"tests": "tests/scripts/main.sh",
-		"tests:silent": "tests/scripts/main.sh -s",
+		"tests:silent": "tests/scripts/main.sh -p false",
+		"tests:force": "tests/scripts/main.sh -f true",
 		"build:acdev": "./compile -d",
 		"build:acprod": "./compile -p"
 	},

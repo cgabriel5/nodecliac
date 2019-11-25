@@ -1,0 +1,21 @@
+# [https://www.sublimemerge.com/docs/command_line]
+
+# Usage: smerge path               Open the given repository
+#              or: smerge search query       Search for commits in the current repository
+#              or: smerge blame file [line]  Blame the given file in the current repository
+#              or: smerge log file           Show the file history in the current repository
+#              or: smerge mergetool          Opens the merge tool for the given files
+#                    [--no-wait] [base] left right [-o merged]
+
+#             -n or --new-window:      Open a new window
+#             -b or --background:      Don't activate the application
+#             -h or --help:            Show help (this message) and exit
+#             -v or --version:         Show version and exit
+
+smerge = [
+	--no-wait?
+	--new-window?
+	--background?
+	--help?
+	--version?
+]

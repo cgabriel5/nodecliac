@@ -484,6 +484,9 @@ sub __set_envs {
 		"${prefix}USED_DEFAULT_POSITIONAL_ARGS" => $used_default_pa_args
 	);
 
+    # Add parsed arguments as individual environment variables to table.
+    my $i = 0; foreach my $arg (@args) { $envs{"${prefix}ARG_${i}"} = $arg; $i++; }
+
 	# Dynamically set arguments.
 	# for (my $i = 0; $i < $l; $i++) { $ENV{"${prefix}ARG_${i}"} = $args[$i]; }
 

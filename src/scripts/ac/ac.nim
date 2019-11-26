@@ -631,6 +631,9 @@ proc fn_set_envs(arguments: varargs[string]) =
         fmt"{prefix}USED_DEFAULT_POSITIONAL_ARGS": used_default_pa_args
     }.toTable
 
+    # Add parsed arguments as individual environment variables to table.
+    for i, arg in args: envs[fmt"{prefix}ARG_{i}"] = arg
+
     # Dynamically set arguments.
     # for (my $i = 0; $i < $l; $i++) { $ENV{"${prefix}ARG_${i}"} = $args[$i]; }
 

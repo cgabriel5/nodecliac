@@ -557,11 +557,18 @@ sub __parser {
 			} else {
 				# Add each other characters as single hyphen flags.
 				my @chars = split(//, $argument);
+				my $l = $#chars + 1;
 				my $i = 0; my $hyphenref = 0; foreach my $char (@chars) {
 					# Handle: 'sudo wget -qO- https://foo.sh':
 					# Hitting a hyphen breaks loop. All characters at hyphen
 					# and beyond are now the value of the last argument.
 					if ($char eq '-') { $hyphenref = 1; last; }
+
+                    # Note: If the argument is not a hyphen and is the last
+                    # item in the array, remove it from the array as it will
+                    # get added back later in the main loop.
+                    elsif (i == l - 1) { last; }
+
 					push(@$args, "-$char"); $i++;
 				}
 

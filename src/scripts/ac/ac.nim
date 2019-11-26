@@ -697,15 +697,20 @@ proc fn_parser() =
             else:
                 # Add each other characters as single hyphen flags.
                 var chars = fn_split_by_chars(argument)
+                var l = chars.len
                 var i = 0
                 var hyphenref = false
                 for chr in chars:
                     # Handle: 'sudo wget -qO- https://foo.sh':
                     # Hitting a hyphen breaks loop. All characters at hyphen
                     # and beyond are now the value of the last argument.
-                    if chr == '-':
-                        hyphenref = true
-                        break
+                    if chr == '-': hyphenref = true; break
+
+                    # Note: If the argument is not a hyphen and is the last
+                    # item in the array, remove it from the array as it will
+                    # get added back later in the main loop.
+                    elif i == l - 1: break
+
                     args.add(fmt"-{chr}")
                     inc(i)
 

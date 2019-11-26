@@ -123,7 +123,7 @@ $ git clone -b BRANCH_NAME --single-branch https://github.com/cgabriel5/nodeclia
 
 ###### Text Summary:
 
-nodecliac uses 2 custom file types: **a**uto-**c**ompletion **def**inition (`.acdef`) and **a**uto-**c**ompletion **map** (`.acmap`) files. The idea here is to create an `.acmap` file to map the CLI app's (sub)commands with their respective flags. `mycliprogram.acmap` then gets passed to nodecliac via the command line to generate an `.acdef` file. This generated `mycliprogram.acdef` definitions file can now be used by nodecliac to provide Bash completions.
+nodecliac uses two custom file types: **a**uto-**c**ompletion **map** (`.acmap`) and **a**uto-**c**ompletion **def**inition (`.acdef`) files. The `.acmap` file is _user_ generated. It's where the program's commands get _mapped_ to their respective flags. The `.acdef` file is generated from the `.acmap` file with nodecliac. Bash completions get made by referencing the `.acdef` file.
 
 ###### Bullet Breakdown:
 
@@ -836,7 +836,7 @@ This section will continue to use [yarn's prehook script](/resources/nodecliac/y
 
 #### Ignoring Options
 
-When an option(s) should be ignored by the completion engine simply prefix the option with an exclamation-mark (`!`). This indicator is meant to be used when an option has already been used to not show the option again, for example.
+Letting the completion engine know an option should be ignored (not used) is simple. Just prefix the option with an exclamation-mark (`!`). This is meant to be used when an option has already been used and therefore doesn't need to be shown again.
 
 #### Environment Variables
 

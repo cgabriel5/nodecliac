@@ -34,6 +34,8 @@ use Data::Dumper;
 # @resource [https://stackoverflow.com/a/4893176]
 # @resource [https://stackoverflow.com/a/23918269]
 # @resource [https://www.perlmonks.org/?node_id=188283]
+# @resource* [https://softwareengineering.stackexchange.com/q/262242]
+# @resource* [https://stackoverflow.com/q/11397137]
 sub __lcp {
 	# Get arguments.
 	my (

@@ -14,6 +14,8 @@
  * @resource [https://stackoverflow.com/a/1917041]
  * @resource [https://davidwells.io/snippets/traverse-object-unknown-size-javascript]
  * @resource [https://jonlabelle.com/snippets/view/javascript/calculate-mean-median-mode-and-range-in-javascript]
+ * @resource* [https://softwareengineering.stackexchange.com/q/262242]
+ * @resource* [https://stackoverflow.com/q/11397137]
  *
  */
 let lcp = (strs, options = {}) => {

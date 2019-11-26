@@ -30,6 +30,8 @@ from strutils import startsWith # , cmpIgnoreCase
 # @resource [https://davidwells.io/snippets/traverse-object-unknown-size-javascript]
 # @resource [https://jonlabelle.com/snippets/view/javascript/calculate-mean-median-mode-and-range-in-javascript]
 # @resource [https://rosettacode.org/wiki/Higher-order_functions#Nim]
+# @resource* [https://softwareengineering.stackexchange.com/q/262242]
+# @resource* [https://stackoverflow.com/q/11397137]
 proc lcp(
             # Names/positional args: [https://nim-lang.org/docs/manual.html#procedures]
             strs: var seq[string],

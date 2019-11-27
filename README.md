@@ -840,7 +840,7 @@ Letting the completion engine know an option should be ignored (not used) is sim
 
 #### Environment Variables
 
-Hook scripts are provided environment variables:
+Hook scripts are provided environment variables.
 
 - Following environment variables are provided by `bash` but exposed by nodecliac.
 
@@ -850,16 +850,31 @@ Hook scripts are provided environment variables:
 - Following environment variables are custom and exposed by nodecliac.
   - `NODECLIAC_MAIN_COMMAND`: The command auto completion is being performed for.
   - `NODECLIAC_COMMAND_CHAIN`: The parsed command chain.
-  - `NODECLIAC_LAST`: The last parsed word item (**Note**: could be a partial word item. This happens when the `[TAB]` key gets pressed within a word item. For example, take the input `maincommand command`. If the `[TAB]` key was pressed like so: `maincommand comm[TAB]and` then the last word item is `comm` and it is a partial as its remaining text is `and`. This will result in using `comm` to determine possible auto completion word possibilities.).
+  - `NODECLIAC_LAST`: The last parsed word item.
+    - **Note**: Last word item could be a _partial_ word item.
+      - This happens when the `[TAB]` key gets pressed _within_ a word item. For example, take the following input: `$ program command`. If the `[TAB]` key was pressed like so: `$ program comm[TAB]and`, the last word item is `comm`. Thus a _partial_ word with a remainder string of `and`. Resulting in finding completions for `comm`.
   - `NODECLIAC_PREV`: The word item preceding the last word item.
-  - `NODECLIAC_INPUT`: CLI input from start to caret index.
+  - `NODECLIAC_INPUT`: CLI input from start to caret (`[TAB]` key press) index.
   - `NODECLIAC_INPUT_ORIGINAL`: Original unmodified CLI input.
   - `NODECLIAC_INPUT_REMAINDER`: CLI input from start to caret index.
   - `NODECLIAC_LAST_CHAR`: Character before caret.
-  - `NODECLIAC_NEXT_CHAR`: Character after caret. If char is not `''` (empty) then the last word item is a partial word.
-  - `NODECLIAC_COMP_LINE_LENGTH`: Original input's length.
-  - `NODECLIAC_INPUT_LINE_LENGTH`: CLI input from start to caret index string length.
-  - `NODECLIAC_ARG_COUNT`: Amount arguments parsed before caret position/index.
+  - `NODECLIAC_NEXT_CHAR`: Character after caret.
+    - **Note**: If char is _not_ `''` (empty) then the last word item (`NODECLIAC_LAST`) is a _partial_ word.
+  - `NODECLIAC_COMP_LINE_LENGTH`: Original CLI input's length.
+  - `NODECLIAC_INPUT_LINE_LENGTH`: CLI input length from string beginning to caret position.
+  - `NODECLIAC_ARG_COUNT`: Amount of arguments parsed in `NODECLIAC_INPUT` string.
+  - `NODECLIAC_ARG_N`: Parsed arguments can be individually accessed with this variable.
+    - Arguments are _zero-index_ based.
+      - First argument is `NODECLIAC_ARG_0`.
+        - Will _always_ be the program command.
+    - Because input is variable all other arguments can be retrieved with a loop.
+      - Use `NODECLIAC_ARG_COUNT` as max loop iteration.
+    - **Example**: If the following was the CLI input: `$ yarn remove chalk prettier`
+      - Arguments would be:
+        - `NODECLIAC_ARG_0`: `yarn`
+        - `NODECLIAC_ARG_1`: `remove`
+        - `NODECLIAC_ARG_2`: `chalk`
+        - `NODECLIAC_ARG_3`: `prettier`
   - `NODECLIAC_USED_DEFAULT_POSITIONAL_ARGS`: Collected positional arguments after validating the command-chain.
 
 </details>

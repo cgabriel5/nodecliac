@@ -625,7 +625,7 @@ proc fn_set_envs(arguments: varargs[string]) =
         fmt"{prefix}NEXT_CHAR": nextchar, # Character after caret. If char is not '' (empty) then the last word
         # item is a partial word.
         fmt"{prefix}COMP_LINE_LENGTH": intToStr(cline_length), # Original input's length.
-        fmt"{prefix}INPUT_LINE_LENGTH": intToStr(cline_length), # CLI input from start to caret index string length.
+        fmt"{prefix}INPUT_LINE_LENGTH": intToStr(input.len), # CLI input length from beginning of string to caret position.
         fmt"{prefix}ARG_COUNT": intToStr(l), # Amount arguments parsed before caret position/index.
         # Store collected positional arguments after validating the command-chain to access in plugin auto-completion scripts.
         fmt"{prefix}USED_DEFAULT_POSITIONAL_ARGS": used_default_pa_args

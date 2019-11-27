@@ -478,7 +478,7 @@ sub __set_envs {
 		"${prefix}NEXT_CHAR" => $nextchar, # Character after caret. If char is not '' (empty) then the last word
 		# item is a partial word.
 		"${prefix}COMP_LINE_LENGTH" => $cline_length, # Original input's length.
-		"${prefix}INPUT_LINE_LENGTH" => $cline_length, # CLI input from start to caret index string length.
+		"${prefix}INPUT_LINE_LENGTH" => length($input), # CLI input length from beginning of string to caret position.
 		"${prefix}ARG_COUNT" => $l, # Amount arguments parsed before caret position/index.
 		# Store collected positional arguments after validating the command-chain to access in plugin auto-completion scripts.
 		"${prefix}USED_DEFAULT_POSITIONAL_ARGS" => $used_default_pa_args

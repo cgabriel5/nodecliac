@@ -10,7 +10,7 @@
 # This script will run the Perl prehook script. The returned data is in the
 # following format: the 1st line is the modified CLI input while subsequent
 # lines are addons to the ACDEF.
-output=$("$HOME/.nodecliac/registry/yarn/hooks/prehook.pl" "$COMP_LINE")
+output="$("$HOME/.nodecliac/registry/yarn/hooks/prehook.pl" "$COMP_LINE")"
 
 # Get modified CLI input line (1st line).
 # [https://stackoverflow.com/q/30649640]
@@ -26,6 +26,6 @@ if [[ -n "$firstline" ]]; then cline="$firstline"; fi
 # Remove first line from output. Remaining text, if any, is the ACDEF output.
 len="${#firstline}"
 # If length is zero, reset length to 1 to remove starting new line.
-if [ $len == 0 ]; then len=1; fi
+if [[ $len == 0 ]]; then len=1; fi
 addon="${output:$len}"
 if [[ -n "$addon" ]]; then acdef+=$'\n'"$addon"; fi

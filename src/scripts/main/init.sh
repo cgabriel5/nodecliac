@@ -101,13 +101,18 @@ if [[ "$vmajor" -ge 4 ]]; then
 			# Get command name (everything up to first period).
 			command="${filename%%.*}"
 
-			# Only register script to command if command exists in filename
-			# and if .acdef file exists for the comment.
-			if [[ -n "$command" && -e "$filepath/$command.acdef" ]]; then
-				# If command exists then register completion script to command.
-				# Note: Command is provided to script as the first parameter.
-				source "$acscript" "${command##*/}"
-			fi
+			# If command is empty or acdef file doesn't exist skip.
+			if [[ -z "$command" || ! -e "$filepath/$command.acdef" ]]; then continue; fi
+
+			command="${command##*/}"
+
+			# If filename doesn't equal command name there could be
+			# invalid characters in name. In which case, skip it.
+			if [[ "$filename" != "$command" ]]; then continue; fi
+
+			# Register command/completion-script to bash-completion.
+			# Note: Command is provided to script as the first parameter.
+			source "$acscript" "$command"
 		done
 	fi
 fi

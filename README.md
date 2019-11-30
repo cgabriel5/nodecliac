@@ -626,9 +626,9 @@ nodecliac = --version?
 nodecliac.setup = --rcfilepath?|--force?
 nodecliac.uninstall = --rcfilepath?
 nodecliac.registry
-nodecliac.make = --add?|--force?|--source|--save?|--print?|--trace?|--nowarn?
+nodecliac.make = --add?|--force?|--source|--save?|--print?|--trace?
 nodecliac.status = --enable?|--disable?
-nodecliac.format = --indent|--source|--save?|--print?|--strip-comments?|--trace?|--nowarn?
+nodecliac.format = --indent|--source|--save?|--print?|--strip-comments?|--trace?
 nodecliac.print = --command=|--command=$("for f in ~/.nodecliac/registry/*/*.acdef; do f=\"\${f##*/}\";c=\"\${f%%.*}\";echo \"\$c\"; done;")
 ```
 
@@ -653,7 +653,6 @@ nodecliac.make = [
   --save?
   --print?
   --trace?
-  --nowarn?
 ]
 nodecliac.status = [
   --enable?
@@ -666,7 +665,6 @@ nodecliac.format = [
   --print?
   --strip-comments?
   --trace?
-  --nowarn?
 ]
 nodecliac.print = [
   --command=
@@ -705,38 +703,35 @@ $ mycliprogram [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] 
 <details>
   <summary>Show nodecliac's commands/flags.</summary>
 
-- `format`: Prettifies `.acmap` files.
-  - `--indent="(s|t):Number"`: (**required**): Formatting indentation information:
+- `format`: Format (prettify) `.acmap` file.
+  - `--source=`: (**required**): Path to `.acmap` file.
+  - `--save` : Overwrite source file with prettified output.
+  - `--indent="(s|t):Number"`: Formatting indentation string:
     - `s` for spaces or `t` for tabs followed by a number.
-    - `t:1`: Use 1 tab per indentation level.
-    - `s:2`: Use 2 spaces per indentation level.
-  - `--nowarn` : Don't print parser warnings.
-  - `--print` : Print output to console.
-  - `--save` : Overwrite source file with prettified output
-  - `--source`: (**required**): The `.acmap` file path.
-  - `--strip-comments` : Remove all comments from final output.
-  - `--trace` : Used for debugging purposes only.
-  - `--test`: Prints output without file headers (for test suite).
-- `make`: Generate `.acdef` file from an `.acmap` file.
-  - `--add`: Add generated`.acdef` file to nodecliac registry.
-  - `--print` : Print output to console.
-  - `--source`: (**required**): The `.acmap` file path.
-  - `--output` : Explicit location where `.acdef` should be saved to.
-    - **Note**: For `--output` to work `--save` flag must also be provided.
-  - `--force`: If an `.acdef` file exists for the command then this flag is needed to overwrite old`.acdef` file.
-  - `--nowarn` : Don't print parser warnings.
-  - `--save`: Will save generated `.acdef` file to source location.
-  - `--trace` : Used for debugging purposes only.
-  - `--test`: Prints output without file headers (for test suite).
+      - `t:1`: Use 1 tab per indentation level (_default_).
+      - `s:2`: Use 2 spaces per indentation level.
+  - `--print` : Log output to console.
+  - `--strip-comments` : Remove comments from final output.
+  - `--trace` : Trace parsers (_for debugging_).
+  - `--test`: Log output without file headers (_for tests_).
+- `make`: Make completion-package for command.
+  - `--source=`: (**required**): Path to `.acmap` file.
+  - `--add`: Add generated completion-package nodecliac registry.
+    - `--force`: Forces overwrite of existing registry completion-package.
+  - `--save` : Location where completion-package should be saved to.
+    - **Note**: If path isn't provided current working directory is used.
+    - `--force`: Forces overwrite of existing completion-package at directory.
+  - `--print` : Log output to console.
+  - `--trace` : Trace parsers (_for debugging_).
+  - `--test`: Log output without file headers (_for tests_).
 - `print`: Print acmap/def file contents for files in registry.
   - `--command=`: The file to print (list dynamically generated based on available files in registry).
 - `registry`: Lists `.acdef` files in registry.
 - `setup`: Installs and setups nodecliac.
-  - `--force` : If nodecliac is already installed this flag is needed for overwrite old install.
-  - `--rcfilepath`: By default setup will look for `~/.bashrc` to add modifications to. Supply the path to another rc file if you don't want changes to be made to `~/.bashrc`.
-    - **Note**: To be transparent this is what gets added to your rc file:
-    - `ncliac=~/.nodecliac/src/main/init.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;`
-    - The line will load `~/.nodecliac/src/main/init.sh` if it exists. `init.sh` registers all `~/.nodecliac/registry/*/*.acdef` files with the completion script to work with bash-completion.
+  - `--force` : Forces install even if nodecliac is already installed.
+  - `--rcfilepath`: By default `~/.bashrc` is used. If another rc file should be used provide its path.
+    - **Note**: This gets appended to rc file:
+      - `ncliac=~/.nodecliac/src/main/init.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;`
 - `status`: Checks whether nodecliac is enabled/disabled.
   - `--enable` : Enables nodecliac if disabled.
   - `--disable`: Disables nodecliac if enabled.
@@ -749,13 +744,13 @@ $ mycliprogram [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] 
 
 ## CLI Usage Examples
 
-#### Generate ACDEF file
+#### Generate completion-package
 
 ```sh
-# Generate mycliprogram.acdef file and add it to registry.
+# Generate completion-package for 'mycliprogram' add add it to registry.
 $ nodecliac make --source path/to/mycliprogram.acmap --add
 
-# Generate mycliprogram.acdef contents but only print to terminal.
+# Generate mycliprogram.acdef contents and log to terminal.
 $ nodecliac make --source path/to/mycliprogram.acmap --print
 ```
 

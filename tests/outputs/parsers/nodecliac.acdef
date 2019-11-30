@@ -1,6 +1,6 @@
  --engine=|--engine=1|--engine=2|--version?
-.format --indent|--nowarn?|--print?|--save?|--source|--strip-comments?|--test?|--trace?
-.make --add?|--force?|--nowarn?|--output|--print?|--save?|--source|--test?|--trace?
+.format --indent|--print?|--save?|--source|--strip-comments?|--test?|--trace?
+.make --add?|--force?|--output|--print?|--save?|--source|--test?|--trace?
 .print --command=|--command=$('s="";for f in ~/.nodecliac/registry/*/*.acdef; do s="$s$f\\n"; done; echo -e "$s" \| LC_ALL=C perl -ne "print \"\$1\\n\" while /(?! \\/)([^\\/]*)\\.acdef$/g"')
 .registry --
 .setup --force?|--rcfilepath?

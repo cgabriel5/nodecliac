@@ -81,8 +81,9 @@ if [[ "$vmajor" -ge 4 ]]; then
 		# [https://superuser.com/a/999448]
 		# [https://stackoverflow.com/a/9612232]
 		# [https://askubuntu.com/a/318211]
+		# Ignore parent dir: [https://stackoverflow.com/a/11071654]
 		# Get registry directories list.
-		dirlist="$(find "$registrypath" -maxdepth 1 -type d -name "[!.]*")"
+		dirlist="$(find "$registrypath" -maxdepth 1 -mindepth 1 -type d -name "[!.]*")"
 
 		# If registry is empty return from script. Ignores any files (including hidden ones).
 		if [[ "$registrypath" == "$dirlist" ]]; then return; fi

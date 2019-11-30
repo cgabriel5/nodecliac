@@ -27,21 +27,22 @@ module.exports = async args => {
 
 	// Get CLI args.
 	let {
-		engine,
+		// `make` + `format` flags:
 		source,
-		output,
 		print,
+		save,
+		// `make` action flags:
+		force,
+		trace,
 		test,
 		add,
-		save,
-		indent,
+		// `format` action flags:
 		"strip-comments": igc,
 		highlight,
-		trace,
+		indent,
+		// Other flags:
 		nowarn,
-		// 'package' is a future-reserved word so rename it:
-		// [https://stackoverflow.com/a/8569327]
-		package: npkg
+		engine
 	} = args;
 
 	// Get list of available engines.
@@ -71,39 +72,22 @@ module.exports = async args => {
 
 	// If formatting check that indentation information was provided.
 	if (formatting) {
-		// If indent flag is not provided exit and error.
-		if (!indent) {
-			exit([
-				`Please provide indentation information via ${chalk.bold(
-					"--indent"
-				)} flag.`
-			]);
+		// If indentation flag was provided parse it and reset values.
+		if (indent) {
+			// Validate indentation flag.
+			if (!/^(s|t):\d+$/.test(indent)) {
+				exit([`Invalid indentation string.`]);
+			}
+
+			// If all good parse indentation string.
+			let [char_type, indent_level] = indent.split(":", 2);
+			// Reset values.
+			indent_char = char_type;
+			indent_amount = indent_level;
 		}
 
-		// Validate indentation flag.
-		if (typeof indent !== "string") {
-			exit([`${chalk.bold("--indent")}'s value must be a string.`]);
-		}
-
-		// Validate indentation flag.
-		if (!/^(s|t):\d$/.test(indent)) {
-			exit([`Invalid indentation value.`]);
-		}
-
-		// Else if all good, parse indentation information.
-		let parts = indent.split(":", 2);
-		// Get values.
-		indent_char = parts[0];
-		indent_amount = parts[1];
-		// Set default values.
+		// Reset char to its literal character (`s` => " ", `t` => "\t").
 		indent_char = indent_char === "s" ? " " : "\t";
-		indent_amount;
-		// Cast amount to number.
-		indent_amount;
-
-		// // Set print flag to bypass checks.
-		// args.print = true;
-		// print = true;
 	}
 
 	// Source must be provided.
@@ -129,25 +113,17 @@ module.exports = async args => {
 	let commandname = fi.name.match(/^[-_:+a-z0-9]+/g)[0].replace(/_/g, "-");
 
 	// If path is relative make it absolute.
-	if (!ispath_abs(source)) {
-		source = path.resolve(source);
-	}
+	if (!ispath_abs(source)) source = path.resolve(source);
 
-	// Also requires one of the following flags to do anything.
-	if (!(save || add || print || indent || test)) {
-		exit([
-			`Must also provide one of the following flags: ${chalk.bold(
-				"--save"
-			)}, ${chalk.bold("--add")}, ${chalk.bold("--print")}.`
-		]);
-	}
+	// If `--save` flag is provided but path is not given use dir location.
+	if (save && save === true) save = fi.dirname;
 
 	// Check that the source path exists.
 	[err, res] = await flatry(fe(source));
 	// If path does not exist, give message and end process.
 	if (!res) {
 		exit([
-			`${chalk.bold(source)} (${chalk.blue("--source")}) does not exist.`
+			`${chalk.bold(source)} (${chalk.blue("--source")}) doesn't exist.`
 		]);
 	}
 
@@ -174,49 +150,36 @@ module.exports = async args => {
 	let savename = `${commandname}.acdef`;
 	let saveconfigname = `.${commandname}.config.acdef`;
 
-	// Save formatted acmap file to source location when flag is provided.
-	if (save && formatting) {
-		[err, res] = await flatry(write(source, formatted.content));
+	// When formatting...
+	if (formatting) {
+		// Save formatted acmap file to source location when flag is provided.
+		if (save) [err, res] = await flatry(write(source, formatted.content));
 	}
-	// Save definitions file to source location when flag is provided
-	// and --package flag is not provided.
-	else if (save && !npkg) {
-		// Note: If an output path is not provided use source location.
-		output = output || fi.dirname;
+	// When generating nodecliac completion-package.
+	else {
+		let __paths = []; // Locations where to save completion-package.
+		if (add) __paths.push(registrypaths);
+		// Note: If an save path is not provided use source location.
+		if (save) __paths.push(save);
 
-		// Check if path is actually a directory.
-		[err, res] = await flatry(de(output));
-		if (!res) {
-			exit([
-				`${chalk.bold(output)} (${chalk.blue(
-					"--output"
-				)}) does not exist.`
-			]);
-		}
+		// Save nodecliac completion-package at locations in array.
+		for (let i = 0, l = __paths.length; i < l; i++) {
+			// Build file output paths.
+			let commanddir = path.join(__paths[i], commandname);
+			let commandpath = path.join(commanddir, savename);
+			let commandconfigpath = path.join(commanddir, saveconfigname);
+			let placeholderspaths = path.join(commanddir, "placeholders");
 
-		let data = acmap.content + keywords.content;
-		await flatry(write(path.join(output, savename), data));
-		await flatry(write(path.join(output, saveconfigname), config.content));
-	}
+			// Check if command.acdef file exists.
+			[err, res] = await flatry(de(commanddir));
+			// [err, res] = await flatry(fe(commandpath));
 
-	// Add to maps location if add flag provided.
-	if (add || npkg) {
-		// Build file output paths.
-		let commanddir = path.join(!npkg ? registrypaths : output, commandname);
-		let commandpath = path.join(commanddir, savename);
-		let commandconfigpath = path.join(commanddir, saveconfigname);
-		let commandplaceholderspaths = path.join(commanddir, "placeholders");
+			// To save completion-package to disk the main folder cannot
+			// exist at the provided/current directory location. This will
+			// prevent the overwriting the current package. Or if the
+			// `--force` flag is provided.
+			if (res && !args.force) continue;
 
-		// Check if command.acdef file exists.
-		[err, res] = await flatry(fe(commandpath));
-
-		// If outputting a nodecliac completion-package reset variables.
-		if (npkg) {
-			res = false;
-			args.force = true;
-		}
-
-		if (!res || args.force) {
 			// Create needed parent directories.
 			[err, res] = await flatry(mkdirp(commanddir));
 
@@ -229,42 +192,26 @@ module.exports = async args => {
 			// Create placeholder files when placeholders object is populated.
 			if (Object.keys(placeholders).length) {
 				// Create needed directories.
-				[err, res] = await flatry(mkdirp(commandplaceholderspaths));
-				if (res) {
-					let promises = []; // Var to store promises in.
+				[err, res] = await flatry(mkdirp(placeholderspaths));
+				if (!res) continue;
 
-					// Loop over placeholders to create write promises.
-					for (let key in placeholders) {
-						if (
-							Object.prototype.hasOwnProperty.call(
-								placeholders,
-								key
+				let promises = []; // Store promises.
+				let f = Object.prototype.hasOwnProperty;
+
+				// Loop over placeholders to create write promises.
+				for (let key in placeholders) {
+					if (f.call(placeholders, key)) {
+						promises.push(
+							write(
+								`${placeholderspaths}/${key}`,
+								placeholders[key]
 							)
-						) {
-							promises.push(
-								write(
-									`${commandplaceholderspaths}/${key}`,
-									placeholders[key]
-								)
-							);
-						}
+						);
 					}
-
-					// Run promises.
-					[err, res] = await flatry(Promise.all(promises));
 				}
-			}
 
-			// -----------------------------------------------------PLACEHOLDERS
-
-			if (!npkg) log(`${chalk.bold(commandname)} acmap added.`);
-		} else {
-			if (!npkg) {
-				log(
-					`acmap ${chalk.bold(commandname)} exists (use ${chalk.bold(
-						"--force"
-					)} to overwrite current acmap).`
-				);
+				// Run promises.
+				[err, res] = await flatry(Promise.all(promises));
 			}
 		}
 	}
@@ -276,9 +223,7 @@ module.exports = async args => {
 			if (acmap) {
 				console.log(`[${chalk.bold(`${commandname}.acdef`)}]\n`);
 				console.log(acmap.print + keywords.print);
-				if (!config) {
-					console.log(); // Bottom padding.
-				}
+				if (!config) console.log(); // Bottom padding.
 			}
 			if (config) {
 				console.log(

@@ -38,7 +38,10 @@ module.exports = async args => {
 		"strip-comments": igc,
 		highlight,
 		trace,
-		nowarn
+		nowarn,
+		// 'package' is a future-reserved word so rename it:
+		// [https://stackoverflow.com/a/8569327]
+		package: npkg
 	} = args;
 
 	// Get list of available engines.
@@ -175,8 +178,9 @@ module.exports = async args => {
 	if (save && formatting) {
 		[err, res] = await flatry(write(source, formatted.content));
 	}
-	// Save definitions file to source location when flag is provided.
-	else if (save) {
+	// Save definitions file to source location when flag is provided
+	// and --package flag is not provided.
+	else if (save && !npkg) {
 		// Note: If an output path is not provided use source location.
 		output = output || fi.dirname;
 
@@ -196,14 +200,22 @@ module.exports = async args => {
 	}
 
 	// Add to maps location if add flag provided.
-	if (add) {
+	if (add || npkg) {
 		// Build file output paths.
-		let commanddir = path.join(registrypaths, commandname);
+		let commanddir = path.join(!npkg ? registrypaths : output, commandname);
 		let commandpath = path.join(commanddir, savename);
 		let commandconfigpath = path.join(commanddir, saveconfigname);
+		let commandplaceholderspaths = path.join(commanddir, "placeholders");
 
 		// Check if command.acdef file exists.
 		[err, res] = await flatry(fe(commandpath));
+
+		// If outputting a nodecliac completion-package reset variables.
+		if (npkg) {
+			res = false;
+			args.force = true;
+		}
+
 		if (!res || args.force) {
 			// Create needed parent directories.
 			[err, res] = await flatry(mkdirp(commanddir));
@@ -216,14 +228,8 @@ module.exports = async args => {
 
 			// Create placeholder files when placeholders object is populated.
 			if (Object.keys(placeholders).length) {
-				// Build placeholder directory path.
-				let placeholders_path = path.join(
-					registrypaths,
-					`${commandname}/placeholders`
-				);
-
 				// Create needed directories.
-				[err, res] = await flatry(mkdirp(placeholders_path));
+				[err, res] = await flatry(mkdirp(commandplaceholderspaths));
 				if (res) {
 					let promises = []; // Var to store promises in.
 
@@ -237,7 +243,7 @@ module.exports = async args => {
 						) {
 							promises.push(
 								write(
-									`${placeholders_path}/${key}`,
+									`${commandplaceholderspaths}/${key}`,
 									placeholders[key]
 								)
 							);
@@ -251,13 +257,15 @@ module.exports = async args => {
 
 			// -----------------------------------------------------PLACEHOLDERS
 
-			log(`${chalk.bold(commandname)} acmap added.`);
+			if (!npkg) log(`${chalk.bold(commandname)} acmap added.`);
 		} else {
-			log(
-				`acmap ${chalk.bold(commandname)} exists (use ${chalk.bold(
-					"--force"
-				)} to overwrite current acmap).`
-			);
+			if (!npkg) {
+				log(
+					`acmap ${chalk.bold(commandname)} exists (use ${chalk.bold(
+						"--force"
+					)} to overwrite current acmap).`
+				);
+			}
 		}
 	}
 

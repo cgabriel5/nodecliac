@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Script has access to connector.sh variables. If changes need to be made
-# use the following and change them accordingly:
+# override needed variables.
 # $COMP_LINE    # Original (complete) CLI input.
-# $cpoint       # Caret index when [tab] key was pressed.
-# $maincommand  # The ACDEF definitions file.
-# $acdef        # The command name from sourced passed-in argument.
+# $cpoint       # Caret index when [TAB] key was pressed.
+# $maincommand  # The command name making completions for.
+# $acdef        # The ACDEF definitions file contents.
 
 # This script will run the Perl prehook script. The returned data is in the
 # following format: the 1st line is the modified CLI input while subsequent

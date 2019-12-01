@@ -131,10 +131,8 @@ nodecliac uses two custom file types: **a**uto-**c**ompletion **map** (`.acmap`)
   <summary>Show breakdown</summary>
 
 1. [Create CLI app's](#cli-usage-examples) `mycliprogram.acmap` file.
-2. Using nodecliac's `make` command, provide `mycliprogram.acmap` to generate app's `mycliprogram.acdef` file.
-3. Add generated `mycliprogram.acdef` file to [nodecliac's registry](#cli-usage-examples) via `make`'s `--add` flag.
-4. After installing reload `.bashrc` (by running `$ source ~/.bashrc`) or open a new Terminal to start using.
-5. See [CLI Usage](#cli-usage-examples) section for examples.
+2. Generate app's completion-package from `mycliprogram.acmap` file and add to nodecliac's registry.
+3. Finally, reload `.bashrc` or open a new Terminal to start using.
 
 </details>
 
@@ -202,8 +200,8 @@ $scriptpath = "~/path/to/script1.sh"
 $scriptpath="~/path/to/script2.sh"
 $scriptpath    =   "~/path/to/script3.sh"
 
-# Note: `$scriptpath` gets declared 3 times. In this case it's
-# final value will be: "~/path/to/script3.sh"
+# Note: `$scriptpath` gets declared 3 times.
+# It's final value is: "~/path/to/script3.sh"
 ```
 
 #### Variable Interpolation (template-string)
@@ -603,7 +601,7 @@ For example, the line `.workspaces.run --` can be viewed as `yarn.workspaces.run
 
 #### Placeholders
 
-- Depending how complex an `.acmap` is, sometimes placeholders might be needed.
+- Depending how complex an `.acmap` is, sometimes placeholders are needed.
 - Placeholder syntax:
   - Begin with `--p#` and are followed by a fixed number of hexadecimal characters.
   - **Example**: `--p#d2eef1`
@@ -718,7 +716,7 @@ $ mycliprogram [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] 
   - `--source=`: (**required**): Path to `.acmap` file.
   - `--add`: Add generated completion-package nodecliac registry.
     - `--force`: Forces overwrite of existing registry completion-package.
-  - `--save` : Location where completion-package should be saved to.
+  - `--save=` : Location where completion-package should be saved to.
     - **Note**: If path isn't provided current working directory is used.
     - `--force`: Forces overwrite of existing completion-package at directory.
   - `--print` : Log output to console.
@@ -747,7 +745,7 @@ $ mycliprogram [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] 
 #### Generate completion-package
 
 ```sh
-# Generate completion-package for 'mycliprogram' add add it to registry.
+# Generate completion-package for 'mycliprogram' and add it to registry.
 $ nodecliac make --source path/to/mycliprogram.acmap --add
 
 # Generate mycliprogram.acdef contents and log to terminal.
@@ -768,7 +766,7 @@ $ nodecliac format --source path/to/mycliprogram.acmap --print --indent "s:2" --
 
 ## Registry
 
-The registry (`~/.nodecliac/registry`) is where nodecliac's command completion packages live. All completion packages follow this form: `~/.nodecliac/registry/COMMAND-NAME/`. For example, [yarn's](https://yarnpkg.com/en/) completion [package and its files](/resources/nodecliac) will reside in `~/.nodecliac/registry/yarn/`.
+The registry (`~/.nodecliac/registry`) is where nodecliac's completion packages live. Completion packages follow this form: `~/.nodecliac/registry/COMMAND-NAME/`. For example, [yarn's](https://yarnpkg.com/en/) completion [package and its files](/resources/nodecliac) reside in `~/.nodecliac/registry/yarn/`.
 
 <details><summary>Show directory structures.</summary>
 
@@ -805,25 +803,34 @@ The registry (`~/.nodecliac/registry`) is where nodecliac's command completion p
 ## Hooks
 
 Some programs are more complicated than others. Take [yarn](https://yarnpkg.com/en/) as an example. Its `yarn.acdef` file needs to be modified before parsing to [dynamically add the repos scripts as commands](https://yarnpkg.com/en/docs/cli/run#toc-yarn-run). Doing so will require a pre-parsing hook. Essentially, before nodecliac does anything
-it's possible to use a pre-hook script to modify the command's `.acdef` file and CLI input (in-memory) values.
+it's possible to use a pre-hook script to modify the command's `acdef` and CLI input values.
 
 <details><summary>Expand hook section.</summary>
 
 #### Available hook scripts
 
 - `hooks/prehook.sh`
-  - Allows for modification of the in-memory `acdef` contents before entering parsing.
-  - Allows for modification of the in-memory CLI input string before entering parsing.
+  - Purpose: `prehook.sh` is _meant_ to modify `acdef` and `cline` variables before running [completion-script](/src/scripts/ac).
+  - **Note**: However, since the hook script is `sourced` into [`connector.sh`](/src/scripts/main/connector.sh) it has _access_ to other [`connector.sh`](/src/scripts/main/connector.sh) variables.
+  - Hook script should be seen as [glue code](https://en.wikipedia.org/wiki/Scripting_language#Glue_languages) intended to run actual logic.
+    - For example, take yarn's [`prehook.sh`](/resources/nodecliac/yarn/hooks/prehook.sh) script. The [script](/resources/nodecliac/yarn/hooks/prehook.sh) actually runs a Perl script ([`prehook.pl`](/resources/nodecliac/yarn/hooks/prehook.pl)) which returns the repo's `package.json` `scripts` as well as modified CLI input.
+    - The point here is to use the language _needed for the job_. Bash simply _glues_ it together.
 
-**Note**: Using a hook script might sound involved/off-putting but it's not. A hook script is _just a regular shell script_. The script simply has special meaning in the sense that it is used to **hook** into nodecliac to change some variables used for later Bash completion processing.
+**Note**: Using a hook script might sound involved/off-putting but it's not. A hook script is _just a regular executable shell script_. The script simply has special meaning in the sense that it is used to **hook** into nodecliac to change some variables used for later Bash completion processing.
 
 #### Making Hook Script
 
-First create the command's resource `hooks/` directory: `~/.nodecliac/registry/COMMAND-NAME/hooks`. All hook scripts will reside in the `COMMAND-NAME/hooks` sub directory. For example, yarn's `prehook` script will reside at `~/.nodecliac/registry/yarn/hooks/prehook.sh`.
+First create the command's resource `hooks/` directory: `~/.nodecliac/registry/COMMAND-NAME/hooks`. All hook scripts reside in the `COMMAND-NAME/hooks` sub directory. For example, yarn's `prehook` script is located at `~/.nodecliac/registry/yarn/hooks/prehook.sh`.
 
 #### Using Hook Script
 
-This section will continue to use [yarn's prehook script](/resources/nodecliac/yarn/hooks/prehook.sh) as an example. [`/yarn/hooks/prehook.sh`](/resources/nodecliac/yarn/hooks/prehook.sh) runs custom Perl scripts to modify the `.acdef` and the CLI input. Since the prehook script is sourced into the main completion script nothing is echoed back to the main script. Instead, the `acdef` and `cline` variables get overwritten. These new values will then be used by nodecliac to provide Bash completions.
+This section will continue to use yarn's [`prehook.sh`](/resources/nodecliac/yarn/hooks/prehook.sh) script as an example.
+
+- [`prehook.sh`](/resources/nodecliac/yarn/hooks/prehook.sh) runs a Perl script ([`prehook.pl`](/resources/nodecliac/yarn/hooks/prehook.pl)) which returns the repo's `package.json` `scripts` as well as modified CLI input.
+- [`prehook.sh`](/resources/nodecliac/yarn/hooks/prehook.sh) then modifies the `acdef` and the CLI input.
+- Since the prehook script is sourced into [`connector.sh`](/src/scripts/main/connector.sh) nothing is echoed to script.
+- Instead, the `acdef` and `cline` variables are reset/overwritten.
+- These new values are then used by nodecliac to provide Bash completions.
 
 **Note**: Perl is used here for quick text processing as doing it in Bash is slow and cumbersome. _However_, use what you _want/need_ to get the job done. Hook scripts just _need_ to be executable scripts stored in `~/.nodecliac/registry/COMMAND-NAME/hooks/`.
 

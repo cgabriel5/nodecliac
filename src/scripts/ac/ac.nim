@@ -78,7 +78,7 @@ let hdir = os.getEnv("HOME")
 
 # Get arguments.
 let oinput = os.paramStr(1) # Original unmodified CLI input.
-let cline = os.paramStr(2) # CLI input (could be modified via prehook).
+let cline = os.paramStr(2) # CLI input (could be modified via pre-parse).
 let cpoint = os.paramStr(3).parseInt(); # Caret index when [tab] key was pressed.
 let maincommand = os.paramStr(4) # Get command name from sourced passed-in argument.
 let acdef = os.paramStr(5) # Get the acdef definitions file.

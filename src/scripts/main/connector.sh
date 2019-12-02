@@ -1111,14 +1111,14 @@ if [[ -n "$1" ]] && type complete &>/dev/null; then
 
 		# Run completion script if it exists.
 		if [[ -e "$acpl_script" ]]; then
-			# Run prehook(s) if it exists.
-			prehook_script=~/.nodecliac/registry/$1/hooks/prehook.sh
-			if [[ -e "$prehook_script" ]]; then
+			# Run pre-parse hook script if it exists.
+			preparse_script=~/.nodecliac/registry/$1/hooks/pre-parse.sh
+			if [[ -e "$preparse_script" ]]; then
 				# [https://stackoverflow.com/questions/16217064/change-environment-variable-in-child-process-bash]
 				# [https://stackoverflow.com/questions/192292/how-best-to-include-other-scripts]
 				# [https://www.daveeddy.com/2010/09/20/import-source-files-in-bash/]
 				# [https://tecadmin.net/include-bash-script-in-other-bash-script/]
-				source "$prehook_script"
+				source "$preparse_script"
 			fi
 
 			# Run Perl auto-completion script.

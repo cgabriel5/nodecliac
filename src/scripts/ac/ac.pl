@@ -21,7 +21,7 @@ my $hdir = $ENV{'HOME'}; # ← Fastest way but is it reliable?
 
 # Get arguments.
 my $oinput = $ARGV[0]; # Original unmodified CLI input.
-my $cline = $ARGV[1]; # CLI input (could be modified via prehook).
+my $cline = $ARGV[1]; # CLI input (could be modified via pre-parse).
 my $cpoint = int($ARGV[2]); # Caret index when [tab] key was pressed.
 my $maincommand = $ARGV[3]; # Get command name from sourced passed-in argument.
 my $acdef = $ARGV[4]; # Get the acdef definitions file.

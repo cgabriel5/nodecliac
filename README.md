@@ -726,7 +726,7 @@ $ mycliprogram [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] 
   - `--command=`: The file to print (list dynamically generated based on available files in registry).
 - `registry`: Lists `.acdef` files in registry.
 - `setup`: Installs and setups nodecliac.
-  - `--force` : Forces install even if nodecliac is already installed.
+  - `--force` : Forces/overwrites old install if nodecliac is already installed.
   - `--rcfilepath`: By default `~/.bashrc` is used. If another rc file should be used provide its path.
     - **Note**: This gets appended to rc file:
       - `ncliac=~/.nodecliac/src/main/init.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;`
@@ -802,8 +802,7 @@ The registry (`~/.nodecliac/registry`) is where nodecliac's completion packages 
 
 ## Hooks
 
-Some programs are more complicated than others. Take [yarn](https://yarnpkg.com/en/) as an example. Its `yarn.acdef` file needs to be modified before parsing to [dynamically add the repos scripts as commands](https://yarnpkg.com/en/docs/cli/run#toc-yarn-run). Doing so will require a pre-parsing hook. Essentially, before nodecliac does anything
-it's possible to use a pre-hook script to modify the command's `acdef` and CLI input values.
+Some programs are more complicated than others. Let's use [`yarn.acdef`](/resources/nodecliac/yarn/yarn.acdef) as an example. Before running the completion-script, the current repo's `package.json` `scripts` entries need to be [added as commands](https://yarnpkg.com/en/docs/cli/run#toc-yarn-run) to `yarn.acdef`. Doing so requires a `pre-parsing` hook. In essence, before the completion-script is run, the `pre-parsing` hook script gives the ability to modify completion-script parameters/variables.
 
 <details><summary>Expand hook section.</summary>
 

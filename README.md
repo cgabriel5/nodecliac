@@ -274,30 +274,30 @@ Take the hypothetical `file.sh` with the following contents:
 
 ```sh
 for f in ~/.nodecliac/registry/yarn/hooks/*.*; do
-  [[ "${f##*/}" =~ ^(prehook)\.[a-zA-Z]+$ ]] && echo "$f"
+  [[ "${f##*/}" =~ ^(pre-parse)\.[a-zA-Z]+$ ]] && echo "$f"
 done
 ```
 
 - **Code Breakdown**
   - The code will loop over the `~/.nodecliac/registry/yarn/hooks` directory.
-  - File names matching the pattern (`^(prehook).[a-zA-Z]+$`) will print to console.
+  - File names matching the pattern (`^(pre-parse).[a-zA-Z]+$`) will print to console.
 
 **Level 1**: If `bash` is one's default shell then running this as a one-liner can be as simple as pasting the following into a Terminal:
 
 ```bash
-for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ "${f##*/}" =~ ^(prehook)\.[a-zA-Z]+$ ]] && echo "$f"; done
+for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ "${f##*/}" =~ ^(pre-parse)\.[a-zA-Z]+$ ]] && echo "$f"; done
 ```
 
 **Level 2**: Now say we want to run the same line of code via `bash -c`. Paste the following into a Terminal.
 
 ```bash
-bash -c "for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ \"\${f##*/}\" =~ ^(prehook)\\.[a-zA-Z]+$ ]] && echo \"\$f\"; done;"
+bash -c "for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ \"\${f##*/}\" =~ ^(pre-parse)\\.[a-zA-Z]+$ ]] && echo \"\$f\"; done;"
 ```
 
 **Level 3**: How about using `Perl` to run `bash -c` to execute the command?
 
 ```bash
-perl -e 'print `bash -c "for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ \\\"\\\${f##*/}\\\" =~ ^(prehook)\\.[a-zA-Z]+\$ ]] && echo \"\\\$f\"; done;"`';
+perl -e 'print `bash -c "for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ \\\"\\\${f##*/}\\\" =~ ^(pre-parse)\\.[a-zA-Z]+\$ ]] && echo \"\\\$f\"; done;"`';
 ```
 
 **Note**: As seen, the more programs involved the more escaping required due to the string being passed from program to program.
@@ -809,26 +809,26 @@ it's possible to use a pre-hook script to modify the command's `acdef` and CLI i
 
 #### Available hook scripts
 
-- `hooks/prehook.sh`
-  - Purpose: `prehook.sh` is _meant_ to modify `acdef` and `cline` variables before running [completion-script](/src/scripts/ac).
+- `hooks/pre-parse.sh`
+  - Purpose: `pre-parse.sh` is _meant_ to modify `acdef` and `cline` variables before running [completion-script](/src/scripts/ac).
   - **Note**: However, since the hook script is `sourced` into [`connector.sh`](/src/scripts/main/connector.sh) it has _access_ to other [`connector.sh`](/src/scripts/main/connector.sh) variables.
   - Hook script should be seen as [glue code](https://en.wikipedia.org/wiki/Scripting_language#Glue_languages) intended to run actual logic.
-    - For example, take yarn's [`prehook.sh`](/resources/nodecliac/yarn/hooks/prehook.sh) script. The [script](/resources/nodecliac/yarn/hooks/prehook.sh) actually runs a Perl script ([`prehook.pl`](/resources/nodecliac/yarn/hooks/prehook.pl)) which returns the repo's `package.json` `scripts` as well as modified CLI input.
+    - For example, take yarn's [`pre-parse.sh`](/resources/nodecliac/yarn/hooks/pre-parse.sh) script. The [script](/resources/nodecliac/yarn/hooks/pre-parse.sh) actually runs a Perl script ([`pre-parse.pl`](/resources/nodecliac/yarn/hooks/pre-parse.pl)) which returns the repo's `package.json` `scripts` as well as modified CLI input.
     - The point here is to use the language _needed for the job_. Bash simply _glues_ it together.
 
 **Note**: Using a hook script might sound involved/off-putting but it's not. A hook script is _just a regular executable shell script_. The script simply has special meaning in the sense that it is used to **hook** into nodecliac to change some variables used for later Bash completion processing.
 
 #### Making Hook Script
 
-First create the command's resource `hooks/` directory: `~/.nodecliac/registry/COMMAND-NAME/hooks`. All hook scripts reside in the `COMMAND-NAME/hooks` sub directory. For example, yarn's `prehook` script is located at `~/.nodecliac/registry/yarn/hooks/prehook.sh`.
+First create the command's resource `hooks/` directory: `~/.nodecliac/registry/COMMAND-NAME/hooks`. All hook scripts reside in the `COMMAND-NAME/hooks` sub directory. For example, yarn's `pre-parse` script is located at `~/.nodecliac/registry/yarn/hooks/pre-parse.sh`.
 
 #### Using Hook Script
 
-This section will continue to use yarn's [`prehook.sh`](/resources/nodecliac/yarn/hooks/prehook.sh) script as an example.
+This section will continue to use yarn's [`pre-parse.sh`](/resources/nodecliac/yarn/hooks/pre-parse.sh) script as an example.
 
-- [`prehook.sh`](/resources/nodecliac/yarn/hooks/prehook.sh) runs a Perl script ([`prehook.pl`](/resources/nodecliac/yarn/hooks/prehook.pl)) which returns the repo's `package.json` `scripts` as well as modified CLI input.
-- [`prehook.sh`](/resources/nodecliac/yarn/hooks/prehook.sh) then modifies the `acdef` and the CLI input.
-- Since the prehook script is sourced into [`connector.sh`](/src/scripts/main/connector.sh) nothing is echoed to script.
+- [`pre-parse.sh`](/resources/nodecliac/yarn/hooks/pre-parse.sh) runs a Perl script ([`pre-parse.pl`](/resources/nodecliac/yarn/hooks/pre-parse.pl)) which returns the repo's `package.json` `scripts` as well as modified CLI input.
+- [`pre-parse.sh`](/resources/nodecliac/yarn/hooks/pre-parse.sh) then modifies the `acdef` and the CLI input.
+- Since the pre-parse script is sourced into [`connector.sh`](/src/scripts/main/connector.sh) nothing is echoed to script.
 - Instead, the `acdef` and `cline` variables are reset/overwritten.
 - These new values are then used by nodecliac to provide Bash completions.
 

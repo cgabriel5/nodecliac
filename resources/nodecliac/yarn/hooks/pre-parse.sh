@@ -7,10 +7,10 @@
 # $maincommand  # The command name making completions for.
 # $acdef        # The ACDEF definitions file contents.
 
-# This script will run the Perl prehook script. The returned data is in the
+# This script will run the Perl pre-parse script. The returned data is in the
 # following format: the 1st line is the modified CLI input while subsequent
 # lines are addons to the ACDEF.
-output="$("$HOME/.nodecliac/registry/yarn/hooks/prehook.pl" "$COMP_LINE")"
+output="$("$HOME/.nodecliac/registry/yarn/hooks/pre-parse.pl" "$COMP_LINE")"
 
 # Get modified CLI input line (1st line).
 # [https://stackoverflow.com/q/30649640]

@@ -54,8 +54,8 @@ module.exports = (string, commandname, source, formatting, ...args) => {
 
 		// Handle new lines.
 		if (char === "\n") {
-			// Run empty line parser.
-			require(`./parsers/empty-line.js`)(STATE);
+			// Run newline parser.
+			require(`./parsers/newline.js`)(STATE);
 
 			STATE.line++; // Increment line count.
 			STATE.column = 0; // Reset column to zero.

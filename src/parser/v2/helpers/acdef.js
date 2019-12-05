@@ -1,6 +1,6 @@
 "use strict";
 
-const { md5 } = require("../../../utils/toolbox.js");
+const { md5, hasOwnProperty } = require("../../../utils/toolbox.js");
 
 /**
  * Generate .acdef, .config.acdef file contents from parse tree ob nodes.
@@ -105,7 +105,7 @@ module.exports = (STATE, commandname) => {
 			const cvalue = NODE.command.value;
 
 			// Add command to SETS if not already.
-			if (!Object.prototype.hasOwnProperty.call(SETS, cvalue)) {
+			if (!hasOwnProperty(SETS, cvalue)) {
 				SETS[cvalue] = new Set();
 
 				// Note: Create any missing parent chains. =====================
@@ -117,9 +117,7 @@ module.exports = (STATE, commandname) => {
 				for (let i = commands.length - 1; i > -1; i--) {
 					let rchain = commands.join("."); // Remainder chain.
 
-					if (!Object.prototype.hasOwnProperty.call(SETS, rchain)) {
-						SETS[rchain] = new Set();
-					}
+					if (!hasOwnProperty(SETS, rchain)) SETS[rchain] = new Set();
 
 					commands.pop(); // Finally, remove the last element.
 				}
@@ -146,7 +144,7 @@ module.exports = (STATE, commandname) => {
 	// 3) Populate Sets SETS. ==================================================
 
 	for (let i in BATCHES) {
-		if (!Object.prototype.hasOwnProperty.call(BATCHES, i)) continue;
+		if (!hasOwnProperty(BATCHES, i)) continue;
 
 		let BATCH = BATCHES[i]; // Cache current loop char.
 		let { commands: COMMANDS, flags: FLAGS } = BATCH; // Get commands/flags.
@@ -204,7 +202,7 @@ module.exports = (STATE, commandname) => {
 	// 4) Generate final ACDEF before sorting. =================================
 
 	for (let command in SETS) {
-		if (command && Object.prototype.hasOwnProperty.call(SETS, command)) {
+		if (command && hasOwnProperty(SETS, command)) {
 			let SET = SETS[command]; // Get Set object.
 			let flags = "--";
 
@@ -219,7 +217,7 @@ module.exports = (STATE, commandname) => {
 			// holder file can then be read.
 			if (PLACEHOLD && flags.length >= 100) {
 				// Memoize hashes to prevent re-hashing same flag strings.
-				if (!Object.prototype.hasOwnProperty.call(memtable, flags)) {
+				if (!hasOwnProperty(memtable, flags)) {
 					let md5hash = md5(flags).substr(26); // md5 hash of flags string.
 					PLACEHOLDERS[md5hash] = flags; // Store flags in object.
 					memtable[flags] = md5hash;
@@ -258,7 +256,7 @@ module.exports = (STATE, commandname) => {
 	// Build settings contents string.
 	let CONFIG = header;
 	for (let setting in SETTINGS) {
-		if (Object.prototype.hasOwnProperty.call(SETTINGS, setting)) {
+		if (hasOwnProperty(SETTINGS, setting)) {
 			CONFIG += `@${setting} = ${SETTINGS[setting]}\n`;
 		}
 	}

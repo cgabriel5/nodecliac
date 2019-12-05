@@ -1,6 +1,5 @@
 "use strict";
 
-// Get needed modules.
 const path = require("path");
 const chalk = require("chalk");
 const { exit } = require("../../../utils/toolbox.js");
@@ -63,15 +62,11 @@ let caller_filename = () => {
 		let err = new Error();
 		let currentfile;
 
-		Error.prepareStackTrace = function(err, stack) {
-			return stack;
-		};
-
+		Error.prepareStackTrace = (err, stack) => stack;
 		currentfile = err.stack.shift().getFileName();
 
 		while (err.stack.length) {
 			callerfile = err.stack.shift().getFileName();
-
 			if (currentfile !== callerfile) break;
 		}
 
@@ -99,31 +94,20 @@ let issue = () => {};
  * @return {undefined} - Nothing is returned.
  */
 issue.error = (STATE, code) => {
-	// Get file invoking issue.
-	let callerfile = caller_filename();
-	// Get error from lookup table.
-	let error;
+	const { line, column } = STATE;
+	const X_MARK = chalk.bold.red("❌");
+	const callerfile = caller_filename(); // Get file invoking issue.
+	let error, msg;
+
+	// Get error (use default if code doesn't exist).
 	if (!code) {
-		// Use default error.
-		error = errors["*"].error["0"];
-	} else {
-		error = errors[callerfile][code];
-	}
+		code = 0; // Reset to default error.
+		error = errors["*"].error[code];
+	} else error = errors[callerfile][code];
 
-	// Reset when code is not provided.
-	if (!code) {
-		code = 0;
-	}
-
-	// The text to log to console.
-	let output = [
-		`  ${chalk.bold.red("❌")}  ${STATE.line}:${
-			STATE.column
-		} ${callerfile} (E${code}) ${chalk.bold(error)}`
-	];
-
-	// Print issue.
-	exit.normal(output, undefined /* Since issuing an error, stop script.*/);
+	error = chalk.bold(error); // Decorate error.
+	msg = `  ${X_MARK}  ${line}:${column} ${callerfile} (E${code}) ${error}`;
+	exit.normal([msg], undefined); // Print error and stop script.
 };
 
 /**

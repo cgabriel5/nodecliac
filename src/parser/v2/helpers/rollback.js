@@ -1,8 +1,7 @@
 "use strict";
 
 /**
- * Rollback index by 1 so parser starts on assignment case on next
- *     iteration.
+ * Rollback loop index so parser re-starts same iteration.
  *
  * @param  {object} STATE - Main loop state object.
  * @return {undefined} - Nothing is returned.

@@ -1,21 +1,21 @@
 "use strict";
 
 /**
- * Add new line node to tree.
+ * Newline parser.
  *
- * ---------- Parsing States Breakdown -----------------------------------------
- * \n Some body.
- * ^-New-line character.
+ * ---------- Parsing Breakdown ------------------------------------------------
+ * \n
+ * ^-Newline character.
  * -----------------------------------------------------------------------------
  *
  * @param  {object} STATE - Main loop state object.
- * @return {object} - Object containing parsed information.
+ * @return {undefined} - Nothing is returned.
  */
 module.exports = STATE => {
-	// require("../helpers/trace.js")(__filename); // Trace parser.
-
-	// Get global loop state variables.
-	let { line /* column, i, l, string */ } = STATE;
+	let { line, utils } = STATE; // Loop state vars.
+	// Utility functions and constants.
+	let { functions: F } = utils;
+	let { add } = F.tree;
 
 	// Parsing vars.
 	let NODE = {
@@ -26,8 +26,5 @@ module.exports = STATE => {
 		endpoint: STATE.i // Index where parsing ended.
 	};
 
-	// Add node to tree.
-	require("../helpers/tree-add.js")(STATE, NODE);
-
-	return NODE;
+	add(STATE, NODE); // Add node to tree.
 };

@@ -1,27 +1,21 @@
 "use strict";
 
-// Get needed modules.
-let issue = require("./issue.js");
-
 /**
- * Some line types cannot be preceded with (whitespace )indentation. If they
- *     do give an error.
+ * Some line types can't begin w/ whitespace. If they do give an error.
  *
  * @param  {object} STATE - Main loop state object.
  * @param  {string} line_type - The line's line type.
- * @return {string} - The line's type.
+ * @return {undefined} - Nothing is returned.
  */
 module.exports = (STATE, line_type) => {
-	// Vars.
-	let linestarts = STATE.tables.linestarts;
-	// Note: Following line types cannot have any whitespace indentation.
-	let r_line_types = /(setting|variable|command)/;
+	let issue = STATE.utils.functions.issue; // Utility functions and constants.
+
+	let linestarts = STATE.tables.linestarts; // Vars.
+	let r_linetypes = /(setting|variable|command)/; // Lines can't be indented.
 
 	// Following commands cannot begin with any whitespace.
-	if (linestarts[STATE.line] !== STATE.i && r_line_types.test(line_type)) {
-		// Reset column/index to first start of line.
-		STATE.column = 1;
-
+	if (linestarts[STATE.line] !== STATE.i && r_linetypes.test(line_type)) {
+		STATE.column = 1; // Reset column/index to start of line.
 		issue.error(STATE, 11); // Note: Line cannot begin with whitespace.
 	}
 };

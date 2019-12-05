@@ -1,13 +1,9 @@
 "use strict";
 
-// Needed modules.
-let issue = require("../helpers/issue.js");
-let { r_nl, r_whitespace, r_quote } = require("../helpers/patterns.js");
-
 /**
- * Parses flag option line.
+ * Flag option parser.
  *
- * ---------- Parsing States Breakdown -----------------------------------------
+ * ---------- Parsing Breakdown ------------------------------------------------
  * - value
  *  |     ^-EOL-Whitespace-Boundary 2
  *  ^-Whitespace-Boundary 1
@@ -19,11 +15,15 @@ let { r_nl, r_whitespace, r_quote } = require("../helpers/patterns.js");
  * @return {object} - Object containing parsed information.
  */
 module.exports = STATE => {
-	// Note: If a flag scope doesn't exist, error as it needs to.
-	require("../helpers/brace-checks.js")(STATE, null, "pre-existing-fs");
+	let { line, l, string, utils } = STATE; // Loop state vars.
+	// Utility functions and constants.
+	let { functions: F, constants: C } = utils;
+	let { r_nl, r_whitespace, r_quote } = C.regexp;
+	let { issue, rollback, validate, bracechecks } = F.loop;
+	let { add } = F.tree;
 
-	// Get global loop state variables.
-	let { line, l, string } = STATE;
+	// Note: If a flag scope doesn't exist, error as it needs to.
+	bracechecks(STATE, null, "pre-existing-fs");
 
 	// Parsing vars.
 	let state = "bullet"; // Initial parsing state.
@@ -39,12 +39,11 @@ module.exports = STATE => {
 
 	// Loop over string.
 	for (; STATE.i < l; STATE.i++) {
-		let char = string.charAt(STATE.i); // Cache current loop item.
+		let char = string.charAt(STATE.i); // Cache current loop char.
 
-		// End loop on a new line char.
+		// End loop on a newline char.
 		if (r_nl.test(char)) {
-			// Note: Subtract index by 1 to run newline character logic code
-			// block on next iteration
+			// Rollback to run newline char code block next iteration.
 			NODE.endpoint = --STATE.i; // Store newline index.
 
 			break;
@@ -54,33 +53,27 @@ module.exports = STATE => {
 
 		switch (state) {
 			case "bullet":
-				// Store '-' bullet index positions.
+				// Store index positions.
 				NODE.bullet.start = STATE.i;
 				NODE.bullet.end = STATE.i;
-				// Start building the value string.
-				NODE.bullet.value = char;
+				NODE.bullet.value = char; // Start building string.
 
-				// Change state to whitespace-boundary after bullet.
-				state = "spacer";
+				state = "spacer"; // Reset parsing state.
 
 				break;
 
 			case "spacer":
-				// A whitespace character must follow the bullet.
-				if (!r_whitespace.test(char)) {
-					issue.error(STATE);
-				}
+				// Note: A whitespace character must follow bullet, else error.
+				if (!r_whitespace.test(char)) issue.error(STATE);
 
-				// Set state to collect comment characters.
-				state = "wsb-prevalue";
+				state = "wsb-prevalue"; // Reset parsing state.
 
 				break;
 
 			case "wsb-prevalue":
-				// Note: Allow any whitespace until first non-whitespace
-				// character is hit.
+				// Note: Allow whitespace until first non-whitespace char is hit.
 				if (!r_whitespace.test(char)) {
-					STATE.loop.rollback(STATE); // Rollback loop.
+					rollback(STATE); // Rollback loop index.
 
 					state = "value";
 				}
@@ -90,37 +83,31 @@ module.exports = STATE => {
 			case "value":
 				{
 					// Value:
-					// - Command-flags: $("cat")
-					// - Strings: "value"
-					// - Escaped-values: val\ ue
+					// - Command-flags  => $("cat")
+					// - Strings        => "value"
+					// - Escaped-values => val\ ue
 
-					// Get the previous char.
-					let pchar = string.charAt(STATE.i - 1);
+					let pchar = string.charAt(STATE.i - 1); // Previous char.
 
 					// Determine value type.
 					if (!NODE.value.value) {
-						if (char === "$") {
-							NODE.value.type = "command-flag";
-						} else if (char === "(") {
-							NODE.value.type = "list";
-						} else if (r_quote.test(char)) {
-							NODE.value.type = "quoted";
-						} else {
-							NODE.value.type = "escaped";
-						}
+						let type = "escaped"; // Set default.
+
+						if (char === "$") type = "command-flag";
+						else if (char === "(") type = "list";
+						else if (r_quote.test(char)) type = "quoted";
+
+						NODE.value.type = type; // Set type.
 
 						// Store index positions.
 						NODE.value.start = STATE.i;
 						NODE.value.end = STATE.i;
-						// Start building the value string.
-						NODE.value.value = char;
+						NODE.value.value = char; // Start building string.
 					} else {
 						// If flag is set and characters can still be consumed
-						// then there is a syntax error. For example, string may
-						// be improperly quoted/escaped so give error.
-						if (end_comsuming) {
-							issue.error(STATE);
-						}
+						// then there is a syntax error. For example, string
+						// may be improperly quoted/escaped so give error.
+						if (end_comsuming) issue.error(STATE);
 
 						// Get string type.
 						let stype = NODE.value.type;
@@ -141,8 +128,7 @@ module.exports = STATE => {
 
 						// Store index positions.
 						NODE.value.end = STATE.i;
-						// Continue building the value string.
-						NODE.value.value += char;
+						NODE.value.value += char; // Continue building string.
 					}
 				}
 
@@ -150,11 +136,6 @@ module.exports = STATE => {
 		}
 	}
 
-	// Validate extracted variable value.
-	require("../helpers/validate-value.js")(STATE, NODE);
-
-	// Add node to tree.
-	require("../helpers/tree-add.js")(STATE, NODE);
-
-	return NODE;
+	validate(STATE, NODE); // Validate extracted variable value.
+	add(STATE, NODE); // Add node to tree.
 };

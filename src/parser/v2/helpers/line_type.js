@@ -1,10 +1,7 @@
 "use strict";
 
-// Get needed modules.
-let { r_letter, r_whitespace } = require("./patterns.js");
-
 /**
- * Determine the line's line type.
+ * Determine line's line type.
  *
  * @param  {object} STATE - Main loop state object.
  * @param  {string} char - The loop's current character.
@@ -12,57 +9,38 @@ let { r_letter, r_whitespace } = require("./patterns.js");
  * @return {string} - The line's type.
  */
 module.exports = (STATE, char, nchar) => {
-	// Vars.
-	let string = STATE.string;
+	let { string, utils } = STATE; // Loop state vars.
+	// Utility functions and constants.
+	let { constants: C } = utils;
+	let { r_letter, r_whitespace } = C.regexp;
 
-	// Possible line types lookup table.
-	// +----------------------------------------------+
-	// | Character |  Line-Type                       |
-	// | ---------------------------------------------|
-	// | ;         |  Terminator (end parsing).       |
-	// | @         |  Setting.                        |
-	// | #         |  Comment.                        |
-	// | a-zA-Z    |  Command chain.                  |
-	// | -         |  Flag.                           |
-	// | '- '      |  Flag option (ignore quotes).    |
-	// | )         |  Closing brace (flag set).       |
-	// | ]         |  Closing brace (long-flag form). |
-	// +----------------------------------------------+
 	let LINE_TYPES = {
-		";": "terminator",
+		";": "terminator", // Terminator (end parsing).
 		"#": "comment",
-		"-": "flag",
-		"@": "setting",
 		$: "variable",
-		"]": "close-brace",
-		")": "close-brace"
+		"@": "setting",
+		// "a-zA-Z": "chain",
+		"-": "flag",
+		// "- ": "flag-option",
+		")": "close-brace",
+		"]": "close-brace"
 	};
 
-	// Get the line type.
-	let line_type = LINE_TYPES[char];
+	let line_type = LINE_TYPES[char]; // Lookup line type.
 
-	// If line type doesn't exist default to command.
-	if (r_letter.test(char)) {
-		line_type = "command";
-	}
+	// If line type is undefined check for command characters.
+	if (!line_type && r_letter.test(char)) line_type = "command";
+
+	// Perform final line type overrides/variable resets.
 	if (line_type === "flag") {
-		// Check if a flag value.
-		if (nchar && r_whitespace.test(nchar)) {
-			// The line is actually a flag option so reset parser.
-			line_type = "option";
-		} else {
-			// Note: (Set flag) This is needed to let flag parser
-			// know to add the parsed Node to the parsing tree.
-			STATE.singletonflag = true;
-		}
+		// Line is actually a flag option so reset parser.
+		if (nchar && r_whitespace.test(nchar)) line_type = "option";
+		else STATE.singletonflag = true; // Make flag parser add node to tree.
 	} else if (line_type === "command") {
 		// Check for 'default' keyword.
 		if (string.substr(STATE.i, 7) === "default") {
 			line_type = "flag";
-
-			// Note: (Set flag) This is needed to let flag parser
-			// know to add the parsed Node to the parsing tree.
-			STATE.singletonflag = true;
+			STATE.singletonflag = true; // Make flag parser add node to tree.
 		}
 	}
 

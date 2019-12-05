@@ -1,25 +1,25 @@
 "use strict";
 
-// Needed modules.
-let issue = require("../helpers/issue.js");
-let { r_nl, r_whitespace } = require("../helpers/patterns.js");
-
 /**
- * Parses comment lines.
+ *  Comment parser.
  *
- * ---------- Parsing States Breakdown -----------------------------------------
- * # Some body.
+ * ---------- Parsing Breakdown ------------------------------------------------
+ * # Comment body.
  * ^-Symbol (Sigil).
- *  ^-Whitespace-Boundary (Space/Tab - At least 1 after the symbol).
- *   ^-Comment-Char *(All characters until newline '\n').
+ *  ^-Whitespace-Boundary (Space/Tab - At least 1 after symbol).
+ *   ^-Comment-Chars *(All characters until newline '\n').
  * -----------------------------------------------------------------------------
  *
  * @param  {object} STATE - Main loop state object.
  * @return {object} - Object containing parsed information.
  */
 module.exports = STATE => {
-	// Get global loop state variables.
-	let { line, /* column, i, */ l, string } = STATE;
+	let { line, l, string, utils } = STATE; // Loop state vars.
+	// Utility functions and constants.
+	let { functions: F, constants: C } = utils;
+	let { r_nl, r_whitespace } = C.regexp;
+	let { issue } = F.loop;
+	let { add } = F.tree;
 
 	// Parsing vars.
 	let state = "sigil"; // Initial parsing state.
@@ -27,7 +27,7 @@ module.exports = STATE => {
 		node: "COMMENT",
 		sigil: { start: null, end: null },
 		wsb: { start: null, end: null },
-		comment: { start: null, end: null, value: null },
+		comment: { start: null, end: null, value: "" },
 		line,
 		startpoint: STATE.i,
 		endpoint: null // Index where parsing ended.
@@ -35,12 +35,11 @@ module.exports = STATE => {
 
 	// Loop over string.
 	for (; STATE.i < l; STATE.i++) {
-		let char = string.charAt(STATE.i); // Cache current loop item.
+		let char = string.charAt(STATE.i); // Cache current loop char.
 
-		// End loop on a new line char.
+		// Note: End loop on a newline char.
 		if (r_nl.test(char)) {
-			// Note: Subtract index by 1 to run newline character logic code
-			// block on next iteration
+			// Rollback to run newline char code block next iteration.
 			NODE.endpoint = --STATE.i; // Store newline index.
 
 			break;
@@ -50,52 +49,36 @@ module.exports = STATE => {
 
 		switch (state) {
 			case "sigil":
-				// Store '#' sigil index positions.
+				// Store index positions.
 				NODE.sigil.start = STATE.i;
 				NODE.sigil.end = STATE.i;
 
-				// Change state to whitespace-boundary after sigil.
-				state = "wsb-sigil";
+				state = "wsb-sigil"; // Reset parsing state.
 
 				break;
 
 			case "wsb-sigil":
-				// Character must be a whitespace (space or tab) character
-				// else give an error for an invalid character.
-				if (!r_whitespace.test(char)) {
-					issue.error(STATE);
-				}
+				// If char isn't whitespace it's invalid so give error.
+				if (!r_whitespace.test(char)) issue.error(STATE);
 
-				// Else, it's valid so store positions.
+				// Store index positions.
 				NODE.wsb.start = STATE.i;
 				NODE.wsb.end = STATE.i;
 
-				// Set state to collect comment characters.
-				state = "comment";
+				state = "comment"; // Reset parsing state.
 
 				break;
 
 			case "comment":
-				// Store comment index positions.
-				// Store start index if not already stored.
-				if (!NODE.comment.start) {
-					NODE.comment.start = NODE.sigil.start;
-				}
-				NODE.comment.end = STATE.i;
+				// Note: Ensure start index is stored if not already.
+				if (!NODE.comment.start) NODE.comment.start = NODE.sigil.start;
+				NODE.comment.end = STATE.i; // Store index positions.
 
 				break;
 		}
 
-		// Allow for any characters in comments.
-		if (!NODE.comment.value) {
-			NODE.comment.value = char;
-		} else {
-			NODE.comment.value += char;
-		}
+		NODE.comment.value += char; // Capture all comment characters.
 	}
 
-	// Add node to tree.
-	require("../helpers/tree-add.js")(STATE, NODE);
-
-	return NODE;
+	add(STATE, NODE); // Add node to tree.
 };

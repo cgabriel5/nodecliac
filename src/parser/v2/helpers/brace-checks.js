@@ -1,8 +1,5 @@
 "use strict";
 
-// Get needed modules.
-let issue = require("../helpers/issue.js");
-
 /**
  * Check that command/flag scopes are properly closed.
  *
@@ -12,24 +9,15 @@ let issue = require("../helpers/issue.js");
  * @return {undefined} - Nothing is returned.
  */
 module.exports = (STATE, NODE, checktype) => {
+	let issue = STATE.utils.functions.issue; // Utility functions and constants.
+
 	switch (checktype) {
 		// Check whether a pre-existing command scope exists.
 		case "pre-existing-cs": {
 			let commandscope = STATE.scopes.command;
-			if (commandscope) {
-				// // Change line to line number of unclosed command chain.
-				// STATE.line = commandscope.line;
+			// Note: Can't declare command inside command scope.
+			if (commandscope) issue.error(STATE, 10);
 
-				// // Point column to the bracket.
-				// STATE.column =
-				// 	commandscope.brackets.start -
-				// 	STATE.tables.linestarts[STATE.line] +
-				// 	// Note: Add 1 to account for 0 base indexing (column starts at 1).
-				// 	1;
-
-				// Note: Cannot declare command inside command scope.
-				issue.error(STATE, 10);
-			}
 			break;
 		}
 
@@ -37,67 +25,47 @@ module.exports = (STATE, NODE, checktype) => {
 			// Check brace type. If the scope does not exist then give error.
 			let type = NODE.brace.value === "]" ? "command" : "flag";
 
-			// Note: Scope should exist. Otherwise the closing brace is being used
-			// invalidly. Clear scope if it does exist.
-			let commandscope = STATE.scopes[type];
-			if (commandscope) {
-				STATE.scopes[type] = null;
-
-				// Else, if scope does not exist give an error.
-			} else {
-				// Note: Give error when a ']' does not close a scope.
-				issue.error(STATE, 11);
-			}
+			// Note: Scope should exist. If not the close brace was used
+			// invalidly. If it does exist clear it.
+			if (STATE.scopes[type]) STATE.scopes[type] = null;
+			// Else, if scope doesn't exist give an error.
+			else issue.error(STATE, 11); // Note: Error when a ']' doesn't close a scope.
 
 			break;
 		}
 
 		case "post-standing-scope": {
-			// Get first set scope.
-			let type = STATE.scopes.command
-				? "command"
-				: STATE.scopes.flag
-				? "flag"
-				: null;
+			const { command, flag } = STATE.scopes; // Get scopes.
 
-			// If the scope does not exist then give error.
-			if (!type) {
-				return;
-			}
+			let commandscope = command || flag; // Use first set scope.
 
-			let commandscope = STATE.scopes[type];
 			if (commandscope) {
-				// Change line to line number of unclosed command chain.
+				// Set line to line number of unclosed command chain.
 				STATE.line = commandscope.line;
 
-				// Point column to the bracket.
-				STATE.column =
-					commandscope.brackets.start -
-					STATE.tables.linestarts[STATE.line] +
-					// Note: Add 1 to account for 0 base indexing (column starts at 1).
-					1;
+				const brackets_start = commandscope.brackets.start;
+				const linestart = STATE.tables.linestarts[STATE.line];
 
-				// Note: If a scope is left unclosed give error.
-				issue.error(STATE, 12);
-			}
+				// Note: Add 1 for 0 base indexing (column starts at 1).
+				STATE.column = brackets_start - linestart + 1; // Point column to bracket.
+
+				issue.error(STATE, 12); // Note: If scope is left unclosed, error.
+			} else return; // If no scope set return and error.
 
 			break;
 		}
 
 		// Check whether a pre-existing flag scope exists.
 		case "pre-existing-fs": {
-			let flagscope = STATE.scopes.flag;
-			if (!flagscope) {
-				// Point column to the bracket.
-				STATE.column =
-					STATE.i -
-					STATE.tables.linestarts[STATE.line] +
-					// Note: Add 1 to account for 0 base indexing (column starts at 1).
-					1;
+			if (!STATE.scopes.flag) {
+				const linestart = STATE.tables.linestarts[STATE.line];
 
-				// Note: Cannot declare flag option out of scope.
-				issue.error(STATE, 13);
+				// Note: Add 1 for 0 base indexing (column starts at 1).
+				STATE.column = STATE.i - linestart + 1; // Point column to bracket.
+
+				issue.error(STATE, 13); // Note: Flag option declared out of scope.
 			}
+
 			break;
 		}
 	}

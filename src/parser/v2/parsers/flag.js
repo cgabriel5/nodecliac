@@ -1,18 +1,9 @@
 "use strict";
 
-// Needed modules.
-let issue = require("../helpers/issue.js");
-let {
-	r_nl,
-	r_whitespace,
-	r_letter,
-	r_quote
-} = require("../helpers/patterns.js");
-
 /**
- * Parses flag set line to extract flag name, value, and its other components.
+ * Flag parser.
  *
- * ---------- Parsing States Breakdown -----------------------------------------
+ * ---------- Parsing Breakdown ------------------------------------------------
  * --flag
  * --flag ?
  * --flag =* "string"
@@ -32,19 +23,18 @@ let {
  * @return {object} - Object containing parsed information.
  */
 module.exports = (STATE, isoneliner) => {
-	// Note: If not a oneliner or there is no command scope then the
-	// flag is being declared out of scope.
-	if (!(isoneliner || STATE.scopes.command)) {
-		issue.error(STATE, 10);
-	}
+	let { line, l, string, utils } = STATE; // Loop state vars.
+	// Utility functions and constants.
+	let { functions: F, constants: C } = utils;
+	let { r_nl, r_whitespace, r_letter, r_quote } = C.regexp;
+	let { issue, rollback, validate } = F.loop;
+	let { add } = F.tree;
+
+	// Note: If not a oneliner or no command scope, flag is being declared out of scope.
+	if (!(isoneliner || STATE.scopes.command)) issue.error(STATE, 10);
 
 	// Note: If flag scope already exists another flag cannot be declared.
-	if (STATE.scopes.flag) {
-		issue.error(STATE, 11);
-	}
-
-	// Get global loop state variables.
-	let { line, l, string } = STATE;
+	if (STATE.scopes.flag) issue.error(STATE, 11);
 
 	// Parsing vars.
 	let state = string.charAt(STATE.i) === "-" ? "hyphen" : "keyword"; // Initial parsing state.
@@ -68,12 +58,11 @@ module.exports = (STATE, isoneliner) => {
 
 	// Loop over string.
 	for (; STATE.i < l; STATE.i++) {
-		let char = string.charAt(STATE.i); // Cache current loop item.
+		let char = string.charAt(STATE.i); // Cache current loop char.
 
-		// End loop on a new line char.
+		// End loop on a newline char.
 		if (stop || r_nl.test(char)) {
-			// Note: Subtract index by 1 to run newline character logic code
-			// block on next iteration
+			// Rollback to run newline char code block next iteration.
 			NODE.endpoint = --STATE.i; // Store newline index.
 
 			break;
@@ -90,31 +79,25 @@ module.exports = (STATE, isoneliner) => {
 
 				// Only hyphens are allowed at this point.
 				if (!NODE.hyphens.value) {
-					// Character must be one of the following:
-					if (char !== "-") {
-						// Note: Hitting this block means an invalid
-						// character was encountered so give an error.
-						issue.error(STATE);
-					}
+					// If char is not a hyphen, error.
+					if (char !== "-") issue.error(STATE);
 
 					// Store index positions.
 					NODE.hyphens.start = STATE.i;
 					NODE.hyphens.end = STATE.i;
-					// Start building the value string.
-					NODE.hyphens.value = char;
-
-					// Continue building hyphen string.
-				} else {
+					NODE.hyphens.value = char; // Start building string.
+				}
+				// Continue building string.
+				else {
 					// Stop at anything other than following characters.
 					if (char !== "-") {
 						state = "name";
 
-						STATE.loop.rollback(STATE); // Rollback loop.
+						rollback(STATE); // Rollback loop index.
 					} else {
 						// Store index positions.
 						NODE.hyphens.end = STATE.i;
-						// Continue building the value string.
-						NODE.hyphens.value += char;
+						NODE.hyphens.value += char; // Continue building string.
 					}
 				}
 
@@ -127,18 +110,14 @@ module.exports = (STATE, isoneliner) => {
 					let keyword = string.substr(STATE.i, keyword_len);
 
 					// Note: If the keyword is not 'default' then error.
-					if (keyword !== "default") {
-						issue.error(STATE);
-					}
+					if (keyword !== "default") issue.error(STATE);
 
 					// Store index positions.
 					NODE.keyword.start = STATE.i;
 					NODE.keyword.end = STATE.i + keyword_len - 1;
-					// Store keyword value.
-					NODE.keyword.value = keyword;
+					NODE.keyword.value = keyword; // Store keyword.
 
-					// Note: A whitespace character must follow keyword.
-					state = "keyword-spacer";
+					state = "keyword-spacer"; // Reset parsing state.
 
 					// Note: Forward loop index to skip keyword characters.
 					STATE.i += keyword_len - 1;
@@ -148,71 +127,58 @@ module.exports = (STATE, isoneliner) => {
 				break;
 
 			case "keyword-spacer":
-				// The character must be a whitespace character.
-				if (!r_whitespace.test(char)) {
-					issue.error(STATE);
-				}
+				// Note: Character must be a whitespace character, else error.
+				if (!r_whitespace.test(char)) issue.error(STATE);
 
-				// Now start looking the value.
-				state = "wsb-prevalue";
+				state = "wsb-prevalue"; // Reset parsing state.
 
 				break;
 
 			case "name":
 				// Only hyphens are allowed at this point.
 				if (!NODE.name.value) {
-					// Character must be one of the following:
-					if (!r_letter.test(char)) {
-						// Note: Hitting this block means an invalid
-						// character was encountered so give an error.
-						issue.error(STATE);
-					}
+					// If char is not a hyphen, error.
+					if (!r_letter.test(char)) issue.error(STATE);
 
 					// Store index positions.
 					NODE.name.start = STATE.i;
 					NODE.name.end = STATE.i;
-					// Start building the value string.
-					NODE.name.value = char;
-
-					// Continue building hyphen string.
-				} else {
+					NODE.name.value = char; // Start building string.
+				}
+				// Continue building string.
+				else {
 					// If char is allowed keep building string.
 					if (/[-.a-zA-Z0-9]/.test(char)) {
 						// Set name index positions.
 						NODE.name.end = STATE.i;
-						// Continue building setting name string.
-						NODE.name.value += char;
-
-						// If char is an eq sign change state/reset index.
-					} else if (char === "=") {
-						state = "assignment";
-
-						STATE.loop.rollback(STATE); // Rollback loop.
-
-						// If char is a question mark change state/reset index.
-					} else if (char === "?") {
-						state = "boolean-indicator";
-
-						STATE.loop.rollback(STATE); // Rollback loop.
-
-						// If char is a pipe change state/reset index.
-					} else if (char === "|") {
-						state = "pipe-delimiter";
-
-						STATE.loop.rollback(STATE); // Rollback loop.
-
-						// If char is whitespace change state/reset index.
-					} else if (r_whitespace.test(char)) {
-						state = "wsb-postname";
-
-						STATE.loop.rollback(STATE); // Rollback loop.
-
-						// Anything else the character is not allowed.
-					} else {
-						// Note: Hitting this block means an invalid
-						// character was encountered so give an error.
-						issue.error(STATE);
+						NODE.name.value += char; // Continue building string.
 					}
+					// If char is an eq sign change state/reset index.
+					else if (char === "=") {
+						state = "assignment"; // Reset parsing state.
+
+						rollback(STATE); // Rollback loop index.
+					}
+					// If char is a question mark change state/reset index.
+					else if (char === "?") {
+						state = "boolean-indicator"; // Reset parsing state.
+
+						rollback(STATE); // Rollback loop index.
+					}
+					// If char is a pipe change state/reset index.
+					else if (char === "|") {
+						state = "pipe-delimiter"; // Reset parsing state.
+
+						rollback(STATE); // Rollback loop index.
+					}
+					// If char is whitespace change state/reset index.
+					else if (r_whitespace.test(char)) {
+						state = "wsb-postname"; // Reset parsing state.
+
+						rollback(STATE); // Rollback loop index.
+					}
+					// Note: Anything at this point is an invalid char.
+					else issue.error(STATE);
 				}
 
 				break;
@@ -223,31 +189,18 @@ module.exports = (STATE, isoneliner) => {
 				// require a state change.
 				if (!r_whitespace.test(char)) {
 					if (char === "=") {
-						state = "assignment";
+						state = "assignment"; // Reset parsing state.
 
-						STATE.loop.rollback(STATE); // Rollback loop.
-
-						// 	// If char is a question mark change state/reset index.
-						// } else if (char === "?") {
-						// 	state = "boolean-indicator";
-
-						// 	// Note: Rollback index by 1 to allow parser to
-						// 	// start at new state on next iteration.
-						// 	STATE.i -= 1;
-						// 	STATE.column--;
+						rollback(STATE); // Rollback loop index.
 
 						// If char is a pipe change state/reset index.
 					} else if (char === "|") {
-						state = "pipe-delimiter";
+						state = "pipe-delimiter"; // Reset parsing state.
 
-						STATE.loop.rollback(STATE); // Rollback loop.
-
-						// Anything else the character is not allowed.
-					} else {
-						// Note: Hitting this block means an invalid
-						// character was encountered so give an error.
-						issue.error(STATE);
+						rollback(STATE); // Rollback loop index.
 					}
+					// Note: Anything at this point is an invalid char.
+					else issue.error(STATE);
 				}
 
 				break;
@@ -256,12 +209,9 @@ module.exports = (STATE, isoneliner) => {
 				// Store index positions.
 				NODE.boolean.start = STATE.i;
 				NODE.boolean.end = STATE.i;
-				// Store assignment character.
-				NODE.boolean.value = char;
+				NODE.boolean.value = char; // Store character.
 
-				// Note: A boolean-indicator means the flag does not contain
-				// a value. More of a switch than a parameter.
-				state = "pipe-delimiter";
+				state = "pipe-delimiter"; // Reset parsing state.
 
 				break;
 
@@ -269,35 +219,27 @@ module.exports = (STATE, isoneliner) => {
 				// Store index positions.
 				NODE.assignment.start = STATE.i;
 				NODE.assignment.end = STATE.i;
-				// Store assignment character.
-				NODE.assignment.value = char;
+				NODE.assignment.value = char; // Store character.
 
-				// Now we look for the assignment operator.
-				state = "multi-indicator";
+				state = "multi-indicator"; // Reset parsing state.
 
 				break;
 
 			case "multi-indicator":
-				// If character is indeed a '*' then store information,
-				// else continue to value state.
+				// If character is a '*' store information, else go to value state.
 				if (char === "*") {
 					// Store index positions.
 					NODE.multi.start = STATE.i;
 					NODE.multi.end = STATE.i;
-					// Store assignment character.
-					NODE.multi.value = char;
+					NODE.multi.value = char; // Store character.
 
-					// Now start looking the value.
-					state = "wsb-prevalue";
+					state = "wsb-prevalue"; // Reset parsing state.
 				} else {
-					STATE.loop.rollback(STATE); // Rollback loop.
+					rollback(STATE); // Rollback loop index.
 
-					// Set state based on character.
-					if (char === "|") {
-						state = "pipe-delimiter";
-					} else {
-						state = "wsb-prevalue";
-					}
+					// Reset parsing state (based on character).
+					if (char === "|") state = "pipe-delimiter";
+					else state = "wsb-prevalue";
 				}
 
 				break;
@@ -309,11 +251,8 @@ module.exports = (STATE, isoneliner) => {
 				// [https://stackoverflow.com/a/25895905]
 				// [https://stackoverflow.com/a/12281034]
 
-				if (char !== "|") {
-					issue.error(STATE);
-				}
-
-				stop = true;
+				if (char !== "|") issue.error(STATE);
+				stop = true; // Set parsing stop flag.
 
 				break;
 
@@ -321,14 +260,11 @@ module.exports = (STATE, isoneliner) => {
 				// Note: Allow any whitespace until first non-whitespace
 				// character is hit.
 				if (!r_whitespace.test(char)) {
-					STATE.loop.rollback(STATE); // Rollback loop.
+					rollback(STATE); // Rollback loop index.
 
-					// Set state based on character.
-					if (char === "|") {
-						state = "pipe-delimiter";
-					} else {
-						state = "value";
-					}
+					// Reset parsing state (based on character).
+					if (char === "|") state = "pipe-delimiter";
+					else state = "value";
 				}
 
 				break;
@@ -336,38 +272,34 @@ module.exports = (STATE, isoneliner) => {
 			case "value":
 				{
 					// Value:
-					// - List: (1,2,3)
-					// - Command-flags: $("cat")
-					// - Strings: "value"
-					// - Escaped-values: val\ ue
+					// - List:            => (1,2,3)
+					// - Command-flags:   => $("cat")
+					// - Strings:         => "value"
+					// - Escaped-values:  => val\ ue
 
 					// Get the previous char.
 					let pchar = string.charAt(STATE.i - 1);
 
 					// Determine value type.
 					if (!NODE.value.value) {
-						if (char === "$") {
-							NODE.value.type = "command-flag";
-						} else if (char === "(") {
-							NODE.value.type = "list";
-						} else if (r_quote.test(char)) {
-							NODE.value.type = "quoted";
-						} else {
-							NODE.value.type = "escaped";
-						}
+						let type = "escaped"; // Set default.
+
+						if (char === "$") type = "command-flag";
+						else if (char === "(") type = "list";
+						else if (r_quote.test(char)) type = "quoted";
+
+						NODE.value.type = type; // Set type.
 
 						// Store index positions.
 						NODE.value.start = STATE.i;
 						NODE.value.end = STATE.i;
-						// Start building the value string.
-						NODE.value.value = char;
+						NODE.value.value = char; // Start building string.
 					} else {
 						// Check if character is a delimiter.
 						if (char === "|" && pchar !== "\\") {
-							// Stop building value and change state.
-							state = "pipe-delimiter";
+							state = "pipe-delimiter"; // Reset parsing state.
 
-							STATE.loop.rollback(STATE); // Rollback loop.
+							rollback(STATE); // Rollback loop index.
 
 							break;
 						}
@@ -375,9 +307,7 @@ module.exports = (STATE, isoneliner) => {
 						// If flag is set and characters can still be consumed
 						// then there is a syntax error. For example, string may
 						// be improperly quoted/escaped so give error.
-						if (end_comsuming) {
-							issue.error(STATE);
-						}
+						if (end_comsuming) issue.error(STATE);
 
 						// Get string type.
 						let stype = NODE.value.type;
@@ -398,8 +328,7 @@ module.exports = (STATE, isoneliner) => {
 
 						// Store index positions.
 						NODE.value.end = STATE.i;
-						// Continue building the value string.
-						NODE.value.value += char;
+						NODE.value.value += char; // Continue building string.
 					}
 				}
 
@@ -407,7 +336,7 @@ module.exports = (STATE, isoneliner) => {
 		}
 	}
 
-	// If flag starts a scope block, store reference to node object.
+	// Note: If flag starts a scope block, store reference to node object.
 	if (NODE.value.value === "(") {
 		// Store relevant information.
 		NODE.brackets = {
@@ -416,16 +345,13 @@ module.exports = (STATE, isoneliner) => {
 			value: NODE.value.value
 		};
 
-		// Store reference to node object.
-		STATE.scopes.flag = NODE;
+		STATE.scopes.flag = NODE; // Store reference to node object.
 	}
 
-	// Validate extracted variable value.
-	require("../helpers/validate-value.js")(STATE, NODE);
+	validate(STATE, NODE); // Validate extracted variable value.
 
 	if (STATE.singletonflag) {
-		// Add node to tree.
-		require("../helpers/tree-add.js")(STATE, NODE);
+		add(STATE, NODE); // Add node to tree.
 
 		// Finally, remove the singletonflag key from STATE object.
 		delete STATE.singletonflag;

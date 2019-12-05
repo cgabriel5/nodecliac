@@ -1,14 +1,11 @@
 "use strict";
 
-// Needed modules.
-let issue = require("../helpers/issue.js");
-let p_flag = require("../parsers/flag.js");
-let { r_nl, r_whitespace } = require("../helpers/patterns.js");
+const p_flag = require("../parsers/flag.js");
 
 /**
- * Parses command chain line to extract command chain.
+ * Command-chain parser.
  *
- * ---------- Parsing States Breakdown -----------------------------------------
+ * ---------- Parsing Breakdown ------------------------------------------------
  * program.command = [ ]?
  * program.command = [
  * program.command = --flag
@@ -29,11 +26,15 @@ let { r_nl, r_whitespace } = require("../helpers/patterns.js");
  * @return {object} - Object containing parsed information.
  */
 module.exports = STATE => {
-	// Note: If a command-chain scope exists, error as scope was never closed.
-	require("../helpers/brace-checks.js")(STATE, null, "pre-existing-cs");
+	let { line, l, string, utils } = STATE; // Loop state vars.
+	// Utility functions and constants.
+	let { functions: F, constants: C } = utils;
+	let { r_nl, r_whitespace } = C.regexp;
+	let { issue, rollback, bracechecks } = F.loop;
+	let { add } = F.tree;
 
-	// Get global loop state variables.
-	let { line, l, string } = STATE;
+	// Note: If command-chain scope exists, error as brace wasn't closed.
+	bracechecks(STATE, null, "pre-existing-cs");
 
 	// Parsing vars.
 	let state = "command"; // Initial parsing state.
@@ -54,12 +55,11 @@ module.exports = STATE => {
 
 	// Loop over string.
 	for (; STATE.i < l; STATE.i++) {
-		let char = string.charAt(STATE.i); // Cache current loop item.
+		let char = string.charAt(STATE.i); // Cache current loop char.
 
-		// End loop on a new line char.
+		// End loop on a newline char.
 		if (r_nl.test(char)) {
-			// Note: Subtract index by 1 to run newline character logic code
-			// block on next iteration
+			// Rollback to run newline char code block next iteration.
 			NODE.endpoint = --STATE.i; // Store newline index.
 
 			break;
@@ -69,106 +69,88 @@ module.exports = STATE => {
 
 		switch (state) {
 			case "command":
-				// Check first letter of command.
+				// If name is empty check for first letter.
 				if (!NODE.command.value) {
-					// First char must be a letter/semicolon.
-					if (!/[:a-zA-Z]/.test(char)) {
-						// Note: Setting must start with a letter.
-						issue.error(STATE);
-					}
+					// Name must start with pattern else give error.
+					if (!/[:a-zA-Z]/.test(char)) issue.error(STATE);
 
-					// Set command index positions.
+					// Set index positions.
 					NODE.command.start = STATE.i;
 					NODE.command.end = STATE.i;
 
-					// Start building setting command string.
-					NODE.command.value += char;
-
-					// Continue building setting command string.
-				} else {
+					NODE.command.value += char; // Start building string.
+				}
+				// Continue building setting command string.
+				else {
 					// If char is allowed keep building string.
 					if (/[-_.:+\\/a-zA-Z0-9]/.test(char)) {
-						// Set command index positions.
+						// Set index positions.
 						NODE.command.end = STATE.i;
-						// Continue building setting command string.
-						NODE.command.value += char;
+						NODE.command.value += char; // Continue building string.
 
-						// When escaping anything but a dot do not include
-						// the '\' as it is not needed. For example, if the
-						// command is 'com\mand\.name' we should return
+						// Note: When escaping anything but a dot do not
+						// include the '\' as it is not needed. For example,
+						// if the command is 'com\mand\.name' we should return
 						// 'command\.name' and not 'com\mand\.name'.
 						if (char === "\\") {
-							// Get the next char.
-							let nchar = string.charAt(STATE.i + 1);
+							let nchar = string.charAt(STATE.i + 1); // Next char.
 
-							// Note: If the next char does not exist then the
-							// '\' is escaping nothing so error.
-							if (!nchar) {
-								issue.error(STATE, 10);
-							}
+							// Note: If next char doesn't exist the
+							// '\' char is escaping nothing so error.
+							if (!nchar) issue.error(STATE, 10);
 
-							// Next char must be a space for it to be a valid
-							// escape sequence.
+							// Next char must be a space to be a valid escape sequence.
 							if (nchar !== ".") {
-								// Note: Escaping anything but a dot give is
-								// not allowed, so give error.
+								// Escaping anything but a dot isn't allowed, so error.
 								issue.error(STATE, 10);
 
-								// Remove last escape char as it is not needed.
+								// Remove last escape char as it isn't needed.
 								let command = NODE.command.value.slice(0, -1);
 								NODE.command.value = command;
 							}
 						}
-
-						// If we encounter a whitespace character, everything
-						// after this point must be a space until we encounter
-						// an eq sign or the end-of-line (newline) character.
-					} else if (r_whitespace.test(char)) {
+					}
+					// Note: If we encounter a whitespace character, everything
+					// after this point must be a space until we encounter
+					// an eq sign or the end-of-line (newline) character.
+					else if (r_whitespace.test(char)) {
 						state = "chain-wsb";
 						continue;
-
-						// If char is an eq sign change state/reset index.
-					} else if (char === "=") {
+					}
+					// If char is an eq sign change state/reset index.
+					else if (char === "=") {
 						state = "assignment";
 
-						STATE.loop.rollback(STATE); // Rollback loop.
-
-						// Anything else the character is not allowed.
-					} else if (char === ",") {
+						rollback(STATE); // Rollback loop index.
+					}
+					// Anything else the character is not allowed.
+					else if (char === ",") {
 						state = "delimiter";
 
-						STATE.loop.rollback(STATE); // Rollback loop.
-
-						// Anything else the character is not allowed.
-					} else {
-						// Note: Hitting this block means an invalid
-						// character was encountered so give an error.
-						issue.error(STATE);
+						rollback(STATE); // Rollback loop index.
 					}
+					// Note: Anything at this point is an invalid char.
+					else issue.error(STATE);
 				}
 
 				break;
 
 			case "chain-wsb":
 				// At this point we are looking for the assignment operator
-				// or a delimiter. Anything but whitespace, eq-sign, or command
-				// are invalid chars.
+				// or a delimiter. Anything but whitespace, eq-sign, or
+				// command are invalid chars.
 				if (!r_whitespace.test(char)) {
 					if (char === "=") {
-						// Change sate to assignment.
-						state = "assignment";
+						state = "assignment"; // Reset parsing state.
 
-						STATE.loop.rollback(STATE); // Rollback loop.
+						rollback(STATE); // Rollback loop index.
 					} else if (char === ",") {
-						// Change sate to delimiter.
-						state = "delimiter";
+						state = "delimiter"; // Reset parsing state.
 
-						STATE.loop.rollback(STATE); // Rollback loop.
-					} else {
-						// Note: Hitting this block means an invalid
-						// character was encountered so give an error.
-						issue.error(STATE);
+						rollback(STATE); // Rollback loop index.
 					}
+					// Note: Anything at this point is an invalid char.
+					else issue.error(STATE);
 				}
 
 				break;
@@ -177,12 +159,9 @@ module.exports = STATE => {
 				// Store index positions.
 				NODE.assignment.start = STATE.i;
 				NODE.assignment.end = STATE.i;
-				// Store assignment character.
-				NODE.assignment.value = char;
+				NODE.assignment.value = char; // Store character.
 
-				// Change state to look for any space post assignment but
-				// before the actual setting's value.
-				state = "value-wsb";
+				state = "value-wsb"; // Reset parsing state.
 
 				break;
 
@@ -190,12 +169,9 @@ module.exports = STATE => {
 				// Store index positions.
 				NODE.delimiter.start = STATE.i;
 				NODE.delimiter.end = STATE.i;
-				// Store assignment character.
-				NODE.delimiter.value = char;
+				NODE.delimiter.value = char; // Store character.
 
-				// Only whitespace is allowed after a chain delimiter so set
-				// state to end-of-line whitespace boundary.
-				state = "eol-wsb";
+				state = "eol-wsb"; // Reset parsing state.
 
 				break;
 
@@ -205,7 +181,7 @@ module.exports = STATE => {
 				if (!r_whitespace.test(char)) {
 					state = "value";
 
-					STATE.loop.rollback(STATE); // Rollback loop.
+					rollback(STATE); // Rollback loop index.
 				}
 
 				break;
@@ -217,13 +193,11 @@ module.exports = STATE => {
 				// commence 'oneliner' route.
 
 				// Before determining path, check that character is valid.
-				if (!/[-d[]/.test(char)) {
-					issue.error(STATE);
-				}
+				if (!/[-d[]/.test(char)) issue.error(STATE);
 
-				state = char === "[" ? "open-bracket" : "oneliner";
+				state = char === "[" ? "open-bracket" : "oneliner"; // Reset parsing state.
 
-				STATE.loop.rollback(STATE); // Rollback loop.
+				rollback(STATE); // Rollback loop index.
 
 				break;
 
@@ -232,14 +206,10 @@ module.exports = STATE => {
 
 				// Store index positions.
 				NODE.brackets.start = STATE.i;
-				// Store bracket character.
-				NODE.brackets.value = char;
+				NODE.brackets.value = char; // Store bracket character.
+				NODE.value.value = char; // Store assignment character.
 
-				// Store assignment character.
-				NODE.value.value = char;
-
-				// Allow for any number of white spaces after open-bracket.
-				state = "open-bracket-wsb";
+				state = "open-bracket-wsb"; // Reset parsing state.
 
 				break;
 
@@ -249,27 +219,20 @@ module.exports = STATE => {
 				if (!r_whitespace.test(char)) {
 					state = "close-bracket";
 
-					STATE.loop.rollback(STATE); // Rollback loop.
+					rollback(STATE); // Rollback loop index.
 				}
 
 				break;
 
 			case "close-bracket":
-				// At this point the char must be a closing bracket ']'.
-				// Anything else is invalid.
-				if (char !== "]") {
-					issue.error(STATE);
-				}
+				// Char must be a closing bracket ']' anything else is invalid.
+				if (char !== "]") issue.error(STATE);
 
 				// Store index positions.
 				NODE.brackets.end = STATE.i;
+				NODE.value.value += char; // Store character.
 
-				// Store assignment character.
-				NODE.value.value += char;
-
-				// Only whitespace is allowed now so set state to
-				// end-of-line whitespace boundary.
-				state = "eol-wsb";
+				state = "eol-wsb"; // Reset parsing state.
 
 				break;
 
@@ -279,38 +242,27 @@ module.exports = STATE => {
 				// A char that has already been looped over in the main loop.
 				STATE.column--;
 
-				// Store result in variable to access the
-				// interpolated variable's value.
+				// Store result in var to access interpolated variable's value.
 				NODE.flags.push(p_flag(STATE, "oneliner")); // Parse flag oneliner...
 
 				break;
 
 			case "eol-wsb":
-				if (!r_whitespace.test(char)) {
-					// Note: Only trailing whitespace should remain now.
-					issue.error(STATE);
-				}
+				// Anything but trailing whitespace is invalid so give error.
+				if (!r_whitespace.test(char)) issue.error(STATE);
 
 				break;
 		}
 	}
 
-	// Add command data object before any flag objects.
-	let adder = require("../helpers/tree-add.js");
-	adder(STATE, NODE);
+	add(STATE, NODE);
 	// Add any flags.
-	// Description...
 	for (let i = 0, l = NODE.flags.length; i < l; i++) {
-		// Cache current loop item.
-		let item = NODE.flags[i];
-
-		adder(STATE, item);
+		add(STATE, NODE.flags[i]);
 	}
 
 	// If command starts a scope block, store reference to node object.
-	if (NODE.value.value === "[") {
-		STATE.scopes.command = NODE;
-	}
+	if (NODE.value.value === "[") STATE.scopes.command = NODE;
 
 	return NODE;
 };

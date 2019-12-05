@@ -1,16 +1,15 @@
 "use strict";
 
-// Get needed modules.
-let issue = require("./issue.js");
-
 /**
- * Check that line specificity is allowed.
+ * Checks if line specificity is allowed.
  *
  * @param  {object} STATE - Main loop state object.
  * @param  {string} line_type - The line's line type.
  * @return {string} - The line's type.
  */
 module.exports = (STATE, line_type) => {
+	let issue = STATE.utils.functions.issue; // Utility functions and constants.
+
 	// Note: [Hierarchy lookup table] The higher the number the higher its
 	// precedence, therefore: command > flag > option. Variables, settings,
 	// and command chains have the same precedence as they are same-level
@@ -25,23 +24,18 @@ module.exports = (STATE, line_type) => {
 		comment: 0
 	};
 
-	// Get line specificity and store value.
-	let line_specificity = SPECIFICITIES[line_type] || 0;
+	let line_specf = SPECIFICITIES[line_type] || 0; // Get line specificity.
 	let scopes = STATE.scopes; // Get scopes.
 
 	// However, if we are in a scope then the scope's specificity
 	// trumps the line specificity.
-	let state_specificity = scopes.flag
+	let state_specf = scopes.flag
 		? SPECIFICITIES.flag
 		: scopes.command
 		? SPECIFICITIES.command
 		: STATE.specificity;
 
-	// Note: Check whether specificity hierarchy is allowed.
-	if (state_specificity && state_specificity < line_specificity) {
-		// Note: Line specificity is incorrect so give error.
-		issue.error(STATE, 12);
-	}
-	// Set state specificity.
-	STATE.specificity = line_specificity;
+	// Note: Check whether specificity hierarchy is allowed, else error.
+	if (state_specf && state_specf < line_specf) issue.error(STATE, 12);
+	STATE.specificity = line_specf; // Set state specificity.
 };

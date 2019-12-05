@@ -1,8 +1,5 @@
 "use strict";
 
-// Get needed modules.
-let issue = require("../helpers/issue.js");
-
 /**
  * Performs checks on string as well as interpolates any variables.
  *
@@ -11,144 +8,119 @@ let issue = require("../helpers/issue.js");
  * @return {object} - Object containing parsed information.
  */
 module.exports = (STATE, NODE) => {
-	// Get string value.
-	let value = NODE.value.value;
-	let type = NODE.value.type;
+	let issue = STATE.utils.functions.issue; // Utility functions and constants.
 
-	// If a value does not exist then return.
+	let { value, type } = NODE.value; // Vars.
+
+	// Start: Short Circuit Checks. ============================================
+
+	// Note: If a value does not exist then return.
 	if (!value) {
-		// Attach empty args array to NODE object.
-		NODE.args = [];
+		NODE.args = []; // Attach empty args array to NODE object.
 
-		return;
+		return; // Exit early.
 	}
 
-	// Check for long-form flag list. If the value is '(' then it's a
-	// long-form flag list.
+	// Note: If value is '(' then it's a long-form flag list.
 	if (value === "(") {
-		// Add some key-identifying properties to object.
-		NODE.openbrace = true;
+		NODE.openbrace = true; // Add some key-identifying properties to object.
+		NODE.args = []; // Attach empty args array to NODE object.
 
-		// Attach empty args array to NODE object.
-		NODE.args = [];
-
-		// Skip remaining logic as it's not needed to execute.
-		return;
+		return; // Exit early.
 	}
 
-	// If type was not provided then determine it on the fly.
-	if (!type) {
-		let fvchar = value.charAt(0); // Get first character from value.
-		if (fvchar === "$") {
-			type = "command-flag";
-		} else if (fvchar === "(") {
-			type = "list";
-		} else if (/["']/.test(fvchar)) {
-			type = "quoted";
-		} else {
-			type = "escaped";
-		}
+	// End: Short Circuit Checks ===============================================
 
-		// Finally set type.
-		NODE.value.type = type;
+	// Determine type if not provided.
+	if (!type) {
+		type = "escaped"; // Default value.
+		let fvchar = value.charAt(0); // Value's first character.
+
+		if (fvchar === "$") type = "command-flag";
+		else if (fvchar === "(") type = "list";
+		else if (/["']/.test(fvchar)) type = "quoted";
+
+		NODE.value.type = type; // Finally set type.
 	}
 
 	// The column index to resume error checks at.
 	let resumepoint = NODE.value.start - STATE.tables.linestarts[STATE.line];
-	// Note: Add 1 to resumepoint to account for 0 base indexing, as column
-	// value starts count at 1.
-	resumepoint++;
-	// let warnings = []; // Collect all parsing warnings.
+	// Note: Add 1 to resumepoint to account for 0 base indexing,
+	resumepoint++; // as column value starts count at 1.
 
 	switch (type) {
 		case "quoted":
-			// If a value was extracted make sure it's a valid string. =========
+			{
+				// If a value was extracted make sure it's a valid string. ====
 
-			// Make sure string is properly quoted.
-			if (!/^\$?("|').*?\1$/.test(value)) {
-				// Reset STATE column index position.
-				STATE.column = resumepoint;
+				// Make sure string is properly quoted.
+				if (!/^\$?("|').*?\1$/.test(value)) {
+					STATE.column = resumepoint; // Reset index position.
 
-				// Note: Closing quote is missing so give error.
-				issue.error(STATE, 10);
-			}
-
-			// If string is empty give error.
-			if (/^("|')\1$/.test(value)) {
-				// Reset STATE column index position.
-				STATE.column = resumepoint;
-
-				// Note: String should not be empty.
-				issue.error(STATE, 11);
-			}
-
-			// Next, interpolate any variable template-strings. ================
-
-			// Interpolate any template-string variables.
-			// [https://stackoverflow.com/a/40329720]
-			value = value.replace(/(?<!\\)\$\{\s*[^}]*\s*\}/g, function(
-				match,
-				index
-			) {
-				// Remove syntax decorations to get variable name.
-				match = match.replace(/^\$\{\s*|\s*\}$/g, "");
-
-				// Note: Skip string interpolation logic if formatting.
-				if (STATE.args.formatting) {
-					return `\${${match}}`;
+					issue.error(STATE, 10); // Note: Close quote is missing so error.
 				}
 
-				// Lookup variable's value in database.
-				let value = STATE.tables.variables[match];
+				// If string is empty give error.
+				if (/^("|')\1$/.test(value)) {
+					STATE.column = resumepoint; // Reset index position.
 
-				// Note: If the variable is not in the db then give an error. As
-				// a variable cannot be used before declared.
-				if (!value) {
-					// Reset STATE column index position.
-					STATE.column = resumepoint + index;
-
-					// Note: Variable does not exist in lookup.
-					return issue.error(STATE, 12);
+					issue.error(STATE, 11); // Note: String shouldn't be empty.
 				}
 
-				// Else, at this point all is well so return the value.
-				return value;
-			});
+				// Next, interpolate any variable template-strings. ============
 
-			// Attach args array to NODE object.
-			NODE.args = [value];
+				// Interpolate any template-string variables.
+				// [https://stackoverflow.com/a/40329720]
+				const r = /(?<!\\)\$\{\s*[^}]*\s*\}/g;
+				value = value.replace(r, function(match, index) {
+					// Remove syntax decorations to get variable name.
+					match = match.replace(/^\$\{\s*|\s*\}$/g, "");
 
-			// Update value in object.
-			NODE.value.value = value;
+					// Note: Skip string interpolation logic if formatting.
+					if (STATE.args.formatting) return `\${${match}}`;
+
+					// Lookup variable's value in database.
+					let value = STATE.tables.variables[match];
+
+					// Note: If the variable is not in the db then give an error.
+					// as a variable cannot be used before declared.
+					if (!value) {
+						STATE.column = resumepoint + index; // Reset index position.
+
+						// Note: Variable does not exist in lookup.
+						return issue.error(STATE, 12);
+					}
+
+					return value;
+				});
+
+				NODE.args = [value]; // Attach args array to NODE object.
+				NODE.value.value = value; // Update value in object.
+			}
 
 			break;
 
 		case "escaped":
-			// Pass the escaped value for the time begin.being
-
 			// Attach args array to NODE object.
 			NODE.args = [value];
 
 			break;
 		case "command-flag":
 			{
-				// Check that command-flag has correct starting/ending syntax. =
+				// Check command-flag has correct starting/ending syntax.
 
 				// Note: If command-flag doesn't start with '$(', give error.
 				if (!/^\$\(/.test(value)) {
-					// Reset STATE column index position.
-					STATE.column = resumepoint + 1;
+					STATE.column = resumepoint + 1; // Reset index position.
 
-					// Note: String should not be empty.
-					issue.error(STATE, 13);
+					issue.error(STATE, 13); // Note: String shouldn't be empty.
 				}
 				// Note: If command-flag doesn't end with ')', give error.
 				if (!/\)$/.test(value)) {
-					// Reset STATE column index position.
+					// Reset index position.
 					STATE.column = resumepoint + value.length - 1;
 
-					// Note: String should not be empty.
-					issue.error(STATE, 13);
+					issue.error(STATE, 13); // Note: String shouldn't be empty.
 				}
 
 				// Collect parsed arguments.
@@ -166,8 +138,7 @@ module.exports = (STATE, NODE) => {
 				// Note: Start loop at index 2 and stop before the last
 				// character to ignore the starting '$(' and ending ')'.
 				for (let l = value.length - 1; i < l; i++, resume_index++) {
-					// Cache current loop item.
-					let char = value.charAt(i);
+					let char = value.charAt(i); // Cache current loop char.
 					let pchar = value.charAt(i - 1);
 					let nchar = value.charAt(i + 1);
 
@@ -177,10 +148,8 @@ module.exports = (STATE, NODE) => {
 						if (/["']/.test(char) && pchar !== "\\") {
 							// Store the index at which the value starts.
 							value_start_index = resume_index;
-							// Set qchar as the opening quote character.
-							qchar = char;
-							// Capture character.
-							argument += char;
+							qchar = char; // Store qchar.
+							argument += char; // Capture character.
 						} else if (/[ \t]/.test(char)) {
 							// Ignore any whitespace outside of quotes.
 						} else if (char === ",") {
@@ -191,19 +160,17 @@ module.exports = (STATE, NODE) => {
 							// Note: If delimiter count is more than 1 than
 							// there are empty arguments. This is not valid.
 							if (delimiter_count > 1 || !args.length) {
-								// Reset STATE column index position.
+								// Reset index position.
 								STATE.column = resumepoint + i;
 
-								// Note: String should not be empty.
+								// Note: String shouldn't be empty.
 								issue.error(STATE, 14);
 							}
 
 							// Look out for '$' prefixed strings.
 						} else if (char === "$" && /["']/.test(nchar)) {
-							// Set qchar as the opening quote character.
-							qchar = nchar;
-							// Capture character.
-							argument += `${char}${nchar}`;
+							qchar = nchar; // Stpre qchar.
+							argument += `${char}${nchar}`; // Capture character.
 							resume_index++;
 							i++;
 							value_start_index = resume_index;
@@ -215,15 +182,14 @@ module.exports = (STATE, NODE) => {
 							// $("arg1", "arg2", arg3 )
 							// ------------------^ Value is unquoted.
 
-							// Reset STATE column index position.
+							// Reset index position.
 							STATE.column = resumepoint + i;
 
-							// Note: String should not be empty.
+							// Note: String shouldn't be empty.
 							issue.error(STATE);
 						}
 					} else {
-						// Capture character.
-						argument += char;
+						argument += char; // Capture character.
 
 						if (char === qchar && pchar !== "\\") {
 							// Validate value.
@@ -237,8 +203,7 @@ module.exports = (STATE, NODE) => {
 							};
 							argument = module.exports(STATE, tmpNODE);
 
-							// Store argument and reset vars.
-							args.push(argument);
+							args.push(argument); // Store argument.
 							// Clear/reset variables.
 							argument = "";
 							qchar = "";
@@ -251,17 +216,15 @@ module.exports = (STATE, NODE) => {
 				// Note: If delimiter_index flag is still set then we have a
 				// trailing comma delimiter so give an error.
 				if (delimiter_index && !argument) {
-					// Reset STATE column index position.
+					// Reset index position.
 					STATE.column = resumepoint + delimiter_index;
 
-					// Note: String should not be empty.
-					issue.error(STATE, 14);
+					issue.error(STATE, 14); // Note: String shouldn't be empty.
 				}
 
 				// Get last argument.
 				if (argument) {
-					// Note: Reduce i to account for last completed iteration.
-					i--;
+					i--; // Reduce to account for last completed iteration.
 
 					// Validate value.
 					let tmpNODE = {
@@ -274,16 +237,12 @@ module.exports = (STATE, NODE) => {
 					};
 					argument = module.exports(STATE, tmpNODE);
 
-					// Store argument and reset vars.
-					args.push(argument);
+					args.push(argument); // Store argument.
 				}
 
 				// Create cleaned command-flag.
 				let cvalue = `$(${args.join(",")})`;
-
-				// Attach args array to NODE object.
-				NODE.args = [cvalue];
-
+				NODE.args = [cvalue]; // Attach args array to NODE object.
 				// Reset value to cleaned arguments command-flag.
 				NODE.value.value = value = cvalue;
 			}
@@ -292,23 +251,20 @@ module.exports = (STATE, NODE) => {
 
 		case "list":
 			{
-				// Check that list has correct starting/ending syntax. =========
+				// Check list has correct starting/ending syntax. =========
 
 				// Note: If list doesn't start with '(', give error.
 				if (!/^\(/.test(value)) {
-					// Reset STATE column index position.
-					STATE.column = resumepoint;
+					STATE.column = resumepoint; // Reset index position.
 
-					// Note: String should not be empty.
-					issue.error(STATE, 15);
+					issue.error(STATE, 15); // Note: String shouldn't be empty.
 				}
 				// Note: If command-flag doesn't end with ')', give error.
 				if (!/\)$/.test(value)) {
-					// Reset STATE column index position.
+					// Reset index position.
 					STATE.column = resumepoint + value.length - 1;
 
-					// Note: String should not be empty.
-					issue.error(STATE, 15);
+					issue.error(STATE, 15); // Note: String shouldn't be empty.
 				}
 
 				// Collect parsed arguments.
@@ -325,15 +281,12 @@ module.exports = (STATE, NODE) => {
 				// Note: Start loop at index 1 and stop before the last
 				// character to ignore the starting '(' and ending ')'.
 				for (let l = value.length - 1; i < l; i++, resume_index++) {
-					// Cache current loop item.
-					let char = value.charAt(i);
+					let char = value.charAt(i); // Cache current loop char.
 					let pchar = value.charAt(i - 1);
 
 					if (!mode) {
 						// Skip over unescaped whitespace delimiters.
-						if (/[ \t]/.test(char) && pchar !== "\\") {
-							continue;
-						}
+						if (/[ \t]/.test(char) && pchar !== "\\") continue;
 
 						// Set mode depending on the character.
 						if (/["']/.test(char) && pchar !== "\\") {
@@ -349,13 +302,13 @@ module.exports = (STATE, NODE) => {
 							// Store the index at which the value starts.
 							value_start_index = resume_index;
 							mode = "escaped"; // Set mode.
-
-							// All other characters are invalid so give error.
-						} else {
-							// Reset STATE column index position.
+						}
+						// All other characters are invalid so give error.
+						else {
+							// Reset index position.
 							STATE.column = resumepoint + i;
 
-							// Note: String should not be empty.
+							// Note: String shouldn't be empty.
 							issue.error(STATE);
 						}
 
@@ -366,10 +319,10 @@ module.exports = (STATE, NODE) => {
 						// subl.command = --flag=(1234 "ca"t"    $("cat"))
 						// --------------------------------^ Error point.
 						if (args.length && !/[ \t]/.test(pchar)) {
-							// Reset STATE column index position.
+							// Reset index position.
 							STATE.column = resumepoint + i;
 
-							// Note: String should not be empty.
+							// Note: String shouldn't be empty.
 							issue.error(STATE);
 						}
 
@@ -392,11 +345,8 @@ module.exports = (STATE, NODE) => {
 								args.push([argument, mode]); // Store argument.
 								argument = ""; // Clear argument string.
 								mode = null; // Clear mode flag.
-								value_start_index = null;
-								// Clear mode // Clear start index.
-							} else {
-								argument += char;
-							}
+								value_start_index = null; // Clear start index.
+							} else argument += char;
 						} else if (mode === "escaped") {
 							// Stop collecting once an unescaped whitespace character is hit.
 							if (/[ \t]/.test(char) && pchar !== "\\") {
@@ -415,9 +365,7 @@ module.exports = (STATE, NODE) => {
 								argument = ""; // Clear argument string.
 								mode = null; // Clear mode flag.
 								value_start_index = null; // Clear start index.
-							} else {
-								argument += char;
-							}
+							} else argument += char;
 						} else if (mode === "command-flag") {
 							// Stop collecting when an unescaped ')' character is hit.
 							if (char === ")" && pchar !== "\\") {
@@ -437,9 +385,7 @@ module.exports = (STATE, NODE) => {
 								argument = ""; // Clear argument string.
 								mode = null; // Clear mode flag.
 								value_start_index = null; // Clear start index.
-							} else {
-								argument += char;
-							}
+							} else argument += char;
 						}
 					}
 				}
@@ -461,13 +407,10 @@ module.exports = (STATE, NODE) => {
 
 				// Build cleaned list string.
 				let cvalues = [];
-				args.forEach(item => {
-					cvalues.push(item[0]);
-				});
+				args.forEach(item => cvalues.push(item[0]));
 
 				// Attach args array to NODE object.
 				NODE.args = cvalues;
-
 				// Reset value to cleaned arguments command-flag.
 				NODE.value.value = value = `(${cvalues.join(" ")})`;
 			}

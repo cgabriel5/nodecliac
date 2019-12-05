@@ -1,6 +1,5 @@
 "use strict";
 
-// Get needed modules.
 const { md5 } = require("../../../utils/toolbox.js");
 
 /**
@@ -11,33 +10,28 @@ const { md5 } = require("../../../utils/toolbox.js");
  * @return {object} - Object containing acdef, config, and keywords contents.
  */
 module.exports = (STATE, commandname) => {
-	// Vars.
 	let counter = 0;
 	let nodes = [];
-
 	let ACDEF = [];
-	// let TABLE = {};
-	let DEFAULTS = {};
 	let SETS = {};
 	let BATCHES = {};
+	let DEFAULTS = {};
 	let SETTINGS = {};
-	let TREE = STATE.tables.tree;
 	let PLACEHOLDERS = {};
+	let TREE = STATE.tables.tree;
 	let memtable = {}; // Cache md5 hash to their respective flags string.
-
 	let has_root = false;
-	// RegExp to match main command/first command in chain to remove.
-	let r = new RegExp(
-		// Note: Properly escape '+' characters for commands like 'g++'.
-		`^(${commandname.replace(/(\+)/g, "\\$1")}|[-_a-zA-Z0-9]+)`
-	);
-	// The .acdef/.config.acdef file header.
-	let header = `# DON'T EDIT FILE —— GENERATED: ${new Date()}(${Date.now()})\n\n`;
 
-	// Reset header if testing.
-	if (STATE.args.test) {
-		header = "";
-	}
+	// Note: Properly escape '+' characters for commands like 'g++'.
+	let rcommandname = commandname.replace(/(\+)/g, "\\$1");
+	// RegExp to match main command/first command in chain to remove.
+	let r = new RegExp(`^(${rcommandname}|[-_a-zA-Z0-9]+)`);
+
+	// .acdef/.config.acdef file header.
+	const date = new Date();
+	const timestamp = Date.now();
+	let header = `# DON'T EDIT FILE —— GENERATED: ${date}(${timestamp})\n\n`;
+	if (STATE.args.test) header = ""; // Reset header if testing.
 
 	/**
 	 * Add base flag to Set (adds '--flag=' or '--flag=*' to Set).
@@ -48,8 +42,7 @@ module.exports = (STATE, commandname) => {
 	 * @return {undefined} - Nothing is returned.
 	 */
 	let baseflag = (fNODE, COMMANDS, flag) => {
-		// Check whether flag is a multi-flag.
-		let ismulti = fNODE.multi.value;
+		let ismulti = fNODE.multi.value; // Check if flag is a multi-flag.
 
 		COMMANDS.forEach(NODE => {
 			// Add flag + value to Set.
@@ -65,12 +58,13 @@ module.exports = (STATE, commandname) => {
 	 * @param  {string} a - Item a.
 	 * @param  {string} b - Item b.
 	 * @return {number} - The sort number result.
+	 *
+	 * Give multi-flags higher sorting precedence:
+	 * @resource [https://stackoverflow.com/a/9604891]
+	 * @resource [https://stackoverflow.com/a/24292023]
+	 * @resource [http://www.javascripttutorial.net/javascript-array-sort/]
 	 */
 	let sorter = (a, b) => {
-		// Give multi-flags higher sorting precedence.
-		// [https://stackoverflow.com/a/9604891]
-		// [https://stackoverflow.com/a/24292023]
-		// [http://www.javascripttutorial.net/javascript-array-sort/]
 		return ~~b.endsWith("=*") - ~~a.endsWith("=*") || a.localeCompare(b);
 	};
 
@@ -81,29 +75,23 @@ module.exports = (STATE, commandname) => {
 	 * @param  {string} b - Item b.
 	 * @return {number} - The sort number result.
 	 */
-	let aplhasort = (a, b) => {
-		return a.localeCompare(b);
-	};
+	let aplhasort = (a, b) => a.localeCompare(b);
 
 	// 1) Filter out unnecessary Nodes. ========================================
+
 	TREE.nodes.forEach(NODE => {
 		let type = NODE.node;
 
 		if (["COMMAND", "FLAG", "OPTION", "SETTING"].includes(type)) {
-			if (type !== "SETTING") {
-				nodes.push(NODE);
-
-				// Add setting/value to object.
-			} else {
-				SETTINGS[NODE.name.value] = NODE.value.value;
-			}
+			if (type !== "SETTING") nodes.push(NODE);
+			else SETTINGS[NODE.name.value] = NODE.value.value; // Store setting/value.
 		}
 	});
 
 	// 2) Batch commands with their flags. =====================================
+
 	for (let i = 0, l = nodes.length; i < l; i++) {
-		// Cache current loop item.
-		let NODE = nodes[i];
+		let NODE = nodes[i]; // Cache current loop char.
 		let nNODE = nodes[i + 1] || {};
 		let type = NODE.node;
 		// let ntype = nNODE.node;
@@ -111,42 +99,32 @@ module.exports = (STATE, commandname) => {
 		if (type === "COMMAND") {
 			// Store command into current batch.
 			if (!BATCHES[counter]) {
-				BATCHES[counter] = {
-					commands: [NODE],
-					flags: []
-				};
-			} else {
-				BATCHES[counter].commands.push(NODE);
-			}
+				BATCHES[counter] = { commands: [NODE], flags: [] };
+			} else BATCHES[counter].commands.push(NODE);
+
+			const cvalue = NODE.command.value;
 
 			// Add command to SETS if not already.
-			if (
-				!Object.prototype.hasOwnProperty.call(SETS, NODE.command.value)
-			) {
-				SETS[NODE.command.value] = new Set();
+			if (!Object.prototype.hasOwnProperty.call(SETS, cvalue)) {
+				SETS[cvalue] = new Set();
 
 				// Note: Create any missing parent chains. =====================
-				let commands = NODE.command.value.split(/(?<!\\)\./);
-				// Remove the last command as it was already made.
-				commands.pop();
+
+				let commands = cvalue.split(/(?<!\\)\./);
+				commands.pop(); // Remove last command as it was already made.
+
 				// For remaining commands, create Set if not already.
 				for (let i = commands.length - 1; i > -1; i--) {
-					// Cache current loop item.
-					// let cmd = commands[i];
-					let remainder_chain = commands.join(".");
+					let rchain = commands.join("."); // Remainder chain.
 
-					if (
-						!Object.prototype.hasOwnProperty.call(
-							SETS,
-							remainder_chain
-						)
-					) {
-						SETS[remainder_chain] = new Set();
+					if (!Object.prototype.hasOwnProperty.call(SETS, rchain)) {
+						SETS[rchain] = new Set();
 					}
 
-					// Finally, remove the last element.
-					commands.pop();
-				} // ===========================================================
+					commands.pop(); // Finally, remove the last element.
+				}
+
+				// ===========================================================
 			}
 
 			// Increment counter to start another batch.
@@ -154,51 +132,39 @@ module.exports = (STATE, commandname) => {
 				counter++;
 			}
 		} else if (type === "FLAG") {
-			// Store command into current batch.
-			BATCHES[counter].flags.push(NODE);
+			BATCHES[counter].flags.push(NODE); // Store command in current batch.
 
 			// Increment counter to start another batch.
-			if (nNODE && !["FLAG", "OPTION"].includes(nNODE.node)) {
-				counter++;
-			}
+			if (nNODE && !["FLAG", "OPTION"].includes(nNODE.node)) counter++;
 		} else if (type === "OPTION") {
-			// Add the value to the last flag in batch.
+			// Add the value to last flag in batch.
 			let FLAGS = BATCHES[counter].flags;
-
-			let FLAG = FLAGS[FLAGS.length - 1];
-			FLAG.args.push(NODE.value.value);
+			FLAGS[FLAGS.length - 1].args.push(NODE.value.value);
 		}
 	}
 
 	// 3) Populate Sets SETS. ==================================================
-	for (let i in BATCHES) {
-		//The current property is not a direct property of p
-		if (!Object.prototype.hasOwnProperty.call(BATCHES, i)) {
-			continue;
-		}
 
-		// Cache current loop item.
-		let BATCH = BATCHES[i];
-		// Get commands/flags.
-		let COMMANDS = BATCH.commands;
-		let FLAGS = BATCH.flags;
+	for (let i in BATCHES) {
+		if (!Object.prototype.hasOwnProperty.call(BATCHES, i)) continue;
+
+		let BATCH = BATCHES[i]; // Cache current loop char.
+		let { commands: COMMANDS, flags: FLAGS } = BATCH; // Get commands/flags.
 
 		for (let i = 0, l = FLAGS.length; i < l; i++) {
-			let fNODE = FLAGS[i]; // Cache current loop item.
+			let fNODE = FLAGS[i]; // Cache current loop char.
 			let ARGS = fNODE.args; // Get flag arguments.
 			// Build flag (hyphens + flag name).
 			let flag = `${fNODE.hyphens.value}${fNODE.name.value}`;
 
-			// Check if flag is actually a default/keyword.
+			// Check if flag is actually a default/keyword and store it.
 			if (fNODE.keyword.value) {
 				COMMANDS.forEach(NODE => {
-					// Store keyword.
 					DEFAULTS[NODE.command.value] = fNODE.value.value;
 				});
 
-				// Note: Since it is a default it does not need to be
+				continue; // Note: Since it's a default it doesn't need to be
 				// added to the SETS so stop iteration here.
-				continue;
 			}
 
 			// If the flag has any values build each flag + value.
@@ -207,26 +173,24 @@ module.exports = (STATE, commandname) => {
 					// Determine whether to add multi-flag indicator.
 					baseflag(fNODE, COMMANDS, flag);
 
+					// Add flag + value to Set.
 					COMMANDS.forEach(NODE => {
-						// Add flag + value to Set.
 						SETS[NODE.command.value].add(
 							`${flag}${fNODE.assignment.value || ""}${ARG || ""}`
 						);
 					});
 				});
-
-				// If flag does not contain any values...
-			} else {
+			}
+			// If flag does not contain any values...
+			else {
 				// If flag is a boolean...
 				COMMANDS.forEach(NODE => {
-					SETS[NODE.command.value].add(
-						`${flag}${
-							fNODE.boolean.value
-								? "?"
-								: fNODE.assignment.value
-								? "="
-								: ""
-						}`
+					const cvalue = NODE.command.value;
+					const bvalue = fNODE.boolean.value;
+					const avalue = fNODE.assignment.value;
+
+					SETS[cvalue].add(
+						`${flag}${bvalue ? "?" : avalue ? "=" : ""}`
 					);
 				});
 			}
@@ -238,18 +202,16 @@ module.exports = (STATE, commandname) => {
 	PLACEHOLD = PLACEHOLD && PLACEHOLD === "true";
 
 	// 4) Generate final ACDEF before sorting. =================================
+
 	for (let command in SETS) {
 		if (command && Object.prototype.hasOwnProperty.call(SETS, command)) {
-			// Get the Sets object.
-			let SET = SETS[command];
+			let SET = SETS[command]; // Get Set object.
 			let flags = "--";
 
 			// If Set has items then it has flags so convert to an array.
-			if (SET.size) {
-				// [https://stackoverflow.com/a/47243199]
-				// [https://stackoverflow.com/a/21194765]
-				flags = [...SET].sort(sorter).join("|");
-			}
+			// [https://stackoverflow.com/a/47243199]
+			// [https://stackoverflow.com/a/21194765]
+			if (SET.size) flags = [...SET].sort(sorter).join("|");
 
 			// Note: Place hold extremely long flag set strings. This is
 			// done to allow faster acdef read times by reducing the file's
@@ -261,10 +223,9 @@ module.exports = (STATE, commandname) => {
 					let md5hash = md5(flags).substr(26); // md5 hash of flags string.
 					PLACEHOLDERS[md5hash] = flags; // Store flags in object.
 					memtable[flags] = md5hash;
+
 					flags = "--p#" + md5hash; // Reset flags string to md5hash.
-				} else {
-					flags = "--p#" + memtable[flags];
-				}
+				} else flags = "--p#" + memtable[flags];
 			}
 
 			// Remove the main command from the command chain. However,
@@ -275,18 +236,17 @@ module.exports = (STATE, commandname) => {
 
 			// Remove multiple ' --' command chains. This will happen for
 			// test files with multiple main commands.
-			if (row === " --" && !has_root) {
-				has_root = true;
-			} else if (row === " --" && has_root) {
-				continue;
-			}
+			if (row === " --" && !has_root) has_root = true;
+			else if (row === " --" && has_root) continue;
 
 			ACDEF.push(row);
 		}
 	}
-	ACDEF = header + ACDEF.sort(aplhasort).join("\n");
+
+	ACDEF = header + ACDEF.sort(aplhasort).join("\n"); // Final acdef string.
 
 	// 5) Build defaults list. =================================================
+
 	let defs = [];
 	Object.keys(DEFAULTS)
 		.sort(aplhasort)
@@ -304,6 +264,7 @@ module.exports = (STATE, commandname) => {
 	}
 
 	// 6) Right trim all strings. ==============================================
+
 	ACDEF = ACDEF.replace(/\s*$/g, "");
 	CONFIG = CONFIG.replace(/\s*$/g, "");
 	defs = defs.replace(/\s*$/g, "");

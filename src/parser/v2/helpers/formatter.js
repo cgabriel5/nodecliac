@@ -7,13 +7,13 @@
  * @return {string} - The prettied file contents.
  */
 module.exports = STATE => {
-	// Vars.
+	let { formatting, stripcomments } = STATE.args; // Get needed arguments.
 	let TREE = STATE.tables.tree;
 	let nodes = TREE.nodes;
 	let output = "";
 
-	// Indentation level multiplier lookup table.
-	let indentations = {
+	// Indentation level multipliers.
+	let MULTIPLIER = {
 		COMMENT: 0, // Note: Scope indentation overrides default.
 		COMMAND: 0,
 		FLAG: 1,
@@ -24,132 +24,148 @@ module.exports = STATE => {
 		VARIABLE: 0
 	};
 
-	// Keep track on consecutive newlines.
-	let newline_counter = 0;
-	// Keep track of command/flag scopes.
-	let scopes = [];
+	let newline_counter = 0; // Keep track on consecutive newlines.
+	let scopes = []; // Keep track of command/flag scopes.
 
-	// Get formatting information.
-	let [indent_char, indent_amount] = STATE.args.formatting;
+	const [indent_char, indent_amount] = formatting; // Get formatting info.
 	let indent = (type, count) => {
-		return indent_char.repeat(
-			(count || indentations[type]) * indent_amount
-		);
+		return indent_char.repeat((count || MULTIPLIER[type]) * indent_amount);
 	};
 
 	// Filter out comment nodes if strip comments flag is provided.
-	if (STATE.args.stripcomments) {
-		nodes = nodes.filter(NODE => {
-			if (NODE.node !== "COMMENT") {
-				return true;
-			}
-		});
-	}
+	if (stripcomments) nodes = nodes.filter(NODE => !(NODE.node !== "COMMENT"));
 
-	// Loop over all nodes to build formatted .acdef contents file.
+	// Loop over nodes to build formatted .acdef contents file.
 	nodes.forEach((NODE, i, nodes) => {
 		let type = NODE.node; // Get the node type.
 
 		switch (type) {
 			case "COMMENT":
-				output += `${indent(null, scopes[scopes.length - 1] || null)}${
-					NODE.comment.value
-				}`;
+				{
+					let scope = scopes[scopes.length - 1] || null;
+					let indentation = indent(null, scope);
 
-				break;
-			case "COMMAND":
-				output += `${NODE.command.value}${NODE.delimiter.value ||
-					""} ${NODE.assignment.value || ""} ${NODE.value.value ||
-					""}`;
-
-				if (NODE.value.value && NODE.value.value === "[") {
-					scopes.push(1);
+					output += `${indentation}${NODE.comment.value}`;
 				}
 
 				break;
+
+			case "COMMAND":
+				{
+					let vvalue = NODE.value.value;
+					let cvalue = NODE.command.value;
+					let dvalue = NODE.delimiter.value || "";
+					let avalue = NODE.assignment.value || "";
+
+					output += `${cvalue}${dvalue} ${avalue} ${vvalue || ""}`;
+
+					if (vvalue && vvalue === "[") scopes.push(1); // Save scope.
+				}
+
+				break;
+
 			case "FLAG":
 				{
-					let pipe_delimiter = "";
+					let kvalue = NODE.keyword.value;
+					let hvalue = NODE.hyphens.value || "";
+					let nvalue = NODE.name.value || "";
+					let bvalue = NODE.boolean.value || "";
+					let avalue = NODE.assignment.value || "";
+					let mvalue = NODE.multi.value || "";
+					let vvalue = NODE.value.value || "";
+					let singletonflag = NODE.singletonflag;
+					let indentation = indent(null, singletonflag ? 1 : null);
 
-					pipe_delimiter = NODE.singletonflag ? "" : "|";
-					let indentation = indent(
-						null,
-						NODE.singletonflag ? 1 : null
-					);
+					let pipe_delimiter = singletonflag ? "" : "|";
 
+					// Note: If next node is a flag reset var.
 					if (pipe_delimiter) {
-						let nNODE = nodes[i + 1];
-						// Next node must also be a flag else reset it.
-						if (nNODE && nNODE.node !== "FLAG") {
-							pipe_delimiter = "";
-						}
+						let nNODE = nodes[i + 1]; // The next node.
+						if (nNODE && nNODE.node !== "FLAG") pipe_delimiter = "";
 					}
 
-					output += `${indentation}${
-						NODE.keyword.value ? NODE.keyword.value + " " : ""
-					}${NODE.hyphens.value || ""}${NODE.name.value || ""}${NODE
-						.boolean.value || ""}${NODE.assignment.value ||
-						""}${NODE.multi.value || ""}${NODE.value.value ||
-						""}${pipe_delimiter}`;
+					output += // [https://stackoverflow.com/a/23867090]
+						indentation +
+						(kvalue ? kvalue + " " : "") +
+						hvalue +
+						nvalue +
+						bvalue +
+						avalue +
+						mvalue +
+						vvalue +
+						pipe_delimiter;
 
-					if (NODE.value.value && NODE.value.value === "(") {
-						scopes.push(2);
-					}
+					if (vvalue && vvalue === "(") scopes.push(2); // Save scope.
 				}
 
 				break;
+
 			case "OPTION":
-				output += `${indent("OPTION")}${NODE.bullet.value} ${
-					NODE.value.value
-				}`;
+				{
+					let bvalue = NODE.bullet.value;
+					let vvalue = NODE.value.value;
+					let indentation = indent("OPTION");
+
+					output += `${indentation}${bvalue} ${vvalue}`;
+				}
 
 				break;
+
 			case "BRACE":
 				{
-					let brace = NODE.brace.value;
+					let bvalue = NODE.brace.value;
+					let indentation = indent(null, bvalue === "]" ? 0 : 1);
 
-					output += `${indent(null, brace === "]" ? 0 : 1)}${
-						NODE.brace.value
-					}`;
+					output += `${indentation}${bvalue}`;
 
-					scopes.pop();
+					scopes.pop(); // Remove last scope.
 				}
 
 				break;
+
 			case "NEWLINE":
 				{
-					let nNODE = nodes[i + 1];
+					let nNODE = nodes[i + 1]; // The next node.
 
-					if (newline_counter <= 1) {
-						output += "\n";
-					}
+					if (newline_counter <= 1) output += "\n";
 					newline_counter++;
 
-					if (nNODE && nNODE.node !== "NEWLINE") {
-						newline_counter = 0;
-					}
+					if (nNODE && nNODE.node !== "NEWLINE") newline_counter = 0;
 				}
 
 				break;
+
 			case "SETTING":
-				output += `@${NODE.name.value} ${NODE.assignment.value} ${NODE.value.value}`;
+				{
+					let nvalue = NODE.name.value;
+					let avalue = NODE.assignment.value;
+					let vvalue = NODE.value.value;
+
+					output += `@${nvalue} ${avalue} ${vvalue}`;
+				}
 
 				break;
+
 			case "VARIABLE":
-				output += `$${NODE.name.value} ${NODE.assignment.value} ${NODE.value.value}`;
+				{
+					let nvalue = NODE.name.value;
+					let avalue = NODE.assignment.value;
+					let vvalue = NODE.value.value;
+
+					output += `$${nvalue} ${avalue} ${vvalue}`;
+				}
 
 				break;
 		}
 	});
 
 	// Final newline replacements.
-	output = output
-		.replace(/(\[|\()$\n{2}/gm, "$1\n")
-		.replace(/\n{2}([ \t]*)(\]|\))$/gm, "\n$1$2")
-		.replace(/^\s*|\s*$/g, "")
-		.replace(/ *$/gm, "");
-	// Append a new line to end of output.
-	output += "\n";
+	output =
+		output
+			.replace(/(\[|\()$\n{2}/gm, "$1\n")
+			.replace(/\n{2}([ \t]*)(\]|\))$/gm, "\n$1$2")
+			.replace(/^\s*|\s*$/g, "")
+			.replace(/ *$/gm, "") + "\n"; // Add trailing newline.
 
 	return { content: output, print: output };
 };

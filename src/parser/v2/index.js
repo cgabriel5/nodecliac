@@ -1,11 +1,7 @@
 "use strict";
 
-// Get needed modules.
-let issue = require("./helpers/issue.js");
-let { r_start_line_char } = require("./helpers/patterns.js");
-
 module.exports = (string, commandname, source, formatting, ...args) => {
-	// Vars - second set of args.
+	// Vars - destructure remaining arguments.
 	let [highlight, trace /* nowarn*/, , stripcomments, test] = args;
 
 	// Vars - timers.
@@ -22,18 +18,17 @@ module.exports = (string, commandname, source, formatting, ...args) => {
 		i: 0,
 		l: string.length,
 		string,
-		loop: { rollback: require("./helpers/rollback.js") },
 		specificity: 0, // Default to allow anything initially.
+
+		// Track command-chain and flag scopes.
+		scopes: { command: null, flag: null },
 
 		// Parsing lookup tables.
 		tables: {
 			variables: {}, // Contain variables: name:value.
 			linestarts: {}, // Contain line index start points.
-			tree: {} // Line by line parsed tree nodes.
+			tree: { nodes: [] } // Collection of parsed NODES.
 		},
-
-		// Track command-chain and flag scopes.
-		scopes: { command: null, flag: null },
 
 		// Add arguments/parameters for easy access across parsers.
 		args: {
@@ -43,26 +38,39 @@ module.exports = (string, commandname, source, formatting, ...args) => {
 			trace,
 			stripcomments,
 			test
+		},
+
+		// Attach utilities (helper functions/constants) for quick access.
+		utils: {
+			constants: {
+				regexp: require("./helpers/patterns.js")
+			},
+			functions: {
+				tree: { add: require("./helpers/tree-add.js") },
+				loop: {
+					issue: require("./helpers/issue.js"),
+					rollback: require("./helpers/rollback.js"),
+					validate: require("./helpers/validate-value.js"),
+					bracechecks: require("./helpers/brace-checks.js")
+				}
+			}
 		}
 	};
 
 	// Loop over acdef file contents to parse.
 	for (; STATE.i < STATE.l; STATE.i++) {
-		// Cache current loop item.
-		let char = string.charAt(STATE.i);
+		let char = string.charAt(STATE.i); // Cache current loop char.
 		let nchar = string.charAt(STATE.i + 1);
 
 		// Handle new lines.
 		if (char === "\n") {
-			// Run newline parser.
-			require(`./parsers/newline.js`)(STATE);
+			require(`./parsers/newline.js`)(STATE); // Run newline parser.
 
 			STATE.line++; // Increment line count.
 			STATE.column = 0; // Reset column to zero.
 			first_non_whitespace_char = "";
 
-			// Skip iteration at this point.
-			continue;
+			continue; // Skip iteration at this point.
 		}
 
 		STATE.column++; // Increment column position.
@@ -77,8 +85,9 @@ module.exports = (string, commandname, source, formatting, ...args) => {
 			first_non_whitespace_char = char; // Set flag.
 
 			// Error if start-of-line character is not allowed.
-			if (!r_start_line_char.test(char)) {
-				issue.error(STATE, 10); // Invalid start-of-line char.
+			if (!STATE.utils.constants.regexp.r_start_line_char.test(char)) {
+				// Invalid start-of-line char.
+				STATE.utils.functions.loop.issue.error(STATE, 10);
 			}
 
 			// Note: Since current sol char has already been iterated over,
@@ -88,9 +97,7 @@ module.exports = (string, commandname, source, formatting, ...args) => {
 			// Determine line's type.
 			line_type = require("./helpers/line_type.js")(STATE, char, nchar);
 			// Break from loop if terminator char found.
-			if (line_type === "terminator") {
-				break;
-			}
+			if (line_type === "terminator") break;
 
 			// Check line indentation.
 			require("./helpers/indentation.js")(STATE, line_type);
@@ -98,10 +105,9 @@ module.exports = (string, commandname, source, formatting, ...args) => {
 			// Check line specificity hierarchy.
 			require("./helpers/specificity.js")(STATE, line_type);
 
-			// Finally, run parser.
 			let parser = `${line_type}.js`;
 			require("./helpers/trace.js")(STATE, parser); // Trace parser.
-			require(`./parsers/${parser}`)(STATE);
+			require(`./parsers/${parser}`)(STATE); // Finally, run parser.
 		}
 	}
 
@@ -118,7 +124,6 @@ module.exports = (string, commandname, source, formatting, ...args) => {
 		let res = require("./helpers/acdef.js")(STATE, commandname);
 		res.time = process.hrtime(stime); // Return end time tuple array.
 
-		// Return acdef, config, etc.
-		return res;
+		return res; // Return acdef, config, etc.
 	}
 };

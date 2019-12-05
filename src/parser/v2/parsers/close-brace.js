@@ -1,13 +1,9 @@
 "use strict";
 
-// Needed modules.
-let issue = require("../helpers/issue.js");
-let { r_nl, r_whitespace } = require("../helpers/patterns.js");
-
 /**
- * Parses closing brace line.
+ * Closing-brace parser.
  *
- * ---------- Parsing States Breakdown -----------------------------------------
+ * ---------- Parsing Breakdown ------------------------------------------------
  * - value
  *  |     ^-EOL-Whitespace-Boundary 2
  *  ^-Whitespace-Boundary 1
@@ -19,8 +15,12 @@ let { r_nl, r_whitespace } = require("../helpers/patterns.js");
  * @return {object} - Object containing parsed information.
  */
 module.exports = STATE => {
-	// Get global loop state variables.
-	let { line, l, string } = STATE;
+	let { line, l, string, utils } = STATE; // Loop state vars.
+	// Utility functions and constants.
+	let { functions: F, constants: C } = utils;
+	let { r_nl, r_whitespace } = C.regexp;
+	let { issue, bracechecks } = F.loop;
+	let { add } = F.tree;
 
 	// Parsing vars.
 	let state = "brace"; // Initial parsing state.
@@ -34,12 +34,11 @@ module.exports = STATE => {
 
 	// Loop over string.
 	for (; STATE.i < l; STATE.i++) {
-		let char = string.charAt(STATE.i); // Cache current loop item.
+		let char = string.charAt(STATE.i); // Cache current loop char.
 
-		// End loop on a new line char.
+		// End loop on a newline char.
 		if (r_nl.test(char)) {
-			// Note: Subtract index by 1 to run newline character logic code
-			// block on next iteration
+			// Rollback to run newline char code block next iteration.
 			NODE.endpoint = --STATE.i; // Store newline index.
 
 			break;
@@ -49,33 +48,24 @@ module.exports = STATE => {
 
 		switch (state) {
 			case "brace":
-				// Store ']'/')' brace index positions.
+				// Store index positions.
 				NODE.brace.start = STATE.i;
 				NODE.brace.end = STATE.i;
+				NODE.brace.value = char; // Store character.
 
-				// Store brace character.
-				NODE.brace.value = char;
-
-				// Set state to collect comment characters.
-				state = "eol-wsb";
+				state = "eol-wsb"; // Reset parsing state.
 
 				break;
 
 			case "eol-wsb":
-				if (!r_whitespace.test(char)) {
-					// Note: Only trailing whitespace should remain now.
-					issue.error(STATE);
-				}
+				// Anything but trailing whitespace is invalid so give error.
+				if (!r_whitespace.test(char)) issue.error(STATE);
 
 				break;
 		}
 	}
 
-	// Note: If a command-chain scope exists, error as scope was never closed.
-	require("../helpers/brace-checks.js")(STATE, NODE, "reset-scope");
-
-	// Add node to tree.
-	require("../helpers/tree-add.js")(STATE, NODE);
-
-	return NODE;
+	// Note: If command-chain scope exists, error as brace wasn't closed.
+	bracechecks(STATE, NODE, "reset-scope");
+	add(STATE, NODE); // Add node to tree.
 };

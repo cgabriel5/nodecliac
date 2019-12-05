@@ -32,7 +32,7 @@ module.exports = async args => {
 		print,
 		save,
 		// `make` action flags:
-		force,
+		// force,
 		trace,
 		test,
 		add,

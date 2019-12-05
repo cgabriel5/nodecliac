@@ -7,6 +7,7 @@ const { checksum } = require("./checksum.js");
 const { exit } = require("./exit.js");
 const { paths } = require("./paths.js");
 const { strip_comments } = require("./text.js");
+const { hasOwnProperty } = require("./objects.js");
 const {
 	readdir,
 	lstats,
@@ -19,6 +20,7 @@ const {
 } = require("./filesystem.js");
 
 module.exports = {
+	hasOwnProperty,
 	strip_comments,
 	checksum,
 	concat,

@@ -7,12 +7,12 @@
 # # @resource [https://stackoverflow.com/a/18434831]
 # function __platform() {
 # 	case "$OSTYPE" in
-# 	  solaris*) echo "solaris" ;;
-# 	  darwin*)  echo "macosx" ;;
-# 	  linux*)   echo "linux" ;;
-# 	  bsd*)     echo "bsd" ;;
-# 	  msys*)    echo "windows" ;;
-# 	  *)        echo "unknown" ;;
+# 		solaris*) echo "solaris" ;;
+# 		darwin*)  echo "macosx" ;;
+# 		linux*)   echo "linux" ;;
+# 		bsd*)     echo "bsd" ;;
+# 		msys*)    echo "windows" ;;
+# 		*)        echo "unknown" ;;
 # 	esac
 # }
 

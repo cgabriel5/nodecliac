@@ -303,7 +303,7 @@ if [[ "$INSTALLER" == "aconly" ]]; then
 
 	# Modify nodecliac.acdef for aconly.
 	echo " - Modifying nodecliac.acdef for 'aconly' install..."
-	perl -i -lne 'if (/^(#|.uninstall --| )/) { if ($1 eq " ") { print "\n --"} elsif ($1 eq ".uninstall --") { print "$1" } else { print } }' ~/.nodecliac/registry/nodecliac/nodecliac.acdef
+	perl -i -lne 'if (/^(#|\.(print|registry|status|uninstall) --| )/) { if ($1 eq " ") { print "\n --"} elsif ($1 eq ".uninstall --") { print "$1" } else { print } }' ~/.nodecliac/registry/nodecliac/nodecliac.acdef
 	log " $CHECK_MARK Modified nodecliac.acdef for 'aconly' install."
 
 	# Create bin file.

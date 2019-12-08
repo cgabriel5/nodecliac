@@ -308,7 +308,7 @@ if [[ "$INSTALLER" == "aconly" ]]; then
 
 	# Create bin file.
 	echo " - Creating bin file..."
-	sudo cp -p "$outputdir"/uninstall "$binfilepath"
+	sudo cp -p "$outputdir/src/scripts/bin/aconly.sh" "$binfilepath"
 	sudo chmod +x "$binfilepath"
 	log " $CHECK_MARK Created bin file."
 

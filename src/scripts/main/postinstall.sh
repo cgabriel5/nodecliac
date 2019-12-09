@@ -1,5 +1,12 @@
 #!/bin/bash
 
+chipdir() {
+	local dir="$1" # The provided directory path.
+	# Remove last directory from path.
+	for ((x=0; x<"$2"; x++)); do dir="${dir%/*}"; done
+	echo "$dir" # Return modified path.
+}
+
 # Get path of current script. [https://stackoverflow.com/a/246128]
 __filepath="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
@@ -10,6 +17,6 @@ if [[ -d "$PWD/.git" && -n "$(command -v git)" ]]; then
 fi
 
 # Reset Bash script shebangs.
-"$__filepath/tests/scripts/shebang.sh"
+"$(chipdir "$__filepath" 3)""/tests/scripts/shebang.sh"
 
 exit 0

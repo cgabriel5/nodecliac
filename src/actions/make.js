@@ -1,6 +1,5 @@
 "use strict";
 
-// Needed modules.
 const path = require("path");
 const chalk = require("chalk");
 const flatry = require("flatry");
@@ -9,6 +8,7 @@ const fe = require("file-exists");
 const mkdirp = require("make-dir");
 const de = require("directory-exists");
 const {
+	fmt,
 	exit,
 	paths,
 	read,
@@ -19,36 +19,20 @@ const {
 } = require("../utils/toolbox.js");
 
 module.exports = async args => {
-	// Get needed paths.
-	let { registrypaths } = paths;
-	// Declare empty variables to reuse for all await operations.
+	let { registrypaths } = paths; // Get needed paths.
 	// eslint-disable-next-line no-unused-vars
-	let err, res;
+	let err, res; // Declare empty variables to reuse for all await operations.
+	let tstring = "";
 
-	// Get CLI args.
-	let {
-		// `make` + `format` flags:
-		source,
-		print,
-		save,
-		// `make` action flags:
-		// force,
-		trace,
-		test,
-		add,
-		// `format` action flags:
-		"strip-comments": igc,
-		highlight,
-		indent,
-		// Other flags:
-		nowarn,
-		engine
-	} = args;
+	// CLI args.
+	let { source, print, save } = args; // `make` + `format` flags.
+	let { trace, test, add /*, force*/ } = args; // `make` flags.
+	let { "strip-comments": igc, highlight, indent } = args; // `format` flags.
+	let { nowarn, engine } = args; // Other flags.
 
 	// Get list of available engines.
-	[err, res] = await flatry(
-		readdir(path.join(path.parse(__dirname).dir, "/parser"))
-	);
+	let parserpath = path.join(path.parse(__dirname).dir, "/parser");
+	[err, res] = await flatry(readdir(parserpath));
 	// Filter content to only return version directories.
 	let engines = res
 		.filter(item => /^v\d+$/.test(item))
@@ -58,10 +42,8 @@ module.exports = async args => {
 	engine = engine || engines[engines.length - 1];
 
 	// If engine does not exist error.
-	if (!engines.includes(engine)) {
-		exit([`Engine: ${chalk.bold(engine)} does not exist.`]);
-	}
-
+	tstring = "Engine: ? does not exist.";
+	if (!engines.includes(engine)) exit([fmt(tstring, chalk.bold(engine))]);
 	// Require parser engine script.
 	let parser = require(`../parser/v${engine}/index.js`);
 
@@ -86,27 +68,26 @@ module.exports = async args => {
 			indent_amount = indent_level;
 		}
 
-		// Reset char to its literal character (`s` => " ", `t` => "\t").
+		// Reset identifier to its literal char (`s` => " ", `t` => "\t").
 		indent_char = indent_char === "s" ? " " : "\t";
 	}
 
 	// Source must be provided.
-	if (!source) {
-		exit([`Please provide a ${chalk.bold("--source")} path.`]);
-	}
+	tstring = "Please provide a ? path.";
+	if (!source) exit([fmt(tstring, chalk.bold("--source"))]);
 	if (typeof source !== "string") {
-		exit([`${chalk.bold("--source")} needs to be a string.`]);
+		tstring = "? needs to be a string.";
+		exit([fmt(tstring, chalk.bold("--source"))]);
 	}
 	// Check path for file name and extension.
 	let fi = info(source);
 	if (!/^[a-z][-_+a-z0-9]{2,}\.acmap$/i.test(fi.name)) {
+		let varg1 = chalk.bold.blue("<cli-command-name>.acmap");
+		let varg2 = chalk.bold("prettier.acmap");
+		let varg3 = chalk.bold.blue("prettier-cli-watcher.acmap");
 		exit([
-			`File name must follow format: ${chalk.bold.blue(
-				"<cli-command-name>.acmap"
-			)}.`,
-			`Examples: ${chalk.bold("prettier.acmap")}, ${chalk.bold(
-				"prettier-cli-watcher.acmap"
-			)}.`
+			fmt("File name must follow format: ?.", varg1),
+			fmt("Examples: ?, ?.", varg2, varg3)
 		]);
 	}
 	// Extract the command name.
@@ -122,9 +103,9 @@ module.exports = async args => {
 	[err, res] = await flatry(fe(source));
 	// If path does not exist, give message and end process.
 	if (!res) {
-		exit([
-			`${chalk.bold(source)} (${chalk.blue("--source")}) doesn't exist.`
-		]);
+		let varg1 = chalk.bold(source);
+		let varg2 = chalk.blue("--source");
+		exit([fmt("? (?) doesn't exist.", varg1, varg2)]);
 	}
 
 	// Generate acmap.
@@ -201,12 +182,8 @@ module.exports = async args => {
 				// Loop over placeholders to create write promises.
 				for (let key in placeholders) {
 					if (f.call(placeholders, key)) {
-						promises.push(
-							write(
-								`${placeholderspaths}/${key}`,
-								placeholders[key]
-							)
-						);
+						let p = `${placeholderspaths}/${key}`;
+						promises.push(write(p, placeholders[key]));
 					}
 				}
 
@@ -221,31 +198,22 @@ module.exports = async args => {
 		// Print generated acdef/config file contents.
 		if (!formatting) {
 			if (acmap) {
-				console.log(`[${chalk.bold(`${commandname}.acdef`)}]\n`);
+				console.log(`\n[${chalk.bold(`${commandname}.acdef`)}]\n`);
 				console.log(acmap.print + keywords.print);
 				if (!config) console.log(); // Bottom padding.
 			}
 			if (config) {
-				console.log(
-					`\n[${chalk.bold(`.${commandname}.config.acdef`)}]\n`
-				);
-				console.log(config.print);
-				console.log(); // Bottom padding.
+				let msg = `\n[${chalk.bold(`.${commandname}.config.acdef`)}]\n`;
+				console.log(msg);
+				if (config.print) console.log(config.print + "\n");
 			}
 		}
 		// If formatting print the output.
 		else {
-			console.log(
-				`${"-".repeat(25)}${chalk.bold.blue(`Prettied`)}${"-".repeat(
-					25
-				)}\n`
-			);
+			let decor = "-".repeat(25);
+			console.log(`\n${decor}${chalk.bold.blue(`Prettied`)}${decor}\n`);
 			console.log(formatted.print);
-			console.log(
-				`\n${"-".repeat(25)}${chalk.bold.blue(`Prettied`)}${"-".repeat(
-					25
-				)}\n`
-			);
+			console.log(`${decor}${chalk.bold.blue(`Prettied`)}${decor}\n`);
 		}
 
 		// Time in seconds: [https://stackoverflow.com/a/41443682]
@@ -267,13 +235,11 @@ module.exports = async args => {
 				if (!config) console.log(); // Bottom padding.
 			}
 			if (config) {
-				if (acmap) console.log(); // Pad before config.
-				console.log(config.print);
+				if (acmap) console.log(); // Pad before logging config.
+				if (config.print) console.log(config.print);
 			}
 		}
 		// If formatting print the output.
-		else {
-			console.log(formatted.print);
-		}
+		else console.log(formatted.print);
 	}
 };

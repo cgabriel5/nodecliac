@@ -1,6 +1,5 @@
 "use strict";
 
-// Needed modules.
 const path = require("path");
 const chalk = require("chalk");
 const flatry = require("flatry");
@@ -10,19 +9,14 @@ const fe = require("file-exists");
 const { exit, paths, readdir } = require("../utils/toolbox.js");
 
 module.exports = async () => {
-	// Get needed paths.
-	let { registrypaths } = paths;
+	let { registrypaths } = paths; // Get needed paths.
 	let files = [];
-
-	// Declare empty variables to reuse for all await operations.
 	// eslint-disable-next-line no-unused-vars
-	let err, res;
+	let err, res; // Declare empty variables to reuse for all await operations.
 
 	// Maps path needs to exist to list acdef files.
 	[err, res] = await flatry(de(registrypaths));
-	if (!res) {
-		exit([]); // Just exit without message.
-	}
+	if (!res) exit([]); // Exit without message.
 
 	// Get list of directory command folders.
 	[err, res] = await flatry(readdir(registrypaths));
@@ -31,16 +25,12 @@ module.exports = async () => {
 	// Loop over found command folders to get their respective
 	// .acdef/config files.
 	for (let i = 0, l = commands.length; i < l; i++) {
-		// Cache current loop item.
-		let command = commands[i];
+		let command = commands[i]; // Cache current loop item.
 
 		// Build .acdef file paths.
 		let acdefpath = path.join(registrypaths, command, `${command}.acdef`);
-		let configpath = path.join(
-			registrypaths,
-			command,
-			`.${command}.config.acdef`
-		);
+		let configfilename = `.${command}.config.acdef`;
+		let configpath = path.join(registrypaths, command, configfilename);
 
 		// Store information in a tuple.
 		let tuple = [];
@@ -52,10 +42,7 @@ module.exports = async () => {
 
 			// Check for config file.
 			[err, res] = await flatry(fe(configpath));
-			if (res) {
-				// Store config file path for later use.
-				tuple.push(true);
-			}
+			if (res) tuple.push(true); // Store config file path for later use.
 
 			// Add tuple to files array.
 			files.push(tuple);
@@ -76,11 +63,11 @@ module.exports = async () => {
 
 				// Check if config file exists.
 				let config_marker = hasconfig ? "*" : "";
-				log(
-					` ─ ${chalk[config_marker ? "bold" : "black"](
-						chalk[config_marker ? "blue" : "black"](command)
-					)}${config_marker}`
+
+				let varg1 = chalk[config_marker ? "bold" : "black"](
+					chalk[config_marker ? "blue" : "black"](command)
 				);
+				log(` ─ ${varg1}${config_marker}`);
 			});
 	}
 };

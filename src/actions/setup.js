@@ -1,39 +1,25 @@
 "use strict";
 
-// Needed modules.
 const path = require("path");
 const chalk = require("chalk");
 const flatry = require("flatry");
 const log = require("fancy-log");
-// const shell = require("shelljs");
 const mkdirp = require("make-dir");
 const fe = require("file-exists");
 const copydir = require("recursive-copy");
 const de = require("directory-exists");
 const through = require("through2");
 const {
+	fmt,
 	exit,
 	paths,
 	read,
 	write,
-	// copy,
-	// readdir,
 	strip_comments
 } = require("../utils/toolbox.js");
 
 module.exports = async args => {
-	/**
-	 * Use provided path to build the file's correct source path.
-	 *
-	 * @param  {string} filepath - The source's file path.
-	 * @return {string} - The corrected source's file path.
-	 */
-	// let fixpath = filepath => {
-	// 	return path.join(path.dirname(__dirname), filepath);
-	// };
-
-	// Get CLI args.
-	let { force, rcfilepath, commands } = args;
+	let { force, rcfilepath, commands } = args; // Get CLI args.
 
 	// If command value is provided it must be a string list.
 	if (commands && typeof commands !== "string") {
@@ -41,39 +27,20 @@ module.exports = async args => {
 	}
 
 	// Get needed paths.
-	let {
-		customdir,
-		bashrcpath,
-		mainscriptname,
-		registrypaths,
-		acmapssource,
-		resourcespath,
-		resourcessrcs,
-		setupfilepath
-	} = paths;
+	let { customdir, bashrcpath, mainscriptname, registrypaths } = paths;
+	let { acmapssource, resourcespath, resourcessrcs, setupfilepath } = paths;
 
 	// If a custom .rcfile path was provided use that instead.
-	if (rcfilepath) {
-		bashrcpath = rcfilepath;
-	}
+	if (rcfilepath) bashrcpath = rcfilepath;
 
-	// // Get platform name.
-	// let platform_name = shell
-	// 	.exec("uname", { silent: true })
-	// 	.stdout.trim()
-	// 	.toLowerCase();
-
-	// Declare empty variables to reuse for all await operations.
-	let err, res;
+	let err, res; // Declare empty variables to reuse for all await operations.
+	let tstring = "";
 
 	// If ~/.nodecliac exists force flag is needed to overwrite current install.
 	[err, res] = await flatry(de(customdir));
 	if (res && !force) {
-		exit([
-			`${chalk.bold(customdir)} exists. Setup with ${chalk.bold(
-				"--force"
-			)} to overwrite directory.`
-		]);
+		tstring = "? exists. Setup with ? to overwrite directory.";
+		exit([fmt(tstring, chalk.bold(customdir), chalk.bold("--force"))]);
 	}
 
 	// If .rcfile does not exist, give message and end process.
@@ -82,13 +49,10 @@ module.exports = async args => {
 		exit([`${chalk.bold(bashrcpath)} file does not exist. Setup aborted.`]);
 	}
 
-	// Create needed paths
+	// Create needed paths: ~/.nodecliac/registry/ & ~/.nodecliac/src/
 	[err, res] = await flatry(
 		// [https://github.com/scopsy/await-to-js/issues/12#issuecomment-386147783]
-		Promise.all([
-			mkdirp(registrypaths), // ~/.nodecliac/registry/
-			mkdirp(acmapssource) // ~/.nodecliac/src/
-		])
+		Promise.all([mkdirp(registrypaths), mkdirp(acmapssource)])
 	);
 
 	// Get .rcfile script contents.
@@ -97,87 +61,19 @@ module.exports = async args => {
 	// Check for nodecliac marker.
 	if (!/^ncliac=~/m.test(res)) {
 		// Edit .rcfile file to "include" nodecliac main script file.
-		await flatry(
-			write(
-				bashrcpath,
-				`${res.replace(
-					/\n*$/g,
-					""
-				)}\n\nncliac=~/.nodecliac/src/main/${mainscriptname};if [ -f "$ncliac" ];then source "$ncliac";fi;`
-			)
-		);
+		res = res.replace(/\n*$/g, ""); // Remove trailing newlines.
+		tstring = // Template string.
+			'?\n\nncliac=~/.nodecliac/src/main/?;if [ -f "$ncliac" ];then source "$ncliac";fi;';
+		await flatry(write(bashrcpath, fmt(tstring, res, mainscriptname)));
 	}
 
-	// // List of allowed file names/extensions.
-	// let allowed_files = new RegExp(
-	// 	`^(ac|main|config)\\.(sh|pl|nim|${platform_name})$`
-	// );
-
-	// // Get list of directory files.
-	// [err, res] = await flatry(readdir(fixpath("scripts")));
-	// let files = res.filter(file => {
-	// 	return allowed_files.test(file);
-	// });
-
-	// // Var to store promises in.
-	// let promises = [];
-
-	// // Read contents of needed script files.
-	// for (let i = 0, l = files.length; i < l; i++) {
-	// 	// Add write promise to promise array.
-	// 	promises.push(read(fixpath(`scripts/${files[i]}`)));
-	// }
-
-	// // Generate needed completion scripts.
-	// [err, res] = await flatry(Promise.all(promises));
-
-	// // Clear variable.
-	// promises.length = 0;
-
-	// // Get each file contents from read results.
-	// for (let i = 0, l = files.length; i < l; i++) {
-	// 	// Cache current loop item.
-	// 	let file = files[i];
-	// 	// Determine if script needs to be set to executable.
-	// 	let mode = /\.pl$/.test(file) ? "755" : void 0;
-
-	// 	// Add write promise to promise array.
-	// 	promises.push(
-	// 		write(`${acmapssource}/${file}`, strip_comments(res[i]), mode)
-	// 	);
-	// }
-
-	// // Create script files.
-	// await flatry(Promise.all(promises));
-
-	// // Just copy file over. No need to do anything to it.
-	// [err, res] = await flatry(
-	// 	copy(
-	// 		fixpath(`scripts/ac.${platform_name}`),
-	// 		`${acmapssource}/ac.${platform_name}`
-	// 	)
-	// );
-
 	// Create setup info file to reference on uninstall.
-	[err, res] = await flatry(
-		write(
-			setupfilepath,
-			JSON.stringify(
-				{
-					force: force || false,
-					rcfilepath: bashrcpath,
-					time: Date.now()
-				},
-				undefined,
-				"\t"
-			)
-		)
+	let contents = JSON.stringify(
+		{ force: force || false, rcfilepath: bashrcpath, time: Date.now() },
+		undefined,
+		"\t"
 	);
-
-	// // Prep allowed commands list.
-	// commands = commands ? commands.split(/( |,)/) : [];
-	// // Ensure nodecliac.acdef is copied over.
-	// let allowed_commands = ["nodecliac"].concat(commands);
+	[err, res] = await flatry(write(setupfilepath, contents));
 
 	// Copy nodecliac command packages/files to nodecliac registry.
 	[err, res] = await flatry(
@@ -187,17 +83,11 @@ module.exports = async args => {
 			dot: false,
 			debug: false,
 			filter: function(filename) {
-				// File must pass conditions to be copied.
-				return (
-					// Don't copy hidden directory/files.
-					!/^\._/.test(filename)
-				);
+				return !/^\._/.test(filename); // Exclude hidden dirs/files.
 			},
 			transform: function(src /*dest, stats*/) {
 				// Only modify Shell and Perl script files.
-				if (!/\.(sh|pl|nim)$/.test(path.extname(src))) {
-					return null;
-				}
+				if (!/\.(sh|pl|nim)$/.test(path.extname(src))) return null;
 
 				// Remove comments from files and return.
 				return through(function(chunk, enc, done) {
@@ -207,35 +97,20 @@ module.exports = async args => {
 		})
 	);
 	// If copying fails give error.
-	if (err) {
-		exit(["Failed to copy source files."]);
-	}
+	if (err) exit(["Failed to copy source files."]);
 
 	// Copy nodecliac command packages/files to nodecliac registry.
 	[err, res] = await flatry(
 		copydir(resourcespath, registrypaths, {
-			// Copy options.
 			overwrite: true,
 			dot: true,
 			debug: false,
 			filter: function(filename) {
-				// Get command from filename.
-				// let command = (filename.replace(/^\./, "").split(".", 1) ||
-				// [])[0];
-
-				// File must pass conditions to be copied.
-				return (
-					// Don't copy acmaps directory/files.
-					!/^__acmaps/.test(filename)
-					// Command must be allowed to be copied.
-					// && allowed_commands.includes(command)
-				);
+				return !/^__acmaps/.test(filename); // Exclude hidden dirs/files.
 			},
 			transform: function(src /*dest, stats*/) {
 				// Only modify Shell and Perl script files.
-				if (!/\.(sh|pl)$/.test(path.extname(src))) {
-					return null;
-				}
+				if (!/\.(sh|pl)$/.test(path.extname(src))) return null;
 
 				// Remove comments from files and return.
 				return through(function(chunk, enc, done) {
@@ -245,9 +120,7 @@ module.exports = async args => {
 		})
 	);
 	// If copying fails give error.
-	if (err) {
-		exit(["Failed to copy command files."]);
-	}
+	if (err) exit(["Failed to copy command files."]);
 
 	// Give success message.
 	log(chalk.green("Setup successful."));

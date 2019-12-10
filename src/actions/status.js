@@ -1,65 +1,51 @@
 "use strict";
 
-// Needed modules.
 const path = require("path");
 const chalk = require("chalk");
 const flatry = require("flatry");
 const log = require("fancy-log");
 const fe = require("file-exists");
-const { exit, paths, remove, write } = require("../utils/toolbox.js");
+const { exit, paths, remove, write, fmt } = require("../utils/toolbox.js");
 
 module.exports = async args => {
-	// Get needed paths.
-	let { customdir } = paths;
-	// Get CLI args.
-	let { enable, disable } = args;
-	// Dot file path.
-	let dotfile = path.join(customdir, ".disable");
-	// Declare empty variables to reuse for all await operations.
+	let { customdir } = paths; // Get needed paths.
+	let { enable, disable } = args; // Get CLI args.
+	let dotfile = path.join(customdir, ".disable"); // Dot file path.
 	// eslint-disable-next-line no-unused-vars
-	let err, res;
+	let err, res; // Declare empty variables to reuse for all await operations.
+	let tstring = "";
 
 	// If no flag is supplied then only print the status.
 	if (!enable && !disable) {
 		[err, res] = await flatry(fe(dotfile));
 
-		// Print status.
 		let message = res ? chalk.red("disabled") : chalk.green("enabled");
-		log(`nodecliac: ${message}`);
+		log(`nodecliac: ${message}`); // Print status.
 	} else {
-		// Enable/disable nodecliac.
 		// If both flags are provided give message and exit.
 		if (enable && disable) {
-			exit([
-				`Both ${chalk.bold("--enable")} and ${chalk.bold(
-					"--disable"
-				)} flags were supplied but only one can be provided.`
-			]);
+			let varg1 = chalk.bold("--enable");
+			let varg2 = chalk.bold("--disable");
+			tstring = // Template string.
+				"Both ? and ? flags supplied but only one can be provided.";
+			exit([fmt(tstring, varg1, varg2)]);
 		}
 
 		// If enable flag provided..
 		if (enable) {
-			// Remove dot file.
-			[err, res] = await flatry(fe(dotfile));
+			[err, res] = await flatry(fe(dotfile)); // Remove dot file.
 			if (res) {
-				// Remove script.
-				[err, res] = await flatry(remove(dotfile));
-				// Log success message.
-				log(chalk.green("Enabled."));
-			} else {
-				// Log success message.
-				log(chalk.green("Enabled."));
-			}
-		} else if (disable) {
-			// If disable flag provided...
-
+				[err, res] = await flatry(remove(dotfile)); // Remove script.
+				log(chalk.green("Enabled.")); // Log success message.
+			} else log(chalk.green("Enabled.")); // Log success message.
+		}
+		// If disable flag provided...
+		else if (disable) {
 			// Create blocking dot file.
-			[err, res] = await flatry(
-				write(dotfile, `Disabled: ${new Date()};${Date.now()}`)
-			);
+			let contents = `Disabled: ${new Date()};${Date.now()}`;
+			[err, res] = await flatry(write(dotfile, contents));
 
-			// Log success message.
-			log(chalk.red("Disabled."));
+			log(chalk.red("Disabled.")); // Log success message.
 		}
 	}
 };

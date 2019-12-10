@@ -1,6 +1,5 @@
 "use strict";
 
-// Needed modules.
 const crypto = require("crypto");
 
 /**

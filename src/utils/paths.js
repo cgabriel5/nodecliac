@@ -1,6 +1,5 @@
 "use strict";
 
-// Needed modules.
 const os = require("os");
 const path = require("path");
 

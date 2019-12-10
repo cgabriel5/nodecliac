@@ -2,7 +2,6 @@
 
 "use strict";
 
-// Needed modules.
 const chalk = require("chalk");
 const minimist = require("minimist");
 const { exit } = require("./utils/toolbox.js");

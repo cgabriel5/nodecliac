@@ -1,6 +1,5 @@
 "use strict";
 
-// Needed modules.
 const log = require("fancy-log");
 
 /**

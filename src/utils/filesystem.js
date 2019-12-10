@@ -1,6 +1,5 @@
 "use strict";
 
-// Needed modules.
 const fs = require("fs");
 const path = require("path");
 const ext = require("file-extension");

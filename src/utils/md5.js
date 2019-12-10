@@ -10,8 +10,7 @@
  * @resource [http://www.myersdaily.org/joseph/javascript/md5.js]
  * @resource [https://gist.github.com/MichaelPote/3f0cefaaa9578d7e30be]
  */
-
-var md5cycle = function(x, k) {
+let md5cycle = function(x, k) {
 	var a = x[0],
 		b = x[1],
 		c = x[2],

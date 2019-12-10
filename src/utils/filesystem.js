@@ -176,6 +176,16 @@ let lstats = filepath => {
 	});
 };
 
+/**
+ * Use provided path to build the file's correct source path.
+ *
+ * @param  {string} filepath - The source's file path.
+ * @return {string} - The corrected source's file path.
+ */
+// let fixpath = filepath => {
+// 	return path.join(path.dirname(__dirname), filepath);
+// };
+
 module.exports = {
 	ispath_abs,
 	readdir,

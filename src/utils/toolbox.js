@@ -8,6 +8,7 @@ const { exit } = require("./exit.js");
 const { paths } = require("./paths.js");
 const { strip_comments } = require("./text.js");
 const { hasOwnProperty } = require("./objects.js");
+const { fmt, rtp } = require("./strings.js");
 const {
 	readdir,
 	lstats,
@@ -34,5 +35,7 @@ module.exports = {
 	write,
 	info,
 	read,
-	copy
+	copy,
+	fmt,
+	rtp
 };

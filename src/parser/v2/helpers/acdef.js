@@ -31,7 +31,7 @@ module.exports = (STATE, commandname) => {
 	const date = new Date();
 	const timestamp = Date.now();
 	let header = `# DON'T EDIT FILE —— GENERATED: ${date}(${timestamp})\n\n`;
-	if (STATE.args.test) header = ""; // Reset header if testing.
+	if (STATE.args.test) header = ""; // Reset header when testing.
 
 	/**
 	 * Add base flag to Set (adds '--flag=' or '--flag=*' to Set).

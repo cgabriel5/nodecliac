@@ -8,7 +8,7 @@
  * @return {undefined} - Nothing is returned.
  */
 module.exports = (STATE, line_type) => {
-	let issue = STATE.utils.functions.issue; // Utility functions and constants.
+	let issue = STATE.utils.functions.loop.issue; // Utility functions and constants.
 
 	let linestarts = STATE.tables.linestarts; // Vars.
 	let r_linetypes = /(setting|variable|command)/; // Lines can't be indented.

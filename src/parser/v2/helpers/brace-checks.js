@@ -9,7 +9,7 @@
  * @return {undefined} - Nothing is returned.
  */
 module.exports = (STATE, NODE, checktype) => {
-	let issue = STATE.utils.functions.issue; // Utility functions and constants.
+	let issue = STATE.utils.functions.loop.issue; // Utility functions and constants.
 
 	switch (checktype) {
 		// Check whether a pre-existing command scope exists.

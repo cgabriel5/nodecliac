@@ -8,7 +8,7 @@
  * @return {string} - The line's type.
  */
 module.exports = (STATE, line_type) => {
-	let issue = STATE.utils.functions.issue; // Utility functions and constants.
+	let issue = STATE.utils.functions.loop.issue; // Utility functions and constants.
 
 	// Note: [Hierarchy lookup table] The higher the number the higher its
 	// precedence, therefore: command > flag > option. Variables, settings,

@@ -6,12 +6,12 @@ const p_flag = require("../parsers/flag.js");
  * Command-chain parser.
  *
  * ---------- Parsing Breakdown ------------------------------------------------
- * program.command = [ ]?
- * program.command = [
- * program.command = --flag
- * program.command =
- * program.command ,
  * program.command
+ * program.command ,
+ * program.command =
+ * program.command = [
+ * program.command = [ ]?
+ * program.command = --flag
  *                | |
  *                ^-^-Whitespace-Boundary 1/2
  * ^-Command-Chain

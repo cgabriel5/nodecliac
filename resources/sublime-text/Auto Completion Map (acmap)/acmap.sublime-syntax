@@ -1,6 +1,6 @@
 %YAML 1.2
 ---
-name: Auto Completion Map (acmap/def)
+name: ACMAP
 file_extensions:
   - acmap
   - acdef
@@ -55,27 +55,28 @@ contexts:
         2: constant.language.boolean.false.acmap
 
   numbers: # [https://stackoverflow.com/a/30987109]
-    - match: '\b(?:NaN|-?(?:(?:\d+|\d*\.\d+)(?:[E|e][+|-]?\d+)?|Infinity))\b'
+    # - match: '\b(?:NaN|-?(?:(?:\d+|\d*\.\d+)(?:[E|e][+|-]?\d+)?|Infinity))\b'
+    - match: '[\+\-]?\d*\.?\d+(?:[Ee][\+\-]?\d+)?'
       scope: constant.numeric.acmap
 
   strings:
-    - match: '"' # Double quoted strings.
+    - match: '(?<!\\)"' # Double quoted strings.
       scope: punctuation.definition.string.begin.acmap
       push:
         - meta_scope: string.quoted.double.acmap
         - meta_include_prototype: false
         - include: escape
-        - match: '"'
+        - match: '(?<!\\)"'
           scope: punctuation.definition.string.end.acmap
           pop: true
         - include: template-strings
-    - match: "'" # Single quoted strings.
+    - match: "(?<!\\\\)'" # Single quoted strings.
       scope: punctuation.definition.string.begin.acmap
       push:
         - meta_scope: string.quoted.single.acmap
         - meta_include_prototype: false
         - include: escape
-        - match: "'"
+        - match: "(?<!\\\\)'"
           scope: punctuation.definition.string.end.acmap
           pop: true
         - include: template-strings
@@ -106,19 +107,19 @@ contexts:
 # ------------------------------------------------------------------- CONSTRUCTS
 
   settings:
-    - match: "((@)[a-zA-Z][_a-zA-Z0-9]*)"
+    - match: "^((@)[a-zA-Z][_a-zA-Z0-9]*)"
       captures:
         2: punctuation.definition.variable.acmap
-        1: variable.other.readwrite.global.acmap # **purple
+        1: variable.other.readwrite.setting.acmap # **purple
 
   variables:
-    - match: "((\\$)[_a-zA-Z][_a-zA-Z0-9]*)"
+    - match: "^((\\$)[_a-zA-Z][_a-zA-Z0-9]*)"
       captures:
         2: punctuation.definition.variable.acmap
         1: variable.other.readwrite.global.acmap # **purple
 
   commands:
-    - match: "^[a-zA-Z]"
+    - match: "^\\.?[a-zA-Z]"
       push:
         - meta_scope: entity.other.command.acmap # **italicize
         - meta_include_prototype: false
@@ -134,6 +135,9 @@ contexts:
           captures:
             1: punctuation.section.flag-list.end.acmap # **purple-brace
           pop: true
+        - match: '((?<!\\)\[)' # Handle: Highlight imbalanced braces.
+          captures:
+            1: invalid.illegal.acmap
         - include: flags
     - match: "(?={{flag}})" # Route[2]: oneliner | Handle: 'command = --flag'
       push:
@@ -163,19 +167,22 @@ contexts:
           captures:
             1: punctuation.section.options-list.end.acmap # **purple-brace
           pop: true
+        - match: '((?<!\\)\()' # Handle: Highlight imbalanced braces.
+          captures:
+            1: invalid.illegal.acmap
         - match: "((-) )" # Handle: '- value'
           captures:
             2: punctuation.definition.block.option.item.acmap
         - include: command-string
+        - include: flag_pathway
+    # Route[2]: remainders: Handle remaining un-highlighted text.
+    - include: flag_pathway
+
+  flag_pathway: # Re-useable flag context pathway.
         - include: primitives
-        - include: constructs
+        - include: keywords
         - include: assignment
         - include: default # Leftovers highlight as unquoted-strings.
-    # Route[2]: remainders: Handle remaining un-highlighted text.
-    - include: primitives
-    - include: constructs
-    - include: assignment
-    - include: default # Leftovers highlight as unquoted-strings.
 
   keywords:
     - match: "(default)([ \t]{1,})"
@@ -186,7 +193,7 @@ contexts:
   command-string:
     - match: "(\\$)(\\()"
       captures:
-        1: storage punctuation.definition.command-string.acmap
+        1: punctuation.definition.command-string.acmap # **purple
         2: punctuation.section.parens.command-string.begin.acmap
       push:
         - match: "(\\))"

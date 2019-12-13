@@ -6,8 +6,7 @@
  * ---------- Parsing Breakdown ------------------------------------------------
  * # Comment body.
  * ^-Symbol (Sigil).
- *  ^-Whitespace-Boundary (Space/Tab - At least 1 after symbol).
- *   ^-Comment-Chars *(All characters until newline '\n').
+ *  ^-Comment-Chars *(All characters until newline '\n').
  * -----------------------------------------------------------------------------
  *
  * @param  {object} STATE - Main loop state object.
@@ -26,7 +25,6 @@ module.exports = STATE => {
 	let NODE = {
 		node: "COMMENT",
 		sigil: { start: null, end: null },
-		wsb: { start: null, end: null },
 		comment: { start: null, end: null, value: "" },
 		line,
 		startpoint: STATE.i,
@@ -52,18 +50,6 @@ module.exports = STATE => {
 				// Store index positions.
 				NODE.sigil.start = STATE.i;
 				NODE.sigil.end = STATE.i;
-
-				state = "wsb-sigil"; // Reset parsing state.
-
-				break;
-
-			case "wsb-sigil":
-				// If char isn't whitespace it's invalid so give error.
-				if (!r_whitespace.test(char)) issue.error(STATE);
-
-				// Store index positions.
-				NODE.wsb.start = STATE.i;
-				NODE.wsb.end = STATE.i;
 
 				state = "comment"; // Reset parsing state.
 

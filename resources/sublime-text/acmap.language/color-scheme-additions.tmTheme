@@ -30,9 +30,9 @@
 		</dict>
 		<dict>
 			<key>name</key>
-			<string>Assignment Operator, Pipe Delimiter</string>
+			<string>Assignment Operator, Pipe Delimiter, Flag Boolean Indicator</string>
 			<key>scope</key>
-			<string>keyword.operator.assignment.acmap, keyword.operator.logical.delimiter.pipe.acmap</string>
+			<string>keyword.operator.assignment.acmap, keyword.operator.logical.delimiter.pipe.acmap, keyword.operator.assignment.boolean.acmap</string>
 			<key>settings</key>
 			<dict>
 				<key>background</key>

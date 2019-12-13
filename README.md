@@ -145,10 +145,9 @@ nodecliac uses two custom file types: **a**uto-**c**ompletion **map** (`.acmap`)
 
 #### Comments
 
-- Comments begin with a number-sign (<code>#</code>) followed by a single whitespace character (tab or space).
+- Comments begin with a number-sign (<code>#</code>) and continue to the end of the line.
 - Comments _must_ be on their _own_ line.
-  - Everything after the `#` (to the end of the line) is considered the comment body.
-- Any amount of whitespace indentation can precede a comment.
+- Whitespace indentation can precede a comment.
 - Multi-line and trailing comments are _not_ supported.
 
 ```acmap

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>name</key>
+	<string>Color Scheme ACMAP Additions</string>
+	<key>settings</key>
+	<array>
+		<dict>
+			<key>settings</key>
+			<dict></dict>
+		</dict>
+
+		<!--
+			Instructions:
+			Add following blocks to the end of your 'color-scheme.tmTheme'.
+		-->
+
+		<!-- ACMAP/ACDEF modifications: Start -->
+		<dict>
+			<key>name</key>
+			<string>Flag Name, Template String Decor</string>
+			<key>scope</key>
+			<string>support.type.flag-name.acmap, source.acmap punctuation.section.interpolation</string>
+			<key>settings</key>
+			<dict>
+				<key>foreground</key>
+				<string>#aa0c91</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>name</key>
+			<string>Assignment Operator, Pipe Delimiter</string>
+			<key>scope</key>
+			<string>keyword.operator.assignment.acmap, keyword.operator.logical.delimiter.pipe.acmap</string>
+			<key>settings</key>
+			<dict>
+				<key>background</key>
+				<string>none</string>
+				<key>fontStyle</key>
+				<string>none</string>
+				<key>foreground</key>
+				<string>#222223</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>name</key>
+			<string>Italicize Command</string>
+			<key>scope</key>
+			<string>entity.other.command.acmap</string>
+			<key>settings</key>
+			<dict>
+				<key>background</key>
+				<string>none</string>
+				<key>fontStyle</key>
+				<string>italic</string>
+				<key>foreground</key>
+				<string>none</string>
+			</dict>
+		</dict>
+		<!-- ACMAP modifications: End -->
+
+	</array>
+</dict>
+</plist>

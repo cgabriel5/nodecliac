@@ -12,41 +12,36 @@ scope: source.acmap
 # [https://www.sublimetext.com/docs/3/scope_naming.html]
 # [https://www.sublimetext.com/docs/3/syntax.html]
 # [https://github.com/sublimehq/Packages]
+# [https://forum.sublimetext.com/t/help-with-custom-sublime-syntax-file/27717]
+# [https://github.com/sublimehq/Packages/blob/master/CSS/CSS.sublime-syntax]
+# [https://html-css-js.com/html/character-codes/arrows/]
 
 # -------------------------------------------------------------------- VARIABLES
 
 variables:
-  settings: 'compopt|filedir|disable|placehold' # Allowed settings.
-  flag: '(--?)([a-zA-Z][-_.:a-zA-Z0-9]*)?'
+  # settings: 'compopt|filedir|disable|placehold' # Allowed settings.
+  flag: '(--?)(([a-zA-Z][-_.:a-zA-Z0-9]*)(\?)?)?'
 
 # --------------------------------------------------------------------- CONTEXTS
 
 contexts:
   prototype:
-    - include: comments
+    - include: comment
   main:
-    - include: primitives
-    - include: constructs
-    - include: remainders
-  primitives:
-    - include: constants
-    - include: numbers
-    - include: strings
-  constructs:
-    - include: settings
-    - include: variables
-    - include: commands
-  remainders:
-    - include: assignment
+    - include: setting
+    - include: variable
+    - include: command
+    - include: flag-list
+    - include: flag-oneliner
     - include: unaccounted
 
 # ------------------------------------------------------------------- PRIMITIVES
 
-  comments:
+  comment:
     - match: "^\\s*((\\#).*)" # Single line comment.
       captures:
         1: comment.line.number-sign.acmap
-        2: punctuation.definition.comment.begin.acmap
+        2: punctuation.definition.comment.line.number-sign.acmap
 
   constants:
     - match: \b(?:(true)|(false))\b
@@ -60,16 +55,25 @@ contexts:
       scope: constant.numeric.acmap
 
   strings:
-    - match: '(?<!\\)"' # Double quoted strings.
+    - include: double-quoted-string
+    - include: single-quoted-string
+    - include: template-string
+
+# ---------------------------------------------------- PRIMITIVE-BUILDING-BLOCKS
+
+  double-quoted-string:
+    - match: "(?<!\\\\)\"" # Double quoted strings.
       scope: punctuation.definition.string.begin.acmap
       push:
         - meta_scope: string.quoted.double.acmap
         - meta_include_prototype: false
         - include: escape
-        - match: '(?<!\\)"'
+        - match: "(?<!\\\\)\""
           scope: punctuation.definition.string.end.acmap
           pop: true
-        - include: template-strings
+        - include: template-string
+  # ↕
+  single-quoted-string:
     - match: "(?<!\\\\)'" # Single quoted strings.
       scope: punctuation.definition.string.begin.acmap
       push:
@@ -79,15 +83,16 @@ contexts:
         - match: "(?<!\\\\)'"
           scope: punctuation.definition.string.end.acmap
           pop: true
-        - include: template-strings
-  template-strings:
-    - match: '\$\{'
+        - include: template-string
+  # ➚
+  template-string:
+    - match: "\\$\\{"
       scope: punctuation.section.interpolation.begin.acmap
       push:
         - clear_scopes: 1
         - meta_scope: meta.interpolation.acmap
         - meta_content_scope: source.acmap.embedded
-        - match: '\}'
+        - match: "\\}"
           scope: punctuation.section.interpolation.end.acmap
           pop: true
 
@@ -100,95 +105,37 @@ contexts:
     - match: "([^\\s])"
       scope: string.unquoted.plain.out.acmap
 
-  unaccounted: # Highlight unaccounted characters in main context as invalid.
+  unaccounted: # Highlight unconsumed characters as invalid.
     - match: "([^\\s])"
       scope: invalid.illegal.acmap
 
 # ------------------------------------------------------------------- CONSTRUCTS
 
-  settings:
-    - match: "^((@)[a-zA-Z][_a-zA-Z0-9]*)"
+  setting:
+    - match: "^((@)[a-zA-Z][_a-zA-Z0-9]*)\\s*(=)\\s*" # (?=[^\\s]{2,})
       captures:
-        2: punctuation.definition.variable.acmap
         1: variable.other.readwrite.setting.acmap # **purple
-
-  variables:
-    - match: "^((\\$)[_a-zA-Z][_a-zA-Z0-9]*)"
-      captures:
         2: punctuation.definition.variable.acmap
+        3: keyword.operator.assignment.acmap
+      push:
+        - match: '$' # Note: Continue to end of line.
+          pop: true
+        - include: constants
+        - include: numbers
+        - include: strings
+        - include: default
+
+  variable:
+    - match: "^((\\$)[_a-zA-Z][_a-zA-Z0-9]*)\\s*(=)\\s*" # (?=[^\\s]{2,})
+      captures:
         1: variable.other.readwrite.global.acmap # **purple
-
-  commands:
-    - match: "^\\.?[a-zA-Z]"
+        2: punctuation.definition.variable.acmap
+        3: keyword.operator.assignment.acmap
       push:
-        - meta_scope: entity.other.command.acmap # **italicize
-        - meta_include_prototype: false
-        - match: "(?=(=|,| |\t|$))"
+        - match: '$' # Note: Continue to end of line.
           pop: true
-        - include: escape
-    - match: "(\\[)" # Route[1]: flag-list
-      captures:
-        1: punctuation.section.flag-list.begin.acmap # **purple-brace
-      push:
-        - meta_scope: meta.flag-list.acmap
-        - match: "(\\])"
-          captures:
-            1: punctuation.section.flag-list.end.acmap # **purple-brace
-          pop: true
-        - match: '((?<!\\)\[)' # Handle: Highlight imbalanced braces.
-          captures:
-            1: invalid.illegal.acmap
-        - include: flags
-    - match: "(?={{flag}})" # Route[2]: oneliner | Handle: 'command = --flag'
-      push:
-        - match: '$' # Note: oneliner consumes entire line.
-          pop: true
-        - include: flags
-    - include: keywords # Route[3]: 'default' keyword
-
-  flags:
-    # - match: "{{flag}}([ \t]*(=)(\\*)?|(\\?))?"
-    - match: "{{flag}}" # Handle: '--flag'
-      scope: meta.flag-name.acmap
-      captures:
-        1: punctuation.definition.flag.acmap
-        2: support.type.flag-name.acmap # **purple
-    - match: "((=)(\\*)?|(\\?))" # Handle: '=*' or '?'
-      captures:
-        2: keyword.operator.assignment.acmap
-        3: keyword.operator.assignment.multi-flag.acmap
-        4: keyword.operator.assignment.boolean.acmap
-    - match: "(\\()" # Route[1]: options-list:
-      scope: meta.options-list.acmap
-      captures:
-        1: punctuation.section.options-list.begin.acmap # **purple-brace
-      push:
-        - match: "(\\))"
-          captures:
-            1: punctuation.section.options-list.end.acmap # **purple-brace
-          pop: true
-        - match: '((?<!\\)\()' # Handle: Highlight imbalanced braces.
-          captures:
-            1: invalid.illegal.acmap
-        - match: "((-) )" # Handle: '- value'
-          captures:
-            2: punctuation.definition.block.option.item.acmap
-        - include: command-string
-        - include: flag_pathway
-    # Route[2]: remainders: Handle remaining un-highlighted text.
-    - include: flag_pathway
-
-  flag_pathway: # Re-useable flag context pathway.
-        - include: primitives
-        - include: keywords
-        - include: assignment
-        - include: default # Leftovers highlight as unquoted-strings.
-
-  keywords:
-    - match: "(default)([ \t]{1,})"
-      captures:
-        1: keyword.control.default.acmap
-    - include: command-string
+        - include: strings
+        - include: unaccounted
 
   command-string:
     - match: "(\\$)(\\()"
@@ -196,18 +143,150 @@ contexts:
         1: punctuation.definition.command-string.acmap # **purple
         2: punctuation.section.parens.command-string.begin.acmap
       push:
-        - match: "(\\))"
+        - meta_scope: meta.command-string.acmap
+        - match: "(?<!\\\\)(\\))"
           captures:
             1: punctuation.section.parens.command-string.end.acmap
           pop: true
         - match: "(\\$)(?=[\"'])" # Handle: cmd-string dynamic '$' argument.
           captures:
             1: storage.type.string.acmap
-        - include: main
+        - match: ","
+          scope: punctuation.separator.comma.parameters.acmap # **purple
+        - include: constants
+        - include: numbers
+        - include: strings
 
-  assignment:
-    - match: "((=)|(,)|(\\|))"
+  command:
+    - match: "^(?=\\.?[a-zA-Z])"
+      push:
+        - meta_scope: entity.other.command.acmap # **italicize
+        - meta_include_prototype: false
+        - match: "\\s*(,)\\s*"
+          captures:
+            1: punctuation.separator.comma.acmap # **purple
+          pop: true
+        - match: "(?=(=|,| |\t|$))"
+          pop: true
+        - include: escape
+        - match: "\\."
+          scope: punctuation.accessor.acmap # **purple
+        - match: "[^-_+:a-zA-Z0-9]"
+          scope: invalid.illegal.acmap
+
+  flag-list:
+    - match: "(=)\\s*(\\[)"
+      captures:
+        1: keyword.operator.assignment.acmap
+        2: punctuation.section.flag-list.begin.acmap # **purple-brace
+      push:
+        - meta_scope: meta.options-list.acmap
+        - match: "(\\])"
+          captures:
+            1: punctuation.section.flag-list.end.acmap # **purple-brace
+          pop: true
+        - include: stray-brace-bracket
+        - include: flag-rule-list
+  # ➚
+  flag-rule-list:
+    - include: flags-list
+    - include: keywords
+  # ➚
+  flags-list:
+    - include: flag
+    - include: options-list
+    - match: "="
+      scope: keyword.operator.assignment.acmap
+      push:
+        - match: "$"
+          pop: true
+        - include: constants
+        - include: numbers
+        - include: strings
+        - include: default
+
+  flag-oneliner:
+    - match: "( |(=)\\s*)(?=(--?|default))"
       captures:
         2: keyword.operator.assignment.acmap
-        3: keyword.operator.logical.delimiter.comma.acmap
-        4: keyword.operator.logical.delimiter.pipe.acmap
+      push:
+        - match: "$"
+          pop: true
+        - include: flags-oneliner
+  # ➚
+  flags-oneliner:
+    - include: placeholder
+    - include: keywords
+    - include: flag
+    - include: options-list
+    - match: "="
+      scope: keyword.operator.assignment.acmap
+    - include: constants
+    - include: numbers
+    - include: strings
+    - match: "\\|"
+      scope: punctuation.separator.pipe.acmap # **purple
+    - include: default
+
+  placeholder:
+    - match: "(--)(p)(\\#[a-fA-F0-9]+)" # Handle: .acdef placeholders.
+      scope: entity.other.placeholder.acmap
+      captures:
+        1: punctuation.definition.flag.acmap
+        2: support.type.placeholder-name.acmap # **purple
+        3: constant.numeric.acmap
+
+  keywords:
+    - match: "(default)([ \t]{1,})"
+      captures:
+        1: keyword.control.default.acmap
+    - include: command-string
+
+  flag:
+    - match: "{{flag}}" # Handle: '--flag'
+      scope: meta.flag-name.acmap
+      captures:
+        1: punctuation.definition.flag.acmap
+        3: support.type.flag-name.acmap # **purple
+        4: keyword.operator.assignment.boolean.acmap # **purple
+
+  options-list:
+    - match: "(=)(\\*)?\\s*(\\()"
+      captures:
+        1: keyword.operator.assignment.acmap
+        2: keyword.operator.assignment.multi-flag.acmap
+        3: punctuation.section.options-list.begin.acmap # **purple-brace
+      push:
+        - match: "(\\))"
+          scope: punctuation.section.options-list.end.acmap # **purple-brace
+          pop: true
+        - include: stray-brace-parens
+        - include: options-rule-list
+
+  options-rule-list:
+    - match: "((-) )" # Handle: '- value'
+      captures:
+        2: punctuation.definition.block.option.item.acmap
+      push:
+        - match: "$"
+          pop: true
+        - include: options-values
+    - include: options-values # Non-bullet (oneliner) options.
+
+  options-values:
+    - include: command-string
+    - include: constants
+    - include: numbers
+    - include: strings
+    - include: default
+
+  stray-brace-bracket:
+      - match: '((?<!\\)\[)' # Handle: Imbalanced brace.
+        captures:
+          1: invalid.illegal.stray-bracket.acmap
+
+  stray-brace-parens:
+    - match: '((?<!\\)\()' # Handle: Imbalanced brace.
+      captures:
+        1: invalid.illegal.stray-bracket.acmap
+

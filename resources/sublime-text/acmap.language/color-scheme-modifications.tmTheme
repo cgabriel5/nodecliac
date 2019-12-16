@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>name</key>
-	<string>Recommended Color Scheme ACMAP Modifications</string>
+	<string>Recommended Color Scheme ACMAP/ACDEF Modifications</string>
 	<key>settings</key>
 	<array>
 		<dict>
@@ -19,9 +19,9 @@
 		<!-- ACMAP/ACDEF modifications: Start -->
 		<dict>
 			<key>name</key>
-			<string>Flag Name, Template String Decor</string>
+			<string>Flag Name, Template String Decor (keyword like highlighting)</string>
 			<key>scope</key>
-			<string>support.type.flag-name.acmap, source.acmap punctuation.section.interpolation</string>
+			<string>support.type.flag-name.acmap, support.type.placeholder-name.acmap, source.acmap punctuation.section.interpolation, source.acmap punctuation.separator.comma, punctuation.accessor.acmap</string>
 			<key>settings</key>
 			<dict>
 				<key>foreground</key>
@@ -30,9 +30,9 @@
 		</dict>
 		<dict>
 			<key>name</key>
-			<string>Assignment Operator, Pipe Delimiter, Flag Boolean Indicator</string>
+			<string>Black: Assignment Operator, Pipe Delimiter, Flag Boolean Indicator (base text like highlighting)</string>
 			<key>scope</key>
-			<string>keyword.operator.assignment.acmap, keyword.operator.logical.delimiter.pipe.acmap, keyword.operator.assignment.boolean.acmap</string>
+			<string>keyword.operator.assignment.acmap, punctuation.separator.pipe.acmap, keyword.operator.assignment.boolean.acmap</string>
 			<key>settings</key>
 			<dict>
 				<key>background</key>
@@ -58,7 +58,7 @@
 				<string>none</string>
 			</dict>
 		</dict>
-		<!-- ACMAP modifications: End -->
+		<!-- ACMAP/ACDEF modifications: End -->
 
 	</array>
 </dict>

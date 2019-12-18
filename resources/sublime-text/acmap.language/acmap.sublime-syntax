@@ -13,7 +13,11 @@ scope: source.acmap
 # [https://www.sublimetext.com/docs/3/syntax.html]
 # [https://github.com/sublimehq/Packages]
 # [https://forum.sublimetext.com/t/help-with-custom-sublime-syntax-file/27717]
+# [https://forum.sublimetext.com/t/generic-question-about-syntax-workflow/48293]
+# [https://forum.sublimetext.com/t/is-is-possible-to-create-syntax-definitions-that-can-refer-up-the-context-stack/32065]
+# [https://forum.sublimetext.com/t/syntax-how-to-add-a-rule-to-an-included-scope/28733]
 # [https://github.com/sublimehq/Packages/blob/master/CSS/CSS.sublime-syntax]
+# [https://code.visualstudio.com/api/language-extensions/syntax-highlight-guide]
 # [https://html-css-js.com/html/character-codes/arrows/]
 
 # -------------------------------------------------------------------- VARIABLES
@@ -200,6 +204,7 @@ contexts:
       push:
         - match: "$"
           pop: true
+        - include: command-string
         - include: constants
         - include: numbers
         - include: strings
@@ -262,6 +267,10 @@ contexts:
           pop: true
         - include: stray-brace-parens
         - include: options-rule-list
+    - match: "(=)(\\*)" # Handle: Option-less multi-flag assignment.
+      captures:
+        1: keyword.operator.assignment.acmap
+        2: keyword.operator.assignment.multi-flag.acmap
 
   options-rule-list:
     - match: "((-) )" # Handle: '- value'

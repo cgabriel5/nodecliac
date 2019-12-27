@@ -176,9 +176,11 @@ contexts:
         - match: "(?=(=|,| |\t|$))"
           pop: true
         - include: escape
-        - match: "\\."
-          scope: punctuation.accessor.acmap # **purple
-        - match: "[^-_+:a-zA-Z0-9]"
+        - match: "((\\.)|(\\/))"
+          captures:
+            2: punctuation.accessor.dot.acmap # **purple
+            3: punctuation.accessor.forward-slash.acmap # **purple
+        - match: "[^-_+:/a-zA-Z0-9]"
           scope: invalid.illegal.acmap
 
   flag-list:

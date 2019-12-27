@@ -48,10 +48,11 @@ contexts:
         2: punctuation.definition.comment.line.number-sign.acmap
 
   constants:
-    - match: \b(?:(true)|(false))\b
+    - match: \b(?:(true)|(false)|(null))\b
       captures:
         1: constant.language.boolean.true.acmap
         2: constant.language.boolean.false.acmap
+        3: constant.language.null.acmap
 
   numbers: # [https://stackoverflow.com/a/30987109]
     # - match: '\b(?:NaN|-?(?:(?:\d+|\d*\.\d+)(?:[E|e][+|-]?\d+)?|Infinity))\b'

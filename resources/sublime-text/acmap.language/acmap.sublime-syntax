@@ -117,11 +117,12 @@ contexts:
 # ------------------------------------------------------------------- CONSTRUCTS
 
   setting:
-    - match: "^((@)[a-zA-Z][_a-zA-Z0-9]*)\\s*(=)\\s*" # (?=[^\\s]{2,})
+    - match: "^((@)([a-zA-Z][_a-zA-Z0-9]*))\\s*(=)\\s*" # (?=[^\\s]{2,})
       captures:
         1: variable.other.readwrite.setting.acmap # **purple
-        2: punctuation.definition.variable.acmap
-        3: keyword.operator.assignment.acmap
+        2: punctuation.definition.variable.at-sign.acmap
+        3: entity.name.setting.acmap # **purple
+        4: keyword.operator.assignment.acmap
       push:
         - match: '$' # Note: Continue to end of line.
           pop: true
@@ -131,11 +132,12 @@ contexts:
         - include: default
 
   variable:
-    - match: "^((\\$)[_a-zA-Z][_a-zA-Z0-9]*)\\s*(=)\\s*" # (?=[^\\s]{2,})
+    - match: "^((\\$)([_a-zA-Z][_a-zA-Z0-9]*))\\s*(=)\\s*" # (?=[^\\s]{2,})
       captures:
         1: variable.other.readwrite.global.acmap # **purple
-        2: punctuation.definition.variable.acmap
-        3: keyword.operator.assignment.acmap
+        2: punctuation.definition.variable.dollar-sign.acmap
+        3: entity.name.variable.acmap # **purple
+        4: keyword.operator.assignment.acmap
       push:
         - match: '$' # Note: Continue to end of line.
           pop: true

@@ -37,7 +37,7 @@ module.exports = (string, commandname, source, formatting, ...args) => {
 		}
 	};
 
-	// Mmain loop helper functions/constants.
+	// Main loop helper functions/constants.
 	const linetype = require("./helpers/line_type.js");
 	const formatter = require("./helpers/formatter.js");
 	const indentation = require("./helpers/indentation.js");

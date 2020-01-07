@@ -1,0 +1,1178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+
+		<!-- Resources: -->
+		<!-- [https://forum.sublimetext.com/t/how-to-create-a-new-language/47/2] -->
+		<!-- [https://macromates.com/manual/en/language_grammars] -->
+		<!-- [https://macromates.com/manual/en/scope_selectors] -->
+		<!-- tmLanguage: Documentation breakdown: -->
+		<!-- [https://github.com/Binocular222/Sublime-Text-3-Full-Documentation/blob/master/tmLanguage.txt] -->
+		<!-- [https://stackoverflow.com/questions/25479482/tmlanguage-escape-sequences-and-rule-priorities] -->
+		<!-- [https://stackoverflow.com/questions/33655241/sublime-text-regular-expressions-tmlanguage] -->
+		<!-- YAML-tmLanguage: -->
+		<!-- [https://sublime-undocs-zh.readthedocs.io/en/latest/extensibility/syntaxdefs.html] -->
+		<!-- [https://github.com/SublimeText/PackageDev/wiki/Legacy-Syntax-Definitions] -->
+		<!-- [https://github.com/SublimeText/PackageDev/wiki/Syntax-Definitions#yaml-tips] -->
+		<!-- [https://forum.sublimetext.com/t/old-new-syntax-in-same-package-tmlanguage-sublime-syntax/41194] -->
+		<!-- [https://forum.sublimetext.com/t/questions-about-tmlanguage-grammars-in-sublime/33079] -->
+		<!-- [https://forum.sublimetext.com/t/tmlanguage-file-that-doesnt-show-up-on-the-languages-menu/8090/6] -->
+		<!-- [https://forum.sublimetext.com/t/how-to-insert-a-new-language-supported-in-sublime/45971] -->
+		<!-- [https://forum.sublimetext.com/t/how-to-insert-a-new-language-supported-in-sublime/45971/8] -->
+
+		<!-- VSCode: Converting -->
+		<!-- [https://stackoverflow.com/questions/30687783/create-custom-language-in-visual-studio-code] -->
+		<!-- [https://code.visualstudio.com/api/language-extensions/syntax-highlight-guide#developing-a-new-grammar-extension] -->
+
+		<!-- VSCode: Converting Summary -->
+		<!-- 1) Install yeoman: '$ npm install -g yo' -->
+		<!-- 2) Install yo generator: '$ npm install -g generator-code' -->
+		<!-- 3) Run yo: '$ yo code' and select 'New Language Support' -->
+		<!-- 3.1) Follow on screen prompts. -->
+
+		<!-- Meta Data -->
+
+		<key>name</key>
+		<string>ACMAP</string>
+		<key>fileTypes</key>
+		<array>
+			<string>acmap</string>
+			<string>acdef</string>
+		</array>
+		<key>scopeName</key>
+		<string>source.acmap</string>
+		<key>uuid</key>
+		<string>2e6e9a59-3944-44b3-865b-446522216a4a</string>
+
+		<!-- Entry Point -->
+
+		<key>patterns</key>
+		<array>
+			<dict>
+				<key>include</key>
+				<string>#main</string>
+			</dict>
+		</array>
+
+		<!-- Contexts -->
+
+		<key>repository</key>
+		<dict>
+
+			<key>main</key>
+			<dict>
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>include</key>
+						<string>#comment</string>
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#setting</string>
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#variable</string>
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#command</string>
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#flag-list</string>
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#flag-oneliner</string>
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#unaccounted</string>
+					</dict>
+				</array>
+			</dict>
+
+			<!-- PRIMITIVES -->
+
+			<key>comment</key>
+			<dict>
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>match</key>
+						<string>^\s*((\#).*)</string> <!-- Single line comment. -->
+
+						<!-- <key>name</key> -->
+						<!-- <string></string> -->
+
+						<key>captures</key>
+						<dict>
+							<key>1</key>
+							<dict>
+								<key>name</key>
+								<string>comment.line.number-sign.acmap</string>
+							</dict>
+
+							<key>2</key>
+							<dict>
+								<key>name</key>
+								<string>punctuation.definition.comment.line.number-sign.acmap</string>
+							</dict>
+						</dict>
+					</dict>
+				</array>
+			</dict>
+
+
+			<key>constants</key>
+			<dict>
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>match</key>
+						<string>\b(?:(true)|(false)|(null))\b</string>
+
+						<!-- <key>name</key> -->
+						<!-- <string></string> -->
+
+						<key>captures</key>
+						<dict>
+							<key>1</key>
+							<dict>
+								<key>name</key>
+								<string>constant.language.boolean.true.acmap</string>
+							</dict>
+
+							<key>2</key>
+							<dict>
+								<key>name</key>
+								<string>constant.language.boolean.false.acmap</string>
+							</dict>
+
+							<key>3</key>
+							<dict>
+								<key>name</key>
+								<string>constant.language.null.acmap</string>
+							</dict>
+						</dict>
+					</dict>
+				</array>
+			</dict>
+
+
+			<key>numbers</key> <!-- [# [https://stackoverflow.com/a/30987109]] -->
+			<dict>
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>match</key>
+						<!-- <string>\b(?:NaN|-?(?:(?:\d+|\d*\.\d+)(?:[E|e][+|-]?\d+)?|Infinity))\b</string> -->
+						<string>[\+\-]?\d*\.?\d+(?:[Ee][\+\-]?\d+)?</string>
+						<key>name</key>
+						<string>constant.numeric.acmap</string>
+					</dict>
+				</array>
+			</dict>
+
+
+			<key>strings</key>
+			<dict>
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>include</key>
+						<string>#double-quoted-string</string>
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#single-quoted-string</string>
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#template-string</string>
+					</dict>
+				</array>
+			</dict>
+
+			<!-- PRIMITIVE-BUILDING-BLOCKS -->
+
+			<key>double-quoted-string</key>
+			<dict>
+				<key>begin</key>
+				<string>((?&lt;!\\\\)(\&quot;))</string> <!-- Double quoted strings. -->
+
+				<key>beginCaptures</key>
+				<dict>
+					<key>1</key>
+					<dict>
+						<key>name</key>
+						<string>punctuation.definition.string.begin.acmap</string>
+					</dict>
+				</dict>
+
+				<key>contentName</key>
+				<string>string.quoted.double.acmap</string>
+
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>include</key>
+						<string>#escape</string>
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#template-string</string>
+					</dict>
+				</array>
+
+				<key>end</key>
+				<string>(\")</string>
+
+				<key>endCaptures</key>
+				<dict>
+					<key>1</key>
+					<dict>
+						<key>name</key>
+						<string>punctuation.definition.string.end.acmap</string>
+					</dict>
+				</dict>
+			</dict>
+
+
+			<key>single-quoted-string</key>
+			<dict>
+				<key>begin</key>
+				<string>((?&lt;!\\\\)(&apos;))</string> <!-- Single quoted strings. -->
+
+				<key>beginCaptures</key>
+				<dict>
+					<key>1</key>
+					<dict>
+						<key>name</key>
+						<string>punctuation.definition.string.begin.acmap</string>
+					</dict>
+				</dict>
+
+				<key>contentName</key>
+				<string>string.quoted.single.acmap</string>
+
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>include</key>
+						<string>#escape</string>
+					</dict>
+					<dict>
+						<key>include</key>
+						<string>#template-string</string>
+					</dict>
+				</array>
+
+				<key>end</key>
+				<string>(&apos;)</string>
+
+				<key>endCaptures</key>
+				<dict>
+					<key>1</key>
+					<dict>
+						<key>name</key>
+						<string>punctuation.definition.string.end.acmap</string>
+					</dict>
+				</dict>
+			</dict>
+
+
+			<key>template-string</key>
+			<dict>
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>begin</key>
+						<string>(\$\{)</string>
+
+						<key>beginCaptures</key>
+						<dict>
+							<key>1</key>
+							<dict>
+								<key>name</key>
+								<string>punctuation.section.interpolation.begin.acmap</string>
+							</dict>
+						</dict>
+
+						<key>contentName</key>
+						<string>meta.interpolation.acmap source.acmap.embedded</string>
+
+						<key>end</key>
+						<string>(\})</string>
+
+						<key>endCaptures</key>
+						<dict>
+							<key>1</key>
+							<dict>
+								<key>name</key>
+								<string>punctuation.section.interpolation.end.acmap</string>
+							</dict>
+						</dict>
+					</dict>
+				</array>
+			</dict>
+
+
+			<key>escape</key>
+			<dict>
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>match</key>
+						<string>\\.</string>
+						<key>name</key>
+						<string>constant.character.escape.acmap</string>
+					</dict>
+				</array>
+			</dict>
+
+
+			<key>default</key> <!-- Highlight remaining characters as unquoted strings. -->
+			<dict>
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>include</key>
+						<string>#escape</string>
+					</dict>
+					<dict>
+						<key>match</key>
+						<string>([^\s])</string>
+						<key>name</key>
+						<string>string.unquoted.plain.out.acmap</string>
+					</dict>
+				</array>
+			</dict>
+
+
+			<key>unaccounted</key> <!-- Highlight unconsumed characters as invalid. -->
+			<dict>
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>match</key>
+						<string>([^\s])</string>
+						<key>name</key>
+						<string>invalid.invalid.acmap</string>
+					</dict>
+				</array>
+			</dict>
+
+			<!-- CONSTRUCTS -->
+
+			<key>setting</key>
+			<dict>
+				<key>begin</key>
+				<string>^((@)([a-zA-Z][_a-zA-Z0-9]*))\s*(=)\s*</string> <!-- (?=[^\\s]{2,}) -->
+				<key>beginCaptures</key>
+				<dict>
+					<key>1</key>
+					<dict>
+						<key>name</key>
+						<string>variable.other.readwrite.setting.acmap</string> <!-- **purple -->
+					</dict>
+
+					<key>2</key>
+					<dict>
+						<key>name</key>
+						<string>punctuation.definition.variable.at-sign.acmap</string>
+					</dict>
+
+					<key>3</key>
+					<dict>
+						<key>name</key>
+						<string>entity.name.setting.acmap</string> <!-- **purple -->
+					</dict>
+
+					<key>4</key>
+					<dict>
+						<key>name</key>
+						<string>keyword.operator.assignment.acmap</string>
+					</dict>
+				</dict>
+
+				<key>contentName</key>
+				<string></string>
+
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>include</key>
+						<string>#constants</string>
+					</dict>
+					<dict>
+						<key>include</key>
+						<string>#numbers</string>
+					</dict>
+					<dict>
+						<key>include</key>
+						<string>#strings</string>
+					</dict>
+					<dict>
+						<key>include</key>
+						<string>#default</string>
+					</dict>
+				</array>
+
+				<key>end</key>
+				<string>$</string> <!-- # Note: Continue to end of line. -->
+
+				<!-- <key>endCaptures</key>
+				<dict>
+					<key>1</key>
+					<dict>
+						<key>name</key>
+						<string></string>
+					</dict>
+				</dict> -->
+			</dict>
+
+
+			<key>variable</key>
+			<dict>
+				<key>begin</key>
+				<string>^((\$)([_a-zA-Z][_a-zA-Z0-9]*))\s*(=)\s*</string> <!-- (?=[^\\s]{2,}) -->
+
+				<key>beginCaptures</key>
+				<dict>
+					<key>1</key>
+					<dict>
+						<key>name</key>
+						<string>variable.other.readwrite.global.acmap</string> <!-- **purple -->
+					</dict>
+
+					<key>2</key>
+					<dict>
+						<key>name</key>
+						<string>punctuation.definition.variable.dollar-sign.acmap</string>
+					</dict>
+
+					<key>3</key>
+					<dict>
+						<key>name</key>
+						<string>entity.name.variable.acmap</string> <!-- **purple -->
+					</dict>
+
+					<key>4</key>
+					<dict>
+						<key>name</key>
+						<string>keyword.operator.assignment.acmap</string>
+					</dict>
+				</dict>
+
+				<key>contentName</key>
+				<string></string>
+
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>include</key>
+						<string>#strings</string>
+					</dict>
+					<dict>
+						<key>include</key>
+						<string>#unaccounted</string>
+					</dict>
+				</array>
+
+				<key>end</key>
+				<string>$</string> <!-- # Note: Continue to end of line. -->
+
+				<!-- <key>endCaptures</key>
+				<dict>
+					<key>1</key>
+					<dict>
+						<key>name</key>
+						<string></string>
+					</dict>
+				</dict> -->
+			</dict>
+
+
+			<key>command-string</key>
+			<dict>
+				<key>begin</key>
+				<string>(\$)(\()</string>
+
+				<key>beginCaptures</key>
+				<dict>
+					<key>1</key>
+					<dict>
+						<key>name</key>
+						<string>punctuation.definition.command-string.acmap</string> <!-- **purple -->
+					</dict>
+
+					<key>2</key>
+					<dict>
+						<key>name</key>
+						<string>punctuation.section.parens.command-string.begin.acmap</string>
+					</dict>
+
+					<key>3</key>
+					<dict>
+						<key>name</key>
+						<string>entity.name.variable.acmap</string>
+					</dict>
+
+					<key>4</key>
+					<dict>
+						<key>name</key>
+						<string>keyword.operator.assignment.acmap</string>
+					</dict>
+				</dict>
+
+				<key>contentName</key>
+				<string>meta.command-string.acmap</string>
+
+				<key>patterns</key>
+				<array>
+					<!-- <dict> -->
+						<!-- <key>match</key> -->
+						<!-- <string>\\n</string> --> <!-- Handle: Newlines aren't allowed. -->
+						<!-- <key>name</key> -->
+						<!-- <string>invalid.illegal.newline.acmap</string> -->
+					<!-- </dict> -->
+
+					<dict>
+						<key>match</key>
+						<string>(\$)(?=[\"'])</string> <!-- Handle: cmd-string dynamic '$' argument. -->
+
+						<key>name</key>
+						<string>punctuation.separator.comma.parameters.acmap</string>
+
+						<key>captures</key>
+						<dict>
+							<key>1</key>
+							<dict>
+								<key>name</key>
+								<string>storage.type.string.acmap</string>
+							</dict>
+						</dict>
+					</dict>
+
+					<dict>
+						<key>match</key>
+						<string>,</string>
+
+						<key>name</key>
+						<string>punctuation.separator.comma.parameters.acmap</string>
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#constants</string>
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#numbers</string>
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#strings</string>
+					</dict>
+				</array>
+
+				<key>end</key>
+				<string>(?&lt;!\\)(\))</string> <!-- # Note: Continue to end of line. -->
+
+				<key>endCaptures</key>
+				<dict>
+					<key>1</key>
+					<dict>
+						<key>name</key>
+						<string>punctuation.section.parens.command-string.end.acmap</string>
+					</dict>
+				</dict>
+			</dict>
+
+
+			<key>command</key>
+			<dict>
+				<key>begin</key>
+				<string>^(?=\.?[a-zA-Z])</string>
+
+				<key>contentName</key>
+				<string>entity.other.command.acmap</string> <!-- **italicize -->
+
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>include</key>
+						<string>#escape</string>
+					</dict>
+					<dict>
+						<key>match</key>
+						<string>((\.)|(\/))</string>
+
+						<key>name</key>
+						<string></string>
+
+						<key>captures</key>
+						<dict>
+							<key>2</key>
+							<dict>
+								<key>name</key>
+								<string>punctuation.accessor.dot.acmap</string> <!-- **purple -->
+							</dict>
+
+							<key>3</key>
+							<dict>
+								<key>name</key>
+								<string>punctuation.accessor.forward-slash.acmap</string> <!-- **purple -->
+							</dict>
+						</dict>
+					</dict>
+					<dict>
+						<key>match</key>
+						<string>[^-_+:/a-zA-Z0-9]</string>
+
+						<key>name</key>
+						<string>invalid.illegal.acmap</string>
+					</dict>
+				</array>
+
+				<key>end</key>
+				<string>(\s*(,)\s*|(?=(=|,| |\t|$)))</string> <!-- # Note: Continue to end of line. -->
+				<!-- Note: The 'end' regexg pattern is two patterns merged due to .tmLanguage  -->
+				<!-- being different than .sublime-syntax. -->
+
+				<key>endCaptures</key>
+				<dict>
+					<key>2</key>
+					<dict>
+						<key>name</key>
+						<string>punctuation.separator.comma.acmap</string> <!-- **purple -->
+					</dict>
+				</dict>
+			</dict>
+
+
+			<key>flag-list</key>
+			<dict>
+				<key>begin</key>
+				<string>(=)\s*(\[)</string>
+
+				<key>beginCaptures</key>
+				<dict>
+					<key>1</key>
+					<dict>
+						<key>name</key>
+						<string>keyword.operator.assignment.acmap</string>
+					</dict>
+
+					<key>2</key>
+					<dict>
+						<key>name</key>
+						<string>punctuation.section.flag-list.begin.acmap</string> <!-- **purple-brace -->
+					</dict>
+				</dict>
+
+				<key>contentName</key>
+				<string>meta.flags-list.acmap</string>
+
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>include</key>
+						<string>#comment</string>
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#stray-brace-bracket</string>
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#flag-rule-list</string>
+					</dict>
+				</array>
+
+				<key>end</key>
+				<string>(\])</string>
+
+				<key>endCaptures</key>
+				<dict>
+					<key>1</key>
+					<dict>
+						<key>name</key>
+						<string>punctuation.section.flag-list.end.acmap</string> <!-- **purple-brace -->
+					</dict>
+				</dict>
+			</dict>
+
+
+			<key>flag-rule-list</key>
+			<dict>
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>include</key>
+						<string>#flags-list</string>
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#keywords</string>
+					</dict>
+				</array>
+			</dict>
+
+
+			<key>flags-list</key>
+			<dict>
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>include</key>
+						<string>#flag</string>
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#options-list</string>
+					</dict>
+
+					<dict>
+						<key>begin</key>
+						<string>=</string>
+
+						<key>contentName</key>
+						<string>keyword.operator.assignment.acmap</string>
+
+						<key>patterns</key>
+						<array>
+							<dict>
+								<key>include</key>
+								<string>#command-string</string>
+							</dict>
+
+							<dict>
+								<key>include</key>
+								<string>#constants</string>
+							</dict>
+
+							<dict>
+								<key>include</key>
+								<string>#numbers</string>
+							</dict>
+
+							<dict>
+								<key>include</key>
+								<string>#strings</string>
+							</dict>
+
+							<dict>
+								<key>include</key>
+								<string>#default</string>
+							</dict>
+						</array>
+
+						<key>end</key>
+						<string>$</string>
+					</dict>
+				</array>
+			</dict>
+
+
+			<key>flag-oneliner</key>
+			<dict>
+				<key>begin</key>
+				<string>( |(=)\s*)(?=(--?|default))</string>
+
+				<key>beginCaptures</key>
+				<dict>
+					<key>2</key>
+					<dict>
+						<key>name</key>
+						<string>keyword.operator.assignment.acmap</string>
+					</dict>
+				</dict>
+
+				<key>contentName</key>
+				<string></string>
+
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>include</key>
+						<string>#flags-oneliner</string>
+					</dict>
+				</array>
+
+				<key>end</key>
+				<string>$</string>
+			</dict>
+
+
+			<key>flags-oneliner</key>
+			<dict>
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>include</key>
+						<string>#placeholder</string>
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#keywords</string>
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#flag</string>
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#options-list</string>
+					</dict>
+
+					<dict>
+						<key>match</key>
+						<string>=</string>
+						<key>name</key>
+						<string>keyword.operator.assignment.acmap</string>
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#constants</string>
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#numbers</string>
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#strings</string>
+					</dict>
+
+					<dict>
+						<key>match</key>
+						<string>\|</string>
+						<key>name</key>
+						<string>punctuation.separator.pipe.acmap</string> <!-- # **purple -->
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#default</string>
+					</dict>
+				</array>
+			</dict>
+
+
+			<key>placeholder</key>
+			<dict>
+				<key>match</key>
+				<string>(--)(p)(\#[a-fA-F0-9]+)</string> <!-- Handle: .acdef placeholders. -->
+
+				<key>name</key>
+				<string>entity.other.placeholder.acmap</string>
+
+				<key>captures</key>
+				<dict>
+					<key>1</key>
+					<dict>
+						<key>name</key>
+						<string>punctuation.definition.flag.acmap</string>
+					</dict>
+
+					<key>2</key>
+					<dict>
+						<key>name</key>
+						<string>support.type.placeholder-name.acmap</string> <!-- **purple -->
+					</dict>
+
+					<key>3</key>
+					<dict>
+						<key>name</key>
+						<string>constant.numeric.acmap</string>
+					</dict>
+				</dict>
+			</dict>
+
+
+			<key>keywords</key>
+			<dict>
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>match</key>
+						<string>(default)([\x{0020}\t]{1,})</string> <!-- Space char = '\x{0020}' -->
+
+						<key>name</key>
+						<string></string>
+
+						<key>captures</key>
+						<dict>
+							<key>1</key>
+							<dict>
+								<key>name</key>
+								<string>keyword.control.default.acmap</string>
+							</dict>
+						</dict>
+					</dict>
+					<dict>
+						<key>include</key>
+						<string>#command-string</string>
+					</dict>
+				</array>
+			</dict>
+
+
+			<key>flag</key>
+			<dict>
+				<key>match</key>
+				<string>(--?)(([a-zA-Z][-_.:a-zA-Z0-9]*)(\?)?)?</string> <!-- Handle: '\-\-flag' -->
+
+				<key>name</key>
+				<string>meta.flag-name.acmap</string>
+
+				<key>captures</key>
+				<dict>
+					<key>1</key>
+					<dict>
+						<key>name</key>
+						<string>punctuation.definition.flag.acmap</string>
+					</dict>
+
+					<key>3</key>
+					<dict>
+						<key>name</key>
+						<string>support.type.flag-name.acmap</string> <!-- # **purple -->
+					</dict>
+
+					<key>4</key>
+					<dict>
+						<key>name</key>
+						<string>keyword.operator.assignment.boolean.acmap</string> <!-- **purple -->
+					</dict>
+				</dict>
+			</dict>
+
+
+			<key>options-list</key>
+			<dict>
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>begin</key>
+						<string>(=)(\*)?\s*(\()</string>
+
+						<key>beginCaptures</key>
+						<dict>
+							<key>1</key>
+							<dict>
+								<key>name</key>
+								<string>keyword.operator.assignment.acmap</string>
+							</dict>
+
+							<key>2</key>
+							<dict>
+								<key>name</key>
+								<string>keyword.operator.assignment.multi-flag.acmap</string>
+							</dict>
+
+							<key>3</key>
+							<dict>
+								<key>name</key>
+								<string>punctuation.section.options-list.begin.acmap</string> <!-- **purple-brace -->
+							</dict>
+						</dict>
+
+						<key>contentName</key>
+						<string></string>
+
+						<key>patterns</key>
+						<array>
+							<dict>
+								<key>include</key>
+								<string>#comment</string>
+							</dict>
+
+							<dict>
+								<key>include</key>
+								<string>#stray-brace-parens</string>
+							</dict>
+
+							<dict>
+								<key>include</key>
+								<string>#options-rule-list</string>
+							</dict>
+						</array>
+
+						<key>end</key>
+						<string>(\))</string>
+
+						<key>endCaptures</key>
+						<dict>
+							<key>1</key>
+							<dict>
+								<key>name</key>
+								<string>punctuation.section.options-list.end.acmap</string> <!-- **purple-brace -->
+							</dict>
+						</dict>
+					</dict>
+
+					<dict>
+						<key>match</key>
+						<string>(=)(\*)</string> <!-- Handle: Option-less multi-flag assignment. -->
+
+						<key>name</key>
+						<string></string>
+
+						<key>captures</key>
+						<dict>
+							<key>1</key>
+							<dict>
+								<key>name</key>
+								<string>keyword.operator.assignment.acmap</string>
+							</dict>
+
+							<key>2</key>
+							<dict>
+								<key>name</key>
+								<string>keyword.operator.assignment.multi-flag.acmap</string>
+							</dict>
+						</dict>
+					</dict>
+
+				</array>
+			</dict>
+
+
+			<key>options-rule-list</key>
+			<dict>
+				<key>patterns</key>
+				<array>
+					<dict>
+
+						<key>begin</key>
+						<string>((-) )</string> <!-- Handle: '- value' -->
+
+						<key>beginCaptures</key>
+						<dict>
+							<key>2</key>
+							<dict>
+								<key>name</key>
+								<string>punctuation.definition.block.option.item.acmap</string>
+							</dict>
+						</dict>
+
+						<key>contentName</key>
+						<string></string>
+
+						<key>patterns</key>
+						<array>
+							<dict>
+								<key>include</key>
+								<string>#options-values</string>
+							</dict>
+						</array>
+
+						<key>end</key>
+						<string>$</string>
+					</dict>
+
+					<dict>
+						<key>include</key> <!-- Non-bullet (oneliner) options. -->
+						<string>#options-values</string>
+					</dict>
+
+				</array>
+			</dict>
+
+
+			<key>options-values</key>
+			<dict>
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>include</key>
+						<string>#command-string</string>
+					</dict>
+					<dict>
+						<key>include</key>
+						<string>#constants</string>
+					</dict>
+					<dict>
+						<key>include</key>
+						<string>#numbers</string>
+					</dict>
+					<dict>
+						<key>include</key>
+						<string>#strings</string>
+					</dict>
+					<dict>
+						<key>include</key>
+						<string>#default</string>
+					</dict>
+				</array>
+			</dict>
+
+
+			<key>stray-brace-bracket</key>
+			<dict>
+				<key>match</key>
+				<string>((?&lt;!\\)\[)</string> <!-- Handle: Imbalanced brace. -->
+
+				<key>name</key>
+				<string></string>
+
+				<key>captures</key>
+				<dict>
+					<key>1</key>
+					<dict>
+						<key>name</key>
+						<string>invalid.illegal.stray-bracket.acmap</string>
+					</dict>
+				</dict>
+			</dict>
+
+
+			<key>stray-brace-parens</key>
+			<dict>
+				<key>match</key>
+				<string>((?&lt;!\\)\()</string> <!-- Handle: Imbalanced brace. -->
+
+				<key>name</key>
+				<string></string>
+
+				<key>captures</key>
+				<dict>
+					<key>1</key>
+					<dict>
+						<key>name</key>
+						<string>invalid.illegal.stray-bracket.acmap</string>
+					</dict>
+				</dict>
+			</dict>
+
+		</dict>
+
+	</dict>
+</plist>

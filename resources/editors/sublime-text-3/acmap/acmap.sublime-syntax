@@ -22,9 +22,9 @@ scope: source.acmap
 
 # -------------------------------------------------------------------- VARIABLES
 
-variables:
+# variables:
   # settings: 'compopt|filedir|disable|placehold' # Allowed settings.
-  flag: '(--?)(([a-zA-Z][-_.:a-zA-Z0-9]*)(\?)?)?'
+  # flag: '(--?)(([a-zA-Z][-_.:a-zA-Z0-9]*)(\?)?)?'
 
 # --------------------------------------------------------------------- CONTEXTS
 
@@ -155,6 +155,10 @@ contexts:
           captures:
             1: punctuation.section.parens.command-string.end.acmap
           pop: true
+
+        # - match: "\\n" # Handle: Newlines aren't allowed.
+        #   scope: invalid.illegal.newline.acmap
+
         - match: "(\\$)(?=[\"'])" # Handle: cmd-string dynamic '$' argument.
           captures:
             1: storage.type.string.acmap
@@ -253,7 +257,7 @@ contexts:
     - include: command-string
 
   flag:
-    - match: "{{flag}}" # Handle: '--flag'
+    - match: "(--?)(([a-zA-Z][-_.:a-zA-Z0-9]*)(\\?)?)?" # Handle: '--flag'
       scope: meta.flag-name.acmap
       captures:
         1: punctuation.definition.flag.acmap
@@ -272,6 +276,10 @@ contexts:
           pop: true
         - include: stray-brace-parens
         - include: options-rule-list
+
+        # - match: "^\\s*\\n" # Handle: Newlines aren't allowed.
+        #   scope: invalid.illegal.newline.acmap
+
     - match: "(=)(\\*)" # Handle: Option-less multi-flag assignment.
       captures:
         1: keyword.operator.assignment.acmap
@@ -303,4 +311,3 @@ contexts:
     - match: '((?<!\\)\()' # Handle: Imbalanced brace.
       captures:
         1: invalid.illegal.stray-bracket.acmap
-

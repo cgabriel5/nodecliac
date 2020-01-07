@@ -1,0 +1,131 @@
+.tmLanguage file set Syntax definition by assign scope name [[Scope.txt]] (i.e: text.html.bold) to text regions (i.e: <b>...</b>):
+    - Regex is used to find text region. i.e: Regex  http://.+/s  => every text look like  http://somesite.com/  is matched => a "Text region" is defined
+    - This text region is assigned a specific Scope name, i.e: "link.external"
+    - Then you can do many things with every "link.external" text regions such as colorize, bold, act on mouse click...
+    - You can give any name to scope, but it's better to follow conventions [[Scope.txt#Scope name convention]]
+Format:    [[Plist.txt]]
+Syntax definitions from separate files can be combined using <key>include</key>
+    http://manual.macromates.com/en/language_grammars
+    https://sublime-text-unofficial-documentation.readthedocs.org/en/latest/extensibility/syntaxdefs.html
+Can use AAAPackageDev package to easily create new .tmLanguage (hand-edit is good too)
+
+Example:
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0">
+    <dict>
+        <key>uuid</key>                                                 //Each file must have an unique ID
+        <string>77AC23B6-8A90-11D9-BAA4-000A9584EC8D</string>           //ID = 77AC23B6-.....
+        <key>name</key>                                                 //Descripton, just to display in statusbar
+        <string>Data Text</string>                                      //Descripton = Data Text
+        <key>scopeName</key>                                            //Top level scope. Any name is ok. General naming convention use source.<lang_name> for programming languages; text.<lang_name> for markup and everything else
+        <string>text.txt</string>
+        <key>fileTypes</key>                                            //List of file extensions. Auto activate this syntax definition when open these ext
+            <array>                                                     //<array>  assigns multiple value to a single key
+                <string>txt</string>
+                <string>md</string>
+            </array>
+        <key>patterns</key>                                             //[Mandatory] Patterns goes below inside <array></array>
+        <array>
+            <dict>
+                <key>include</key>                                      //include other syntaxes
+                <string>source.js</string>
+           </dict>
+            <dict>
+                <key>comment</key>                                      //[Optional] comment, ST ignore this
+                <string>Markdown-style bold character</string>          //write any comment here
+                <key>name</key>                                         //Scope name
+                <string>link.email</string>                             //Scope name = link.email (color is defined in .tmtheme)
+                Regex pattern here, example: [[#Regex pattern]]
+            </dict>
+            ... <== insert many more <dict></dict> here to define more scope names.
+            <dict>
+                Some special and optional keys here [[#Special keys]]
+            </dict>
+        </array>
+    </dict>
+    </plist>
+
+Regex pattern
+    Match - simple example
+        <key>match</key>
+        <string>\[\[[^\]]+\]\]</string>                         //Regex pattern
+    Match - with capture group
+        <key>match</key>
+        <string>^ +([0-9]+) </string>                           //This regex use round bracket to define 1 capturing group: ([0-9]+)
+        <key>captures</key>                                     //Use regex capture group
+        <dict>
+            <key>1</key>                                        //Regex's capturing: 1st group
+            <dict>
+                <key>name</key>                                 //This 1st group is given a specific scope name
+                <string>constant.numeric.line-number.find-in-files</string>
+            </dict>
+        </dict>
+    Begin end - simple example
+        <key>begin</key>                                        //Text region must match from begin to end
+        <string>/\*</string>
+        <key>end</key>
+        <string>\*/</string>                                    //Regex-Escaped * → \*
+    Begin-end defining nested region
+        Code:
+            <key>begin</key>                                        //Regex for the opening mark
+            <string>^\s*(class)\s+(?=[a-zA-Z_][a-zA-Z_0-9]*\s*\:)</string>
+            <key>beginCaptures</key>
+                <dict>
+                    <key>1</key>
+                    <dict>
+                        <key>name</key>
+                        <string>storage.type.class.python</string>
+                    </dict>
+                </dict>
+            <key>contentName</key>                                  //Scope for the whole matched region, from the begin marker to the end marker, inclusive
+            <string>entity.name.type.class.python</string>
+            <key>end</key>                                          //Regex for the end mark
+            <string>\s*(:)</string>
+            <key>endCaptures</key>
+            <dict>
+                <key>1</key>
+                <dict>
+                    <key>name</key>
+                    <string>punctuation.section.class.begin.python</string>
+                </dict>
+            </dict>
+        In summary, the above code defines:
+            begin = beginCaptures  = storage.type.class.python
+            content                = entity.name.type.class.python   (defined by the begin and end keys)
+            end = endCapture       = punctuation.section.class.begin.python
+        Demonstration with this Text region:   class JumpHistory():
+            |     Text region      | defined by |          Assigned scope name           |
+            |----------------------|------------|----------------------------------------|
+            | class                | begin      | storage.type.class.python              |
+            | class JumpHistory(): | content    | entity.name.type.class.python          |
+            | :                    | end        | punctuation.section.class.begin.python |
+
+Special keys
+    Define Tag
+        <dict>
+            <key>name</key>
+            <string>punctuation.definition.tag.begin</string>   //This is special scope name
+            <key>match</key>
+            <string>#</string>
+        </dict>
+        <dict>
+            <key>name</key>
+            <string>punctuation.definition.tag.end</string>     //This is special scope name
+            <key>match</key>
+            <string>!</string>
+        </dict>
+        Usage:
+            Edit > Code folding > Fold Tag attributes
+                If you have this text:  #x xxx!
+                Then click Edit > Fold Tag attribute  →  will be folded to  #x...!
+                Notice: We need at least 1 character + 1 space between the begin "#" and the "xxx"
+            Edit > Tag > Expand Selection to Tag
+    Code folding (Currently ignored, maybe used for future version of ST)
+        <key>foldingStartMarker</key>
+        <string>{</string>
+        <key>foldingStopMarker</key>
+        <string>}</string>
+    Hidden: prevent the .tmLanguage file from appearing in the list of selectable syntax definitions, but still able to be included within other syntax definitions, and assigned to a view via .py plugin
+        <key>hidden</key>
+        <true/>

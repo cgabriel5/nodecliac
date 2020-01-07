@@ -1,0 +1,598 @@
+{
+	"name": "ACMAP",
+	"fileTypes": ["acmap", "acdef"],
+	"scopeName": "source.acmap",
+	"uuid": "2e6e9a59-3944-44b3-865b-446522216a4a",
+	"patterns": [
+		{
+			"include": "#main"
+		}
+	],
+	"repository": {
+		"main": {
+			"patterns": [
+				{
+					"include": "#comment"
+				},
+				{
+					"include": "#setting"
+				},
+				{
+					"include": "#variable"
+				},
+				{
+					"include": "#command"
+				},
+				{
+					"include": "#flag-list"
+				},
+				{
+					"include": "#flag-oneliner"
+				},
+				{
+					"include": "#unaccounted"
+				}
+			]
+		},
+		"comment": {
+			"patterns": [
+				{
+					"match": "^\\s*((\\#).*)",
+					"captures": {
+						"1": {
+							"name": "comment.line.number-sign.acmap"
+						},
+						"2": {
+							"name": "punctuation.definition.comment.line.number-sign.acmap"
+						}
+					}
+				}
+			]
+		},
+		"constants": {
+			"patterns": [
+				{
+					"match": "\\b(?:(true)|(false)|(null))\\b",
+					"captures": {
+						"1": {
+							"name": "constant.language.boolean.true.acmap"
+						},
+						"2": {
+							"name": "constant.language.boolean.false.acmap"
+						},
+						"3": {
+							"name": "constant.language.null.acmap"
+						}
+					}
+				}
+			]
+		},
+		"numbers": {
+			"patterns": [
+				{
+					"match": "[\\+\\-]?\\d*\\.?\\d+(?:[Ee][\\+\\-]?\\d+)?",
+					"name": "constant.numeric.acmap"
+				}
+			]
+		},
+		"strings": {
+			"patterns": [
+				{
+					"include": "#double-quoted-string"
+				},
+				{
+					"include": "#single-quoted-string"
+				},
+				{
+					"include": "#template-string"
+				}
+			]
+		},
+		"double-quoted-string": {
+			"begin": "((?<!\\\\\\\\)(\\\"))",
+			"beginCaptures": {
+				"1": {
+					"name": "punctuation.definition.string.begin.acmap"
+				}
+			},
+			"contentName": "string.quoted.double.acmap",
+			"patterns": [
+				{
+					"include": "#escape"
+				},
+				{
+					"include": "#template-string"
+				}
+			],
+			"end": "(\\\")",
+			"endCaptures": {
+				"1": {
+					"name": "punctuation.definition.string.end.acmap"
+				}
+			}
+		},
+		"single-quoted-string": {
+			"begin": "((?<!\\\\\\\\)('))",
+			"beginCaptures": {
+				"1": {
+					"name": "punctuation.definition.string.begin.acmap"
+				}
+			},
+			"contentName": "string.quoted.single.acmap",
+			"patterns": [
+				{
+					"include": "#escape"
+				},
+				{
+					"include": "#template-string"
+				}
+			],
+			"end": "(')",
+			"endCaptures": {
+				"1": {
+					"name": "punctuation.definition.string.end.acmap"
+				}
+			}
+		},
+		"template-string": {
+			"patterns": [
+				{
+					"begin": "(\\$\\{)",
+					"beginCaptures": {
+						"1": {
+							"name": "punctuation.section.interpolation.begin.acmap"
+						}
+					},
+					"contentName": "meta.interpolation.acmap source.acmap.embedded",
+					"end": "(\\})",
+					"endCaptures": {
+						"1": {
+							"name": "punctuation.section.interpolation.end.acmap"
+						}
+					}
+				}
+			]
+		},
+		"escape": {
+			"patterns": [
+				{
+					"match": "\\\\.",
+					"name": "constant.character.escape.acmap"
+				}
+			]
+		},
+		"default": {
+			"patterns": [
+				{
+					"include": "#escape"
+				},
+				{
+					"match": "([^\\s])",
+					"name": "string.unquoted.plain.out.acmap"
+				}
+			]
+		},
+		"unaccounted": {
+			"patterns": [
+				{
+					"match": "([^\\s])",
+					"name": "invalid.invalid.acmap"
+				}
+			]
+		},
+		"setting": {
+			"begin": "^((@)([a-zA-Z][_a-zA-Z0-9]*))\\s*(=)\\s*",
+			"beginCaptures": {
+				"1": {
+					"name": "variable.other.readwrite.setting.acmap"
+				},
+				"2": {
+					"name": "punctuation.definition.variable.at-sign.acmap"
+				},
+				"3": {
+					"name": "entity.name.setting.acmap"
+				},
+				"4": {
+					"name": "keyword.operator.assignment.acmap"
+				}
+			},
+			"contentName": "",
+			"patterns": [
+				{
+					"include": "#constants"
+				},
+				{
+					"include": "#numbers"
+				},
+				{
+					"include": "#strings"
+				},
+				{
+					"include": "#default"
+				}
+			],
+			"end": "$"
+		},
+		"variable": {
+			"begin": "^((\\$)([_a-zA-Z][_a-zA-Z0-9]*))\\s*(=)\\s*",
+			"beginCaptures": {
+				"1": {
+					"name": "variable.other.readwrite.global.acmap"
+				},
+				"2": {
+					"name": "punctuation.definition.variable.dollar-sign.acmap"
+				},
+				"3": {
+					"name": "entity.name.variable.acmap"
+				},
+				"4": {
+					"name": "keyword.operator.assignment.acmap"
+				}
+			},
+			"contentName": "",
+			"patterns": [
+				{
+					"include": "#strings"
+				},
+				{
+					"include": "#unaccounted"
+				}
+			],
+			"end": "$"
+		},
+		"command-string": {
+			"begin": "(\\$)(\\()",
+			"beginCaptures": {
+				"1": {
+					"name": "punctuation.definition.command-string.acmap"
+				},
+				"2": {
+					"name": "punctuation.section.parens.command-string.begin.acmap"
+				},
+				"3": {
+					"name": "entity.name.variable.acmap"
+				},
+				"4": {
+					"name": "keyword.operator.assignment.acmap"
+				}
+			},
+			"contentName": "meta.command-string.acmap",
+			"patterns": [
+				{
+					"match": "(\\$)(?=[\\\"'])",
+					"name": "punctuation.separator.comma.parameters.acmap",
+					"captures": {
+						"1": {
+							"name": "storage.type.string.acmap"
+						}
+					}
+				},
+				{
+					"match": ",",
+					"name": "punctuation.separator.comma.parameters.acmap"
+				},
+				{
+					"include": "#constants"
+				},
+				{
+					"include": "#numbers"
+				},
+				{
+					"include": "#strings"
+				}
+			],
+			"end": "(?<!\\\\)(\\))",
+			"endCaptures": {
+				"1": {
+					"name": "punctuation.section.parens.command-string.end.acmap"
+				}
+			}
+		},
+		"command": {
+			"begin": "^(?=\\.?[a-zA-Z])",
+			"contentName": "entity.other.command.acmap",
+			"patterns": [
+				{
+					"include": "#escape"
+				},
+				{
+					"match": "((\\.)|(\\/))",
+					"name": "",
+					"captures": {
+						"2": {
+							"name": "punctuation.accessor.dot.acmap"
+						},
+						"3": {
+							"name": "punctuation.accessor.forward-slash.acmap"
+						}
+					}
+				},
+				{
+					"match": "[^-_+:/a-zA-Z0-9]",
+					"name": "invalid.illegal.acmap"
+				}
+			],
+			"end": "(\\s*(,)\\s*|(?=(=|,| |\\t|$)))",
+			"endCaptures": {
+				"2": {
+					"name": "punctuation.separator.comma.acmap"
+				}
+			}
+		},
+		"flag-list": {
+			"begin": "(=)\\s*(\\[)",
+			"beginCaptures": {
+				"1": {
+					"name": "keyword.operator.assignment.acmap"
+				},
+				"2": {
+					"name": "punctuation.section.flag-list.begin.acmap"
+				}
+			},
+			"contentName": "meta.flags-list.acmap",
+			"patterns": [
+				{
+					"include": "#comment"
+				},
+				{
+					"include": "#stray-brace-bracket"
+				},
+				{
+					"include": "#flag-rule-list"
+				}
+			],
+			"end": "(\\])",
+			"endCaptures": {
+				"1": {
+					"name": "punctuation.section.flag-list.end.acmap"
+				}
+			}
+		},
+		"flag-rule-list": {
+			"patterns": [
+				{
+					"include": "#flags-list"
+				},
+				{
+					"include": "#keywords"
+				}
+			]
+		},
+		"flags-list": {
+			"patterns": [
+				{
+					"include": "#flag"
+				},
+				{
+					"include": "#options-list"
+				},
+				{
+					"begin": "=",
+					"contentName": "keyword.operator.assignment.acmap",
+					"patterns": [
+						{
+							"include": "#command-string"
+						},
+						{
+							"include": "#constants"
+						},
+						{
+							"include": "#numbers"
+						},
+						{
+							"include": "#strings"
+						},
+						{
+							"include": "#default"
+						}
+					],
+					"end": "$"
+				}
+			]
+		},
+		"flag-oneliner": {
+			"begin": "( |(=)\\s*)(?=(--?|default))",
+			"beginCaptures": {
+				"2": {
+					"name": "keyword.operator.assignment.acmap"
+				}
+			},
+			"contentName": "",
+			"patterns": [
+				{
+					"include": "#flags-oneliner"
+				}
+			],
+			"end": "$"
+		},
+		"flags-oneliner": {
+			"patterns": [
+				{
+					"include": "#placeholder"
+				},
+				{
+					"include": "#keywords"
+				},
+				{
+					"include": "#flag"
+				},
+				{
+					"include": "#options-list"
+				},
+				{
+					"match": "=",
+					"name": "keyword.operator.assignment.acmap"
+				},
+				{
+					"include": "#constants"
+				},
+				{
+					"include": "#numbers"
+				},
+				{
+					"include": "#strings"
+				},
+				{
+					"match": "\\|",
+					"name": "punctuation.separator.pipe.acmap"
+				},
+				{
+					"include": "#default"
+				}
+			]
+		},
+		"placeholder": {
+			"match": "(--)(p)(\\#[a-fA-F0-9]+)",
+			"name": "entity.other.placeholder.acmap",
+			"captures": {
+				"1": {
+					"name": "punctuation.definition.flag.acmap"
+				},
+				"2": {
+					"name": "support.type.placeholder-name.acmap"
+				},
+				"3": {
+					"name": "constant.numeric.acmap"
+				}
+			}
+		},
+		"keywords": {
+			"patterns": [
+				{
+					"match": "(default)([\\x{0020}\\t]{1,})",
+					"name": "",
+					"captures": {
+						"1": {
+							"name": "keyword.control.default.acmap"
+						}
+					}
+				},
+				{
+					"include": "#command-string"
+				}
+			]
+		},
+		"flag": {
+			"match": "(--?)(([a-zA-Z][-_.:a-zA-Z0-9]*)(\\?)?)?",
+			"name": "meta.flag-name.acmap",
+			"captures": {
+				"1": {
+					"name": "punctuation.definition.flag.acmap"
+				},
+				"3": {
+					"name": "support.type.flag-name.acmap"
+				},
+				"4": {
+					"name": "keyword.operator.assignment.boolean.acmap"
+				}
+			}
+		},
+		"options-list": {
+			"patterns": [
+				{
+					"begin": "(=)(\\*)?\\s*(\\()",
+					"beginCaptures": {
+						"1": {
+							"name": "keyword.operator.assignment.acmap"
+						},
+						"2": {
+							"name": "keyword.operator.assignment.multi-flag.acmap"
+						},
+						"3": {
+							"name": "punctuation.section.options-list.begin.acmap"
+						}
+					},
+					"contentName": "",
+					"patterns": [
+						{
+							"include": "#comment"
+						},
+						{
+							"include": "#stray-brace-parens"
+						},
+						{
+							"include": "#options-rule-list"
+						}
+					],
+					"end": "(\\))",
+					"endCaptures": {
+						"1": {
+							"name": "punctuation.section.options-list.end.acmap"
+						}
+					}
+				},
+				{
+					"match": "(=)(\\*)",
+					"name": "",
+					"captures": {
+						"1": {
+							"name": "keyword.operator.assignment.acmap"
+						},
+						"2": {
+							"name": "keyword.operator.assignment.multi-flag.acmap"
+						}
+					}
+				}
+			]
+		},
+		"options-rule-list": {
+			"patterns": [
+				{
+					"begin": "((-) )",
+					"beginCaptures": {
+						"2": {
+							"name": "punctuation.definition.block.option.item.acmap"
+						}
+					},
+					"contentName": "",
+					"patterns": [
+						{
+							"include": "#options-values"
+						}
+					],
+					"end": "$"
+				},
+				{
+					"include": "#options-values"
+				}
+			]
+		},
+		"options-values": {
+			"patterns": [
+				{
+					"include": "#command-string"
+				},
+				{
+					"include": "#constants"
+				},
+				{
+					"include": "#numbers"
+				},
+				{
+					"include": "#strings"
+				},
+				{
+					"include": "#default"
+				}
+			]
+		},
+		"stray-brace-bracket": {
+			"match": "((?<!\\\\)\\[)",
+			"name": "",
+			"captures": {
+				"1": {
+					"name": "invalid.illegal.stray-bracket.acmap"
+				}
+			}
+		},
+		"stray-brace-parens": {
+			"match": "((?<!\\\\)\\()",
+			"name": "",
+			"captures": {
+				"1": {
+					"name": "invalid.illegal.stray-bracket.acmap"
+				}
+			}
+		}
+	}
+}

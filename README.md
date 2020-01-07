@@ -907,8 +907,9 @@ Hook scripts are provided environment variables.
 
 <!-- #### Editor Support (Syntax Highlighting) -->
 
-- I use Sublime Text (ST) and have created a language syntax file (`acmap.sublime-syntax`) for it. ST files can be accessed [here](/resources/sublime-text/). Download the folder and place it in the `User/` folder for ST to pickup. Personally, I have it stored like so: `/User/Languages/Auto Completion Map (acmap)`.
-- Support for other editors can also be added if the project grows.
+- `.acmap`/`.acdef` [grammar packages](/resources/editors) available for [Sublime Text](https://www.sublimetext.com/3), [VSCode](https://code.visualstudio.com/), and [Atom](https://atom.io/) text editors.
+- **Note**: `INSTALL.md` files are found next to each package explaining how to install it.
+- Packages are stored under [`resources/editors`](/resources/editors).
 
 </details>
 

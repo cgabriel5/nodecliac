@@ -16,4 +16,4 @@ Clone the repo and copy package (`resources/editors/sublime-text-3/acmap`) to yo
 
   - `$HOME/Library/Application\ Support/Sublime\ Text\ 3/Packages/User`
 
-**Recommendation**: To keep things tidy make a `Languages` sub directory in the `User` directory and place the package there (i.e. `Packages/User/Languages/acmap`).
+**Recommendation**: To keep things tidy make a `Syntaxes` sub directory in the `User` directory and place the package there (i.e. `Packages/User/Syntaxes/acmap`).

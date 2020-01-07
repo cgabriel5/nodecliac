@@ -908,7 +908,7 @@ Hook scripts are provided environment variables.
 <!-- #### Editor Support (Syntax Highlighting) -->
 
 - `.acmap`/`.acdef` [grammar packages](/resources/editors) available for [Sublime Text](https://www.sublimetext.com/3), [VSCode](https://code.visualstudio.com/), and [Atom](https://atom.io/) text editors.
-- **Note**: `INSTALL.md` files are found next to each package explaining how to install it.
+- **Note**: `README.md` files are found next to each package explaining how to install it.
 - Packages are stored under [`resources/editors`](/resources/editors).
 
 </details>

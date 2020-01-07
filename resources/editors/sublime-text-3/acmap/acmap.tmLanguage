@@ -24,6 +24,7 @@
 		<!-- VSCode: Converting -->
 		<!-- [https://stackoverflow.com/questions/30687783/create-custom-language-in-visual-studio-code] -->
 		<!-- [https://code.visualstudio.com/api/language-extensions/syntax-highlight-guide#developing-a-new-grammar-extension] -->
+		<!-- [https://www.reddit.com/r/vscode/comments/dpo4yu/how_do_you_edit_syntax_highlight_for_specific/] -->
 
 		<!-- VSCode: Converting Summary -->
 		<!-- 1) Install yeoman: '$ npm install -g yo' -->

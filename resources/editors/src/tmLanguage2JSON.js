@@ -11,15 +11,13 @@ const path = require("path");
 const flatry = require("flatry");
 const fe = require("file-exists");
 
-const { read, write } = require("../../../../../src/utils/toolbox.js");
+const { read, write } = require("../../../src/utils/toolbox.js");
 
 (async () => {
 	let err, res; // Declare empty vars to reuse for all await operations.
 
 	// Get editors resource path.
 	let parts = __dirname.replace(/\/src$/, "").split(path.sep);
-	parts.pop();
-	parts.pop();
 	let sourcedir = parts.join(path.sep);
 
 	// tmLanguage file names.

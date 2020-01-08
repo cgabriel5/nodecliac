@@ -12,13 +12,10 @@
 	"name": "Black: Assignment Operator, Pipe Delimiter, Flag Boolean Indicator (base text like highlighting)",
 	"scope": "keyword.operator.assignment.acmap, punctuation.separator.pipe.acmap, keyword.operator.assignment.boolean.acmap, entity.other.command.acmap",
 	"foreground": "var(default)",
-	"background": "none",
 	"font_style": "none"
 },
 {
 	"name": "Italicize Command",
 	"scope": "entity.other.command.acmap",
-	"foreground": "none",
-	"background": "none",
 	"font_style": "italic"
 }

@@ -24,8 +24,6 @@
 	<dict>
 		<key>foreground</key>
 		<string>#222223</string>
-		<key>background</key>
-		<string>none</string>
 		<key>fontStyle</key>
 		<string>none</string>
 	</dict>
@@ -38,10 +36,6 @@
 	<string>entity.other.command.acmap</string>
 	<key>settings</key>
 	<dict>
-		<key>foreground</key>
-		<string>none</string>
-		<key>background</key>
-		<string>none</string>
 		<key>fontStyle</key>
 		<string>italic</string>
 	</dict>

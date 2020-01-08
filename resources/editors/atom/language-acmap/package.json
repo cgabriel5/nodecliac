@@ -1,7 +1,7 @@
 {
 	"name": "language-acmap",
 	"version": "0.0.1",
-	"description": "Adds grammar support for .acmap/.acdef files",
+	"description": "Atom ACMAP language (grammar) support",
 	"keywords": [],
 	"license": "MIT",
 	"engines": {

@@ -1,7 +1,7 @@
 {
 	"name": "acmap",
 	"displayName": "acmap",
-	"description": "Adds grammar support for .acmap/.acdef files",
+	"description": "VSCode ACMAP language (grammar) support",
 	"version": "0.0.1",
 	"publisher": "cgabriel5",
 	"engines": {

@@ -29,7 +29,7 @@
 			{
 				"language": "acmap",
 				"scopeName": "source.acmap",
-				"path": "./syntaxes/acmap.tmLanguage.json"
+				"path": "./grammars/acmap.tmLanguage.json"
 			}
 		]
 	}

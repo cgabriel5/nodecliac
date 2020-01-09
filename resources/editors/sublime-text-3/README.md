@@ -2,7 +2,7 @@
 
 _Package requires a manual install for now._
 
-Clone the repo and copy package (`resources/editors/sublime-text-3/acmap`) to your `User` folder:
+Clone the repo and copy the package (`resources/editors/sublime-text-3/acmap`) to your `User` folder:
 
 - **Windows**:
 

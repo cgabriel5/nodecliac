@@ -121,20 +121,9 @@ $ git clone -b BRANCH_NAME --single-branch https://github.com/cgabriel5/nodeclia
 
 ## How It Works
 
-###### Text Summary:
+nodecliac uses two custom file types: **a**uto-**c**ompletion **map** (`.acmap`) and **a**uto-**c**ompletion **def**inition (`.acdef`) files. With that said the idea here is simple. One _writes_ their program's `.acmap` file to _map_ the program's commands with their respective flags. This `program.acmap` file can then be passed to nodecliac (via its CLI tools) to scaffold the command's completion package. How elaborate completion packages become depend on the needs of the program, but at their core all will contain their program's `program.acdef` file. It's these _definition_ files nodecliac references when provide completions.
 
-nodecliac uses two custom file types: **a**uto-**c**ompletion **map** (`.acmap`) and **a**uto-**c**ompletion **def**inition (`.acdef`) files. The `.acmap` file is _user_ generated. It's where the program's commands get _mapped_ to their respective flags. The `.acdef` file is generated from the `.acmap` file with nodecliac. Bash completions get made by referencing the `.acdef` file.
-
-###### Bullet Breakdown:
-
-<details>
-  <summary>Show breakdown</summary>
-
-1. [Create CLI app's](#cli-usage-examples) `mycliprogram.acmap` file.
-2. Generate app's completion-package from `mycliprogram.acmap` file and add to nodecliac's registry.
-3. Finally, reload `.bashrc` or open a new Terminal to start using.
-
-</details>
+**tl;dr**: _Write the program's `.acmap` file then pass it to nodecliac (via CLI) to scaffold its completion package. Flesh out completion package as needed and move it to the [registry](#registry) so nodecliac can use it. Open a new Terminal to start using._
 
 <a name="acmap-syntax"></a>
 
@@ -229,11 +218,11 @@ yarn.run = default $("${mainscript} run")
   - Non escaped dots will be used as delimiters.
 - No amount of indentation can precede a command chain.
 
-**Example**: Say the CLI program `mycliprogram` has two commands `install` and `uninstall`. It's `.acmap` file will be:
+**Example**: Say the CLI program `program` has two commands `install` and `uninstall`. It's `.acmap` file will be:
 
 ```acmap
-mycliprogram.install
-mycliprogram.uninstall
+program.install
+program.uninstall
 ```
 
 <details>
@@ -350,13 +339,13 @@ To define flags we need to extend the [command chain](#command-chains) syntax.
 Building on the [command chain](#command-chains) section example, say the `install` command has the flags: `destination/d` and `force/f`. ACMAP can be updated to:
 
 ```acmap
-mycliprogram.install = [
+program.install = [
   --destination
   -d
   --force
   -f
 ]
-mycliprogram.uninstall
+program.uninstall
 ```
 
 <details>
@@ -367,7 +356,7 @@ mycliprogram.uninstall
 - If flag requires user input append `=` to the flag.
 
 ```acmap
-mycliprogram.command = [
+program.command = [
   --flag=
 ]
 ```
@@ -378,7 +367,7 @@ mycliprogram.command = [
   - This lets the completion engine know the flag does not require value completion.
 
 ```acmap
-mycliprogram.command = [
+program.command = [
   --flag?
 ]
 ```
@@ -389,7 +378,7 @@ mycliprogram.command = [
 - Let the completion engine know this by using the multi-flag indicator `*`.
 
 ```acmap
-mycliprogram.command = [
+program.command = [
   # Allow user to provide multiple file paths.
   --file=*
 
@@ -405,7 +394,7 @@ mycliprogram.command = [
 - **Note**: When a flag has many values a [long form list](#flags-values-long-form) should be used for clarities sake.
 
 ```acmap
-mycliprogram.command = [
+program.command = [
   # Supply 1, "2", false, 4 as hard-coded values.
   --flag=(1 "2" false 4)
 
@@ -426,7 +415,7 @@ mycliprogram.command = [
 - Any amount of whitespace indentation can precede the flag value option <code>- </code> sequence.
 
 ```acmap
-mycliprogram.command = [
+program.command = [
   --flag=(
     - 1
     - "2"
@@ -442,7 +431,7 @@ mycliprogram.command = [
     - 4
   )
 ]
-mycliprogram.uninstall
+program.uninstall
 ```
 
 #### Flags (dynamic values)
@@ -472,7 +461,7 @@ If the command requires arguments they can be _hard-coded_ or _dynamically_ supp
 **Example**: Showcases dynamic and hard-coded values.
 
 ```acmap
-mycliprogram.command = [
+program.command = [
   # '*' denotes the flag is a multi-flag.
   --flag=*
   --flag=(
@@ -491,7 +480,7 @@ mycliprogram.command = [
     - $("cat ~/file.text")
   )
 ]
-mycliprogram.uninstall
+program.uninstall
 ```
 
 </details>
@@ -691,9 +680,9 @@ nodecliac assumes following CLI program [design](http://programmingpractices.blo
 - `program-name` → [`subcommands`](https://github.com/mosop/cli/wiki/Defining-Subcommands) → `short-flags`/`long-flags` → `positional-parameters`
 
 ```
-$ mycliprogram [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] [file ...]
-  ^^^^^^^^^^^^  ^^^^^^^^^^^^^^   ^^^^^^^   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^   ^^^^^^^^
-        |              |            |                      /                    /
+$ program [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] [file ...]
+  ^^^^^^^  ^^^^^^^^^^^^^^   ^^^^^^^   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^   ^^^^^^^^
+     |            \             \                      |                   /
   CLI program's   Program        Program          Program long     Program's (flag-less)
   command.        subcommands.   short flags.     flags.           positional parameters.
 ```
@@ -701,40 +690,64 @@ $ mycliprogram [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] 
 <details>
   <summary>Show nodecliac's commands/flags.</summary>
 
-- `format`: Format (prettify) `.acmap` file.
-  - `--source=`: (**required**): Path to `.acmap` file.
-  - `--save` : Overwrite source file with prettified output.
-  - `--indent="(s|t):Number"`: Formatting indentation string:
-    - `s` for spaces or `t` for tabs followed by a number.
-      - `t:1`: Use 1 tab per indentation level (_default_).
-      - `s:2`: Use 2 spaces per indentation level.
-  - `--print` : Log output to console.
-  - `--strip-comments` : Remove comments from final output.
-  - `--trace` : Trace parsers (_for debugging_).
-  - `--test`: Log output without file headers (_for tests_).
-- `make`: Make completion-package for command.
-  - `--source=`: (**required**): Path to `.acmap` file.
-  - `--add`: Add generated completion-package nodecliac registry.
-    - `--force`: Forces overwrite of existing registry completion-package.
-  - `--save=` : Location where completion-package should be saved to.
-    - **Note**: If path isn't provided current working directory is used.
-    - `--force`: Forces overwrite of existing completion-package at directory.
-  - `--print` : Log output to console.
-  - `--trace` : Trace parsers (_for debugging_).
-  - `--test`: Log output without file headers (_for tests_).
-- `print`: Print acmap/def file contents for files in registry.
-  - `--command=`: The file to print (list dynamically generated based on available files in registry).
-- `registry`: Lists `.acdef` files in registry.
-- `setup`: Installs and setups nodecliac.
-  - `--force` : Forces/overwrites old install if nodecliac is already installed.
-  - `--rcfilepath`: By default `~/.bashrc` is used. If another rc file should be used provide its path.
-    - **Note**: This gets appended to rc file:
-      - `ncliac=~/.nodecliac/src/main/init.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;`
-- `status`: Checks whether nodecliac is enabled/disabled.
-  - `--enable` : Enables nodecliac if disabled.
-  - `--disable`: Disables nodecliac if enabled.
-- `uninstall`: Uninstalls nodecliac/reverts rc file changes.
-  - `--rcfilepath`: rc file used in setup to remove changes from.
+---
+
+**Note**: nodecliac's commands are few. Its main commands are `make` and `format`. Followed by the `setup`, `status`, and `uninstall` commands. The remaining commands `print` and `registry` simply exist to help showcase `command-string`s.
+
+**format**: Format (prettify) `.acmap` file.
+
+- `--source=`: (**required**): Path to `.acmap` file.
+- `--save` : Overwrite source file with prettified output.
+- `--indent="(s|t):Number"`: Formatting indentation string:
+  - `s` for spaces or `t` for tabs followed by a number.
+    - `t:1`: Use 1 tab per indentation level (_default_).
+    - `s:2`: Use 2 spaces per indentation level.
+- `--print` : Log output to console.
+- `--strip-comments` : Remove comments from final output.
+- `--trace` : Trace parsers (_for debugging_).
+- `--test`: Log output without file headers (_for tests_).
+
+**make**: Scaffold command's completion package.
+
+- `--source=`: (**required**): Path to `.acmap` file.
+- `--add`: Add generated completion package nodecliac registry.
+  - `--force`: Forces overwrite of existing registry completion package.
+- `--save=` : Location where completion package should be saved to.
+  - **Note**: If path isn't provided current working directory is used.
+  - `--force`: Forces overwrite of existing completion package at directory.
+- `--print` : Log output to console.
+- `--trace` : Trace parsers (_for debugging_).
+- `--test`: Log output without file headers (_for tests_).
+
+---
+
+**setup**: Setups nodecliac.
+
+- `--force` : (**required** _if nodecliac is already setup)_: Old setup is backed up and nodecliac is setup as new.
+- `--rcfilepath`: By default `~/.bashrc` is used. If another rc file should be used provide its path.
+  - **Note**: This gets appended to rc file:
+    - `ncliac=~/.nodecliac/src/main/init.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;`
+
+**status**: Checks whether nodecliac is enabled/disabled.
+
+- `--enable` : Enables nodecliac.
+- `--disable`: Disables nodecliac.
+
+**uninstall**: Uninstalls nodecliac/reverts rc file changes.
+
+- `--rcfilepath`: rc file used in setup to remove changes from.
+
+---
+
+**print**: Print acmap/def file contents for files in registry.
+
+- `--command=`: The file to print (list dynamically generated based on available files in registry).
+
+**registry**: Lists `.acdef` files in registry.
+
+- _No commands_
+
+---
 
 </details>
 
@@ -742,24 +755,24 @@ $ mycliprogram [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] 
 
 ## CLI Usage Examples
 
-#### Generate completion-package
+#### Generate completion package
 
 ```sh
-# Generate completion-package for 'mycliprogram' and add it to registry.
-$ nodecliac make --source path/to/mycliprogram.acmap --add
+# Scaffold completion package for 'program' command and add it to registry.
+$ nodecliac make --source path/to/program.acmap --add
 
-# Generate mycliprogram.acdef contents and log to terminal.
-$ nodecliac make --source path/to/mycliprogram.acmap --print
+# Scaffold completion package and log generated 'program.acdef' contents to terminal.
+$ nodecliac make --source path/to/program.acmap --print
 ```
 
 #### Prettify ACMAP file
 
 ```sh
-# Prettify mycliprogram.acmap file using 2 spaces per indentation level and log output.
-$ nodecliac format --source path/to/mycliprogram.acmap --print --indent "s:2"
+# Prettify 'program.acmap' file using 2 spaces per indentation level and log output.
+$ nodecliac format --source path/to/program.acmap --print --indent "s:2"
 
 # As above but overwrite source file with prettified output.
-$ nodecliac format --source path/to/mycliprogram.acmap --print --indent "s:2" --save
+$ nodecliac format --source path/to/program.acmap --print --indent "s:2" --save
 ```
 
 <a name="registry"></a>
@@ -770,7 +783,7 @@ The registry (`~/.nodecliac/registry`) is where nodecliac's completion packages 
 
 <details><summary>Show directory structures.</summary>
 
-- Required completion package directory base structure:
+- Required base completion package directory structure:
 
 ```
 ~/.nodecliac/
@@ -794,7 +807,7 @@ The registry (`~/.nodecliac/registry`) is where nodecliac's completion packages 
         └── placeholders/
 ```
 
-**Note**: The manner in which script files are structured within `~/.nodecliac/registry/COMMAND-NAME/` is up to you. Just note that the above base structure is required.
+**Note**: The manner in which files are structured within `~/.nodecliac/registry/COMMAND-NAME/` is up to you. The base directory structure _must_ be adhered to, however.
 
 </details>
 
@@ -802,14 +815,14 @@ The registry (`~/.nodecliac/registry`) is where nodecliac's completion packages 
 
 ## Hooks
 
-Some programs are more complicated than others. Let's use [`yarn.acdef`](/resources/nodecliac/yarn/yarn.acdef) as an example. Before running the completion-script, the current repo's `package.json` `scripts` entries need to be [added as commands](https://yarnpkg.com/en/docs/cli/run#toc-yarn-run) to `yarn.acdef`. Doing so requires a `pre-parsing` hook. In essence, before the completion-script is run, the `pre-parsing` hook script gives the ability to modify completion-script parameters/variables.
+Some programs are more complicated than others. Let's use [`yarn.acdef`](/resources/nodecliac/yarn/yarn.acdef) as an example. Before running the completion script, the current repo's `package.json` `scripts` entries need to be [added as commands](https://yarnpkg.com/en/docs/cli/run#toc-yarn-run) to `yarn.acdef`. Doing so requires a `pre-parsing` hook. In essence, before the completion script is run, the `pre-parsing` hook script gives the ability to modify completion script parameters/variables.
 
 <details><summary>Expand hook section.</summary>
 
 #### Available hook scripts
 
 - `hooks/pre-parse.sh`
-  - Purpose: `pre-parse.sh` is _meant_ to modify `acdef` and `cline` variables before running [completion-script](/src/scripts/ac).
+  - Purpose: `pre-parse.sh` is _meant_ to modify `acdef` and `cline` variables before running [completion script](/src/scripts/ac).
   - **Note**: However, since the hook script is `sourced` into [`connector.sh`](/src/scripts/main/connector.sh) it has _access_ to other [`connector.sh`](/src/scripts/main/connector.sh) variables.
   - Hook script should be seen as [glue code](https://en.wikipedia.org/wiki/Scripting_language#Glue_languages) intended to run actual logic.
     - For example, take yarn's [`pre-parse.sh`](/resources/nodecliac/yarn/hooks/pre-parse.sh) script. The [script](/resources/nodecliac/yarn/hooks/pre-parse.sh) actually runs a Perl script ([`pre-parse.pl`](/resources/nodecliac/yarn/hooks/pre-parse.pl)) which returns the repo's `package.json` `scripts` as well as modified CLI input.

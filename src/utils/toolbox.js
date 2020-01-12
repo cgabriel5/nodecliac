@@ -9,6 +9,7 @@ const { strip_comments } = require("./text.js");
 const { hasOwnProperty } = require("./objects.js");
 const { fmt, rtp } = require("./strings.js");
 const {
+	realpath,
 	readdir,
 	lstats,
 	remove,
@@ -28,6 +29,7 @@ module.exports = {
 	exit,
 	md5,
 	ispath_abs,
+	realpath,
 	lstats,
 	readdir,
 	remove,

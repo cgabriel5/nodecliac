@@ -178,6 +178,21 @@ let lstats = filepath => {
 		});
 	});
 };
+
+/**
+ * Resolve paths `real` path. This means solving symlinks.
+ *
+ * @param  {string} filepath - The file path to use.
+ * @return {string} - The resolved real path.
+ *
+ * @resource [https://nodejs.org/docs/latest/api/fs.html#fs_fs_realpath_path_options_callback]
+ */
+let realpath = filepath => {
+	return new Promise((resolve, reject) => {
+		fs.realpath(filepath, (err, resolved_path) => {
+			if (err) reject(err); // Reject on error.
+
+			resolve(resolved_path); // Return resolved true path.
 		});
 	});
 };
@@ -194,6 +209,7 @@ let lstats = filepath => {
 
 module.exports = {
 	ispath_abs,
+	realpath,
 	readdir,
 	lstats,
 	remove,

@@ -162,15 +162,22 @@ let ispath_abs = p => {
  *
  * @resource [https://stackoverflow.com/a/15630832]
  * @resource [https://pubs.opengroup.org/onlinepubs/7908799/xsh/lstat.html]
+ * @resource [https://www.brainbell.com/javascript/fs-stats-structure.html]
  */
 let lstats = filepath => {
 	return new Promise((resolve, reject) => {
-		fs.lstat(filepath, err => {
-			// Reject on error.
-			if (err) reject(err);
+		fs.lstat(filepath, (err, stats) => {
+			if (err) reject(err); // Reject on error.
+
+			// Check if path is a symbolic link, add prop to object.
+			// [https://stackoverflow.com/a/11287004]
+			stats.symlink = stats.isSymbolicLink();
 
 			// Return file contents on success.
-			resolve(true);
+			resolve(stats);
+		});
+	});
+};
 		});
 	});
 };

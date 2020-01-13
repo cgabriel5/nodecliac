@@ -120,47 +120,49 @@ module.exports = async args => {
 	let savename = `${commandname}.acdef`;
 	let saveconfigname = `.${commandname}.config.acdef`;
 
-	// When formatting...
-	if (formatting) {
-		// Save formatted acmap file to source location.
-		[err, res] = await flatry(write(source, formatted.content));
-	}
-	// When generating nodecliac completion-package.
-	else {
-		// Build file output paths.
-		let commandpath = path.join(dirname, savename);
-		let commandconfigpath = path.join(dirname, saveconfigname);
-		let placeholderspaths = path.join(dirname, "placeholders");
+	// Only save files to disk when not testing.
+	if (!test) {
+		// Write formatted contents to disk.
+		if (formatting) {
+			[err, res] = await flatry(write(source, formatted.content));
+		}
+		// Write .acdef and .config.acdef files to disk.
+		else {
+			// Build file output paths.
+			let commandpath = path.join(dirname, savename);
+			let commandconfigpath = path.join(dirname, saveconfigname);
+			let placeholderspaths = path.join(dirname, "placeholders");
 
-		// Check if command.acdef file exists.
-		[err, res] = await flatry(de(dirname));
+			// Check if command.acdef file exists.
+			[err, res] = await flatry(de(dirname));
 
-		// Create needed parent directories.
-		[err, res] = await flatry(mkdirp(dirname));
+			// Create needed parent directories.
+			[err, res] = await flatry(mkdirp(dirname));
 
-		// Save file to map location.
-		await flatry(write(commandpath, acmap.content + keywords.content));
-		await flatry(write(commandconfigpath, config.content));
+			// Save file to map location.
+			await flatry(write(commandpath, acmap.content + keywords.content));
+			await flatry(write(commandconfigpath, config.content));
 
-		// -----------------------------------------------------PLACEHOLDERS
+			// -----------------------------------------------------PLACEHOLDERS
 
-		// Create placeholder files when placeholders object is populated.
-		if (Object.keys(placeholders).length) {
-			// Create needed directories.
-			[err, res] = await flatry(mkdirp(placeholderspaths));
+			// Create placeholder files when placeholders object is populated.
+			if (Object.keys(placeholders).length) {
+				// Create needed directories.
+				[err, res] = await flatry(mkdirp(placeholderspaths));
 
-			let promises = []; // Store promises.
-			let f = Object.prototype.hasOwnProperty;
+				let promises = []; // Store promises.
+				let f = Object.prototype.hasOwnProperty;
 
-			// Loop over placeholders to create write promises.
-			for (let key in placeholders) {
-				if (f.call(placeholders, key)) {
-					let p = `${placeholderspaths}/${key}`;
-					promises.push(write(p, placeholders[key]));
+				// Loop over placeholders to create write promises.
+				for (let key in placeholders) {
+					if (f.call(placeholders, key)) {
+						let p = `${placeholderspaths}/${key}`;
+						promises.push(write(p, placeholders[key]));
+					}
 				}
-			}
 
-			[err, res] = await flatry(Promise.all(promises)); // Run promises.
+				[err, res] = await flatry(Promise.all(promises)); // Run promises.
+			}
 		}
 	}
 

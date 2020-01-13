@@ -24,7 +24,6 @@ if (action) {
 	// Check if command exists.
 	let tstring = "Unknown command ?.";
 	if (!actions.includes(action)) exit([fmt(tstring, chalk.bold(action))]);
-	if (action === "format") action = "make"; // Reset format to make action.
 	require(`./actions/${action}.js`)(args); // Run action script.
 } else {
 	// If version flag supplied, show version.

@@ -16,7 +16,13 @@ const actions = [
 	"setup",
 	"status",
 	"registry",
-	"uninstall"
+	"uninstall",
+	"add",
+	"remove",
+	"link",
+	"unlink",
+	"enable",
+	"disable"
 ];
 
 // Run action's respective file if provided.

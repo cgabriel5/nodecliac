@@ -1,6 +1,6 @@
 # Enabling Completion Package
 
-The `enable` command can take as many arguments (package names):
+The `enable` command takes _n_ arguments (package names):
 
 ```sh
 $ nodecliac enable <PACKAGE_NAME>

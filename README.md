@@ -668,8 +668,8 @@ For example, the line `.workspaces.run --` can be viewed as `yarn.workspaces.run
 
 **remove**: Removes package(s) from registry.
 
-- _No arguments_
 - Takes n-amount of package names as arguments.
+- `--all`: Removes all packages in registry.
 
 **link**: Creates soft symbolic link of package in registry.
 
@@ -684,13 +684,13 @@ For example, the line `.workspaces.run --` can be viewed as `yarn.workspaces.run
 
 **enable**: Enables completions for package(s).
 
-- _No arguments_
 - Takes n-amount of package names as arguments.
+- `--all`: Enables all packages in registry.
 
 **disable**: Disables completions for package(s).
 
-- _No arguments_
 - Takes n-amount of package names as arguments.
+- `--all`: Disables all packages in registry.
 
 ---
 
@@ -862,8 +862,8 @@ Hook scripts are provided environment variables.
 
 <!-- Table formatting hack: [https://stackoverflow.com/a/51701842] -->
 
-| <img width=220/> <br /> [Create](/docs/packages/creating.md) <img width=220/> | <img width=220/> <br /> [Add](/docs/packages/adding.md) <img width=220/> | <img width=220/> <br /> [Remove](/docs/packages/removing.md) <img width=220/> | <img width=220/> <br /> [Disable](/docs/packages/disabling.md) <img width=220/> | <img width=220/> <br /> [Enable](/docs/packages/enabling.md) <img width=220/> |
-| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| <img width=220/> <br /> [Create](/docs/packages/creating.md) <img width=220/> | <img width=220/> <br /> [Add / Link](/docs/packages/adding.md) <img width=220/> | <img width=220/> <br /> [Remove / Unlink](/docs/packages/removing.md) <img width=220/> | <img width=220/> <br /> [Disable](/docs/packages/disabling.md) <img width=220/> | <img width=220/> <br /> [Enable](/docs/packages/enabling.md) <img width=220/> |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
 
 
 <a name="support"></a>

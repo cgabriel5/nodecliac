@@ -1,6 +1,6 @@
 # Disabling Completion Package
 
-The `disable` command can take as many arguments (package names):
+The `disable` command takes _n_ arguments (package names):
 
 ```sh
 $ nodecliac disable <PACKAGE_NAME>

@@ -1,4 +1,4 @@
-# Enabling Completion Package
+# Disabling Completion Package
 
 The `disable` command can take as many arguments (package names):
 

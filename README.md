@@ -862,8 +862,8 @@ Hook scripts are provided environment variables.
 
 <!-- Table formatting hack: [https://stackoverflow.com/a/51701842] -->
 
-| <img width=220/> <br /> [Create](/docs/packages/creating.md) <img width=220/> | <img width=220/> <br /> [Add](/docs/packages/add.md) <img width=220/> | <img width=220/> <br /> [Remove](/docs/packages/remove.md) <img width=220/> | <img width=220/> <br /> [Disable](/docs/packages/disabling.md) <img width=220/> | <img width=220/> <br /> [Enable](/docs/packages/enabling.md) <img width=220/> |
-| ----------------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| <img width=220/> <br /> [Create](/docs/packages/creating.md) <img width=220/> | <img width=220/> <br /> [Add](/docs/packages/adding.md) <img width=220/> | <img width=220/> <br /> [Remove](/docs/packages/removing.md) <img width=220/> | <img width=220/> <br /> [Disable](/docs/packages/disabling.md) <img width=220/> | <img width=220/> <br /> [Enable](/docs/packages/enabling.md) <img width=220/> |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
 
 
 <a name="support"></a>

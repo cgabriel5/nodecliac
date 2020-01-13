@@ -25,8 +25,8 @@ module.exports = async args => {
 	let tstring = "";
 
 	// CLI args.
-	let { source, print, save } = args; // `make` + `format` flags.
-	let { trace, test, add /*, force*/ } = args; // `make` flags.
+	let { source, print } = args; // `make` + `format` flags.
+	let { trace, test } = args; // `make` flags.
 	let { "strip-comments": igc, highlight, indent } = args; // `format` flags.
 	let { nowarn, engine } = args; // Other flags.
 
@@ -79,34 +79,23 @@ module.exports = async args => {
 		tstring = "? needs to be a string.";
 		exit([fmt(tstring, chalk.bold("--source"))]);
 	}
-	// Check path for file name and extension.
+
+	// Breakdown path.
 	let fi = info(source);
-	if (!/^[a-z][-_+a-z0-9]{2,}\.acmap$/i.test(fi.name)) {
-		let varg1 = chalk.bold.blue("<cli-command-name>.acmap");
-		let varg2 = chalk.bold("prettier.acmap");
-		let varg3 = chalk.bold.blue("prettier-cli-watcher.acmap");
-		exit([
-			fmt("File name must follow format: ?.", varg1),
-			fmt("Examples: ?, ?.", varg2, varg3)
-		]);
-	}
-	// Extract the command name.
-	let commandname = fi.name.match(/^[-_:+a-z0-9]+/g)[0].replace(/_/g, "-");
+	let extension = fi.ext;
+	let commandname = fi.name.replace(new RegExp(`\\.${extension}$`), "");
+	let dirname = fi.dirname;
 
 	// If path is relative make it absolute.
 	if (!ispath_abs(source)) source = path.resolve(source);
 
-	// If `--save` flag is provided but path is not given use dir location.
-	if (save && save === true) save = fi.dirname;
+	// If directory path supplied error.
+	[err, res] = await flatry(de(source));
+	if (err || res) exit(["Directory provided but .acmap file path needed."]);
 
-	// Check that the source path exists.
+	// Confirm acmap file path exists.
 	[err, res] = await flatry(fe(source));
-	// If path does not exist, give message and end process.
-	if (!res) {
-		let varg1 = chalk.bold(source);
-		let varg2 = chalk.blue("--source");
-		exit([fmt("? (?) doesn't exist.", varg1, varg2)]);
-	}
+	if (err || !res) exit([fmt("Path ? does not exists.", chalk.bold(source))]);
 
 	// Generate acmap.
 	[err, res] = await flatry(read(source));
@@ -133,63 +122,45 @@ module.exports = async args => {
 
 	// When formatting...
 	if (formatting) {
-		// Save formatted acmap file to source location when flag is provided.
-		if (save) [err, res] = await flatry(write(source, formatted.content));
+		// Save formatted acmap file to source location.
+		[err, res] = await flatry(write(source, formatted.content));
 	}
 	// When generating nodecliac completion-package.
 	else {
-		let __paths = []; // Locations where to save completion-package.
-		if (add) __paths.push(registrypaths);
-		// Note: If an save path is not provided use source location.
-		if (save) __paths.push(save);
+		// Build file output paths.
+		let commandpath = path.join(dirname, savename);
+		let commandconfigpath = path.join(dirname, saveconfigname);
+		let placeholderspaths = path.join(dirname, "placeholders");
 
-		// Save nodecliac completion-package at locations in array.
-		for (let i = 0, l = __paths.length; i < l; i++) {
-			// Build file output paths.
-			let commanddir = path.join(__paths[i], commandname);
-			let commandpath = path.join(commanddir, savename);
-			let commandconfigpath = path.join(commanddir, saveconfigname);
-			let placeholderspaths = path.join(commanddir, "placeholders");
+		// Check if command.acdef file exists.
+		[err, res] = await flatry(de(dirname));
 
-			// Check if command.acdef file exists.
-			[err, res] = await flatry(de(commanddir));
-			// [err, res] = await flatry(fe(commandpath));
+		// Create needed parent directories.
+		[err, res] = await flatry(mkdirp(dirname));
 
-			// To save completion-package to disk the main folder cannot
-			// exist at the provided/current directory location. This will
-			// prevent the overwriting the current package. Or if the
-			// `--force` flag is provided.
-			if (res && !args.force) continue;
+		// Save file to map location.
+		await flatry(write(commandpath, acmap.content + keywords.content));
+		await flatry(write(commandconfigpath, config.content));
 
-			// Create needed parent directories.
-			[err, res] = await flatry(mkdirp(commanddir));
+		// -----------------------------------------------------PLACEHOLDERS
 
-			// Save file to map location.
-			await flatry(write(commandpath, acmap.content + keywords.content));
-			await flatry(write(commandconfigpath, config.content));
+		// Create placeholder files when placeholders object is populated.
+		if (Object.keys(placeholders).length) {
+			// Create needed directories.
+			[err, res] = await flatry(mkdirp(placeholderspaths));
 
-			// -----------------------------------------------------PLACEHOLDERS
+			let promises = []; // Store promises.
+			let f = Object.prototype.hasOwnProperty;
 
-			// Create placeholder files when placeholders object is populated.
-			if (Object.keys(placeholders).length) {
-				// Create needed directories.
-				[err, res] = await flatry(mkdirp(placeholderspaths));
-				if (!res) continue;
-
-				let promises = []; // Store promises.
-				let f = Object.prototype.hasOwnProperty;
-
-				// Loop over placeholders to create write promises.
-				for (let key in placeholders) {
-					if (f.call(placeholders, key)) {
-						let p = `${placeholderspaths}/${key}`;
-						promises.push(write(p, placeholders[key]));
-					}
+			// Loop over placeholders to create write promises.
+			for (let key in placeholders) {
+				if (f.call(placeholders, key)) {
+					let p = `${placeholderspaths}/${key}`;
+					promises.push(write(p, placeholders[key]));
 				}
-
-				// Run promises.
-				[err, res] = await flatry(Promise.all(promises));
 			}
+
+			[err, res] = await flatry(Promise.all(promises)); // Run promises.
 		}
 	}
 

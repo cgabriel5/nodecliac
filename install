@@ -264,11 +264,8 @@ if [[ "$INSTALLER" == "aconly" ]]; then
 	# Copy registry completion packages.
 	echo " - Copying registry completion packages..."
 	# cp: [https://stackoverflow.com/a/8055544]
-	cp -pr "$outputdir"/resources/nodecliac/* ~/.nodecliac/registry
+	cp -pr "$outputdir"/resources/packages/* ~/.nodecliac/registry
 	log " $CHECK_MARK Copied registry completion packages."
-	echo " - Deleting acmaps..."
-	rm -rf ~/.nodecliac/registry/__acmaps # Remove acmap files.
-	log " $CHECK_MARK Deleted acmaps."
 
 	# Create setup file.
 	echo " - Creating ~/.nodecliac/.setup.db.json file..."

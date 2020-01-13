@@ -105,9 +105,7 @@ module.exports = async args => {
 			overwrite: true,
 			dot: true,
 			debug: false,
-			filter: function(filename) {
-				return !/^__acmaps/.test(filename); // Exclude hidden dirs/files.
-			},
+			// filter: function(filename) { return !//.test(filename); },
 			transform: function(src /*dest, stats*/) {
 				// Only modify Shell and Perl script files.
 				if (!/\.(sh|pl)$/.test(path.extname(src))) return null;

@@ -21,7 +21,7 @@ let paths = (function(os, path) {
 	let acmapssource = path.join(homedir, `.${cdirname}`, "src");
 	let setupfilepath = path.join(customdir, `.setup.db.json`);
 	// Path to nodecliac resources.
-	let resourcespath = path.join(cwd, "resources/nodecliac/");
+	let resourcespath = path.join(cwd, "resources/packages/");
 	let resourcessrcs = path.join(cwd, "src/scripts/");
 
 	return {

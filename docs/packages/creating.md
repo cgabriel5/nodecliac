@@ -76,6 +76,6 @@ Open a new Terminal (or run `$ source ~/.bashrc` in current one), type `$ subl -
 
 ### What's Next
 
-That was it for the `subl` command. Yes, the command is relatively simple and for that reason it's used in this guide. However, as should go without saying, the more complex a CLI program is the more that will have to added to the `.acmap` file. `.acmap`s for various programs (of varying degrees of complexity) can be found [here](resources/nodecliac/__acmaps).
+That was it for the `subl` command. Yes, the command is relatively simple and for that reason it's used in this guide. However, as should go without saying, the more complex a CLI program is the more that will have to added to the `.acmap` file. `.acmap`s for various programs (of varying degrees of complexity) can be found [here](resources/packages).
 
 For a more complex example which uses a `pre-hook` and `Perl` scripts take a look at the [yarn completion package](https://github.com/cgabriel5/nodecliac/tree/master/resources/nodecliac/yarn).

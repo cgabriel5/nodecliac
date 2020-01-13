@@ -6,7 +6,13 @@ const flatry = require("flatry");
 const log = require("fancy-log");
 const de = require("directory-exists");
 const fe = require("file-exists");
-const { exit, paths, readdir } = require("../utils/toolbox.js");
+const {
+	exit,
+	paths,
+	readdir,
+	lstats,
+	realpath
+} = require("../utils/toolbox.js");
 
 module.exports = async () => {
 	let { registrypaths } = paths; // Get needed paths.
@@ -33,41 +39,42 @@ module.exports = async () => {
 		let configpath = path.join(registrypaths, command, configfilename);
 
 		// Store information in a tuple.
-		let tuple = [];
+		let tuple = [command, false];
 
 		// If acdef file exists add information to tuple.
 		[err, res] = await flatry(fe(acdefpath));
 		if (res) {
-			tuple.push(command);
-
 			// Check for config file.
 			[err, res] = await flatry(fe(configpath));
-			if (res) tuple.push(true); // Store config file path for later use.
-
-			// Add tuple to files array.
-			files.push(tuple);
+			if (res) tuple[1] = true; // Store config file path for later use.
 		}
+
+		// Add tuple to files array.
+		files.push(tuple);
 	}
 
 	// List commands if any exist.
 	if (files.length) {
-		log(chalk.bold(`.acdef files: (${files.length})`));
-
 		files
 			.sort(function(a, b) {
 				return a[0].localeCompare(b[0]);
 			})
-			.forEach(function(tuple) {
+			.forEach(async function(tuple) {
 				// Get file tuple information.
 				let [command, hasconfig] = tuple;
 
-				// Check if config file exists.
-				let config_marker = hasconfig ? "*" : "";
-
-				let varg1 = chalk[config_marker ? "bold" : "black"](
-					chalk[config_marker ? "blue" : "black"](command)
-				);
-				log(` ─ ${varg1}${config_marker}`);
+				let pkgpath = `${registrypaths}/${command}`;
+				[err, res] = await flatry(lstats(pkgpath));
+				if (res.symlink) {
+					// Get the real package path.
+					[err, res] = await flatry(realpath(pkgpath));
+					let resolved_path = chalk.bold.blue(res);
+					let color = hasconfig ? "cyan" : "red";
+					log(`${chalk.bold[color](command)} -> ${resolved_path}/`);
+				} else {
+					let color = hasconfig ? "blue" : "red";
+					log(`${chalk.bold[color](command)}/`);
+				}
 			});
 	}
 };

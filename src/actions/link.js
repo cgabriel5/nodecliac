@@ -25,23 +25,15 @@ module.exports = async args => {
 	[err, res] = await flatry(de(cwd)); // Confirm cwd exists.
 	if (err || !res) process.exit();
 
-	// Now, to create a symlink one of two things: either there is no package
-	// currently in the registry with the same name or if there is the package
-	// is already a symlink in which case we just overwrite it.
+	// If folder exists give error.
 	[err, res] = await flatry(de(destination));
 	if (err) process.exit();
 	if (res) {
-		// If folder is not a symlink don't symlink.
+		// Check if folder is a symlink.
 		[err, res] = await flatry(lstats(destination));
-		if (!res.symlink) {
-			msg = "Real package ? exists. Cannot link.";
-			if (err || res) {
-				exit([fmt(msg, chalk.bold(dirname))], true);
-				msg = `Run '?' and try again.`;
-				varg1 = chalk.bold(`$ nodecliac remove ${dirname}`);
-				exit([fmt(msg, varg1)]);
-			}
-		}
+		let type = res.symlink ? "Symlink" : "";
+		let msg = `${type} ?/ exists. First remove and try again.`;
+		exit([fmt(msg, chalk.bold(dirname))]);
 	}
 
 	[err, res] = await flatry(symlink(cwd, destination)); // Create symlink.

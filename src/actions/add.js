@@ -25,24 +25,13 @@ module.exports = async args => {
 
 	// If folder exists give error.
 	[err, res] = await flatry(de(destination));
-	if (err || res) {
+	if (err) process.exit();
+	if (res) {
+		// Check if folder is a symlink.
 		[err, res] = await flatry(lstats(destination));
-		// If folder is not a symlink don't symlink.
-		if (res.symlink) {
-			msg = "Symlink package ? exists. Cannot add.";
-			varg1 = chalk.bold(dirname);
-			if (err || res) {
-				exit([fmt(msg, chalk.bold(dirname))], true);
-				msg = `Run '?' and try again.`;
-				varg1 = chalk.bold(`$ nodecliac remove ${dirname}`);
-				exit([fmt(msg, varg1)]);
-			}
-		} else {
-			msg = "Package ? already exists. Use ? to overwrite.";
-			varg1 = chalk.bold(dirname);
-			varg2 = chalk.bold("--force");
-			exit([fmt(msg, varg1, varg2)]);
-		}
+		let type = res.symlink ? "Symlink" : "";
+		let msg = `${type} ?/ exists. First remove and try again.`;
+		exit([fmt(msg, chalk.bold(dirname))]);
 	}
 
 	// Create needed parent directories.

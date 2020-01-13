@@ -8,14 +8,11 @@ Easy Bash completion for CLI programs with nodecliac (**node**-**cli**-**a**uto-
 
 - [Install](#install-normal)
 - [How It Works](#how-it-works)
-- [ACMAP Syntax](#acmap-syntax)
-- [ACDEF Syntax](#acdef-syntax)
-- [Examples](#examples)
-- [API](#api)
+- [Syntax](#syntax)
 - [CLI](#cli)
-- [CLI Usage](#cli-usage-examples)
 - [Registry](#registry)
 - [Hooks](#hooks)
+- [Packages](#packages)
 - [Support](#support)
 - [Contributing](#contributing)
 - [License](#license)
@@ -30,7 +27,7 @@ $ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/ins
 
 <!-- [https://stackoverflow.com/questions/17341122/link-and-execute-external-javascript-file-hosted-on-github] -->
 
-**Note**: After installing reload `.bashrc` (by running `$ source ~/.bashrc`) or open a new Terminal to start using.
+**Note**: After installing reload `.bashrc` (run `$ source ~/.bashrc`) or open a new Terminal to start using.
 
 <details><summary>More installation methods</summary>
 
@@ -121,16 +118,16 @@ $ git clone -b BRANCH_NAME --single-branch https://github.com/cgabriel5/nodeclia
 
 ## How It Works
 
-nodecliac uses two custom file types: **a**uto-**c**ompletion **map** (`.acmap`) and **a**uto-**c**ompletion **def**inition (`.acdef`) files. With that said the idea here is simple. One _writes_ their program's `.acmap` file to _map_ the program's commands with their respective flags. This `program.acmap` file can then be passed to nodecliac (via its CLI tools) to scaffold the command's completion package. How elaborate completion packages become depend on the needs of the program, but at their core all will contain their program's `program.acdef` file. It's these _definition_ files nodecliac references when provide completions.
+nodecliac uses two custom file types: **a**uto-**c**ompletion **map** (`.acmap`) and **a**uto-**c**ompletion **def**inition (`.acdef`) files. With that said the idea here is simple. One _writes_ their program's `.acmap` file to _map_ the program's commands with their respective flags. This `program.acmap` file can then be passed to nodecliac (via its CLI tools) to generate the command's completion package. How elaborate completion packages become depend on the needs of the program, but at their core all will contain their program's `program.acdef` file. It's these _definition_ files nodecliac references when provide completions.
 
-**tl;dr**: _Write the program's `.acmap` file then pass it to nodecliac (via CLI) to scaffold its completion package. Flesh out completion package as needed and move it to the [registry](#registry) so nodecliac can use it. Open a new Terminal to start using._
+**tl;dr**: _Write the program's `.acmap` file then pass it to nodecliac (via CLI) to generate its completion package. Flesh out completion package as needed and move it to the [registry](#registry) so nodecliac can use it. Open a new Terminal to start using._
 
-<a name="acmap-syntax"></a>
+<a name="syntax"></a>
 
-## ACMAP Syntax
+## Syntax
 
 <details>
-  <summary>auto-completion map (<code>.acmap</code>) files are text files with a simple language structure and few language constructs.</summary>
+  <summary>ACMAP: <code>.acmap</code> files are text files with a simple language structure and few language constructs</summary>
 
 #### Comments
 
@@ -226,7 +223,7 @@ program.uninstall
 ```
 
 <details>
-  <summary>Show command default documentation</summary>
+  <summary>Command default documentation</summary>
 
 #### Command Chain Default
 
@@ -251,7 +248,7 @@ yarn.remove = [
 ```
 
 <details>
-  <summary>Show command-string escaping</summary>
+  <summary>Command-string escaping</summary>
 
 <hr></hr>
 
@@ -349,7 +346,7 @@ program.uninstall
 ```
 
 <details>
-  <summary>Show flag variations</summary>
+  <summary>Flag variations</summary>
 
 #### Flags (user input)
 
@@ -501,12 +498,8 @@ Indentation is allowed except when declaring command-chains and settings.
 
 </details>
 
-<a name="acdef-syntax"></a>
-
-## ACDEF Syntax
-
 <details>
-  <summary>auto-completion definition (<code>.acdef</code>) files are easy to read and is what nodecliac references when providing completions.</summary>
+  <summary>ACDEF: <code>.acdef</code> files are auto-generated and is what nodecliac references when providing completions</summary>
 
 #### ACDEF Anatomy
 
@@ -598,82 +591,138 @@ For example, the line `.workspaces.run --` can be viewed as `yarn.workspaces.run
 
 </details>
 
-<a name="examples"></a>
-
-## Examples
-
-ACMAPS for various CLI programs can be can be found [here](resources/nodecliac/__acmaps).
-
-<details><summary>nodecliac ACMAP</summary>
-
-**Short form**: The following represents `nodecliac.acmap`, the nodecliac auto-completion map file.
-
-```acmap
-nodecliac = --version?
-nodecliac.setup = --rcfilepath?|--force?
-nodecliac.uninstall = --rcfilepath?
-nodecliac.registry
-nodecliac.make = --add?|--force?|--source|--save?|--print?|--trace?
-nodecliac.status = --enable?|--disable?
-nodecliac.format = --indent|--source|--save?|--print?|--strip-comments?|--trace?
-nodecliac.print = --command=|--command=$("for f in ~/.nodecliac/registry/*/*.acdef; do f=\"\${f##*/}\";c=\"\${f%%.*}\";echo \"\$c\"; done;")
-```
-
-**Long form**: Same as short form above. Settle on one or mixture of both.
-
-```acmap
-nodecliac = [
-  --version?
-]
-nodecliac.setup = [
-  --rcfilepath
-  --force?
-]
-nodecliac.uninstall = [
-  --rcfilepath
-]
-nodecliac.registry
-nodecliac.make = [
-  --add?
-  --force?
-  --source
-  --save?
-  --print?
-  --trace?
-]
-nodecliac.status = [
-  --enable?
-  --disable?
-]
-nodecliac.format = [
-  --indent
-  --source
-  --save?
-  --print?
-  --strip-comments?
-  --trace?
-]
-nodecliac.print = [
-  --command=
-  --command=$("for f in ~/.nodecliac/registry/*/*.acdef; do f=\"\${f##*/}\";c=\"\${f%%.*}\";echo \"\$c\"; done;")
-]
-```
-
-</details>
-
-</details>
-
-<a name="api"></a>
-
-## API
-
-nodecliac is currently only a CLI tool.
-
 <a name="cli"></a>
 
 ## CLI
 
-#### CLI Anatomy (Example)
+<details>
+  <summary>CLI commands/flags</summary>
+
+---
+
+**Note**: nodecliac's commands are few. Its main commands are `make` and `format`. Followed by the `setup`, `status`, and `uninstall` commands. Commands dealing with packages are: `add`, `remove`, `link`, `unlink`, `enable`, and `disable`. The remaining commands `print` and `registry` simply exist to help showcase `command-string`s.
+
+**format**: Format (prettify) `.acmap` file.
+
+- `--source=`: (**required**): Path to `.acmap` file.
+- `--strip-comments`: Remove comments when formatting.
+- `--indent="(s|t):Number"`: Formatting indentation string:
+  - `s` for spaces or `t` for tabs followed by amount-per-indentation level.
+    - `t:1`: Use 1 tab per indentation level (_default_).
+    - `s:2`: Use 2 spaces per indentation level.
+- `--print`: Log output to console.
+
+<details><summary>Test/debugging flags</summary>
+
+- `--trace`: Trace parsers (_for debugging_).
+- `--test`: Log output without file headers (_for tests_).
+
+</details>
+
+**make**: Generates `.acdef` file from provided `.acmap` file.
+
+- `--source=`: (**required**): Path to `.acmap` file.
+- `--print`: Log output to console.
+
+<details><summary>Test/debugging flags</summary>
+
+- `--trace`: Trace parsers (_for debugging_).
+- `--test`: Log output without file headers (_for tests_).
+
+</details>
+
+---
+
+**setup**: Setups nodecliac.
+
+- `--force`: (**required** _if nodecliac is already setup)_: Old setup is backed up and nodecliac is setup as new.
+- `--rcfilepath`: By default `~/.bashrc` is used. If another rc file should be used provide its path.
+  - **Note**: This gets appended to rc file:
+    - `ncliac=~/.nodecliac/src/main/init.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;`
+
+**status**: Returns status of nodecliac (enabled or disabled).
+
+- `--enable`: Enables nodecliac.
+- `--disable`: Disables nodecliac.
+
+**uninstall**: Uninstalls nodecliac.
+
+- `--rcfilepath`: rc file used in setup to remove changes from.
+
+---
+
+**print**: Print acmap/def file contents for files in registry.
+
+- `--command=`: Name of command (list dynamically generated from available packages in registry).
+
+**registry**: Lists packages in registry.
+
+- _No arguments_
+
+---
+
+**add**: Adds package to registry.
+
+- _No arguments_
+- Must be run in package root.
+
+**remove**: Removes package(s) from registry.
+
+- _No arguments_
+- Takes n-amount of package names as arguments.
+
+**link**: Creates soft symbolic link of package in registry.
+
+- _No arguments_
+- Must be run in package root.
+- Use when developing completion package.
+
+**unlink**: Removes symbolic link(s) from registry.
+
+- _No arguments_
+- Takes n-amount of package names as arguments.
+
+**enable**: Enables completions for package(s).
+
+- _No arguments_
+- Takes n-amount of package names as arguments.
+
+**disable**: Disables completions for package(s).
+
+- _No arguments_
+- Takes n-amount of package names as arguments.
+
+---
+
+</details>
+
+<details><summary>CLI usage examples</summary>
+
+#### Generate completion package
+
+```sh
+# Generate program.acdef from the .acmap file.
+$ nodecliac make --source path/to/program.acmap
+
+# Generate completion package and log generated 'program.acdef' contents to terminal.
+$ nodecliac make --source path/to/program.acmap --print
+```
+
+#### Prettify ACMAP file
+
+```sh
+# Prettify 'program.acmap' file using 2 spaces per indentation level and log output.
+$ nodecliac format --source path/to/program.acmap --print --indent "s:2"
+
+# Formats program.acmap. Original file will be overwritten.
+$ nodecliac format --source path/to/program.acmap --print --indent "s:2"
+```
+
+</details>
+
+<details><summary>CLI anatomy breakdown</summary>
+
+#### CLI Anatomy (breakdown)
 
 nodecliac assumes following CLI program [design](http://programmingpractices.blogspot.com/2008/04/anatomy-of-command-line.html) pathway:
 
@@ -687,93 +736,7 @@ $ program [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] [file
   command.        subcommands.   short flags.     flags.           positional parameters.
 ```
 
-<details>
-  <summary>Show nodecliac's commands/flags.</summary>
-
----
-
-**Note**: nodecliac's commands are few. Its main commands are `make` and `format`. Followed by the `setup`, `status`, and `uninstall` commands. The remaining commands `print` and `registry` simply exist to help showcase `command-string`s.
-
-**format**: Format (prettify) `.acmap` file.
-
-- `--source=`: (**required**): Path to `.acmap` file.
-- `--save` : Overwrite source file with prettified output.
-- `--indent="(s|t):Number"`: Formatting indentation string:
-  - `s` for spaces or `t` for tabs followed by a number.
-    - `t:1`: Use 1 tab per indentation level (_default_).
-    - `s:2`: Use 2 spaces per indentation level.
-- `--print` : Log output to console.
-- `--strip-comments` : Remove comments from final output.
-- `--trace` : Trace parsers (_for debugging_).
-- `--test`: Log output without file headers (_for tests_).
-
-**make**: Scaffold command's completion package.
-
-- `--source=`: (**required**): Path to `.acmap` file.
-- `--add`: Add generated completion package nodecliac registry.
-  - `--force`: Forces overwrite of existing registry completion package.
-- `--save=` : Location where completion package should be saved to.
-  - **Note**: If path isn't provided current working directory is used.
-  - `--force`: Forces overwrite of existing completion package at directory.
-- `--print` : Log output to console.
-- `--trace` : Trace parsers (_for debugging_).
-- `--test`: Log output without file headers (_for tests_).
-
----
-
-**setup**: Setups nodecliac.
-
-- `--force` : (**required** _if nodecliac is already setup)_: Old setup is backed up and nodecliac is setup as new.
-- `--rcfilepath`: By default `~/.bashrc` is used. If another rc file should be used provide its path.
-  - **Note**: This gets appended to rc file:
-    - `ncliac=~/.nodecliac/src/main/init.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;`
-
-**status**: Checks whether nodecliac is enabled/disabled.
-
-- `--enable` : Enables nodecliac.
-- `--disable`: Disables nodecliac.
-
-**uninstall**: Uninstalls nodecliac/reverts rc file changes.
-
-- `--rcfilepath`: rc file used in setup to remove changes from.
-
----
-
-**print**: Print acmap/def file contents for files in registry.
-
-- `--command=`: The file to print (list dynamically generated based on available files in registry).
-
-**registry**: Lists `.acdef` files in registry.
-
-- _No commands_
-
----
-
 </details>
-
-<a name="cli-usage-examples"></a>
-
-## CLI Usage Examples
-
-#### Generate completion package
-
-```sh
-# Scaffold completion package for 'program' command and add it to registry.
-$ nodecliac make --source path/to/program.acmap --add
-
-# Scaffold completion package and log generated 'program.acdef' contents to terminal.
-$ nodecliac make --source path/to/program.acmap --print
-```
-
-#### Prettify ACMAP file
-
-```sh
-# Prettify 'program.acmap' file using 2 spaces per indentation level and log output.
-$ nodecliac format --source path/to/program.acmap --print --indent "s:2"
-
-# As above but overwrite source file with prettified output.
-$ nodecliac format --source path/to/program.acmap --print --indent "s:2" --save
-```
 
 <a name="registry"></a>
 
@@ -781,7 +744,7 @@ $ nodecliac format --source path/to/program.acmap --print --indent "s:2" --save
 
 The registry (`~/.nodecliac/registry`) is where nodecliac's completion packages live. Completion packages follow this form: `~/.nodecliac/registry/COMMAND-NAME/`. For example, [yarn's](https://yarnpkg.com/en/) completion [package and its files](/resources/nodecliac) reside in `~/.nodecliac/registry/yarn/`.
 
-<details><summary>Show directory structures.</summary>
+<details><summary>Directory structures</summary>
 
 - Required base completion package directory structure:
 
@@ -815,9 +778,9 @@ The registry (`~/.nodecliac/registry`) is where nodecliac's completion packages 
 
 ## Hooks
 
-Some programs are more complicated than others. Let's use [`yarn.acdef`](/resources/nodecliac/yarn/yarn.acdef) as an example. Before running the completion script, the current repo's `package.json` `scripts` entries need to be [added as commands](https://yarnpkg.com/en/docs/cli/run#toc-yarn-run) to `yarn.acdef`. Doing so requires a `pre-parsing` hook. In essence, before the completion script is run, the `pre-parsing` hook script gives the ability to modify completion script parameters/variables.
+Some programs are more complicated than others. Let's use [`yarn.acdef`](/resources/nodecliac/yarn/yarn.acdef), for example. Before running the completion script, the current repo's `package.json` `scripts` entries need to be [added as commands](https://yarnpkg.com/en/docs/cli/run#toc-yarn-run) to `yarn.acdef`. Doing so requires a `pre-parsing` hook. In essence, before the completion script is run, the `pre-parsing` hook script gives the ability to modify completion script parameters/variables.
 
-<details><summary>Expand hook section.</summary>
+<details><summary>Expand hook section</summary>
 
 #### Available hook scripts
 
@@ -893,6 +856,16 @@ Hook scripts are provided environment variables.
 
 </details>
 
+<a name="packages"></a>
+
+## Packages
+
+<!-- Table formatting hack: [https://stackoverflow.com/a/51701842] -->
+
+| <img width=220/> <br /> [Create](/docs/packages/creating.md) <img width=220/> | <img width=220/> <br /> [Add](/docs/packages/add.md) <img width=220/> | <img width=220/> <br /> [Remove](/docs/packages/remove.md) <img width=220/> | <img width=220/> <br /> [Disable](/docs/packages/disabling.md) <img width=220/> | <img width=220/> <br /> [Enable](/docs/packages/enabling.md) <img width=220/> |
+| ----------------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+
+
 <a name="support"></a>
 
 ## Support
@@ -912,7 +885,8 @@ Hook scripts are provided environment variables.
 
 <!-- #### Shell Support -->
 
-- nodecliac only works with Bash, seeing that it's the only shell I use. However, if the project grows support for other shells (Zsh, Fish, etc.) may be added.
+- nodecliac only works with Bash.
+- Support for other shells (Zsh, Fish, etc.) may be added with increased usage.
 
 </details>
 
@@ -920,7 +894,7 @@ Hook scripts are provided environment variables.
 
 <!-- #### Editor Support (Syntax Highlighting) -->
 
-- `.acmap`/`.acdef` [grammar packages](/resources/editors) available for [Sublime Text](https://www.sublimetext.com/3), [VSCode](https://code.visualstudio.com/), and [Atom](https://atom.io/) text editors.
+- `.acmap`/`.acdef` [grammar packages](/resources/editors) available for [Sublime Text 3](https://www.sublimetext.com/3), [VSCode](https://code.visualstudio.com/), and [Atom](https://atom.io/) text editors.
 - **Note**: `README.md` files are found next to each package explaining how to install it.
 - Packages are stored under [`resources/editors`](/resources/editors).
 

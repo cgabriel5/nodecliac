@@ -12,7 +12,8 @@ const {
 	paths,
 	read,
 	write,
-	realpath
+	realpath,
+	readdir
 } = require("../utils/toolbox.js");
 
 module.exports = async args => {
@@ -20,8 +21,15 @@ module.exports = async args => {
 	// eslint-disable-next-line no-unused-vars
 	let err, res; // Declare empty variables to reuse for all await operations.
 
+	let { all } = args; // CLI args.
 	let packages = args._; // Get provided packages.
 	packages.shift(); // Remove action from list.
+
+	// Disable all packages when '--all' is provided.
+	if (all) {
+		[err, res] = await flatry(readdir(registrypaths));
+		packages = res;
+	}
 
 	// Loop over packages and remove each if its exists.
 	for (let i = 0, l = packages.length; i < l; i++) {

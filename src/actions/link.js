@@ -7,15 +7,10 @@ const de = require("directory-exists");
 const symlink = require("symlink-dir");
 const { fmt, exit, paths, lstats } = require("../utils/toolbox.js");
 
-module.exports = async args => {
+module.exports = async (/*args*/) => {
 	let { registrypaths } = paths; // Get needed paths.
 	// eslint-disable-next-line no-unused-vars
 	let err, res; // Declare empty variables to reuse for all await operations.
-	let msg = "";
-	let varg1 = "";
-	let varg2 = "";
-
-	let { force } = args; // CLI args.
 
 	// Needed paths.
 	let cwd = process.cwd();

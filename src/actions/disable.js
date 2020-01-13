@@ -1,14 +1,8 @@
 "use strict";
 
-const path = require("path");
-const chalk = require("chalk");
 const flatry = require("flatry");
-// const de = require("directory-exists");
 const fe = require("file-exists");
-// const symlink = require("symlink-dir");
 const {
-	// fmt,
-	// exit,
 	paths,
 	read,
 	write,
@@ -49,7 +43,7 @@ module.exports = async args => {
 
 		// Remove current value from config.
 		let contents = res.trim(); // Trim config before using.
-		contents = contents.replace(/^\@disable[^\n]*/gm, "").trim();
+		contents = contents.replace(/^@disable[^\n]*/gm, "").trim();
 		contents += "\n@disable = true\n"; // Add new value to config.
 
 		// Cleanup contents.

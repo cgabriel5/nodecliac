@@ -169,9 +169,18 @@ let lstats = filepath => {
 		fs.lstat(filepath, (err, stats) => {
 			if (err) reject(err); // Reject on error.
 
-			// Check if path is a symbolic link, add prop to object.
+			// Add other pertinent information to object:
+			// [https://stackoverflow.com/a/15630832]
 			// [https://stackoverflow.com/a/11287004]
-			stats.symlink = stats.isSymbolicLink();
+			stats.is = {
+				file: stats.isFile(),
+				directory: stats.isDirectory(),
+				blockdevice: stats.isBlockDevice(),
+				characterdevice: stats.isCharacterDevice(),
+				symlink: stats.isSymbolicLink(),
+				fifo: stats.isFIFO(),
+				socket: stats.isSocket()
+			};
 
 			// Return file contents on success.
 			resolve(stats);

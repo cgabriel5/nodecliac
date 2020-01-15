@@ -17,9 +17,11 @@ module.exports = async args => {
 
 	let { all } = args; // CLI args.
 	let packages = args._; // Get provided packages.
+	let action = packages[0]; // Get main action.
 	packages.shift(); // Remove action from list.
+	let state = action === "enable" ? "false" : "true";
 
-	// Enable all packages when '--all' is provided.
+	// Get all packages when '--all' is provided.
 	if (all) {
 		[err, res] = await flatry(readdir(registrypath));
 		packages = res;
@@ -44,7 +46,7 @@ module.exports = async args => {
 		// Remove current value from config.
 		let contents = res.trim(); // Trim config before using.
 		contents = contents.replace(/^@disable[^\n]*/gm, "").trim();
-		contents += "\n@disable = false\n"; // Add new value to config.
+		contents += `\n@disable = ${state}\n`; // Add new value to config.
 
 		// Cleanup contents.
 		contents = contents.replace(/^\n/gm, ""); // Remove newlines.

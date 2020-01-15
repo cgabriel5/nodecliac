@@ -27,7 +27,7 @@ module.exports = async args => {
 	}
 
 	// Get needed paths.
-	let { customdir, bashrcpath, mainscriptname, registrypaths } = paths;
+	let { customdir, bashrcpath, mainscriptname, registrypath } = paths;
 	let { acmapssource, resourcespath, resourcessrcs, setupfilepath } = paths;
 
 	// If a custom .rcfile path was provided use that instead.
@@ -52,7 +52,7 @@ module.exports = async args => {
 	// Create needed paths: ~/.nodecliac/registry/ & ~/.nodecliac/src/
 	[err, res] = await flatry(
 		// [https://github.com/scopsy/await-to-js/issues/12#issuecomment-386147783]
-		Promise.all([mkdirp(registrypaths), mkdirp(acmapssource)])
+		Promise.all([mkdirp(registrypath), mkdirp(acmapssource)])
 	);
 
 	// Get .rcfile script contents.
@@ -101,7 +101,7 @@ module.exports = async args => {
 
 	// Copy nodecliac command packages/files to nodecliac registry.
 	[err, res] = await flatry(
-		copydir(resourcespath, registrypaths, {
+		copydir(resourcespath, registrypath, {
 			overwrite: true,
 			dot: true,
 			debug: false,

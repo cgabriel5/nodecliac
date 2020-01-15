@@ -15,17 +15,17 @@ const {
 } = require("../utils/toolbox.js");
 
 module.exports = async () => {
-	let { registrypaths } = paths; // Get needed paths.
+	let { registrypath } = paths; // Get needed paths.
 	let files = [];
 	// eslint-disable-next-line no-unused-vars
 	let err, res; // Declare empty variables to reuse for all await operations.
 
 	// Maps path needs to exist to list acdef files.
-	[err, res] = await flatry(de(registrypaths));
+	[err, res] = await flatry(de(registrypath));
 	if (!res) exit([]); // Exit without message.
 
 	// Get list of directory command folders.
-	[err, res] = await flatry(readdir(registrypaths));
+	[err, res] = await flatry(readdir(registrypath));
 	let commands = res;
 
 	// Loop over found command folders to get their respective
@@ -34,9 +34,9 @@ module.exports = async () => {
 		let command = commands[i]; // Cache current loop item.
 
 		// Build .acdef file paths.
-		let acdefpath = path.join(registrypaths, command, `${command}.acdef`);
+		let acdefpath = path.join(registrypath, command, `${command}.acdef`);
 		let configfilename = `.${command}.config.acdef`;
-		let configpath = path.join(registrypaths, command, configfilename);
+		let configpath = path.join(registrypath, command, configfilename);
 
 		// Store information in a tuple.
 		let tuple = [command, false];
@@ -63,7 +63,7 @@ module.exports = async () => {
 				// Get file tuple information.
 				let [command, hasconfig] = tuple;
 
-				let pkgpath = `${registrypaths}/${command}`;
+				let pkgpath = `${registrypath}/${command}`;
 				[err, res] = await flatry(lstats(pkgpath));
 				if (res.symlink) {
 					// Get the real package path.

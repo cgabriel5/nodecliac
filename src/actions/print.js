@@ -6,7 +6,7 @@ const fe = require("file-exists");
 const { exit, paths, read, fmt } = require("../utils/toolbox.js");
 
 module.exports = async args => {
-	let { registrypaths } = paths; // Get needed paths.
+	let { registrypath } = paths; // Get needed paths.
 	let { command } = args; // Get CLI args.
 	// eslint-disable-next-line no-unused-vars
 	let err, res; // Declare empty variables to reuse for all await operations.
@@ -56,7 +56,7 @@ module.exports = async args => {
 		}
 
 		// File paths.
-		let pathstart = `${registrypaths}/${commandname}`;
+		let pathstart = `${registrypath}/${commandname}`;
 		let filepath = `${pathstart}/${commandname}${ext}`;
 		let filepathconfig = `${pathstart}/.${commandname}.config${ext}`;
 

@@ -9,14 +9,14 @@ const copydir = require("recursive-copy");
 const { fmt, exit, paths, lstats } = require("../utils/toolbox.js");
 
 module.exports = async (/*args*/) => {
-	let { registrypaths } = paths; // Get needed paths.
+	let { registrypath } = paths; // Get needed paths.
 	// eslint-disable-next-line no-unused-vars
 	let err, res; // Declare empty variables to reuse for all await operations.
 
 	// Needed paths.
 	let cwd = process.cwd();
 	let dirname = path.basename(cwd); // Get package name.
-	let destination = `${registrypaths}/${dirname}`;
+	let destination = `${registrypath}/${dirname}`;
 
 	// If folder exists give error.
 	[err, res] = await flatry(de(destination));

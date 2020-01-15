@@ -11,7 +11,7 @@ const {
 } = require("../utils/toolbox.js");
 
 module.exports = async args => {
-	let { registrypaths } = paths; // Get needed paths.
+	let { registrypath } = paths; // Get needed paths.
 	// eslint-disable-next-line no-unused-vars
 	let err, res; // Declare empty variables to reuse for all await operations.
 
@@ -21,7 +21,7 @@ module.exports = async args => {
 
 	// Enable all packages when '--all' is provided.
 	if (all) {
-		[err, res] = await flatry(readdir(registrypaths));
+		[err, res] = await flatry(readdir(registrypath));
 		packages = res;
 	}
 
@@ -30,7 +30,7 @@ module.exports = async args => {
 		let pkg = packages[i]; // Cache current loop item.
 
 		// Needed paths.
-		let filepath = `${registrypaths}/${pkg}/.${pkg}.config.acdef`;
+		let filepath = `${registrypath}/${pkg}/.${pkg}.config.acdef`;
 		[err, res] = await flatry(realpath(filepath));
 		let resolved_path = res;
 

@@ -19,7 +19,7 @@ const {
 } = require("../utils/toolbox.js");
 
 module.exports = async args => {
-	// let { registrypaths } = paths; // Get needed paths.
+	// let { registrypath } = paths; // Get needed paths.
 	// eslint-disable-next-line no-unused-vars
 	let err, res; // Declare empty variables to reuse for all await operations.
 	let tstring = "";

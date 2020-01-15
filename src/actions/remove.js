@@ -38,7 +38,7 @@ module.exports = async args => {
 		// Needed paths.
 		let destination = `${registrypath}/${pkg}`;
 
-		// If folder does not exist don't ao anything.
+		// If folder does not exist don't do anything.
 		[err, res] = await flatry(de(destination));
 		if (err || !res) continue;
 

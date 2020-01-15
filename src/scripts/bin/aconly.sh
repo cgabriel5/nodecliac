@@ -8,10 +8,12 @@ prcommand=""
 enablencliac=""
 disablencliac=""
 rcfilepath=""
+command=""
 
 # [https://medium.com/@Drew_Stokes/bash-argument-parsing-54f3b81a6a8f]
 # [http://tldp.org/LDP/Bash-Beginners-Guide/html/sect_09_07.html]
 params=""
+paramsargs=()
 while (( "$#" )); do
  case "$1" in
   	# Custom `print` command flags.
@@ -36,7 +38,20 @@ while (( "$#" )); do
 	-*|--*=)
 		# echo "Error: Unsupported flag $1" >&2; exit 1
 		shift ;; # Unsupported flags.
-	*) params="$params $1"; shift ;; # Preserve positional arguments.
+	*)
+
+		# Get main nodecliac command and the
+		# provided positional arguments.
+
+		if [[ "$command" == "" ]]; then command="$1"
+		else
+			if [[ "$params" == "" ]]; then params="$1";
+			else params+=" $1"; fi
+			paramsargs+=("$1") # Also store in array for later looping.
+		fi
+
+		shift; ;; # Preserve positional arguments.
+
   esac
 done
 eval set -- "$params" # Set positional arguments in their proper place

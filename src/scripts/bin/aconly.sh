@@ -25,6 +25,7 @@ enablencliac=""
 disablencliac=""
 rcfilepath=""
 command=""
+all=""
 
 # [https://medium.com/@Drew_Stokes/bash-argument-parsing-54f3b81a6a8f]
 # [http://tldp.org/LDP/Bash-Beginners-Guide/html/sect_09_07.html]
@@ -54,6 +55,9 @@ while (( "$#" )); do
 	--rcfilepath)
 		if [[ -n "$2" && "$2" != *"-" ]]; then rcfilepath="$2"; fi; shift ;;
 
+	# Custom `remove|unlink|enable|disable` command flags.
+	--all) all="1"; shift ;;
+
 	--) shift; break ;; # End argument parsing.
 	-*|--*=)
 		# echo "Error: Unsupported flag $1" >&2; exit 1
@@ -76,9 +80,10 @@ while (( "$#" )); do
 done
 eval set -- "$params" # Set positional arguments in their proper place
 
-command="$1" # Get action command.
 shift # Remove command from arguments array.
-commands=" print registry setup status uninstall " # Allowed commands.
+
+# Allowed commands.
+commands=" make format print registry setup status uninstall add remove link unlink enable disable "
 
 if [[ "$commands" != *"$command"* ]]; then exit; fi # Exit if invalid command.
 
@@ -272,6 +277,116 @@ case "$command" in
 			sudo rm -f "$binfilepath"
 			echo -e "\033[32mSuccessfully\033[0m removed nodecliac bin file."
 		fi
+
+		;;
+
+	add)
+
+		# Needed paths.
+		cwd="$PWD"
+		dirname=$(basename "$cwd") # Get package name.
+		destination="$registrypath/$dirname"
+
+		# If folder exists give error.
+		if [[ -d "$destination" ]]; then
+			# Check if folder is a symlink.
+			type=$([ -L "$destination" ] && echo "Symlink " || echo "")
+			echo -e "$type\033[1m$dirname\033[0m/ exists. First remove and try again."
+		fi
+
+		mkdir -p "$destination" # Create needed parent directories.
+
+		# [https://stackoverflow.com/a/14922600]
+		cp -r "$cwd" "$destination" # Copy folder to nodecliac registry.
+
+		;;
+
+	remove|unlink)
+
+		# Empty registry when `--all` flag is provided.
+		if [[ "$all" == "1" ]]; then
+			rm -rf "$registrypath" # Delete directory.
+			mkdir -p "$registrypath" # Create registry.
+			paramsargs=() # Empty packages array to skip loop.
+		fi
+
+		# Loop over packages and remove each if its exists.
+		for pkg in "${paramsargs[@]}"; do
+			# Needed paths.
+			destination="$registrypath/$pkg"
+
+			# If folder does not exist don't do anything.
+			if [[ ! -d "$destination" ]]; then continue; fi
+
+			rm -rf "$destination" # Delete directory.
+		done
+
+		;;
+
+	link)
+
+		# Needed paths.
+		cwd="$PWD"
+		dirname=$(basename "$cwd") # Get package name.
+		destination="$registrypath/$dirname"
+
+		# If folder exists give error.
+		if [[ ! -d "$cwd" ]]; then exit; fi # Confirm cwd exists.
+
+		# If folder exists give error.
+		if [[ -d "$destination" || -L "$destination" ]]; then
+			# Check if folder is a symlink.
+			type=$([ -L "$destination" ] && echo "Symlink " || echo "")
+			echo -e "$type\033[1m$dirname\033[0m/ exists. First remove and try again."
+		fi
+
+		ln -s "$cwd" "$destination" # Create symlink.
+
+		;;
+
+	enable|disable)
+
+		# Enable all packages when '--all' is provided.
+		if [[ "$all" == "1" ]]; then
+			paramsargs=()
+			# Get package names.
+			for f in "$registrypath"/*; do
+				paramsargs+=("$(basename "$f")")
+			done
+		fi
+
+		state=$([ "$command" == "enable" ] && echo "false" || echo "true")
+
+		# Loop over packages and remove each if its exists.
+		for pkg in "${paramsargs[@]}"; do
+			# Needed paths.
+			filepath="$registrypath/$pkg/.$pkg.config.acdef"
+
+			# Resolve symlink: [https://stackoverflow.com/a/42918]
+			# Using Python: [https://apple.stackexchange.com/a/4822]
+			if [[ "$(__platform)" == "macosx" ]]; then
+				resolved_path=$(readlink "$filepath")
+			else
+				resolved_path=$(readlink -f "$filepath")
+			fi
+
+			# Ensure file exists before anything.
+			if [[ ! -f "$resolved_path" ]]; then continue; fi
+
+			# Remove current value from config.
+			contents="$(<"$resolved_path")" # Get config file contents.
+
+			contents=$(perl -pe 's/^\@disable.*?$//gm' <<< "$contents")
+			# Append newline to eof: [https://stackoverflow.com/a/15791595]
+			contents+=$'\n@disable = '"$state"$'\n' # Add new value to config.
+
+			# Cleanup contents.
+			contents=$(perl -pe 's!^\s+?$!!' <<< "$contents") # Remove newlines.
+			# # Add newline after header.: [https://stackoverflow.com/a/549261]
+			contents=$(perl -pe 's/^(.*)$/$1\n/ if 1 .. 1' <<< "$contents")
+
+			echo "$contents" > "$filepath" # Save changes.
+		done
 
 		;;
 

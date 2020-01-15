@@ -13,6 +13,8 @@ module.exports = async (/*args*/) => {
 	// eslint-disable-next-line no-unused-vars
 	let err, res; // Declare empty variables to reuse for all await operations.
 
+	// TODO: Add logic to validate folder being added?
+
 	// Needed paths.
 	let cwd = process.cwd();
 	let dirname = path.basename(cwd); // Get package name.

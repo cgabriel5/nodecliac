@@ -1,5 +1,6 @@
 "use strict";
 
+const os = require("os");
 const path = require("path");
 const chalk = require("chalk");
 const flatry = require("flatry");
@@ -27,53 +28,111 @@ module.exports = async () => {
 	// Get list of directory command folders.
 	[err, res] = await flatry(readdir(registrypath));
 	let commands = res;
+	let count = commands.length;
 
-	// Loop over found command folders to get their respective
-	// .acdef/config files.
-	for (let i = 0, l = commands.length; i < l; i++) {
+	console.log(`${chalk.bold(registrypath)} (${count})`); // Print header.
+
+	if (!count) process.exit(); // Exit if directory is empty.
+
+	// Loop over command folders to get respective .acdef/config files.
+	for (let i = 0, l = count; i < l; i++) {
 		let command = commands[i]; // Cache current loop item.
 
 		// Build .acdef file paths.
-		let acdefpath = path.join(registrypath, command, `${command}.acdef`);
+		let filename = `${command}.acdef`;
 		let configfilename = `.${command}.config.acdef`;
+		let acdefpath = path.join(registrypath, command, filename);
 		let configpath = path.join(registrypath, command, configfilename);
 
-		// Store information in a tuple.
-		let tuple = [command, false];
+		let data = {
+			command,
+			isdir: false,
+			hasacdefs: false,
+			issymlink: false,
+			issymlinkdir: false,
+			realpath: "",
+			issymlink_valid: false
+		};
+		let check;
 
-		// If acdef file exists add information to tuple.
-		[err, res] = await flatry(fe(acdefpath));
-		if (res) {
-			// Check for config file.
-			[err, res] = await flatry(fe(configpath));
-			if (res) tuple[1] = true; // Store config file path for later use.
+		check = false;
+		[err, res] = await flatry(fe(acdefpath)); // Check for .acdef.
+		if (res) check = true;
+		[err, res] = await flatry(fe(configpath)); // Check for config file.
+		if (res && check) data.hasacdefs = true;
+
+		// If files exists check whether it's a symlink.
+		let pkgpath = `${registrypath}/${command}`;
+		[err, res] = await flatry(lstats(pkgpath));
+		data.isdir = res.is.directory;
+
+		if (res.is.symlink) {
+			data.issymlink = true;
+			[err, res] = await flatry(realpath(pkgpath));
+			let resolved_path = res;
+			data.realpath = resolved_path;
+
+			[err, res] = await flatry(lstats(resolved_path));
+			data.issymlinkdir = res.is.directory;
+			if (res.is.directory) data.isdir = true;
+
+			// Confirm symlink directory contain needed .acdefs.
+			let sympath = path.join(resolved_path, command, filename);
+			let sympathconf = path.join(resolved_path, command, configfilename);
+
+			check = false;
+			[err, res] = await flatry(fe(sympath)); // Check for .acdef.
+			if (res) check = true;
+			[err, res] = await flatry(fe(sympathconf)); // Check for config file.
+			if (res && check) data.issymlink_valid = true;
 		}
 
-		// Add tuple to files array.
-		files.push(tuple);
+		files.push(data); // Add data to files array.
 	}
 
 	// List commands if any exist.
 	if (files.length) {
 		files
 			.sort(function(a, b) {
-				return a[0].localeCompare(b[0]);
+				return a.command.localeCompare(b.command);
 			})
-			.forEach(async function(tuple) {
-				// Get file tuple information.
-				let [command, hasconfig] = tuple;
+			.forEach(async function(data, i) {
+				let {
+					command,
+					isdir,
+					hasacdefs,
+					issymlink,
+					issymlinkdir,
+					realpath,
+					issymlink_valid
+				} = data;
 
-				let pkgpath = `${registrypath}/${command}`;
-				[err, res] = await flatry(lstats(pkgpath));
-				if (res.symlink) {
-					// Get the real package path.
-					[err, res] = await flatry(realpath(pkgpath));
-					let resolved_path = chalk.bold.blue(res);
-					let color = hasconfig ? "cyan" : "red";
-					log(`${chalk.bold[color](command)} -> ${resolved_path}/`);
+				// Remove user name from path.
+				let homedir = os.homedir();
+				realpath = realpath.replace(new RegExp("^" + homedir), "~");
+
+				let bcommand = chalk.bold.blue(command);
+				let ccommand = chalk.bold.cyan(command);
+				let rcommand = chalk.bold.red(command);
+
+				// Row declaration.
+				let decor = count !== i + 1 ? "├── " : "└── ";
+
+				if (!issymlink) {
+					if (isdir) {
+						let dcommand = hasacdefs ? bcommand : rcommand;
+						log(`${decor}${dcommand}/`);
+					} else {
+						log(`${decor}${rcommand}`);
+					}
 				} else {
-					let color = hasconfig ? "blue" : "red";
-					log(`${chalk.bold[color](command)}/`);
+					if (issymlinkdir) {
+						let color = issymlink_valid ? "blue" : "red";
+						let linkdir = `${chalk.bold[color](realpath)}`;
+						log(`${decor}${ccommand} -> ${linkdir}/`);
+					} else {
+						log(`${decor}${ccommand} -> ${realpath}`);
+					}
 				}
 			});
 	}

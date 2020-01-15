@@ -24,8 +24,8 @@ module.exports = async (/*args*/) => {
 	if (res) {
 		// Check if folder is a symlink.
 		[err, res] = await flatry(lstats(destination));
-		let type = res.is.symlink ? "Symlink" : "";
-		let msg = `${type} ?/ exists. First remove and try again.`;
+		let type = res.is.symlink ? "Symlink " : "";
+		let msg = `${type}?/ exists. First remove and try again.`;
 		exit([fmt(msg, chalk.bold(dirname))]);
 	}
 

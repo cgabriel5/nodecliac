@@ -23,7 +23,6 @@ rcfilepath=""
 prcommand=""
 enablencliac=""
 disablencliac=""
-rcfilepath=""
 command=""
 all=""
 

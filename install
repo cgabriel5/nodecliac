@@ -28,6 +28,31 @@ function __exists() {
 	echo `command -v "$1"`
 }
 
+# CLI arg flags.
+rcfilepath=""
+
+while (( "$#" )); do
+ case "$1" in
+
+  	# Custom `uninstall` command flags.
+	--rcfilepath=*)
+		flag="${1%%=*}"; value="${1#*=}"
+		# Expand `~` in path: [https://stackoverflow.com/a/27485157]
+		if [[ -n "$value" ]]; then rcfilepath="${value/#\~/$HOME}"; fi; shift ;;
+	--rcfilepath)
+		if [[ -n "$2" && "$2" != *"-" ]]; then rcfilepath="$2"; fi; shift ;;
+
+	--) shift; break ;; # End argument parsing.
+	-*|--*=)
+		# echo "Error: Unsupported flag $1" >&2; exit 1
+		shift ;; # Unsupported flags.
+	*) shift ;; # Preserve positional arguments.
+
+  esac
+done
+eval set -- "$params" # Set positional arguments in their proper place
+shift # Remove command from arguments array.
+
 # Remove last line from terminal output.
 #
 # @return {undefined} - Nothing is returned.
@@ -116,6 +141,13 @@ fi
 log " $CHECK_MARK Bash version requirement."
 
 # ------------------------------------------------------------------------CHECKS
+
+# Fallback to ~/.bashrc if provided bash file path doesn't exist.
+if [[ -n "$rcfilepath" && ! -f "$rcfilepath" ]]; then
+	rcfilepath=~/.bashrc # Default bashrc file.
+	# Only create bash file if it doesn't already exist.
+	if [[ ! -f "$rcfilepath" ]]; then touch "$rcfilepath"; fi
+fi
 
 # Exit script if platform is not supported.
 echo " - Verifying platform..."
@@ -279,20 +311,20 @@ if [[ "$INSTALLER" == "aconly" ]]; then
 	# [http://isunix.github.io/blog/2014/07/24/perl-one-liner-to-remove-blank-lines/].
 	# [https://stackoverflow.com/a/6995010], [https://unix.stackexchange.com/a/179449]
 
-	bashrcfile=~/.bashrc
+	rcfilepath=~/.bashrc
 	# If bashrc file does not exist create it.
-	if [[ ! -e "$bashrcfile" ]]; then
+	if [[ ! -e "$rcfilepath" ]]; then
 		echo " - Creating ~/.bashrc file..."
-		touch "$bashrcfile"
+		touch "$rcfilepath"
 		log " $CHECK_MARK Created ~/.bashrc file."
 	fi
 	# Add nodecliac to ~/.bashrc if not already.
-	if [[ -z "$(grep -o "ncliac=~/.nodecliac/src/main/init.sh" "$bashrcfile")" ]]; then
+	if [[ -z "$(grep -o "ncliac=~/.nodecliac/src/main/init.sh" "$rcfilepath")" ]]; then
 		echo " - Adding nodecliac to ~/.bashrc..."
-		echo -e '\nncliac=~/.nodecliac/src/main/init.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;' >> "$bashrcfile"
+		echo -e '\nncliac=~/.nodecliac/src/main/init.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;' >> "$rcfilepath"
 		log " $CHECK_MARK Added nodecliac to ~/.bashrc."
 		echo " - Adding trailing newline to ~/.bashrc..."
-		perl -i -lpe 's/\x0a$//' "$bashrcfile" # Ensure newline ending: [https://www.unix.com/shell-programming-and-scripting/229399-how-add-newline-character-end-file.html]
+		perl -i -lpe 's/\x0a$//' "$rcfilepath" # Ensure newline ending: [https://www.unix.com/shell-programming-and-scripting/229399-how-add-newline-character-end-file.html]
 		log " $CHECK_MARK Added trailing newline to ~/.bashrc."
 		# [https://knowledge.ni.com/KnowledgeArticleDetails?id=kA00Z0000019KZDSA2]
 		# [https://stackoverflow.com/a/9021745]

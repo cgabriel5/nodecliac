@@ -50,8 +50,8 @@ while (( "$#" )); do
 
   	# Custom `uninstall` command flags.
 	--rcfilepath=*)
-		flag="${1%%=*}"; value="${1#*=}"
-		if [[ -n "$value" ]]; then rcfilepath="$value"; fi; shift ;;
+		# Expand `~` in path: [https://stackoverflow.com/a/27485157]
+		if [[ -n "$value" ]]; then rcfilepath="${value/#\~/$HOME}"; fi; shift ;;
 	--rcfilepath)
 		if [[ -n "$2" && "$2" != *"-" ]]; then rcfilepath="$2"; fi; shift ;;
 

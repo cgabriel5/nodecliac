@@ -37,6 +37,7 @@ registrypath=~/.nodecliac/registry
 
 while (( "$#" )); do
  case "$1" in
+
   	# Custom `print` command flags.
 	--command=*)
 		flag="${1%%=*}"; value="${1#*=}"
@@ -79,7 +80,6 @@ while (( "$#" )); do
   esac
 done
 eval set -- "$params" # Set positional arguments in their proper place
-
 shift # Remove command from arguments array.
 
 # Allowed commands.

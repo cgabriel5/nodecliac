@@ -1,10 +1,16 @@
-# DON'T EDIT FILE —— GENERATED: Sat Nov 30 2019 13:55:54 GMT-0800 (PST)(1575150954054)
+# DON'T EDIT FILE —— GENERATED: Thu Jan 16 2020 23:48:04 GMT-0800 (PST)(1579247284574)
 
  --engine=|--engine=1|--engine=2|--version?
-.format --indent|--print?|--save?|--source|--strip-comments?|--test?|--trace?
-.make --add?|--force?|--output|--print?|--save?|--source|--test?|--trace?
-.print --command=|--command=$('s="";for f in ~/.nodecliac/registry/*/*.acdef; do s="$s$f\\n"; done; echo -e "$s" \| LC_ALL=C perl -ne "print \"\$1\\n\" while /(?! \\/)([^\\/]*)\\.acdef$/g"')
+.add --
+.disable --all
+.enable --all
+.format --indent|--print?|--source|--strip-comments?
+.link --
+.make --print?|--source
+.print --command=|--command=$('for f in ~/.nodecliac/registry/*; do echo "$(basename -- $f)"; done')
 .registry --
-.setup --force?|--rcfilepath?
+.remove --all
+.setup --force?|--rcfilepath
 .status --disable?|--enable?
 .uninstall --rcfilepath?
+.unlink --all

@@ -21,6 +21,8 @@ Easy Bash completion for CLI programs with nodecliac (**node**-**cli**-**a**uto-
 
 ## Install
 
+<!-- Using `bash -s`: [https://stackoverflow.com/a/51854728] -->
+
 ```sh
 $ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s
 ```
@@ -34,44 +36,31 @@ $ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/ins
 ##### With `curl`:
 
 ```sh
-# Bash completion only:
+# Install with defaults:
 $ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s
-# ...same as above.
-$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s aconly master
 
-# Bash completion + nodecliac CLI tools:
-# Install with Node.js's npm...
-$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s npm master
-# ...or with yarn.
-$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s yarn master
+# As above but explicitly provides defaults:
+$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s \
+  -- --installer= --branch=master --rcfilepath=~/.bashrc
 ```
 
 ##### With `wget`:
 
 ```sh
-# Bash completion only:
+# Install with defaults:
 $ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s
-# ...same as above.
-$ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s aconly master
-
-# Bash completion + nodecliac CLI tools:
-# Install with Node.js's npm...
-$ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s npm master
-# ...or with yarn.
-$ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s yarn master
 ```
 
 </details>
 
-<details><summary>Installation arguments</summary>
+<details><summary>Installation flags</summary>
 
-- `arg: $1`: `INSTALLER`
-  - Values: `yarn`, `npm`, `aconly`. (default: `yarn` > `npm` > `aconly`)
-    - `yarn`: Uses [yarn](https://yarnpkg.com/en/) to install.
-    - `npm`: Uses [Node.js](https://nodejs.org/en/)'s [npm](https://www.npmjs.com/get-npm) to install.
-    - `aconly`: _Only_ Bash completion (no nodecliac JavaScript CLI tools).
-- `arg: $2`: `BRANCH_NAME`
-  - Value: An _existing_ nodecliac branch name. (default: `master`)
+- `--installer`: The installer to use. (default: `yarn` > `npm` > `aconly`)
+  - `yarn`: Uses [yarn](https://yarnpkg.com/en/) to install.
+  - `npm`: Uses [Node.js](https://nodejs.org/en/)'s [npm](https://www.npmjs.com/get-npm) to install.
+  - `aconly`: _Only_ Bash completion (no nodecliac JavaScript CLI tools).
+- `--branch`: An _existing_ nodecliac branch name to install. (default: `master`)
+- `--rcfilepath`: Path of `bashrc` file to use when installing nodecliac. (default: `~/.bashrc`)
 
 </details>
 

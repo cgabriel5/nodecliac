@@ -29,12 +29,25 @@ function __exists() {
 }
 
 # CLI arg flags.
+branch_name="master"
+installer=""
 rcfilepath=""
 
 while (( "$#" )); do
  case "$1" in
 
-  	# Custom `uninstall` command flags.
+	--branch=*)
+		flag="${1%%=*}"; value="${1#*=}"
+		if [[ -n "$value" ]]; then branch_name="$value"; fi; shift ;;
+	--branch)
+		if [[ -n "$2" && "$2" != *"-" ]]; then branch_name="$2"; fi; shift ;;
+
+	--installer=*)
+		flag="${1%%=*}"; value="${1#*=}"
+		if [[ -n "$value" ]]; then installer="$value"; fi; shift ;;
+	--installer)
+		if [[ -n "$2" && "$2" != *"-" ]]; then installer="$2"; fi; shift ;;
+
 	--rcfilepath=*)
 		flag="${1%%=*}"; value="${1#*=}"
 		# Expand `~` in path: [https://stackoverflow.com/a/27485157]
@@ -73,18 +86,22 @@ function log() {
 # --------------------------------------------------------------------------VARS
 
 # Vars - Args.
-if [[ -n "$1" ]]; then
-	INSTALLER="$1"
-else # Find first installed command to use.
+if [[ ! -n "$installer" ]]; then # Find first installed command to use.
 	if [[ -n "$(__exists "yarn")" ]]; then
-		INSTALLER="yarn"
+		installer="yarn"
 	elif [[ -n "$(__exists "npm")" ]]; then
-		INSTALLER="npm"
+		installer="npm"
 	else
-		INSTALLER="aconly"
+		installer="aconly"
 	fi
 fi
-BRANCH_NAME="$([ -z "$2" ] && echo "master" || echo "$2")" # Default to master.
+
+# Fallback to ~/.bashrc if provided bash file path doesn't exist.
+if [[ -n "$rcfilepath" && ! -f "$rcfilepath" || -z "$rcfilepath" ]]; then
+	rcfilepath=~/.bashrc # Default bashrc file.
+	# Only create bash file if it doesn't already exist.
+	if [[ ! -f "$rcfilepath" ]]; then touch "$rcfilepath"; fi
+fi
 
 # Vars.
 platform=`__platform`
@@ -92,8 +109,8 @@ outputdir="$HOME/.nodecliac-src"
 # Use python to generate unix timestamp in milliseconds that's cross platform.
 timestamp=$(python -c 'from time import time; print int(round(time() * 1000))')
 # timestamp=$(($(date +%s%N)/1000000)) # Generate timestamp.
-repourl="https://api.github.com/repos/cgabriel5/nodecliac/tarball/$BRANCH_NAME"
-branchurl="https://api.github.com/repos/cgabriel5/nodecliac/branches/$BRANCH_NAME"
+repourl="https://api.github.com/repos/cgabriel5/nodecliac/tarball/$branch_name"
+branchurl="https://api.github.com/repos/cgabriel5/nodecliac/branches/$branch_name"
 
 # [https://www.utf8-chartable.de/unicode-utf8-table.pl?start=9984&number=128&names=-&utf8=string-literal]
 CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m"
@@ -142,13 +159,6 @@ log " $CHECK_MARK Bash version requirement."
 
 # ------------------------------------------------------------------------CHECKS
 
-# Fallback to ~/.bashrc if provided bash file path doesn't exist.
-if [[ -n "$rcfilepath" && ! -f "$rcfilepath" ]]; then
-	rcfilepath=~/.bashrc # Default bashrc file.
-	# Only create bash file if it doesn't already exist.
-	if [[ ! -f "$rcfilepath" ]]; then touch "$rcfilepath"; fi
-fi
-
 # Exit script if platform is not supported.
 echo " - Verifying platform..."
 if [[ " linux macosx " != *" $platform "* ]]; then
@@ -169,46 +179,46 @@ fi
 # 	exit
 # fi
 
-# Exit if INSTALLER is not valid.
+# Exit if installer is not valid.
 echo " - Verifying installer method..."
-if [[ " yarn npm aconly " != *" $INSTALLER "* ]]; then
-	log " $X_MARK Installer: '$INSTALLER' is invalid. Provide: 'yarn|npm|aconly'."
+if [[ " yarn npm aconly " != *" $installer "* ]]; then
+	log " $X_MARK Installer: '$installer' is invalid. Provide: 'yarn|npm|aconly'."
 	exit
 fi
-# Check that INSTALLER is installed to continue.
-if [[ "$INSTALLER" == "yarn" ]]; then
+# Check that installer is installed to continue.
+if [[ "$installer" == "yarn" ]]; then
 	if [[ -z "$(__exists "yarn")" ]]; then
 		log " $X_MARK yarn is not installed. Install 'yarn' and try again."
 		exit
 	fi
-elif [[ "$INSTALLER" == "npm" ]]; then
+elif [[ "$installer" == "npm" ]]; then
 	if [[ -z "$(__exists "npm")" ]]; then
 		log " $X_MARK npm is not installed. Install 'npm' and try again."
 		exit
 	fi
 fi
-log " $CHECK_MARK Using installer: '$INSTALLER'."
+log " $CHECK_MARK Using installer: '$installer'."
 
 # Check that repo branch exists: [https://stackoverflow.com/a/23916276]
 echo " - Verifying branch name..."
 if [[ -n "$(command -v wget)" ]]; then
 	if [[ -z "$(wget -qO- "$branchurl" | grep -o tree)" ]]; then
-		log " $X_MARK Branch: '$BRANCH_NAME' doesn't exist. Provide a valid branch and try again."
+		log " $X_MARK Branch: '$branch_name' doesn't exist. Provide a valid branch and try again."
 		exit
 	fi
 elif [[ -n "$(command -v curl)" ]]; then
 	if [[ -z "$(curl -Ls "$branchurl" | grep -o tree)" ]]; then
-		log " $X_MARK Branch: '$BRANCH_NAME' doesn't exist. Provide a valid branch and try again."
+		log " $X_MARK Branch: '$branch_name' doesn't exist. Provide a valid branch and try again."
 		exit
 	fi
 # elif [[ -n "$(command -v git)" ]]; then
 # 	# Check that branch name indeed exists: [https://stackoverflow.com/a/30524983]
-# 	if [[ -z "$(git ls-remote --heads git@github.com:cgabriel5/nodecliac.git "$BRANCH_NAME")" ]]; then
-# 		log " $X_MARK Branch: '$BRANCH_NAME' doesn't exist. Provide a valid branch and try again."
+# 	if [[ -z "$(git ls-remote --heads git@github.com:cgabriel5/nodecliac.git "$branch_name")" ]]; then
+# 		log " $X_MARK Branch: '$branch_name' doesn't exist. Provide a valid branch and try again."
 # 		exit
 # 	fi
 fi
-log " $CHECK_MARK Installing branch: '$BRANCH_NAME'."
+log " $CHECK_MARK Installing branch: '$branch_name'."
 
 # -------------------------------------------------------------BACKUP-OLD-FOLDER
 
@@ -253,7 +263,7 @@ fi
 
 # ---------------------------------------------------------------INSTALLER-LOGIC
 
-if [[ "$INSTALLER" == "aconly" ]]; then
+if [[ "$installer" == "aconly" ]]; then
 	# Clone repo with first found command. (order: wget > curl > git)
 	if [[ -n "$(command -v wget)" ]]; then
 		echo " - Downloading $repourl... (wget)"
@@ -277,9 +287,9 @@ if [[ "$INSTALLER" == "aconly" ]]; then
 		log " $CHECK_MARK Moved package to $HOME directory."
 	elif [[ -n "$(command -v git)" ]]; then
 		echo " - Downloading https://github.com/cgabriel5/nodecliac.git... (git)"
-		git clone -q -b "$BRANCH_NAME" --single-branch https://github.com/cgabriel5/nodecliac.git "$outputdir"
+		git clone -q -b "$branch_name" --single-branch https://github.com/cgabriel5/nodecliac.git "$outputdir"
 		log " $CHECK_MARK Downloaded nodecliac.git. (git)"
-		# git clone -q -b "$BRANCH_NAME" --single-branch git@github.com:cgabriel5/nodecliac.git "$outputdir"
+		# git clone -q -b "$branch_name" --single-branch git@github.com:cgabriel5/nodecliac.git "$outputdir"
 	fi
 
 	# Create needed directories.
@@ -352,15 +362,15 @@ else
 	hash -r # [https://unix.stackexchange.com/a/5610]
 	# log " $CHECK_MARK \$PATH reset."
 
-	if [[ "$INSTALLER" == "npm" ]]; then
+	if [[ "$installer" == "npm" ]]; then
 		echo " - Installing nodecliac via npm..."
 		# Global installs can't install shorthand branch method: [https://stackoverflow.com/a/32436218]
-		# sudo npm i -g "cgabriel5/nodecliac#$BRANCH_NAME" > /dev/null 2>&1
+		# sudo npm i -g "cgabriel5/nodecliac#$branch_name" > /dev/null 2>&1
 		sudo npm i -g https://github.com/cgabriel5/nodecliac/tarball/master > /dev/null 2>&1
 		log " $CHECK_MARK nodecliac installed."
-	elif [[ "$INSTALLER" == "yarn" ]]; then
+	elif [[ "$installer" == "yarn" ]]; then
 		echo " - Installing nodecliac via yarn..."
-		yarn global add "cgabriel5/nodecliac#$BRANCH_NAME" > /dev/null 2>&1
+		yarn global add "cgabriel5/nodecliac#$branch_name" > /dev/null 2>&1
 		log " $CHECK_MARK nodecliac installed."
 	fi
 

@@ -589,7 +589,7 @@ For example, the line `.workspaces.run --` can be viewed as `yarn.workspaces.run
 
 ---
 
-**Note**: nodecliac's commands are few. Its main commands are `make` and `format`. Followed by the `setup`, `status`, and `uninstall` commands. Commands dealing with packages are: `add`, `remove`, `link`, `unlink`, `enable`, and `disable`. The remaining commands `print` and `registry` simply exist to help showcase `command-string`s.
+Main commands are `make` and `format`. Followed by helper commands: `setup`, `status`, `uninstall`, `print` and `registry`. The `print` command exists to help showcase `command-string`s. Commands dealing with packages are: `add`, `remove`, `link`, `unlink`, `enable`, and `disable`.
 
 **format**: Format (prettify) `.acmap` file.
 
@@ -636,7 +636,7 @@ For example, the line `.workspaces.run --` can be viewed as `yarn.workspaces.run
 
 **uninstall**: Uninstalls nodecliac.
 
-- `--rcfilepath`: rc file used in setup to remove changes from.
+- `--rcfilepath`: Path of rc file used in setup to remove changes from.
 
 ---
 
@@ -666,10 +666,9 @@ For example, the line `.workspaces.run --` can be viewed as `yarn.workspaces.run
 - Must be run in package root.
 - Use when developing completion package.
 
-**unlink**: Removes symbolic link(s) from registry.
+**unlink**: Alias to `remove` command.
 
-- _No arguments_
-- Takes n-amount of package names as arguments.
+- See `remove` command.
 
 **enable**: Enables completions for package(s).
 

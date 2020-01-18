@@ -1,3 +1,5 @@
+/* prefixed by https://autoprefixer.github.io (PostCSS: v7.0.26, autoprefixer: v9.7.3) */
+
 body {
 	margin: auto;
 	font-family: Hind, sans-serif;
@@ -35,7 +37,7 @@ body {
 	-webkit-box-align: center;
 	-ms-flex-align: center;
 	align-items: center;
-	width: 800px;
+	width: 950px;
 }
 
 .nav-logo {
@@ -46,7 +48,7 @@ body {
 }
 
 .nav-item {
-	padding: 5px;
+	padding: 5px 5px 5px 10px;
 	border-radius: 5px;
 	cursor: pointer;
 	display: -webkit-box;
@@ -56,6 +58,12 @@ body {
 
 .nav-item span {
 	height: 20px;
+}
+
+.nav-right-links {
+	display: -webkit-box;
+	display: -ms-flexbox;
+	display: flex;
 }
 
 .topic-cont {
@@ -75,11 +83,11 @@ body {
 	-ms-flex-align: center;
 	align-items: center;
 	width: 100%;
-	margin-top: 50px;
+	margin-top: 100px;
 }
 
 .topic {
-	padding-bottom: 40px;
+	padding-bottom: 80px;
 	border-bottom: 1px dashed #d6d6d6;
 	display: -webkit-box;
 	display: -ms-flexbox;
@@ -96,7 +104,7 @@ body {
 	align-items: center;
 	-ms-flex-line-pack: center;
 	align-content: center;
-	width: 800px;
+	width: 950px;
 }
 
 .tags-cont {
@@ -190,8 +198,17 @@ code {
 	font-style: italic;
 }
 
-.flag-name {
+.flag-name,
+.operator {
 	color: #aa0c91;
+}
+
+.sh-command {
+	color: #445588;
+}
+
+.grayed {
+	color: #999;
 }
 
 .link {
@@ -205,7 +222,7 @@ code {
 }
 
 .main-cont {
-	width: 800px;
+	width: 950px;
 	margin: auto;
 }
 
@@ -314,7 +331,38 @@ code {
 	font-weight: 400;
 }
 
-@media (max-width: 850px) {
+.action-button {
+	padding: 20px 20px 30px 20px;
+	display: -webkit-box;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
+	-ms-flex-flow: row nowrap;
+	flex-flow: row nowrap;
+	-webkit-box-pack: center;
+	-ms-flex-pack: center;
+	justify-content: center;
+}
+
+.a-button {
+	display: inline-block;
+	height: 40px;
+	line-height: 43px;
+	padding: 0 30px;
+	background: rgb(26, 115, 232);
+	border-radius: 4px;
+	font-size: 15px;
+	font-weight: 600;
+	text-decoration: none;
+	color: white;
+}
+
+.none {
+	display: none;
+}
+
+@media (max-width: 950px) {
 	.header-nav {
 		font-size: 15px;
 	}
@@ -334,6 +382,9 @@ code {
 		display: flex;
 		-ms-flex-item-align: end;
 		align-self: flex-end;
+	}
+	.topic-cont {
+		margin-top: 50px;
 	}
 	.topic {
 		padding-bottom: 40px;

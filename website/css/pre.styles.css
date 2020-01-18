@@ -18,7 +18,7 @@ body {
 	justify-content: space-between;
 	align-content: center;
 	align-items: center;
-	width: 800px;
+	width: 950px;
 }
 
 .nav-logo {
@@ -29,7 +29,7 @@ body {
 }
 
 .nav-item {
-	padding: 5px;
+	padding: 5px 5px 5px 10px;
 	border-radius: 5px;
 	cursor: pointer;
 	display: flex;
@@ -39,6 +39,10 @@ body {
 	height: 20px;
 }
 
+.nav-right-links {
+	display: flex;
+}
+
 .topic-cont {
 	display: flex;
 	flex-flow: row nowrap;
@@ -46,18 +50,18 @@ body {
 	align-content: center;
 	align-items: center;
 	width: 100%;
-	margin-top: 50px;
+	margin-top: 100px;
 }
 
 .topic {
-	padding-bottom: 40px;
+	padding-bottom: 80px;
 	border-bottom: 1px dashed #d6d6d6;
 	display: flex;
 	flex-flow: column nowrap;
 	justify-content: center;
 	align-items: center;
 	align-content: center;
-	width: 800px;
+	width: 950px;
 }
 
 .tags-cont {
@@ -137,8 +141,17 @@ code {
 	font-style: italic;
 }
 
-.flag-name {
+.flag-name,
+.operator {
 	color: #aa0c91;
+}
+
+.sh-command {
+	color: #445588;
+}
+
+.grayed {
+	color: #999;
 }
 
 .link {
@@ -152,7 +165,7 @@ code {
 }
 
 .main-cont {
-	width: 800px;
+	width: 950px;
 	margin: auto;
 }
 
@@ -245,7 +258,31 @@ code {
 	font-weight: 400;
 }
 
-@media (max-width: 850px) {
+.action-button {
+	padding: 20px 20px 30px 20px;
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: center;
+}
+
+.a-button {
+	display: inline-block;
+	height: 40px;
+	line-height: 43px;
+	padding: 0 30px;
+	background: rgb(26, 115, 232);
+	border-radius: 4px;
+	font-size: 15px;
+	font-weight: 600;
+	text-decoration: none;
+	color: white;
+}
+
+.none {
+	display: none;
+}
+
+@media (max-width: 950px) {
 	.header-nav {
 		font-size: 15px;
 	}
@@ -262,6 +299,9 @@ code {
 		margin-bottom: 10px;
 		display: flex;
 		align-self: flex-end;
+	}
+	.topic-cont {
+		margin-top: 50px;
 	}
 	.topic {
 		padding-bottom: 40px;

@@ -25,15 +25,29 @@
 				<div>
 					<div class="nav-logo"></div>
 				</div>
-				<div class="nav-item">
-					<span
-						><a
-							href="https://github.com/cgabriel5/nodecliac"
-							target="_blank"
-							class="link"
-							>GitHub</a
-						></span
-					>
+
+				<div class="nav-right-links">
+					<div class="nav-item">
+						<span
+							><a
+								href="https://github.com/cgabriel5/nodecliac"
+								target="_blank"
+								class="link"
+								>GitHub</a
+							></span
+						>
+					</div>
+
+					<div class="nav-item">
+						<span
+							><a
+								href="https://github.com/cgabriel5/nodecliac/blob/master/docs/packages/creating.md"
+								target="_blank"
+								class="link"
+								>Create Package</a
+							></span
+						>
+					</div>
 				</div>
 			</div>
 		</header>
@@ -57,210 +71,127 @@
 		<main class="main-cont">
 			<section>
 				<div class="section-title">
-					<a class="anchor" href="#install">Install</a>
-					<a name="install"></a>
-				</div>
-				<!-- 				<p class="section-paragraph">
-					As an example, let's add Bash completion to Sublime
-					Text's <code>subl</code> command.
-				</p> -->
-
-				<div class="section-list">
-					<!-- 				<div class="list-item">
-						<div class="list-bullet"><span>1.</span></div>
-						<div>Let nodecliac take over.</div>
-					</div> -->
-					<pre
-						class="code-block-cont"
-					><code class="code-block">$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s</code></pre>
-					<div class="list-item">
-						<!-- <div class="list-bullet"><span>3.</span></div> -->
-
-						<div>
-							<div class="note-cont note-tip">
-								<span class="bold">Tips:</span>
-								<div>
-									<span class="bold">1.</span>
-									After installing reload
-									<code>.bashrc</code> (by running
-									<code>$ source ~/.bashrc</code>) or open a
-									new Terminal to start using.
-								</div>
-								<div>
-									<span class="bold">2.</span>
-									See complete
-									<a
-										href="https://github.com/cgabriel5/nodecliac#install"
-										target="_blank"
-										class="link"
-										>installation methods/arguments</a
-									>.
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</section>
-
-			<section>
-				<div class="section-title">
-					<a class="anchor" href="#overview">Overview</a>
-					<a name="overview"></a>
-				</div>
-				<p class="section-paragraph">
-					Bash completion is awesome but adding it to CLI programs can
-					be a pain. nodecliac makes it easy. Simply map a program's
-					commands with their flags in an
-					<code>.acmap</code> file and well,
-					<span class="italic">that's it</span>. nodecliac handles the
-					rest — leaving your program Bash completion ready.
-				</p>
-
-				<div class="note-cont">
-					<span class="bold">Notes:</span>
-					<div>
-						<span class="bold">1.</span> nodecliac was originally
-						made in mind for NodeJs CLI programs which explains the
-						name. However, as development continued it proved useful
-						for non NodeJS programs as well.
-					</div>
-					<div>
-						<span class="bold">2.</span> <code>Bash</code>,
-						<code>Perl</code>, and <code>Nim</code> are used to
-						provide completion logic. nodecliac's tools (parser,
-						formatter, etc.) are written in<code>JavaScript</code>
-						and therefore require <code>NodeJS</code>.
-					</div>
-				</div>
-			</section>
-
-			<!-- <section>
-				<div class="section-title">
-					<a class="anchor" href="#getting-started">Getting Started</a>
-					<a name="getting-started"></a>
-				</div>
-				<div class="section-list">
-					<div class="list-item">
-						<div class="list-bullet"><span>1.</span></div>
-						<div class="list-text">
-							<div>
-								Install nodecliac via
-								<a
-									href="https://github.com/cgabriel5/nodecliac/blob/master/README.md#install"
-									target="_blank"
-									class="link"
-									>yarn</a
-								>,
-								<a
-									href="https://github.com/cgabriel5/nodecliac/blob/master/README.md#install"
-									target="_blank"
-									class="link"
-									>npm</a
-								>, or
-								<a
-									href="https://github.com/cgabriel5/nodecliac/blob/master/README.md#install-manual"
-									target="_blank"
-									class="link"
-									>manually</a
-								>.
-							</div>
-						</div>
-					</div>
-					<div class="list-item">
-						<div class="list-bullet"><span>2.</span></div>
-						<div>
-							Create the CLI program's
-							<code>command.acmap</code> file.
-						</div>
-					</div>
-					<div class="list-item">
-						<div class="list-bullet"><span>3.</span></div>
-						<div>
-							Pass <code>command.acmap</code> to nodecliac and let
-							it handle the rest!
-						</div>
-					</div>
-
-					<div class="list-item">
-						<div class="list-bullet"><span>4.</span></div>
-						<div>Open a new Terminal and start using!</div>
-					</div>
-				</div>
-			</section> -->
-
-			<section>
-				<div class="section-title">
-					<a class="anchor" href="#example-st"
-						>Example: Sublime Text</a
+					<a class="anchor" href="#what-is-nodecliac"
+						>What is nodecliac?</a
 					>
-					<a name="example-st"></a>
+					<a name="what-is-nodecliac"></a>
 				</div>
 
 				<p class="section-paragraph">
-					Let's add bash-completion to Sublime Text's
-					<code>subl</code> command.
+					<code
+						><a
+							class="anchor"
+							href="https://github.com/scop/bash-completion"
+							target="_blank"
+							>bash-completion</a
+						></code
+					>
+					for CLI programs is awesome. It enhances the user experience
+					by completing filenames, commands, flags, etc. What
+					<span class="italic">isn't</span> is the time and effort
+					required to add it.
 				</p>
 
 				<br />
 
+				<p class="section-paragraph">
+					<span class="italic">nodecliac</span> provides an easier
+					way. By simply mapping a program's commands with their flags
+					in an
+					<code
+						><a
+							class="anchor"
+							href="https://github.com/cgabriel5/nodecliac#syntax"
+							target="_blank"
+							>.acmap</a
+						></code
+					>
+					file, nodecliac can leave a program Bash completion ready.
+				</p>
+
+				<br />
+
+				<p class="section-paragraph">
+					The goal behind this project is two-fold: minimize efforts
+					needed when adding bash-completion and build a collection of
+					community made completion packages for all to enjoy. This
+					way, more programs come baked with bash-completion support.
+				</p>
+			</section>
+
+			<section>
+				<div class="section-title">
+					<a class="anchor" href="#install">Install</a>
+					<a name="install"></a>
+				</div>
+
 				<div class="section-list">
-					<div class="list-item">
-						<div class="list-bullet"><span>1.</span></div>
-						<div>
-							Create <code>subl.acmap</code> with the following
-							contents:
-						</div>
-					</div>
 					<pre
 						class="code-block-cont"
-					><code class="code-block"><span class="italic">subl</span> = [
-	--<span class="flag-name">project</span>
-	--<span class="flag-name">command</span>
-	--<span class="flag-name">new-window</span>?
-	--<span class="flag-name">add</span>
-	--<span class="flag-name">wait</span>?
-	--<span class="flag-name">background</span>?
-	--<span class="flag-name">stay</span>?
-	--<span class="flag-name">help</span>?
-	--<span class="flag-name">version</span>?
-]
-</code></pre>
-					<div class="list-item">
-						<div class="list-bullet"><span>2.</span></div>
-						<div>Let nodecliac take over.</div>
+					><code class="code-block"><span class="grayed">$</span> <span class="sh-command">sudo</span> curl <span class="italic">-Ls</span> https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install <span class="operator">|</span> <span class="sh-command">bash</span> <span class="italic">-s</span> <span class="operator">&&</span> <span class="sh-command">source</span> <span class="operator">~</span>/.bashrc</code></pre>
+				</div>
+
+				<div class="action-button">
+					<a
+						class="a-button"
+						href="https://github.com/cgabriel5/nodecliac#nodecliac"
+						target="_blank"
+						>Get Started</a
+					>
+				</div>
+
+				<div class="note-cont note-tip">
+					<span class="bold">Notes:</span>
+					<div>
+						<span class="bold">1.</span>
+						<span class="italic">The name?</span> Though originally
+						made for Node.js programs, as development continued it
+						proved useful for non Node.js programs as well.
 					</div>
-					<pre
-						class="code-block-cont"
-					><code class="code-block">$ nodecliac make --source=path/to/subl.acmap --add</code></pre>
-					<div class="list-item">
-						<div class="list-bullet"><span>3.</span></div>
-						<div>
-							Finally, reload <code>.bashrc</code> or open a new
-							Terminal to start using.
-						</div>
-					</div>
-					<div class="video-cont">
-						<video
-							controls=""
-							name="subl bash completion"
-							width="800"
-							height="200"
-							src="website/media/subl-completion.mov"
-							class="video"
-						></video>
-					</div>
-					<div class="list-item">
-						<div class="list-bullet"><span>4.</span></div>
-						<div>
-							See
+					<div>
+						<span class="bold">2.</span>
+						<code>
 							<a
-								href="https://github.com/cgabriel5/nodecliac/blob/master/README.md"
+								class="anchor"
+								href="https://www.gnu.org/software/bash/"
 								target="_blank"
-								class="link"
-								>docs</a
-							>
-							for complete details.
-						</div>
+								>Bash</a
+							></code
+						>,
+						<code
+							><a
+								class="anchor"
+								href="https://www.perl.org/"
+								target="_blank"
+								>Perl</a
+							></code
+						>, and
+						<code
+							><a
+								class="anchor"
+								href="https://nim-lang.org/"
+								target="_blank"
+								>Nim</a
+							></code
+						>
+						provide completion logic. nodecliac's tools (parser,
+						formatter) are written in<code
+							><a
+								class="anchor"
+								href="https://developer.mozilla.org/en-US/docs/Web/JavaScript"
+								target="_blank"
+								>JavaScript</a
+							></code
+						>
+						which require
+						<code
+							><a
+								class="anchor"
+								href="https://nodejs.org/en/"
+								target="_blank"
+								>Node.js</a
+							></code
+						>.
 					</div>
 				</div>
 			</section>

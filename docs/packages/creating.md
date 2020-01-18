@@ -72,7 +72,11 @@ $ nodecliac add
 
 ### Using It
 
-Open a new Terminal (or run `$ source ~/.bashrc` in current one), type `$ subl --`, and hit `[TAB][TAB]` to see completions.
+Open a new Terminal (or `$ source ~/.bashrc` current one), type `$ subl --`, and hit `[TAB][TAB]` to see completions.
+
+<!-- [https://superuser.com/a/836349] -->
+
+<p align="center"><img src="../../resources/images/subl-completion.gif?raw=true" alt="subl completion" title="subl completion" width="auto"></p>
 
 ### What's Next
 

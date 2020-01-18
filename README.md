@@ -24,12 +24,10 @@ Easy Bash completion for CLI programs with nodecliac (**node**-**cli**-**a**uto-
 <!-- Using `bash -s`: [https://stackoverflow.com/a/51854728] -->
 
 ```sh
-$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s
+$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s && source ~/.bashrc
 ```
 
 <!-- [https://stackoverflow.com/questions/17341122/link-and-execute-external-javascript-file-hosted-on-github] -->
-
-**Note**: After installing reload `.bashrc` (run `$ source ~/.bashrc`) or open a new Terminal to start using.
 
 <details><summary>More installation methods</summary>
 
@@ -37,18 +35,18 @@ $ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/ins
 
 ```sh
 # Install with defaults:
-$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s
+$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s && source ~/.bashrc
 
 # As above but explicitly provides defaults:
 $ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s \
-  -- --installer= --branch=master --rcfilepath=~/.bashrc
+  -- --installer= --branch=master --rcfilepath=~/.bashrc && source ~/.bashrc
 ```
 
 ##### With `wget`:
 
 ```sh
 # Install with defaults:
-$ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s
+$ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s && source ~/.bashrc
 ```
 
 </details>

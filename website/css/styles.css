@@ -189,8 +189,7 @@ code {
 	border-radius: 3px;
 	padding: 0 3px;
 	font-size: 85%;
-	font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier,
-		monospace;
+	font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
 	display: inline-block;
 }
 
@@ -362,6 +361,19 @@ code {
 	display: none;
 }
 
+.footer {
+	padding-bottom: 50px;
+}
+
+@media (max-width: 1100px) {
+	.main-cont {
+		width: 90%;
+	}
+	.topic {
+		width: 90%;
+	}
+}
+
 @media (max-width: 950px) {
 	.header-nav {
 		font-size: 15px;
@@ -370,7 +382,7 @@ code {
 		padding: 5px 20px;
 	}
 	.main-cont {
-		width: 100%;
+		/*width: 100%;*/
 		padding: 20px;
 		margin: auto;
 	}
@@ -402,7 +414,7 @@ code {
 		-ms-flex-align: start;
 		align-items: flex-start;
 		padding-left: 20px;
-		width: 100%;
+		/*width: 100%;*/
 	}
 	.topic-title {
 		font-size: 28px;
@@ -434,6 +446,15 @@ code {
 	.code-block-cont,
 	.video-cont {
 		margin: 10px 0;
+	}
+}
+
+@media (max-width: 700px) {
+	.main-cont {
+		width: 100%;
+	}
+	.topic {
+		width: 100%;
 	}
 }
 

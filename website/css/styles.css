@@ -361,16 +361,26 @@ code {
 	display: none;
 }
 
+.unselectable {
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
 .footer {
 	padding-bottom: 50px;
 }
 
 @media (max-width: 1100px) {
-	.main-cont {
-		width: 90%;
-	}
+	.main-cont,
 	.topic {
 		width: 90%;
+	}
+
+	.header-nav {
+		width: 100%;
+		/* width: 800px; */
 	}
 }
 
@@ -450,9 +460,8 @@ code {
 }
 
 @media (max-width: 700px) {
-	.main-cont {
-		width: 100%;
-	}
+	.header-nav,
+	.main-cont,
 	.topic {
 		width: 100%;
 	}

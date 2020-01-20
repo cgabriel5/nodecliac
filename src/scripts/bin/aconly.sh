@@ -24,6 +24,7 @@ prcommand=""
 enablencliac=""
 disablencliac=""
 command=""
+version=""
 all=""
 
 # [https://medium.com/@Drew_Stokes/bash-argument-parsing-54f3b81a6a8f]
@@ -36,6 +37,8 @@ registrypath=~/.nodecliac/registry
 
 while (( "$#" )); do
  case "$1" in
+
+	--version) version="1"; shift ;;
 
   	# Custom `print` command flags.
 	--command=*)
@@ -80,6 +83,13 @@ while (( "$#" )); do
 done
 eval set -- "$params" # Set positional arguments in their proper place
 shift # Remove command from arguments array.
+
+# If no command given but '--version' flag supplied show version.
+setupfilepath=~/.nodecliac/.setup.db.json
+if [[ -z "$command" && "$version" == "1" && -f "$setupfilepath" ]]; then
+	# Get package.json version number. [https://stackoverflow.com/a/4794172]
+	echo "$(perl -ne 'print $1 if /"version":\s*"([^"]+)/' "$setupfilepath")"
+fi
 
 # Allowed commands.
 commands=" make format print registry setup status uninstall add remove link unlink enable disable "

@@ -69,7 +69,12 @@ module.exports = async args => {
 
 	// Create setup info file to reference on uninstall.
 	let contents = JSON.stringify(
-		{ force: force || false, rcfilepath: bashrcpath, time: Date.now() },
+		{
+			force: force || false,
+			rcfilepath: bashrcpath,
+			time: Date.now(),
+			version: require("../../package.json").version
+		},
 		undefined,
 		"\t"
 	);

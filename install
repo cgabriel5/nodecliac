@@ -312,11 +312,11 @@ if [[ "$installer" == "aconly" ]]; then
 	log " $CHECK_MARK Copied registry packages."
 
 	# Create setup file.
-	echo " - Creating ~/.nodecliac/.setup.db.json..."
+	echo " - Creating .setup.db.json..."
 	# Get package.json version number. [https://stackoverflow.com/a/4794172]
 	version="$(perl -ne 'print $1 if /"version":\s*"([^"]+)/' "$outputdir/package.json")"
 	echo "{ \"force\": false, \"rcfilepath\": \"$rcfilepath\", \"time\": \"$timestamp\", \"aconly\": true, \"version\": \"$version\" }" > ~/.nodecliac/.setup.db.json
-	log " $CHECK_MARK Created ~/.nodecliac/.setup.db.json."
+	log " $CHECK_MARK Created .setup.db.json."
 
 	# Strip comments/empty lines from files.
 	echo " - Stripping comments from scripts..."
@@ -329,10 +329,10 @@ if [[ "$installer" == "aconly" ]]; then
 	if [[ -z "$(grep -o "ncliac=~/.nodecliac/src/main/init.sh" "$rcfilepath")" ]]; then
 		echo " - Adding nodecliac to rcfile..."
 		echo -e '\nncliac=~/.nodecliac/src/main/init.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;' >> "$rcfilepath"
-		log " $CHECK_MARK Added nodecliac to rcfile."
-		echo " - Adding trailing '\\n' to rcfile..."
+		# echo " - Adding trailing '\n' to rcfile..."
 		perl -i -lpe 's/\x0a$//' "$rcfilepath" # Ensure newline ending: [https://www.unix.com/shell-programming-and-scripting/229399-how-add-newline-character-end-file.html]
-		log " $CHECK_MARK Added trailing '\\n' to rcfile."
+		# log " $CHECK_MARK Added trailing '\n' to rcfile."
+		log " $CHECK_MARK Added nodecliac to rcfile."
 		# [https://knowledge.ni.com/KnowledgeArticleDetails?id=kA00Z0000019KZDSA2]
 		# [https://stackoverflow.com/a/9021745]
 	fi
@@ -382,6 +382,6 @@ else
 fi
 
 # Use \033 rather than \e: [https://stackoverflow.com/a/37366139], [https://misc.flogisoft.com/bash/tip_colors_and_formatting]
-echo -e " \033[1;34mTip\033[0m Reload rcfile before using:"
-echo -e " \033[1m\$ source ${rcfilepath/#$HOME/\~}\033[0m"
+echo -e " - \033[1;34mTip\033[0m Reload rcfile before using:"
+echo -e " - \033[1m\$ source ${rcfilepath/#$HOME/\~}\033[0m"
 

@@ -135,7 +135,7 @@ fi
 # Check that Perl is installed.
 echo " - Perl version requirement."
 if [[ -z "$(__exists "perl")" ]]; then
-	log " $X_MARK Perl is not installed. Install Perl 5+ and try again."
+	log " $X_MARK Perl 5 not installed. Install and try again."
 	exit
 fi
 # Check that perl is at least v5.
@@ -165,7 +165,7 @@ if [[ " linux macosx " != *" $platform "* ]]; then
 	log " $X_MARK Platform: '$platform' is not supported."
 	exit
 fi
-log " $CHECK_MARK Installing on '$platform' platform."
+log " $CHECK_MARK User platform: '$platform'."
 
 # Check that needed arguments were provided.
 if [[ $# -gt 2 ]]; then # [https://stackoverflow.com/a/34807585]
@@ -182,7 +182,7 @@ fi
 # Exit if installer is not valid.
 echo " - Verifying installer method..."
 if [[ " yarn npm aconly " != *" $installer "* ]]; then
-	log " $X_MARK Installer: '$installer' is invalid. Provide: 'yarn|npm|aconly'."
+	log " $X_MARK Invalid installer: '$installer'. Provide: 'yarn|npm|aconly'."
 	exit
 fi
 # Check that installer is installed to continue.
@@ -203,28 +203,28 @@ log " $CHECK_MARK Using installer: '$installer'."
 echo " - Verifying branch name..."
 if [[ -n "$(command -v wget)" ]]; then
 	if [[ -z "$(wget -qO- "$branchurl" | grep -o tree)" ]]; then
-		log " $X_MARK Branch: '$branch_name' doesn't exist. Provide a valid branch and try again."
+		log " $X_MARK Branch: '$branch_name' doesn't exist."
 		exit
 	fi
 elif [[ -n "$(command -v curl)" ]]; then
 	if [[ -z "$(curl -Ls "$branchurl" | grep -o tree)" ]]; then
-		log " $X_MARK Branch: '$branch_name' doesn't exist. Provide a valid branch and try again."
+		log " $X_MARK Branch: '$branch_name' doesn't exist."
 		exit
 	fi
 # elif [[ -n "$(command -v git)" ]]; then
 # 	# Check that branch name indeed exists: [https://stackoverflow.com/a/30524983]
 # 	if [[ -z "$(git ls-remote --heads git@github.com:cgabriel5/nodecliac.git "$branch_name")" ]]; then
-# 		log " $X_MARK Branch: '$branch_name' doesn't exist. Provide a valid branch and try again."
+# 		log " $X_MARK Branch: '$branch_name' doesn't exist."
 # 		exit
 # 	fi
 fi
-log " $CHECK_MARK Installing branch: '$branch_name'."
+log " $CHECK_MARK Using branch: '$branch_name'."
 
 # -------------------------------------------------------------BACKUP-OLD-FOLDER
 
 # If ~/.nodecliac exists rename folder to allow for new one.
 if [[ -e ~/.nodecliac ]]; then
-	echo " - Backing up old ~/.nodecliac install..."
+	echo " - Backing up old ~/.nodecliac..."
 	cp -a ~/.nodecliac "$HOME/.nodecliac.bak.$timestamp"
 	log " $CHECK_MARK Backed up old ~/.nodecliac folder."
 fi
@@ -253,7 +253,7 @@ else
 	clear_last_line
 fi
 # Uninstall from npm if installed globally.
-echo " - Removing global npm from yarn..."
+echo " - Removing global nodecliac from npm..."
 if [[ -n "$(__exists "npm")" && -n "$(npm list -g --depth=0 | grep -o "nodecliac@")" ]]; then
 	sudo npm uninstall -g nodecliac > /dev/null 2>&1
 	log " $CHECK_MARK Removed npm nodecliac global package."
@@ -264,36 +264,38 @@ fi
 # ---------------------------------------------------------------INSTALLER-LOGIC
 
 if [[ "$installer" == "aconly" ]]; then
+	uhdir="${HOME/#$HOME/\~}" # Un-expand tilde:
+
 	# Clone repo with first found command. (order: wget > curl > git)
 	if [[ -n "$(command -v wget)" ]]; then
-		echo " - Downloading $repourl... (wget)"
+		echo " - Downloading repo... (wget)"
 		wget -q -c "$repourl" -O ~/.nodecliac-src.tar.gz
-		log " $CHECK_MARK Downloaded nodecliac tarball. (wget)"
+		log " $CHECK_MARK Downloaded repo. (wget)"
 		echo " - Extracting package..."
 		tar -xzf ~/.nodecliac-src.tar.gz -C ~/
 		log " $CHECK_MARK Extracted package."
-		echo " - Moving package to $HOME directory..."
+		echo " - Moving package to '$hdir'..."
 		rm -rf "$outputdir"/* && mv -f ~/cgabriel5-nodecliac-* "$outputdir"
-		log " $CHECK_MARK Moved package to $HOME directory."
+		log " $CHECK_MARK Moved package to '$hdir'."
 	elif [[ -n "$(command -v curl)" ]]; then
-		echo " - Downloading $repourl... (curl)"
+		echo " - Downloading repo... (curl)"
 		curl -Ls "$repourl" -o ~/.nodecliac-src.tar.gz
-		log " $CHECK_MARK Downloaded nodecliac tarball. (curl)"
+		log " $CHECK_MARK Downloaded repo. (curl)"
 		echo " - Extracting package..."
 		tar -xzf ~/.nodecliac-src.tar.gz -C ~/
 		log " $CHECK_MARK Extracted package."
-		echo " - Moving package to $HOME directory..."
+		echo " - Moving package to '$hdir'..."
 		rm -rf "$outputdir"/* && mv -f ~/cgabriel5-nodecliac-* "$outputdir"
-		log " $CHECK_MARK Moved package to $HOME directory."
+		log " $CHECK_MARK Moved package to '$hdir'."
 	elif [[ -n "$(command -v git)" ]]; then
-		echo " - Downloading https://github.com/cgabriel5/nodecliac.git... (git)"
+		echo " - Downloading repo... (git)"
 		git clone -q -b "$branch_name" --single-branch https://github.com/cgabriel5/nodecliac.git "$outputdir"
-		log " $CHECK_MARK Downloaded nodecliac.git. (git)"
+		log " $CHECK_MARK Downloaded repo. (git)"
 		# git clone -q -b "$branch_name" --single-branch git@github.com:cgabriel5/nodecliac.git "$outputdir"
 	fi
 
 	# Create needed directories.
-	echo " - Creating project structure: ~/.nodecliac/{registry,src}..."
+	echo " - Creating project structure..."
 	mkdir -p ~/.nodecliac/{registry,src}
 	log " $CHECK_MARK Created project structure."
 
@@ -304,13 +306,13 @@ if [[ "$installer" == "aconly" ]]; then
 	log " $CHECK_MARK Copied nodecliac scripts."
 
 	# Copy registry completion packages.
-	echo " - Copying registry completion packages..."
+	echo " - Copying registry packages..."
 	# cp: [https://stackoverflow.com/a/8055544]
 	cp -pr "$outputdir"/resources/packages/* ~/.nodecliac/registry
-	log " $CHECK_MARK Copied registry completion packages."
+	log " $CHECK_MARK Copied registry packages."
 
 	# Create setup file.
-	echo " - Creating ~/.nodecliac/.setup.db.json file..."
+	echo " - Creating ~/.nodecliac/.setup.db.json..."
 	# Get package.json version number. [https://stackoverflow.com/a/4794172]
 	version="$(perl -ne 'print $1 if /"version":\s*"([^"]+)/' "$outputdir/package.json")"
 	echo "{ \"force\": false, \"rcfilepath\": \"$rcfilepath\", \"time\": \"$timestamp\", \"aconly\": true, \"version\": \"$version\" }" > ~/.nodecliac/.setup.db.json
@@ -323,33 +325,26 @@ if [[ "$installer" == "aconly" ]]; then
 	# [http://isunix.github.io/blog/2014/07/24/perl-one-liner-to-remove-blank-lines/].
 	# [https://stackoverflow.com/a/6995010], [https://unix.stackexchange.com/a/179449]
 
-	rcfilepath=~/.bashrc
-	# If bashrc file does not exist create it.
-	if [[ ! -e "$rcfilepath" ]]; then
-		echo " - Creating ~/.bashrc file..."
-		touch "$rcfilepath"
-		log " $CHECK_MARK Created ~/.bashrc file."
-	fi
-	# Add nodecliac to ~/.bashrc if not already.
+	# Add nodecliac to rcfile if not already.
 	if [[ -z "$(grep -o "ncliac=~/.nodecliac/src/main/init.sh" "$rcfilepath")" ]]; then
-		echo " - Adding nodecliac to ~/.bashrc..."
+		echo " - Adding nodecliac to rcfile..."
 		echo -e '\nncliac=~/.nodecliac/src/main/init.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;' >> "$rcfilepath"
-		log " $CHECK_MARK Added nodecliac to ~/.bashrc."
-		echo " - Adding trailing newline to ~/.bashrc..."
+		log " $CHECK_MARK Added nodecliac to rcfile."
+		echo " - Adding trailing '\\n' to rcfile..."
 		perl -i -lpe 's/\x0a$//' "$rcfilepath" # Ensure newline ending: [https://www.unix.com/shell-programming-and-scripting/229399-how-add-newline-character-end-file.html]
-		log " $CHECK_MARK Added trailing newline to ~/.bashrc."
+		log " $CHECK_MARK Added trailing '\\n' to rcfile."
 		# [https://knowledge.ni.com/KnowledgeArticleDetails?id=kA00Z0000019KZDSA2]
 		# [https://stackoverflow.com/a/9021745]
 	fi
 
 	# Modify nodecliac.acdef for aconly.
-	echo " - Modifying nodecliac.acdef for 'aconly' install..."
+	echo " - Modifying nodecliac.acdef..."
 	# Remove all but the following commands.
 	allowed_commands="add|remove|link|unlink|enable|disable|print|status|registry|uninstall"
 	perl -i -lne 'if (/^(#|\.('"$allowed_commands"') --| )/) { if ($1 eq " ") { print "\n --"} elsif ($1 eq ".uninstall --") { print "$1" } else { print } }' ~/.nodecliac/registry/nodecliac/nodecliac.acdef
 	# Add back '--version'.
 	perl -p -i -e 's/^ \-\-/ \-\-version?/m if /^ /' ~/.nodecliac/registry/nodecliac/nodecliac.acdef
-	log " $CHECK_MARK Modified nodecliac.acdef for 'aconly' install."
+	log " $CHECK_MARK Modified nodecliac.acdef."
 
 	# Create bin file.
 	echo " - Creating bin file..."
@@ -387,4 +382,6 @@ else
 fi
 
 # Use \033 rather than \e: [https://stackoverflow.com/a/37366139], [https://misc.flogisoft.com/bash/tip_colors_and_formatting]
-echo -e " - \033[1;34m[Note]\033[0m Reload bashrc: \033[1m\$ source ~/.bashrc\033[0m"
+echo -e " \033[1;34mTip\033[0m Reload rcfile before using:"
+echo -e " \033[1m\$ source ${rcfilepath/#$HOME/\~}\033[0m"
+

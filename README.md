@@ -24,7 +24,7 @@ Easy Bash completion for CLI programs with nodecliac (**node**-**cli**-**a**uto-
 <!-- Using `bash -s`: [https://stackoverflow.com/a/51854728] -->
 
 ```sh
-sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s && source ~/.bashrc
+$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s && source ~/.bashrc
 ```
 
 <!-- [https://stackoverflow.com/questions/17341122/link-and-execute-external-javascript-file-hosted-on-github] -->
@@ -34,14 +34,14 @@ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/insta
 **With** `curl` (_use defaults_):
 
 ```sh
-sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s \
+$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s \
   -- --installer= --branch=master --rcfilepath=~/.bashrc && source ~/.bashrc
 ```
 
 **With** `wget` (_use defaults_):
 
 ```sh
-sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s && source ~/.bashrc
+$ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s && source ~/.bashrc
 ```
 
 </details>

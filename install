@@ -312,7 +312,7 @@ if [[ "$installer" == "aconly" ]]; then
 	# Create setup file.
 	echo " - Creating ~/.nodecliac/.setup.db.json file..."
 	# Get package.json version number. [https://stackoverflow.com/a/4794172]
-	version="$(perl -ne 'print $1 if /"version":\s*"([^"]+)/' package.json)"
+	version="$(perl -ne 'print $1 if /"version":\s*"([^"]+)/' "$outputdir/package.json")"
 	echo "{ \"force\": false, \"rcfilepath\": \"$rcfilepath\", \"time\": \"$timestamp\", \"aconly\": true, \"version\": \"$version\" }" > ~/.nodecliac/.setup.db.json
 	log " $CHECK_MARK Created ~/.nodecliac/.setup.db.json."
 

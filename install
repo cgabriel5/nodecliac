@@ -311,7 +311,7 @@ if [[ "$installer" == "aconly" ]]; then
 
 	# Create setup file.
 	echo " - Creating ~/.nodecliac/.setup.db.json file..."
-	echo "{ \"force\": false, \"rcfilepath\": \"$HOME/.bashrc\", \"time\": \"$timestamp\", \"aconly\": true }" > ~/.nodecliac/.setup.db.json
+	echo "{ \"force\": false, \"rcfilepath\": \"$rcfilepath\", \"time\": \"$timestamp\", \"aconly\": true }" > ~/.nodecliac/.setup.db.json
 	log " $CHECK_MARK Created ~/.nodecliac/.setup.db.json."
 
 	# Strip comments/empty lines from files.

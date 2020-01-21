@@ -4,7 +4,7 @@ Easy Bash completion for CLI programs with nodecliac (**node**-**cli**-**a**uto-
 
 <p align="center"><img src="./resources/images/nodecliac-completion.gif?raw=true" alt="nodecliac completion" title="nodecliac completion" width="auto"></p>
 
-##### Table of Contents
+<!-- ##### Table of Contents
 
 - [Install](#install-normal)
 - [How It Works](#how-it-works)
@@ -16,6 +16,7 @@ Easy Bash completion for CLI programs with nodecliac (**node**-**cli**-**a**uto-
 - [Support](#support)
 - [Contributing](#contributing)
 - [License](#license)
+ -->
 
 <a name="install-normal"></a>
 
@@ -62,14 +63,14 @@ $ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/in
 
 - Node.js `8+`
   - nodecliac and its CLI tools (`.acmap` to `.acdef` parser, formatter, etc.) are written in JavaScript.
-  - **Note**: If _only_ Bash completion is needed (i.e. one already has the CLI program's registry package/files and don't need nodecliac's core CLI tools (parser, formatter, etc.)) then Node.js is _not_ required. Simply install with `aconly` installer.
+  - **Note**: If _only_ Bash completion is needed (i.e. not developing a completion package &mdash; don't need nodecliac's core CLI tools (parser, formatter, etc.)) then Node.js is _not_ required. Simply install with `aconly` installer.
 - Perl `5+`
   - Runs needed Perl Bash completion scripts.
   - Works in tandem with Bash shell scripts.
 - Bash `4.3+`
   - Runs Bash completion scripts.
   - Works in tandem with Perl/Nim scripts.
-  - `macOS`, by default, comes with with Bash `3.2` so please update it.
+  - `macOS`, by default, comes with with Bash `3.2` so an update is required.
     - [Homebrew](https://brew.sh/) can be used to [update bash](https://akrabat.com/upgrading-to-bash-4-on-macos/).
       </details>
 
@@ -100,9 +101,9 @@ $ git clone -b BRANCH_NAME --single-branch https://github.com/cgabriel5/nodeclia
 
 ## How It Works
 
-nodecliac uses two custom file types: **a**uto-**c**ompletion **map** (`.acmap`) and **a**uto-**c**ompletion **def**inition (`.acdef`) files. With that said the idea here is simple. One _writes_ their program's `.acmap` file to _map_ the program's commands with their respective flags. This `program.acmap` file can then be passed to nodecliac (via its CLI tools) to generate the command's completion package. How elaborate completion packages become depend on the needs of the program, but at their core all will contain their program's `program.acdef` file. It's these _definition_ files nodecliac references when provide completions.
+nodecliac uses two custom files: **a**uto-**c**ompletion **map** (`.acmap`) and **a**uto-**c**ompletion **def**inition (`.acdef`) files. With that said the idea here is simple. One _writes_ their program's `.acmap` file to _map_ the program's commands with their respective flags. This `program.acmap` file can then be passed to nodecliac (via its CLI tools) to generate the command's `program.acdef` file. It's these _definition_ files nodecliac references when provide completions. In the end, how elaborate completion packages become depend on the needs of the program. Yet at their core all will contain their program's `program.acdef` file.
 
-**tl;dr**: _Write the program's `.acmap` file then pass it to nodecliac (via CLI) to generate its completion package. Flesh out completion package as needed and move it to the [registry](#registry) so nodecliac can use it. Open a new Terminal to start using._
+**tl;dr**: _Write the program's `.acmap` file then pass it to nodecliac (via CLI) to generate its `.acdef` file. Flesh out the completion package as needed and move it to the [registry](#registry) for use with nodecliac. Finally, open a new Terminal to start using._
 
 <a name="syntax"></a>
 
@@ -679,23 +680,16 @@ Main commands are `make` and `format`. Followed by helper commands: `setup`, `st
 
 <details><summary>CLI usage examples</summary>
 
-#### Generate completion package
+#### Generate program.acdef
 
 ```sh
-# Generate program.acdef from the .acmap file.
 $ nodecliac make --source path/to/program.acmap
-
-# Generate completion package and log generated 'program.acdef' contents to terminal.
-$ nodecliac make --source path/to/program.acmap --print
 ```
 
 #### Prettify ACMAP file
 
 ```sh
-# Prettify 'program.acmap' file using 2 spaces per indentation level and log output.
-$ nodecliac format --source path/to/program.acmap --print --indent "s:2"
-
-# Formats program.acmap. Original file will be overwritten.
+# Prettify using 2 spaces per indentation level and print output.
 $ nodecliac format --source path/to/program.acmap --print --indent "s:2"
 ```
 
@@ -723,7 +717,7 @@ $ program [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] [file
 
 ## Registry
 
-The registry (`~/.nodecliac/registry`) is where nodecliac's completion packages live. Completion packages follow this form: `~/.nodecliac/registry/COMMAND-NAME/`. For example, [yarn's](https://yarnpkg.com/en/) completion [package and its files](/resources/nodecliac) reside in `~/.nodecliac/registry/yarn/`.
+The registry (`~/.nodecliac/registry`) is where nodecliac's completion packages live. Completion packages follow this form: `~/.nodecliac/registry/COMMAND-NAME/`. For example, [yarn's](https://yarnpkg.com/en/) completion [package and its files](/resources/packages/yarn) reside in `~/.nodecliac/registry/yarn/`.
 
 <details><summary>Directory structures</summary>
 
@@ -759,7 +753,7 @@ The registry (`~/.nodecliac/registry`) is where nodecliac's completion packages 
 
 ## Hooks
 
-Some programs are more complicated than others. Let's use [`yarn.acdef`](/resources/nodecliac/yarn/yarn.acdef), for example. Before running the completion script, the current repo's `package.json` `scripts` entries need to be [added as commands](https://yarnpkg.com/en/docs/cli/run#toc-yarn-run) to `yarn.acdef`. Doing so requires a `pre-parsing` hook. In essence, before the completion script is run, the `pre-parsing` hook script gives the ability to modify completion script parameters/variables.
+Some programs are more complicated than others. Let's use [`yarn.acdef`](/resources/packages/yarn/yarn.acdef), for example. Before running the completion script, the current repo's `package.json` `scripts` entries need to be [added as commands](https://yarnpkg.com/en/docs/cli/run#toc-yarn-run) to `yarn.acdef`. Doing so requires a `pre-parsing` hook. In essence, before the completion script is run, the `pre-parsing` hook script gives the ability to modify completion script parameters/variables.
 
 <details><summary>Expand hook section</summary>
 
@@ -769,7 +763,7 @@ Some programs are more complicated than others. Let's use [`yarn.acdef`](/resour
   - Purpose: `pre-parse.sh` is _meant_ to modify `acdef` and `cline` variables before running [completion script](/src/scripts/ac).
   - **Note**: However, since the hook script is `sourced` into [`connector.sh`](/src/scripts/main/connector.sh) it has _access_ to other [`connector.sh`](/src/scripts/main/connector.sh) variables.
   - Hook script should be seen as [glue code](https://en.wikipedia.org/wiki/Scripting_language#Glue_languages) intended to run actual logic.
-    - For example, take yarn's [`pre-parse.sh`](/resources/nodecliac/yarn/hooks/pre-parse.sh) script. The [script](/resources/nodecliac/yarn/hooks/pre-parse.sh) actually runs a Perl script ([`pre-parse.pl`](/resources/nodecliac/yarn/hooks/pre-parse.pl)) which returns the repo's `package.json` `scripts` as well as modified CLI input.
+    - For example, take yarn's [`pre-parse.sh`](/resources/packages/yarn/hooks/pre-parse.sh) script. The [script](/resources/packages/yarn/hooks/pre-parse.sh) actually runs a Perl script ([`pre-parse.pl`](/resources/packages/yarn/hooks/pre-parse.pl)) which returns the repo's `package.json` `scripts` as well as modified CLI input.
     - The point here is to use the language _needed for the job_. Bash simply _glues_ it together.
 
 **Note**: Using a hook script might sound involved/off-putting but it's not. A hook script is _just a regular executable shell script_. The script simply has special meaning in the sense that it is used to **hook** into nodecliac to change some variables used for later Bash completion processing.
@@ -780,10 +774,10 @@ First create the command's resource `hooks/` directory: `~/.nodecliac/registry/C
 
 #### Using Hook Script
 
-This section will continue to use yarn's [`pre-parse.sh`](/resources/nodecliac/yarn/hooks/pre-parse.sh) script as an example.
+This section will continue to use yarn's [`pre-parse.sh`](/resources/packages/yarn/hooks/pre-parse.sh) script as an example.
 
-- [`pre-parse.sh`](/resources/nodecliac/yarn/hooks/pre-parse.sh) runs a Perl script ([`pre-parse.pl`](/resources/nodecliac/yarn/hooks/pre-parse.pl)) which returns the repo's `package.json` `scripts` as well as modified CLI input.
-- [`pre-parse.sh`](/resources/nodecliac/yarn/hooks/pre-parse.sh) then modifies the `acdef` and the CLI input.
+- [`pre-parse.sh`](/resources/packages/yarn/hooks/pre-parse.sh) runs a Perl script ([`pre-parse.pl`](/resources/packages/yarn/hooks/pre-parse.pl)) which returns the repo's `package.json` `scripts` as well as modified CLI input.
+- [`pre-parse.sh`](/resources/packages/yarn/hooks/pre-parse.sh) then modifies the `acdef` and the CLI input.
 - Since the pre-parse script is sourced into [`connector.sh`](/src/scripts/main/connector.sh) nothing is echoed to script.
 - Instead, the `acdef` and `cline` variables are reset/overwritten.
 - These new values are then used by nodecliac to provide Bash completions.

@@ -40,7 +40,6 @@ module.exports = (string, commandname, source, formatting, ...args) => {
 	// Main loop helper functions/constants.
 	const linetype = require("./helpers/line_type.js");
 	const formatter = require("./helpers/formatter.js");
-	const indentation = require("./helpers/indentation.js");
 	const specificity = require("./helpers/specificity.js");
 	const bracechecks = require("./helpers/brace-checks.js");
 	const { r_start_line_char } = STATE.utils.constants.regexp;
@@ -82,7 +81,6 @@ module.exports = (string, commandname, source, formatting, ...args) => {
 			line_type = linetype(STATE, char, nchar); // Get line's type.
 			if (line_type === "terminator") break; // End on terminator char.
 
-			indentation(STATE, line_type); // Validate line indentation.
 			specificity(STATE, line_type); // Validate line specificity.
 
 			let parser = `${line_type}.js`;

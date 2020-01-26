@@ -25,13 +25,13 @@ const { read, write } = require("../../../src/utils/toolbox.js");
 	let outputfilename = "acmap.tmLanguage.json";
 
 	// Source paths.
-	let st_spath = path.join(sourcedir, "sublime-text-3", "acmap");
+	let st_spath = path.join(sourcedir, "sublime-text-3", "acmap", "grammars");
 	let atom_spath = path.join(sourcedir, "atom", "language-acmap", "grammars");
 	let vscode_spath = path.join(
 		sourcedir,
 		"vscode",
 		"cgabriel5-acmap-grammar",
-		"syntaxes"
+		"grammars"
 	);
 	let acmaptmpath = path.join(st_spath, filename);
 

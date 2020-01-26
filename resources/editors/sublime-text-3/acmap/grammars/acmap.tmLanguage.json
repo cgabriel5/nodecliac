@@ -181,7 +181,7 @@
 			]
 		},
 		"setting": {
-			"begin": "^((@)([a-zA-Z][_a-zA-Z0-9]*))\\s*(=)\\s*",
+			"begin": "^\\s*((@)([a-zA-Z][_a-zA-Z0-9]*))\\s*(=)\\s*",
 			"beginCaptures": {
 				"1": {
 					"name": "variable.other.readwrite.setting.acmap"
@@ -214,7 +214,7 @@
 			"end": "$"
 		},
 		"variable": {
-			"begin": "^((\\$)([_a-zA-Z][_a-zA-Z0-9]*))\\s*(=)\\s*",
+			"begin": "^\\s*((\\$)([_a-zA-Z][_a-zA-Z0-9]*))\\s*(=)\\s*",
 			"beginCaptures": {
 				"1": {
 					"name": "variable.other.readwrite.global.acmap"
@@ -289,7 +289,7 @@
 			}
 		},
 		"command": {
-			"begin": "^(?=\\.?[a-zA-Z])",
+			"begin": "^\\s*(?=\\.?[a-zA-Z])",
 			"contentName": "entity.other.command.acmap",
 			"patterns": [
 				{

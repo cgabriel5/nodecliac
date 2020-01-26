@@ -117,7 +117,7 @@ contexts:
 # ------------------------------------------------------------------- CONSTRUCTS
 
   setting:
-    - match: "^((@)([a-zA-Z][_a-zA-Z0-9]*))\\s*(=)\\s*" # (?=[^\\s]{2,})
+    - match: "^\\s*((@)([a-zA-Z][_a-zA-Z0-9]*))\\s*(=)\\s*" # (?=[^\\s]{2,})
       captures:
         1: variable.other.readwrite.setting.acmap # **purple
         2: punctuation.definition.variable.at-sign.acmap
@@ -132,7 +132,7 @@ contexts:
         - include: default
 
   variable:
-    - match: "^((\\$)([_a-zA-Z][_a-zA-Z0-9]*))\\s*(=)\\s*" # (?=[^\\s]{2,})
+    - match: "^\\s*((\\$)([_a-zA-Z][_a-zA-Z0-9]*))\\s*(=)\\s*" # (?=[^\\s]{2,})
       captures:
         1: variable.other.readwrite.global.acmap # **purple
         2: punctuation.definition.variable.dollar-sign.acmap
@@ -169,7 +169,7 @@ contexts:
         - include: strings
 
   command:
-    - match: "^(?=\\.?[a-zA-Z])"
+    - match: "^\\s*(?=\\.?[a-zA-Z])"
       push:
         - meta_scope: entity.other.command.acmap # **italicize
         - meta_include_prototype: false

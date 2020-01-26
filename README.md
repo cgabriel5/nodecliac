@@ -129,7 +129,7 @@ nodecliac uses two custom files: **a**uto-**c**ompletion **map** (`.acmap`) and 
 - Settings begin with an at-sign (`@`) followed by the setting name.
 - Setting values are assigned with `=` followed by the setting value.
 - Any amount of whitespace before and after `=` is fine, but keep things tidy.
-- No amount of indentation can precede a setting declaration.
+- Whitespace indentation can precede a setting declaration.
 - **Note**: Settings can be declared _anywhere_ within your `.acmap` file.
   - However, it's best if declared at the start of file to quickly spot them.
 
@@ -161,7 +161,7 @@ nodecliac uses two custom files: **a**uto-**c**ompletion **map** (`.acmap`) and 
 - Variable values are assigned with `=` followed by the variable value.
 - A variable's value must be enclosed with quotes.
 - Any amount of whitespace before and after `=` is fine, but keep things tidy.
-- No amount of indentation can precede a setting declaration.
+- Whitespace indentation can precede a variable declaration.
 - **Note**: Variables can be declared _anywhere_ within your `.acmap`.
 
 ```acmap
@@ -196,7 +196,7 @@ yarn.run = default $("${mainscript} run")
 - They start with the CLI program's name, are followed by any commands/subcommands, and are dot (`.`) delimited.
 - If a (sub)command happens to use a dot then simply escape the dot.
   - Non escaped dots will be used as delimiters.
-- No amount of indentation can precede a command chain.
+- Whitespace indentation can precede a command chain.
 
 **Example**: Say the CLI program `program` has two commands `install` and `uninstall`. It's `.acmap` file will be:
 

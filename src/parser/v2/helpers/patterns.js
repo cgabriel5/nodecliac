@@ -12,7 +12,7 @@ module.exports = {
 	r_open_command_br: /^\[\]?$/, // Open command bracket.
 	r_close_br: /^[ \t]*\][ \t]*$/, // Close bracket.
 	r_close_parens: /^[ \t]*\)[ \t]*$/, // Close parentheses.
-	r_start_line_char: /[-@a-zA-Z)\]$;#]/, // Starting line character.
+	r_sol_char: /[-@a-zA-Z)\]$;#]/, // Starting line character.
 	r_command_setter: /^[ \t]*=[ \t]*(\[|-{1,2})/, // Command setter.
 	r_flag_option: /^[ \t]*-[ \t]{1,}([^\s]{1,}.*?)$/, // Flag option.
 	r_command: new RegExp(`[-_.:a-zA-Z0-9\\\\/{}|]`), // Command.

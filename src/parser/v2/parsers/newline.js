@@ -1,5 +1,7 @@
 "use strict";
 
+const add = require("../helpers/tree-add.js");
+
 /**
  * Newline parser.
  *
@@ -13,9 +15,6 @@
  */
 module.exports = STATE => {
 	let { line, utils } = STATE; // Loop state vars.
-	// Utility functions and constants.
-	let { functions: F } = utils;
-	let { add } = F.tree;
 
 	// Parsing vars.
 	let NODE = {

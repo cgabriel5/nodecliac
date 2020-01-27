@@ -1,5 +1,7 @@
 "use strict";
 
+const error = require("./error.js");
+
 /**
  * Performs checks on string as well as interpolates any variables.
  *
@@ -8,7 +10,7 @@
  * @return {object} - Object containing parsed information.
  */
 module.exports = (STATE, NODE) => {
-	let issue = STATE.utils.functions.loop.issue; // Utility functions and constants.
+	let { value, type } = NODE.value;
 
 	let { value, type } = NODE.value; // Vars.
 

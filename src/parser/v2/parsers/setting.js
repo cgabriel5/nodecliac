@@ -1,5 +1,17 @@
 "use strict";
 
+const add = require("../helpers/tree-add.js");
+const error = require("../helpers/error.js");
+const rollback = require("../helpers/rollback.js");
+const validate = require("../helpers/validate-value.js");
+const bracechecks = require("../helpers/brace-checks.js");
+const {
+	r_nl,
+	r_whitespace,
+	r_letter,
+	r_quote
+} = require("../helpers/patterns.js");
+
 /**
  * Setting parser.
  *
@@ -18,11 +30,6 @@
  */
 module.exports = STATE => {
 	let { line, l, string, utils } = STATE; // Loop state vars.
-	// Utility functions and constants.
-	let { functions: F, constants: C } = utils;
-	let { r_nl, r_whitespace, r_letter, r_quote } = C.regexp;
-	let { issue, rollback, validate } = F.loop;
-	let { add } = F.tree;
 
 	// Parsing vars.
 	let state = "sigil"; // Initial parsing state.

@@ -1,6 +1,11 @@
 "use strict";
 
 const p_flag = require("../parsers/flag.js");
+const add = require("../helpers/tree-add.js");
+const error = require("../helpers/error.js");
+const rollback = require("../helpers/rollback.js");
+const bracechecks = require("../helpers/brace-checks.js");
+const { r_nl, r_whitespace } = require("../helpers/patterns.js");
 
 /**
  * Command-chain parser.
@@ -27,11 +32,6 @@ const p_flag = require("../parsers/flag.js");
  */
 module.exports = STATE => {
 	let { line, l, string, utils } = STATE; // Loop state vars.
-	// Utility functions and constants.
-	let { functions: F, constants: C } = utils;
-	let { r_nl, r_whitespace } = C.regexp;
-	let { issue, rollback, bracechecks } = F.loop;
-	let { add } = F.tree;
 
 	// Note: If command-chain scope exists, error as brace wasn't closed.
 	bracechecks(STATE, null, "pre-existing-cs");

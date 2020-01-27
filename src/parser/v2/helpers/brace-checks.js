@@ -1,5 +1,7 @@
 "use strict";
 
+const error = require("./error.js");
+
 /**
  * Check that command/flag scopes are properly closed.
  *
@@ -9,8 +11,6 @@
  * @return {undefined} - Nothing is returned.
  */
 module.exports = (STATE, NODE, checktype) => {
-	let issue = STATE.utils.functions.loop.issue; // Utility functions and constants.
-
 	switch (checktype) {
 		// Check whether a pre-existing command scope exists.
 		case "pre-existing-cs": {

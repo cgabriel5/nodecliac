@@ -1,5 +1,7 @@
 "use strict";
 
+const error = require("./error.js");
+
 /**
  * Checks if line specificity is allowed.
  *
@@ -8,8 +10,6 @@
  * @return {string} - The line's type.
  */
 module.exports = (STATE, line_type) => {
-	let issue = STATE.utils.functions.loop.issue; // Utility functions and constants.
-
 	// Note: [Hierarchy lookup table] The higher the number the higher its
 	// precedence, therefore: command > flag > option. Variables, settings,
 	// and command chains have the same precedence as they are same-level

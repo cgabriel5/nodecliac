@@ -1,5 +1,10 @@
 "use strict";
 
+const add = require("../helpers/tree-add.js");
+const error = require("../helpers/error.js");
+const bracechecks = require("../helpers/brace-checks.js");
+const { r_nl, r_whitespace } = require("../helpers/patterns.js");
+
 /**
  * Closing-brace parser.
  *
@@ -16,11 +21,6 @@
  */
 module.exports = STATE => {
 	let { line, l, string, utils } = STATE; // Loop state vars.
-	// Utility functions and constants.
-	let { functions: F, constants: C } = utils;
-	let { r_nl, r_whitespace } = C.regexp;
-	let { issue, bracechecks } = F.loop;
-	let { add } = F.tree;
 
 	// Parsing vars.
 	let state = "brace"; // Initial parsing state.

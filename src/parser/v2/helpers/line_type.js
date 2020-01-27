@@ -1,5 +1,7 @@
 "use strict";
 
+const { r_whitespace, r_letter } = require("./patterns.js");
+
 /**
  * Determine line's line type.
  *
@@ -10,9 +12,6 @@
  */
 module.exports = (STATE, char, nchar) => {
 	let { string, utils } = STATE; // Loop state vars.
-	// Utility functions and constants.
-	let { constants: C } = utils;
-	let { r_letter, r_whitespace } = C.regexp;
 
 	let LINE_TYPES = {
 		";": "terminator", // Terminator (end parsing).

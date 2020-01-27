@@ -28,24 +28,8 @@ module.exports = async args => {
 	let { source, print } = args; // `make` + `format` flags.
 	let { trace, test } = args; // `make` flags.
 	let { "strip-comments": igc, highlight, indent } = args; // `format` flags.
-	let { engine } = args; // Other flags.
 
-	// Get list of available engines.
-	let parserpath = path.join(path.parse(__dirname).dir, "/parser");
-	[err, res] = await flatry(readdir(parserpath));
-	// Filter content to only return version directories.
-	let engines = res
-		.filter(item => /^v\d+$/.test(item))
-		.map(item => +item.replace("v", ""));
-
-	// Default to latest engine if engine version isn't specified.
-	engine = engine || engines[engines.length - 1];
-
-	// If engine does not exist error.
-	tstring = "Engine: ? does not exist.";
-	if (!engines.includes(engine)) exit([fmt(tstring, chalk.bold(engine))]);
-	// Require parser engine script.
-	let parser = require(`../parser/v${engine}/index.js`);
+	let parser = require(`../parser/v2/index.js`);
 
 	// Formatting indentation values.
 	let indent_char = "\t",

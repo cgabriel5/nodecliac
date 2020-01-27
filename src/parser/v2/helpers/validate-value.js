@@ -57,14 +57,14 @@ module.exports = (STATE, NODE) => {
 				if (!/^\$?("|').*?\1$/.test(value)) {
 					STATE.column = resumepoint; // Reset index position.
 
-					issue.error(STATE, 10); // Note: Close quote is missing so error.
+					error(STATE, __filename, 10); // Note: Close quote is missing so error.
 				}
 
 				// If string is empty give error.
 				if (/^("|')\1$/.test(value)) {
 					STATE.column = resumepoint; // Reset index position.
 
-					issue.error(STATE, 11); // Note: String shouldn't be empty.
+					error(STATE, __filename, 11); // Note: String shouldn't be empty.
 				}
 
 				// Next, interpolate any variable template-strings. ============
@@ -88,7 +88,7 @@ module.exports = (STATE, NODE) => {
 						STATE.column = resumepoint + index; // Reset index position.
 
 						// Note: Variable does not exist in lookup.
-						return issue.error(STATE, 12);
+						return error(STATE, __filename, 12);
 					}
 
 					return value;
@@ -113,14 +113,14 @@ module.exports = (STATE, NODE) => {
 				if (!/^\$\(/.test(value)) {
 					STATE.column = resumepoint + 1; // Reset index position.
 
-					issue.error(STATE, 13); // Note: String shouldn't be empty.
+					error(STATE, __filename, 13); // Note: String shouldn't be empty.
 				}
 				// Note: If command-flag doesn't end with ')', give error.
 				if (!/\)$/.test(value)) {
 					// Reset index position.
 					STATE.column = resumepoint + value.length - 1;
 
-					issue.error(STATE, 13); // Note: String shouldn't be empty.
+					error(STATE, __filename, 13); // Note: String shouldn't be empty.
 				}
 
 				// Collect parsed arguments.
@@ -164,7 +164,7 @@ module.exports = (STATE, NODE) => {
 								STATE.column = resumepoint + i;
 
 								// Note: String shouldn't be empty.
-								issue.error(STATE, 14);
+								error(STATE, __filename, 14);
 							}
 
 							// Look out for '$' prefixed strings.
@@ -186,7 +186,7 @@ module.exports = (STATE, NODE) => {
 							STATE.column = resumepoint + i;
 
 							// Note: String shouldn't be empty.
-							issue.error(STATE);
+							error(STATE, __filename);
 						}
 					} else {
 						argument += char; // Capture character.
@@ -219,7 +219,7 @@ module.exports = (STATE, NODE) => {
 					// Reset index position.
 					STATE.column = resumepoint + delimiter_index;
 
-					issue.error(STATE, 14); // Note: String shouldn't be empty.
+					error(STATE, __filename, 14); // Note: String shouldn't be empty.
 				}
 
 				// Get last argument.
@@ -257,14 +257,14 @@ module.exports = (STATE, NODE) => {
 				if (!/^\(/.test(value)) {
 					STATE.column = resumepoint; // Reset index position.
 
-					issue.error(STATE, 15); // Note: String shouldn't be empty.
+					error(STATE, __filename, 15); // Note: String shouldn't be empty.
 				}
 				// Note: If command-flag doesn't end with ')', give error.
 				if (!/\)$/.test(value)) {
 					// Reset index position.
 					STATE.column = resumepoint + value.length - 1;
 
-					issue.error(STATE, 15); // Note: String shouldn't be empty.
+					error(STATE, __filename, 15); // Note: String shouldn't be empty.
 				}
 
 				// Collect parsed arguments.
@@ -309,7 +309,7 @@ module.exports = (STATE, NODE) => {
 							STATE.column = resumepoint + i;
 
 							// Note: String shouldn't be empty.
-							issue.error(STATE);
+							error(STATE, __filename);
 						}
 
 						// Note: If arguments array is already populated
@@ -323,7 +323,7 @@ module.exports = (STATE, NODE) => {
 							STATE.column = resumepoint + i;
 
 							// Note: String shouldn't be empty.
-							issue.error(STATE);
+							error(STATE, __filename);
 						}
 
 						argument += char; // Store character.

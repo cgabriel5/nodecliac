@@ -64,7 +64,7 @@ module.exports = STATE => {
 
 			case "spacer":
 				// Note: A whitespace character must follow bullet, else error.
-				if (!r_whitespace.test(char)) issue.error(STATE);
+				if (!r_whitespace.test(char)) error(STATE, __filename);
 
 				state = "wsb-prevalue"; // Reset parsing state.
 
@@ -107,7 +107,7 @@ module.exports = STATE => {
 						// If flag is set and characters can still be consumed
 						// then there is a syntax error. For example, string
 						// may be improperly quoted/escaped so give error.
-						if (end_comsuming) issue.error(STATE);
+						if (end_comsuming) error(STATE, __filename);
 
 						// Get string type.
 						let stype = NODE.value.type;

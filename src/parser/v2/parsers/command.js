@@ -72,7 +72,7 @@ module.exports = STATE => {
 				// If name is empty check for first letter.
 				if (!NODE.command.value) {
 					// Name must start with pattern else give error.
-					if (!/[:a-zA-Z]/.test(char)) issue.error(STATE);
+					if (!/[:a-zA-Z]/.test(char)) error(STATE, __filename);
 
 					// Set index positions.
 					NODE.command.start = STATE.i;
@@ -97,12 +97,12 @@ module.exports = STATE => {
 
 							// Note: If next char doesn't exist the
 							// '\' char is escaping nothing so error.
-							if (!nchar) issue.error(STATE, 10);
+							if (!nchar) error(STATE, __filename, 10);
 
 							// Next char must be a space to be a valid escape sequence.
 							if (nchar !== ".") {
 								// Escaping anything but a dot isn't allowed, so error.
-								issue.error(STATE, 10);
+								error(STATE, __filename, 10);
 
 								// Remove last escape char as it isn't needed.
 								let command = NODE.command.value.slice(0, -1);
@@ -130,7 +130,7 @@ module.exports = STATE => {
 						rollback(STATE); // Rollback loop index.
 					}
 					// Note: Anything at this point is an invalid char.
-					else issue.error(STATE);
+					else error(STATE, __filename);
 				}
 
 				break;
@@ -150,7 +150,7 @@ module.exports = STATE => {
 						rollback(STATE); // Rollback loop index.
 					}
 					// Note: Anything at this point is an invalid char.
-					else issue.error(STATE);
+					else error(STATE, __filename);
 				}
 
 				break;
@@ -193,7 +193,7 @@ module.exports = STATE => {
 				// commence 'oneliner' route.
 
 				// Before determining path, check that character is valid.
-				if (!/[-d[]/.test(char)) issue.error(STATE);
+				if (!/[-d[]/.test(char)) error(STATE, __filename);
 
 				state = char === "[" ? "open-bracket" : "oneliner"; // Reset parsing state.
 
@@ -226,7 +226,7 @@ module.exports = STATE => {
 
 			case "close-bracket":
 				// Char must be a closing bracket ']' anything else is invalid.
-				if (char !== "]") issue.error(STATE);
+				if (char !== "]") error(STATE, __filename);
 
 				// Store index positions.
 				NODE.brackets.end = STATE.i;
@@ -249,7 +249,7 @@ module.exports = STATE => {
 
 			case "eol-wsb":
 				// Anything but trailing whitespace is invalid so give error.
-				if (!r_whitespace.test(char)) issue.error(STATE);
+				if (!r_whitespace.test(char)) error(STATE, __filename);
 
 				break;
 		}

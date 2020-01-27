@@ -36,6 +36,6 @@ module.exports = (STATE, line_type) => {
 		: STATE.specificity;
 
 	// Note: Check whether specificity hierarchy is allowed, else error.
-	if (state_specf && state_specf < line_specf) issue.error(STATE, 12);
+	if (state_specf && state_specf < line_specf) error(STATE, __filename, 12);
 	STATE.specificity = line_specf; // Set state specificity.
 };

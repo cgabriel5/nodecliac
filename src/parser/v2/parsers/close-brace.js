@@ -59,7 +59,7 @@ module.exports = STATE => {
 
 			case "eol-wsb":
 				// Anything but trailing whitespace is invalid so give error.
-				if (!r_whitespace.test(char)) issue.error(STATE);
+				if (!r_whitespace.test(char)) error(STATE, __filename);
 
 				break;
 		}

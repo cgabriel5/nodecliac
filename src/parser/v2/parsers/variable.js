@@ -66,7 +66,7 @@ module.exports = STATE => {
 				// If name value is empty check for first letter.
 				if (!NODE.name.value) {
 					// Name must start with pattern else give error.
-					if (!r_letter.test(char)) issue.error(STATE);
+					if (!r_letter.test(char)) error(STATE, __filename);
 
 					// Set index positions.
 					NODE.name.start = STATE.i;
@@ -97,7 +97,7 @@ module.exports = STATE => {
 						rollback(STATE); // Rollback loop index.
 					}
 					// Note: Anything at this point is an invalid char.
-					else issue.error(STATE);
+					else error(STATE, __filename);
 				}
 
 				break;
@@ -112,7 +112,7 @@ module.exports = STATE => {
 						rollback(STATE); // Rollback loop index.
 					}
 					// Note: Anything at this point is an invalid char.
-					else issue.error(STATE);
+					else error(STATE, __filename);
 				}
 
 				break;
@@ -142,7 +142,7 @@ module.exports = STATE => {
 				// If first char, only `"`, `'`, or `a-zA-Z0-9` are allowed.
 				if (!NODE.value.value) {
 					// If char is not allowed give an error.
-					if (!/["'a-zA-Z0-9]/.test(char)) issue.error(STATE);
+					if (!/["'a-zA-Z0-9]/.test(char)) error(STATE, __filename);
 
 					if (r_quote.test(char)) qchar = char; // Store if a quote char.
 
@@ -184,7 +184,7 @@ module.exports = STATE => {
 
 			case "eol-wsb":
 				// Anything but trailing whitespace is invalid so give error.
-				if (!r_whitespace.test(char)) issue.error(STATE);
+				if (!r_whitespace.test(char)) error(STATE, __filename);
 
 				break;
 		}

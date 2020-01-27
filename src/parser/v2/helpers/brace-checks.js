@@ -16,7 +16,7 @@ module.exports = (STATE, NODE, checktype) => {
 		case "pre-existing-cs": {
 			let commandscope = STATE.scopes.command;
 			// Note: Can't declare command inside command scope.
-			if (commandscope) issue.error(STATE, 10);
+			if (commandscope) error(STATE, __filename, 10);
 
 			break;
 		}
@@ -29,7 +29,8 @@ module.exports = (STATE, NODE, checktype) => {
 			// invalidly. If it does exist clear it.
 			if (STATE.scopes[type]) STATE.scopes[type] = null;
 			// Else, if scope doesn't exist give an error.
-			else issue.error(STATE, 11); // Note: Error when a ']' doesn't close a scope.
+			// Note: Error when a ']' doesn't close a scope.
+			else error(STATE, __filename, 11);
 
 			break;
 		}
@@ -49,7 +50,7 @@ module.exports = (STATE, NODE, checktype) => {
 				// Note: Add 1 for 0 base indexing (column starts at 1).
 				STATE.column = brackets_start - linestart + 1; // Point column to bracket.
 
-				issue.error(STATE, 12); // Note: If scope is left unclosed, error.
+				error(STATE, __filename, 12); // Note: If scope is left unclosed, error.
 			} else return; // If no scope set return and error.
 
 			break;
@@ -63,7 +64,7 @@ module.exports = (STATE, NODE, checktype) => {
 				// Note: Add 1 for 0 base indexing (column starts at 1).
 				STATE.column = STATE.i - linestart + 1; // Point column to bracket.
 
-				issue.error(STATE, 13); // Note: Flag option declared out of scope.
+				error(STATE, __filename, 13); // Note: Flag option declared out of scope.
 			}
 
 			break;

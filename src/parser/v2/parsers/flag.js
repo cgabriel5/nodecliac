@@ -31,10 +31,10 @@ module.exports = (STATE, isoneliner) => {
 	let { add } = F.tree;
 
 	// Note: If not a oneliner or no command scope, flag is being declared out of scope.
-	if (!(isoneliner || STATE.scopes.command)) issue.error(STATE, 10);
+	if (!(isoneliner || STATE.scopes.command)) error(STATE, __filename, 10);
 
 	// Note: If flag scope already exists another flag cannot be declared.
-	if (STATE.scopes.flag) issue.error(STATE, 11);
+	if (STATE.scopes.flag) error(STATE, __filename, 11);
 
 	// Parsing vars.
 	let state = string.charAt(STATE.i) === "-" ? "hyphen" : "keyword"; // Initial parsing state.
@@ -80,7 +80,7 @@ module.exports = (STATE, isoneliner) => {
 				// Only hyphens are allowed at this point.
 				if (!NODE.hyphens.value) {
 					// If char is not a hyphen, error.
-					if (char !== "-") issue.error(STATE);
+					if (char !== "-") error(STATE, __filename);
 
 					// Store index positions.
 					NODE.hyphens.start = STATE.i;
@@ -110,7 +110,7 @@ module.exports = (STATE, isoneliner) => {
 					let keyword = string.substr(STATE.i, keyword_len);
 
 					// Note: If the keyword is not 'default' then error.
-					if (keyword !== "default") issue.error(STATE);
+					if (keyword !== "default") error(STATE, __filename);
 
 					// Store index positions.
 					NODE.keyword.start = STATE.i;
@@ -128,7 +128,7 @@ module.exports = (STATE, isoneliner) => {
 
 			case "keyword-spacer":
 				// Note: Character must be a whitespace character, else error.
-				if (!r_whitespace.test(char)) issue.error(STATE);
+				if (!r_whitespace.test(char)) error(STATE, __filename);
 
 				state = "wsb-prevalue"; // Reset parsing state.
 
@@ -138,7 +138,7 @@ module.exports = (STATE, isoneliner) => {
 				// Only hyphens are allowed at this point.
 				if (!NODE.name.value) {
 					// If char is not a hyphen, error.
-					if (!r_letter.test(char)) issue.error(STATE);
+					if (!r_letter.test(char)) error(STATE, __filename);
 
 					// Store index positions.
 					NODE.name.start = STATE.i;
@@ -178,7 +178,7 @@ module.exports = (STATE, isoneliner) => {
 						rollback(STATE); // Rollback loop index.
 					}
 					// Note: Anything at this point is an invalid char.
-					else issue.error(STATE);
+					else error(STATE, __filename);
 				}
 
 				break;
@@ -200,7 +200,7 @@ module.exports = (STATE, isoneliner) => {
 						rollback(STATE); // Rollback loop index.
 					}
 					// Note: Anything at this point is an invalid char.
-					else issue.error(STATE);
+					else error(STATE, __filename);
 				}
 
 				break;
@@ -251,7 +251,7 @@ module.exports = (STATE, isoneliner) => {
 				// [https://stackoverflow.com/a/25895905]
 				// [https://stackoverflow.com/a/12281034]
 
-				if (char !== "|") issue.error(STATE);
+				if (char !== "|") error(STATE, __filename);
 				stop = true; // Set parsing stop flag.
 
 				break;
@@ -307,7 +307,7 @@ module.exports = (STATE, isoneliner) => {
 						// If flag is set and characters can still be consumed
 						// then there is a syntax error. For example, string may
 						// be improperly quoted/escaped so give error.
-						if (end_comsuming) issue.error(STATE);
+						if (end_comsuming) error(STATE, __filename);
 
 						// Get string type.
 						let stype = NODE.value.type;

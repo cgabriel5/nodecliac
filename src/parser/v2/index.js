@@ -1,91 +1,50 @@
 "use strict";
 
-module.exports = (string, commandname, source, formatting, ...args) => {
-	const [highlight, trace, stripcomments, test] = args;
-	const stime = process.hrtime(); // Start time.
-	let first_non_whitespace_char = "";
-	let line_type;
+const state = require("./helpers/state.js");
+const error = require("./helpers/error.js");
+const p_newline = require("./parsers/newline.js");
+const linetype = require("./helpers/line_type.js");
+const formatter = require("./helpers/formatter.js");
+const specificity = require("./helpers/specificity.js");
+const bracechecks = require("./helpers/brace-checks.js");
+const { r_sol_char, r_whitespace } = require("./helpers/patterns.js");
 
-	// Loop state object.
-	const STATE = {
-		line: 1,
-		column: 0,
-		i: 0,
-		l: string.length,
-		string,
-		specificity: 0, // Default to allow anything initially.
-		scopes: { command: null, flag: null }, // Track command/flag scopes.
-
-		// Parsing lookup tables.
-		tables: { variables: {}, linestarts: {}, tree: { nodes: [] } },
-
-		// Arguments/parameters for quick access across parsers.
-		args: { formatting, highlight, trace, stripcomments, test },
-
-		// Utilities (helper functions/constants) for quick access.
-		utils: {
-			constants: { regexp: require("./helpers/patterns.js") },
-			functions: {
-				tree: { add: require("./helpers/tree-add.js") },
-				loop: {
-					issue: require("./helpers/issue.js"),
-					rollback: require("./helpers/rollback.js"),
-					validate: require("./helpers/validate-value.js"),
-					bracechecks: require("./helpers/brace-checks.js")
-				}
-			}
-		}
-	};
-
-	// Main loop helper functions/constants.
-	const linetype = require("./helpers/line_type.js");
-	const formatter = require("./helpers/formatter.js");
-	const specificity = require("./helpers/specificity.js");
-	const bracechecks = require("./helpers/brace-checks.js");
-	const { r_start_line_char } = STATE.utils.constants.regexp;
-	const { issue } = STATE.utils.functions.loop;
+module.exports = (text, commandname, source, fmt, trace, igc, test) => {
+	const STATE = state(text, source, fmt, trace, igc, test);
 	const { linestarts } = STATE.tables;
+	const stime = process.hrtime(); // Start time.
+	let line_type;
 
 	// Loop over acdef file contents to parse.
 	for (; STATE.i < STATE.l; STATE.i++) {
-		let char = string.charAt(STATE.i); // Cache current loop char.
-		let nchar = string.charAt(STATE.i + 1);
+		let char = text.charAt(STATE.i);
+		let nchar = text.charAt(STATE.i + 1);
 
 		// Handle newlines.
-		if (char === "\n") {
-			require(`./parsers/newline.js`)(STATE); // Run newline parser.
+		if (char === "\n") p_newline(STATE);
+		// All other characters.
+		else {
+			STATE.column++;
 
-			STATE.line++; // Increment line count.
-			STATE.column = 0; // Reset column to zero.
-			first_non_whitespace_char = "";
+			// Store line start points.
+			if (!linestarts[STATE.line]) linestarts[STATE.line] = STATE.i;
 
-			continue; // Skip iteration at this point.
-		}
+			// Find first non-whitespace character of line.
+			if (!STATE.sol_char && !r_whitespace.test(char)) {
+				STATE.sol_char = char; // Set char.
 
-		STATE.column++; // Increment column position.
+				// Error if sol char is not allowed.
+				if (!r_sol_char.test(char)) error(STATE, 10, __filename);
 
-		// Store line start points.
-		if (!linestarts[STATE.line]) linestarts[STATE.line] = STATE.i;
+				line_type = linetype(STATE, char, nchar); // Get line's type.
+				if (line_type === "terminator") break; // End on terminator char.
 
-		// Find first non-whitespace character of line.
-		if (!first_non_whitespace_char && !/[ \t]/.test(char)) {
-			first_non_whitespace_char = char; // Set flag.
+				specificity(STATE, line_type); // Validate line specificity.
 
-			// Error if sol char is not allowed.
-			if (!r_start_line_char.test(char)) issue.error(STATE, 10);
-
-			// Note: Since current sol char has already been iterated over,
-			// rollback column to let parser start on sol char.
-			STATE.column--;
-
-			line_type = linetype(STATE, char, nchar); // Get line's type.
-			if (line_type === "terminator") break; // End on terminator char.
-
-			specificity(STATE, line_type); // Validate line specificity.
-
-			let parser = `${line_type}.js`;
-			require("./helpers/trace.js")(STATE, parser); // Trace parser.
-			require(`./parsers/${parser}`)(STATE); // Finally, run parser.
+				STATE.column--; // Rollback column to start parser on sol char.
+				require("./helpers/trace.js")(STATE, line_type); // Trace parser.
+				require(`./parsers/${line_type}.js`)(STATE); // Run parser.
+			}
 		}
 	}
 
@@ -93,7 +52,7 @@ module.exports = (string, commandname, source, formatting, ...args) => {
 	bracechecks(STATE, null, "post-standing-scope");
 
 	let res = {};
-	if (formatting) res.formatted = formatter(STATE);
+	if (fmt) res.formatted = formatter(STATE);
 	else res = require("./helpers/acdef.js")(STATE, commandname);
 	res.time = process.hrtime(stime); // Attach end time.
 	return res; // Return acdef, config, etc.

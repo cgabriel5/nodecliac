@@ -69,8 +69,7 @@ module.exports = (STATE, isoneliner) => {
 
 		// End loop on a newline char.
 		if (stop || r_nl.test(char)) {
-			// Rollback to run newline char code block next iteration.
-			NODE.endpoint = --STATE.i; // Store newline index.
+			NODE.endpoint = --STATE.i; // Rollback (run '\n' parser next).
 
 			break;
 		}

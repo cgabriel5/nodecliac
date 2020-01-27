@@ -37,10 +37,9 @@ module.exports = STATE => {
 	for (; STATE.i < l; STATE.i++) {
 		let char = text.charAt(STATE.i); // Cache current loop char.
 
-		// Note: End loop on a newline char.
+		// End loop on a newline char.
 		if (r_nl.test(char)) {
-			// Rollback to run newline char code block next iteration.
-			NODE.endpoint = --STATE.i; // Store newline index.
+			NODE.endpoint = --STATE.i; // Rollback (run '\n' parser next).
 
 			break;
 		}

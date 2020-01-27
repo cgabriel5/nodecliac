@@ -7,19 +7,10 @@ const log = require("fancy-log");
 const fe = require("file-exists");
 const mkdirp = require("make-dir");
 const de = require("directory-exists");
-const {
-	fmt,
-	exit,
-	// paths,
-	read,
-	write,
-	info,
-	readdir,
-	ispath_abs
-} = require("../utils/toolbox.js");
+const toolbox = require("../utils/toolbox.js");
+const { fmt, exit, read, write, info, readdir, ispath_abs } = toolbox;
 
 module.exports = async args => {
-	// let { registrypath } = paths; // Get needed paths.
 	// eslint-disable-next-line no-unused-vars
 	let err, res; // Declare empty variables to reuse for all await operations.
 	let tstring = "";
@@ -52,7 +43,7 @@ module.exports = async args => {
 			indent_amount = indent_level;
 		}
 
-		// Reset identifier to its literal char (`s` => " ", `t` => "\t").
+		// Use literal chars (`s` => " ", `t` => "\t").
 		indent_char = indent_char === "s" ? " " : "\t";
 	}
 

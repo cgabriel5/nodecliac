@@ -20,7 +20,7 @@ module.exports = async args => {
 	let { trace, test } = args; // `make` flags.
 	let { "strip-comments": igc, indent } = args; // `format` flags.
 
-	let parser = require(`../parser/v2/index.js`);
+	let parser = require(`../parser/index.js`);
 
 	// Formatting indentation values.
 	let indent_char = "\t",

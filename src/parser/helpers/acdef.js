@@ -1,6 +1,6 @@
 "use strict";
 
-const { md5, hasOwnProperty } = require("../../../utils/toolbox.js");
+const { md5, hasOwnProperty } = require("../../utils/toolbox.js");
 
 /**
  * Generate .acdef, .config.acdef file contents from parse tree ob nodes.

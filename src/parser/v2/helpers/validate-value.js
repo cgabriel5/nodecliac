@@ -12,8 +12,6 @@ const error = require("./error.js");
 module.exports = (STATE, NODE) => {
 	let { value, type } = NODE.value;
 
-	let { value, type } = NODE.value; // Vars.
-
 	// Start: Short Circuit Checks. ============================================
 
 	// Note: If a value does not exist then return.

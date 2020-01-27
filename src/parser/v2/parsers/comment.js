@@ -20,7 +20,7 @@ const { r_nl, r_whitespace } = require("../helpers/patterns.js");
  * @return {object} - Object containing parsed information.
  */
 module.exports = STATE => {
-	let { line, l, string, utils } = STATE; // Loop state vars.
+	let { line, l, text } = STATE;
 
 	// Parsing vars.
 	let state = "sigil"; // Initial parsing state.
@@ -35,7 +35,7 @@ module.exports = STATE => {
 
 	// Loop over string.
 	for (; STATE.i < l; STATE.i++) {
-		let char = string.charAt(STATE.i); // Cache current loop char.
+		let char = text.charAt(STATE.i); // Cache current loop char.
 
 		// Note: End loop on a newline char.
 		if (r_nl.test(char)) {

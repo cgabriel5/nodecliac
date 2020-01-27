@@ -22,7 +22,7 @@ const { r_nl, r_whitespace, r_quote } = require("../helpers/patterns.js");
  * @return {object} - Object containing parsed information.
  */
 module.exports = STATE => {
-	let { line, l, string, utils } = STATE; // Loop state vars.
+	let { line, l, text } = STATE;
 
 	// Note: If a flag scope doesn't exist, error as it needs to.
 	bracechecks(STATE, null, "pre-existing-fs");
@@ -41,7 +41,7 @@ module.exports = STATE => {
 
 	// Loop over string.
 	for (; STATE.i < l; STATE.i++) {
-		let char = string.charAt(STATE.i); // Cache current loop char.
+		let char = text.charAt(STATE.i); // Cache current loop char.
 
 		// End loop on a newline char.
 		if (r_nl.test(char)) {
@@ -89,7 +89,7 @@ module.exports = STATE => {
 					// - Strings        => "value"
 					// - Escaped-values => val\ ue
 
-					let pchar = string.charAt(STATE.i - 1); // Previous char.
+					let pchar = text.charAt(STATE.i - 1); // Previous char.
 
 					// Determine value type.
 					if (!NODE.value.value) {

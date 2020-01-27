@@ -11,7 +11,7 @@ const { r_whitespace, r_letter } = require("./patterns.js");
  * @return {string} - The line's type.
  */
 module.exports = (STATE, char, nchar) => {
-	let { string, utils } = STATE; // Loop state vars.
+	let { text } = STATE;
 
 	let LINE_TYPES = {
 		";": "terminator", // Terminator (end parsing).
@@ -37,7 +37,7 @@ module.exports = (STATE, char, nchar) => {
 		else STATE.singletonflag = true; // Make flag parser add node to tree.
 	} else if (line_type === "command") {
 		// Check for 'default' keyword.
-		if (string.substr(STATE.i, 7) === "default") {
+		if (text.substr(STATE.i, 7) === "default") {
 			line_type = "flag";
 			STATE.singletonflag = true; // Make flag parser add node to tree.
 		}

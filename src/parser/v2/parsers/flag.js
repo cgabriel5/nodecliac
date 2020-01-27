@@ -35,7 +35,7 @@ const {
  * @return {object} - Object containing parsed information.
  */
 module.exports = (STATE, isoneliner) => {
-	let { line, l, string, utils } = STATE; // Loop state vars.
+	let { line, l, text } = STATE;
 
 	// Note: If not a oneliner or no command scope, flag is being declared out of scope.
 	if (!(isoneliner || STATE.scopes.command)) error(STATE, __filename, 10);
@@ -44,7 +44,7 @@ module.exports = (STATE, isoneliner) => {
 	if (STATE.scopes.flag) error(STATE, __filename, 11);
 
 	// Parsing vars.
-	let state = string.charAt(STATE.i) === "-" ? "hyphen" : "keyword"; // Initial parsing state.
+	let state = text.charAt(STATE.i) === "-" ? "hyphen" : "keyword"; // Initial parsing state.
 	let stop; // Flag indicating whether to stop parser.
 	let end_comsuming;
 	let NODE = {
@@ -65,7 +65,7 @@ module.exports = (STATE, isoneliner) => {
 
 	// Loop over string.
 	for (; STATE.i < l; STATE.i++) {
-		let char = string.charAt(STATE.i); // Cache current loop char.
+		let char = text.charAt(STATE.i); // Cache current loop char.
 
 		// End loop on a newline char.
 		if (stop || r_nl.test(char)) {
@@ -114,7 +114,7 @@ module.exports = (STATE, isoneliner) => {
 				{
 					// Only letters are allowed.
 					let keyword_len = 7;
-					let keyword = string.substr(STATE.i, keyword_len);
+					let keyword = text.substr(STATE.i, keyword_len);
 
 					// Note: If the keyword is not 'default' then error.
 					if (keyword !== "default") error(STATE, __filename);
@@ -285,7 +285,7 @@ module.exports = (STATE, isoneliner) => {
 					// - Escaped-values:  => val\ ue
 
 					// Get the previous char.
-					let pchar = string.charAt(STATE.i - 1);
+					let pchar = text.charAt(STATE.i - 1);
 
 					// Determine value type.
 					if (!NODE.value.value) {

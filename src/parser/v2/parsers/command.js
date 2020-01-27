@@ -31,7 +31,7 @@ const { r_nl, r_whitespace } = require("../helpers/patterns.js");
  * @return {object} - Object containing parsed information.
  */
 module.exports = STATE => {
-	let { line, l, string, utils } = STATE; // Loop state vars.
+	let { line, l, text } = STATE;
 
 	// Note: If command-chain scope exists, error as brace wasn't closed.
 	bracechecks(STATE, null, "pre-existing-cs");
@@ -55,7 +55,7 @@ module.exports = STATE => {
 
 	// Loop over string.
 	for (; STATE.i < l; STATE.i++) {
-		let char = string.charAt(STATE.i); // Cache current loop char.
+		let char = text.charAt(STATE.i); // Cache current loop char.
 
 		// End loop on a newline char.
 		if (r_nl.test(char)) {
@@ -93,7 +93,7 @@ module.exports = STATE => {
 						// if the command is 'com\mand\.name' we should return
 						// 'command\.name' and not 'com\mand\.name'.
 						if (char === "\\") {
-							let nchar = string.charAt(STATE.i + 1); // Next char.
+							let nchar = text.charAt(STATE.i + 1); // Next char.
 
 							// Note: If next char doesn't exist the
 							// '\' char is escaping nothing so error.

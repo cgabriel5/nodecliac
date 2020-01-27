@@ -29,7 +29,7 @@ const {
  * @return {object} - Object containing parsed information.
  */
 module.exports = STATE => {
-	let { line, l, string, utils } = STATE; // Loop state vars.
+	let { line, l, text } = STATE;
 
 	// Parsing vars.
 	let state = "sigil"; // Initial parsing state.
@@ -47,7 +47,7 @@ module.exports = STATE => {
 
 	// Loop over string.
 	for (; STATE.i < l; STATE.i++) {
-		let char = string.charAt(STATE.i); // Cache current loop char.
+		let char = text.charAt(STATE.i); // Cache current loop char.
 
 		// End loop on a newline char.
 		if (r_nl.test(char)) {
@@ -163,7 +163,7 @@ module.exports = STATE => {
 					// If value is a quoted string allow for anything
 					// and end at the same style-unescaped quote.
 					if (qchar) {
-						let pchar = string.charAt(STATE.i - 1); // Previous char.
+						let pchar = text.charAt(STATE.i - 1); // Previous char.
 
 						// Once quoted string is closed change state.
 						if (char === qchar && pchar !== "\\") state = "eol-wsb";

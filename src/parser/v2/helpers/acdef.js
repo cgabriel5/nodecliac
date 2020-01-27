@@ -5,11 +5,11 @@ const { md5, hasOwnProperty } = require("../../../utils/toolbox.js");
 /**
  * Generate .acdef, .config.acdef file contents from parse tree ob nodes.
  *
- * @param  {object} STATE - Main loop state object.
+ * @param  {object} S - Main loop state object.
  * @param  {string} commandname - Name of <command>.acdef being parsed.
  * @return {object} - Object containing acdef, config, and keywords contents.
  */
-module.exports = (STATE, commandname) => {
+module.exports = (S, commandname) => {
 	let counter = 0;
 	let nodes = [];
 	let ACDEF = [];
@@ -18,7 +18,7 @@ module.exports = (STATE, commandname) => {
 	let DEFAULTS = {};
 	let SETTINGS = {};
 	let PLACEHOLDERS = {};
-	let TREE = STATE.tables.tree;
+	let TREE = S.tables.tree;
 	let memtable = {}; // Cache md5 hash to their respective flags string.
 	let has_root = false;
 
@@ -31,7 +31,7 @@ module.exports = (STATE, commandname) => {
 	const date = new Date();
 	const timestamp = Date.now();
 	let header = `# DON'T EDIT FILE —— GENERATED: ${date}(${timestamp})\n\n`;
-	if (STATE.args.test) header = ""; // Reset header when testing.
+	if (S.args.test) header = ""; // Reset header when testing.
 
 	/**
 	 * Add base flag to Set (adds '--flag=' or '--flag=*' to Set).

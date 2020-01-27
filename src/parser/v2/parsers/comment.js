@@ -16,11 +16,11 @@ const { r_nl, r_whitespace } = require("../helpers/patterns.js");
  *  ^-Comment-Chars *(All characters until newline '\n').
  * -----------------------------------------------------------------------------
  *
- * @param  {object} STATE - Main loop state object.
+ * @param  {object} S - Main loop state object.
  * @return {object} - Object containing parsed information.
  */
-module.exports = STATE => {
-	let { line, l, text } = STATE;
+module.exports = S => {
+	let { line, l, text } = S;
 
 	// Parsing vars.
 	let state = "sigil"; // Initial parsing state.
@@ -29,28 +29,28 @@ module.exports = STATE => {
 		sigil: { start: null, end: null },
 		comment: { start: null, end: null, value: "" },
 		line,
-		startpoint: STATE.i,
+		startpoint: S.i,
 		endpoint: null // Index where parsing ended.
 	};
 
 	// Loop over string.
-	for (; STATE.i < l; STATE.i++) {
-		let char = text.charAt(STATE.i); // Cache current loop char.
+	for (; S.i < l; S.i++) {
+		let char = text.charAt(S.i); // Cache current loop char.
 
 		// End loop on a newline char.
 		if (r_nl.test(char)) {
-			NODE.endpoint = --STATE.i; // Rollback (run '\n' parser next).
+			NODE.endpoint = --S.i; // Rollback (run '\n' parser next).
 
 			break;
 		}
 
-		STATE.column++; // Increment column position.
+		S.column++; // Increment column position.
 
 		switch (state) {
 			case "sigil":
 				// Store index positions.
-				NODE.sigil.start = STATE.i;
-				NODE.sigil.end = STATE.i;
+				NODE.sigil.start = S.i;
+				NODE.sigil.end = S.i;
 
 				state = "comment"; // Reset parsing state.
 
@@ -59,7 +59,7 @@ module.exports = STATE => {
 			case "comment":
 				// Note: Ensure start index is stored if not already.
 				if (!NODE.comment.start) NODE.comment.start = NODE.sigil.start;
-				NODE.comment.end = STATE.i; // Store index positions.
+				NODE.comment.end = S.i; // Store index positions.
 
 				break;
 		}
@@ -67,5 +67,5 @@ module.exports = STATE => {
 		NODE.comment.value += char; // Capture all comment characters.
 	}
 
-	add(STATE, NODE); // Add node to tree.
+	add(S, NODE); // Add node to tree.
 };

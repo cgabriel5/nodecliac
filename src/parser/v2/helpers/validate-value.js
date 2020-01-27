@@ -5,11 +5,11 @@ const error = require("./error.js");
 /**
  * Performs checks on string as well as interpolates any variables.
  *
- * @param  {object} STATE - Main loop state object.
+ * @param  {object} S - Main loop state object.
  * @param  {object} NODE - The NODE object.
  * @return {object} - Object containing parsed information.
  */
-module.exports = (STATE, NODE) => {
+module.exports = (S, NODE) => {
 	let { value, type } = NODE.value;
 
 	// Start: Short Circuit Checks. ============================================
@@ -44,7 +44,7 @@ module.exports = (STATE, NODE) => {
 	}
 
 	// The column index to resume error checks at.
-	let resumepoint = NODE.value.start - STATE.tables.linestarts[STATE.line];
+	let resumepoint = NODE.value.start - S.tables.linestarts[S.line];
 	// Note: Add 1 to resumepoint to account for 0 base indexing,
 	resumepoint++; // as column value starts count at 1.
 
@@ -55,16 +55,16 @@ module.exports = (STATE, NODE) => {
 
 				// Make sure string is properly quoted.
 				if (!/^\$?("|').*?\1$/.test(value)) {
-					STATE.column = resumepoint; // Reset index position.
+					S.column = resumepoint; // Reset index position.
 
-					error(STATE, __filename, 10); // Note: Close quote is missing so error.
+					error(S, __filename, 10); // Note: Close quote is missing so error.
 				}
 
 				// If string is empty give error.
 				if (/^("|')\1$/.test(value)) {
-					STATE.column = resumepoint; // Reset index position.
+					S.column = resumepoint; // Reset index position.
 
-					error(STATE, __filename, 11); // Note: String shouldn't be empty.
+					error(S, __filename, 11); // Note: String shouldn't be empty.
 				}
 
 				// Next, interpolate any variable template-strings. ============
@@ -77,18 +77,18 @@ module.exports = (STATE, NODE) => {
 					match = match.replace(/^\$\{\s*|\s*\}$/g, "");
 
 					// Note: Skip string interpolation logic if formatting.
-					if (STATE.args.fmt) return `\${${match}}`;
+					if (S.args.fmt) return `\${${match}}`;
 
 					// Lookup variable's value in database.
-					let value = STATE.tables.variables[match];
+					let value = S.tables.variables[match];
 
 					// Note: If the variable is not in the db then give an error.
 					// as a variable cannot be used before declared.
 					if (!value) {
-						STATE.column = resumepoint + index; // Reset index position.
+						S.column = resumepoint + index; // Reset index position.
 
 						// Note: Variable does not exist in lookup.
-						return error(STATE, __filename, 12);
+						return error(S, __filename, 12);
 					}
 
 					return value;
@@ -111,16 +111,16 @@ module.exports = (STATE, NODE) => {
 
 				// Note: If command-flag doesn't start with '$(', give error.
 				if (!/^\$\(/.test(value)) {
-					STATE.column = resumepoint + 1; // Reset index position.
+					S.column = resumepoint + 1; // Reset index position.
 
-					error(STATE, __filename, 13); // Note: String shouldn't be empty.
+					error(S, __filename, 13); // Note: String shouldn't be empty.
 				}
 				// Note: If command-flag doesn't end with ')', give error.
 				if (!/\)$/.test(value)) {
 					// Reset index position.
-					STATE.column = resumepoint + value.length - 1;
+					S.column = resumepoint + value.length - 1;
 
-					error(STATE, __filename, 13); // Note: String shouldn't be empty.
+					error(S, __filename, 13); // Note: String shouldn't be empty.
 				}
 
 				// Collect parsed arguments.
@@ -161,10 +161,10 @@ module.exports = (STATE, NODE) => {
 							// there are empty arguments. This is not valid.
 							if (delimiter_count > 1 || !args.length) {
 								// Reset index position.
-								STATE.column = resumepoint + i;
+								S.column = resumepoint + i;
 
 								// Note: String shouldn't be empty.
-								error(STATE, __filename, 14);
+								error(S, __filename, 14);
 							}
 
 							// Look out for '$' prefixed strings.
@@ -183,10 +183,10 @@ module.exports = (STATE, NODE) => {
 							// ------------------^ Value is unquoted.
 
 							// Reset index position.
-							STATE.column = resumepoint + i;
+							S.column = resumepoint + i;
 
 							// Note: String shouldn't be empty.
-							error(STATE, __filename);
+							error(S, __filename);
 						}
 					} else {
 						argument += char; // Capture character.
@@ -201,7 +201,7 @@ module.exports = (STATE, NODE) => {
 									type: "quoted"
 								}
 							};
-							argument = module.exports(STATE, tmpNODE);
+							argument = module.exports(S, tmpNODE);
 
 							args.push(argument); // Store argument.
 							// Clear/reset variables.
@@ -217,9 +217,9 @@ module.exports = (STATE, NODE) => {
 				// trailing comma delimiter so give an error.
 				if (delimiter_index && !argument) {
 					// Reset index position.
-					STATE.column = resumepoint + delimiter_index;
+					S.column = resumepoint + delimiter_index;
 
-					error(STATE, __filename, 14); // Note: String shouldn't be empty.
+					error(S, __filename, 14); // Note: String shouldn't be empty.
 				}
 
 				// Get last argument.
@@ -235,7 +235,7 @@ module.exports = (STATE, NODE) => {
 							type: "quoted"
 						}
 					};
-					argument = module.exports(STATE, tmpNODE);
+					argument = module.exports(S, tmpNODE);
 
 					args.push(argument); // Store argument.
 				}
@@ -255,16 +255,16 @@ module.exports = (STATE, NODE) => {
 
 				// Note: If list doesn't start with '(', give error.
 				if (!/^\(/.test(value)) {
-					STATE.column = resumepoint; // Reset index position.
+					S.column = resumepoint; // Reset index position.
 
-					error(STATE, __filename, 15); // Note: String shouldn't be empty.
+					error(S, __filename, 15); // Note: String shouldn't be empty.
 				}
 				// Note: If command-flag doesn't end with ')', give error.
 				if (!/\)$/.test(value)) {
 					// Reset index position.
-					STATE.column = resumepoint + value.length - 1;
+					S.column = resumepoint + value.length - 1;
 
-					error(STATE, __filename, 15); // Note: String shouldn't be empty.
+					error(S, __filename, 15); // Note: String shouldn't be empty.
 				}
 
 				// Collect parsed arguments.
@@ -306,10 +306,10 @@ module.exports = (STATE, NODE) => {
 						// All other characters are invalid so give error.
 						else {
 							// Reset index position.
-							STATE.column = resumepoint + i;
+							S.column = resumepoint + i;
 
 							// Note: String shouldn't be empty.
-							error(STATE, __filename);
+							error(S, __filename);
 						}
 
 						// Note: If arguments array is already populated
@@ -320,10 +320,10 @@ module.exports = (STATE, NODE) => {
 						// --------------------------------^ Error point.
 						if (args.length && !/[ \t]/.test(pchar)) {
 							// Reset index position.
-							STATE.column = resumepoint + i;
+							S.column = resumepoint + i;
 
 							// Note: String shouldn't be empty.
-							error(STATE, __filename);
+							error(S, __filename);
 						}
 
 						argument += char; // Store character.
@@ -341,7 +341,7 @@ module.exports = (STATE, NODE) => {
 										type: mode
 									}
 								};
-								argument = module.exports(STATE, tmpNODE);
+								argument = module.exports(S, tmpNODE);
 								args.push([argument, mode]); // Store argument.
 								argument = ""; // Clear argument string.
 								mode = null; // Clear mode flag.
@@ -360,7 +360,7 @@ module.exports = (STATE, NODE) => {
 										type: mode
 									}
 								};
-								argument = module.exports(STATE, tmpNODE);
+								argument = module.exports(S, tmpNODE);
 								args.push([argument, mode]); // Store argument.
 								argument = ""; // Clear argument string.
 								mode = null; // Clear mode flag.
@@ -380,7 +380,7 @@ module.exports = (STATE, NODE) => {
 									}
 								};
 
-								argument = module.exports(STATE, tmpNODE);
+								argument = module.exports(S, tmpNODE);
 								args.push([argument, mode]); // Store argument.
 								argument = ""; // Clear argument string.
 								mode = null; // Clear mode flag.
@@ -401,7 +401,7 @@ module.exports = (STATE, NODE) => {
 							type: mode
 						}
 					};
-					argument = module.exports(STATE, tmpNODE);
+					argument = module.exports(S, tmpNODE);
 					args.push([argument, mode]);
 				}
 

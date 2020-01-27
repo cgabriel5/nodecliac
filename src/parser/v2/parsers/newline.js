@@ -10,24 +10,24 @@ const add = require("../helpers/tree-add.js");
  * ^-Newline character.
  * -----------------------------------------------------------------------------
  *
- * @param  {object} STATE - Main loop state object.
+ * @param  {object} S - Main loop state object.
  * @return {undefined} - Nothing is returned.
  */
-module.exports = STATE => {
-	let { line } = STATE;
+module.exports = S => {
+	let { line } = S;
 
 	// Parsing vars.
 	let NODE = {
 		node: "NEWLINE",
-		sigil: { start: STATE.i, end: STATE.i },
+		sigil: { start: S.i, end: S.i },
 		line,
-		startpoint: STATE.i,
-		endpoint: STATE.i // Index where parsing ended.
+		startpoint: S.i,
+		endpoint: S.i // Index where parsing ended.
 	};
 
-	STATE.line++;
-	STATE.column = 0;
-	STATE.sol_char = "";
+	S.line++;
+	S.column = 0;
+	S.sol_char = "";
 
-	add(STATE, NODE); // Add node to tree.
+	add(S, NODE); // Add node to tree.
 };

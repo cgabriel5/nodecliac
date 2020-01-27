@@ -16,11 +16,11 @@ const { r_nl, r_whitespace } = require("../helpers/patterns.js");
  *   ^-Value
  * -----------------------------------------------------------------------------
  *
- * @param  {object} STATE - Main loop state object.
+ * @param  {object} S - Main loop state object.
  * @return {object} - Object containing parsed information.
  */
-module.exports = STATE => {
-	let { line, l, text } = STATE;
+module.exports = S => {
+	let { line, l, text } = S;
 
 	// Parsing vars.
 	let state = "brace"; // Initial parsing state.
@@ -28,28 +28,28 @@ module.exports = STATE => {
 		node: "BRACE",
 		brace: { start: null, end: null, value: null },
 		line,
-		startpoint: STATE.i,
+		startpoint: S.i,
 		endpoint: null // Index where parsing ended.
 	};
 
 	// Loop over string.
-	for (; STATE.i < l; STATE.i++) {
-		let char = text.charAt(STATE.i); // Cache current loop char.
+	for (; S.i < l; S.i++) {
+		let char = text.charAt(S.i); // Cache current loop char.
 
 		// End loop on a newline char.
 		if (r_nl.test(char)) {
-			NODE.endpoint = --STATE.i; // Rollback (run '\n' parser next).
+			NODE.endpoint = --S.i; // Rollback (run '\n' parser next).
 
 			break;
 		}
 
-		STATE.column++; // Increment column position.
+		S.column++; // Increment column position.
 
 		switch (state) {
 			case "brace":
 				// Store index positions.
-				NODE.brace.start = STATE.i;
-				NODE.brace.end = STATE.i;
+				NODE.brace.start = S.i;
+				NODE.brace.end = S.i;
 				NODE.brace.value = char; // Store character.
 
 				state = "eol-wsb"; // Reset parsing state.
@@ -58,13 +58,13 @@ module.exports = STATE => {
 
 			case "eol-wsb":
 				// Anything but trailing whitespace is invalid so give error.
-				if (!r_whitespace.test(char)) error(STATE, __filename);
+				if (!r_whitespace.test(char)) error(S, __filename);
 
 				break;
 		}
 	}
 
 	// Note: If command-chain scope exists, error as brace wasn't closed.
-	bracechecks(STATE, NODE, "reset-scope");
-	add(STATE, NODE); // Add node to tree.
+	bracechecks(S, NODE, "reset-scope");
+	add(S, NODE); // Add node to tree.
 };

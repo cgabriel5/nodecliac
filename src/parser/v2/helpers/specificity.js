@@ -5,11 +5,11 @@ const error = require("./error.js");
 /**
  * Checks if line specificity is allowed.
  *
- * @param  {object} STATE - Main loop state object.
+ * @param  {object} S - Main loop state object.
  * @param  {string} line_type - The line's line type.
  * @return {string} - The line's type.
  */
-module.exports = (STATE, line_type) => {
+module.exports = (S, line_type) => {
 	// Note: [Hierarchy lookup table] The higher the number the higher its
 	// precedence, therefore: command > flag > option. Variables, settings,
 	// and command chains have the same precedence as they are same-level
@@ -25,7 +25,7 @@ module.exports = (STATE, line_type) => {
 	};
 
 	let line_specf = SPECIFICITIES[line_type] || 0; // Get line specificity.
-	let scopes = STATE.scopes; // Get scopes.
+	let scopes = S.scopes; // Get scopes.
 
 	// However, if we are in a scope then the scope's specificity
 	// trumps the line specificity.
@@ -33,9 +33,9 @@ module.exports = (STATE, line_type) => {
 		? SPECIFICITIES.flag
 		: scopes.command
 		? SPECIFICITIES.command
-		: STATE.specificity;
+		: S.specificity;
 
 	// Note: Check whether specificity hierarchy is allowed, else error.
-	if (state_specf && state_specf < line_specf) error(STATE, __filename, 12);
-	STATE.specificity = line_specf; // Set state specificity.
+	if (state_specf && state_specf < line_specf) error(S, __filename, 12);
+	S.specificity = line_specf; // Set state specificity.
 };

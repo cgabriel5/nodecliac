@@ -3,12 +3,12 @@
 /**
  * Format (prettify) provided .addef file.
  *
- * @param  {object} STATE - Main loop state object.
+ * @param  {object} S - Main loop state object.
  * @return {string} - The prettied file contents.
  */
-module.exports = STATE => {
-	let { fmt, igc } = STATE.args;
-	let TREE = STATE.tables.tree;
+module.exports = S => {
+	let { fmt, igc } = S.args;
+	let TREE = S.tables.tree;
 	let nodes = TREE.nodes;
 	let output = "";
 

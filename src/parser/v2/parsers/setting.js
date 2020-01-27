@@ -25,11 +25,11 @@ const {
  *            ^-Value.
  * -----------------------------------------------------------------------------
  *
- * @param  {object} STATE - Main loop state object.
+ * @param  {object} S - Main loop state object.
  * @return {object} - Object containing parsed information.
  */
-module.exports = STATE => {
-	let { line, l, text } = STATE;
+module.exports = S => {
+	let { line, l, text } = S;
 
 	// Parsing vars.
 	let state = "sigil"; // Initial parsing state.
@@ -41,28 +41,28 @@ module.exports = STATE => {
 		assignment: { start: null, end: null, value: null },
 		value: { start: null, end: null, value: null },
 		line,
-		startpoint: STATE.i,
+		startpoint: S.i,
 		endpoint: null // Index where parsing ended.
 	};
 
 	// Loop over string.
-	for (; STATE.i < l; STATE.i++) {
-		let char = text.charAt(STATE.i); // Cache current loop char.
+	for (; S.i < l; S.i++) {
+		let char = text.charAt(S.i); // Cache current loop char.
 
 		// End loop on a newline char.
 		if (r_nl.test(char)) {
-			NODE.endpoint = --STATE.i; // Rollback (run '\n' parser next).
+			NODE.endpoint = --S.i; // Rollback (run '\n' parser next).
 
 			break;
 		}
 
-		STATE.column++; // Increment column position.
+		S.column++; // Increment column position.
 
 		switch (state) {
 			case "sigil":
 				// Store index positions.
-				NODE.sigil.start = STATE.i;
-				NODE.sigil.end = STATE.i;
+				NODE.sigil.start = S.i;
+				NODE.sigil.end = S.i;
 
 				state = "name"; // Reset parsing state.
 
@@ -72,11 +72,11 @@ module.exports = STATE => {
 				// If name is empty check for first letter.
 				if (!NODE.name.value) {
 					// Name must start with pattern else give error.
-					if (!r_letter.test(char)) error(STATE, __filename);
+					if (!r_letter.test(char)) error(S, __filename);
 
 					// Set index positions.
-					NODE.name.start = STATE.i;
-					NODE.name.end = STATE.i;
+					NODE.name.start = S.i;
+					NODE.name.end = S.i;
 
 					NODE.name.value += char; // Start building string.
 				}
@@ -85,7 +85,7 @@ module.exports = STATE => {
 					// If char is allowed keep building string.
 					if (/[-_a-zA-Z]/.test(char)) {
 						// Set index positions.
-						NODE.name.end = STATE.i;
+						NODE.name.end = S.i;
 						NODE.name.value += char; // Continue building string.
 					}
 					// Note: If a whitespace character is encountered
@@ -100,10 +100,10 @@ module.exports = STATE => {
 					else if (char === "=") {
 						state = "assignment";
 
-						rollback(STATE); // Rollback loop index.
+						rollback(S); // Rollback loop index.
 					}
 					// Note: Anything at this point is an invalid char.
-					else error(STATE, __filename);
+					else error(S, __filename);
 				}
 
 				break;
@@ -115,18 +115,18 @@ module.exports = STATE => {
 					if (char === "=") {
 						state = "assignment"; // Reset parsing state.
 
-						rollback(STATE); // Rollback loop index.
+						rollback(S); // Rollback loop index.
 					}
 					// Note: Anything at this point is an invalid char.
-					else error(STATE, __filename);
+					else error(S, __filename);
 				}
 
 				break;
 
 			case "assignment":
 				// Store index positions.
-				NODE.assignment.start = STATE.i;
-				NODE.assignment.end = STATE.i;
+				NODE.assignment.start = S.i;
+				NODE.assignment.end = S.i;
 				NODE.assignment.value = char; // Store character.
 
 				state = "value-wsb"; // Reset parsing state.
@@ -139,7 +139,7 @@ module.exports = STATE => {
 				if (!r_whitespace.test(char)) {
 					state = "value";
 
-					rollback(STATE); // Rollback loop index.
+					rollback(S); // Rollback loop index.
 				}
 
 				break;
@@ -148,13 +148,13 @@ module.exports = STATE => {
 				// If first char, only `"`, `'`, or `a-zA-Z0-9` are allowed.
 				if (!NODE.value.value) {
 					// If char is not allowed give an error.
-					if (!/["'a-zA-Z0-9]/.test(char)) error(STATE, __filename);
+					if (!/["'a-zA-Z0-9]/.test(char)) error(S, __filename);
 
 					if (r_quote.test(char)) qchar = char; // Store if a quote char.
 
 					// Store index positions.
-					NODE.value.start = STATE.i;
-					NODE.value.end = STATE.i;
+					NODE.value.start = S.i;
+					NODE.value.end = S.i;
 					NODE.value.value = char; // Start building string.
 				}
 				// Continue building string.
@@ -162,13 +162,13 @@ module.exports = STATE => {
 					// If value is a quoted string allow for anything
 					// and end at the same style-unescaped quote.
 					if (qchar) {
-						let pchar = text.charAt(STATE.i - 1); // Previous char.
+						let pchar = text.charAt(S.i - 1); // Previous char.
 
 						// Once quoted string is closed change state.
 						if (char === qchar && pchar !== "\\") state = "eol-wsb";
 
 						// Store index positions.
-						NODE.value.end = STATE.i;
+						NODE.value.end = S.i;
 						NODE.value.value += char; // Continue building string.
 					}
 					// Else, not quoted.
@@ -177,10 +177,10 @@ module.exports = STATE => {
 						if (r_whitespace.test(char)) {
 							state = "eol-wsb";
 
-							rollback(STATE); // Rollback loop index.
+							rollback(S); // Rollback loop index.
 						} else {
 							// Store index positions.
-							NODE.value.end = STATE.i;
+							NODE.value.end = S.i;
 							NODE.value.value += char; // Continue building string.
 						}
 					}
@@ -190,12 +190,12 @@ module.exports = STATE => {
 
 			case "eol-wsb":
 				// Anything but trailing whitespace is invalid so give error.
-				if (!r_whitespace.test(char)) error(STATE, __filename);
+				if (!r_whitespace.test(char)) error(S, __filename);
 
 				break;
 		}
 	}
 
-	validate(STATE, NODE); // Validate extracted variable value.
-	add(STATE, NODE); // Add node to tree.
+	validate(S, NODE); // Validate extracted variable value.
+	add(S, NODE); // Add node to tree.
 };

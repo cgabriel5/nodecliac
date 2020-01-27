@@ -46,14 +46,14 @@ let errors = {
 /**
  * Give error (kills process).
  *
- * @param  {object} STATE - Parsing STATE object.
+ * @param  {object} S - The state object.
  * @param  {number} code - Error code.
  * @param  {string} parserfile - Path of file issuing error.
  * @return {undefined} - Nothing is returned.
  */
-module.exports = (STATE, parserfile, code) => {
-	let { line, column } = STATE;
-	let { source } = STATE.args;
+module.exports = (S, parserfile, code) => {
+	let { line, column } = S;
+	let { source } = S.args;
 	let parser = path.basename(parserfile).replace(/\.js$/, "");
 	let error;
 

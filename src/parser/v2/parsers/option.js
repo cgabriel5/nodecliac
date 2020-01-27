@@ -18,14 +18,14 @@ const { r_nl, r_whitespace, r_quote } = require("../helpers/patterns.js");
  *  ^-Value
  * -----------------------------------------------------------------------------
  *
- * @param  {object} STATE - Main loop state object.
+ * @param  {object} S - Main loop state object.
  * @return {object} - Object containing parsed information.
  */
-module.exports = STATE => {
-	let { line, l, text } = STATE;
+module.exports = S => {
+	let { line, l, text } = S;
 
 	// Note: If a flag scope doesn't exist, error as it needs to.
-	bracechecks(STATE, null, "pre-existing-fs");
+	bracechecks(S, null, "pre-existing-fs");
 
 	// Parsing vars.
 	let state = "bullet"; // Initial parsing state.
@@ -35,28 +35,28 @@ module.exports = STATE => {
 		bullet: { start: null, end: null, value: null },
 		value: { start: null, end: null, value: null, type: null },
 		line,
-		startpoint: STATE.i,
+		startpoint: S.i,
 		endpoint: null // Index where parsing ended.
 	};
 
 	// Loop over string.
-	for (; STATE.i < l; STATE.i++) {
-		let char = text.charAt(STATE.i); // Cache current loop char.
+	for (; S.i < l; S.i++) {
+		let char = text.charAt(S.i); // Cache current loop char.
 
 		// End loop on a newline char.
 		if (r_nl.test(char)) {
-			NODE.endpoint = --STATE.i; // Rollback (run '\n' parser next).
+			NODE.endpoint = --S.i; // Rollback (run '\n' parser next).
 
 			break;
 		}
 
-		STATE.column++; // Increment column position.
+		S.column++; // Increment column position.
 
 		switch (state) {
 			case "bullet":
 				// Store index positions.
-				NODE.bullet.start = STATE.i;
-				NODE.bullet.end = STATE.i;
+				NODE.bullet.start = S.i;
+				NODE.bullet.end = S.i;
 				NODE.bullet.value = char; // Start building string.
 
 				state = "spacer"; // Reset parsing state.
@@ -65,7 +65,7 @@ module.exports = STATE => {
 
 			case "spacer":
 				// Note: A whitespace character must follow bullet, else error.
-				if (!r_whitespace.test(char)) error(STATE, __filename);
+				if (!r_whitespace.test(char)) error(S, __filename);
 
 				state = "wsb-prevalue"; // Reset parsing state.
 
@@ -74,7 +74,7 @@ module.exports = STATE => {
 			case "wsb-prevalue":
 				// Note: Allow whitespace until first non-whitespace char is hit.
 				if (!r_whitespace.test(char)) {
-					rollback(STATE); // Rollback loop index.
+					rollback(S); // Rollback loop index.
 
 					state = "value";
 				}
@@ -88,7 +88,7 @@ module.exports = STATE => {
 					// - Strings        => "value"
 					// - Escaped-values => val\ ue
 
-					let pchar = text.charAt(STATE.i - 1); // Previous char.
+					let pchar = text.charAt(S.i - 1); // Previous char.
 
 					// Determine value type.
 					if (!NODE.value.value) {
@@ -101,14 +101,14 @@ module.exports = STATE => {
 						NODE.value.type = type; // Set type.
 
 						// Store index positions.
-						NODE.value.start = STATE.i;
-						NODE.value.end = STATE.i;
+						NODE.value.start = S.i;
+						NODE.value.end = S.i;
 						NODE.value.value = char; // Start building string.
 					} else {
 						// If flag is set and characters can still be consumed
 						// then there is a syntax error. For example, string
 						// may be improperly quoted/escaped so give error.
-						if (end_comsuming) error(STATE, __filename);
+						if (end_comsuming) error(S, __filename);
 
 						// Get string type.
 						let stype = NODE.value.type;
@@ -128,7 +128,7 @@ module.exports = STATE => {
 						}
 
 						// Store index positions.
-						NODE.value.end = STATE.i;
+						NODE.value.end = S.i;
 						NODE.value.value += char; // Continue building string.
 					}
 				}
@@ -137,6 +137,6 @@ module.exports = STATE => {
 		}
 	}
 
-	validate(STATE, NODE); // Validate extracted variable value.
-	add(STATE, NODE); // Add node to tree.
+	validate(S, NODE); // Validate extracted variable value.
+	add(S, NODE); // Add node to tree.
 };

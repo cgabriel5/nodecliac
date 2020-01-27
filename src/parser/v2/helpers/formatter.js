@@ -7,7 +7,7 @@
  * @return {string} - The prettied file contents.
  */
 module.exports = STATE => {
-	let { formatting, stripcomments } = STATE.args; // Get needed arguments.
+	let { fmt, igc } = STATE.args;
 	let TREE = STATE.tables.tree;
 	let nodes = TREE.nodes;
 	let output = "";
@@ -27,13 +27,13 @@ module.exports = STATE => {
 	let newline_counter = 0; // Keep track on consecutive newlines.
 	let scopes = []; // Keep track of command/flag scopes.
 
-	const [indent_char, indent_amount] = formatting; // Get formatting info.
+	const [indent_char, indent_amount] = fmt; // Get formatting info.
 	let indent = (type, count) => {
 		return indent_char.repeat((count || MULTIPLIER[type]) * indent_amount);
 	};
 
 	// Filter out comment nodes if strip comments flag is provided.
-	if (stripcomments) nodes = nodes.filter(NODE => !(NODE.node !== "COMMENT"));
+	if (igc) nodes = nodes.filter(NODE => !(NODE.node !== "COMMENT"));
 
 	// Loop over nodes to build formatted .acdef contents file.
 	nodes.forEach((NODE, i, nodes) => {

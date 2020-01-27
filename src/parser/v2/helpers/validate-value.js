@@ -79,7 +79,7 @@ module.exports = (STATE, NODE) => {
 					match = match.replace(/^\$\{\s*|\s*\}$/g, "");
 
 					// Note: Skip string interpolation logic if formatting.
-					if (STATE.args.formatting) return `\${${match}}`;
+					if (STATE.args.fmt) return `\${${match}}`;
 
 					// Lookup variable's value in database.
 					let value = STATE.tables.variables[match];

@@ -27,7 +27,7 @@ module.exports = async args => {
 	// CLI args.
 	let { source, print } = args; // `make` + `format` flags.
 	let { trace, test } = args; // `make` flags.
-	let { "strip-comments": igc, highlight, indent } = args; // `format` flags.
+	let { "strip-comments": igc, indent } = args; // `format` flags.
 
 	let parser = require(`../parser/v2/index.js`);
 
@@ -95,7 +95,6 @@ module.exports = async args => {
 		commandname,
 		source,
 		formatting ? [indent_char, indent_amount] : undefined,
-		highlight,
 		trace,
 		igc,
 		test

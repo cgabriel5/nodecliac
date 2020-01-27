@@ -28,7 +28,7 @@ module.exports = async args => {
 	let { source, print } = args; // `make` + `format` flags.
 	let { trace, test } = args; // `make` flags.
 	let { "strip-comments": igc, highlight, indent } = args; // `format` flags.
-	let { nowarn, engine } = args; // Other flags.
+	let { engine } = args; // Other flags.
 
 	// Get list of available engines.
 	let parserpath = path.join(path.parse(__dirname).dir, "/parser");
@@ -113,7 +113,6 @@ module.exports = async args => {
 		formatting ? [indent_char, indent_amount] : undefined,
 		highlight,
 		trace,
-		nowarn,
 		igc,
 		test
 	);

@@ -1,7 +1,7 @@
 "use strict";
 
 module.exports = (string, commandname, source, formatting, ...args) => {
-	const [highlight, trace /* nowarn*/, , stripcomments, test] = args;
+	const [highlight, trace, stripcomments, test] = args;
 	const stime = process.hrtime(); // Start time.
 	let first_non_whitespace_char = "";
 	let line_type;

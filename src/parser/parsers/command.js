@@ -37,18 +37,14 @@ module.exports = S => {
 	// Note: If command-chain scope exists, error as brace wasn't closed.
 	bracechecks(S, null, "pre-existing-cs");
 
-	// Loop over string.
-	for (; S.i < l; S.i++) {
-		let char = text.charAt(S.i); // Cache current loop char.
+	for (; S.i < l; S.i++, S.column++) {
+		let char = text.charAt(S.i);
 
-		// End loop on a newline char.
+		// Stop on a newline char.
 		if (r_nl.test(char)) {
-			N.endpoint = --S.i; // Rollback (run '\n' parser next).
-
+			N.endpoint = rollback(S) && S.i;
 			break;
 		}
-
-		S.column++; // Increment column position.
 
 		switch (state) {
 			case "command":

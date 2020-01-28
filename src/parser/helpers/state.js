@@ -4,7 +4,7 @@
 module.exports = (text, source, fmt, trace, igc, test) => {
 	return {
 		line: 1,
-		column: 0,
+		column: 1,
 		i: 0,
 		l: text.length,
 		text,

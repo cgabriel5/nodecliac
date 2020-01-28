@@ -15,36 +15,33 @@ module.exports = (text, commandname, source, fmt, trace, igc, test) => {
 	const stime = process.hrtime(); // Start time.
 	let line_type;
 
-	// Loop over acdef file contents to parse.
-	for (; S.i < S.l; S.i++) {
+	for (; S.i < S.l; S.i++, S.column++) {
 		let char = text.charAt(S.i);
 		let nchar = text.charAt(S.i + 1);
 
 		// Handle newlines.
-		if (char === "\n") p_newline(S);
-		// All other characters.
-		else {
-			S.column++;
+		if (char === "\n") {
+			p_newline(S);
+			continue;
+		}
 
-			// Store line start points.
-			if (!linestarts[S.line]) linestarts[S.line] = S.i;
+		// Store line start points.
+		if (!linestarts[S.line]) linestarts[S.line] = S.i;
 
-			// Find first non-whitespace character of line.
+		// Find first non-whitespace character of line.
 		if (!S.sol_char && !r_space.test(char)) {
-				S.sol_char = char; // Set char.
+			S.sol_char = char; // Set char.
 
-				// Error if sol char is not allowed.
-				if (!r_sol_char.test(char)) error(S, 10, __filename);
+			// Error if sol char is not allowed.
+			if (!r_sol_char.test(char)) error(S, 10, __filename);
 
-				line_type = linetype(S, char, nchar); // Get line's type.
-				if (line_type === "terminator") break; // End on terminator char.
+			line_type = linetype(S, char, nchar); // Get line's type.
+			if (line_type === "terminator") break; // End on terminator char.
 
-				specificity(S, line_type); // Validate line specificity.
+			specificity(S, line_type); // Validate line specificity.
 
-				S.column--; // Rollback column to start parser on sol char.
-				require("./helpers/trace.js")(S, line_type); // Trace parser.
-				require(`./parsers/${line_type}.js`)(S); // Run parser.
-			}
+			require("./helpers/trace.js")(S, line_type); // Trace parser.
+			require(`./parsers/${line_type}.js`)(S); // Run parser.
 		}
 	}
 

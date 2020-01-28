@@ -3,6 +3,7 @@
 const node = require("../helpers/nodes.js");
 const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
+const rollback = require("../helpers/rollback.js");
 const bracechecks = require("../helpers/brace-checks.js");
 const { r_nl, r_space } = require("../helpers/patterns.js");
 
@@ -23,18 +24,14 @@ module.exports = S => {
 	let state = "brace";
 	let N = node(S, "BRACE");
 
-	// Loop over string.
-	for (; S.i < l; S.i++) {
-		let char = text.charAt(S.i); // Cache current loop char.
+	for (; S.i < l; S.i++, S.column++) {
+		let char = text.charAt(S.i);
 
-		// End loop on a newline char.
+		// Stop on a newline char.
 		if (r_nl.test(char)) {
-			N.endpoint = --S.i; // Rollback (run '\n' parser next).
-
+			N.endpoint = rollback(S) && S.i;
 			break;
 		}
-
-		S.column++; // Increment column position.
 
 		switch (state) {
 			case "brace":

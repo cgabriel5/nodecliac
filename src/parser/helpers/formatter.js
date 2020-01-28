@@ -33,11 +33,11 @@ module.exports = S => {
 	};
 
 	// Filter out comment nodes if strip comments flag is provided.
-	if (igc) nodes = nodes.filter(NODE => !(NODE.node !== "COMMENT"));
+	if (igc) nodes = nodes.filter(N => !(N.node !== "COMMENT"));
 
 	// Loop over nodes to build formatted .acdef contents file.
-	nodes.forEach((NODE, i, nodes) => {
-		let type = NODE.node; // Get the node type.
+	nodes.forEach((N, i, nodes) => {
+		let type = N.node; // Get the node type.
 
 		switch (type) {
 			case "COMMENT":
@@ -45,17 +45,17 @@ module.exports = S => {
 					let scope = scopes[scopes.length - 1] || null;
 					let indentation = indent(null, scope);
 
-					output += `${indentation}${NODE.comment.value}`;
+					output += `${indentation}${N.comment.value}`;
 				}
 
 				break;
 
 			case "COMMAND":
 				{
-					let vvalue = NODE.value.value;
-					let cvalue = NODE.command.value;
-					let dvalue = NODE.delimiter.value || "";
-					let avalue = NODE.assignment.value || "";
+					let vvalue = N.value.value;
+					let cvalue = N.command.value;
+					let dvalue = N.delimiter.value || "";
+					let avalue = N.assignment.value || "";
 
 					output += `${cvalue}${dvalue} ${avalue} ${vvalue || ""}`;
 
@@ -66,22 +66,22 @@ module.exports = S => {
 
 			case "FLAG":
 				{
-					let kvalue = NODE.keyword.value;
-					let hvalue = NODE.hyphens.value || "";
-					let nvalue = NODE.name.value || "";
-					let bvalue = NODE.boolean.value || "";
-					let avalue = NODE.assignment.value || "";
-					let mvalue = NODE.multi.value || "";
-					let vvalue = NODE.value.value || "";
-					let singletonflag = NODE.singletonflag;
+					let kvalue = N.keyword.value;
+					let hvalue = N.hyphens.value || "";
+					let nvalue = N.name.value || "";
+					let bvalue = N.boolean.value || "";
+					let avalue = N.assignment.value || "";
+					let mvalue = N.multi.value || "";
+					let vvalue = N.value.value || "";
+					let singletonflag = N.singletonflag;
 					let indentation = indent(null, singletonflag ? 1 : null);
 
 					let pipe_delimiter = singletonflag ? "" : "|";
 
 					// Note: If next node is a flag reset var.
 					if (pipe_delimiter) {
-						let nNODE = nodes[i + 1]; // The next node.
-						if (nNODE && nNODE.node !== "FLAG") pipe_delimiter = "";
+						let nN = nodes[i + 1]; // The next node.
+						if (nN && nN.node !== "FLAG") pipe_delimiter = "";
 					}
 
 					output += // [https://stackoverflow.com/a/23867090]
@@ -102,8 +102,8 @@ module.exports = S => {
 
 			case "OPTION":
 				{
-					let bvalue = NODE.bullet.value;
-					let vvalue = NODE.value.value;
+					let bvalue = N.bullet.value;
+					let vvalue = N.value.value;
 					let indentation = indent("OPTION");
 
 					output += `${indentation}${bvalue} ${vvalue}`;
@@ -113,7 +113,7 @@ module.exports = S => {
 
 			case "BRACE":
 				{
-					let bvalue = NODE.brace.value;
+					let bvalue = N.brace.value;
 					let indentation = indent(null, bvalue === "]" ? 0 : 1);
 
 					output += `${indentation}${bvalue}`;
@@ -125,21 +125,21 @@ module.exports = S => {
 
 			case "NEWLINE":
 				{
-					let nNODE = nodes[i + 1]; // The next node.
+					let nN = nodes[i + 1]; // The next node.
 
 					if (newline_counter <= 1) output += "\n";
 					newline_counter++;
 
-					if (nNODE && nNODE.node !== "NEWLINE") newline_counter = 0;
+					if (nN && nN.node !== "NEWLINE") newline_counter = 0;
 				}
 
 				break;
 
 			case "SETTING":
 				{
-					let nvalue = NODE.name.value;
-					let avalue = NODE.assignment.value;
-					let vvalue = NODE.value.value;
+					let nvalue = N.name.value;
+					let avalue = N.assignment.value;
+					let vvalue = N.value.value;
 
 					output += `@${nvalue} ${avalue} ${vvalue}`;
 				}
@@ -148,9 +148,9 @@ module.exports = S => {
 
 			case "VARIABLE":
 				{
-					let nvalue = NODE.name.value;
-					let avalue = NODE.assignment.value;
-					let vvalue = NODE.value.value;
+					let nvalue = N.name.value;
+					let avalue = N.assignment.value;
+					let vvalue = N.value.value;
 
 					output += `$${nvalue} ${avalue} ${vvalue}`;
 				}

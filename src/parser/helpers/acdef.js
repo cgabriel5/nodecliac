@@ -36,17 +36,17 @@ module.exports = (S, commandname) => {
 	/**
 	 * Add base flag to Set (adds '--flag=' or '--flag=*' to Set).
 	 *
-	 * @param  {object} fNODE - The flag object Node.
+	 * @param  {object} fN - The flag object Node.
 	 * @param  {array} COMMANDS - The list of commands to attach flags to.
 	 * @param  {string} flag - The flag (hyphens + flag name).
 	 * @return {undefined} - Nothing is returned.
 	 */
-	let baseflag = (fNODE, COMMANDS, flag) => {
-		let ismulti = fNODE.multi.value; // Check if flag is a multi-flag.
+	let baseflag = (fN, COMMANDS, flag) => {
+		let ismulti = fN.multi.value; // Check if flag is a multi-flag.
 
-		COMMANDS.forEach(NODE => {
+		COMMANDS.forEach(N => {
 			// Add flag + value to Set.
-			SETS[NODE.command.value]
+			SETS[N.command.value]
 				.add(`${flag}=${ismulti ? "*" : ""}`)
 				.delete(`${flag}=${ismulti ? "" : "*"}`);
 		});
@@ -79,30 +79,30 @@ module.exports = (S, commandname) => {
 
 	// 1) Filter out unnecessary Nodes. ========================================
 
-	TREE.nodes.forEach(NODE => {
-		let type = NODE.node;
+	TREE.nodes.forEach(N => {
+		let type = N.node;
 
 		if (["COMMAND", "FLAG", "OPTION", "SETTING"].includes(type)) {
-			if (type !== "SETTING") nodes.push(NODE);
-			else SETTINGS[NODE.name.value] = NODE.value.value; // Store setting/value.
+			if (type !== "SETTING") nodes.push(N);
+			else SETTINGS[N.name.value] = N.value.value; // Store setting/value.
 		}
 	});
 
 	// 2) Batch commands with their flags. =====================================
 
 	for (let i = 0, l = nodes.length; i < l; i++) {
-		let NODE = nodes[i]; // Cache current loop char.
-		let nNODE = nodes[i + 1] || {};
-		let type = NODE.node;
-		// let ntype = nNODE.node;
+		let N = nodes[i]; // Cache current loop char.
+		let nN = nodes[i + 1] || {};
+		let type = N.node;
+		// let ntype = nN.node;
 
 		if (type === "COMMAND") {
 			// Store command into current batch.
 			if (!BATCHES[counter]) {
-				BATCHES[counter] = { commands: [NODE], flags: [] };
-			} else BATCHES[counter].commands.push(NODE);
+				BATCHES[counter] = { commands: [N], flags: [] };
+			} else BATCHES[counter].commands.push(N);
 
-			const cvalue = NODE.command.value;
+			const cvalue = N.command.value;
 
 			// Add command to SETS if not already.
 			if (!hasOwnProperty(SETS, cvalue)) {
@@ -126,18 +126,18 @@ module.exports = (S, commandname) => {
 			}
 
 			// Increment counter to start another batch.
-			if (nNODE && nNODE.node === "COMMAND" && !NODE.delimiter.value) {
+			if (nN && nN.node === "COMMAND" && !N.delimiter.value) {
 				counter++;
 			}
 		} else if (type === "FLAG") {
-			BATCHES[counter].flags.push(NODE); // Store command in current batch.
+			BATCHES[counter].flags.push(N); // Store command in current batch.
 
 			// Increment counter to start another batch.
-			if (nNODE && !["FLAG", "OPTION"].includes(nNODE.node)) counter++;
+			if (nN && !["FLAG", "OPTION"].includes(nN.node)) counter++;
 		} else if (type === "OPTION") {
 			// Add the value to last flag in batch.
 			let FLAGS = BATCHES[counter].flags;
-			FLAGS[FLAGS.length - 1].args.push(NODE.value.value);
+			FLAGS[FLAGS.length - 1].args.push(N.value.value);
 		}
 	}
 
@@ -150,15 +150,15 @@ module.exports = (S, commandname) => {
 		let { commands: COMMANDS, flags: FLAGS } = BATCH; // Get commands/flags.
 
 		for (let i = 0, l = FLAGS.length; i < l; i++) {
-			let fNODE = FLAGS[i]; // Cache current loop char.
-			let ARGS = fNODE.args; // Get flag arguments.
+			let fN = FLAGS[i]; // Cache current loop char.
+			let ARGS = fN.args; // Get flag arguments.
 			// Build flag (hyphens + flag name).
-			let flag = `${fNODE.hyphens.value}${fNODE.name.value}`;
+			let flag = `${fN.hyphens.value}${fN.name.value}`;
 
 			// Check if flag is actually a default/keyword and store it.
-			if (fNODE.keyword.value) {
-				COMMANDS.forEach(NODE => {
-					DEFAULTS[NODE.command.value] = fNODE.value.value;
+			if (fN.keyword.value) {
+				COMMANDS.forEach(N => {
+					DEFAULTS[N.command.value] = fN.value.value;
 				});
 
 				continue; // Note: Since it's a default it doesn't need to be
@@ -169,12 +169,12 @@ module.exports = (S, commandname) => {
 			if (ARGS.length) {
 				ARGS.forEach(ARG => {
 					// Determine whether to add multi-flag indicator.
-					baseflag(fNODE, COMMANDS, flag);
+					baseflag(fN, COMMANDS, flag);
 
 					// Add flag + value to Set.
-					COMMANDS.forEach(NODE => {
-						SETS[NODE.command.value].add(
-							`${flag}${fNODE.assignment.value || ""}${ARG || ""}`
+					COMMANDS.forEach(N => {
+						SETS[N.command.value].add(
+							`${flag}${fN.assignment.value || ""}${ARG || ""}`
 						);
 					});
 				});
@@ -182,10 +182,10 @@ module.exports = (S, commandname) => {
 			// If flag does not contain any values...
 			else {
 				// If flag is a boolean...
-				COMMANDS.forEach(NODE => {
-					const cvalue = NODE.command.value;
-					const bvalue = fNODE.boolean.value;
-					const avalue = fNODE.assignment.value;
+				COMMANDS.forEach(N => {
+					const cvalue = N.command.value;
+					const bvalue = fN.boolean.value;
+					const avalue = fN.assignment.value;
 
 					SETS[cvalue].add(
 						`${flag}${bvalue ? "?" : avalue ? "=" : ""}`

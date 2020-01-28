@@ -23,7 +23,7 @@ const { r_nl, r_whitespace } = require("../helpers/patterns.js");
 module.exports = S => {
 	let { line, l, text } = S;
 	let state = "brace";
-	let NODE = node(S, "BRACE");
+	let N = node(S, "BRACE");
 
 	// Loop over string.
 	for (; S.i < l; S.i++) {
@@ -31,7 +31,7 @@ module.exports = S => {
 
 		// End loop on a newline char.
 		if (r_nl.test(char)) {
-			NODE.endpoint = --S.i; // Rollback (run '\n' parser next).
+			N.endpoint = --S.i; // Rollback (run '\n' parser next).
 
 			break;
 		}
@@ -41,9 +41,9 @@ module.exports = S => {
 		switch (state) {
 			case "brace":
 				// Store index positions.
-				NODE.brace.start = S.i;
-				NODE.brace.end = S.i;
-				NODE.brace.value = char; // Store character.
+				N.brace.start = S.i;
+				N.brace.end = S.i;
+				N.brace.value = char; // Store character.
 
 				state = "eol-wsb"; // Reset parsing state.
 
@@ -58,6 +58,6 @@ module.exports = S => {
 	}
 
 	// Note: If command-chain scope exists, error as brace wasn't closed.
-	bracechecks(S, NODE, "reset-scope");
-	add(S, NODE); // Add node to tree.
+	bracechecks(S, N, "reset-scope");
+	add(S, N); // Add node to tree.
 };

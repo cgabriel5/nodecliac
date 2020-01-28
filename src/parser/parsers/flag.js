@@ -40,7 +40,7 @@ module.exports = (S, isoneliner) => {
 	let state = text.charAt(S.i) === "-" ? "hyphen" : "keyword"; // Initial parsing state.
 	let stop; // Flag indicating whether to stop parser.
 	let end_comsuming;
-	let NODE = node(S, "FLAG");
+	let N = node(S, "FLAG");
 
 	// Note: If not a oneliner or no command scope, flag is being declared out of scope.
 	if (!(isoneliner || S.scopes.command)) error(S, __filename, 10);
@@ -54,7 +54,7 @@ module.exports = (S, isoneliner) => {
 
 		// End loop on a newline char.
 		if (stop || r_nl.test(char)) {
-			NODE.endpoint = --S.i; // Rollback (run '\n' parser next).
+			N.endpoint = --S.i; // Rollback (run '\n' parser next).
 
 			break;
 		}
@@ -69,14 +69,14 @@ module.exports = (S, isoneliner) => {
 				// [https://stackoverflow.com/a/12281034]
 
 				// Only hyphens are allowed at this point.
-				if (!NODE.hyphens.value) {
+				if (!N.hyphens.value) {
 					// If char is not a hyphen, error.
 					if (char !== "-") error(S, __filename);
 
 					// Store index positions.
-					NODE.hyphens.start = S.i;
-					NODE.hyphens.end = S.i;
-					NODE.hyphens.value = char; // Start building string.
+					N.hyphens.start = S.i;
+					N.hyphens.end = S.i;
+					N.hyphens.value = char; // Start building string.
 				}
 				// Continue building string.
 				else {
@@ -87,8 +87,8 @@ module.exports = (S, isoneliner) => {
 						rollback(S); // Rollback loop index.
 					} else {
 						// Store index positions.
-						NODE.hyphens.end = S.i;
-						NODE.hyphens.value += char; // Continue building string.
+						N.hyphens.end = S.i;
+						N.hyphens.value += char; // Continue building string.
 					}
 				}
 
@@ -104,9 +104,9 @@ module.exports = (S, isoneliner) => {
 					if (keyword !== "default") error(S, __filename);
 
 					// Store index positions.
-					NODE.keyword.start = S.i;
-					NODE.keyword.end = S.i + keyword_len - 1;
-					NODE.keyword.value = keyword; // Store keyword.
+					N.keyword.start = S.i;
+					N.keyword.end = S.i + keyword_len - 1;
+					N.keyword.value = keyword; // Store keyword.
 
 					state = "keyword-spacer"; // Reset parsing state.
 
@@ -127,22 +127,22 @@ module.exports = (S, isoneliner) => {
 
 			case "name":
 				// Only hyphens are allowed at this point.
-				if (!NODE.name.value) {
+				if (!N.name.value) {
 					// If char is not a hyphen, error.
 					if (!r_letter.test(char)) error(S, __filename);
 
 					// Store index positions.
-					NODE.name.start = S.i;
-					NODE.name.end = S.i;
-					NODE.name.value = char; // Start building string.
+					N.name.start = S.i;
+					N.name.end = S.i;
+					N.name.value = char; // Start building string.
 				}
 				// Continue building string.
 				else {
 					// If char is allowed keep building string.
 					if (/[-.a-zA-Z0-9]/.test(char)) {
 						// Set name index positions.
-						NODE.name.end = S.i;
-						NODE.name.value += char; // Continue building string.
+						N.name.end = S.i;
+						N.name.value += char; // Continue building string.
 					}
 					// If char is an eq sign change state/reset index.
 					else if (char === "=") {
@@ -198,9 +198,9 @@ module.exports = (S, isoneliner) => {
 
 			case "boolean-indicator":
 				// Store index positions.
-				NODE.boolean.start = S.i;
-				NODE.boolean.end = S.i;
-				NODE.boolean.value = char; // Store character.
+				N.boolean.start = S.i;
+				N.boolean.end = S.i;
+				N.boolean.value = char; // Store character.
 
 				state = "pipe-delimiter"; // Reset parsing state.
 
@@ -208,9 +208,9 @@ module.exports = (S, isoneliner) => {
 
 			case "assignment":
 				// Store index positions.
-				NODE.assignment.start = S.i;
-				NODE.assignment.end = S.i;
-				NODE.assignment.value = char; // Store character.
+				N.assignment.start = S.i;
+				N.assignment.end = S.i;
+				N.assignment.value = char; // Store character.
 
 				state = "multi-indicator"; // Reset parsing state.
 
@@ -220,9 +220,9 @@ module.exports = (S, isoneliner) => {
 				// If character is a '*' store information, else go to value state.
 				if (char === "*") {
 					// Store index positions.
-					NODE.multi.start = S.i;
-					NODE.multi.end = S.i;
-					NODE.multi.value = char; // Store character.
+					N.multi.start = S.i;
+					N.multi.end = S.i;
+					N.multi.value = char; // Store character.
 
 					state = "wsb-prevalue"; // Reset parsing state.
 				} else {
@@ -272,19 +272,19 @@ module.exports = (S, isoneliner) => {
 					let pchar = text.charAt(S.i - 1);
 
 					// Determine value type.
-					if (!NODE.value.value) {
+					if (!N.value.value) {
 						let type = "escaped"; // Set default.
 
 						if (char === "$") type = "command-flag";
 						else if (char === "(") type = "list";
 						else if (r_quote.test(char)) type = "quoted";
 
-						NODE.value.type = type; // Set type.
+						N.value.type = type; // Set type.
 
 						// Store index positions.
-						NODE.value.start = S.i;
-						NODE.value.end = S.i;
-						NODE.value.value = char; // Start building string.
+						N.value.start = S.i;
+						N.value.end = S.i;
+						N.value.value = char; // Start building string.
 					} else {
 						// Check if character is a delimiter.
 						if (char === "|" && pchar !== "\\") {
@@ -301,7 +301,7 @@ module.exports = (S, isoneliner) => {
 						if (end_comsuming) error(S, __filename);
 
 						// Get string type.
-						let stype = NODE.value.type;
+						let stype = N.value.type;
 
 						// Escaped string logic.
 						if (stype === "escaped") {
@@ -311,15 +311,15 @@ module.exports = (S, isoneliner) => {
 
 							// Quoted string logic.
 						} else if (stype === "quoted") {
-							let value_fchar = NODE.value.value.charAt(0);
+							let value_fchar = N.value.value.charAt(0);
 							if (char === value_fchar && pchar !== "\\") {
 								end_comsuming = true; // Set flag.
 							}
 						}
 
 						// Store index positions.
-						NODE.value.end = S.i;
-						NODE.value.value += char; // Continue building string.
+						N.value.end = S.i;
+						N.value.value += char; // Continue building string.
 					}
 				}
 
@@ -328,28 +328,28 @@ module.exports = (S, isoneliner) => {
 	}
 
 	// Note: If flag starts a scope block, store reference to node object.
-	if (NODE.value.value === "(") {
+	if (N.value.value === "(") {
 		// Store relevant information.
-		NODE.brackets = {
-			start: NODE.value.start,
-			end: NODE.value.start,
-			value: NODE.value.value
+		N.brackets = {
+			start: N.value.start,
+			end: N.value.start,
+			value: N.value.value
 		};
 
-		S.scopes.flag = NODE; // Store reference to node object.
+		S.scopes.flag = N; // Store reference to node object.
 	}
 
-	validate(S, NODE); // Validate extracted variable value.
+	validate(S, N); // Validate extracted variable value.
 
 	if (S.singletonflag) {
-		add(S, NODE); // Add node to tree.
+		add(S, N); // Add node to tree.
 
 		// Finally, remove the singletonflag key from S object.
 		delete S.singletonflag;
 
 		// Add property to help distinguish node if later needed.
-		NODE.singletonflag = true;
+		N.singletonflag = true;
 	}
 
-	return NODE;
+	return N;
 };

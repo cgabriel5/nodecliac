@@ -23,7 +23,7 @@ const { r_nl, r_whitespace } = require("../helpers/patterns.js");
 module.exports = S => {
 	let { line, l, text } = S;
 	let state = "sigil";
-	let NODE = node(S, "COMMENT");
+	let N = node(S, "COMMENT");
 
 	// Loop over string.
 	for (; S.i < l; S.i++) {
@@ -31,7 +31,7 @@ module.exports = S => {
 
 		// End loop on a newline char.
 		if (r_nl.test(char)) {
-			NODE.endpoint = --S.i; // Rollback (run '\n' parser next).
+			N.endpoint = --S.i; // Rollback (run '\n' parser next).
 
 			break;
 		}
@@ -41,8 +41,8 @@ module.exports = S => {
 		switch (state) {
 			case "sigil":
 				// Store index positions.
-				NODE.sigil.start = S.i;
-				NODE.sigil.end = S.i;
+				N.sigil.start = S.i;
+				N.sigil.end = S.i;
 
 				state = "comment"; // Reset parsing state.
 
@@ -50,14 +50,14 @@ module.exports = S => {
 
 			case "comment":
 				// Note: Ensure start index is stored if not already.
-				if (!NODE.comment.start) NODE.comment.start = NODE.sigil.start;
-				NODE.comment.end = S.i; // Store index positions.
+				if (!N.comment.start) N.comment.start = N.sigil.start;
+				N.comment.end = S.i; // Store index positions.
 
 				break;
 		}
 
-		NODE.comment.value += char; // Capture all comment characters.
+		N.comment.value += char; // Capture all comment characters.
 	}
 
-	add(S, NODE); // Add node to tree.
+	add(S, N); // Add node to tree.
 };

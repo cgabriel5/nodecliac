@@ -16,14 +16,14 @@ const add = require("../helpers/tree-add.js");
  */
 module.exports = S => {
 	let { line } = S;
-	let NODE = node(S, "NEWLINE");
+	let N = node(S, "NEWLINE");
 
-	NODE.sigil.start = S.i;
-	NODE.sigil.end = S.i;
+	N.sigil.start = S.i;
+	N.sigil.end = S.i;
 
 	S.line++;
 	S.column = 0;
 	S.sol_char = "";
 
-	add(S, NODE); // Add node to tree.
+	add(S, N); // Add node to tree.
 };

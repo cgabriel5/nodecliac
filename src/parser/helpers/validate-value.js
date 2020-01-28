@@ -6,25 +6,25 @@ const error = require("./error.js");
  * Performs checks on string as well as interpolates any variables.
  *
  * @param  {object} S - Main loop state object.
- * @param  {object} NODE - The NODE object.
+ * @param  {object} N - The node object.
  * @return {object} - Object containing parsed information.
  */
-module.exports = (S, NODE) => {
-	let { value, type } = NODE.value;
+module.exports = (S, N) => {
+	let { value, type } = N.value;
 
 	// Start: Short Circuit Checks. ============================================
 
 	// Note: If a value does not exist then return.
 	if (!value) {
-		NODE.args = []; // Attach empty args array to NODE object.
+		N.args = []; // Attach empty args array to N object.
 
 		return; // Exit early.
 	}
 
 	// Note: If value is '(' then it's a long-form flag list.
 	if (value === "(") {
-		NODE.openbrace = true; // Add some key-identifying properties to object.
-		NODE.args = []; // Attach empty args array to NODE object.
+		N.openbrace = true; // Add some key-identifying properties to object.
+		N.args = []; // Attach empty args array to N object.
 
 		return; // Exit early.
 	}
@@ -40,11 +40,11 @@ module.exports = (S, NODE) => {
 		else if (fvchar === "(") type = "list";
 		else if (/["']/.test(fvchar)) type = "quoted";
 
-		NODE.value.type = type; // Finally set type.
+		N.value.type = type; // Finally set type.
 	}
 
 	// The column index to resume error checks at.
-	let resumepoint = NODE.value.start - S.tables.linestarts[S.line];
+	let resumepoint = N.value.start - S.tables.linestarts[S.line];
 	// Note: Add 1 to resumepoint to account for 0 base indexing,
 	resumepoint++; // as column value starts count at 1.
 
@@ -94,15 +94,15 @@ module.exports = (S, NODE) => {
 					return value;
 				});
 
-				NODE.args = [value]; // Attach args array to NODE object.
-				NODE.value.value = value; // Update value in object.
+				N.args = [value]; // Attach args array to N object.
+				N.value.value = value; // Update value in object.
 			}
 
 			break;
 
 		case "escaped":
-			// Attach args array to NODE object.
-			NODE.args = [value];
+			// Attach args array to N object.
+			N.args = [value];
 
 			break;
 		case "command-flag":
@@ -131,7 +131,7 @@ module.exports = (S, NODE) => {
 				let delimiter_index;
 				let i = 2; // Offset start index due to syntax '$('.
 				// Resume incrementing index for error purposes.
-				let resume_index = NODE.value.start + i;
+				let resume_index = N.value.start + i;
 				let value_start_index;
 
 				// Validate that command-flag string is valid.
@@ -193,7 +193,7 @@ module.exports = (S, NODE) => {
 
 						if (char === qchar && pchar !== "\\") {
 							// Validate value.
-							let tmpNODE = {
+							let tmpN = {
 								value: {
 									start: value_start_index,
 									end: argument.length - 1,
@@ -201,7 +201,7 @@ module.exports = (S, NODE) => {
 									type: "quoted"
 								}
 							};
-							argument = module.exports(S, tmpNODE);
+							argument = module.exports(S, tmpN);
 
 							args.push(argument); // Store argument.
 							// Clear/reset variables.
@@ -227,7 +227,7 @@ module.exports = (S, NODE) => {
 					i--; // Reduce to account for last completed iteration.
 
 					// Validate value.
-					let tmpNODE = {
+					let tmpN = {
 						value: {
 							start: value_start_index,
 							end: argument.length - 1,
@@ -235,16 +235,16 @@ module.exports = (S, NODE) => {
 							type: "quoted"
 						}
 					};
-					argument = module.exports(S, tmpNODE);
+					argument = module.exports(S, tmpN);
 
 					args.push(argument); // Store argument.
 				}
 
 				// Create cleaned command-flag.
 				let cvalue = `$(${args.join(",")})`;
-				NODE.args = [cvalue]; // Attach args array to NODE object.
+				N.args = [cvalue]; // Attach args array to N object.
 				// Reset value to cleaned arguments command-flag.
-				NODE.value.value = value = cvalue;
+				N.value.value = value = cvalue;
 			}
 
 			break;
@@ -274,7 +274,7 @@ module.exports = (S, NODE) => {
 				let mode;
 				let i = 1; // Offset start index due to syntax '('.
 				// Resume incrementing index for error purposes.
-				let resume_index = NODE.value.start + i;
+				let resume_index = N.value.start + i;
 				let value_start_index;
 
 				// Validate that command-flag string is valid.
@@ -333,7 +333,7 @@ module.exports = (S, NODE) => {
 							if (char === qchar && pchar !== "\\") {
 								argument += char; // Store character.
 								// Validate value.
-								let tmpNODE = {
+								let tmpN = {
 									value: {
 										start: value_start_index,
 										end: argument.length - 1,
@@ -341,7 +341,7 @@ module.exports = (S, NODE) => {
 										type: mode
 									}
 								};
-								argument = module.exports(S, tmpNODE);
+								argument = module.exports(S, tmpN);
 								args.push([argument, mode]); // Store argument.
 								argument = ""; // Clear argument string.
 								mode = null; // Clear mode flag.
@@ -352,7 +352,7 @@ module.exports = (S, NODE) => {
 							if (/[ \t]/.test(char) && pchar !== "\\") {
 								// argument += char; // Store character.
 								// Validate value.
-								let tmpNODE = {
+								let tmpN = {
 									value: {
 										start: value_start_index,
 										end: argument.length - 1,
@@ -360,7 +360,7 @@ module.exports = (S, NODE) => {
 										type: mode
 									}
 								};
-								argument = module.exports(S, tmpNODE);
+								argument = module.exports(S, tmpN);
 								args.push([argument, mode]); // Store argument.
 								argument = ""; // Clear argument string.
 								mode = null; // Clear mode flag.
@@ -371,7 +371,7 @@ module.exports = (S, NODE) => {
 							if (char === ")" && pchar !== "\\") {
 								argument += char; // Store character.
 								// Validate value.
-								let tmpNODE = {
+								let tmpN = {
 									value: {
 										start: value_start_index,
 										end: argument.length - 1,
@@ -380,7 +380,7 @@ module.exports = (S, NODE) => {
 									}
 								};
 
-								argument = module.exports(S, tmpNODE);
+								argument = module.exports(S, tmpN);
 								args.push([argument, mode]); // Store argument.
 								argument = ""; // Clear argument string.
 								mode = null; // Clear mode flag.
@@ -393,7 +393,7 @@ module.exports = (S, NODE) => {
 				// Get last argument.
 				if (argument) {
 					// Validate value.
-					let tmpNODE = {
+					let tmpN = {
 						value: {
 							start: value_start_index,
 							end: argument.length - 1,
@@ -401,7 +401,7 @@ module.exports = (S, NODE) => {
 							type: mode
 						}
 					};
-					argument = module.exports(S, tmpNODE);
+					argument = module.exports(S, tmpN);
 					args.push([argument, mode]);
 				}
 
@@ -409,10 +409,10 @@ module.exports = (S, NODE) => {
 				let cvalues = [];
 				args.forEach(item => cvalues.push(item[0]));
 
-				// Attach args array to NODE object.
-				NODE.args = cvalues;
+				// Attach args array to N object.
+				N.args = cvalues;
 				// Reset value to cleaned arguments command-flag.
-				NODE.value.value = value = `(${cvalues.join(" ")})`;
+				N.value.value = value = `(${cvalues.join(" ")})`;
 			}
 
 			break;

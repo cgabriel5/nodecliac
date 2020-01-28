@@ -34,7 +34,7 @@ const { r_nl, r_whitespace } = require("../helpers/patterns.js");
 module.exports = S => {
 	let { line, l, text } = S;
 	let state = "command";
-	let NODE = node(S, "COMMAND");
+	let N = node(S, "COMMAND");
 
 	// Note: If command-chain scope exists, error as brace wasn't closed.
 	bracechecks(S, null, "pre-existing-cs");
@@ -45,7 +45,7 @@ module.exports = S => {
 
 		// End loop on a newline char.
 		if (r_nl.test(char)) {
-			NODE.endpoint = --S.i; // Rollback (run '\n' parser next).
+			N.endpoint = --S.i; // Rollback (run '\n' parser next).
 
 			break;
 		}
@@ -55,23 +55,23 @@ module.exports = S => {
 		switch (state) {
 			case "command":
 				// If name is empty check for first letter.
-				if (!NODE.command.value) {
+				if (!N.command.value) {
 					// Name must start with pattern else give error.
 					if (!/[:a-zA-Z]/.test(char)) error(S, __filename);
 
 					// Set index positions.
-					NODE.command.start = S.i;
-					NODE.command.end = S.i;
+					N.command.start = S.i;
+					N.command.end = S.i;
 
-					NODE.command.value += char; // Start building string.
+					N.command.value += char; // Start building string.
 				}
 				// Continue building setting command string.
 				else {
 					// If char is allowed keep building string.
 					if (/[-_.:+\\/a-zA-Z0-9]/.test(char)) {
 						// Set index positions.
-						NODE.command.end = S.i;
-						NODE.command.value += char; // Continue building string.
+						N.command.end = S.i;
+						N.command.value += char; // Continue building string.
 
 						// Note: When escaping anything but a dot do not
 						// include the '\' as it is not needed. For example,
@@ -90,8 +90,8 @@ module.exports = S => {
 								error(S, __filename, 10);
 
 								// Remove last escape char as it isn't needed.
-								let command = NODE.command.value.slice(0, -1);
-								NODE.command.value = command;
+								let command = N.command.value.slice(0, -1);
+								N.command.value = command;
 							}
 						}
 					}
@@ -142,9 +142,9 @@ module.exports = S => {
 
 			case "assignment":
 				// Store index positions.
-				NODE.assignment.start = S.i;
-				NODE.assignment.end = S.i;
-				NODE.assignment.value = char; // Store character.
+				N.assignment.start = S.i;
+				N.assignment.end = S.i;
+				N.assignment.value = char; // Store character.
 
 				state = "value-wsb"; // Reset parsing state.
 
@@ -152,9 +152,9 @@ module.exports = S => {
 
 			case "delimiter":
 				// Store index positions.
-				NODE.delimiter.start = S.i;
-				NODE.delimiter.end = S.i;
-				NODE.delimiter.value = char; // Store character.
+				N.delimiter.start = S.i;
+				N.delimiter.end = S.i;
+				N.delimiter.value = char; // Store character.
 
 				state = "eol-wsb"; // Reset parsing state.
 
@@ -190,9 +190,9 @@ module.exports = S => {
 				// Note: This will be an intermediary step. May be removed?
 
 				// Store index positions.
-				NODE.brackets.start = S.i;
-				NODE.brackets.value = char; // Store bracket character.
-				NODE.value.value = char; // Store assignment character.
+				N.brackets.start = S.i;
+				N.brackets.value = char; // Store bracket character.
+				N.value.value = char; // Store assignment character.
 
 				state = "open-bracket-wsb"; // Reset parsing state.
 
@@ -214,8 +214,8 @@ module.exports = S => {
 				if (char !== "]") error(S, __filename);
 
 				// Store index positions.
-				NODE.brackets.end = S.i;
-				NODE.value.value += char; // Store character.
+				N.brackets.end = S.i;
+				N.value.value += char; // Store character.
 
 				state = "eol-wsb"; // Reset parsing state.
 
@@ -228,7 +228,7 @@ module.exports = S => {
 				S.column--;
 
 				// Store result in var to access interpolated variable's value.
-				NODE.flags.push(p_flag(S, "oneliner")); // Parse flag oneliner...
+				N.flags.push(p_flag(S, "oneliner")); // Parse flag oneliner...
 
 				break;
 
@@ -240,14 +240,14 @@ module.exports = S => {
 		}
 	}
 
-	add(S, NODE);
+	add(S, N);
 	// Add any flags.
-	for (let i = 0, l = NODE.flags.length; i < l; i++) {
-		add(S, NODE.flags[i]);
+	for (let i = 0, l = N.flags.length; i < l; i++) {
+		add(S, N.flags[i]);
 	}
 
 	// If command starts a scope block, store reference to node object.
-	if (NODE.value.value === "[") S.scopes.command = NODE;
+	if (N.value.value === "[") S.scopes.command = N;
 
-	return NODE;
+	return N;
 };

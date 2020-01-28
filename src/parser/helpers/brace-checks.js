@@ -6,11 +6,11 @@ const error = require("./error.js");
  * Check that command/flag scopes are properly closed.
  *
  * @param  {object} S - The state object.
- * @param  {object} NODE - The NODE object.
+ * @param  {object} N - The node object.
  * @param  {string} checktype - Name of check to run.
  * @return {undefined} - Nothing is returned.
  */
-module.exports = (S, NODE, checktype) => {
+module.exports = (S, N, checktype) => {
 	switch (checktype) {
 		// Check whether a pre-existing command scope exists.
 		case "pre-existing-cs": {
@@ -23,7 +23,7 @@ module.exports = (S, NODE, checktype) => {
 
 		case "reset-scope": {
 			// Check brace type. If the scope does not exist then give error.
-			let type = NODE.brace.value === "]" ? "command" : "flag";
+			let type = N.brace.value === "]" ? "command" : "flag";
 
 			// Note: Scope should exist. If not the close brace was used
 			// invalidly. If it does exist clear it.

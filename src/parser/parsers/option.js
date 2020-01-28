@@ -26,7 +26,7 @@ module.exports = S => {
 	let { line, l, text } = S;
 	let end_comsuming;
 	let state = "bullet";
-	let NODE = node(S, "OPTION");
+	let N = node(S, "OPTION");
 
 	// Note: If a flag scope doesn't exist, error as it needs to.
 	bracechecks(S, null, "pre-existing-fs");
@@ -37,7 +37,7 @@ module.exports = S => {
 
 		// End loop on a newline char.
 		if (r_nl.test(char)) {
-			NODE.endpoint = --S.i; // Rollback (run '\n' parser next).
+			N.endpoint = --S.i; // Rollback (run '\n' parser next).
 
 			break;
 		}
@@ -47,9 +47,9 @@ module.exports = S => {
 		switch (state) {
 			case "bullet":
 				// Store index positions.
-				NODE.bullet.start = S.i;
-				NODE.bullet.end = S.i;
-				NODE.bullet.value = char; // Start building string.
+				N.bullet.start = S.i;
+				N.bullet.end = S.i;
+				N.bullet.value = char; // Start building string.
 
 				state = "spacer"; // Reset parsing state.
 
@@ -83,19 +83,19 @@ module.exports = S => {
 					let pchar = text.charAt(S.i - 1); // Previous char.
 
 					// Determine value type.
-					if (!NODE.value.value) {
+					if (!N.value.value) {
 						let type = "escaped"; // Set default.
 
 						if (char === "$") type = "command-flag";
 						else if (char === "(") type = "list";
 						else if (r_quote.test(char)) type = "quoted";
 
-						NODE.value.type = type; // Set type.
+						N.value.type = type; // Set type.
 
 						// Store index positions.
-						NODE.value.start = S.i;
-						NODE.value.end = S.i;
-						NODE.value.value = char; // Start building string.
+						N.value.start = S.i;
+						N.value.end = S.i;
+						N.value.value = char; // Start building string.
 					} else {
 						// If flag is set and characters can still be consumed
 						// then there is a syntax error. For example, string
@@ -103,7 +103,7 @@ module.exports = S => {
 						if (end_comsuming) error(S, __filename);
 
 						// Get string type.
-						let stype = NODE.value.type;
+						let stype = N.value.type;
 
 						// Escaped string logic.
 						if (stype === "escaped") {
@@ -113,15 +113,15 @@ module.exports = S => {
 
 							// Quoted string logic.
 						} else if (stype === "quoted") {
-							let value_fchar = NODE.value.value.charAt(0);
+							let value_fchar = N.value.value.charAt(0);
 							if (char === value_fchar && pchar !== "\\") {
 								end_comsuming = true; // Set flag.
 							}
 						}
 
 						// Store index positions.
-						NODE.value.end = S.i;
-						NODE.value.value += char; // Continue building string.
+						N.value.end = S.i;
+						N.value.value += char; // Continue building string.
 					}
 				}
 
@@ -129,6 +129,6 @@ module.exports = S => {
 		}
 	}
 
-	validate(S, NODE); // Validate extracted variable value.
-	add(S, NODE); // Add node to tree.
+	validate(S, N); // Validate extracted variable value.
+	add(S, N); // Add node to tree.
 };

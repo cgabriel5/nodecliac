@@ -7,7 +7,7 @@ const linetype = require("./helpers/line_type.js");
 const formatter = require("./helpers/formatter.js");
 const specificity = require("./helpers/specificity.js");
 const bracechecks = require("./helpers/brace-checks.js");
-const { r_sol_char, r_whitespace } = require("./helpers/patterns.js");
+const { r_sol_char, r_space } = require("./helpers/patterns.js");
 
 module.exports = (text, commandname, source, fmt, trace, igc, test) => {
 	const S = state(text, source, fmt, trace, igc, test);
@@ -30,7 +30,7 @@ module.exports = (text, commandname, source, fmt, trace, igc, test) => {
 			if (!linestarts[S.line]) linestarts[S.line] = S.i;
 
 			// Find first non-whitespace character of line.
-			if (!S.sol_char && !r_whitespace.test(char)) {
+		if (!S.sol_char && !r_space.test(char)) {
 				S.sol_char = char; // Set char.
 
 				// Error if sol char is not allowed.

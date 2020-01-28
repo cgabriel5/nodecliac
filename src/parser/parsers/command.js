@@ -6,7 +6,7 @@ const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
 const rollback = require("../helpers/rollback.js");
 const bracechecks = require("../helpers/brace-checks.js");
-const { r_nl, r_whitespace } = require("../helpers/patterns.js");
+const { r_nl, r_space } = require("../helpers/patterns.js");
 
 /**
  * Command-chain parser.
@@ -98,7 +98,7 @@ module.exports = S => {
 					// Note: If we encounter a whitespace character, everything
 					// after this point must be a space until we encounter
 					// an eq sign or the end-of-line (newline) character.
-					else if (r_whitespace.test(char)) {
+					else if (r_space.test(char)) {
 						state = "chain-wsb";
 						continue;
 					}
@@ -124,7 +124,7 @@ module.exports = S => {
 				// At this point we are looking for the assignment operator
 				// or a delimiter. Anything but whitespace, eq-sign, or
 				// command are invalid chars.
-				if (!r_whitespace.test(char)) {
+				if (!r_space.test(char)) {
 					if (char === "=") {
 						state = "assignment"; // Reset parsing state.
 
@@ -163,7 +163,7 @@ module.exports = S => {
 			case "value-wsb":
 				// Ignore consecutive whitespace. Once a non-whitespace
 				// character is hit, switch to value state.
-				if (!r_whitespace.test(char)) {
+				if (!r_space.test(char)) {
 					state = "value";
 
 					rollback(S); // Rollback loop index.
@@ -201,7 +201,7 @@ module.exports = S => {
 			case "open-bracket-wsb":
 				// Ignore consecutive whitespace. Once a non-whitespace
 				// character is hit, switch to value state.
-				if (!r_whitespace.test(char)) {
+				if (!r_space.test(char)) {
 					state = "close-bracket";
 
 					rollback(S); // Rollback loop index.
@@ -234,7 +234,7 @@ module.exports = S => {
 
 			case "eol-wsb":
 				// Anything but trailing whitespace is invalid so give error.
-				if (!r_whitespace.test(char)) error(S, __filename);
+				if (!r_space.test(char)) error(S, __filename);
 
 				break;
 		}

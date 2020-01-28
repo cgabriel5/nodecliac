@@ -6,12 +6,6 @@ const error = require("../helpers/error.js");
 const rollback = require("../helpers/rollback.js");
 const validate = require("../helpers/validate-value.js");
 const bracechecks = require("../helpers/brace-checks.js");
-const {
-	r_nl,
-	r_whitespace,
-	r_letter,
-	r_quote
-} = require("../helpers/patterns.js");
 
 /**
  * Setting parser.
@@ -82,7 +76,7 @@ module.exports = S => {
 					// everything after this point must be a space
 					// until an eq sign or the end-of-line (newline)
 					// character is encountered.
-					else if (r_whitespace.test(char)) {
+					else if (r_space.test(char)) {
 						state = "name-wsb";
 						continue;
 					}
@@ -101,7 +95,7 @@ module.exports = S => {
 			case "name-wsb":
 				// This state looks for the assignment operator. Anything
 				// but whitespace or an eq-sign are invalid chars.
-				if (!r_whitespace.test(char)) {
+				if (!r_space.test(char)) {
 					if (char === "=") {
 						state = "assignment"; // Reset parsing state.
 
@@ -126,7 +120,7 @@ module.exports = S => {
 			case "value-wsb":
 				// Ignore consecutive whitespace. Once a non-whitespace
 				// character is hit, switch to value state.
-				if (!r_whitespace.test(char)) {
+				if (!r_space.test(char)) {
 					state = "value";
 
 					rollback(S); // Rollback loop index.
@@ -164,7 +158,7 @@ module.exports = S => {
 					// Else, not quoted.
 					else {
 						// Must stop at the first space char.
-						if (r_whitespace.test(char)) {
+						if (r_space.test(char)) {
 							state = "eol-wsb";
 
 							rollback(S); // Rollback loop index.
@@ -180,7 +174,7 @@ module.exports = S => {
 
 			case "eol-wsb":
 				// Anything but trailing whitespace is invalid so give error.
-				if (!r_whitespace.test(char)) error(S, __filename);
+				if (!r_space.test(char)) error(S, __filename);
 
 				break;
 		}

@@ -6,7 +6,7 @@ const error = require("../helpers/error.js");
 const rollback = require("../helpers/rollback.js");
 const validate = require("../helpers/validate-value.js");
 const bracechecks = require("../helpers/brace-checks.js");
-const { r_nl, r_whitespace, r_quote } = require("../helpers/patterns.js");
+const { r_nl, r_space, r_quote } = require("../helpers/patterns.js");
 
 /**
  * Flag option parser.
@@ -57,7 +57,7 @@ module.exports = S => {
 
 			case "spacer":
 				// Note: A whitespace character must follow bullet, else error.
-				if (!r_whitespace.test(char)) error(S, __filename);
+				if (!r_space.test(char)) error(S, __filename);
 
 				state = "wsb-prevalue"; // Reset parsing state.
 
@@ -65,7 +65,7 @@ module.exports = S => {
 
 			case "wsb-prevalue":
 				// Note: Allow whitespace until first non-whitespace char is hit.
-				if (!r_whitespace.test(char)) {
+				if (!r_space.test(char)) {
 					rollback(S); // Rollback loop index.
 
 					state = "value";
@@ -107,7 +107,7 @@ module.exports = S => {
 
 						// Escaped string logic.
 						if (stype === "escaped") {
-							if (r_whitespace.test(char) && pchar !== "\\") {
+							if (r_space.test(char) && pchar !== "\\") {
 								end_comsuming = true; // Set flag.
 							}
 

@@ -4,7 +4,7 @@ const node = require("../helpers/nodes.js");
 const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
 const bracechecks = require("../helpers/brace-checks.js");
-const { r_nl, r_whitespace } = require("../helpers/patterns.js");
+const { r_nl, r_space } = require("../helpers/patterns.js");
 
 /**
  * Closing-brace parser.
@@ -51,7 +51,7 @@ module.exports = S => {
 
 			case "eol-wsb":
 				// Anything but trailing whitespace is invalid so give error.
-				if (!r_whitespace.test(char)) error(S, __filename);
+				if (!r_space.test(char)) error(S, __filename);
 
 				break;
 		}

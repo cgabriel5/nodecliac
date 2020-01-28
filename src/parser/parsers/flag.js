@@ -6,12 +6,6 @@ const error = require("../helpers/error.js");
 const rollback = require("../helpers/rollback.js");
 const validate = require("../helpers/validate-value.js");
 const bracechecks = require("../helpers/brace-checks.js");
-const {
-	r_nl,
-	r_whitespace,
-	r_letter,
-	r_quote
-} = require("../helpers/patterns.js");
 
 /**
  * Flag parser.
@@ -119,7 +113,7 @@ module.exports = (S, isoneliner) => {
 
 			case "keyword-spacer":
 				// Note: Character must be a whitespace character, else error.
-				if (!r_whitespace.test(char)) error(S, __filename);
+				if (!r_space.test(char)) error(S, __filename);
 
 				state = "wsb-prevalue"; // Reset parsing state.
 
@@ -163,7 +157,7 @@ module.exports = (S, isoneliner) => {
 						rollback(S); // Rollback loop index.
 					}
 					// If char is whitespace change state/reset index.
-					else if (r_whitespace.test(char)) {
+					else if (r_space.test(char)) {
 						state = "wsb-postname"; // Reset parsing state.
 
 						rollback(S); // Rollback loop index.
@@ -178,7 +172,7 @@ module.exports = (S, isoneliner) => {
 				// Note: The only allowed characters here are whitespace(s).
 				// Anything else like an eq-sign, boolean-indicator, or pipe
 				// require a state change.
-				if (!r_whitespace.test(char)) {
+				if (!r_space.test(char)) {
 					if (char === "=") {
 						state = "assignment"; // Reset parsing state.
 
@@ -250,7 +244,7 @@ module.exports = (S, isoneliner) => {
 			case "wsb-prevalue":
 				// Note: Allow any whitespace until first non-whitespace
 				// character is hit.
-				if (!r_whitespace.test(char)) {
+					rollback(S);
 					rollback(S); // Rollback loop index.
 
 					// Reset parsing state (based on character).
@@ -305,7 +299,7 @@ module.exports = (S, isoneliner) => {
 
 						// Escaped string logic.
 						if (stype === "escaped") {
-							if (r_whitespace.test(char) && pchar !== "\\") {
+							if (r_space.test(char) && pchar !== "\\") {
 								end_comsuming = true; // Set flag.
 							}
 

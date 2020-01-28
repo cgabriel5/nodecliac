@@ -6,7 +6,7 @@
 module.exports = {
 	r_letter: /[a-zA-Z]/, // Letter.
 	r_quote: /["']/, // Quotes.
-	r_whitespace: /[ \t]/, // Whitespace.
+	r_space: /[ \t]/, // Whitespace.
 	r_nl: new RegExp(`(\\r?\\n)`), // New line character.
 	r_nlpipe: new RegExp(`(\\r?\\n|\\|)`), // Pipe oneliner delimiter.
 	r_open_command_br: /^\[\]?$/, // Open command bracket.

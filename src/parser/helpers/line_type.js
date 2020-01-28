@@ -1,6 +1,6 @@
 "use strict";
 
-const { r_whitespace, r_letter } = require("./patterns.js");
+const { r_space, r_letter } = require("./patterns.js");
 
 /**
  * Determine line's line type.
@@ -33,7 +33,7 @@ module.exports = (S, char, nchar) => {
 	// Perform final line type overrides/variable resets.
 	if (line_type === "flag") {
 		// Line is actually a flag option so reset parser.
-		if (nchar && r_whitespace.test(nchar)) line_type = "option";
+		if (nchar && r_space.test(nchar)) line_type = "option";
 		else S.singletonflag = true; // Make flag parser add node to tree.
 	} else if (line_type === "command") {
 		// Check for 'default' keyword.

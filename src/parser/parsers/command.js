@@ -1,5 +1,6 @@
 "use strict";
 
+const node = require("../helpers/nodes.js");
 const p_flag = require("../parsers/flag.js");
 const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
@@ -32,26 +33,11 @@ const { r_nl, r_whitespace } = require("../helpers/patterns.js");
  */
 module.exports = S => {
 	let { line, l, text } = S;
+	let state = "command";
+	let NODE = node(S, "COMMAND");
 
 	// Note: If command-chain scope exists, error as brace wasn't closed.
 	bracechecks(S, null, "pre-existing-cs");
-
-	// Parsing vars.
-	let state = "command"; // Initial parsing state.
-	let NODE = {
-		node: "COMMAND",
-		sigil: { start: null, end: null },
-		command: { start: null, end: null, value: "" },
-		name: { start: null, end: null, value: "" },
-		brackets: { start: null, end: null, value: null },
-		assignment: { start: null, end: null, value: null },
-		delimiter: { start: null, end: null, value: null },
-		value: { start: null, end: null, value: null },
-		flags: [],
-		line,
-		startpoint: S.i,
-		endpoint: null // Index where parsing ended.
-	};
 
 	// Loop over string.
 	for (; S.i < l; S.i++) {

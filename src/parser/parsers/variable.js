@@ -1,5 +1,6 @@
 "use strict";
 
+const node = require("../helpers/nodes.js");
 const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
 const rollback = require("../helpers/rollback.js");
@@ -30,20 +31,9 @@ const {
  */
 module.exports = S => {
 	let { line, l, text } = S;
-
-	// Parsing vars.
-	let state = "sigil"; // Initial parsing state.
 	let qchar;
-	let NODE = {
-		node: "VARIABLE",
-		sigil: { start: null, end: null },
-		name: { start: null, end: null, value: "" },
-		assignment: { start: null, end: null, value: null },
-		value: { start: null, end: null, value: null },
-		line,
-		startpoint: S.i,
-		endpoint: null // Index where parsing ended.
-	};
+	let state = "sigil";
+	let NODE = node(S, "VARIABLE");
 
 	// Loop over string.
 	for (; S.i < l; S.i++) {

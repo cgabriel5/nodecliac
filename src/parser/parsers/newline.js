@@ -1,5 +1,6 @@
 "use strict";
 
+const node = require("../helpers/nodes.js");
 const add = require("../helpers/tree-add.js");
 
 /**
@@ -15,15 +16,10 @@ const add = require("../helpers/tree-add.js");
  */
 module.exports = S => {
 	let { line } = S;
+	let NODE = node(S, "NEWLINE");
 
-	// Parsing vars.
-	let NODE = {
-		node: "NEWLINE",
-		sigil: { start: S.i, end: S.i },
-		line,
-		startpoint: S.i,
-		endpoint: S.i // Index where parsing ended.
-	};
+	NODE.sigil.start = S.i;
+	NODE.sigil.end = S.i;
 
 	S.line++;
 	S.column = 0;

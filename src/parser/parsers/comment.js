@@ -1,5 +1,6 @@
 "use strict";
 
+const node = require("../helpers/nodes.js");
 const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
 const rollback = require("../helpers/rollback.js");
@@ -21,17 +22,8 @@ const { r_nl, r_whitespace } = require("../helpers/patterns.js");
  */
 module.exports = S => {
 	let { line, l, text } = S;
-
-	// Parsing vars.
-	let state = "sigil"; // Initial parsing state.
-	let NODE = {
-		node: "COMMENT",
-		sigil: { start: null, end: null },
-		comment: { start: null, end: null, value: "" },
-		line,
-		startpoint: S.i,
-		endpoint: null // Index where parsing ended.
-	};
+	let state = "sigil";
+	let NODE = node(S, "COMMENT");
 
 	// Loop over string.
 	for (; S.i < l; S.i++) {

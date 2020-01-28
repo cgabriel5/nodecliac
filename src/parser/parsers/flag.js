@@ -1,5 +1,6 @@
 "use strict";
 
+const node = require("../helpers/nodes.js");
 const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
 const rollback = require("../helpers/rollback.js");
@@ -36,32 +37,16 @@ const {
  */
 module.exports = (S, isoneliner) => {
 	let { line, l, text } = S;
+	let state = text.charAt(S.i) === "-" ? "hyphen" : "keyword"; // Initial parsing state.
+	let stop; // Flag indicating whether to stop parser.
+	let end_comsuming;
+	let NODE = node(S, "FLAG");
 
 	// Note: If not a oneliner or no command scope, flag is being declared out of scope.
 	if (!(isoneliner || S.scopes.command)) error(S, __filename, 10);
 
 	// Note: If flag scope already exists another flag cannot be declared.
 	if (S.scopes.flag) error(S, __filename, 11);
-
-	// Parsing vars.
-	let state = text.charAt(S.i) === "-" ? "hyphen" : "keyword"; // Initial parsing state.
-	let stop; // Flag indicating whether to stop parser.
-	let end_comsuming;
-	let NODE = {
-		node: "FLAG",
-		hyphens: { start: null, end: null, value: null },
-		variable: { start: null, end: null, value: null },
-		name: { start: null, end: null, value: null },
-		boolean: { start: null, end: null, value: null },
-		assignment: { start: null, end: null, value: null },
-		multi: { start: null, end: null, value: null },
-		brackets: { start: null, end: null, value: null },
-		value: { start: null, end: null, value: null, type: null },
-		keyword: { start: null, end: null, value: null },
-		line,
-		startpoint: S.i,
-		endpoint: null // Index where parsing ended.
-	};
 
 	// Loop over string.
 	for (; S.i < l; S.i++) {

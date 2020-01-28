@@ -1,5 +1,6 @@
 "use strict";
 
+const node = require("../helpers/nodes.js");
 const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
 const rollback = require("../helpers/rollback.js");
@@ -23,21 +24,12 @@ const { r_nl, r_whitespace, r_quote } = require("../helpers/patterns.js");
  */
 module.exports = S => {
 	let { line, l, text } = S;
+	let end_comsuming;
+	let state = "bullet";
+	let NODE = node(S, "OPTION");
 
 	// Note: If a flag scope doesn't exist, error as it needs to.
 	bracechecks(S, null, "pre-existing-fs");
-
-	// Parsing vars.
-	let state = "bullet"; // Initial parsing state.
-	let end_comsuming;
-	let NODE = {
-		node: "OPTION",
-		bullet: { start: null, end: null, value: null },
-		value: { start: null, end: null, value: null, type: null },
-		line,
-		startpoint: S.i,
-		endpoint: null // Index where parsing ended.
-	};
 
 	// Loop over string.
 	for (; S.i < l; S.i++) {

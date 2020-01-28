@@ -1,5 +1,6 @@
 "use strict";
 
+const node = require("../helpers/nodes.js");
 const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
 const bracechecks = require("../helpers/brace-checks.js");
@@ -21,16 +22,8 @@ const { r_nl, r_whitespace } = require("../helpers/patterns.js");
  */
 module.exports = S => {
 	let { line, l, text } = S;
-
-	// Parsing vars.
-	let state = "brace"; // Initial parsing state.
-	let NODE = {
-		node: "BRACE",
-		brace: { start: null, end: null, value: null },
-		line,
-		startpoint: S.i,
-		endpoint: null // Index where parsing ended.
-	};
+	let state = "brace";
+	let NODE = node(S, "BRACE");
 
 	// Loop over string.
 	for (; S.i < l; S.i++) {

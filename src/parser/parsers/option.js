@@ -9,9 +9,7 @@ const bracechecks = require("../helpers/brace-checks.js");
 const { r_nl, r_space, r_quote } = require("../helpers/patterns.js");
 
 /**
- * Flag option parser.
- *
- * ---------- Parsing Breakdown ------------------------------------------------
+ * ----------------------------------------------------------- Parsing Breakdown
  * - value
  *  |     ^-EOL-Whitespace-Boundary 2
  *  ^-Whitespace-Boundary 1
@@ -19,8 +17,8 @@ const { r_nl, r_space, r_quote } = require("../helpers/patterns.js");
  *  ^-Value
  * -----------------------------------------------------------------------------
  *
- * @param  {object} S - Main loop state object.
- * @return {object} - Object containing parsed information.
+ * @param  {object} S - State object.
+ * @return {undefined} - Nothing is returned.
  */
 module.exports = S => {
 	let { line, l, text } = S;

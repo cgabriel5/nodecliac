@@ -8,20 +8,18 @@ const validate = require("../helpers/validate-value.js");
 const bracechecks = require("../helpers/brace-checks.js");
 
 /**
- * Setting parser.
- *
- * ---------- Parsing Breakdown ------------------------------------------------
+ * ----------------------------------------------------------- Parsing Breakdown
  * @setting = true
  *         | |    ^-EOL-Whitespace-Boundary 3.
  *         ^-^-Whitespace-Boundary 1/2.
- * ^-Symbol (Sigil).
+ * ^-Sigil.
  *  ^-Name.
  *          ^-Assignment.
  *            ^-Value.
  * -----------------------------------------------------------------------------
  *
- * @param  {object} S - Main loop state object.
- * @return {object} - Object containing parsed information.
+ * @param  {object} S - State object.
+ * @return {undefined} - Nothing is returned.
  */
 module.exports = S => {
 	let { line, l, text } = S;

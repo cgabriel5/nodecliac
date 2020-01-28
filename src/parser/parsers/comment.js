@@ -9,16 +9,14 @@ const bracechecks = require("../helpers/brace-checks.js");
 const { r_nl, r_whitespace } = require("../helpers/patterns.js");
 
 /**
- *  Comment parser.
- *
- * ---------- Parsing Breakdown ------------------------------------------------
+ * ----------------------------------------------------------- Parsing Breakdown
  * # Comment body.
- * ^-Symbol (Sigil).
- *  ^-Comment-Chars *(All characters until newline '\n').
+ * ^-Sigil.
+ *  ^-Comment-Chars (All chars until newline).
  * -----------------------------------------------------------------------------
  *
- * @param  {object} S - Main loop state object.
- * @return {object} - Object containing parsed information.
+ * @param  {object} S - State object.
+ * @return {undefined} - Nothing is returned.
  */
 module.exports = S => {
 	let { line, l, text } = S;

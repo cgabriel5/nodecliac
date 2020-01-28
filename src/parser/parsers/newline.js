@@ -4,14 +4,12 @@ const node = require("../helpers/nodes.js");
 const add = require("../helpers/tree-add.js");
 
 /**
- * Newline parser.
- *
- * ---------- Parsing Breakdown ------------------------------------------------
+ * ----------------------------------------------------------- Parsing Breakdown
  * \n
  * ^-Newline character.
  * -----------------------------------------------------------------------------
  *
- * @param  {object} S - Main loop state object.
+ * @param  {object} S - State object.
  * @return {undefined} - Nothing is returned.
  */
 module.exports = S => {

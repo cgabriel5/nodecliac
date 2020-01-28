@@ -8,9 +8,7 @@ const validate = require("../helpers/validate-value.js");
 const bracechecks = require("../helpers/brace-checks.js");
 
 /**
- * Flag parser.
- *
- * ---------- Parsing Breakdown ------------------------------------------------
+ * ----------------------------------------------------------- Parsing Breakdown
  * --flag
  * --flag ?
  * --flag =* "string"
@@ -25,9 +23,9 @@ const bracechecks = require("../helpers/brace-checks.js");
  *           ^-Value.
  * -----------------------------------------------------------------------------
  *
- * @param  {object} S - Main loop state object.
+ * @param  {object} S - State object.
  * @param  {string} isoneliner - Whether to treat flag as a oneliner.
- * @return {object} - Object containing parsed information.
+ * @return {object} - Node object.
  */
 module.exports = (S, isoneliner) => {
 	let { line, l, text } = S;

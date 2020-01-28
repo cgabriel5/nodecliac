@@ -9,9 +9,7 @@ const bracechecks = require("../helpers/brace-checks.js");
 const { r_nl, r_space } = require("../helpers/patterns.js");
 
 /**
- * Command-chain parser.
- *
- * ---------- Parsing Breakdown ------------------------------------------------
+ * ----------------------------------------------------------- Parsing Breakdown
  * program.command
  * program.command ,
  * program.command =
@@ -28,8 +26,8 @@ const { r_nl, r_space } = require("../helpers/patterns.js");
  *                      ^-EOL-Whitespace-Boundary 4
  * -----------------------------------------------------------------------------
  *
- * @param  {object} S - Main loop state object.
- * @return {object} - Object containing parsed information.
+ * @param  {object} S - State object.
+ * @return {object} - Node object.
  */
 module.exports = S => {
 	let { line, l, text } = S;

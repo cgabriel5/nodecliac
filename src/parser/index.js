@@ -12,7 +12,7 @@ const { r_sol_char, r_space } = require("./helpers/patterns.js");
 module.exports = (text, commandname, source, fmt, trace, igc, test) => {
 	const S = state(text, source, fmt, trace, igc, test);
 	const { linestarts } = S.tables;
-	const stime = process.hrtime(); // Start time.
+	const stime = process.hrtime();
 	let line_type;
 
 	for (; S.i < S.l; S.i++, S.column++) {
@@ -25,32 +25,32 @@ module.exports = (text, commandname, source, fmt, trace, igc, test) => {
 			continue;
 		}
 
-		// Store line start points.
+		// Store line start index.
 		if (!linestarts[S.line]) linestarts[S.line] = S.i;
 
-		// Find first non-whitespace character of line.
+		// Start parsing at first non-ws character.
 		if (!S.sol_char && !r_space.test(char)) {
-			S.sol_char = char; // Set char.
+			S.sol_char = char;
 
-			// Error if sol char is not allowed.
+			// Sol char must be allowed.
 			if (!r_sol_char.test(char)) error(S, 10, __filename);
 
-			line_type = linetype(S, char, nchar); // Get line's type.
-			if (line_type === "terminator") break; // End on terminator char.
+			line_type = linetype(S, char, nchar);
+			if (line_type === "terminator") break;
 
-			specificity(S, line_type); // Validate line specificity.
+			specificity(S, line_type);
 
-			require("./helpers/trace.js")(S, line_type); // Trace parser.
-			require(`./parsers/${line_type}.js`)(S); // Run parser.
+			require("./helpers/trace.js")(S, line_type);
+			require(`./parsers/${line_type}.js`)(S);
 		}
 	}
 
-	// If command-chain scope exists post-parsing then it was never closed.
+	// Check if command-chain scope exists post-parsing.
 	bracechecks(S, null, "post-standing-scope");
 
 	let res = {};
 	if (fmt) res.formatted = formatter(S);
 	else res = require("./helpers/acdef.js")(S, commandname);
-	res.time = process.hrtime(stime); // Attach end time.
-	return res; // Return acdef, config, etc.
+	res.time = process.hrtime(stime);
+	return res;
 };

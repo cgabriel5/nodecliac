@@ -31,24 +31,22 @@ module.exports = S => {
 
 		switch (state) {
 			case "sigil":
-				// Store index positions.
 				N.sigil.start = S.i;
 				N.sigil.end = S.i;
-
-				state = "comment"; // Reset parsing state.
+				state = "comment";
 
 				break;
 
 			case "comment":
-				// Note: Ensure start index is stored if not already.
+				// Store index if not already.
 				if (!N.comment.start) N.comment.start = N.sigil.start;
-				N.comment.end = S.i; // Store index positions.
+				N.comment.end = S.i;
 
 				break;
 		}
 
-		N.comment.value += char; // Capture all comment characters.
+		N.comment.value += char;
 	}
 
-	add(S, N); // Add node to tree.
+	add(S, N);
 };

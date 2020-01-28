@@ -38,11 +38,9 @@ module.exports = S => {
 
 		switch (state) {
 			case "sigil":
-				// Store index positions.
 				N.sigil.start = S.i;
 				N.sigil.end = S.i;
-
-				state = "name"; // Reset parsing state.
+				state = "name";
 
 				break;
 
@@ -52,19 +50,16 @@ module.exports = S => {
 					// Name must start with pattern else give error.
 					if (!r_letter.test(char)) error(S, __filename);
 
-					// Set index positions.
 					N.name.start = S.i;
 					N.name.end = S.i;
-
-					N.name.value += char; // Start building string.
+					N.name.value += char;
 				}
 				// Else continue building string.
 				else {
 					// If char is allowed keep building string.
 					if (/[-_a-zA-Z]/.test(char)) {
-						// Set index positions.
 						N.name.end = S.i;
-						N.name.value += char; // Continue building string.
+						N.name.value += char;
 					}
 					// Note: If a whitespace character is encountered
 					// everything after this point must be a space
@@ -77,10 +72,9 @@ module.exports = S => {
 					// If char is an eq sign change state/reset index.
 					else if (char === "=") {
 						state = "assignment";
-
-						rollback(S); // Rollback loop index.
+						rollback(S);
 					}
-					// Note: Anything at this point is an invalid char.
+					// Anything at this point is an invalid char.
 					else error(S, __filename);
 				}
 
@@ -91,33 +85,29 @@ module.exports = S => {
 				// but whitespace or an eq-sign are invalid chars.
 				if (!r_space.test(char)) {
 					if (char === "=") {
-						state = "assignment"; // Reset parsing state.
-
-						rollback(S); // Rollback loop index.
+						state = "assignment";
+						rollback(S);
 					}
-					// Note: Anything at this point is an invalid char.
+					// Anything at this point is an invalid char.
 					else error(S, __filename);
 				}
 
 				break;
 
 			case "assignment":
-				// Store index positions.
 				N.assignment.start = S.i;
 				N.assignment.end = S.i;
-				N.assignment.value = char; // Store character.
-
-				state = "value-wsb"; // Reset parsing state.
+				N.assignment.value = char;
+				state = "value-wsb";
 
 				break;
 
 			case "value-wsb":
 				// Ignore consecutive whitespace. Once a non-whitespace
-				// character is hit, switch to value state.
+				// character is hit, switch state.
 				if (!r_space.test(char)) {
 					state = "value";
-
-					rollback(S); // Rollback loop index.
+					rollback(S);
 				}
 
 				break;
@@ -129,37 +119,31 @@ module.exports = S => {
 					if (!/["'a-zA-Z0-9]/.test(char)) error(S, __filename);
 
 					if (r_quote.test(char)) qchar = char; // Store if a quote char.
-
-					// Store index positions.
 					N.value.start = S.i;
 					N.value.end = S.i;
-					N.value.value = char; // Start building string.
+					N.value.value = char;
 				}
 				// Continue building string.
 				else {
 					// If value is a quoted string allow for anything
 					// and end at the same style-unescaped quote.
 					if (qchar) {
-						let pchar = text.charAt(S.i - 1); // Previous char.
+						let pchar = text.charAt(S.i - 1);
 
 						// Once quoted string is closed change state.
 						if (char === qchar && pchar !== "\\") state = "eol-wsb";
-
-						// Store index positions.
 						N.value.end = S.i;
-						N.value.value += char; // Continue building string.
+						N.value.value += char;
 					}
 					// Else, not quoted.
 					else {
 						// Must stop at the first space char.
 						if (r_space.test(char)) {
 							state = "eol-wsb";
-
-							rollback(S); // Rollback loop index.
+							rollback(S);
 						} else {
-							// Store index positions.
 							N.value.end = S.i;
-							N.value.value += char; // Continue building string.
+							N.value.value += char;
 						}
 					}
 				}
@@ -167,13 +151,13 @@ module.exports = S => {
 				break;
 
 			case "eol-wsb":
-				// Anything but trailing whitespace is invalid so give error.
+				// Anything but trailing whitespace is invalid.
 				if (!r_space.test(char)) error(S, __filename);
 
 				break;
 		}
 	}
 
-	validate(S, N); // Validate extracted variable value.
-	add(S, N); // Add node to tree.
+	validate(S, N);
+	add(S, N);
 };

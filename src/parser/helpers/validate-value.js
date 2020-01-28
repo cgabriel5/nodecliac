@@ -138,7 +138,7 @@ module.exports = (S, N) => {
 				// Note: Start loop at index 2 and stop before the last
 				// character to ignore the starting '$(' and ending ')'.
 				for (let l = value.length - 1; i < l; i++, resume_index++) {
-					let char = value.charAt(i); // Cache current loop char.
+					let char = value.charAt(i);
 					let pchar = value.charAt(i - 1);
 					let nchar = value.charAt(i + 1);
 
@@ -281,7 +281,7 @@ module.exports = (S, N) => {
 				// Note: Start loop at index 1 and stop before the last
 				// character to ignore the starting '(' and ending ')'.
 				for (let l = value.length - 1; i < l; i++, resume_index++) {
-					let char = value.charAt(i); // Cache current loop char.
+					let char = value.charAt(i);
 					let pchar = value.charAt(i - 1);
 
 					if (!mode) {

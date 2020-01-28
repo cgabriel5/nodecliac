@@ -91,7 +91,7 @@ module.exports = (S, commandname) => {
 	// 2) Batch commands with their flags. =====================================
 
 	for (let i = 0, l = nodes.length; i < l; i++) {
-		let N = nodes[i]; // Cache current loop char.
+		let N = nodes[i];
 		let nN = nodes[i + 1] || {};
 		let type = N.node;
 		// let ntype = nN.node;
@@ -146,11 +146,11 @@ module.exports = (S, commandname) => {
 	for (let i in BATCHES) {
 		if (!hasOwnProperty(BATCHES, i)) continue;
 
-		let BATCH = BATCHES[i]; // Cache current loop char.
+		let BATCH = BATCHES[i];
 		let { commands: COMMANDS, flags: FLAGS } = BATCH; // Get commands/flags.
 
 		for (let i = 0, l = FLAGS.length; i < l; i++) {
-			let fN = FLAGS[i]; // Cache current loop char.
+			let fN = FLAGS[i];
 			let ARGS = fN.args; // Get flag arguments.
 			// Build flag (hyphens + flag name).
 			let flag = `${fN.hyphens.value}${fN.name.value}`;

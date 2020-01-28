@@ -53,19 +53,16 @@ module.exports = S => {
 					// Name must start with pattern else give error.
 					if (!/[:a-zA-Z]/.test(char)) error(S, __filename);
 
-					// Set index positions.
 					N.command.start = S.i;
 					N.command.end = S.i;
-
-					N.command.value += char; // Start building string.
+					N.command.value += char;
 				}
 				// Continue building setting command string.
 				else {
 					// If char is allowed keep building string.
 					if (/[-_.:+\\/a-zA-Z0-9]/.test(char)) {
-						// Set index positions.
 						N.command.end = S.i;
-						N.command.value += char; // Continue building string.
+						N.command.value += char;
 
 						// Note: When escaping anything but a dot do not
 						// include the '\' as it is not needed. For example,
@@ -99,16 +96,14 @@ module.exports = S => {
 					// If char is an eq sign change state/reset index.
 					else if (char === "=") {
 						state = "assignment";
-
-						rollback(S); // Rollback loop index.
+						rollback(S);
 					}
 					// Anything else the character is not allowed.
 					else if (char === ",") {
 						state = "delimiter";
-
-						rollback(S); // Rollback loop index.
+						rollback(S);
 					}
-					// Note: Anything at this point is an invalid char.
+					// Anything at this point is an invalid char.
 					else error(S, __filename);
 				}
 
@@ -120,37 +115,31 @@ module.exports = S => {
 				// command are invalid chars.
 				if (!r_space.test(char)) {
 					if (char === "=") {
-						state = "assignment"; // Reset parsing state.
-
-						rollback(S); // Rollback loop index.
+						state = "assignment";
+						rollback(S);
 					} else if (char === ",") {
-						state = "delimiter"; // Reset parsing state.
-
-						rollback(S); // Rollback loop index.
+						state = "delimiter";
+						rollback(S);
 					}
-					// Note: Anything at this point is an invalid char.
+					// Anything at this point is an invalid char.
 					else error(S, __filename);
 				}
 
 				break;
 
 			case "assignment":
-				// Store index positions.
 				N.assignment.start = S.i;
 				N.assignment.end = S.i;
-				N.assignment.value = char; // Store character.
-
-				state = "value-wsb"; // Reset parsing state.
+				N.assignment.value = char;
+				state = "value-wsb";
 
 				break;
 
 			case "delimiter":
-				// Store index positions.
 				N.delimiter.start = S.i;
 				N.delimiter.end = S.i;
-				N.delimiter.value = char; // Store character.
-
-				state = "eol-wsb"; // Reset parsing state.
+				N.delimiter.value = char;
+				state = "eol-wsb";
 
 				break;
 
@@ -159,8 +148,7 @@ module.exports = S => {
 				// character is hit, switch to value state.
 				if (!r_space.test(char)) {
 					state = "value";
-
-					rollback(S); // Rollback loop index.
+					rollback(S);
 				}
 
 				break;
@@ -173,22 +161,17 @@ module.exports = S => {
 
 				// Before determining path, check that character is valid.
 				if (!/[-d[]/.test(char)) error(S, __filename);
-
-				state = char === "[" ? "open-bracket" : "oneliner"; // Reset parsing state.
-
-				rollback(S); // Rollback loop index.
+				state = char === "[" ? "open-bracket" : "oneliner";
+				rollback(S);
 
 				break;
 
 			case "open-bracket":
 				// Note: This will be an intermediary step. May be removed?
-
-				// Store index positions.
 				N.brackets.start = S.i;
-				N.brackets.value = char; // Store bracket character.
-				N.value.value = char; // Store assignment character.
-
-				state = "open-bracket-wsb"; // Reset parsing state.
+				N.brackets.value = char;
+				N.value.value = char;
+				state = "open-bracket-wsb";
 
 				break;
 
@@ -197,8 +180,7 @@ module.exports = S => {
 				// character is hit, switch to value state.
 				if (!r_space.test(char)) {
 					state = "close-bracket";
-
-					rollback(S); // Rollback loop index.
+					rollback(S);
 				}
 
 				break;
@@ -206,12 +188,9 @@ module.exports = S => {
 			case "close-bracket":
 				// Char must be a closing bracket ']' anything else is invalid.
 				if (char !== "]") error(S, __filename);
-
-				// Store index positions.
 				N.brackets.end = S.i;
-				N.value.value += char; // Store character.
-
-				state = "eol-wsb"; // Reset parsing state.
+				N.value.value += char;
+				state = "eol-wsb";
 
 				break;
 
@@ -235,10 +214,7 @@ module.exports = S => {
 	}
 
 	add(S, N);
-	// Add any flags.
-	for (let i = 0, l = N.flags.length; i < l; i++) {
-		add(S, N.flags[i]);
-	}
+	for (let i = 0, l = N.flags.length; i < l; i++) add(S, N.flags[i]); // Add flags.
 
 	// If command starts a scope block, store reference to node object.
 	if (N.value.value === "[") S.scopes.command = N;

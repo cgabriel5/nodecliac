@@ -35,24 +35,21 @@ module.exports = S => {
 
 		switch (state) {
 			case "brace":
-				// Store index positions.
 				N.brace.start = S.i;
 				N.brace.end = S.i;
-				N.brace.value = char; // Store character.
-
-				state = "eol-wsb"; // Reset parsing state.
+				N.brace.value = char;
+				state = "eol-wsb";
 
 				break;
 
 			case "eol-wsb":
 				// Anything but trailing whitespace is invalid so give error.
 				if (!r_space.test(char)) error(S, __filename);
-
 				break;
 		}
 	}
 
 	// Note: If command-chain scope exists, error as brace wasn't closed.
 	bracechecks(S, N, "reset-scope");
-	add(S, N); // Add node to tree.
+	add(S, N);
 };

@@ -60,23 +60,19 @@ module.exports = (S, isoneliner) => {
 				if (!N.hyphens.value) {
 					// If char is not a hyphen, error.
 					if (char !== "-") error(S, __filename);
-
-					// Store index positions.
 					N.hyphens.start = S.i;
 					N.hyphens.end = S.i;
-					N.hyphens.value = char; // Start building string.
+					N.hyphens.value = char;
 				}
 				// Continue building string.
 				else {
 					// Stop at anything other than following characters.
 					if (char !== "-") {
 						state = "name";
-
-						rollback(S); // Rollback loop index.
+						rollback(S);
 					} else {
-						// Store index positions.
 						N.hyphens.end = S.i;
-						N.hyphens.value += char; // Continue building string.
+						N.hyphens.value += char;
 					}
 				}
 
@@ -88,15 +84,12 @@ module.exports = (S, isoneliner) => {
 					let keyword_len = 7;
 					let keyword = text.substr(S.i, keyword_len);
 
-					// Note: If the keyword is not 'default' then error.
+					// If the keyword is not 'default' then error.
 					if (keyword !== "default") error(S, __filename);
-
-					// Store index positions.
 					N.keyword.start = S.i;
 					N.keyword.end = S.i + keyword_len - 1;
-					N.keyword.value = keyword; // Store keyword.
-
-					state = "keyword-spacer"; // Reset parsing state.
+					N.keyword.value = keyword;
+					state = "keyword-spacer";
 
 					// Note: Forward loop index to skip keyword characters.
 					S.i += keyword_len - 1;
@@ -106,10 +99,9 @@ module.exports = (S, isoneliner) => {
 				break;
 
 			case "keyword-spacer":
-				// Note: Character must be a whitespace character, else error.
+				// Character must be a whitespace character, else error.
 				if (!r_space.test(char)) error(S, __filename);
-
-				state = "wsb-prevalue"; // Reset parsing state.
+				state = "wsb-prevalue";
 
 				break;
 
@@ -118,8 +110,6 @@ module.exports = (S, isoneliner) => {
 				if (!N.name.value) {
 					// If char is not a hyphen, error.
 					if (!r_letter.test(char)) error(S, __filename);
-
-					// Store index positions.
 					N.name.start = S.i;
 					N.name.end = S.i;
 					N.name.value = char; // Start building string.
@@ -128,35 +118,30 @@ module.exports = (S, isoneliner) => {
 				else {
 					// If char is allowed keep building string.
 					if (/[-.a-zA-Z0-9]/.test(char)) {
-						// Set name index positions.
 						N.name.end = S.i;
-						N.name.value += char; // Continue building string.
+						N.name.value += char;
 					}
 					// If char is an eq sign change state/reset index.
 					else if (char === "=") {
-						state = "assignment"; // Reset parsing state.
-
-						rollback(S); // Rollback loop index.
+						state = "assignment";
+						rollback(S);
 					}
 					// If char is a question mark change state/reset index.
 					else if (char === "?") {
-						state = "boolean-indicator"; // Reset parsing state.
-
-						rollback(S); // Rollback loop index.
+						state = "boolean-indicator";
+						rollback(S);
 					}
 					// If char is a pipe change state/reset index.
 					else if (char === "|") {
-						state = "pipe-delimiter"; // Reset parsing state.
-
-						rollback(S); // Rollback loop index.
+						state = "pipe-delimiter";
+						rollback(S);
 					}
 					// If char is whitespace change state/reset index.
 					else if (r_space.test(char)) {
-						state = "wsb-postname"; // Reset parsing state.
-
-						rollback(S); // Rollback loop index.
+						state = "wsb-postname";
+						rollback(S);
 					}
-					// Note: Anything at this point is an invalid char.
+					// Anything at this point is an invalid char.
 					else error(S, __filename);
 				}
 
@@ -168,53 +153,45 @@ module.exports = (S, isoneliner) => {
 				// require a state change.
 				if (!r_space.test(char)) {
 					if (char === "=") {
-						state = "assignment"; // Reset parsing state.
-
-						rollback(S); // Rollback loop index.
-
-						// If char is a pipe change state/reset index.
-					} else if (char === "|") {
-						state = "pipe-delimiter"; // Reset parsing state.
-
-						rollback(S); // Rollback loop index.
+						state = "assignment";
+						rollback(S);
 					}
-					// Note: Anything at this point is an invalid char.
+					// If char is a pipe change state/reset index.
+					else if (char === "|") {
+						state = "pipe-delimiter";
+						rollback(S);
+					}
+					// Anything at this point is an invalid char.
 					else error(S, __filename);
 				}
 
 				break;
 
 			case "boolean-indicator":
-				// Store index positions.
 				N.boolean.start = S.i;
 				N.boolean.end = S.i;
-				N.boolean.value = char; // Store character.
-
-				state = "pipe-delimiter"; // Reset parsing state.
+				N.boolean.value = char;
+				state = "pipe-delimiter";
 
 				break;
 
 			case "assignment":
-				// Store index positions.
 				N.assignment.start = S.i;
 				N.assignment.end = S.i;
-				N.assignment.value = char; // Store character.
-
-				state = "multi-indicator"; // Reset parsing state.
+				N.assignment.value = char;
+				state = "multi-indicator";
 
 				break;
 
 			case "multi-indicator":
 				// If character is a '*' store information, else go to value state.
 				if (char === "*") {
-					// Store index positions.
 					N.multi.start = S.i;
 					N.multi.end = S.i;
-					N.multi.value = char; // Store character.
-
-					state = "wsb-prevalue"; // Reset parsing state.
+					N.multi.value = char;
+					state = "wsb-prevalue";
 				} else {
-					rollback(S); // Rollback loop index.
+					rollback(S);
 
 					// Reset parsing state (based on character).
 					if (char === "|") state = "pipe-delimiter";
@@ -236,10 +213,9 @@ module.exports = (S, isoneliner) => {
 				break;
 
 			case "wsb-prevalue":
-				// Note: Allow any whitespace until first non-whitespace
-				// character is hit.
+				// Allow whitespace until first non-whitespace char is hit.
+				if (!r_space.test(char)) {
 					rollback(S);
-					rollback(S); // Rollback loop index.
 
 					// Reset parsing state (based on character).
 					if (char === "|") state = "pipe-delimiter";
@@ -267,18 +243,15 @@ module.exports = (S, isoneliner) => {
 						else if (char === "(") type = "list";
 						else if (r_quote.test(char)) type = "quoted";
 
-						N.value.type = type; // Set type.
-
-						// Store index positions.
+						N.value.type = type;
 						N.value.start = S.i;
 						N.value.end = S.i;
-						N.value.value = char; // Start building string.
+						N.value.value = char;
 					} else {
 						// Check if character is a delimiter.
 						if (char === "|" && pchar !== "\\") {
-							state = "pipe-delimiter"; // Reset parsing state.
-
-							rollback(S); // Rollback loop index.
+							state = "pipe-delimiter";
+							rollback(S);
 
 							break;
 						}
@@ -288,26 +261,23 @@ module.exports = (S, isoneliner) => {
 						// be improperly quoted/escaped so give error.
 						if (end_comsuming) error(S, __filename);
 
-						// Get string type.
-						let stype = N.value.type;
+						let stype = N.value.type; // Get string type.
 
 						// Escaped string logic.
 						if (stype === "escaped") {
 							if (r_space.test(char) && pchar !== "\\") {
-								end_comsuming = true; // Set flag.
+								end_comsuming = true;
 							}
 
 							// Quoted string logic.
 						} else if (stype === "quoted") {
 							let value_fchar = N.value.value.charAt(0);
 							if (char === value_fchar && pchar !== "\\") {
-								end_comsuming = true; // Set flag.
+								end_comsuming = true;
 							}
 						}
-
-						// Store index positions.
 						N.value.end = S.i;
-						N.value.value += char; // Continue building string.
+						N.value.value += char;
 					}
 				}
 
@@ -317,7 +287,6 @@ module.exports = (S, isoneliner) => {
 
 	// Note: If flag starts a scope block, store reference to node object.
 	if (N.value.value === "(") {
-		// Store relevant information.
 		N.brackets = {
 			start: N.value.start,
 			end: N.value.start,
@@ -327,16 +296,12 @@ module.exports = (S, isoneliner) => {
 		S.scopes.flag = N; // Store reference to node object.
 	}
 
-	validate(S, N); // Validate extracted variable value.
+	validate(S, N);
 
 	if (S.singletonflag) {
-		add(S, N); // Add node to tree.
-
-		// Finally, remove the singletonflag key from S object.
-		delete S.singletonflag;
-
-		// Add property to help distinguish node if later needed.
-		N.singletonflag = true;
+		add(S, N);
+		delete S.singletonflag; // Remove key from S object.
+		N.singletonflag = true; // Distinguish node if later needed.
 	}
 
 	return N;

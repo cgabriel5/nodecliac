@@ -23,5 +23,5 @@ module.exports = S => {
 	S.column = 0;
 	S.sol_char = "";
 
-	add(S, N); // Add node to tree.
+	add(S, N);
 };

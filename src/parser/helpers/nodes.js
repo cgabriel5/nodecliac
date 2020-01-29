@@ -22,14 +22,11 @@ module.exports = (S, type) => {
 	// Modify each type as needed.
 	switch (type) {
 		case "COMMENT":
-			N.sigil = { start: null, end: null };
 			N.comment = { start: null, end: null, value: "" };
 
 			break;
 
 		case "NEWLINE":
-			N.sigil = { start: null, end: null };
-
 			break;
 
 		case "SETTING":
@@ -49,7 +46,6 @@ module.exports = (S, type) => {
 			break;
 
 		case "COMMAND":
-			N.sigil = { start: null, end: null };
 			N.command = { start: null, end: null, value: "" };
 			N.name = { start: null, end: null, value: "" };
 			N.brackets = { start: null, end: null, value: null };

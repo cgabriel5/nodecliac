@@ -16,7 +16,7 @@ const { r_nl } = require("../helpers/patterns.js");
  * @return {undefined} - Nothing is returned.
  */
 module.exports = S => {
-	let { line, l, text } = S;
+	let { l, text } = S;
 	let state = "sigil";
 	let N = node(S, "COMMENT");
 

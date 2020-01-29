@@ -22,7 +22,7 @@ const { r_nl, r_space, r_letter, r_quote } = require("../helpers/patterns.js");
  * @return {undefined} - Nothing is returned.
  */
 module.exports = S => {
-	let { line, l, text } = S;
+	let { l, text } = S;
 	let qchar;
 	let state = "sigil";
 	let N = node(S, "VARIABLE");

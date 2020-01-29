@@ -20,7 +20,7 @@ const { r_nl, r_space } = require("../helpers/patterns.js");
  * @return {undefined} - Nothing is returned.
  */
 module.exports = S => {
-	let { line, l, text } = S;
+	let { l, text } = S;
 	let state = "brace";
 	let N = node(S, "BRACE");
 

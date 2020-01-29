@@ -28,7 +28,7 @@ const { r_nl, r_space, r_letter, r_quote } = require("../helpers/patterns.js");
  * @return {object} - Node object.
  */
 module.exports = (S, isoneliner) => {
-	let { line, l, text } = S;
+	let { l, text } = S;
 	let state = text.charAt(S.i) === "-" ? "hyphen" : "keyword"; // Initial parsing state.
 	let stop; // Flag indicating whether to stop parser.
 	let end_comsuming;

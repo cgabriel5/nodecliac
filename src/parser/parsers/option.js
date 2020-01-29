@@ -21,7 +21,7 @@ const { r_nl, r_space, r_quote } = require("../helpers/patterns.js");
  * @return {undefined} - Nothing is returned.
  */
 module.exports = S => {
-	let { line, l, text } = S;
+	let { l, text } = S;
 	let end_comsuming;
 	let state = "bullet";
 	let N = node(S, "OPTION");

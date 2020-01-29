@@ -30,7 +30,7 @@ const { r_nl, r_space } = require("../helpers/patterns.js");
  * @return {object} - Node object.
  */
 module.exports = S => {
-	let { line, l, text } = S;
+	let { l, text } = S;
 	let state = "command";
 	let N = node(S, "COMMAND");
 

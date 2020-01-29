@@ -15,8 +15,8 @@ module.exports = (S, type) => {
 	let N = {
 		node: type,
 		line: S.line,
-		startpoint: S.i,
-		endpoint: null
+		start: S.i,
+		end: null
 	};
 
 	// Modify each type as needed.

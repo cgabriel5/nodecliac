@@ -45,7 +45,7 @@ module.exports = (S, isoneliner) => {
 
 		// Stop on a newline char.
 		if (stop || r_nl.test(char)) {
-			N.endpoint = rollback(S) && S.i;
+			N.end = rollback(S) && S.i;
 			break;
 		}
 

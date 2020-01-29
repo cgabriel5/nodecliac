@@ -17,8 +17,8 @@ const { r_nl } = require("../helpers/patterns.js");
  */
 module.exports = S => {
 	let { l, text } = S;
-	let state = "sigil";
 	let N = node(S, "COMMENT");
+	N.comment.start = S.i;
 
 	for (; S.i < l; S.i++, S.column++) {
 		let char = text.charAt(S.i);
@@ -29,22 +29,7 @@ module.exports = S => {
 			break;
 		}
 
-		switch (state) {
-			case "sigil":
-				N.sigil.start = S.i;
-				N.sigil.end = S.i;
-				state = "comment";
-
-				break;
-
-			case "comment":
-				// Store index if not already.
-				if (!N.comment.start) N.comment.start = N.sigil.start;
-				N.comment.end = S.i;
-
-				break;
-		}
-
+		N.comment.end = S.i;
 		N.comment.value += char;
 	}
 

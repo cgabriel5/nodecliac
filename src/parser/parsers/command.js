@@ -34,7 +34,7 @@ module.exports = S => {
 	let state = "command";
 	let N = node(S, "COMMAND");
 
-	// Note: If command-chain scope exists, error as brace wasn't closed.
+	// If command-chain scope exists, error as brace wasn't closed.
 	bracechecks(S, null, "pre-existing-cs");
 
 	for (; S.i < l; S.i++, S.column++) {
@@ -48,18 +48,12 @@ module.exports = S => {
 
 		switch (state) {
 			case "command":
-				// If name is empty check for first letter.
 				if (!N.command.value) {
-					// Name must start with pattern else give error.
 					if (!/[:a-zA-Z]/.test(char)) error(S, __filename);
 
-					N.command.start = S.i;
-					N.command.end = S.i;
+					N.command.start = N.command.end = S.i;
 					N.command.value += char;
-				}
-				// Continue building setting command string.
-				else {
-					// If char is allowed keep building string.
+				} else {
 					if (/[-_.:+\\/a-zA-Z0-9]/.test(char)) {
 						N.command.end = S.i;
 						N.command.value += char;
@@ -75,9 +69,9 @@ module.exports = S => {
 							// '\' char is escaping nothing so error.
 							if (!nchar) error(S, __filename, 10);
 
-							// Next char must be a space to be a valid escape sequence.
+							// Next char must be a ws to be a valid escape sequence.
 							if (nchar !== ".") {
-								// Escaping anything but a dot isn't allowed, so error.
+								// Error is escaping anything but a dot.
 								error(S, __filename, 10);
 
 								// Remove last escape char as it isn't needed.
@@ -86,33 +80,25 @@ module.exports = S => {
 							}
 						}
 					}
-					// Note: If we encounter a whitespace character, everything
-					// after this point must be a space until we encounter
+					// Note: If we encounter a ws char, everything
+					// after this point must be a ws until we encounter
 					// an eq sign or the end-of-line (newline) character.
 					else if (r_space.test(char)) {
 						state = "chain-wsb";
 						continue;
-					}
-					// If char is an eq sign change state/reset index.
-					else if (char === "=") {
+					} else if (char === "=") {
 						state = "assignment";
 						rollback(S);
-					}
-					// Anything else the character is not allowed.
-					else if (char === ",") {
+					} else if (char === ",") {
 						state = "delimiter";
 						rollback(S);
-					}
-					// Anything at this point is an invalid char.
-					else error(S, __filename);
+					} else error(S, __filename);
 				}
 
 				break;
 
 			case "chain-wsb":
-				// At this point we are looking for the assignment operator
-				// or a delimiter. Anything but whitespace, eq-sign, or
-				// command are invalid chars.
+				// Anything but ws, eq-sign, or ',' is invalid.
 				if (!r_space.test(char)) {
 					if (char === "=") {
 						state = "assignment";
@@ -120,32 +106,27 @@ module.exports = S => {
 					} else if (char === ",") {
 						state = "delimiter";
 						rollback(S);
-					}
-					// Anything at this point is an invalid char.
-					else error(S, __filename);
+					} else error(S, __filename);
 				}
 
 				break;
 
 			case "assignment":
-				N.assignment.start = S.i;
-				N.assignment.end = S.i;
+				N.assignment.start = N.assignment.end = S.i;
 				N.assignment.value = char;
 				state = "value-wsb";
 
 				break;
 
 			case "delimiter":
-				N.delimiter.start = S.i;
-				N.delimiter.end = S.i;
+				N.delimiter.start = N.delimiter.end = S.i;
 				N.delimiter.value = char;
 				state = "eol-wsb";
 
 				break;
 
 			case "value-wsb":
-				// Ignore consecutive whitespace. Once a non-whitespace
-				// character is hit, switch to value state.
+				// Once a n-ws char is hit, switch state.
 				if (!r_space.test(char)) {
 					state = "value";
 					rollback(S);
@@ -176,8 +157,7 @@ module.exports = S => {
 				break;
 
 			case "open-bracket-wsb":
-				// Ignore consecutive whitespace. Once a non-whitespace
-				// character is hit, switch to value state.
+				// Once a n-ws char is hit, switch state.
 				if (!r_space.test(char)) {
 					state = "close-bracket";
 					rollback(S);
@@ -186,7 +166,7 @@ module.exports = S => {
 				break;
 
 			case "close-bracket":
-				// Char must be a closing bracket ']' anything else is invalid.
+				// Char must be a closing bracket ']' else error.
 				if (char !== "]") error(S, __filename);
 				N.brackets.end = S.i;
 				N.value.value += char;
@@ -196,8 +176,8 @@ module.exports = S => {
 
 			case "oneliner":
 				// Note: Reduce column counter by 1 since parser loop will
-				// commence at the start of the first non whitespace char.
-				// A char that has already been looped over in the main loop.
+				// commence at the start of the first n-ws char. A char that
+				// has already been looped over in the main loop.
 				S.column--;
 
 				// Store result in var to access interpolated variable's value.
@@ -206,7 +186,7 @@ module.exports = S => {
 				break;
 
 			case "eol-wsb":
-				// Anything but trailing whitespace is invalid so give error.
+				// Anything but trailing ws is invalid.
 				if (!r_space.test(char)) error(S, __filename);
 
 				break;

@@ -34,10 +34,10 @@ module.exports = (S, isoneliner) => {
 	let end_comsuming;
 	let N = node(S, "FLAG");
 
-	// Note: If not a oneliner or no command scope, flag is being declared out of scope.
+	//  If not a oneliner or no command scope, flag is being declared out of scope.
 	if (!(isoneliner || S.scopes.command)) error(S, __filename, 10);
 
-	// Note: If flag scope already exists another flag cannot be declared.
+	// If flag scope already exists another flag cannot be declared.
 	if (S.scopes.flag) error(S, __filename, 11);
 
 	for (; S.i < l; S.i++, S.column++) {
@@ -60,13 +60,9 @@ module.exports = (S, isoneliner) => {
 				if (!N.hyphens.value) {
 					// If char is not a hyphen, error.
 					if (char !== "-") error(S, __filename);
-					N.hyphens.start = S.i;
-					N.hyphens.end = S.i;
+					N.hyphens.start = N.hyphens.end = S.i;
 					N.hyphens.value = char;
-				}
-				// Continue building string.
-				else {
-					// Stop at anything other than following characters.
+				} else {
 					if (char !== "-") {
 						state = "name";
 						rollback(S);
@@ -80,18 +76,17 @@ module.exports = (S, isoneliner) => {
 
 			case "keyword":
 				{
-					// Only letters are allowed.
 					let keyword_len = 7;
 					let keyword = text.substr(S.i, keyword_len);
 
-					// If the keyword is not 'default' then error.
+					// If keyword isn't 'default', error.
 					if (keyword !== "default") error(S, __filename);
 					N.keyword.start = S.i;
 					N.keyword.end = S.i + keyword_len - 1;
 					N.keyword.value = keyword;
 					state = "keyword-spacer";
 
-					// Note: Forward loop index to skip keyword characters.
+					// Note: Forward index to skip keyword chars.
 					S.i += keyword_len - 1;
 					S.column += keyword_len - 1;
 				}
@@ -99,95 +94,71 @@ module.exports = (S, isoneliner) => {
 				break;
 
 			case "keyword-spacer":
-				// Character must be a whitespace character, else error.
+				// Char must be a ws char, else error.
 				if (!r_space.test(char)) error(S, __filename);
 				state = "wsb-prevalue";
 
 				break;
 
 			case "name":
-				// Only hyphens are allowed at this point.
 				if (!N.name.value) {
 					// If char is not a hyphen, error.
 					if (!r_letter.test(char)) error(S, __filename);
-					N.name.start = S.i;
-					N.name.end = S.i;
-					N.name.value = char; // Start building string.
-				}
-				// Continue building string.
-				else {
-					// If char is allowed keep building string.
+					N.name.start = N.name.end = S.i;
+					N.name.value = char;
+				} else {
 					if (/[-.a-zA-Z0-9]/.test(char)) {
 						N.name.end = S.i;
 						N.name.value += char;
-					}
-					// If char is an eq sign change state/reset index.
-					else if (char === "=") {
+					} else if (char === "=") {
 						state = "assignment";
 						rollback(S);
-					}
-					// If char is a question mark change state/reset index.
-					else if (char === "?") {
+					} else if (char === "?") {
 						state = "boolean-indicator";
 						rollback(S);
-					}
-					// If char is a pipe change state/reset index.
-					else if (char === "|") {
+					} else if (char === "|") {
 						state = "pipe-delimiter";
 						rollback(S);
-					}
-					// If char is whitespace change state/reset index.
-					else if (r_space.test(char)) {
+					} else if (r_space.test(char)) {
 						state = "wsb-postname";
 						rollback(S);
-					}
-					// Anything at this point is an invalid char.
-					else error(S, __filename);
+					} else error(S, __filename);
 				}
 
 				break;
 
 			case "wsb-postname":
-				// Note: The only allowed characters here are whitespace(s).
-				// Anything else like an eq-sign, boolean-indicator, or pipe
-				// require a state change.
+				// Anything but ws, an eq-sign, or '|' is invalid.
 				if (!r_space.test(char)) {
 					if (char === "=") {
 						state = "assignment";
 						rollback(S);
-					}
-					// If char is a pipe change state/reset index.
-					else if (char === "|") {
+					} else if (char === "|") {
 						state = "pipe-delimiter";
 						rollback(S);
-					}
-					// Anything at this point is an invalid char.
-					else error(S, __filename);
+					} else error(S, __filename);
 				}
 
 				break;
 
 			case "boolean-indicator":
-				N.boolean.start = S.i;
-				N.boolean.end = S.i;
+				N.boolean.start = N.boolean.end = S.i;
 				N.boolean.value = char;
 				state = "pipe-delimiter";
 
 				break;
 
 			case "assignment":
-				N.assignment.start = S.i;
-				N.assignment.end = S.i;
+				N.assignment.start = N.assignment.end = S.i;
 				N.assignment.value = char;
 				state = "multi-indicator";
 
 				break;
 
 			case "multi-indicator":
-				// If character is a '*' store information, else go to value state.
+				// If char is a '*' store info, else go to value state.
 				if (char === "*") {
-					N.multi.start = S.i;
-					N.multi.end = S.i;
+					N.multi.start = N.multi.end = S.i;
 					N.multi.value = char;
 					state = "wsb-prevalue";
 				} else {
@@ -208,12 +179,12 @@ module.exports = (S, isoneliner) => {
 				// [https://stackoverflow.com/a/12281034]
 
 				if (char !== "|") error(S, __filename);
-				stop = true; // Set parsing stop flag.
+				stop = true;
 
 				break;
 
 			case "wsb-prevalue":
-				// Allow whitespace until first non-whitespace char is hit.
+				// Once a n-ws char is hit, switch state.
 				if (!r_space.test(char)) {
 					rollback(S);
 
@@ -226,26 +197,18 @@ module.exports = (S, isoneliner) => {
 
 			case "value":
 				{
-					// Value:
-					// - List:            => (1,2,3)
-					// - Command-flags:   => $("cat")
-					// - Strings:         => "value"
-					// - Escaped-values:  => val\ ue
-
-					// Get the previous char.
 					let pchar = text.charAt(S.i - 1);
 
 					// Determine value type.
 					if (!N.value.value) {
-						let type = "escaped"; // Set default.
+						let type = "escaped";
 
 						if (char === "$") type = "command-flag";
 						else if (char === "(") type = "list";
 						else if (r_quote.test(char)) type = "quoted";
 
 						N.value.type = type;
-						N.value.start = S.i;
-						N.value.end = S.i;
+						N.value.start = N.value.end = S.i;
 						N.value.value = char;
 					} else {
 						// Check if character is a delimiter.
@@ -256,20 +219,17 @@ module.exports = (S, isoneliner) => {
 							break;
 						}
 
-						// If flag is set and characters can still be consumed
-						// then there is a syntax error. For example, string may
-						// be improperly quoted/escaped so give error.
+						// If flag is set and chars can still be consumed
+						// then there is a syntax error. For example, string
+						// may be improperly quoted/escaped so error.
 						if (end_comsuming) error(S, __filename);
 
-						let stype = N.value.type; // Get string type.
+						let stype = N.value.type;
 
-						// Escaped string logic.
 						if (stype === "escaped") {
 							if (r_space.test(char) && pchar !== "\\") {
 								end_comsuming = true;
 							}
-
-							// Quoted string logic.
 						} else if (stype === "quoted") {
 							let value_fchar = N.value.value.charAt(0);
 							if (char === value_fchar && pchar !== "\\") {
@@ -285,7 +245,7 @@ module.exports = (S, isoneliner) => {
 		}
 	}
 
-	// Note: If flag starts a scope block, store reference to node object.
+	// If flag starts a scope block, store reference to node object.
 	if (N.value.value === "(") {
 		N.brackets = {
 			start: N.value.start,
@@ -300,7 +260,7 @@ module.exports = (S, isoneliner) => {
 
 	if (S.singletonflag) {
 		add(S, N);
-		delete S.singletonflag; // Remove key from S object.
+		delete S.singletonflag;
 		N.singletonflag = true; // Distinguish node if later needed.
 	}
 

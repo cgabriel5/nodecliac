@@ -38,33 +38,24 @@ module.exports = S => {
 
 		switch (state) {
 			case "sigil":
-				N.sigil.start = S.i;
-				N.sigil.end = S.i;
+				N.sigil.start = N.sigil.end = S.i;
 				state = "name";
 
 				break;
 
 			case "name":
-				// If name is empty check for first letter.
 				if (!N.name.value) {
-					// Name must start with pattern else give error.
 					if (!r_letter.test(char)) error(S, __filename);
 
-					N.name.start = S.i;
-					N.name.end = S.i;
+					N.name.start = N.name.end = S.i;
 					N.name.value += char;
-				}
-				// Else continue building string.
-				else {
-					// If char is allowed keep building string.
+				} else {
 					if (/[-_a-zA-Z]/.test(char)) {
 						N.name.end = S.i;
 						N.name.value += char;
 					}
-					// Note: If a whitespace character is encountered
-					// everything after this point must be a space
-					// until an eq sign or the end-of-line (newline)
-					// character is encountered.
+					// Note: If ws char is hit everything after must be ws
+					// until an '=' or the end-of-line (newline) char is hit.
 					else if (r_space.test(char)) {
 						state = "name-wsb";
 						continue;
@@ -73,38 +64,31 @@ module.exports = S => {
 					else if (char === "=") {
 						state = "assignment";
 						rollback(S);
-					}
-					// Anything at this point is an invalid char.
-					else error(S, __filename);
+					} else error(S, __filename);
 				}
 
 				break;
 
 			case "name-wsb":
-				// This state looks for the assignment operator. Anything
-				// but whitespace or an eq-sign are invalid chars.
+				// Anything but ws or an eq-sign is invalid.
 				if (!r_space.test(char)) {
 					if (char === "=") {
 						state = "assignment";
 						rollback(S);
-					}
-					// Anything at this point is an invalid char.
-					else error(S, __filename);
+					} else error(S, __filename);
 				}
 
 				break;
 
 			case "assignment":
-				N.assignment.start = S.i;
-				N.assignment.end = S.i;
+				N.assignment.start = N.assignment.end = S.i;
 				N.assignment.value = char;
 				state = "value-wsb";
 
 				break;
 
 			case "value-wsb":
-				// Ignore consecutive whitespace. Once a non-whitespace
-				// character is hit, switch state.
+				// Once a n-ws char is hit, switch state.
 				if (!r_space.test(char)) {
 					state = "value";
 					rollback(S);
@@ -113,31 +97,22 @@ module.exports = S => {
 				break;
 
 			case "value":
-				// If first char, only `"`, `'`, or `a-zA-Z0-9` are allowed.
 				if (!N.value.value) {
-					// If char is not allowed give an error.
 					if (!/["'a-zA-Z0-9]/.test(char)) error(S, __filename);
 
-					if (r_quote.test(char)) qchar = char; // Store if a quote char.
-					N.value.start = S.i;
-					N.value.end = S.i;
+					if (r_quote.test(char)) qchar = char;
+					N.value.start = N.value.end = S.i;
 					N.value.value = char;
-				}
-				// Continue building string.
-				else {
-					// If value is a quoted string allow for anything
-					// and end at the same style-unescaped quote.
+				} else {
 					if (qchar) {
 						let pchar = text.charAt(S.i - 1);
 
-						// Once quoted string is closed change state.
+						// Once string closed change state.
 						if (char === qchar && pchar !== "\\") state = "eol-wsb";
 						N.value.end = S.i;
 						N.value.value += char;
-					}
-					// Else, not quoted.
-					else {
-						// Must stop at the first space char.
+					} else {
+						// Stop at the first ws char.
 						if (r_space.test(char)) {
 							state = "eol-wsb";
 							rollback(S);
@@ -151,7 +126,7 @@ module.exports = S => {
 				break;
 
 			case "eol-wsb":
-				// Anything but trailing whitespace is invalid.
+				// Anything but trailing ws is invalid.
 				if (!r_space.test(char)) error(S, __filename);
 
 				break;

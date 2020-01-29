@@ -16,8 +16,7 @@ module.exports = S => {
 	let { line } = S;
 	let N = node(S, "NEWLINE");
 
-	N.sigil.start = S.i;
-	N.sigil.end = S.i;
+	N.start = N.end = S.i;
 
 	S.line++;
 	S.column = 0;

@@ -11,7 +11,6 @@ const chalk = require("chalk");
  * @return {object} - The created node object.
  */
 module.exports = (S, type) => {
-	// Base object.
 	let N = {
 		node: type,
 		line: S.line,
@@ -19,10 +18,17 @@ module.exports = (S, type) => {
 		end: -1
 	};
 
+	/**
+	 * Creates Node.value object.
+	 *
+	 * @return {object} The Node.value object.
+	 */
+	let o = () => ({ start: -1, end: -1, value: "" });
+
 	// Modify each type as needed.
 	switch (type) {
 		case "COMMENT":
-			N.comment = { start: -1, end: -1, value: "" };
+			N.comment = o();
 
 			break;
 
@@ -30,53 +36,53 @@ module.exports = (S, type) => {
 			break;
 
 		case "SETTING":
-			N.sigil = { start: -1, end: -1 };
-			N.name = { start: -1, end: -1, value: "" };
-			N.assignment = { start: -1, end: -1, value: "" };
-			N.value = { start: -1, end: -1, value: "" };
+			N.sigil = o();
+			N.name = o();
+			N.assignment = o();
+			N.value = o();
 
 			break;
 
 		case "VARIABLE":
-			N.sigil = { start: -1, end: -1 };
-			N.name = { start: -1, end: -1, value: "" };
-			N.assignment = { start: -1, end: -1, value: "" };
-			N.value = { start: -1, end: -1, value: "" };
+			N.sigil = o();
+			N.name = o();
+			N.assignment = o();
+			N.value = o();
 
 			break;
 
 		case "COMMAND":
-			N.command = { start: -1, end: -1, value: "" };
-			N.name = { start: -1, end: -1, value: "" };
-			N.brackets = { start: -1, end: -1, value: "" };
-			N.assignment = { start: -1, end: -1, value: "" };
-			N.delimiter = { start: -1, end: -1, value: "" };
-			N.value = { start: -1, end: -1, value: "" };
+			N.command = o();
+			N.name = o();
+			N.brackets = o();
+			N.assignment = o();
+			N.delimiter = o();
+			N.value = o();
 			N.flags = [];
 
 			break;
 
 		case "FLAG":
-			N.hyphens = { start: -1, end: -1, value: "" };
-			N.variable = { start: -1, end: -1, value: "" };
-			N.name = { start: -1, end: -1, value: "" };
-			N.boolean = { start: -1, end: -1, value: "" };
-			N.assignment = { start: -1, end: -1, value: "" };
-			N.multi = { start: -1, end: -1, value: "" };
-			N.brackets = { start: -1, end: -1, value: "" };
-			N.value = { start: -1, end: -1, value: "" };
-			N.keyword = { start: -1, end: -1, value: "" };
+			N.hyphens = o();
+			N.variable = o();
+			N.name = o();
+			N.boolean = o();
+			N.assignment = o();
+			N.multi = o();
+			N.brackets = o();
+			N.value = o();
+			N.keyword = o();
 
 			break;
 
 		case "OPTION":
-			N.bullet = { start: -1, end: -1, value: "" };
-			N.value = { start: -1, end: -1, value: "" };
+			N.bullet = o();
+			N.value = o();
 
 			break;
 
 		case "BRACE":
-			N.brace = { start: -1, end: -1, value: "" };
+			N.brace = o();
 
 			break;
 	}

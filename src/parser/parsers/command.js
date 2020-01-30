@@ -175,11 +175,6 @@ module.exports = S => {
 				break;
 
 			case "oneliner":
-				// Note: Reduce column counter by 1 since parser loop will
-				// commence at the start of the first n-ws char. A char that
-				// has already been looped over in the main loop.
-				S.column--;
-
 				// Store result in var to access interpolated variable's value.
 				N.flags.push(p_flag(S, "oneliner")); // Parse flag oneliner...
 

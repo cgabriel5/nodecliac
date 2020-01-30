@@ -40,6 +40,7 @@ module.exports = (S, type) => {
 			N.name = o();
 			N.assignment = o();
 			N.value = o();
+			N.args = [];
 
 			break;
 
@@ -48,6 +49,7 @@ module.exports = (S, type) => {
 			N.name = o();
 			N.assignment = o();
 			N.value = o();
+			N.args = [];
 
 			break;
 
@@ -73,12 +75,14 @@ module.exports = (S, type) => {
 			N.value = o();
 			N.keyword = o();
 			N.singleton = false;
+			N.args = [];
 
 			break;
 
 		case "OPTION":
 			N.bullet = o();
 			N.value = o();
+			N.args = [];
 
 			break;
 

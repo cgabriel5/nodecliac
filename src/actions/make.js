@@ -12,43 +12,26 @@ const { fmt, exit, read, write, info, readdir, ispath_abs } = toolbox;
 
 module.exports = async args => {
 	// eslint-disable-next-line no-unused-vars
-	let err, res; // Declare empty variables to reuse for all await operations.
-	let tstring = "";
+	let err, res;
 
 	// CLI args.
-	let { source, print } = args; // `make` + `format` flags.
-	let { trace, test } = args; // `make` flags.
-	let { "strip-comments": igc, indent } = args; // `format` flags.
+	let { source, print } = args;
+	let { trace, test } = args;
+	let { "strip-comments": igc, indent } = args;
+	let [action] = args._;
+	let formatting = action === "format";
 
-	let parser = require(`../parser/index.js`);
-
-	// Formatting indentation values.
-	let indent_char = "\t",
-		indent_amount = 1;
-	let formatting = args._[0] === "format";
-
-	// If formatting check that indentation information was provided.
-	if (formatting) {
-		// If indentation flag was provided parse it and reset values.
-		if (indent) {
-			// Validate indentation flag.
-			if (!/^(s|t):\d+$/.test(indent)) {
-				exit([`Invalid indentation string.`]);
-			}
-
-			// If all good parse indentation string.
-			let [char_type, indent_level] = indent.split(":", 2);
-			// Reset values.
-			indent_char = char_type;
-			indent_amount = indent_level;
-		}
-
-		// Use literal chars (`s` => " ", `t` => "\t").
-		indent_char = indent_char === "s" ? " " : "\t";
+	let fmtinfo = ["\t", 1];
+	// Parse and validate provided indentation.
+	if (formatting && indent) {
+		let r = /^(s|t):\d+$/;
+		if (!r.test(indent)) exit([`Invalid indentation string.`]);
+		fmtinfo = indent.split(":", 2);
+		fmtinfo[0] = fmtinfo[0] === "s" ? " " : "\t";
 	}
 
 	// Source must be provided.
-	tstring = "Please provide a ? path.";
+	let tstring = "Please provide a ? path.";
 	if (!source) exit([fmt(tstring, chalk.bold("--source"))]);
 	if (typeof source !== "string") {
 		tstring = "? needs to be a string.";
@@ -58,7 +41,7 @@ module.exports = async args => {
 	// Breakdown path.
 	let fi = info(source);
 	let extension = fi.ext;
-	let commandname = fi.name.replace(new RegExp(`\\.${extension}$`), "");
+	let cmdname = fi.name.replace(new RegExp(`\\.${extension}$`), "");
 	let dirname = fi.dirname;
 
 	// If path is relative make it absolute.
@@ -72,49 +55,26 @@ module.exports = async args => {
 	[err, res] = await flatry(fe(source));
 	if (err || !res) exit([fmt("Path ? does not exists.", chalk.bold(source))]);
 
-	// Generate acmap.
 	[err, res] = await flatry(read(source));
-	let {
-		placeholders,
-		acdef: acmap,
-		keywords,
-		config,
-		formatted,
-		time
-	} = parser(
-		res,
-		commandname,
-		source,
-		formatting ? [indent_char, indent_amount] : undefined,
-		trace,
-		igc,
-		test
-	);
-	let savename = `${commandname}.acdef`;
-	let saveconfigname = `.${commandname}.config.acdef`;
+	let parser = require(`../parser/index.js`);
+	let pres = parser(action, res, cmdname, source, fmtinfo, trace, igc, test);
+	let { acdef, config, keywords, placeholders, formatted, time } = pres;
+	let savename = `${cmdname}.acdef`;
+	let saveconfigname = `.${cmdname}.config.acdef`;
 
 	// Only save files to disk when not testing.
 	if (!test) {
-		// Write formatted contents to disk.
-		if (formatting) {
-			[err, res] = await flatry(write(source, formatted.content));
-		}
-		// Write .acdef and .config.acdef files to disk.
+		if (formatting) [err, res] = await flatry(write(source, formatted));
 		else {
-			// Build file output paths.
 			let commandpath = path.join(dirname, savename);
 			let commandconfigpath = path.join(dirname, saveconfigname);
 			let placeholderspaths = path.join(dirname, "placeholders");
 
-			// Check if command.acdef file exists.
 			[err, res] = await flatry(de(dirname));
-
-			// Create needed parent directories.
 			[err, res] = await flatry(mkdirp(dirname));
 
-			// Save file to map location.
-			await flatry(write(commandpath, acmap.content + keywords.content));
-			await flatry(write(commandconfigpath, config.content));
+			await flatry(write(commandpath, acdef + keywords));
+			await flatry(write(commandconfigpath, config));
 
 			// -----------------------------------------------------PLACEHOLDERS
 
@@ -134,41 +94,33 @@ module.exports = async args => {
 					}
 				}
 
-				[err, res] = await flatry(Promise.all(promises)); // Run promises.
+				[err, res] = await flatry(Promise.all(promises));
 			}
 		}
 	}
 
-	// Log acmap file contents if print flag provided.
+	// Log acdef file contents if print flag provided.
 	if (print) {
 		// Print generated acdef/config file contents.
 		if (!formatting) {
-			if (acmap) {
-				console.log(`\n[${chalk.bold(`${commandname}.acdef`)}]\n`);
-				console.log(acmap.print + keywords.print);
-				if (!config) console.log(); // Bottom padding.
+			if (acdef) {
+				console.log(`[${chalk.bold(`${cmdname}.acdef`)}]\n`);
+				console.log(acdef + keywords);
+				if (!config) console.log();
 			}
 			if (config) {
-				let msg = `\n[${chalk.bold(`.${commandname}.config.acdef`)}]\n`;
+				let msg = `\n[${chalk.bold(`.${cmdname}.config.acdef`)}]\n`;
 				console.log(msg);
-				if (config.print) console.log(config.print + "\n");
+				console.log(config + "\n");
 			}
-		}
-		// If formatting print the output.
-		else {
-			let decor = "-".repeat(25);
-			console.log(`\n${decor}${chalk.bold.blue(`Prettied`)}${decor}\n`);
-			console.log(formatted.print);
-			console.log(`${decor}${chalk.bold.blue(`Prettied`)}${decor}\n`);
-		}
+		} else console.log(formatted);
 
 		// Time in seconds: [https://stackoverflow.com/a/41443682]
 		// [https://stackoverflow.com/a/18031945]
 		// [https://stackoverflow.com/a/1975103]
 		// [https://blog.abelotech.com/posts/measure-execution-time-nodejs-javascript/]
 		const duration = ((time[0] * 1e3 + time[1] / 1e6) / 1e3).toFixed(3);
-		log(`Completed in ${chalk.green(duration + "s")}.`);
-		console.log();
+		console.log(`Completed in ${chalk.green(duration + "s")}.`);
 		// hrtime wrapper: [https://github.com/seriousManual/hirestime]
 	}
 
@@ -176,16 +128,14 @@ module.exports = async args => {
 	if (test) {
 		// Print generated acdef/config file contents.
 		if (!formatting) {
-			if (acmap) {
-				console.log(acmap.print + keywords.print);
-				if (!config) console.log(); // Bottom padding.
+			if (acdef) {
+				console.log(acdef + keywords);
+				if (!config) console.log();
 			}
 			if (config) {
-				if (acmap) console.log(); // Pad before logging config.
-				if (config.print) console.log(config.print);
+				if (acdef) console.log();
+				console.log(config);
 			}
-		}
-		// If formatting print the output.
-		else console.log(formatted.print);
+		} else console.log(formatted);
 	}
 };

@@ -167,5 +167,5 @@ module.exports = S => {
 			.replace(/^\s*|\s*$/g, "")
 			.replace(/ *$/gm, "") + "\n"; // Add trailing newline.
 
-	return { content: output, print: output };
+	return output;
 };

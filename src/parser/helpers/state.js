@@ -1,7 +1,7 @@
 "use strict";
 
 // Loop state object.
-module.exports = (text, source, fmt, trace, igc, test) => {
+module.exports = (action, text, source, fmt, trace, igc, test) => {
 	return {
 		line: 1,
 		column: 1,
@@ -16,6 +16,6 @@ module.exports = (text, source, fmt, trace, igc, test) => {
 		tables: { variables: {}, linestarts: {}, tree: { nodes: [] } },
 
 		// Arguments/parameters for quick access across parsers.
-		args: { source, fmt, trace, igc, test }
+		args: { action, source, fmt, trace, igc, test }
 	};
 };

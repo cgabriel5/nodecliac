@@ -75,7 +75,7 @@ module.exports = (S, N, type) => {
 					match = match.replace(/^\$\{\s*|\s*\}$/g, "");
 
 					// Note: Skip string interpolation logic if formatting.
-					if (S.args.fmt) return `\${${match}}`;
+					if (S.args.action === "format") return `\${${match}}`;
 
 					// Lookup variable's value in database.
 					let value = S.tables.variables[match];

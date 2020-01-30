@@ -268,18 +268,9 @@ module.exports = (S, cmdname) => {
 	defs = defs.replace(/\s*$/g, "");
 
 	return {
-		acdef: {
-			content: ACDEF,
-			print: ACDEF
-		},
-		config: {
-			content: CONFIG,
-			print: CONFIG
-		},
-		keywords: {
-			content: defs,
-			print: defs
-		},
+		acdef: ACDEF,
+		config: CONFIG,
+		keywords: defs,
 		placeholders: PLACEHOLDERS
 	};
 };

@@ -9,8 +9,8 @@ const specificity = require("./helpers/specificity.js");
 const bracechecks = require("./helpers/brace-checks.js");
 const { r_sol_char, r_space } = require("./helpers/patterns.js");
 
-module.exports = (text, cmdname, source, fmt, trace, igc, test) => {
-	const S = state(text, source, fmt, trace, igc, test);
+module.exports = (action, text, cmdname, source, fmt, trace, igc, test) => {
+	const S = state(action, text, source, fmt, trace, igc, test);
 	const { linestarts } = S.tables;
 	const stime = process.hrtime();
 	let line_type;
@@ -49,7 +49,7 @@ module.exports = (text, cmdname, source, fmt, trace, igc, test) => {
 	bracechecks(S, null, "post-standing-scope");
 
 	let res = {};
-	if (fmt) res.formatted = formatter(S);
+	if (action === "format") res.formatted = formatter(S);
 	else res = require("./helpers/acdef.js")(S, cmdname);
 	res.time = process.hrtime(stime);
 	return res;

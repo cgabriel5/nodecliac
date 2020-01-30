@@ -8,7 +8,7 @@
 .gradle.next --string
 .gt --dorg=|--dorg="--dorg=(string \nstring)"|--dorg=debug|--dorg=info|--dorg=lifecycle|--dorg=quiet|--dorg=warn
 .hyphen --print=|--print=$("cat \"$HOME/Desktop/text.text\"","-")
-.keyword --null
+.keyword --
 .keyword.::ytfavorites --flag
 .longform --
 .longform.case1 --DORG=|--DORG="--dorg=(fname \\lname)"|--DORG=debug|--DORG=info|--DORG=lifecycle|--DORG=quiet|--DORG=warn
@@ -28,7 +28,7 @@
 .test.gradle.next --string
 .test.gt --dorg=|--dorg="--dorg=(string \\nvalue)"|--dorg="--dorg=(string value)"|--dorg=debug|--dorg=info|--dorg=lifecycle|--dorg=q:uiet|--dorg=quiet|--dorg=warn|--dorg=warn_ing|--FLAG
 .test.hyphen --print=|--print=$("cat \"$HOME/Desktop/text.text\"","-")
-.test.keyword --null
+.test.keyword --
 .test.keyword.::ytfavorites --flag
 .test.print --command=|--command=string|--command=value|--FLAG
 .test.quoted --test=|--test=$("echo \$0-\$1",$"echo \"\'string str\'\"","doe","-")

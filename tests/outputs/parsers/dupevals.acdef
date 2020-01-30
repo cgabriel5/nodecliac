@@ -5,6 +5,6 @@
 .empty --flag?|--flag2=|--flag2=1|--flag2=2|--flag2=3|--flag3=|--flag3=4|--flag4=|--flag4=5|--flag4=6
 .oneliner --flag=|--flag=$("cat",$"string")
 
-@setting = null
-@path = null
+@setting = 
+@path = 
 @config = 12

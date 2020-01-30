@@ -10,7 +10,7 @@ const { r_quote } = require("./patterns.js");
  * @param  {object} N - The node object.
  * @return {object} - Object containing parsed information.
  */
-module.exports = (S, N, type) => {
+let validate = (S, N, type) => {
 	let { value } = N.value;
 
 	// If value doesn't exist or is '(' (long-form flag list) return.
@@ -148,7 +148,7 @@ module.exports = (S, N, type) => {
 
 						if (char === qchar && pchar !== "\\") {
 							let tN = tNode(vsi, argument.length - 1, argument);
-							argument = module.exports(S, tN, "quoted");
+							argument = validate(S, tN, "quoted");
 							args.push(argument);
 
 							argument = "";
@@ -170,7 +170,7 @@ module.exports = (S, N, type) => {
 					i--; // Reduce to account for last completed iteration.
 
 					let tN = tNode(vsi, argument.length - 1, argument);
-					argument = module.exports(S, tN, "quoted");
+					argument = validate(S, tN, "quoted");
 					args.push(argument);
 				}
 
@@ -249,7 +249,7 @@ module.exports = (S, N, type) => {
 
 								let end = argument.length - 1;
 								let tN = tNode(vsi, end, argument);
-								argument = module.exports(S, tN, mode);
+								argument = validate(S, tN, mode);
 								args.push([argument, mode]);
 
 								argument = mode = "";
@@ -262,7 +262,7 @@ module.exports = (S, N, type) => {
 
 								let end = argument.length - 1;
 								let tN = tNode(vsi, end, argument);
-								argument = module.exports(S, tN, mode);
+								argument = validate(S, tN, mode);
 								args.push([argument, mode]);
 
 								argument = mode = "";
@@ -275,7 +275,7 @@ module.exports = (S, N, type) => {
 
 								let end = argument.length - 1;
 								let tN = tNode(vsi, end, argument);
-								argument = module.exports(S, tN, mode);
+								argument = validate(S, tN, mode);
 								args.push([argument, mode]);
 
 								argument = mode = "";
@@ -288,7 +288,7 @@ module.exports = (S, N, type) => {
 				// Get last argument.
 				if (argument) {
 					let tN = tNode(vsi, argument.length - 1, argument);
-					argument = module.exports(S, tN, mode);
+					argument = validate(S, tN, mode);
 					args.push([argument, mode]);
 				}
 
@@ -303,4 +303,8 @@ module.exports = (S, N, type) => {
 	}
 
 	return value;
+};
+
+module.exports = (...args) => {
+	return validate(...args);
 };

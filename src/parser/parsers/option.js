@@ -4,7 +4,7 @@ const node = require("../helpers/nodes.js");
 const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
 const rollback = require("../helpers/rollback.js");
-const validate = require("../helpers/validate-value.js");
+const validate = require("../helpers/validate.js");
 const bracechecks = require("../helpers/brace-checks.js");
 const { r_nl, r_space, r_quote } = require("../helpers/patterns.js");
 

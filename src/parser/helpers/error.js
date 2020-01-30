@@ -33,7 +33,7 @@ let errors = {
 		13: "Cannot declare flag option out of scope."
 	},
 	"template-string": {},
-	"validate-value": {
+	validate: {
 		10: "Improperly quoted string.",
 		11: "String cannot be empty.",
 		12: "Undefined variable.",

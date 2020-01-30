@@ -254,10 +254,9 @@ module.exports = (S, isoneliner) => {
 
 	validate(S, N);
 
-	if (S.singletonflag) {
+	if (!isoneliner) {
 		add(S, N);
-		delete S.singletonflag;
-		N.singletonflag = true; // Distinguish node if later needed.
+		N.singletonflag = true;
 	}
 
 	return N;

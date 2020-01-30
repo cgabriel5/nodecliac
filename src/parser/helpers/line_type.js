@@ -34,12 +34,10 @@ module.exports = (S, char, nchar) => {
 	if (line_type === "flag") {
 		// Line is actually a flag option so reset parser.
 		if (nchar && r_space.test(nchar)) line_type = "option";
-		else S.singletonflag = true; // Make flag parser add node to tree.
 	} else if (line_type === "command") {
 		// Check for 'default' keyword.
 		if (text.substr(S.i, 7) === "default") {
 			line_type = "flag";
-			S.singletonflag = true; // Make flag parser add node to tree.
 		}
 	}
 

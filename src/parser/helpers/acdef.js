@@ -6,10 +6,10 @@ const { md5, hasOwnProperty } = require("../../utils/toolbox.js");
  * Generate .acdef, .config.acdef file contents from parse tree ob nodes.
  *
  * @param  {object} S - Main loop state object.
- * @param  {string} commandname - Name of <command>.acdef being parsed.
+ * @param  {string} cmdname - Name of <command>.acdef being parsed.
  * @return {object} - Object containing acdef, config, and keywords contents.
  */
-module.exports = (S, commandname) => {
+module.exports = (S, cmdname) => {
 	let counter = 0;
 	let nodes = [];
 	let ACDEF = [];
@@ -23,9 +23,9 @@ module.exports = (S, commandname) => {
 	let has_root = false;
 
 	// Note: Properly escape '+' characters for commands like 'g++'.
-	let rcommandname = commandname.replace(/(\+)/g, "\\$1");
+	let rcmdname = cmdname.replace(/(\+)/g, "\\$1");
 	// RegExp to match main command/first command in chain to remove.
-	let r = new RegExp(`^(${rcommandname}|[-_a-zA-Z0-9]+)`);
+	let r = new RegExp(`^(${rcmdname}|[-_a-zA-Z0-9]+)`);
 
 	// .acdef/.config.acdef file header.
 	const date = new Date();

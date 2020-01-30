@@ -256,7 +256,7 @@ module.exports = (S, isoneliner) => {
 
 	if (!isoneliner) {
 		add(S, N);
-		N.singletonflag = true;
+		N.singleton = true;
 	}
 
 	return N;

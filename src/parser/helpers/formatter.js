@@ -73,10 +73,10 @@ module.exports = S => {
 					let avalue = N.assignment.value || "";
 					let mvalue = N.multi.value || "";
 					let vvalue = N.value.value || "";
-					let singletonflag = N.singletonflag;
-					let indentation = indent(null, singletonflag ? 1 : null);
+					let singleton = N.singleton;
+					let indentation = indent(null, singleton ? 1 : null);
 
-					let pipe_delimiter = singletonflag ? "" : "|";
+					let pipe_delimiter = singleton ? "" : "|";
 
 					// Note: If next node is a flag reset var.
 					if (pipe_delimiter) {

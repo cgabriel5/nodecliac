@@ -72,7 +72,7 @@ module.exports = (S, type) => {
 			N.brackets = o();
 			N.value = o();
 			N.keyword = o();
-			N.singletonflag = false;
+			N.singleton = false;
 
 			break;
 

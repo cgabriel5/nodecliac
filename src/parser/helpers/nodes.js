@@ -16,13 +16,13 @@ module.exports = (S, type) => {
 		node: type,
 		line: S.line,
 		start: S.i,
-		end: null
+		end: -1
 	};
 
 	// Modify each type as needed.
 	switch (type) {
 		case "COMMENT":
-			N.comment = { start: null, end: null, value: "" };
+			N.comment = { start: -1, end: -1, value: "" };
 
 			break;
 
@@ -30,53 +30,53 @@ module.exports = (S, type) => {
 			break;
 
 		case "SETTING":
-			N.sigil = { start: null, end: null };
-			N.name = { start: null, end: null, value: "" };
-			N.assignment = { start: null, end: null, value: null };
-			N.value = { start: null, end: null, value: null };
+			N.sigil = { start: -1, end: -1 };
+			N.name = { start: -1, end: -1, value: "" };
+			N.assignment = { start: -1, end: -1, value: "" };
+			N.value = { start: -1, end: -1, value: "" };
 
 			break;
 
 		case "VARIABLE":
-			N.sigil = { start: null, end: null };
-			N.name = { start: null, end: null, value: "" };
-			N.assignment = { start: null, end: null, value: null };
-			N.value = { start: null, end: null, value: null };
+			N.sigil = { start: -1, end: -1 };
+			N.name = { start: -1, end: -1, value: "" };
+			N.assignment = { start: -1, end: -1, value: "" };
+			N.value = { start: -1, end: -1, value: "" };
 
 			break;
 
 		case "COMMAND":
-			N.command = { start: null, end: null, value: "" };
-			N.name = { start: null, end: null, value: "" };
-			N.brackets = { start: null, end: null, value: null };
-			N.assignment = { start: null, end: null, value: null };
-			N.delimiter = { start: null, end: null, value: null };
-			N.value = { start: null, end: null, value: null };
+			N.command = { start: -1, end: -1, value: "" };
+			N.name = { start: -1, end: -1, value: "" };
+			N.brackets = { start: -1, end: -1, value: "" };
+			N.assignment = { start: -1, end: -1, value: "" };
+			N.delimiter = { start: -1, end: -1, value: "" };
+			N.value = { start: -1, end: -1, value: "" };
 			N.flags = [];
 
 			break;
 
 		case "FLAG":
-			N.hyphens = { start: null, end: null, value: null };
-			N.variable = { start: null, end: null, value: null };
-			N.name = { start: null, end: null, value: null };
-			N.boolean = { start: null, end: null, value: null };
-			N.assignment = { start: null, end: null, value: null };
-			N.multi = { start: null, end: null, value: null };
-			N.brackets = { start: null, end: null, value: null };
-			N.value = { start: null, end: null, value: null, type: null };
-			N.keyword = { start: null, end: null, value: null };
+			N.hyphens = { start: -1, end: -1, value: "" };
+			N.variable = { start: -1, end: -1, value: "" };
+			N.name = { start: -1, end: -1, value: "" };
+			N.boolean = { start: -1, end: -1, value: "" };
+			N.assignment = { start: -1, end: -1, value: "" };
+			N.multi = { start: -1, end: -1, value: "" };
+			N.brackets = { start: -1, end: -1, value: "" };
+			N.value = { start: -1, end: -1, value: "", type: null };
+			N.keyword = { start: -1, end: -1, value: "" };
 
 			break;
 
 		case "OPTION":
-			N.bullet = { start: null, end: null, value: null };
-			N.value = { start: null, end: null, value: null, type: null };
+			N.bullet = { start: -1, end: -1, value: "" };
+			N.value = { start: -1, end: -1, value: "", type: null };
 
 			break;
 
 		case "BRACE":
-			N.brace = { start: null, end: null, value: null };
+			N.brace = { start: -1, end: -1, value: "" };
 
 			break;
 	}

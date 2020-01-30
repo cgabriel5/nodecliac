@@ -33,7 +33,7 @@ module.exports = (text, commandname, source, fmt, trace, igc, test) => {
 			S.sol_char = char;
 
 			// Sol char must be allowed.
-			if (!r_sol_char.test(char)) error(S, 10, __filename);
+			if (!r_sol_char.test(char)) error(S, __filename, 10);
 
 			line_type = linetype(S, char, nchar);
 			if (line_type === "terminator") break;

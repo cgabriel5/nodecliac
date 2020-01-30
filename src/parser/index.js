@@ -2,9 +2,9 @@
 
 const state = require("./helpers/state.js");
 const error = require("./helpers/error.js");
+const formatter = require("./tools/formatter.js");
 const p_newline = require("./parsers/newline.js");
 const linetype = require("./helpers/line_type.js");
-const formatter = require("./helpers/formatter.js");
 const specificity = require("./helpers/specificity.js");
 const bracechecks = require("./helpers/brace-checks.js");
 const { r_sol_char, r_space } = require("./helpers/patterns.js");
@@ -50,7 +50,7 @@ module.exports = (action, text, cmdname, source, fmt, trace, igc, test) => {
 
 	let res = {};
 	if (action === "format") res.formatted = formatter(S);
-	else res = require("./helpers/acdef.js")(S, cmdname);
+	else res = require("./tools/acdef.js")(S, cmdname);
 	res.time = process.hrtime(stime);
 	return res;
 };

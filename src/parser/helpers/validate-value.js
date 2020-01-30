@@ -9,8 +9,8 @@ const error = require("./error.js");
  * @param  {object} N - The node object.
  * @return {object} - Object containing parsed information.
  */
-module.exports = (S, N) => {
-	let { value, type } = N.value;
+module.exports = (S, N, type) => {
+	let { value } = N.value;
 
 	// Start: Short Circuit Checks. ============================================
 
@@ -39,8 +39,6 @@ module.exports = (S, N) => {
 		if (fvchar === "$") type = "command-flag";
 		else if (fvchar === "(") type = "list";
 		else if (/["']/.test(fvchar)) type = "quoted";
-
-		N.value.type = type; // Finally set type.
 	}
 
 	// The column index to resume error checks at.
@@ -197,11 +195,10 @@ module.exports = (S, N) => {
 								value: {
 									start: value_start_index,
 									end: argument.length - 1,
-									value: argument,
-									type: "quoted"
+									value: argument
 								}
 							};
-							argument = module.exports(S, tmpN);
+							argument = module.exports(S, tmpN, "quoted");
 
 							args.push(argument); // Store argument.
 							// Clear/reset variables.
@@ -231,11 +228,10 @@ module.exports = (S, N) => {
 						value: {
 							start: value_start_index,
 							end: argument.length - 1,
-							value: argument,
-							type: "quoted"
+							value: argument
 						}
 					};
-					argument = module.exports(S, tmpN);
+					argument = module.exports(S, tmpN, "quoted");
 
 					args.push(argument); // Store argument.
 				}
@@ -337,11 +333,10 @@ module.exports = (S, N) => {
 									value: {
 										start: value_start_index,
 										end: argument.length - 1,
-										value: argument,
-										type: mode
+										value: argument
 									}
 								};
-								argument = module.exports(S, tmpN);
+								argument = module.exports(S, tmpN, mode);
 								args.push([argument, mode]); // Store argument.
 								argument = ""; // Clear argument string.
 								mode = null; // Clear mode flag.
@@ -356,11 +351,10 @@ module.exports = (S, N) => {
 									value: {
 										start: value_start_index,
 										end: argument.length - 1,
-										value: argument,
-										type: mode
+										value: argument
 									}
 								};
-								argument = module.exports(S, tmpN);
+								argument = module.exports(S, tmpN, mode);
 								args.push([argument, mode]); // Store argument.
 								argument = ""; // Clear argument string.
 								mode = null; // Clear mode flag.
@@ -375,12 +369,11 @@ module.exports = (S, N) => {
 									value: {
 										start: value_start_index,
 										end: argument.length - 1,
-										value: argument,
-										type: mode
+										value: argument
 									}
 								};
 
-								argument = module.exports(S, tmpN);
+								argument = module.exports(S, tmpN, mode);
 								args.push([argument, mode]); // Store argument.
 								argument = ""; // Clear argument string.
 								mode = null; // Clear mode flag.
@@ -397,11 +390,10 @@ module.exports = (S, N) => {
 						value: {
 							start: value_start_index,
 							end: argument.length - 1,
-							value: argument,
-							type: mode
+							value: argument
 						}
 					};
-					argument = module.exports(S, tmpN);
+					argument = module.exports(S, tmpN, mode);
 					args.push([argument, mode]);
 				}
 

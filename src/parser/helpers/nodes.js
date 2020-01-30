@@ -64,14 +64,14 @@ module.exports = (S, type) => {
 			N.assignment = { start: -1, end: -1, value: "" };
 			N.multi = { start: -1, end: -1, value: "" };
 			N.brackets = { start: -1, end: -1, value: "" };
-			N.value = { start: -1, end: -1, value: "", type: null };
+			N.value = { start: -1, end: -1, value: "" };
 			N.keyword = { start: -1, end: -1, value: "" };
 
 			break;
 
 		case "OPTION":
 			N.bullet = { start: -1, end: -1, value: "" };
-			N.value = { start: -1, end: -1, value: "", type: null };
+			N.value = { start: -1, end: -1, value: "" };
 
 			break;
 

@@ -24,6 +24,7 @@ module.exports = S => {
 	let { l, text } = S;
 	let end_comsuming;
 	let state = "bullet";
+	let type = "escaped";
 	let N = node(S, "OPTION");
 
 	// If a flag scope doesn't exist, error as it needs to.
@@ -69,13 +70,10 @@ module.exports = S => {
 
 					// Determine value type.
 					if (!N.value.value) {
-						let type = "escaped";
-
 						if (char === "$") type = "command-flag";
 						else if (char === "(") type = "list";
 						else if (r_quote.test(char)) type = "quoted";
 
-						N.value.type = type;
 						N.value.start = N.value.end = S.i;
 						N.value.value = char;
 					} else {
@@ -84,13 +82,11 @@ module.exports = S => {
 						// may be improperly quoted/escaped so error.
 						if (end_comsuming) error(S, __filename);
 
-						let stype = N.value.type;
-
-						if (stype === "escaped") {
+						if (type === "escaped") {
 							if (r_space.test(char) && pchar !== "\\") {
 								end_comsuming = true;
 							}
-						} else if (stype === "quoted") {
+						} else if (type === "quoted") {
 							let value_fchar = N.value.value.charAt(0);
 							if (char === value_fchar && pchar !== "\\") {
 								end_comsuming = true;

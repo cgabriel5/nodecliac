@@ -11,6 +11,7 @@ module.exports = (action, text, source, fmt, trace, igc, test) => {
 		specf: 0, // Default to allow anything initially.
 		sol_char: "", // First non-whitespace char of line.
 		scopes: { command: null, flag: null }, // Track command/flag scopes.
+		last_line_num: 0, // For tracing purposes.
 
 		// Parsing lookup tables.
 		tables: { variables: {}, linestarts: {}, tree: { nodes: [] } },

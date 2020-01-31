@@ -2,8 +2,9 @@
 
 const node = require("../helpers/nodes.js");
 const p_flag = require("../parsers/flag.js");
-const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
+const add = require("../helpers/tree-add.js");
+const tracer = require("../helpers/trace.js");
 const rollback = require("../helpers/rollback.js");
 const bracechecks = require("../helpers/brace-checks.js");
 const { r_nl, r_space } = require("../helpers/patterns.js");
@@ -175,6 +176,7 @@ module.exports = S => {
 				break;
 
 			case "oneliner":
+				tracer(S, "flag"); // Trace parser.
 				// Store result in var to access interpolated variable's value.
 				N.flags.push(p_flag(S, "oneliner")); // Parse flag oneliner...
 

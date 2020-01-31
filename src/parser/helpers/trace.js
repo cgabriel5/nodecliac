@@ -18,14 +18,12 @@ module.exports = (S, parser) => {
 	msg = `\n${chalk.magenta.bold.underline("Trace")}`;
 	if (!last_line_num) console.log(msg); // Print header.
 
-	S.last_line_num = line_num; // Set line number.
-	S.trace_indentation = ""; // Set indentation.
+	S.last_line_num = line_num;
+	S.trace_indentation = "";
 
 	// Add to last printed line: [https://stackoverflow.com/a/17309876]
 
-	// If a new unique line number.
-	msg = `  ${chalk.bold(line_num)} ${parser}:\n`;
+	msg = `${chalk.bold(line_num)} ${parser}\n`;
 	if (line_num !== last_line_num) process.stdout.write(msg);
-	// Append parser to current parser chain.
-	else process.stdout.write(`    — ${chalk.dim(parser)}\n`);
+	else process.stdout.write(` ~ ${chalk.dim(parser)}\n`);
 };

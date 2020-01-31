@@ -45,7 +45,7 @@ module.exports = (action, text, cmdname, source, fmt, trace, igc, test) => {
 		}
 	}
 
-	// Check if command-chain scope exists post-parsing.
+	// Error if cc scope exists post-parsing.
 	bracechecks(S, null, "post-standing-scope");
 
 	let res = {};

@@ -29,9 +29,9 @@ const { r_nl, r_space, r_letter, r_quote } = require("../helpers/patterns.js");
  */
 module.exports = (S, isoneliner) => {
 	let { l, text } = S;
-	let state = text.charAt(S.i) === "-" ? "hyphen" : "keyword"; // Initial parsing state.
-	let stop; // Flag indicating whether to stop parser.
-	let end_comsuming;
+	let state = text.charAt(S.i) === "-" ? "hyphen" : "keyword";
+	let stop; // Flag: true - stops parser.
+	let end; // Flag: true - ends consuming chars.
 	let type = "escaped";
 	let N = node(S, "FLAG");
 
@@ -44,22 +44,18 @@ module.exports = (S, isoneliner) => {
 	for (; S.i < l; S.i++, S.column++) {
 		let char = text.charAt(S.i);
 
-		// Stop on a newline char.
 		if (stop || r_nl.test(char)) {
 			N.end = rollback(S) && S.i;
-			break;
+			break; // Stop at nl char.
 		}
 
 		switch (state) {
 			case "hyphen":
-				// With RegExp to parse on unescaped '|' characters it would be
-				// something like this: String.split(/(?<=[^\\]|^|$)\|/);
 				// [https://stackoverflow.com/a/25895905]
 				// [https://stackoverflow.com/a/12281034]
+				// RegEx to split on unescaped '|': /(?<=[^\\]|^|$)\|/
 
-				// Only hyphens are allowed at this point.
 				if (!N.hyphens.value) {
-					// If char is not a hyphen, error.
 					if (char !== "-") error(S, __filename);
 					N.hyphens.start = N.hyphens.end = S.i;
 					N.hyphens.value = char;
@@ -87,7 +83,7 @@ module.exports = (S, isoneliner) => {
 					N.keyword.value = keyword;
 					state = "keyword-spacer";
 
-					// Note: Forward index to skip keyword chars.
+					// Note: Forward indices to skip keyword chars.
 					S.i += keyword_len - 1;
 					S.column += keyword_len - 1;
 				}
@@ -95,7 +91,6 @@ module.exports = (S, isoneliner) => {
 				break;
 
 			case "keyword-spacer":
-				// Char must be a ws char, else error.
 				if (!r_space.test(char)) error(S, __filename);
 				state = "wsb-prevalue";
 
@@ -103,7 +98,6 @@ module.exports = (S, isoneliner) => {
 
 			case "name":
 				if (!N.name.value) {
-					// If char is not a hyphen, error.
 					if (!r_letter.test(char)) error(S, __filename);
 					N.name.start = N.name.end = S.i;
 					N.name.value = char;
@@ -129,7 +123,6 @@ module.exports = (S, isoneliner) => {
 				break;
 
 			case "wsb-postname":
-				// Anything but ws, an eq-sign, or '|' is invalid.
 				if (!r_space.test(char)) {
 					if (char === "=") {
 						state = "assignment";
@@ -157,41 +150,29 @@ module.exports = (S, isoneliner) => {
 				break;
 
 			case "multi-indicator":
-				// If char is a '*' store info, else go to value state.
 				if (char === "*") {
 					N.multi.start = N.multi.end = S.i;
 					N.multi.value = char;
 					state = "wsb-prevalue";
 				} else {
-					rollback(S);
-
-					// Reset parsing state (based on character).
 					if (char === "|") state = "pipe-delimiter";
 					else state = "wsb-prevalue";
+					rollback(S);
 				}
 
 				break;
 
 			case "pipe-delimiter":
-				// Note: Pipe-delimiter serves to delimit individual flag sets.
-				// With RegExp to parse on unescaped '|' characters it would be
-				// something like this: String.split(/(?<=[^\\]|^|$)\|/);
-				// [https://stackoverflow.com/a/25895905]
-				// [https://stackoverflow.com/a/12281034]
-
 				if (char !== "|") error(S, __filename);
 				stop = true;
 
 				break;
 
 			case "wsb-prevalue":
-				// Once a n-ws char is hit, switch state.
 				if (!r_space.test(char)) {
-					rollback(S);
-
-					// Reset parsing state (based on character).
 					if (char === "|") state = "pipe-delimiter";
 					else state = "value";
+					rollback(S);
 				}
 
 				break;
@@ -200,8 +181,8 @@ module.exports = (S, isoneliner) => {
 				{
 					let pchar = text.charAt(S.i - 1);
 
-					// Determine value type.
 					if (!N.value.value) {
+						// Determine value type.
 						if (char === "$") type = "command-flag";
 						else if (char === "(") type = "list";
 						else if (r_quote.test(char)) type = "quoted";
@@ -209,7 +190,6 @@ module.exports = (S, isoneliner) => {
 						N.value.start = N.value.end = S.i;
 						N.value.value = char;
 					} else {
-						// Check if character is a delimiter.
 						if (char === "|" && pchar !== "\\") {
 							state = "pipe-delimiter";
 							rollback(S);
@@ -218,19 +198,16 @@ module.exports = (S, isoneliner) => {
 						}
 
 						// If flag is set and chars can still be consumed
-						// then there is a syntax error. For example, string
+						// there is a syntax error. For example, string
 						// may be improperly quoted/escaped so error.
-						if (end_comsuming) error(S, __filename);
+						if (end) error(S, __filename);
 
+						let isescaped = pchar !== "\\";
 						if (type === "escaped") {
-							if (r_space.test(char) && pchar !== "\\") {
-								end_comsuming = true;
-							}
+							if (r_space.test(char) && isescaped) end = true;
 						} else if (type === "quoted") {
-							let value_fchar = N.value.value.charAt(0);
-							if (char === value_fchar && pchar !== "\\") {
-								end_comsuming = true;
-							}
+							let vfchar = N.value.value.charAt(0);
+							if (char === vfchar && isescaped) end = true;
 						}
 						N.value.end = S.i;
 						N.value.value += char;
@@ -241,15 +218,11 @@ module.exports = (S, isoneliner) => {
 		}
 	}
 
-	// If flag starts a scope block, store reference to node object.
+	// If scope is created store ref to Node object.
 	if (N.value.value === "(") {
-		N.brackets = {
-			start: N.value.start,
-			end: N.value.start,
-			value: N.value.value
-		};
-
-		S.scopes.flag = N; // Store reference to node object.
+		N.brackets.start = N.brackets.end = N.value.start;
+		N.brackets.value = N.value.value;
+		S.scopes.flag = N;
 	}
 
 	validate(S, N);

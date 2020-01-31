@@ -35,16 +35,15 @@ module.exports = S => {
 	let state = "command";
 	let N = node(S, "COMMAND");
 
-	// If command-chain scope exists, error as brace wasn't closed.
+	// Error if cc scope exists (brace not closed).
 	bracechecks(S, null, "pre-existing-cs");
 
 	for (; S.i < l; S.i++, S.column++) {
 		let char = text.charAt(S.i);
 
-		// Stop on a newline char.
 		if (r_nl.test(char)) {
 			N.end = rollback(S) && S.i;
-			break;
+			break; // Stop at nl char.
 		}
 
 		switch (state) {
@@ -64,15 +63,13 @@ module.exports = S => {
 						// if the command is 'com\mand\.name' we should return
 						// 'command\.name' and not 'com\mand\.name'.
 						if (char === "\\") {
-							let nchar = text.charAt(S.i + 1); // Next char.
+							let nchar = text.charAt(S.i + 1);
 
-							// Note: If next char doesn't exist the
-							// '\' char is escaping nothing so error.
+							// nchar must exist else escaping nothing.
 							if (!nchar) error(S, __filename, 10);
 
-							// Next char must be a ws to be a valid escape sequence.
+							// Only dots can be escaped.
 							if (nchar !== ".") {
-								// Error is escaping anything but a dot.
 								error(S, __filename, 10);
 
 								// Remove last escape char as it isn't needed.
@@ -80,11 +77,7 @@ module.exports = S => {
 								N.command.value = command;
 							}
 						}
-					}
-					// Note: If we encounter a ws char, everything
-					// after this point must be a ws until we encounter
-					// an eq sign or the end-of-line (newline) character.
-					else if (r_space.test(char)) {
+					} else if (r_space.test(char)) {
 						state = "chain-wsb";
 						continue;
 					} else if (char === "=") {
@@ -99,7 +92,6 @@ module.exports = S => {
 				break;
 
 			case "chain-wsb":
-				// Anything but ws, eq-sign, or ',' is invalid.
 				if (!r_space.test(char)) {
 					if (char === "=") {
 						state = "assignment";
@@ -127,7 +119,6 @@ module.exports = S => {
 				break;
 
 			case "value-wsb":
-				// Once a n-ws char is hit, switch state.
 				if (!r_space.test(char)) {
 					state = "value";
 					rollback(S);
@@ -136,12 +127,7 @@ module.exports = S => {
 				break;
 
 			case "value":
-				// Note: This will be an intermediary step. May be removed?
-				// Determine value type. If character is '[' then start
-				// open-bracket case. Else if character is '-' then
-				// commence 'oneliner' route.
-
-				// Before determining path, check that character is valid.
+				// Note: Intermediary step - remove it?
 				if (!/[-d[]/.test(char)) error(S, __filename);
 				state = char === "[" ? "open-bracket" : "oneliner";
 				rollback(S);
@@ -149,7 +135,7 @@ module.exports = S => {
 				break;
 
 			case "open-bracket":
-				// Note: This will be an intermediary step. May be removed?
+				// Note: Intermediary step - remove it?
 				N.brackets.start = S.i;
 				N.brackets.value = char;
 				N.value.value = char;
@@ -158,7 +144,6 @@ module.exports = S => {
 				break;
 
 			case "open-bracket-wsb":
-				// Once a n-ws char is hit, switch state.
 				if (!r_space.test(char)) {
 					state = "close-bracket";
 					rollback(S);
@@ -167,7 +152,6 @@ module.exports = S => {
 				break;
 
 			case "close-bracket":
-				// Char must be a closing bracket ']' else error.
 				if (char !== "]") error(S, __filename);
 				N.brackets.end = S.i;
 				N.value.value += char;
@@ -177,23 +161,21 @@ module.exports = S => {
 
 			case "oneliner":
 				tracer(S, "flag"); // Trace parser.
-				// Store result in var to access interpolated variable's value.
-				N.flags.push(p_flag(S, "oneliner")); // Parse flag oneliner...
+				N.flags.push(p_flag(S, "oneliner"));
 
 				break;
 
 			case "eol-wsb":
-				// Anything but trailing ws is invalid.
 				if (!r_space.test(char)) error(S, __filename);
 
 				break;
 		}
 	}
 
-	add(S, N);
-	for (let i = 0, l = N.flags.length; i < l; i++) add(S, N.flags[i]); // Add flags.
+	add(S, N); // Add flags below.
+	for (let i = 0, l = N.flags.length; i < l; i++) add(S, N.flags[i]);
 
-	// If command starts a scope block, store reference to node object.
+	// If scope is created store ref to Node object.
 	if (N.value.value === "[") S.scopes.command = N;
 
 	return N;

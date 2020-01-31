@@ -23,10 +23,9 @@ module.exports = S => {
 	for (; S.i < l; S.i++, S.column++) {
 		let char = text.charAt(S.i);
 
-		// Stop on a newline char.
 		if (r_nl.test(char)) {
 			N.end = rollback(S) && S.i;
-			break;
+			break; // Stop at nl char.
 		}
 
 		N.comment.end = S.i;

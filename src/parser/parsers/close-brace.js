@@ -27,10 +27,9 @@ module.exports = S => {
 	for (; S.i < l; S.i++, S.column++) {
 		let char = text.charAt(S.i);
 
-		// Stop on a newline char.
 		if (r_nl.test(char)) {
 			N.end = rollback(S) && S.i;
-			break;
+			break; // Stop at nl char.
 		}
 
 		switch (state) {
@@ -42,13 +41,12 @@ module.exports = S => {
 				break;
 
 			case "eol-wsb":
-				// Anything but trailing ws is invalid.
 				if (!r_space.test(char)) error(S, __filename);
 				break;
 		}
 	}
 
-	// If command-chain scope exists, error as brace wasn't closed.
+	// Error if cc scope exists (brace not closed).
 	bracechecks(S, N, "reset-scope");
 	add(S, N);
 };

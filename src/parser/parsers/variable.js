@@ -30,10 +30,9 @@ module.exports = S => {
 	for (; S.i < l; S.i++, S.column++) {
 		let char = text.charAt(S.i);
 
-		// Stop on a newline char.
 		if (r_nl.test(char)) {
 			N.end = rollback(S) && S.i;
-			break;
+			break; // Stop at nl char.
 		}
 
 		switch (state) {
@@ -53,15 +52,10 @@ module.exports = S => {
 					if (/[-_a-zA-Z]/.test(char)) {
 						N.name.end = S.i;
 						N.name.value += char;
-					}
-					// Note: If ws char is hit everything after must be ws
-					// until an '=' or the end-of-line (newline) char is hit.
-					else if (r_space.test(char)) {
+					} else if (r_space.test(char)) {
 						state = "name-wsb";
 						continue;
-					}
-					// If char is an eq sign change state/reset index.
-					else if (char === "=") {
+					} else if (char === "=") {
 						state = "assignment";
 						rollback(S);
 					} else error(S, __filename);
@@ -70,14 +64,11 @@ module.exports = S => {
 				break;
 
 			case "name-wsb":
-				// Anything but ws or an eq-sign is invalid.
 				if (!r_space.test(char)) {
 					if (char === "=") {
 						state = "assignment";
 						rollback(S);
-					}
-					// Anything at this point is an invalid char.
-					else error(S, __filename);
+					} else error(S, __filename);
 				}
 
 				break;
@@ -90,7 +81,6 @@ module.exports = S => {
 				break;
 
 			case "value-wsb":
-				// Once a n-ws char is hit, switch state.
 				if (!r_space.test(char)) {
 					state = "value";
 					rollback(S);
@@ -109,12 +99,10 @@ module.exports = S => {
 					if (qchar) {
 						let pchar = text.charAt(S.i - 1);
 
-						// Once string closed change state.
 						if (char === qchar && pchar !== "\\") state = "eol-wsb";
 						N.value.end = S.i;
 						N.value.value += char;
 					} else {
-						// Stop at the first ws char.
 						if (r_space.test(char)) {
 							state = "eol-wsb";
 							rollback(S);
@@ -128,7 +116,6 @@ module.exports = S => {
 				break;
 
 			case "eol-wsb":
-				// Anything but trailing ws is invalid.
 				if (!r_space.test(char)) error(S, __filename);
 
 				break;
@@ -138,11 +125,11 @@ module.exports = S => {
 	validate(S, N);
 	add(S, N);
 
-	// Unquote value. [https://stackoverflow.com/a/21873245]
 	let value = N.value.value || "";
 	value = value.substring(1, value.length - 1);
+	// Unquote value. [https://stackoverflow.com/a/21873245]
 	// Unquote value. [https://stackoverflow.com/a/19156197]
 	// value = value.replace(/^(["'])(.+(?=\1$))\1$/, "$2");
 
-	S.tables.variables[N.name.value] = value; // Store var and its value.
+	S.tables.variables[N.name.value] = value; // Store var/val.
 };

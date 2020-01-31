@@ -22,22 +22,20 @@ const { r_nl, r_space, r_quote } = require("../helpers/patterns.js");
  */
 module.exports = S => {
 	let { l, text } = S;
-	let end_comsuming;
 	let state = "bullet";
+	let end; // Flag: true - ends consuming chars.
 	let type = "escaped";
 	let N = node(S, "OPTION");
 
-	// If a flag scope doesn't exist, error as it needs to.
+	// Error if flag scope doesn't exist.
 	bracechecks(S, null, "pre-existing-fs");
 
 	for (; S.i < l; S.i++, S.column++) {
 		let char = text.charAt(S.i);
 
-		// Stop on a newline char.
 		if (r_nl.test(char)) {
 			N.end = rollback(S) && S.i;
-
-			break;
+			break; // Stop at nl char.
 		}
 
 		switch (state) {
@@ -49,14 +47,12 @@ module.exports = S => {
 				break;
 
 			case "spacer":
-				// A ws char must follow bullet, else error.
 				if (!r_space.test(char)) error(S, __filename);
 				state = "wsb-prevalue";
 
 				break;
 
 			case "wsb-prevalue":
-				// Allow ws until first n-ws char is hit.
 				if (!r_space.test(char)) {
 					rollback(S);
 					state = "value";
@@ -68,8 +64,8 @@ module.exports = S => {
 				{
 					let pchar = text.charAt(S.i - 1);
 
-					// Determine value type.
 					if (!N.value.value) {
+						// Determine value type.
 						if (char === "$") type = "command-flag";
 						else if (char === "(") type = "list";
 						else if (r_quote.test(char)) type = "quoted";
@@ -80,17 +76,14 @@ module.exports = S => {
 						// If flag is set and chars can still be consumed
 						// then there is a syntax error. For example, string
 						// may be improperly quoted/escaped so error.
-						if (end_comsuming) error(S, __filename);
+						if (end) error(S, __filename);
 
+						let isescaped = pchar !== "\\";
 						if (type === "escaped") {
-							if (r_space.test(char) && pchar !== "\\") {
-								end_comsuming = true;
-							}
+							if (r_space.test(char) && isescaped) end = true;
 						} else if (type === "quoted") {
-							let value_fchar = N.value.value.charAt(0);
-							if (char === value_fchar && pchar !== "\\") {
-								end_comsuming = true;
-							}
+							let vfchar = N.value.value.charAt(0);
+							if (char === vfchar && isescaped) end = true;
 						}
 						N.value.end = S.i;
 						N.value.value += char;

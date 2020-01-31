@@ -1,10 +1,10 @@
 "use strict";
 
 /**
- * Adds node object to node tree.
+ * Add node object to tree.
  *
- * @param  {object} S - Main loop state object.
- * @param  {object} N - The node object.
+ * @param  {object} S - State object.
+ * @param  {object} N - Node object.
  * @return {undefined} - Nothing is returned.
  */
 module.exports = (S, N) => S.tables.tree.nodes.push(N);

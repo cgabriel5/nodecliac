@@ -3,11 +3,11 @@
 const error = require("./error.js");
 
 /**
- * Checks if line specificity is allowed.
+ * Validate line specificity.
  *
- * @param  {object} S - Main loop state object.
+ * @param  {object} S - State object.
  * @param  {string} line_type - The line's line type.
- * @return {string} - The line's type.
+ * @return {undefined} - Nothing is returned.
  */
 module.exports = (S, line_type) => {
 	// Note: [Hierarchy lookup table] The higher the number the higher its

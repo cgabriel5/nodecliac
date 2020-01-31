@@ -1,8 +1,5 @@
 "use strict";
 
-/**
- * Export used RegExp patterns.
- */
 module.exports = {
 	r_letter: /[a-zA-Z]/, // Letter.
 	r_quote: /["']/, // Quotes.

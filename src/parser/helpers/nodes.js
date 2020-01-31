@@ -6,7 +6,7 @@ const chalk = require("chalk");
 /**
  * Create parsing node object.
  *
- * @param  {object} S - The state object.
+ * @param  {object} S -State object.
  * @param  {string} type - The object type to create.
  * @return {object} - The created node object.
  */

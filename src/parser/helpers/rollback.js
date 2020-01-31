@@ -1,9 +1,9 @@
 "use strict";
 
 /**
- * Rollback loop index so parser re-starts same iteration.
+ * Rollback loop index/column to re-run parser at same iteration.
  *
- * @param  {object} S - Main loop state object.
+ * @param  {object} S - State object.
  * @return {undefined} - Nothing is returned.
  */
 module.exports = S => {

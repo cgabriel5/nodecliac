@@ -5,7 +5,7 @@ const { md5, hasOwnProperty } = require("../../utils/toolbox.js");
 /**
  * Generate .acdef, .config.acdef file contents from parse tree ob nodes.
  *
- * @param  {object} S - Main loop state object.
+ * @param  {object} S - State object.
  * @param  {string} cmdname - Name of <command>.acdef being parsed.
  * @return {object} - Object containing acdef, config, and keywords contents.
  */
@@ -36,7 +36,7 @@ module.exports = (S, cmdname) => {
 	/**
 	 * Add base flag to Set (adds '--flag=' or '--flag=*' to Set).
 	 *
-	 * @param  {object} fN - The flag object Node.
+	 * @param  {object} fN - Flag Node object.
 	 * @param  {array} COMMANDS - The list of commands to attach flags to.
 	 * @param  {string} flag - The flag (hyphens + flag name).
 	 * @return {undefined} - Nothing is returned.

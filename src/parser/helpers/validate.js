@@ -4,10 +4,10 @@ const error = require("./error.js");
 const { r_quote } = require("./patterns.js");
 
 /**
- * Performs checks on string as well as interpolates any variables.
+ * Validates string and interpolates its variables.
  *
- * @param  {object} S - Main loop state object.
- * @param  {object} N - The node object.
+ * @param  {object} S - State object.
+ * @param  {object} N - Node object.
  * @return {object} - Object containing parsed information.
  */
 let validate = (S, N, type) => {

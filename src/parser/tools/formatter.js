@@ -3,7 +3,7 @@
 /**
  * Format (prettify) provided .addef file.
  *
- * @param  {object} S - Main loop state object.
+ * @param  {object} S - State object.
  * @return {string} - The prettied file contents.
  */
 module.exports = S => {

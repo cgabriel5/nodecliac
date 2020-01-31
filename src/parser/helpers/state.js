@@ -1,6 +1,6 @@
 "use strict";
 
-// Loop state object.
+// State object.
 module.exports = (action, text, source, fmt, trace, igc, test) => {
 	return {
 		line: 1,

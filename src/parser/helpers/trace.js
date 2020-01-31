@@ -4,7 +4,7 @@ const path = require("path");
 const chalk = require("chalk");
 
 /**
- * Print parser being used.
+ * Basic tracing of parsers used for debugging.
  *
  * @return {undefined} - Nothing is returned.
  */

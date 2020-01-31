@@ -1,8 +1,5 @@
 "use strict";
 
-const path = require("path");
-const chalk = require("chalk");
-
 /**
  * Create parsing node object.
  *

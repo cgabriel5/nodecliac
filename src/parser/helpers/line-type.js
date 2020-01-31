@@ -6,15 +6,15 @@ const { r_space, r_letter } = require("./patterns.js");
  * Determine line's line type.
  *
  * @param  {object} S - State object.
- * @param  {string} char - The loop's current character.
- * @param  {string} nchar - The loop's next character.
+ * @param  {char} char - The loop's current character.
+ * @param  {char} nchar - The loop's next character.
  * @return {string} - The line's type.
  */
 module.exports = (S, char, nchar) => {
 	let { text } = S;
 
-	let LINE_TYPES = {
-		";": "terminator", // Terminator (end parsing).
+	let types = {
+		";": "terminator", // End parsing.
 		"#": "comment",
 		$: "variable",
 		"@": "setting",
@@ -23,10 +23,9 @@ module.exports = (S, char, nchar) => {
 		"]": "close-brace"
 	};
 
-	let line_type = LINE_TYPES[char];
+	let line_type = types[char];
 
 	//  Line type overrides for: command, option, default.
-
 	if (!line_type && r_letter.test(char)) line_type = "command";
 	if (line_type === "flag") {
 		if (nchar && r_space.test(nchar)) line_type = "option";

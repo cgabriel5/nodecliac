@@ -11,11 +11,11 @@ const error = require("./error.js");
  */
 module.exports = (S, line_type) => {
 	// Note: [Hierarchy lookup table] The higher the number the higher its
-	// precedence, therefore: command > flag > option. Variables, settings,
+	// precedence. Therefore: command > flag > option. Variables, settings,
 	// and command chains have the same precedence as they are same-level
 	// defined (cannot be nested). Comments can be placed anywhere so
 	// they don't have a listed precedence.
-	const SPECIFICITIES = {
+	const SPECF = {
 		setting: 3,
 		variable: 3,
 		command: 3,
@@ -24,18 +24,13 @@ module.exports = (S, line_type) => {
 		comment: 0
 	};
 
-	let line_specf = SPECIFICITIES[line_type] || 0; // Get line specificity.
-	let scopes = S.scopes; // Get scopes.
+	let line_specf = SPECF[line_type] || 0;
+	let { flag: fs, command: cs } = S.scopes;
 
-	// However, if we are in a scope then the scope's specificity
-	// trumps the line specificity.
-	let state_specf = scopes.flag
-		? SPECIFICITIES.flag
-		: scopes.command
-		? SPECIFICITIES.command
-		: S.specificity;
+	// Note: When in a scope, scope's specificity trumps line's specificity.
+	let state_specf = fs ? SPECF.flag : cs ? SPECF.command : S.specf;
 
-	// Note: Check whether specificity hierarchy is allowed, else error.
+	// Error when specificity is invalid.
 	if (state_specf && state_specf < line_specf) error(S, __filename, 12);
-	S.specificity = line_specf; // Set state specificity.
+	S.specf = line_specf;
 };

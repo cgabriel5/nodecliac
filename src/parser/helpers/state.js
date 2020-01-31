@@ -8,7 +8,7 @@ module.exports = (action, text, source, fmt, trace, igc, test) => {
 		i: 0,
 		l: text.length,
 		text,
-		specificity: 0, // Default to allow anything initially.
+		specf: 0, // Default to allow anything initially.
 		sol_char: "", // First non-whitespace char of line.
 		scopes: { command: null, flag: null }, // Track command/flag scopes.
 

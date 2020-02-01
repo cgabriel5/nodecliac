@@ -3,32 +3,25 @@
 const os = require("os");
 const path = require("path");
 
-/**
- * Generate needed project paths.
- *
- * @return {object} - Object containing needed paths.
- */
-let paths = (function(os, path) {
-	// Get/create needed paths.
-	// let pwd = process.env.PWD; // [https://stackoverflow.com/a/39740187]
-	let cwd = path.dirname(path.dirname(__dirname)); // [https://stackoverflow.com/a/29496638]
-	let homedir = os.homedir(); // [https://stackoverflow.com/a/9081436]
-	let cdirname = "nodecliac"; // Custom directory name.
-	let customdir = path.join(homedir, `.${cdirname}`);
-	let bashrcpath = path.join(homedir, ".bashrc");
-	let mainscriptname = "init.sh";
-	let registrypath = path.join(homedir, `.${cdirname}`, "registry");
-	let acmapssource = path.join(homedir, `.${cdirname}`, "src");
-	let setupfilepath = path.join(customdir, `.setup.db.json`);
-	// Path to nodecliac resources.
-	let resourcespath = path.join(cwd, "resources/packages/");
-	let resourcessrcs = path.join(cwd, "src/scripts/");
+// let pwd = process.env.PWD; // [https://stackoverflow.com/a/39740187]
+// [https://stackoverflow.com/a/29496638]
+let cwd = path.dirname(path.dirname(__dirname));
+let homedir = os.homedir();
+let projectname = "nodecliac";
+let ncliacdir = path.join(homedir, `.${projectname}`);
+let bashrcpath = path.join(homedir, ".bashrc");
+let mainscriptname = "init.sh";
+let registrypath = path.join(homedir, `.${projectname}`, "registry");
+let acmapssource = path.join(homedir, `.${projectname}`, "src");
+let setupfilepath = path.join(ncliacdir, `.setup.db.json`);
+let resourcespath = path.join(cwd, "resources", "packages");
+let resourcessrcs = path.join(cwd, "src", "scripts");
 
-	return {
+module.exports = {
+	paths: {
 		cwd,
 		homedir,
-		cdirname,
-		customdir,
+		ncliacdir,
 		bashrcpath,
 		mainscriptname,
 		registrypath,
@@ -36,9 +29,5 @@ let paths = (function(os, path) {
 		setupfilepath,
 		resourcespath,
 		resourcessrcs
-	};
-})(os, path);
-
-module.exports = {
-	paths
+	}
 };

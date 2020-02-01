@@ -8,17 +8,9 @@ const { paths } = require("./paths.js");
 const { strip_comments } = require("./text.js");
 const { hasOwnProperty } = require("./objects.js");
 const { fmt, rtp } = require("./strings.js");
-const {
-	realpath,
-	readdir,
-	lstats,
-	remove,
-	write,
-	info,
-	read,
-	copy,
-	ispath_abs
-} = require("./filesystem.js");
+const fs = require("./filesystem.js");
+const { realpath, readdir, lstats, remove } = fs;
+const { write, info, read, copy, rmrf, ispath_abs } = fs;
 
 module.exports = {
 	hasOwnProperty,
@@ -37,6 +29,7 @@ module.exports = {
 	info,
 	read,
 	copy,
+	rmrf,
 	fmt,
 	rtp
 };

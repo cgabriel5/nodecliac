@@ -2,6 +2,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const rimraf = require("rimraf");
 const ext = require("file-extension");
 
 /**
@@ -184,7 +185,17 @@ let realpath = p => {
 	});
 };
 
-			resolve(resolved_path); // Return resolved true path.
+/**
+ * Wrapper for rimraf module.
+ *
+ * @param  {string} p - The path to delete.
+ * @return {promise} - rimraf promise.
+ */
+let rmrf = p => {
+	return new Promise((resolve, reject) => {
+		rimraf(p, err => {
+			if (err) reject(err);
+			resolve(true);
 		});
 	});
 };
@@ -206,5 +217,6 @@ module.exports = {
 	write,
 	info,
 	read,
+	rmrf,
 	copy
 };

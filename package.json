@@ -22,7 +22,8 @@
 		"tests:silent": "tests/scripts/main.sh -p false",
 		"tests:force": "tests/scripts/main.sh -f true",
 		"build:acdev": "./compile -d",
-		"build:acprod": "./compile -p"
+		"build:acprod": "./compile -p",
+		"files": "bash -c \"find . -not -path \\\"*/node_modules/*\\\" -type f -name \\\"*.\\$0\\\" -not -path '*/\\\\.*'\""
 	},
 	"dependencies": {
 		"chalk": "^3.0.0",

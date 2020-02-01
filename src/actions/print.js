@@ -6,10 +6,10 @@ const fe = require("file-exists");
 const { exit, paths, read, fmt } = require("../utils/toolbox.js");
 
 module.exports = async args => {
-	let { registrypath } = paths; // Get needed paths.
-	let { command } = args; // Get CLI args.
+	let { registrypath } = paths;
+	let { command } = args;
 	// eslint-disable-next-line no-unused-vars
-	let err, res; // Declare empty variables to reuse for all await operations.
+	let err, res;
 	let tstring = "";
 
 	// Source must be provided.
@@ -37,7 +37,7 @@ module.exports = async args => {
 			let chars = [];
 			let invalid_char_count = 0;
 			for (let i = 0, l = cmdname.length; i < l; i++) {
-				let char = cmdname[i]; // Cache current loop item.
+				let char = cmdname[i];
 
 				// If an invalid character highlight.
 				if (r.test(char)) {

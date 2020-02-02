@@ -1,6 +1,6 @@
  --dirs=*|--file=*|--dirs=$("cat $(\"string\")\"$HOME/file.text\"","-")|--dirs=index.js|--file=value|--one-liner=|--one-liner=$("cat ~/file.text","-")|--one-liner=index.js|--one-liner=value|--test=|--test='string'|--test="string"|--test=$("cat ~/file.text"," ")|--test=12|--test=false|--test=index.js|--test=str|--test=true|--test=value
 ./command/subcommand --make
-.delete --dirs=*|--file=*|--dirs=$("cat $(\"string\")\"$HOME/file.text\"","-")|--dirs=index.js|--file=value|--one-liner=|--one-liner=$("cat ~/file.text","-")|--one-liner=index.js|--one-liner=value|--test=|--test='string'|--test="string"|--test=$("cat ~/file.text"," ")|--test=12|--test=false|--test=index.js|--test=str|--test=true|--test=value
+.delete --
 .re\.d --rgb
 .re\.d.green --rgb
 .re\.d.green.blue --rgb=|--rgb=$("cat \"$HOME/Desktop/list.text\"")

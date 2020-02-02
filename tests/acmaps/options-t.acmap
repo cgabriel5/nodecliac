@@ -1,0 +1,34 @@
+# [FILE TESTS OPTIONS FEATURE]
+
+program = [
+	--flag1=option1
+	--flag2=option2
+	--flag3=option3
+	--flag4=option4
+]
+
+program.com1 = [
+	--flag=optional1
+	--flag=optional2
+]
+
+program.com2 = [
+	--flag=(
+		- optional3
+	)
+	--flag=(
+		- optional4
+	)
+]
+
+program.com3 = [
+	--flag=optional5
+]
+
+program.com4 = [
+	--flag=(
+		- optional6
+	)
+]
+
+program.com5 = --flag=optional7

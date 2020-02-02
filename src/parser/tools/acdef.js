@@ -124,6 +124,9 @@ module.exports = (S, cmdname) => {
 			// Add value to last flag in group.
 			let { flags: fxN } = oGroups[count];
 			fxN[fxN.length - 1].args.push(N.value.value);
+
+			// Increment count: start new group.
+			if (nN && !["FLAG", "OPTION"].includes(nN.node)) count++;
 		} else if (type === "SETTING") {
 			oSettings[N.name.value] = N.value.value;
 		}

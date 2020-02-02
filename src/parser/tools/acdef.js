@@ -3,274 +3,224 @@
 const { md5, hasProp } = require("../../utils/toolbox.js");
 
 /**
- * Generate .acdef, .config.acdef file contents from parse tree ob nodes.
+ * Generate .acdef, .config.acdef file contents.
  *
  * @param  {object} S - State object.
  * @param  {string} cmdname - Name of <command>.acdef being parsed.
  * @return {object} - Object containing acdef, config, and keywords contents.
  */
 module.exports = (S, cmdname) => {
-	let counter = 0;
-	let nodes = [];
-	let ACDEF = [];
-	let SETS = {};
-	let BATCHES = {};
-	let DEFAULTS = {};
-	let SETTINGS = {};
-	let PLACEHOLDERS = {};
-	let TREE = S.tables.tree;
-	let memtable = {}; // Cache md5 hash to their respective flags string.
+	let oSets = {};
+	let oGroups = {};
+	let oDefaults = {};
+	let oSettings = {};
+	let oPlaceholders = {};
+	let omd5Hashes = {};
+	let count = 0;
+	let acdef = "";
+	let acdef_lines = [];
+	let config = "";
+	let defaults = "";
 	let has_root = false;
 
-	// Note: Properly escape '+' characters for commands like 'g++'.
-	let rcmdname = cmdname.replace(/(\+)/g, "\\$1");
-	// RegExp to match main command/first command in chain to remove.
-	let r = new RegExp(`^(${rcmdname}|[-_a-zA-Z0-9]+)`);
+	// Escape '+' chars in commands.
+	const rcmdname = cmdname.replace(/(\+)/g, "\\$1");
+	const r = new RegExp(`^(${rcmdname}|[-_a-zA-Z0-9]+)`);
 
-	// .acdef/.config.acdef file header.
 	const date = new Date();
-	const timestamp = Date.now();
-	let header = `# DON'T EDIT FILE —— GENERATED: ${date}(${timestamp})\n\n`;
-	if (S.args.test) header = ""; // Reset header when testing.
+	const timestamp = date.getTime(); // Date.now();
+	const ctime = `${date}(${timestamp})`;
+	let header = `# DON'T EDIT FILE —— GENERATED: ${ctime}\n\n`;
+	if (S.args.test) header = "";
 
 	/**
-	 * Add base flag to Set (adds '--flag=' or '--flag=*' to Set).
-	 *
-	 * @param  {object} fN - Flag Node object.
-	 * @param  {array} COMMANDS - The list of commands to attach flags to.
-	 * @param  {string} flag - The flag (hyphens + flag name).
-	 * @return {undefined} - Nothing is returned.
-	 */
-	let baseflag = (fN, COMMANDS, flag) => {
-		let ismulti = fN.multi.value; // Check if flag is a multi-flag.
-
-		COMMANDS.forEach(N => {
-			// Add flag + value to Set.
-			SETS[N.command.value]
-				.add(`${flag}=${ismulti ? "*" : ""}`)
-				.delete(`${flag}=${ismulti ? "" : "*"}`);
-		});
-	};
-
-	/**
-	 * Sort function.
+	 * Sort functions.
 	 *
 	 * @param  {string} a - Item a.
 	 * @param  {string} b - Item b.
-	 * @return {number} - The sort number result.
+	 * @return {number} - Sort result.
 	 *
 	 * Give multi-flags higher sorting precedence:
 	 * @resource [https://stackoverflow.com/a/9604891]
 	 * @resource [https://stackoverflow.com/a/24292023]
 	 * @resource [http://www.javascripttutorial.net/javascript-array-sort/]
 	 */
-	let sorter = (a, b) => {
-		return ~~b.endsWith("=*") - ~~a.endsWith("=*") || a.localeCompare(b);
+	let asort = (a, b) => a.localeCompare(b);
+	let sort = (a, b) => ~~b.endsWith("=*") - ~~a.endsWith("=*") || asort(a, b);
+
+	/**
+	 * Add base flag to Set (adds '--flag=' or '--flag=*').
+	 *
+	 * @param  {object} fN - Flag Node object.
+	 * @param  {array} cxN - List of commands to attach flags to.
+	 * @param  {string} flag - The flag (hyphen(s) + flag name).
+	 * @return {undefined} - Nothing is returned.
+	 */
+	let baseflag = (fN, cxN, flag) => {
+		const ismulti = fN.multi.value;
+		const add = `${flag}=${ismulti ? "*" : ""}`;
+		const del = `${flag}=${ismulti ? "" : "*"}`;
+		cxN.forEach(N => oSets[N.command.value].add(add).delete(del));
 	};
 
 	/**
-	 * Sort function.
+	 * Removes first command in command chain. However, when command name
+	 * is not the main command in (i.e. in a test file) just remove the
+	 * first command name in the chain.
 	 *
-	 * @param  {string} a - Item a.
-	 * @param  {string} b - Item b.
-	 * @return {number} - The sort number result.
+	 * @param  {string} command - The command chain.
+	 * @return {string} - Modified chain.
 	 */
-	let aplhasort = (a, b) => a.localeCompare(b);
+	let rm_fcmd = chain => chain.replace(r, "");
 
-	// 1) Filter out unnecessary Nodes. ========================================
+	// Get needed Nodes.
 
-	TREE.nodes.forEach(N => {
+	let xN = [];
+	const types = ["SETTING", "COMMAND", "FLAG", "OPTION"];
+	S.tables.tree.nodes.forEach(N => {
 		let type = N.node;
-
-		if (["COMMAND", "FLAG", "OPTION", "SETTING"].includes(type)) {
-			if (type !== "SETTING") nodes.push(N);
-			else SETTINGS[N.name.value] = N.value.value; // Store setting/value.
+		if (types.includes(type)) {
+			if (type !== "SETTING") xN.push(N);
+			else oSettings[N.name.value] = N.value.value;
 		}
 	});
 
-	// 2) Batch commands with their flags. =====================================
+	// Group commands with their flags.
 
-	for (let i = 0, l = nodes.length; i < l; i++) {
-		let N = nodes[i];
-		let nN = nodes[i + 1] || {};
+	for (let i = 0, l = xN.length; i < l; i++) {
+		let N = xN[i];
+		let nN = xN[i + 1] || {};
 		let type = N.node;
-		// let ntype = nN.node;
+
+		if (!types.includes(type)) continue;
 
 		if (type === "COMMAND") {
-			// Store command into current batch.
-			if (!BATCHES[counter]) {
-				BATCHES[counter] = { commands: [N], flags: [] };
-			} else BATCHES[counter].commands.push(N);
+			// Store command in current group.
+			if (!oGroups[count]) oGroups[count] = { commands: [N], flags: [] };
+			else oGroups[count].commands.push(N);
 
-			const cvalue = N.command.value;
+			const cval = N.command.value;
+			if (!hasProp(oSets, cval)) {
+				oSets[cval] = new Set();
 
-			// Add command to SETS if not already.
-			if (!hasProp(SETS, cvalue)) {
-				SETS[cvalue] = new Set();
-
-				// Note: Create any missing parent chains. =====================
-
-				let commands = cvalue.split(/(?<!\\)\./);
-				commands.pop(); // Remove last command as it was already made.
-
-				// For remaining commands, create Set if not already.
+				// Create missing parent chains.
+				let commands = cval.split(/(?<!\\)\./);
+				commands.pop(); // Remove last command (already made).
 				for (let i = commands.length - 1; i > -1; i--) {
 					let rchain = commands.join("."); // Remainder chain.
-
-					if (!hasProp(SETS, rchain)) SETS[rchain] = new Set();
-
-					commands.pop(); // Finally, remove the last element.
+					if (!hasProp(oSets, rchain)) oSets[rchain] = new Set();
+					commands.pop(); // Remove last command.
 				}
-
-				// ===========================================================
 			}
 
-			// Increment counter to start another batch.
-			if (nN && nN.node === "COMMAND" && !N.delimiter.value) {
-				counter++;
-			}
+			// Increment count: start new group.
+			if (nN && nN.node === "COMMAND" && !N.delimiter.value) count++;
 		} else if (type === "FLAG") {
-			BATCHES[counter].flags.push(N); // Store command in current batch.
+			oGroups[count].flags.push(N); // Store command in current group.
 
-			// Increment counter to start another batch.
-			if (nN && !["FLAG", "OPTION"].includes(nN.node)) counter++;
+			// Increment count: start new group.
+			if (nN && !["FLAG", "OPTION"].includes(nN.node)) count++;
 		} else if (type === "OPTION") {
-			// Add the value to last flag in batch.
-			let FLAGS = BATCHES[counter].flags;
-			FLAGS[FLAGS.length - 1].args.push(N.value.value);
+			// Add value to last flag in group.
+			let { flags: fxN } = oGroups[count];
+			fxN[fxN.length - 1].args.push(N.value.value);
+		} else if (type === "SETTING") {
+			oSettings[N.name.value] = N.value.value;
 		}
 	}
 
-	// 3) Populate Sets SETS. ==================================================
+	// Populate Sets.
 
-	for (let i in BATCHES) {
-		if (!hasProp(BATCHES, i)) continue;
+	for (let i in oGroups) {
+		if (!hasProp(oGroups, i)) continue;
 
-		let BATCH = BATCHES[i];
-		let { commands: COMMANDS, flags: FLAGS } = BATCH; // Get commands/flags.
+		let { commands: cxN, flags: fxN } = oGroups[i];
+		for (let i = 0, l = fxN.length; i < l; i++) {
+			let fN = fxN[i];
+			let { args } = fN;
+			const fval = fN.value.value;
+			const aval = fN.assignment.value;
+			const bval = fN.boolean.value;
+			const flag = `${fN.hyphens.value}${fN.name.value}`;
 
-		for (let i = 0, l = FLAGS.length; i < l; i++) {
-			let fN = FLAGS[i];
-			let ARGS = fN.args; // Get flag arguments.
-			// Build flag (hyphens + flag name).
-			let flag = `${fN.hyphens.value}${fN.name.value}`;
-
-			// Check if flag is actually a default/keyword and store it.
+			// If flag is a default/keyword store it.
 			if (fN.keyword.value) {
-				COMMANDS.forEach(N => {
-					DEFAULTS[N.command.value] = fN.value.value;
-				});
-
-				continue; // Note: Since it's a default it doesn't need to be
-				// added to the SETS so stop iteration here.
+				cxN.forEach(N => (oDefaults[N.command.value] = fval));
+				continue; // defaults don't need to be added to Sets.
 			}
 
-			// If the flag has any values build each flag + value.
-			if (ARGS.length) {
-				ARGS.forEach(ARG => {
-					// Determine whether to add multi-flag indicator.
-					baseflag(fN, COMMANDS, flag);
+			// Flag with values: build each flag + value.
+			if (args.length) {
+				args.forEach(arg => {
+					baseflag(fN, cxN, flag); // add multi-flag indicator?
 
-					// Add flag + value to Set.
-					COMMANDS.forEach(N => {
-						SETS[N.command.value].add(
-							`${flag}${fN.assignment.value || ""}${ARG || ""}`
-						);
+					cxN.forEach(N => {
+						let add = `${flag}${aval || ""}${arg || ""}`;
+						oSets[N.command.value].add(add);
 					});
 				});
-			}
-			// If flag does not contain any values...
-			else {
-				// If flag is a boolean...
-				COMMANDS.forEach(N => {
-					const cvalue = N.command.value;
-					const bvalue = fN.boolean.value;
-					const avalue = fN.assignment.value;
-
-					SETS[cvalue].add(
-						`${flag}${bvalue ? "?" : avalue ? "=" : ""}`
-					);
-				});
+			} else {
+				// Flag is a boolean...
+				const val = bval ? "?" : aval ? "=" : "";
+				cxN.forEach(N => oSets[N.command.value].add(`${flag}${val}`));
 			}
 		}
 	}
 
-	// Check if `placehold` flag was provided.
-	let PLACEHOLD = SETTINGS["placehold"];
-	PLACEHOLD = PLACEHOLD && PLACEHOLD === "true";
+	// Generate acdef.
 
-	// 4) Generate final ACDEF before sorting. =================================
-
-	for (let command in SETS) {
-		if (command && hasProp(SETS, command)) {
-			let SET = SETS[command]; // Get Set object.
+	let placehold = oSettings["placehold"] && oSettings["placehold"] === "true";
+	for (let command in oSets) {
+		if (command && hasProp(oSets, command)) {
+			let set = oSets[command];
 			let flags = "--";
 
 			// If Set has items then it has flags so convert to an array.
 			// [https://stackoverflow.com/a/47243199]
 			// [https://stackoverflow.com/a/21194765]
-			if (SET.size) flags = [...SET].sort(sorter).join("|");
+			if (set.size) flags = [...set].sort(sort).join("|");
 
-			// Note: Place hold extremely long flag set strings. This is
-			// done to allow faster acdef read times by reducing the file's
-			// characters. If the flagset is later needed the specific place
-			// holder file can then be read.
-			if (PLACEHOLD && flags.length >= 100) {
-				// Memoize hashes to prevent re-hashing same flag strings.
-				if (!hasProp(memtable, flags)) {
-					let md5hash = md5(flags).substr(26); // md5 hash of flags string.
-					PLACEHOLDERS[md5hash] = flags; // Store flags in object.
-					memtable[flags] = md5hash;
-
-					flags = "--p#" + md5hash; // Reset flags string to md5hash.
-				} else flags = "--p#" + memtable[flags];
+			// Note: Placehold long flag sets to reduce the file's chars.
+			// When flag set is needed its placeholder file can be read.
+			if (placehold && flags.length >= 100) {
+				if (!hasProp(omd5Hashes, flags)) {
+					let md5hash = md5(flags).substr(26);
+					oPlaceholders[md5hash] = flags;
+					omd5Hashes[flags] = md5hash;
+					flags = "--p#" + md5hash;
+				} else flags = "--p#" + omd5Hashes[flags];
 			}
 
-			// Remove the main command from the command chain. However,
-			// when the command name is not the main command in (i.e.
-			// when running on a test file) just remove the first command
-			// name in the chain.
-			let row = `${command.replace(r, "")} ${flags}`;
+			let row = `${rm_fcmd(command)} ${flags}`;
 
-			// Remove multiple ' --' command chains. This will happen for
-			// test files with multiple main commands.
+			// Remove multiple ' --' command chains. Shouldn't be the
+			// case but happens when multiple main commands are used.
 			if (row === " --" && !has_root) has_root = true;
 			else if (row === " --" && has_root) continue;
 
-			ACDEF.push(row);
+			acdef_lines.push(row);
 		}
 	}
 
-	ACDEF = header + ACDEF.sort(aplhasort).join("\n"); // Final acdef string.
+	// Build defaults contents.
+	let dkeys = Object.keys(oDefaults).sort(asort);
+	dkeys.forEach(c => (defaults += `${rm_fcmd(c)} default ${oDefaults[c]}\n`));
+	if (defaults) defaults = "\n\n" + defaults;
 
-	// 5) Build defaults list. =================================================
-
-	let defs = [];
-	Object.keys(DEFAULTS)
-		.sort(aplhasort)
-		.forEach(command => {
-			defs.push(`${command.replace(r, "")} default ${DEFAULTS[command]}`);
-		});
-	defs = defs.length ? `\n\n${defs.join("\n")}` : "";
-
-	// Build settings contents string.
-	let CONFIG = header;
-	for (let setting in SETTINGS) {
-		if (hasProp(SETTINGS, setting)) {
-			CONFIG += `@${setting} = ${SETTINGS[setting]}\n`;
+	// Build settings contents.
+	for (let setting in oSettings) {
+		if (hasProp(oSettings, setting)) {
+			config += `@${setting} = ${oSettings[setting]}\n`;
 		}
 	}
 
-	// 6) Right trim all strings. ==============================================
-
-	ACDEF = ACDEF.replace(/\s*$/g, "");
-	CONFIG = CONFIG.replace(/\s*$/g, "");
-	defs = defs.replace(/\s*$/g, "");
+	acdef = header + acdef_lines.sort(asort).join("\n");
+	config = header + config;
 
 	return {
-		acdef: ACDEF,
-		config: CONFIG,
-		keywords: defs,
-		placeholders: PLACEHOLDERS
+		acdef: acdef.replace(/\s*$/g, ""),
+		config: config.replace(/\s*$/g, ""),
+		keywords: defaults.replace(/\s*$/g, ""),
+		placeholders: oPlaceholders
 	};
 };

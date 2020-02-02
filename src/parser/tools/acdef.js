@@ -34,7 +34,36 @@ module.exports = (S, cmdname) => {
 	if (S.args.test) header = "";
 
 	/**
-	 * Sort functions.
+	 * compare function: Uses builtin localeCompare to sort.
+	 *
+	 * @param  {string} a - Item a.
+	 * @param  {string} b - Item b.
+	 * @return {number} - Sort result.
+	 *
+	 * @resource [https://stackoverflow.com/a/50490371]
+	 * @resource [http://ecma-international.org/ecma-402/1.0/#CompareStrings]
+	 */
+	let lsort = (a, b) => a.localeCompare(b);
+
+	/**
+	 * compare function: Sorts alphabetically.
+	 *
+	 * @param  {string} a - Item a.
+	 * @param  {string} b - Item b.
+	 * @return {number} - Sort result.
+	 *
+	 * @resource [https://stackoverflow.com/a/6712058]
+	 * @resource [https://stackoverflow.com/a/42478664]
+	 */
+	let asort = (a, b) => {
+		a = a.toLowerCase();
+		b = b.toLowerCase();
+		return a !== b ? (a < b ? -1 : 1) : 0;
+	};
+
+	/**
+	 * compare function: Gives precedence to flags ending with '=*' else
+	 *     falls back to sorting alphabetically.
 	 *
 	 * @param  {string} a - Item a.
 	 * @param  {string} b - Item b.
@@ -45,7 +74,6 @@ module.exports = (S, cmdname) => {
 	 * @resource [https://stackoverflow.com/a/24292023]
 	 * @resource [http://www.javascripttutorial.net/javascript-array-sort/]
 	 */
-	let asort = (a, b) => a.localeCompare(b);
 	let sort = (a, b) => ~~b.endsWith("=*") - ~~a.endsWith("=*") || asort(a, b);
 
 	/**

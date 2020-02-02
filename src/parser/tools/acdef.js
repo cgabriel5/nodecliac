@@ -1,6 +1,6 @@
 "use strict";
 
-const { md5, hasOwnProperty } = require("../../utils/toolbox.js");
+const { md5, hasProp } = require("../../utils/toolbox.js");
 
 /**
  * Generate .acdef, .config.acdef file contents from parse tree ob nodes.
@@ -105,7 +105,7 @@ module.exports = (S, cmdname) => {
 			const cvalue = N.command.value;
 
 			// Add command to SETS if not already.
-			if (!hasOwnProperty(SETS, cvalue)) {
+			if (!hasProp(SETS, cvalue)) {
 				SETS[cvalue] = new Set();
 
 				// Note: Create any missing parent chains. =====================
@@ -117,7 +117,7 @@ module.exports = (S, cmdname) => {
 				for (let i = commands.length - 1; i > -1; i--) {
 					let rchain = commands.join("."); // Remainder chain.
 
-					if (!hasOwnProperty(SETS, rchain)) SETS[rchain] = new Set();
+					if (!hasProp(SETS, rchain)) SETS[rchain] = new Set();
 
 					commands.pop(); // Finally, remove the last element.
 				}
@@ -144,7 +144,7 @@ module.exports = (S, cmdname) => {
 	// 3) Populate Sets SETS. ==================================================
 
 	for (let i in BATCHES) {
-		if (!hasOwnProperty(BATCHES, i)) continue;
+		if (!hasProp(BATCHES, i)) continue;
 
 		let BATCH = BATCHES[i];
 		let { commands: COMMANDS, flags: FLAGS } = BATCH; // Get commands/flags.
@@ -202,7 +202,7 @@ module.exports = (S, cmdname) => {
 	// 4) Generate final ACDEF before sorting. =================================
 
 	for (let command in SETS) {
-		if (command && hasOwnProperty(SETS, command)) {
+		if (command && hasProp(SETS, command)) {
 			let SET = SETS[command]; // Get Set object.
 			let flags = "--";
 
@@ -217,7 +217,7 @@ module.exports = (S, cmdname) => {
 			// holder file can then be read.
 			if (PLACEHOLD && flags.length >= 100) {
 				// Memoize hashes to prevent re-hashing same flag strings.
-				if (!hasOwnProperty(memtable, flags)) {
+				if (!hasProp(memtable, flags)) {
 					let md5hash = md5(flags).substr(26); // md5 hash of flags string.
 					PLACEHOLDERS[md5hash] = flags; // Store flags in object.
 					memtable[flags] = md5hash;
@@ -256,7 +256,7 @@ module.exports = (S, cmdname) => {
 	// Build settings contents string.
 	let CONFIG = header;
 	for (let setting in SETTINGS) {
-		if (hasOwnProperty(SETTINGS, setting)) {
+		if (hasProp(SETTINGS, setting)) {
 			CONFIG += `@${setting} = ${SETTINGS[setting]}\n`;
 		}
 	}

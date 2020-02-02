@@ -7,7 +7,7 @@ const fe = require("file-exists");
 const mkdirp = require("make-dir");
 const de = require("directory-exists");
 const toolbox = require("../utils/toolbox.js");
-const { fmt, exit, read, write, info, ispath_abs, hasOwnProperty } = toolbox;
+const { fmt, exit, read, write, info, ispath_abs, hasProp } = toolbox;
 
 module.exports = async args => {
 	// eslint-disable-next-line no-unused-vars
@@ -77,7 +77,7 @@ module.exports = async args => {
 
 				// Create promises.
 				for (let key in placeholders) {
-					if (hasOwnProperty(placeholders, key)) {
+					if (hasProp(placeholders, key)) {
 						let p = `${placeholderspaths}/${key}`;
 						promises.push(write(p, placeholders[key]));
 					}

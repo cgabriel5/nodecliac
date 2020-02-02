@@ -1,158 +1,151 @@
 "use strict";
 
 /**
- * Format (prettify) provided .addef file.
+ * Formats (prettifies) .acmap file.
  *
  * @param  {object} S - State object.
  * @return {string} - The prettied file contents.
  */
 module.exports = S => {
 	let { fmt, igc } = S.args;
-	let TREE = S.tables.tree;
-	let nodes = TREE.nodes;
+	let { nodes } = S.tables.tree;
 	let output = "";
 
 	// Indentation level multipliers.
-	let MULTIPLIER = {
-		COMMENT: 0, // Note: Scope indentation overrides default.
+	let MXP = {
+		COMMENT: 0,
 		COMMAND: 0,
 		FLAG: 1,
 		OPTION: 2,
-		BRACE: 0, // Note: Scope indentation overrides default.
+		BRACE: 0,
 		NEWLINE: 0,
 		SETTING: 0,
 		VARIABLE: 0
 	};
 
-	let newline_counter = 0; // Keep track on consecutive newlines.
-	let scopes = []; // Keep track of command/flag scopes.
+	let nl_count = 0; // Track consecutive newlines.
+	let scopes = []; // Track command/flag scopes.
 
-	const [indent_char, indent_amount] = fmt; // Get formatting info.
-	let indent = (type, count) => {
-		return indent_char.repeat((count || MULTIPLIER[type]) * indent_amount);
-	};
+	const [ichar, iamount] = ["\t", 1];
+	let indent = (type, count) => ichar.repeat((count || MXP[type]) * iamount);
 
-	// Filter out comment nodes if strip comments flag is provided.
+	// Filter comment nodes when flag is provided.
 	if (igc) nodes = nodes.filter(N => !(N.node !== "COMMENT"));
 
-	// Loop over nodes to build formatted .acdef contents file.
-	nodes.forEach((N, i, nodes) => {
-		let type = N.node; // Get the node type.
+	// Loop over nodes to build formatted file.
+	nodes.forEach((N, i) => {
+		let type = N.node;
 
 		switch (type) {
 			case "COMMENT":
 				{
 					let scope = scopes[scopes.length - 1] || null;
-					let indentation = indent(null, scope);
+					let pad = indent(null, scope);
 
-					output += `${indentation}${N.comment.value}`;
-				}
-
-				break;
-
-			case "COMMAND":
-				{
-					let vvalue = N.value.value;
-					let cvalue = N.command.value;
-					let dvalue = N.delimiter.value || "";
-					let avalue = N.assignment.value || "";
-
-					output += `${cvalue}${dvalue} ${avalue} ${vvalue || ""}`;
-
-					if (vvalue && vvalue === "[") scopes.push(1); // Save scope.
-				}
-
-				break;
-
-			case "FLAG":
-				{
-					let kvalue = N.keyword.value;
-					let hvalue = N.hyphens.value || "";
-					let nvalue = N.name.value || "";
-					let bvalue = N.boolean.value || "";
-					let avalue = N.assignment.value || "";
-					let mvalue = N.multi.value || "";
-					let vvalue = N.value.value || "";
-					let singleton = N.singleton;
-					let indentation = indent(null, singleton ? 1 : null);
-
-					let pipe_delimiter = singleton ? "" : "|";
-
-					// Note: If next node is a flag reset var.
-					if (pipe_delimiter) {
-						let nN = nodes[i + 1]; // The next node.
-						if (nN && nN.node !== "FLAG") pipe_delimiter = "";
-					}
-
-					output += // [https://stackoverflow.com/a/23867090]
-						indentation +
-						(kvalue ? kvalue + " " : "") +
-						hvalue +
-						nvalue +
-						bvalue +
-						avalue +
-						mvalue +
-						vvalue +
-						pipe_delimiter;
-
-					if (vvalue && vvalue === "(") scopes.push(2); // Save scope.
-				}
-
-				break;
-
-			case "OPTION":
-				{
-					let bvalue = N.bullet.value;
-					let vvalue = N.value.value;
-					let indentation = indent("OPTION");
-
-					output += `${indentation}${bvalue} ${vvalue}`;
-				}
-
-				break;
-
-			case "BRACE":
-				{
-					let bvalue = N.brace.value;
-					let indentation = indent(null, bvalue === "]" ? 0 : 1);
-
-					output += `${indentation}${bvalue}`;
-
-					scopes.pop(); // Remove last scope.
+					output += `${pad}${N.comment.value}`;
 				}
 
 				break;
 
 			case "NEWLINE":
 				{
-					let nN = nodes[i + 1]; // The next node.
+					let nN = nodes[i + 1];
 
-					if (newline_counter <= 1) output += "\n";
-					newline_counter++;
-
-					if (nN && nN.node !== "NEWLINE") newline_counter = 0;
+					if (nl_count <= 1) output += "\n";
+					nl_count++;
+					if (nN && nN.node !== "NEWLINE") nl_count = 0;
 				}
 
 				break;
 
 			case "SETTING":
 				{
-					let nvalue = N.name.value;
-					let avalue = N.assignment.value;
-					let vvalue = N.value.value;
+					let nval = N.name.value;
+					let aval = N.assignment.value;
+					let vval = N.value.value;
 
-					output += `@${nvalue} ${avalue} ${vvalue}`;
+					output += `@${nval} ${aval} ${vval}`;
 				}
 
 				break;
 
 			case "VARIABLE":
 				{
-					let nvalue = N.name.value;
-					let avalue = N.assignment.value;
-					let vvalue = N.value.value;
+					let nval = N.name.value;
+					let aval = N.assignment.value;
+					let vval = N.value.value;
 
-					output += `$${nvalue} ${avalue} ${vvalue}`;
+					output += `$${nval} ${aval} ${vval}`;
+				}
+
+				break;
+
+			case "COMMAND":
+				{
+					let vval = N.value.value;
+					let cval = N.command.value;
+					let dval = N.delimiter.value;
+					let aval = N.assignment.value;
+
+					output += `${cval}${dval} ${aval} ${vval}`;
+					if (vval && vval === "[") scopes.push(1); // Track scope.
+				}
+
+				break;
+
+			case "FLAG":
+				{
+					let kval = N.keyword.value;
+					let hval = N.hyphens.value;
+					let nval = N.name.value;
+					let bval = N.boolean.value;
+					let aval = N.assignment.value;
+					let mval = N.multi.value;
+					let vval = N.value.value;
+					let singleton = N.singleton;
+					let pad = indent(null, singleton ? 1 : null);
+					let pipe_del = singleton ? "" : "|";
+
+					// Note: If nN is a flag reset var.
+					if (pipe_del) {
+						let nN = nodes[i + 1];
+						if (nN && nN.node !== "FLAG") pipe_del = "";
+					}
+
+					output += // [https://stackoverflow.com/a/23867090]
+						pad +
+						(kval ? kval + " " : "") +
+						hval +
+						nval +
+						bval +
+						aval +
+						mval +
+						vval +
+						pipe_del;
+
+					if (vval && vval === "(") scopes.push(2); // Track scope.
+				}
+
+				break;
+
+			case "OPTION":
+				{
+					let bval = N.bullet.value;
+					let vval = N.value.value;
+					let pad = indent("OPTION");
+
+					output += `${pad}${bval} ${vval}`;
+				}
+
+				break;
+
+			case "BRACE":
+				{
+					let bval = N.brace.value;
+					let pad = indent(null, bval === "]" ? 0 : 1);
+
+					output += `${pad}${bval}`;
+					scopes.pop(); // Un-track last scope.
 				}
 
 				break;
@@ -160,12 +153,11 @@ module.exports = S => {
 	});
 
 	// Final newline replacements.
-	output =
+	return (
 		output
 			.replace(/(\[|\()$\n{2}/gm, "$1\n")
 			.replace(/\n{2}([ \t]*)(\]|\))$/gm, "\n$1$2")
 			.replace(/^\s*|\s*$/g, "")
-			.replace(/ *$/gm, "") + "\n"; // Add trailing newline.
-
-	return output;
+			.replace(/ *$/gm, "") + "\n"
+	);
 };

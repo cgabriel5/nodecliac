@@ -1,4 +1,4 @@
- --dirs=*|--file=*|--dirs=$("cat $(\"string\")\"$HOME/file.text\"","-")|--dirs=index.js|--file=value|--one-liner=|--one-liner=$("cat ~/file.text","-")|--one-liner=index.js|--one-liner=value|--test=|--test='string'|--test="string"|--test=$("cat ~/file.text"," ")|--test=12|--test=false|--test=index.js|--test=str|--test=true|--test=value
+ --dirs=*|--file=*|--dirs=$("cat $(\"string\")\"$HOME/file.text\"","-")|--dirs=index.js|--file=value|--one-liner=|--one-liner=$("cat ~/file.text","-")|--one-liner=index.js|--one-liner=value|--test=|--test="string"|--test=$("cat ~/file.text"," ")|--test='string'|--test=12|--test=false|--test=index.js|--test=str|--test=true|--test=value
 ./command/subcommand --make
 .delete --
 .re\.d --rgb
@@ -12,7 +12,7 @@
 .test.keyword.::ytfavorites --flag
 .test\.run --flag2
 /command --
-/command.subcommand --flag2=*|--flag|--flag2='string'|--flag2="string"|--flag2=$("cat ~/.folder/file.text"," ")|--flag2=false|--flag2=true|--flag2=value
+/command.subcommand --flag2=*|--flag|--flag2="string"|--flag2=$("cat ~/.folder/file.text"," ")|--flag2='string'|--flag2=false|--flag2=true|--flag2=value
 /test --color
 /test\.run/comm\.and/comm_and/command\.123 --flag2
 

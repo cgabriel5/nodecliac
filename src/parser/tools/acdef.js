@@ -57,21 +57,23 @@ module.exports = (S, cmdname) => {
 	 * @resource [http://www.fileformat.info/info/charset/UTF-16/list.htm]
 	 *
 	 */
-	let asort = (a, b) => {
-		a = a.toLowerCase();
-		b = b.toLowerCase();
+	// let asort = (a, b) => {
+	// 	a = a.toLowerCase();
+	// 	b = b.toLowerCase();
 
-		// Long form: [https://stackoverflow.com/a/9175302]
-		// if (a > b) return 1;
-		// else if (a < b) return -1;
+	// 	// Long form: [https://stackoverflow.com/a/9175302]
+	// 	// if (a > b) return 1;
+	// 	// else if (a < b) return -1;
 
-		// // Second comparison.
-		// if (a.length < b.length) return -1;
-		// else if (a.length > b.length) return 1;
-		// else return 0;
+	// 	// // Second comparison.
+	// 	// if (a.length < b.length) return -1;
+	// 	// else if (a.length > b.length) return 1;
+	// 	// else return 0;
 
-		return a.value !== b.value ? (a.value < b.value ? -1 : 1) : 0;
-	};
+	// 	return a.value !== b.value ? (a.value < b.value ? -1 : 1) : 0;
+	// };
+	let asort = (a, b) => (a.val !== b.val ? (a.val < b.val ? -1 : 1) : 0);
+	let aobj = s => ({ val: s.toLowerCase() });
 
 	/**
 	 * compare function: Gives precedence to flags ending with '=*' else
@@ -86,7 +88,32 @@ module.exports = (S, cmdname) => {
 	 * @resource [https://stackoverflow.com/a/24292023]
 	 * @resource [http://www.javascripttutorial.net/javascript-array-sort/]
 	 */
-	let sort = (a, b) => ~~b.endsWith("=*") - ~~a.endsWith("=*") || asort(a, b);
+	// let sort = (a, b) => ~~b.endsWith("=*") - ~~a.endsWith("=*") || asort(a, b);
+	let fsort = (a, b) => b.m - a.m || asort(a, b);
+	let fobj = s => ({ val: s.toLowerCase(), m: ~~s.endsWith("=*") });
+
+	/**
+	 * Uses map sorting to reduce redundant preprocessing on array items.
+	 *
+	 * @param  {array} A - The source array.
+	 * @param  {function} comp - The comparator function to use.
+	 * @return {array} - The resulted sorted array.
+	 *
+	 * @resource [https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort]
+	 */
+	let mapsort = (A, comp, comp_obj) => {
+		let T = []; // Temp array.
+		let R = []; // Result array.
+		let l = A.length;
+		for (let i = 0; i < l; i++) {
+			let obj = comp_obj(A[i]);
+			obj.i = i;
+			T.push(obj);
+		}
+		T.sort(comp);
+		for (let i = 0, l = T.length; i < l; i++) R[i] = A[T[i].i];
+		return R;
+	};
 
 	/**
 	 * Add base flag to Set (adds '--flag=' or '--flag=*').
@@ -221,7 +248,7 @@ module.exports = (S, cmdname) => {
 			// If Set has items then it has flags so convert to an array.
 			// [https://stackoverflow.com/a/47243199]
 			// [https://stackoverflow.com/a/21194765]
-			if (set.size) flags = [...set].sort(sort).join("|");
+			if (set.size) flags = mapsort([...set], fsort, fobj).join("|");
 
 			// Note: Placehold long flag sets to reduce the file's chars.
 			// When flag set is needed its placeholder file can be read.
@@ -246,8 +273,8 @@ module.exports = (S, cmdname) => {
 	}
 
 	// Build defaults contents.
-	let dkeys = Object.keys(oDefaults).sort(asort);
-	dkeys.forEach(c => (defaults += `${rm_fcmd(c)} default ${oDefaults[c]}\n`));
+	let defs = mapsort(Object.keys(oDefaults), asort, aobj);
+	defs.forEach(c => (defaults += `${rm_fcmd(c)} default ${oDefaults[c]}\n`));
 	if (defaults) defaults = "\n\n" + defaults;
 
 	// Build settings contents.
@@ -257,7 +284,7 @@ module.exports = (S, cmdname) => {
 		}
 	}
 
-	acdef = header + acdef_lines.sort(asort).join("\n");
+	acdef = header + mapsort(acdef_lines, asort, aobj).join("\n");
 	config = header + config;
 
 	return {

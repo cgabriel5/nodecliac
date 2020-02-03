@@ -54,11 +54,23 @@ module.exports = (S, cmdname) => {
 	 *
 	 * @resource [https://stackoverflow.com/a/6712058]
 	 * @resource [https://stackoverflow.com/a/42478664]
+	 * @resource [http://www.fileformat.info/info/charset/UTF-16/list.htm]
+	 *
 	 */
 	let asort = (a, b) => {
 		a = a.toLowerCase();
 		b = b.toLowerCase();
-		return a !== b ? (a < b ? -1 : 1) : 0;
+
+		// Long form: [https://stackoverflow.com/a/9175302]
+		// if (a > b) return 1;
+		// else if (a < b) return -1;
+
+		// // Second comparison.
+		// if (a.length < b.length) return -1;
+		// else if (a.length > b.length) return 1;
+		// else return 0;
+
+		return a.value !== b.value ? (a.value < b.value ? -1 : 1) : 0;
 	};
 
 	/**

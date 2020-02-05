@@ -31,10 +31,6 @@ module.exports = async args => {
 	// Source must be provided.
 	let tstring = "Please provide a ? path.";
 	if (!source) exit([fmt(tstring, chalk.bold("--source"))]);
-	if (typeof source !== "string") {
-		tstring = "? needs to be a string.";
-		exit([fmt(tstring, chalk.bold("--source"))]);
-	}
 
 	// Breakdown path.
 	let fi = info(source);

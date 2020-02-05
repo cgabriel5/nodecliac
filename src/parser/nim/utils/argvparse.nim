@@ -3,6 +3,7 @@ from parseopt import next, cmdEnd, cmdArgument,
 from strutils import startsWith
 from os import paramCount, commandLineParams
 from fs import expand_tilde
+from re import re, replace
 
 if os.paramCount() == 0: quit() # Exit if no args.
 let args = commandLineParams()
@@ -36,14 +37,20 @@ proc set(s: string, nitem: string, boolval: string) =
 #
 # @return {object} - Object containing needed CLI arguments.
 proc argvparse*(): Arguments =
-    var p = initOptParser(args[1..args.len - 1]) # Exclude action.
+    var p = initOptParser(
+        args[1..args.len - 1],
+        allowWhitespaceAfterColon = false
+    ) # Exclude action.
     var i = 1
-    var l = args.len;
+    let l = args.len;
+    let r = re"^-*"
     while true:
         p.next()
         case p.kind
         of cmdShortOption, cmdLongOption, cmdEnd:
-            if p.val == "": # Handle --key value (no '=')
+            if p.kind == cmdEnd: break
+            let flag = args[i].replace(r)
+            if p.val == "" and flag != p.key & "=": # Handle --key value (no '=')
                 if i + 1 < l and not args[i + 1].startsWith('-'): # Lookahead
                     let nitem = args[i + 1]
                     set(p.key, nitem, if nitem == "false": "0" else: "1")
@@ -52,7 +59,6 @@ proc argvparse*(): Arguments =
                 else: set(p.key, "", "1")
             else: # Handle --key=value
                 set(p.key, p.val, if p.val == "false": "0" else: "1")
-            if p.kind == cmdEnd: break
         of cmdArgument: discard
         inc(i)
 

@@ -10,15 +10,12 @@ from re import
 from strutils import split
 import streams
 
-# Get user's home directory.
-let hdir = os.getEnv("HOME")
-
 # Expands starting tilde ('~') to user's home directory.
 #
 # @param {string} 1) - Path to expand.
 # @return {string} - The expanded path.
 proc expand_tilde*(p: string): string =
-    return p.replace(re("^~"), hdir)
+    return p.replace(re("^~"), os.getEnv("HOME"))
 
 # Get file path information (i.e. file name and directory path).
 #

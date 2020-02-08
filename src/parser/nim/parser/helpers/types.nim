@@ -1,4 +1,4 @@
-from tables import Table
+from tables import Table, initTable, `[]=`, `$`
 
 type
 
@@ -55,7 +55,30 @@ type
         start*, `end`*: int
         value*: string
 
-# Node.Object constructor.
+# Object constructors.
+
+proc state*(action: string, text: string, source: string, fmt: tuple,
+    trace: bool, igc: bool, test: bool): State =
+
+    var linestarts = initTable[int, int]()
+    var variables = initTable[string, string]()
+    var tree = initTable[string, seq[Node]]()
+    tree["nodes"] = @[]
+
+    result = State(
+        line: 1,
+        column: 0,
+        i: 0,
+        l: text.len,
+        text: text,
+        sol_char: "", # First non-whitespace char of line.
+        specf: 0, # Default to allow anything initially.
+        scopes: Scopes(), #Scopes(command: Node, flag: Node),
+        tables: Tables(variables: variables, linestarts: linestarts, tree: tree), # Parsing lookup tables.
+        # Arguments/parameters for quick access across parsers.
+        args: Args(action: action)
+    )
+
 proc node*(S: State, node: string): Node =
     # [https://github.com/nim-lang/Nim/issues/11395]
     # [https://forum.nim-lang.org/t/2799#17448]

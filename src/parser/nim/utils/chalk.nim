@@ -10,6 +10,7 @@ for s in Style.low..Style.high:
     var style = $s
     style = style[5..style.len-1].toLower()
     if style == "bright": style = "bold"
+    if style == "underscore": style = "underline"
     lookup[style] = ord(s)
 for c in ForegroundColor.low..ForegroundColor.high:
     var color = $c

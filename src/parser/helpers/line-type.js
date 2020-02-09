@@ -25,7 +25,7 @@ module.exports = (S, char, nchar) => {
 
 	let line_type = types[char];
 
-	//  Line type overrides for: command, option, default.
+	// Line type overrides for: command, option, default.
 	if (!line_type && r_letter.test(char)) line_type = "command";
 	if (line_type === "flag") {
 		if (nchar && r_space.test(nchar)) line_type = "option";

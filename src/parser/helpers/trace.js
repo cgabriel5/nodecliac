@@ -18,7 +18,6 @@ module.exports = (S, parser) => {
 	if (!last_line_num) console.log(msg); // Print header.
 
 	S.last_line_num = line_num;
-	S.trace_indentation = "";
 
 	// Add to last printed line: [https://stackoverflow.com/a/17309876]
 

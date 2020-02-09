@@ -57,7 +57,7 @@ module.exports = (S, parserfile, code) => {
 	let error = errors[code ? parser : "*"][code];
 
 	let pos = chalk.bold.red(`${line}:${column}`);
-	let einfo = "[" + chalk.red(`err`) + ` ${parser},${code}` + "]";
+	let einfo = "[" + chalk.red("err") + ` ${parser},${code}` + "]";
 
 	// Truncate source file path if too long.
 	let dirs = source.split(path.sep);

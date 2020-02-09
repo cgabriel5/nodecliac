@@ -9,7 +9,7 @@ const error = require("./error.js");
  * @param  {string} line_type - The line's line type.
  * @return {undefined} - Nothing is returned.
  */
-module.exports = (S, line_type) => {
+module.exports = (S, line_type, parserfile) => {
 	// Note: [Hierarchy lookup table] The higher the number the higher its
 	// precedence. Therefore: command > flag > option. Variables, settings,
 	// and command chains have the same precedence as they are same-level
@@ -31,6 +31,6 @@ module.exports = (S, line_type) => {
 	let state_specf = fs ? SPECF.flag : cs ? SPECF.command : S.specf;
 
 	// Error when specificity is invalid.
-	if (state_specf && state_specf < line_specf) error(S, __filename, 12);
+	if (state_specf && state_specf < line_specf) error(S, parserfile, 12);
 	S.specf = line_specf;
 };

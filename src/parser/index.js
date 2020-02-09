@@ -38,7 +38,7 @@ module.exports = (action, text, cmdname, source, fmt, trace, igc, test) => {
 			line_type = linetype(S, char, nchar);
 			if (line_type === "terminator") break;
 
-			specificity(S, line_type);
+			specificity(S, ltype, __filename);
 
 			require("./helpers/trace.js")(S, line_type);
 			require(`./parsers/${line_type}.js`)(S);

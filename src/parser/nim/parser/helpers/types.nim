@@ -76,7 +76,7 @@ proc state*(action: string, text: string, source: string, fmt: tuple,
         scopes: Scopes(), #Scopes(command: Node, flag: Node),
         tables: Tables(variables: variables, linestarts: linestarts, tree: tree), # Parsing lookup tables.
         # Arguments/parameters for quick access across parsers.
-        args: Args(action: action)
+        args: Args(action: action, source: source, trace: trace) # fmt, trace, igc, test
     )
 
 proc node*(S: State, node: string): Node =

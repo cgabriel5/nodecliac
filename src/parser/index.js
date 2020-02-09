@@ -13,7 +13,7 @@ module.exports = (action, text, cmdname, source, fmt, trace, igc, test) => {
 	const S = state(action, text, source, fmt, trace, igc, test);
 	const { linestarts } = S.tables;
 	const stime = process.hrtime();
-	let line_type;
+	let ltype;
 
 	for (; S.i < S.l; S.i++, S.column++) {
 		let char = text.charAt(S.i);
@@ -35,13 +35,13 @@ module.exports = (action, text, cmdname, source, fmt, trace, igc, test) => {
 			// Sol char must be allowed.
 			if (!r_sol_char.test(char)) error(S, __filename, 10);
 
-			line_type = linetype(S, char, nchar);
-			if (line_type === "terminator") break;
+			ltype = linetype(S, char, nchar);
+			if (ltype === "terminator") break;
 
 			specificity(S, ltype, __filename);
 
-			require("./helpers/trace.js")(S, line_type);
-			require(`./parsers/${line_type}.js`)(S);
+			require("./helpers/trace.js")(S, ltype);
+			require(`./parsers/${ltype}.js`)(S);
 		}
 	}
 

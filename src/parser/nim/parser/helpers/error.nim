@@ -16,9 +16,9 @@ var errors = {
     "option": tb,
     "variable": tb,
     "setting": tb,
-    "close-brace": tb,
-    "brace-checks": tb,
-    "template-string": tb,
+    "close_brace": tb,
+    "brace_checks": tb,
+    "template_string": tb,
     "validate": tb
 }.toTable
 errors["*"][0] = "Syntax: Unexpected character"
@@ -27,10 +27,10 @@ errors["index"][12] = "Check line specificity order"
 errors["command"][10] = "Illegal escape sequence"
 errors["flag"][10] = "Flag declared out of scope"
 errors["flag"][11] = "Flag declared within flag scope"
-errors["brace-checks"][10] = "Command declared out of scope"
-errors["brace-checks"][11] = "Can't close an unopened command scope"
-errors["brace-checks"][12] = "Unclosed scope"
-errors["brace-checks"][13] = "Flag option declared out of scope"
+errors["brace_checks"][10] = "Command declared out of scope"
+errors["brace_checks"][11] = "Can't close an unopened command scope"
+errors["brace_checks"][12] = "Unclosed scope"
+errors["brace_checks"][13] = "Flag option declared out of scope"
 errors["validate"][10] = "Improperly quoted string"
 errors["validate"][11] = "String cannot be empty"
 errors["validate"][12] = "Undefined variable"

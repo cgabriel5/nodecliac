@@ -8,7 +8,7 @@ const { r_nl } = require("../helpers/patterns.js");
 /**
  * ----------------------------------------------------------- Parsing Breakdown
  * # Comment body.
- * ^-Sigil.
+ * ^-Symbol.
  *  ^-Comment-Chars (All chars until newline).
  * -----------------------------------------------------------------------------
  *

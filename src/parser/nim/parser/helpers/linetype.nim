@@ -30,6 +30,6 @@ proc linetype*(S: State, char: string, nchar: string): string =
     if line_type == "flag":
         if nchar != "" and match(nchar, r_space): line_type = "option"
     elif line_type == "command":
-        if text[S.i .. ^7] == "default": line_type = "flag"
+        if text[S.i .. S.i + 6] == "default": line_type = "flag"
 
     return line_type

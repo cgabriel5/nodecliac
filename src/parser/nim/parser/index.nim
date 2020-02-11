@@ -10,7 +10,6 @@ proc parser*(action: string, text: string, cmdname: string, source: string,
     fmt: tuple, trace: bool, igc: bool, test: bool): int =
     var S = state(action, text, source, fmt, trace, igc, test)
     var linestarts = S.tables.linestarts
-    # const stime = process.hrtime();
     var ltype = ""
 
     let i = S.i; let l = S.l; var `char`, nchar: char
@@ -52,5 +51,4 @@ proc parser*(action: string, text: string, cmdname: string, source: string,
     # let res = {}
     # if (action === "format") res.formatted = formatter(S)
     # else res = require("./tools/acdef.js")(S, cmdname)
-    # res.time = process.hrtime(stime)
     # return res

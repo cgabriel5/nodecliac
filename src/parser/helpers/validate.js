@@ -55,7 +55,7 @@ let validate = (S, N, type) => {
 				value = value.replace(r, function(match, index) {
 					match = match.replace(/^\$\{\s*|\s*\}$/g, "");
 
-					// Don't interpolation if formatting.
+					// Don't interpolate when formatting.
 					if (S.args.action === "format") return `\${${match}}`;
 
 					let value = S.tables.variables[match];

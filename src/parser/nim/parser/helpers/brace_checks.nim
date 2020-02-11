@@ -43,7 +43,7 @@ proc bracechecks*(S: var State, N: Node = Node(), check: string) =
         # Note: Error if pre-existing flag scope exists.
         # Flag option declared out-of-scope.
         of "pre-existing-fs":
-            if S.scopes.flag.node != "":
+            if S.scopes.flag.node == "":
                 let linestart = S.tables.linestarts[S.line]
 
                 S.column = S.i - linestart + 1 # Point to bracket.

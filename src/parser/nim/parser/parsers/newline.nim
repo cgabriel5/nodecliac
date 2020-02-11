@@ -1,4 +1,3 @@
-from tables import Table, `[]`, `$`, pairs
 from "../helpers/types" import State, node
 from "../helpers/tree_add" import add
 

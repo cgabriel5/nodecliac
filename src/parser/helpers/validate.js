@@ -250,7 +250,7 @@ let validate = (S, N, type) => {
 								let end = argument.length - 1;
 								let tN = tNode(vsi, end, argument);
 								argument = validate(S, tN, mode);
-								args.push([argument, mode]);
+								args.push(argument);
 
 								argument = mode = "";
 								vsi = 0;
@@ -263,7 +263,7 @@ let validate = (S, N, type) => {
 								let end = argument.length - 1;
 								let tN = tNode(vsi, end, argument);
 								argument = validate(S, tN, mode);
-								args.push([argument, mode]);
+								args.push(argument);
 
 								argument = mode = "";
 								vsi = 0;
@@ -276,7 +276,7 @@ let validate = (S, N, type) => {
 								let end = argument.length - 1;
 								let tN = tNode(vsi, end, argument);
 								argument = validate(S, tN, mode);
-								args.push([argument, mode]);
+								args.push(argument);
 
 								argument = mode = "";
 								vsi = 0;
@@ -289,14 +289,11 @@ let validate = (S, N, type) => {
 				if (argument) {
 					let tN = tNode(vsi, argument.length - 1, argument);
 					argument = validate(S, tN, mode);
-					args.push([argument, mode]);
+					args.push(argument);
 				}
 
-				let cvalues = []; // Build cleaned list.
-				args.forEach(item => cvalues.push(item[0]));
-
-				N.args = cvalues;
-				N.value.value = value = `(${cvalues.join(" ")})`;
+				N.args = args;
+				N.value.value = value = `(${args.join(" ")})`;
 			}
 
 			break;

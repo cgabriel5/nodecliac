@@ -34,7 +34,7 @@ proc bracechecks*(S: var State, N: Node = Node(), check: string) =
 
             if scope.node != "":
                 let brackets_start = scope.brackets.start
-                let linestart = S.tables.linestarts[S.line]
+                let linestart = S.tables.linestarts[scope.line]
 
                 S.column = brackets_start - linestart + 1 # Point to bracket.
                 S.line = scope.line # Reset to line of unclosed scope.

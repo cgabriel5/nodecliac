@@ -38,7 +38,7 @@ module.exports = (S, N, check) => {
 
 			if (scope) {
 				const brackets_start = scope.brackets.start;
-				const linestart = S.tables.linestarts[S.line];
+				const linestart = S.tables.linestarts[scope.line];
 
 				S.column = brackets_start - linestart + 1; // Point to bracket.
 				S.line = scope.line; // Reset to line of unclosed scope.

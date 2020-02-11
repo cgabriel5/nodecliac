@@ -1,0 +1,36 @@
+# from tables import Table, `[]`, `$`, pairs
+from re import match
+from "../helpers/types" import State, node
+import "../helpers/forward"
+import "../helpers/rollback"
+from "../helpers/tree_add" import add
+from "../helpers/patterns" import r_nl
+
+# ------------------------------------------------------------ Parsing Breakdown
+# # Comment body.
+# ^-Symbol.
+#  ^-Comment-Chars (All chars until newline).
+# ------------------------------------------------------------------------------
+#
+# @param  {object} S - State object.
+# @return - Nothing is returned.
+proc p_comment*(S: var State) =
+    let text = S.text
+    var N = node(S, "COMMENT")
+    N.comment.start = S.i
+
+    let i = S.i; let l = S.l; var `char`, nchar: char
+    while S.i < S.l:
+        `char` = text[S.i]
+
+        if match($`char`, r_nl):
+            rollback(S)
+            N.end = S.i
+            break # Stop at nl char.
+
+        N.comment.end = S.i
+        N.comment.value &= `char`
+
+        forward(S)
+
+    add(S, N)

@@ -35,7 +35,7 @@ module.exports = (S, isoneliner) => {
 	let type = "escaped";
 	let N = node(S, "FLAG");
 
-	//  If not a oneliner or no command scope, flag is being declared out of scope.
+	// If not a oneliner or no command scope, flag is being declared out of scope.
 	if (!(isoneliner || S.scopes.command)) error(S, __filename, 10);
 
 	// If flag scope already exists another flag cannot be declared.

@@ -177,6 +177,4 @@ module.exports = S => {
 
 	// If scope is created store ref to Node object.
 	if (N.value.value === "[") S.scopes.command = N;
-
-	return N;
 };

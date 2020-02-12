@@ -14,6 +14,8 @@ import streams
 #
 # @param {string} 1) - Path to expand.
 # @return {string} - The expanded path.
+#
+# @resource: [https://nim-lang.org/docs/os.html#expandTilde%2Cstring]
 proc expand_tilde*(p: string): string =
     return p.replace(re("^~"), os.getEnv("HOME"))
 

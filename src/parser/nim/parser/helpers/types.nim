@@ -36,7 +36,7 @@ type
         # [https://forum.nim-lang.org/t/3150]
         # [https://forum.nim-lang.org/t/4233#26335]
         name*, assignment*, brackets*, value*: Branch
-        args*: seq[Node]
+        args*: seq[string]
 
         # Depending on node type add needed fields.
         case kind: NodeKind

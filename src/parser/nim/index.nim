@@ -59,18 +59,3 @@ let pres = parser(action, res, cmdname, source, fmtinfo, trace, igc, test)
 # nim compile --run --warnings:off --hints:off --verbosity:1 --forceBuild:off --showAllMismatches:on index.nim && time ./index.sh make --source ~/Desktop/test.acmap --print --trace=false --test=false --strip-comments true --indent "t:22" --dub && rm -f index; nodecliac make --source ~/Desktop/test.acmap
 
 # /opt/lampp/htdocs/projects/nodecliac/src/parser/nim
-
-# echo "\e[1m[Suite]\e[0m APple"
-# echo "\e[1;34m[Suite]\e[00m"
-# echo "[Suite]".chalk("bold") & " APple"
-# echo "[Suite]".chalk("bold", "blue") & " APple"
-# echo "---------------------------------"
-# echo ">" & source & "<"
-# echo print
-# echo trace
-# echo test
-# echo igc
-# echo indent
-# echo action
-# echo formatting
-# echo fmtinfo

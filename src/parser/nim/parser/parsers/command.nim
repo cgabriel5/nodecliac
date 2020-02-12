@@ -152,7 +152,6 @@ proc p_command*(S: var State) =
 
     # If scope is created store ref to Node object.
     if N.value.value == "[":
-        # echo "aaa", N
         S.scopes.command = N
 
     # return N

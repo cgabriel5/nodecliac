@@ -56,7 +56,7 @@ let pres = parser(action, res, cmdname, source, fmtinfo, trace, igc, test)
 # let savename = `${cmdname}.acdef`;
 # let saveconfigname = `.${cmdname}.config.acdef`;
 
-# nim compile --run --warnings:off --hints:off --verbosity:1 --forceBuild:on --showAllMismatches:on index.nim && time ./index.sh format --source ~/Desktop/test.acmap --print --trace --test=false --strip-comments true --indent "t:22" --dub && rm -f index
+# nim compile --run --warnings:off --hints:off --verbosity:1 --forceBuild:off --showAllMismatches:on index.nim && time ./index.sh make --source ~/Desktop/test.acmap --print --trace=false --test=false --strip-comments true --indent "t:22" --dub && rm -f index; nodecliac make --source ~/Desktop/test.acmap
 
 # /opt/lampp/htdocs/projects/nodecliac/src/parser/nim
 

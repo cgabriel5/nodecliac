@@ -4,7 +4,7 @@ from re import match
 from helpers/types import state
 import helpers/[brace_checks, error, linetype, specificity, tracer, rollback, forward]
 from helpers/patterns import r_space, r_sol_char
-import parsers/newline
+import parsers/[comment, newline, setting, variable, command, flag, option, close_brace]
 
 proc parser*(action: string, text: string, cmdname: string, source: string,
     fmt: tuple, trace: bool, igc: bool, test: bool): int =
@@ -40,7 +40,16 @@ proc parser*(action: string, text: string, cmdname: string, source: string,
             specificity(S, ltype, currentSourcePath)
 
             tracer.trace(S, ltype)
-            # require(`./parsers/${ltype}.js`)(S)
+            case (ltype):
+            of "comment": p_comment(S)
+            of "setting": p_setting(S)
+            of "variable": p_variable(S)
+            of "command": p_command(S)
+            of "flag": discard p_flag(S, isoneliner = "")
+            of "option": discard p_option(S)
+            of "close-brace": p_closebrace(S)
+            else: discard
+
         forward(S)
 
     # Error if cc scope exists post-parsing.

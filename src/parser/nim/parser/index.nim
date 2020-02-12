@@ -9,7 +9,6 @@ import parsers/newline
 proc parser*(action: string, text: string, cmdname: string, source: string,
     fmt: tuple, trace: bool, igc: bool, test: bool): int =
     var S = state(action, text, source, fmt, trace, igc, test)
-    var linestarts = S.tables.linestarts
     var ltype = ""
 
     let i = S.i; let l = S.l; var `char`, nchar: char
@@ -25,7 +24,8 @@ proc parser*(action: string, text: string, cmdname: string, source: string,
             continue
 
         # Store line start index.
-        if not linestarts.hasKey(S.line): S.tables.linestarts[S.line] = S.i
+        if not S.tables.linestarts.hasKey(S.line):
+            S.tables.linestarts[S.line] = S.i
 
         # Start parsing at first non-ws character.
         if S.sol_char == "" and not match($`char`, r_space):

@@ -28,8 +28,12 @@ module.exports = (S, cmdname) => {
 	const r = new RegExp(`^(${rcmdname}|[-_a-zA-Z0-9]+)`);
 
 	const date = new Date();
-	const timestamp = date.getTime(); // Date.now();
-	const ctime = `${date}(${timestamp})`;
+	const hours = date.getHours();
+	const minutes = date.getMinutes();
+	const seconds = date.getSeconds();
+	const datestring = date.toDateString();
+	const timestamp = Math.floor(date.getTime() / 1000); // Date.now();
+	const ctime = `${datestring} ${hours}:${minutes}:${seconds} (${timestamp})`;
 	let header = `# DON'T EDIT FILE —— GENERATED: ${ctime}\n\n`;
 	if (S.args.test) header = "";
 

@@ -26,11 +26,11 @@ module.exports = S => {
 	let nl_count = 0; // Track consecutive newlines.
 	let scopes = []; // Track command/flag scopes.
 
-	const [ichar, iamount] = ["\t", 1];
+	const [ichar, iamount] = fmt;
 	let indent = (type, count) => ichar.repeat((count || MXP[type]) * iamount);
 
 	// Filter comment nodes when flag is provided.
-	if (igc) nodes = nodes.filter(N => !(N.node !== "COMMENT"));
+	if (igc) nodes = nodes.filter(N => (N.node !== "COMMENT"));
 
 	// Loop over nodes to build formatted file.
 	nodes.forEach((N, i) => {

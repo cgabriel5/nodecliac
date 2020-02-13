@@ -1,13 +1,15 @@
-from tables import `[]=`, `[]`, hasKey, `$`
+# from tables import `[]=`, `[]`, hasKey, `$`
+import tables
 from re import match
-# import tools/formatter
+import tools/acdef
+import tools/formatter
 from helpers/types import state
 import helpers/[brace_checks, error, linetype, specificity, tracer, rollback, forward]
 from helpers/patterns import r_space, r_sol_char
 import parsers/[comment, newline, setting, variable, command, flag, option, close_brace]
 
 proc parser*(action: string, text: string, cmdname: string, source: string,
-    fmt: tuple, trace: bool, igc: bool, test: bool): int =
+    fmt: tuple, trace: bool, igc: bool, test: bool): tuple =
     var S = state(action, text, source, fmt, trace, igc, test)
     var ltype = ""
 
@@ -55,9 +57,5 @@ proc parser*(action: string, text: string, cmdname: string, source: string,
     # Error if cc scope exists post-parsing.
     bracechecks(S, check = "post-standing-scope")
 
-    return 1
-
-    # let res = {}
-    # if (action === "format") res.formatted = formatter(S)
-    # else res = require("./tools/acdef.js")(S, cmdname)
-    # return res
+    if action == "make": result = acdef(S, cmdname)
+    else: result = formatter(S)

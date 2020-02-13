@@ -228,8 +228,8 @@ module.exports = (S, isoneliner) => {
 	validate(S, N);
 
 	if (!isoneliner) {
-		add(S, N);
 		N.singleton = true;
+		add(S, N);
 	}
 
 	return N;

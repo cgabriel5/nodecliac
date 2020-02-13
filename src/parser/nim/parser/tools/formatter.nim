@@ -35,9 +35,18 @@ proc formatter*(S: var State): tuple =
         result = ichar.repeat(level * iamount)
 
     # Filter comment nodes when flag is provided.
-    if igc: nodes = nodes.filter(proc (N: Node): bool =
-        N.node != "COMMENT"
-    )
+    if igc:
+        var flag = false
+        nodes = nodes.filter(proc (N: Node): bool =
+            # Remove newline node directly after comment node.
+            if flag:
+                flag = false
+                if N.node == "NEWLINE": return false
+
+            var check = N.node != "COMMENT"
+            flag = not check
+            return check
+        )
 
     # Loop over nodes to build formatted file.
     let l = nodes.len

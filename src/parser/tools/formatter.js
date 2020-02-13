@@ -30,7 +30,21 @@ module.exports = S => {
 	let indent = (type, count) => ichar.repeat((count || MXP[type]) * iamount);
 
 	// Filter comment nodes when flag is provided.
-	if (igc) nodes = nodes.filter(N => (N.node !== "COMMENT"));
+	if (igc) {
+		let flag = false;
+		nodes = nodes.filter(N => {
+			// Remove newline node directly after comment node.
+			if (flag) {
+				flag = false;
+				if (N.node === "NEWLINE") return false;
+			}
+
+			let check = N.node !== "COMMENT";
+			// flag = N.node === "COMMENT";
+			flag = !check;
+			return check;
+		});
+	}
 
 	// Loop over nodes to build formatted file.
 	nodes.forEach((N, i) => {

@@ -49,7 +49,7 @@ module.exports = async args => {
 	[err, res] = await flatry(read(source));
 	let parser = require(`../parser/index.js`);
 	let pres = parser(action, res, cmdname, source, fmtinfo, trace, igc, test);
-	let { acdef, config, keywords, placeholders, formatted, time } = pres;
+	let { acdef, config, keywords, placeholders, formatted } = pres;
 	let savename = `${cmdname}.acdef`;
 	let saveconfigname = `.${cmdname}.config.acdef`;
 
@@ -98,13 +98,13 @@ module.exports = async args => {
 			}
 		} else console.log(formatted);
 
-		// Time in seconds: [https://stackoverflow.com/a/41443682]
-		// [https://stackoverflow.com/a/18031945]
-		// [https://stackoverflow.com/a/1975103]
-		// [https://blog.abelotech.com/posts/measure-execution-time-nodejs-javascript/]
-		const duration = ((time[0] * 1e3 + time[1] / 1e6) / 1e3).toFixed(3);
-		console.log(`Completed in ${chalk.green(duration + "s")}.`);
-		// hrtime wrapper: [https://github.com/seriousManual/hirestime]
+		// // Time in seconds: [https://stackoverflow.com/a/41443682]
+		// // [https://stackoverflow.com/a/18031945]
+		// // [https://stackoverflow.com/a/1975103]
+		// // [https://blog.abelotech.com/posts/measure-execution-time-nodejs-javascript/]
+		// const duration = ((time[0] * 1e3 + time[1] / 1e6) / 1e3).toFixed(3);
+		// console.log(`Completed in ${chalk.green(duration + "s")}.`);
+		// // hrtime wrapper: [https://github.com/seriousManual/hirestime]
 	}
 
 	// Test (--test) purposes.

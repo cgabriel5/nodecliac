@@ -12,7 +12,7 @@ const { r_sol_char, r_space } = require("./helpers/patterns.js");
 module.exports = (action, text, cmdname, source, fmt, trace, igc, test) => {
 	const S = state(action, text, source, fmt, trace, igc, test);
 	const { linestarts } = S.tables;
-	const stime = process.hrtime();
+	// const stime = process.hrtime();
 	let ltype;
 
 	for (; S.i < S.l; S.i++, S.column++) {
@@ -51,6 +51,5 @@ module.exports = (action, text, cmdname, source, fmt, trace, igc, test) => {
 	let res = {};
 	if (action === "format") res.formatted = formatter(S);
 	else res = require("./tools/acdef.js")(S, cmdname);
-	res.time = process.hrtime(stime);
 	return res;
 };

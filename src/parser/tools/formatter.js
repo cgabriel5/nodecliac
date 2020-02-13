@@ -167,11 +167,13 @@ module.exports = S => {
 	});
 
 	// Final newline replacements.
-	return (
-		output
-			.replace(/(\[|\()$\n{2}/gm, "$1\n")
-			.replace(/\n{2}([ \t]*)(\]|\))$/gm, "\n$1$2")
-			.replace(/^\s*|\s*$/g, "")
-			.replace(/ *$/gm, "") + "\n"
-	);
+	output = output
+		.replace(/(\[|\()$\n{2}/gm, "$1\n")
+		.replace(/\n{2}([ \t]*)(\]|\))$/gm, "\n$1$2")
+		.replace(/^\s*|\s*$/g, "");
+	// .replace(/^((@|\$).+)$\n{2,}^(@|\$)/gm, "$1\n$3");
+
+	if (igc) output = output.replace(/^(\s*(-{1}|default).+)$\n{2,}/gm, "$1\n");
+
+	return output.replace(/ *$/gm, "") + "\n";
 };

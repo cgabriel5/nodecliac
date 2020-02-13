@@ -137,13 +137,15 @@ proc formatter*(S: var State): tuple =
                 discard scopes.pop() # Un-track last scope.
 
     # Final newline replacements.
-    let formatted = output
+    output = output
             .replacef(re("(\\[|\\()$\n{2}", {reMultiLine}), "$1\n")
             .replacef(re("\n{2}([ \t]*)(\\]|\\))$", {reMultiLine}), "\n$1$2")
             .replace(re"^\s*|\s*$")
-            .replacef(re("^((@|\\$).+)$\\n{2,}^(@|\\$)", {reMultiLine}), "$1\n$3")
-            .replacef(re("^(\\s*(-{1}|default).+)$\n{2,}", {reMultiLine}), "$1\n")
-            .replace(re(" *$", {reMultiLine})) & "\n"
+            # .replacef(re("^((@|\\$).+)$\\n{2,}^(@|\\$)", {reMultiLine}), "$1\n$3")
+
+    if igc: output = output.replacef(re("^(\\s*(-{1}|default).+)$\n{2,}", {reMultiLine}), "$1\n")
+
+    output = output.replace(re(" *$", {reMultiLine})) & "\n"
 
     var data: tuple[
         acdef: string,
@@ -152,5 +154,5 @@ proc formatter*(S: var State): tuple =
         formatted: string,
         placeholders: Table[string, string]
     ]
-    data.formatted = formatted
+    data.formatted = output
     result = data

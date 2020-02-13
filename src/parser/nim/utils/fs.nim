@@ -8,7 +8,7 @@ from re import
     re,
     replace
 from strutils import split
-import streams
+from streams import close, readAll, write, newFileStream, openFileStream
 
 # Expands starting tilde ('~') to user's home directory.
 #
@@ -57,3 +57,14 @@ proc read*(p: string): string =
     let r = strm.readAll()
     strm.close()
     return r
+
+#  Writes contents to file.
+#
+#  @param  {string} p - The path of file to read.
+#  @param  {contents} contents - The data to write to file.
+#  @return {string} - The file contents.
+proc write*(p: string, contents: string) =
+    var strm = newFileStream(p, fmWrite)
+    if not isNil(strm):
+        strm.write(contents)
+        strm.close()

@@ -61,7 +61,6 @@ module.exports = async args => {
 			let commandconfigpath = path.join(dirname, saveconfigname);
 			let placeholderspaths = path.join(dirname, "placeholders");
 
-			await flatry(de(dirname));
 			await flatry(mkdirp(dirname));
 			await flatry(write(commandpath, acdef + keywords));
 			await flatry(write(commandconfigpath, config));

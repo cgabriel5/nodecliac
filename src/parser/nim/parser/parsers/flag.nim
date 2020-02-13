@@ -196,7 +196,7 @@ proc p_flag*(S: var State, isoneliner: string): Node =
     discard validate(S, N)
 
     if isoneliner == "":
-        add(S, N)
         N.singleton = true
+        add(S, N)
 
     return N

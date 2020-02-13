@@ -18,8 +18,9 @@ type
         # tree*: Table[string, Table[string, seq[Node]]]
         tree*: Table[string, seq[Node]]
     Args* = object of RootObj
-        action*, source*, fmt*: string
+        action*, source*: string
         trace*, igc*, test*: bool
+        fmt*: tuple[`char`: char, amount: int]
 
     # Node + Variants
 

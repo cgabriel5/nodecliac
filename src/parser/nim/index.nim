@@ -26,7 +26,7 @@ if formatting and indent != "":
         echo "Invalid indentation string."
         exit()
     let components = indent.split(":", 2)
-    fmtinfo.char = if components[0] == "s": 's' else: 't'
+    fmtinfo.char = if components[0] == "s": ' ' else: '\t'
     fmtinfo.amount = components[1].parseInt()
 
 # Source must be provided.

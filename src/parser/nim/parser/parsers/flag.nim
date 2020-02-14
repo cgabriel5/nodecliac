@@ -167,20 +167,20 @@ proc p_flag*(S: var State, isoneliner: string): Node =
                     if $`char` == "|" and $pchar != "\\":
                         state = "pipe-delimiter"
                         rollback(S)
+                    else:
+                        # If flag is set and chars can still be consumed
+                        # there is a syntax error. For example, string
+                        # may be improperly quoted/escaped so error.
+                        if `end`: error(S, currentSourcePath)
 
-                    # If flag is set and chars can still be consumed
-                    # there is a syntax error. For example, string
-                    # may be improperly quoted/escaped so error.
-                    if `end`: error(S, currentSourcePath)
-
-                    let isescaped = $pchar != "\\"
-                    if `type` == "escaped":
-                        if match($`char`, r_space) and isescaped: `end` = true
-                    elif `type` == "quoted":
-                        let vfchar = N.value.value[0]
-                        if $`char` == $vfchar and isescaped: `end` = true
-                    N.value.end = S.i
-                    N.value.value &= $`char`
+                        let isescaped = $pchar != "\\"
+                        if `type` == "escaped":
+                            if match($`char`, r_space) and isescaped: `end` = true
+                        elif `type` == "quoted":
+                            let vfchar = N.value.value[0]
+                            if $`char` == $vfchar and isescaped: `end` = true
+                        N.value.end = S.i
+                        N.value.value &= $`char`
 
             else: discard
 

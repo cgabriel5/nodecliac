@@ -193,24 +193,22 @@ module.exports = (S, isoneliner) => {
 						if (char === "|" && pchar !== "\\") {
 							state = "pipe-delimiter";
 							rollback(S);
+						} else {
+							// If flag is set and chars can still be consumed
+							// there is a syntax error. For example, string
+							// may be improperly quoted/escaped so error.
+							if (end) error(S, __filename);
 
-							break;
+							let isescaped = pchar !== "\\";
+							if (type === "escaped") {
+								if (r_space.test(char) && isescaped) end = true;
+							} else if (type === "quoted") {
+								let vfchar = N.value.value.charAt(0);
+								if (char === vfchar && isescaped) end = true;
+							}
+							N.value.end = S.i;
+							N.value.value += char;
 						}
-
-						// If flag is set and chars can still be consumed
-						// there is a syntax error. For example, string
-						// may be improperly quoted/escaped so error.
-						if (end) error(S, __filename);
-
-						let isescaped = pchar !== "\\";
-						if (type === "escaped") {
-							if (r_space.test(char) && isescaped) end = true;
-						} else if (type === "quoted") {
-							let vfchar = N.value.value.charAt(0);
-							if (char === vfchar && isescaped) end = true;
-						}
-						N.value.end = S.i;
-						N.value.value += char;
 					}
 				}
 

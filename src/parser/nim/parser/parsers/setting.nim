@@ -38,8 +38,6 @@ proc p_setting*(S: var State) =
                 N.sigil.end = S.i
                 state = "name"
 
-                # break
-
             of "name":
                 if N.name.value == "":
                     if not match($`char`, r_letter): error(S, currentSourcePath)

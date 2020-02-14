@@ -1,11 +1,9 @@
 from re import match
-from "../helpers/types" import State, node
-import "../helpers/error"
-import "../helpers/forward"
-import "../helpers/rollback"
-from "../helpers/tree_add" import add
-from "../helpers/patterns" import r_nl, r_space
-import "../helpers/brace_checks"
+
+from ../helpers/tree_add import add
+from ../helpers/types import State, node
+from ../helpers/patterns import r_nl, r_space
+import ../helpers/[error, forward, rollback, brace_checks]
 
 # ------------------------------------------------------------ Parsing Breakdown
 # - value

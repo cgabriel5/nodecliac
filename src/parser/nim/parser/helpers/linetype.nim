@@ -1,7 +1,8 @@
-from tables import toTable, hasKey, `[]`, `$`
 from re import match
+from tables import toTable, hasKey, `[]`, `$`
+
+from ../helpers/types import State
 from patterns import r_space, r_letter
-from "../helpers/types" import State
 
 # Determine line's line type.
 #

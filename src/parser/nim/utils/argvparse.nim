@@ -1,9 +1,10 @@
-from parseopt import next, cmdEnd, cmdArgument,
-    cmdLongOption, initOptParser, cmdShortOption
+from re import re, replace
 from strutils import startsWith
 from os import paramCount, commandLineParams
+from parseopt import next, cmdEnd, cmdArgument,
+    cmdLongOption, initOptParser, cmdShortOption
+
 from fs import expand_tilde
-from re import re, replace
 
 if os.paramCount() == 0: quit() # Exit if no args.
 let args = commandLineParams()

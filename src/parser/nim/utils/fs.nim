@@ -1,13 +1,6 @@
-from os import
-    getEnv,
-    paramStr,
-    paramCount,
-    splitFile,
-    DirSep
-from re import
-    re,
-    replace
+from re import re, replace
 from strutils import split
+from os import getEnv, paramStr, paramCount, splitFile, DirSep
 from streams import close, readAll, write, newFileStream, openFileStream
 
 # Expands starting tilde ('~') to user's home directory.

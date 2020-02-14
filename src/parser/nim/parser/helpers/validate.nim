@@ -1,6 +1,7 @@
-from tables import toTable, hasKey, initTable, `[]=`, `[]`, `$`
-from re import re, match, replace, findAll
 from strutils import join, replace, find
+from re import re, match, replace, findAll
+from tables import toTable, hasKey, initTable, `[]=`, `[]`, `$`
+
 import error
 from patterns import r_quote
 from types import State, Node, Branch

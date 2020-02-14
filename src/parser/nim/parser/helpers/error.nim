@@ -1,10 +1,11 @@
-from os import DirSep, splitFile, extractFilename
-from re import re, replace
 from strformat import fmt
+from re import re, replace
 from strutils import split, join
+from os import DirSep, splitFile, extractFilename
 from tables import toTable, initTable, `[]=`, `[]`, `$`
-from "../helpers/types" import State
-import "../../utils/chalk"
+
+from ../helpers/types import State
+import ../../utils/chalk
 
 var tb = initTable[int, string]()
 var errors = {

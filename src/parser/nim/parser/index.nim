@@ -1,11 +1,10 @@
-# from tables import `[]=`, `[]`, hasKey, `$`
-import tables
 from re import match
-import tools/acdef
-import tools/formatter
+from tables import `[]=`, `[]`, hasKey, `$`
+
+import tools/[acdef, formatter]
 from helpers/types import state
-import helpers/[brace_checks, error, linetype, specificity, tracer, rollback, forward]
 from helpers/patterns import r_space, r_sol_char
+import helpers/[brace_checks, error, linetype, specificity, tracer, rollback, forward]
 import parsers/[comment, newline, setting, variable, command, flag, option, close_brace]
 
 proc parser*(action: string, text: string, cmdname: string, source: string,

@@ -1,7 +1,7 @@
-from terminal import Style, ForegroundColor, BackgroundColor
+from re import re, replace
 from unicode import toLower
 from tables import `$`, `[]`, `[]=`, hasKey, initTable
-from re import re, replace
+from terminal import Style, ForegroundColor, BackgroundColor
 
 var lookup = initTable[string, int]()
 # Build lookup table containing style:code.

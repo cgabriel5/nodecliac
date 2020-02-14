@@ -1,6 +1,7 @@
 from tables import toTable, hasKey, `[]=`, `[]`, `$`
-from "../helpers/types" import State
+
 import error
+from ../helpers/types import State
 
 # Validate line specificity.
 #

@@ -1,13 +1,10 @@
 from re import re, match
-from "../helpers/types" import State, Node, node
-import "../helpers/error"
-import "../helpers/tracer"
-import "../helpers/forward"
-import "../helpers/rollback"
-from "../helpers/tree_add" import add
-from "../helpers/patterns" import r_nl, r_space
-import "../helpers/brace_checks"
+
 import flag
+from ../helpers/tree_add import add
+from ../helpers/patterns import r_nl, r_space
+from ../helpers/types import State, Node, node
+import ../helpers/[error, tracer, forward, rollback, brace_checks]
 
 # ------------------------------------------------------------ Parsing Breakdown
 # program.command

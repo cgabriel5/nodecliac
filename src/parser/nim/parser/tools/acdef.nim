@@ -1,12 +1,13 @@
-import md5
-import tables
+from md5 import getMD5
 from algorithm import sort
-from unicode import toLower
 from sequtils import insert
+from unicode import toLower
 from re import re, split, replace
-from strutils import join, strip, endsWith
 from times import format, getTime, toUnix
-from "../helpers/types" import State, Node
+from strutils import join, strip, endsWith
+from tables import Table, initTable, `[]=`, toTable, hasKey, len, del, `$`
+
+from ../helpers/types import State, Node
 
 # Generate .acdef, .config.acdef file contents.
 #

@@ -1,9 +1,10 @@
 from strformat import fmt
-from strutils import repeat
 from sequtils import filter
+from strutils import repeat
+from tables import Table, `[]`, toTable, `$`
 from re import re, replace, replacef, reMultiLine
-from "../helpers/types" import State, Node
-import tables
+
+from ../helpers/types import State, Node
 
 # Formats (prettifies) .acmap file.
 #

@@ -1,5 +1,5 @@
-from "../helpers/types" import State
-import "../../utils/chalk"
+import ../../utils/chalk
+from ../helpers/types import State
 
 # Basic tracing of parsers used for debugging.
 #

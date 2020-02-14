@@ -1,10 +1,9 @@
-# from tables import Table, `[]`, `$`, pairs
 from re import match
-from "../helpers/types" import State, node
-import "../helpers/forward"
-import "../helpers/rollback"
-from "../helpers/tree_add" import add
-from "../helpers/patterns" import r_nl
+
+from ../helpers/tree_add import add
+from ../helpers/patterns import r_nl
+import ../helpers/[forward, rollback]
+from ../helpers/types import State, node
 
 # ------------------------------------------------------------ Parsing Breakdown
 # # Comment body.

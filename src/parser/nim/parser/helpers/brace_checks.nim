@@ -1,6 +1,7 @@
 from tables import `[]`, `$`
-from "../helpers/types" import State, Node, node
+
 import error
+from ../helpers/types import State, Node, node
 
 # Checks command/flag brace scopes are properly closed.
 #

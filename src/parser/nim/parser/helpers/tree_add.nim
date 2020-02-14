@@ -1,4 +1,5 @@
 from tables import Table, `[]`, `$`, pairs
+
 from types import State, Node
 
 # Add node object to tree.

@@ -49,10 +49,10 @@ $ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/in
 
 <details><summary>Installation flags</summary>
 
-- `--installer`: The installer to use. (default: `yarn` > `npm` > `aconly`)
+- `--installer`: The installer to use. (default: `yarn` > `npm` > `binary`)
   - `yarn`: Uses [yarn](https://yarnpkg.com/en/) to install.
   - `npm`: Uses [Node.js](https://nodejs.org/en/)'s [npm](https://www.npmjs.com/get-npm) to install.
-  - `aconly`: _Only_ Bash completion (no nodecliac JavaScript CLI tools).
+  - `binary`: Uses nodecliac's [Nim](https://nim-lang.org/) Linux/macOS CLI tools.
 - `--branch`: An _existing_ nodecliac branch name to install. (default: `master`)
 - `--rcfilepath`: Path of `bashrc` file to use when installing nodecliac. (default: `~/.bashrc`)
 
@@ -62,8 +62,7 @@ $ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/in
   <summary>Requirements</summary>
 
 - Node.js `8+`
-  - nodecliac and its CLI tools (`.acmap` to `.acdef` parser, formatter, etc.) are written in JavaScript.
-  - **Note**: If _only_ Bash completion is needed (i.e. not developing a completion package &mdash; don't need nodecliac's core CLI tools (parser, formatter, etc.)) then Node.js is _not_ required. Simply install with `aconly` installer.
+  - Required if installing via `npm` or `yarn`.
 - Perl `5+`
   - Runs needed Perl Bash completion scripts.
   - Works in tandem with Bash shell scripts.

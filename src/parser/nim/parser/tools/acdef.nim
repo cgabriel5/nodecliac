@@ -5,7 +5,7 @@ from unicode import toLower
 from re import re, split, replace
 from times import format, getTime, toUnix
 from strutils import join, strip, endsWith
-from tables import Table, initTable, `[]=`, toTable, hasKey, len, del, `$`
+from tables import Table, initTable, initOrderedTable, `[]=`, toTable, hasKey, len, del, `$`
 
 from ../helpers/types import State, Node
 
@@ -18,7 +18,7 @@ proc acdef*(S: var State, cmdname: string): tuple =
     var oSets = initTable[string, Table[string, bool]]()
     var oGroups = initTable[int, Table[string, seq[Node]]]()
     var oDefaults = initTable[string, string]()
-    var oSettings = initTable[string, string]()
+    var oSettings = initOrderedTable[string, string]()
     var oPlaceholders = initTable[string, string]()
     var omd5Hashes = initTable[string, string]()
     var count = 0

@@ -303,6 +303,13 @@ if [[ "$installer" == "aconly" ]]; then
 	echo " - Copying nodecliac scripts..."
 	# cp -a "$outputdir"/src/scripts/*.* ~/.nodecliac/src
 	cp -pr "$outputdir"/src/scripts/. ~/.nodecliac/src/ # [https://askubuntu.com/a/86891]
+
+	# Copy over platform specific nodecliac binary.
+	ncliac_binfilepath="$outputdir/nodecliac/src/parser/nim/nodecliac.$platform"
+	if [[ -f "$platform" ]]; then
+		cp -pr "$ncliac_binfilepath" ~/.nodecliac/src/bin
+	fi
+
 	log " $CHECK_MARK Copied nodecliac scripts."
 
 	# Copy registry completion packages.

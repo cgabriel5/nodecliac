@@ -97,9 +97,13 @@ commands=" make format print registry setup status uninstall add remove link unl
 if [[ "$commands" != *"$command"* ]]; then exit; fi # Exit if invalid command.
 
 case "$command" in
-	format) ;; # No-operation.
+	make|format)
 
-	make) ;; # No-operation.
+		# Run Nim binary if it exists.
+		binfilepath=~/.nodecliac/src/bin/nodecliac.$(__platform)""
+		if [[ -f "$binfilepath" ]]; then "$binfilepath" "$@"; fi
+
+		;;
 
 	print)
 

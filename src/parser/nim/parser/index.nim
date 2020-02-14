@@ -12,7 +12,7 @@ proc parser*(action: string, text: string, cmdname: string, source: string,
     var S = state(action, text, source, fmt, trace, igc, test)
     var ltype = ""
 
-    let i = S.i; let l = S.l; var `char`, nchar: char
+    let l = S.l; var `char`, nchar: char
     while S.i < S.l:
         `char` = text[S.i]
         nchar = if S.i + 1 < l: text[S.i + 1] else: '\0'

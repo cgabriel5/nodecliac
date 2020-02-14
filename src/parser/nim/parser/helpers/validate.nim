@@ -184,8 +184,6 @@ proc validate*(S: var State, N: var Node, `type`: string = ""): string =
                 var args: seq[string] = @[]
                 var qchar = ""
                 var mode = ""
-                var delimiter_count = 0
-                var delimiter_index = -1
                 var i = 1 # Offset to account for '('.
                 var resume_index = N.value.start + i
                 var vsi: int # Index where value starts.

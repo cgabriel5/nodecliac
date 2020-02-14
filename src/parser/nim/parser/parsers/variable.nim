@@ -24,7 +24,7 @@ proc p_variable*(S: var State) =
     var state = "sigil"
     var N = node(S, "VARIABLE")
 
-    let i = S.i; let l = S.l; var `char`, nchar: char
+    var `char`: char
     while S.i < S.l:
         `char` = text[S.i]
 

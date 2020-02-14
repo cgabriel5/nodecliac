@@ -33,7 +33,7 @@ proc p_command*(S: var State) =
     # Error if cc scope exists (brace not closed).
     bracechecks(S, check = "pre-existing-cs")
 
-    let i = S.i; let l = S.l; var `char`: char
+    let l = S.l; var `char`: char
     while S.i < S.l:
         `char` = text[S.i]
 

@@ -25,7 +25,7 @@ proc p_option*(S: var State): Node =
     # Error if flag scope doesn't exist.
     bracechecks(S, check = "pre-existing-fs")
 
-    let i = S.i; let l = S.l; var `char`: char
+    let l = S.l; var `char`: char
     while S.i < S.l:
         `char` = text[S.i]
 

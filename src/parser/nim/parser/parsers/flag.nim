@@ -37,7 +37,7 @@ proc p_flag*(S: var State, isoneliner: string): Node =
     # If flag scope already exists another flag cannot be declared.
     if S.scopes.flag.node != "": error(S, currentSourcePath, 11)
 
-    let i = S.i; let l = S.l; var `char`: char
+    let l = S.l; var `char`: char
     while S.i < S.l:
         `char` = text[S.i]
 

@@ -92,7 +92,7 @@ if [[ ! -n "$installer" ]]; then # Find first installed command to use.
 	elif [[ -n "$(__exists "npm")" ]]; then
 		installer="npm"
 	else
-		installer="aconly"
+		installer="binary"
 	fi
 fi
 
@@ -181,8 +181,8 @@ fi
 
 # Exit if installer is not valid.
 echo " - Verifying installer method..."
-if [[ " yarn npm aconly " != *" $installer "* ]]; then
-	log " $X_MARK Invalid installer: '$installer'. Provide: 'yarn|npm|aconly'."
+if [[ " yarn npm binary " != *" $installer "* ]]; then
+	log " $X_MARK Invalid installer: '$installer'. Provide: 'yarn|npm|binary'."
 	exit
 fi
 # Check that installer is installed to continue.
@@ -263,7 +263,7 @@ fi
 
 # ---------------------------------------------------------------INSTALLER-LOGIC
 
-if [[ "$installer" == "aconly" ]]; then
+if [[ "$installer" == "binary" ]]; then
 	uhdir="${HOME/#$HOME/\~}" # Un-expand tilde:
 
 	# Clone repo with first found command. (order: wget > curl > git)
@@ -322,7 +322,7 @@ if [[ "$installer" == "aconly" ]]; then
 	echo " - Creating .setup.db.json..."
 	# Get package.json version number. [https://stackoverflow.com/a/4794172]
 	version="$(perl -ne 'print $1 if /"version":\s*"([^"]+)/' "$outputdir/package.json")"
-	echo "{ \"force\": false, \"rcfilepath\": \"$rcfilepath\", \"time\": \"$timestamp\", \"aconly\": true, \"version\": \"$version\" }" > ~/.nodecliac/.setup.db.json
+	echo "{ \"force\": false, \"rcfilepath\": \"$rcfilepath\", \"time\": \"$timestamp\", \"binary\": true, \"version\": \"$version\" }" > ~/.nodecliac/.setup.db.json
 	log " $CHECK_MARK Created .setup.db.json."
 
 	# Strip comments/empty lines from files.
@@ -344,7 +344,7 @@ if [[ "$installer" == "aconly" ]]; then
 		# [https://stackoverflow.com/a/9021745]
 	fi
 
-	# Modify nodecliac.acdef for aconly.
+	# Modify nodecliac.acdef for binary.
 	echo " - Modifying nodecliac.acdef..."
 	# Remove all but the following commands.
 	allowed_commands="add|remove|link|unlink|enable|disable|print|status|registry|uninstall"
@@ -355,7 +355,7 @@ if [[ "$installer" == "aconly" ]]; then
 
 	# Create bin file.
 	echo " - Creating bin file..."
-	sudo cp -p "$outputdir/src/scripts/bin/aconly.sh" "$binfilepath"
+	sudo cp -p "$outputdir/src/scripts/bin/binary.sh" "$binfilepath"
 	sudo chmod +x "$binfilepath"
 	log " $CHECK_MARK Created bin file."
 

@@ -266,8 +266,8 @@ case "$command" in
 		# Prompt password early on. Also ensures user really wants to uninstall.
 		sudo echo > /dev/null 2>&1
 
-		# Only continue with uninstall if nodecliac was installed for 'aconly'.
-		if [[ -z "$(grep -o "aconly" "$HOME/.nodecliac/.setup.db.json")" ]]; then exit; fi
+		# Only continue with uninstall if nodecliac was installed for 'binary'.
+		if [[ -z "$(grep -o "binary" "$HOME/.nodecliac/.setup.db.json")" ]]; then exit; fi
 
 		# Confirm bashrcfile exists else default to ~/.bashrc.
 		if [[ -z "$rcfilepath" ]] ||

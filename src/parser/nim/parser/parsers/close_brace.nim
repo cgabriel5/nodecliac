@@ -39,6 +39,8 @@ proc p_closebrace*(S: var State) =
             of "eol-wsb":
                 if not match($`char`, r_space): error(S, currentSourcePath)
 
+            else: discard
+
         forward(S)
 
     # Error if cc scope exists (brace not closed).

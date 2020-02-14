@@ -77,6 +77,8 @@ proc p_option*(S: var State): Node =
                     N.value.end = S.i
                     N.value.value &= $`char`
 
+            else: discard
+
         forward(S)
 
     discard validate(S, N)

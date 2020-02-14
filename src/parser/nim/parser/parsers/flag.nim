@@ -182,6 +182,8 @@ proc p_flag*(S: var State, isoneliner: string): Node =
                     N.value.end = S.i
                     N.value.value &= $`char`
 
+            else: discard
+
         forward(S)
 
     # If scope is created store ref to Node object.

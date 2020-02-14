@@ -74,11 +74,10 @@ proc acdef*(S: var State, cmdname: string): tuple =
         result = Cobj(val: s.toLower(), m: s.endsWith("=*").int )
 
     proc asort(a, b: Cobj): int =
-        result = 0
         if a.val != b.val:
             if a.val < b.val: result = -1
             else: result = 1
-        return result
+        else: result = 0
 
     # compare function: Gives precedence to flags ending with '=*' else
     #     falls back to sorting alphabetically.
@@ -93,7 +92,8 @@ proc acdef*(S: var State, cmdname: string): tuple =
     # @resource [http://www.javascripttutorial.net/javascript-array-sort/]
     # let sort = (a, b) => ~~b.endsWith("=*") - ~~a.endsWith("=*") || asort(a, b)
     proc fsort(a, b: Cobj): int =
-        result = b.m - a.m or asort(a, b)
+        result = b.m - a.m
+        if result == 0: result = asort(a, b)
 
     # Uses map sorting to reduce redundant preprocessing on array items.
     #

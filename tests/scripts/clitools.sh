@@ -1,5 +1,21 @@
 #!/bin/bash
 
+# Get platform name.
+#
+# @return {string} - User's platform.
+#
+# @resource [https://stackoverflow.com/a/18434831]
+function __platform() {
+	case "$OSTYPE" in
+		solaris*) echo "solaris" ;;
+		darwin*)  echo "macosx" ;;
+		linux*)   echo "linux" ;;
+		bsd*)     echo "bsd" ;;
+		msys*)    echo "windows" ;;
+		*)        echo "unknown" ;;
+	esac
+}
+
 # Script checks whether `nodecliac make` returns same output. If so
 # the parser is working properly.
 
@@ -13,6 +29,7 @@
 __filepath="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 TESTDIR=$(chipdir "$__filepath" 1) # The tests script's path.
+NIM_BIN="$(chipdir "$__filepath" 2)/src/parser/nim/nodecliac.$(__platform)"
 
 # The output path.
 output_path="outputs/$OUTPUT_DIR"
@@ -40,11 +57,16 @@ for f in "$TESTDIR"/acmaps/*.acmap; do
 	((files_count++))
 
 	forg="$f"
+	output=""
 	# Run with `--test` flag to prevent printing headers/meta information.
 	if [[ "$ACTION" == "parse" ]]; then
-		output="$(nodecliac make --source "$f" --test)"
+		output_js="$(nodecliac make --source "$f" --test)"
+		output_nim="$("$NIM_BIN" make --source "$f" --test)"
+		if [[ "$output_js" == "$output_nim" ]]; then output="$output_js"; fi
 	else
-		output="$(nodecliac format --source "$f" --indent "t:1" --test)"
+		output_js="$(nodecliac format --source "$f" --indent "t:1" --test)"
+		output_nim="$("$NIM_BIN" format --source "$f" --indent "t:1" --test)"
+		if [[ "$output_js" == "$output_nim" ]]; then output="$output_js"; fi
 	fi
 
 	# Get basename from file path.

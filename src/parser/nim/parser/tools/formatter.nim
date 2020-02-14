@@ -146,7 +146,7 @@ proc formatter*(S: var State): tuple =
 
     if igc: output = output.replacef(re("^(\\s*(-{1}|default).+)$\n{2,}", {reMultiLine}), "$1\n")
 
-    output = output.replace(re(" *$", {reMultiLine})) & "\n"
+    output = output.replace(re(" {1,}$", {reMultiLine})) & "\n"
 
     var data: tuple[
         acdef: string,

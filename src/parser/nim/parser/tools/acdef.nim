@@ -249,7 +249,7 @@ proc acdef*(S: var State, cmdname: string): tuple =
         # When flag set is needed its placeholder file can be read.
         if placehold and flags.len >= 100:
             if not omd5Hashes.hasKey(flags):
-                let md5hash = getMD5(flags)[0 .. 5]
+                let md5hash = getMD5(flags)[26 .. 31]
                 oPlaceholders[md5hash] = flags
                 omd5Hashes[flags] = md5hash
                 flags = "--p#" & md5hash

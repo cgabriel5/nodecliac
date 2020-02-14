@@ -78,25 +78,25 @@ if not test:
                 let p = placeholderspaths & "/" & key
                 write(p, placeholders[key])
 
-    if print:
-        if not formatting:
-            if pres.acdef != "":
-                echo "[" & (cmdname & ".acdef").chalk("bold") & "]\n"
-                echo pres.acdef & pres.keywords
-                if pres.config == "": echo ""
-            if pres.config != "":
-                let msg = "\n[" & ("." & cmdname & ".config.acdef").chalk("bold") & "]\n"
-                echo msg
-                echo pres.config & "\n"
-        else: echo pres.formatted
+if print:
+    if not formatting:
+        if pres.acdef != "":
+            echo "[" & (cmdname & ".acdef").chalk("bold") & "]\n"
+            echo pres.acdef & pres.keywords
+            if pres.config == "": echo ""
+        if pres.config != "":
+            let msg = "\n[" & ("." & cmdname & ".config.acdef").chalk("bold") & "]\n"
+            echo msg
+            echo pres.config & "\n"
+    else: echo pres.formatted
 
-    # Test (--test) purposes.
-    if test:
-        if not formatting:
-            if pres.acdef != "":
-                echo pres.acdef & pres.keywords
-                if pres.config == "": echo ""
-            if pres.config != "":
-                if pres.acdef != "": echo ""
-                echo pres.config
-        else: echo pres.formatted
+# Test (--test) purposes.
+if test:
+    if not formatting:
+        if pres.acdef != "":
+            echo pres.acdef & pres.keywords
+            if pres.config == "": echo ""
+        if pres.config != "":
+            if pres.acdef != "": echo ""
+            echo pres.config
+    else: echo pres.formatted

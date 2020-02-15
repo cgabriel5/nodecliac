@@ -274,9 +274,9 @@ if [[ "$installer" == "binary" ]]; then
 		echo " - Extracting package..."
 		tar -xzf ~/.nodecliac-src.tar.gz -C ~/
 		log " $CHECK_MARK Extracted package."
-		echo " - Moving package to '$hdir'..."
+		echo " - Moving package to '$uhdir'..."
 		rm -rf "$outputdir"/* && mv -f ~/cgabriel5-nodecliac-* "$outputdir"
-		log " $CHECK_MARK Moved package to '$hdir'."
+		log " $CHECK_MARK Moved package to '$uhdir'."
 	elif [[ -n "$(command -v curl)" ]]; then
 		echo " - Downloading repo... (curl)"
 		curl -Ls "$repourl" -o ~/.nodecliac-src.tar.gz
@@ -284,9 +284,9 @@ if [[ "$installer" == "binary" ]]; then
 		echo " - Extracting package..."
 		tar -xzf ~/.nodecliac-src.tar.gz -C ~/
 		log " $CHECK_MARK Extracted package."
-		echo " - Moving package to '$hdir'..."
+		echo " - Moving package to '$uhdir'..."
 		rm -rf "$outputdir"/* && mv -f ~/cgabriel5-nodecliac-* "$outputdir"
-		log " $CHECK_MARK Moved package to '$hdir'."
+		log " $CHECK_MARK Moved package to '$uhdir'."
 	elif [[ -n "$(command -v git)" ]]; then
 		echo " - Downloading repo... (git)"
 		git clone -q -b "$branch_name" --single-branch https://github.com/cgabriel5/nodecliac.git "$outputdir"

@@ -19,7 +19,7 @@ proc expand_tilde*(p: string): string =
 proc info*(p: string): any =
     let c = splitFile(p)
 
-    type FileInfo = ref object of RootObj
+    type FileInfo = object
         name*: string
         dirname*: string
         ext*: string

@@ -98,44 +98,22 @@ fi
 CPU_ARCHITECTURE="i386" # Default to 32 bit. [https://askubuntu.com/a/93196]
 if [[ "$(uname -m)" == "x86_64" ]]; then CPU_ARCHITECTURE="amd64"; fi
 
-if [[ "$USER_OS" == "linux" ]]; then
-	# If compile flag was provided...
-	if [[ -n "$COMPILE_DEV" || -n "$COMPILE_PROD" ]]; then
-		if [[ -n "$COMPILE_DEV" ]]; then
-			nim c --run \
-			--cpu:"$CPU_ARCHITECTURE" \
-			--os:"$USER_OS" \
-			--hints:on \
-			--showAllMismatches:on \
-			--forceBuild:on \
-			--profiler:on \
-			--stacktrace:on \
-			--out:"$OUTPUT_PATH" \
-			"$INPUT_PATH"
-		elif [[ -n "$COMPILE_PROD" ]]; then
-			nim c \
-			-d:release \
-			--cpu:"$CPU_ARCHITECTURE" \
-			--os:"$USER_OS" \
-			--debugger:off \
-			--opt:speed \
-			--checks:off \
-			--threads:on \
-			--assertions:off \
-			--hints:off \
-			--showAllMismatches:off \
-			--forceBuild:on \
-			--out:"$OUTPUT_PATH" \
-			"$INPUT_PATH"
-			strip -s "$OUTPUT_PATH"
-		fi
-
-		chmod +x "$OUTPUT_PATH" # Finally, make file executable.
-	else
-		echo "[ABORTED]: -p or -d switch not provided."
-	fi
-elif [[ "$USER_OS" == "macosx" ]]; then
-	nim c -d:release \
+if [[ -n "$COMPILE_DEV" ]]; then
+	nim c --run \
+	--cpu:"$CPU_ARCHITECTURE" \
+	--os:"$USER_OS" \
+	--hints:on \
+	--showAllMismatches:on \
+	--forceBuild:on \
+	--profiler:on \
+	--stacktrace:on \
+	--out:"$OUTPUT_PATH" \
+	"$INPUT_PATH"
+elif [[ -n "$COMPILE_PROD" ]]; then
+	nim c \
+	-d:release \
+	--cpu:"$CPU_ARCHITECTURE" \
+	--os:"$USER_OS" \
 	--debugger:off \
 	--opt:speed \
 	--checks:off \
@@ -146,6 +124,8 @@ elif [[ "$USER_OS" == "macosx" ]]; then
 	--forceBuild:on \
 	--out:"$OUTPUT_PATH" \
 	"$INPUT_PATH"
-
-	chmod +x "$OUTPUT_PATH" # Finally, make file executable.
+	if [[ "$USER_OS" == "linux" ]]; then strip -s "$OUTPUT_PATH"; fi
 fi
+
+chmod +x "$OUTPUT_PATH"
+

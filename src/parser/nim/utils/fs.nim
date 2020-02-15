@@ -48,9 +48,10 @@ proc info*(p: string): any =
 proc read*(p: string): string =
     # Use stream to gulp file contents.
     var strm = openFileStream(p, fmRead)
-    let r = strm.readAll()
-    strm.close()
-    return r
+    result = ""
+    if not isNil(strm):
+        result = strm.readAll()
+        strm.close()
 
 #  Writes contents to file.
 #

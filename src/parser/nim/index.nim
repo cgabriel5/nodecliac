@@ -52,25 +52,29 @@ if not existsFile(source):
 
 let res = read(source)
 let pres = parser(action, res, cmdname, source, fmtinfo, trace, igc, test)
-# var (acdef, config, keywords, placeholders, formatted) = pres # formatted
+let acdef = pres.acdef
+let config = pres.config
+let keywords = pres.keywords
+let placeholders = pres.placeholders
+let formatted = pres.formatted
 
 let savename = cmdname & ".acdef"
 let saveconfigname = "." & cmdname & ".config.acdef"
 
 # Only save files to disk when not testing.
 if not test:
-    if formatting: write(source, pres.formatted)
+    if formatting: write(source, formatted)
     else:
         let commandpath = joinPath(dirname, savename)
         let commandconfigpath = joinPath(dirname, saveconfigname)
         let placeholderspaths = joinPath(dirname, "placeholders")
 
         createDir(dirname)
-        write(commandpath, pres.acdef & pres.keywords)
-        write(commandconfigpath, pres.config)
+        write(commandpath, acdef & keywords)
+        write(commandconfigpath, config)
 
         # Create placeholder files if object is populated.
-        let placeholders = pres.placeholders
+        let placeholders = placeholders
         if placeholders.len > 0:
             createDir(placeholderspaths)
 
@@ -80,23 +84,23 @@ if not test:
 
 if print:
     if not formatting:
-        if pres.acdef != "":
+        if acdef != "":
             echo "[" & (cmdname & ".acdef").chalk("bold") & "]\n"
-            echo pres.acdef & pres.keywords
-            if pres.config == "": echo ""
-        if pres.config != "":
+            echo acdef & keywords
+            if config == "": echo ""
+        if config != "":
             let msg = "\n[" & ("." & cmdname & ".config.acdef").chalk("bold") & "]\n"
             echo msg
-            echo pres.config & "\n"
-    else: echo pres.formatted
+            echo config & "\n"
+    else: echo formatted
 
 # Test (--test) purposes.
 if test:
     if not formatting:
-        if pres.acdef != "":
-            echo pres.acdef & pres.keywords
-            if pres.config == "": echo ""
-        if pres.config != "":
-            if pres.acdef != "": echo ""
-            echo pres.config
-    else: echo pres.formatted
+        if acdef != "":
+            echo acdef & keywords
+            if config == "": echo ""
+        if config != "":
+            if acdef != "": echo ""
+            echo config
+    else: echo formatted

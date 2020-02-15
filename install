@@ -344,14 +344,14 @@ if [[ "$installer" == "binary" ]]; then
 		# [https://stackoverflow.com/a/9021745]
 	fi
 
-	# Modify nodecliac.acdef for binary.
-	echo " - Modifying nodecliac.acdef..."
-	# Remove all but the following commands.
-	allowed_commands="add|remove|link|unlink|enable|disable|print|status|registry|uninstall"
-	perl -i -lne 'if (/^(#|\.('"$allowed_commands"') --| )/) { if ($1 eq " ") { print "\n --"} elsif ($1 eq ".uninstall --") { print "$1" } else { print } }' ~/.nodecliac/registry/nodecliac/nodecliac.acdef
-	# Add back '--version'.
-	perl -p -i -e 's/^ \-\-/ \-\-version?/m if /^ /' ~/.nodecliac/registry/nodecliac/nodecliac.acdef
-	log " $CHECK_MARK Modified nodecliac.acdef."
+	# # Modify nodecliac.acdef for binary.
+	# echo " - Modifying nodecliac.acdef..."
+	# # Remove all but the following commands.
+	# allowed_commands="add|remove|link|unlink|enable|disable|print|status|registry|uninstall"
+	# perl -i -lne 'if (/^(#|\.('"$allowed_commands"') --| )/) { if ($1 eq " ") { print "\n --"} elsif ($1 eq ".uninstall --") { print "$1" } else { print } }' ~/.nodecliac/registry/nodecliac/nodecliac.acdef
+	# # Add back '--version'.
+	# perl -p -i -e 's/^ \-\-/ \-\-version?/m if /^ /' ~/.nodecliac/registry/nodecliac/nodecliac.acdef
+	# log " $CHECK_MARK Modified nodecliac.acdef."
 
 	# Create bin file.
 	echo " - Creating bin file..."

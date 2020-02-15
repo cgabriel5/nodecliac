@@ -4,19 +4,19 @@ type
 
     # State objects.
 
-    State* = object of RootObj
+    State* = object
         line*, column*, i*, l*, specf*, last_line_num*: int
         sol_char*, text*: string
         scopes*: Scopes
         tables*: Tables
         args*: Args
-    Scopes* = object of RootObj
+    Scopes* = object
         command*, flag*: Node # Track command/flag scopes.
-    Tables* = object of RootObj
+    Tables* = object
         variables*: Table[string, string]
         linestarts*: Table[int, int]
         tree*: Table[string, seq[Node]]
-    Args* = object of RootObj
+    Args* = object
         action*, source*: string
         trace*, igc*, test*: bool
         fmt*: tuple[`char`: char, amount: int]
@@ -25,7 +25,7 @@ type
 
     NodeKind* = enum
         comment, newline, setting, variable, command, flag, option, brace
-    Node* = object of RootObj
+    Node* = object
         node*: string
         line*, start*, `end`*: int
 
@@ -51,7 +51,7 @@ type
             singleton*: bool
         of option: bullet*: Branch
         of brace: brace*: Branch
-    Branch* = object of RootObj
+    Branch* = object
         start*, `end`*: int
         value*: string
 

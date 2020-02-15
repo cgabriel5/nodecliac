@@ -30,13 +30,13 @@ proc p_variable*(S: State) =
 
         if match($`char`, r_nl):
             rollback(S)
-            N.end = S.i
+            N.`end` = S.i
             break # Stop at nl char.
 
         case (state):
             of "sigil":
                 N.sigil.start = S.i
-                N.sigil.end = S.i
+                N.sigil.`end` = S.i
                 state = "name"
 
             of "name":
@@ -44,11 +44,11 @@ proc p_variable*(S: State) =
                     if not match($`char`, r_letter): error(S, currentSourcePath)
 
                     N.name.start = S.i
-                    N.name.end = S.i
+                    N.name.`end` = S.i
                     N.name.value = $`char`
                 else:
                     if match($`char`, re"[-_a-zA-Z]"):
-                        N.name.end = S.i
+                        N.name.`end` = S.i
                         N.name.value &= $`char`
                     elif match($`char`, r_space):
                         state = "name-wsb"
@@ -68,7 +68,7 @@ proc p_variable*(S: State) =
 
             of "assignment":
                 N.assignment.start = S.i
-                N.assignment.end = S.i
+                N.assignment.`end` = S.i
                 N.assignment.value = $`char`
                 state = "value-wsb"
 
@@ -83,21 +83,21 @@ proc p_variable*(S: State) =
 
                     if match($`char`, r_quote): qchar = $`char`
                     N.value.start = S.i
-                    N.value.end = S.i
+                    N.value.`end` = S.i
                     N.value.value = $`char`
                 else:
                     if qchar != "":
                         let pchar = text[S.i - 1]
 
                         if $`char` == qchar and $pchar != "\\": state = "eol-wsb"
-                        N.value.end = S.i
+                        N.value.`end` = S.i
                         N.value.value &= $`char`
                     else:
                         if match($`char`, r_space):
                             state = "eol-wsb"
                             rollback(S)
                         else:
-                            N.value.end = S.i
+                            N.value.`end` = S.i
                             N.value.value &= $`char`
 
             of "eol-wsb":

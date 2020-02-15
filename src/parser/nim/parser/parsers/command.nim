@@ -39,7 +39,7 @@ proc p_command*(S: State) =
 
         if match($`char`, r_nl):
             rollback(S)
-            N.end = S.i
+            N.`end` = S.i
             break # Stop at nl char.
 
         case (state):
@@ -48,11 +48,11 @@ proc p_command*(S: State) =
                     if not match($`char`, re("[:a-zA-Z]")): error(S, currentSourcePath)
 
                     N.command.start = S.i
-                    N.command.end = S.i
+                    N.command.`end` = S.i
                     N.command.value &= $`char`
                 else:
                     if match($`char`, re"[-_.:+\\/a-zA-Z0-9]"):
-                        N.command.end = S.i
+                        N.command.`end` = S.i
                         N.command.value &= $`char`
 
                         # Note: When escaping anything but a dot do not
@@ -96,13 +96,13 @@ proc p_command*(S: State) =
 
             of "assignment":
                 N.assignment.start = S.i
-                N.assignment.end = S.i
+                N.assignment.`end` = S.i
                 N.assignment.value = $`char`
                 state = "value-wsb"
 
             of "delimiter":
                 N.delimiter.start = S.i
-                N.delimiter.end = S.i
+                N.delimiter.`end` = S.i
                 N.delimiter.value = $`char`
                 state = "eol-wsb"
 
@@ -131,7 +131,7 @@ proc p_command*(S: State) =
 
             of "close-bracket":
                 if $`char` != "]": error(S, currentSourcePath)
-                N.brackets.end = S.i
+                N.brackets.`end` = S.i
                 N.value.value &= $`char`
                 state = "eol-wsb"
 

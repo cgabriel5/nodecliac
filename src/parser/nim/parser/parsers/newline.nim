@@ -12,7 +12,7 @@ proc p_newline*(S: State) =
     var N = node(S, "NEWLINE")
 
     N.start = S.i
-    N.end = S.i
+    N.`end` = S.i
 
     S.line = S.line + 1
     S.column = 0

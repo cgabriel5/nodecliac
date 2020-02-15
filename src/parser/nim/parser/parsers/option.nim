@@ -31,13 +31,13 @@ proc p_option*(S: State): Node =
 
         if match($`char`, r_nl):
             rollback(S)
-            N.end = S.i
+            N.`end` = S.i
             break # Stop at nl char.
 
         case (state):
             of "bullet":
                 N.bullet.start = S.i
-                N.bullet.end = S.i
+                N.bullet.`end` = S.i
                 N.bullet.value = $`char`
                 state = "spacer"
 
@@ -60,7 +60,7 @@ proc p_option*(S: State): Node =
                     elif match($`char`, r_quote): `type` = "quoted"
 
                     N.value.start = S.i
-                    N.value.end = S.i
+                    N.value.`end` = S.i
                     N.value.value = $`char`
                 else:
                     # If flag is set and chars can still be consumed
@@ -74,7 +74,7 @@ proc p_option*(S: State): Node =
                     elif `type` == "quoted":
                         let vfchar = N.value.value[0]
                         if $`char` == $vfchar and isescaped: `end` = true
-                    N.value.end = S.i
+                    N.value.`end` = S.i
                     N.value.value &= $`char`
 
             else: discard

@@ -43,7 +43,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
 
         if stop or match($`char`, r_nl):
             rollback(S)
-            N.end = S.i
+            N.`end` = S.i
             break # Stop at nl char.
 
         case (state):
@@ -55,14 +55,14 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 if N.hyphens.value == "":
                     if $`char` != "-": error(S, currentSourcePath)
                     N.hyphens.start = S.i
-                    N.hyphens.end = S.i
+                    N.hyphens.`end` = S.i
                     N.hyphens.value = $`char`
                 else:
                     if $`char` != "-":
                         state = "name"
                         rollback(S)
                     else:
-                        N.hyphens.end = S.i
+                        N.hyphens.`end` = S.i
                         N.hyphens.value &= $`char`
 
             of "keyword":
@@ -72,7 +72,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 # If keyword isn't 'default', error.
                 if keyword != "default": error(S, currentSourcePath)
                 N.keyword.start = S.i
-                N.keyword.end = S.i + keyword_len
+                N.keyword.`end` = S.i + keyword_len
                 N.keyword.value = keyword
                 state = "keyword-spacer"
 
@@ -88,11 +88,11 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 if N.name.value == "":
                     if not match($`char`, r_letter): error(S, currentSourcePath)
                     N.name.start = S.i
-                    N.name.end = S.i
+                    N.name.`end` = S.i
                     N.name.value = $`char`
                 else:
                     if match($`char`, re"[-.a-zA-Z0-9]"):
-                        N.name.end = S.i
+                        N.name.`end` = S.i
                         N.name.value &= $`char`
                     elif $`char` == "=":
                         state = "assignment"
@@ -120,20 +120,20 @@ proc p_flag*(S: State, isoneliner: string): Node =
 
             of "boolean-indicator":
                 N.boolean.start = S.i
-                N.boolean.end = S.i
+                N.boolean.`end` = S.i
                 N.boolean.value = $`char`
                 state = "pipe-delimiter"
 
             of "assignment":
                 N.assignment.start = S.i
-                N.assignment.end = S.i
+                N.assignment.`end` = S.i
                 N.assignment.value = $`char`
                 state = "multi-indicator"
 
             of "multi-indicator":
                 if $`char` == "*":
                     N.multi.start = S.i
-                    N.multi.end = S.i
+                    N.multi.`end` = S.i
                     N.multi.value = $`char`
                     state = "wsb-prevalue"
                 else:
@@ -161,7 +161,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     elif match($`char`, r_quote): `type` = "quoted"
 
                     N.value.start = S.i
-                    N.value.end = S.i
+                    N.value.`end` = S.i
                     N.value.value = $`char`
                 else:
                     if $`char` == "|" and $pchar != "\\":
@@ -179,7 +179,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                         elif `type` == "quoted":
                             let vfchar = N.value.value[0]
                             if $`char` == $vfchar and isescaped: `end` = true
-                        N.value.end = S.i
+                        N.value.`end` = S.i
                         N.value.value &= $`char`
 
             else: discard
@@ -189,7 +189,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
     # If scope is created store ref to Node object.
     if N.value.value == "(":
         N.brackets.start = N.value.start
-        N.brackets.end = N.value.start
+        N.brackets.`end` = N.value.start
         N.brackets.value = N.value.value
         S.scopes.flag = N
 

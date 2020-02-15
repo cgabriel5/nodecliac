@@ -26,13 +26,13 @@ proc p_closebrace*(S: State) =
 
         if match($`char`, r_nl):
             rollback(S)
-            N.end = S.i
+            N.`end` = S.i
             break # Stop at nl char.
 
         case (state):
             of "brace":
                 N.brace.start = S.i
-                N.brace.end = S.i
+                N.brace.`end` = S.i
                 N.brace.value = $`char`
                 state = "eol-wsb"
 

@@ -24,10 +24,10 @@ proc p_comment*(S: State) =
 
         if match($`char`, r_nl):
             rollback(S)
-            N.end = S.i
+            N.`end` = S.i
             break # Stop at nl char.
 
-        N.comment.end = S.i
+        N.comment.`end` = S.i
         N.comment.value &= `char`
 
         forward(S)

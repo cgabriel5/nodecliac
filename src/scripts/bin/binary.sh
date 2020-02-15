@@ -38,51 +38,48 @@ registrypath=~/.nodecliac/registry
 
 while (( "$#" )); do
 	args+=("$1")
+	case "$1" in
+		--version) version="1"; shift ;;
 
- case "$1" in
+			# Custom `print` command flags.
+		--command=*)
+			flag="${1%%=*}"; value="${1#*=}"
+			if [[ -n "$value" ]]; then prcommand="$value"; fi; shift ;;
+		--command)
+			if [[ -n "$2" && "$2" != *"-" ]]; then prcommand="$2"; fi; shift ;;
 
-	--version) version="1"; shift ;;
+			# Custom `status` command flags.
+		--enable) enablencliac="1"; shift ;;
+		--disable) disablencliac="1"; shift ;;
 
-  	# Custom `print` command flags.
-	--command=*)
-		flag="${1%%=*}"; value="${1#*=}"
-		if [[ -n "$value" ]]; then prcommand="$value"; fi; shift ;;
-	--command)
-		if [[ -n "$2" && "$2" != *"-" ]]; then prcommand="$2"; fi; shift ;;
+			# Custom `uninstall` command flags.
+		--rcfilepath=*)
+			# Expand `~` in path: [https://stackoverflow.com/a/27485157]
+			if [[ -n "$value" ]]; then rcfilepath="${value/#\~/$HOME}"; fi; shift ;;
+		--rcfilepath)
+			if [[ -n "$2" && "$2" != *"-" ]]; then rcfilepath="$2"; fi; shift ;;
 
-  	# Custom `status` command flags.
-	--enable) enablencliac="1"; shift ;;
-	--disable) disablencliac="1"; shift ;;
+		# Custom `remove|unlink|enable|disable` command flags.
+		--all) all="1"; shift ;;
 
-  	# Custom `uninstall` command flags.
-	--rcfilepath=*)
-		# Expand `~` in path: [https://stackoverflow.com/a/27485157]
-		if [[ -n "$value" ]]; then rcfilepath="${value/#\~/$HOME}"; fi; shift ;;
-	--rcfilepath)
-		if [[ -n "$2" && "$2" != *"-" ]]; then rcfilepath="$2"; fi; shift ;;
+		--) shift; break ;; # End argument parsing.
+		-*|--*=)
+			# echo "Error: Unsupported flag $1" >&2; exit 1
+			shift ;; # Unsupported flags.
+		*)
 
-	# Custom `remove|unlink|enable|disable` command flags.
-	--all) all="1"; shift ;;
+			# Get main nodecliac command and the
+			# provided positional arguments.
 
-	--) shift; break ;; # End argument parsing.
-	-*|--*=)
-		# echo "Error: Unsupported flag $1" >&2; exit 1
-		shift ;; # Unsupported flags.
-	*)
+			if [[ "$command" == "" ]]; then command="$1"
+			else
+				if [[ "$params" == "" ]]; then params="$1";
+				else params+=" $1"; fi
+				paramsargs+=("$1") # Also store in array for later looping.
+			fi
 
-		# Get main nodecliac command and the
-		# provided positional arguments.
-
-		if [[ "$command" == "" ]]; then command="$1"
-		else
-			if [[ "$params" == "" ]]; then params="$1";
-			else params+=" $1"; fi
-			paramsargs+=("$1") # Also store in array for later looping.
-		fi
-
-		shift; ;; # Preserve positional arguments.
-
-  esac
+			shift; ;; # Preserve positional arguments.
+	esac
 done
 eval set -- "$params" # Set positional arguments in their proper place
 shift # Remove command from arguments array.

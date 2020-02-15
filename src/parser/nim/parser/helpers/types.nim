@@ -29,10 +29,6 @@ type
     Node* = object of RootObj
         node*: string
         line*, start*, `end`*: int
-        command*, delimiter*: Branch
-        flags*: seq[Node]
-        hyphens*, variable*, boolean*, multi*, keyword*: Branch
-        singleton*: bool
 
         # Due to Nim's limitations some fields must be shared.
         # [https://forum.nim-lang.org/t/4817]
@@ -48,12 +44,12 @@ type
         of comment: comment*: Branch
         of newline: discard
         of setting, variable: sigil*: Branch
-        of command: discard
-            # command*, delimiter*: Branch
-            # flags*: seq[Node]
-        of flag: discard
-            # hyphens*, variable*, boolean*, multi*, keyword*: Branch
-            # singleton*: bool
+        of command:
+            command*, delimiter*: Branch
+            flags*: seq[Node]
+        of flag:
+            hyphens*, variable*, boolean*, multi*, keyword*: Branch
+            singleton*: bool
         of option: bullet*: Branch
         of brace: brace*: Branch
     Branch* = object of RootObj

@@ -3,9 +3,9 @@ from strutils import split, parseInt
 from os import isAbsolute, absolutePath, existsDir, existsFile, joinPath, createDir
 from tables import Table, `[]`, `$`, keys, pairs, len # [https://github.com/nim-lang/Nim/issues/11155]
 
+from parser/index import parser
 import utils/[chalk, argvparse, exit]
 from utils/fs import info, read, write
-from parser/index import parser
 
 let args = argvparse()
 let igc = args.igc

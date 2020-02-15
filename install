@@ -306,7 +306,7 @@ if [[ "$installer" == "binary" ]]; then
 
 	# Copy over platform specific nodecliac binary.
 	ncliac_binfilepath="$outputdir/nodecliac/src/parser/nim/nodecliac.$platform"
-	if [[ -f "$platform" ]]; then
+	if [[ -f "$ncliac_binfilepath" ]]; then
 		cp -pr "$ncliac_binfilepath" ~/.nodecliac/src/bin
 	fi
 

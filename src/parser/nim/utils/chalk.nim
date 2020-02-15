@@ -4,7 +4,7 @@ from tables import `$`, `[]`, `[]=`, hasKey, initTable
 from terminal import Style, ForegroundColor, BackgroundColor
 
 var lookup = initTable[string, int]()
-# Build lookup table containing style:code.
+# Build lookup table: { style:code }.
 # [https://forum.nim-lang.org/t/5052#31708]
 for s in Style.low..Style.high:
     var style = $s
@@ -21,7 +21,7 @@ for c in BackgroundColor.low..BackgroundColor.high:
 
 # Simple colored logging inspired by: [https://www.npmjs.com/package/chalk]
 #
-# @return {object} - Object containing needed CLI arguments.
+# @return {string} - The highlighted string.
 proc chalk*(s: string, styles: varargs[string]): string =
     var starting = "\e[" # [https://forum.nim-lang.org/t/3556#25477]
     let closing = "\e[0m"

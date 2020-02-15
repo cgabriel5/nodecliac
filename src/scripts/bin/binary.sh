@@ -31,11 +31,14 @@ all=""
 # [http://tldp.org/LDP/Bash-Beginners-Guide/html/sect_09_07.html]
 params=""
 paramsargs=()
+args=() # ("${@}")
 
 # Paths.
 registrypath=~/.nodecliac/registry
 
 while (( "$#" )); do
+	args+=("$1")
+
  case "$1" in
 
 	--version) version="1"; shift ;;
@@ -101,7 +104,7 @@ case "$command" in
 
 		# Run Nim binary if it exists.
 		binfilepath=~/.nodecliac/src/bin/nodecliac.$(__platform)""
-		if [[ -f "$binfilepath" ]]; then "$binfilepath" "$@"; fi
+		if [[ -f "$binfilepath" ]]; then "$binfilepath" "${args[@]}"; fi
 
 		;;
 

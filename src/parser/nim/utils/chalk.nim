@@ -8,13 +8,13 @@ var lookup = initTable[string, int]()
 # [https://forum.nim-lang.org/t/5052#31708]
 for s in Style.low..Style.high:
     var style = $s
-    style = style[5..style.len-1].toLower()
+    style = style[5 .. style.len-1].toLower()
     if style == "bright": style = "bold"
     if style == "underscore": style = "underline"
     lookup[style] = ord(s)
 for c in ForegroundColor.low..ForegroundColor.high:
     var color = $c
-    color = color[2..color.len-1].toLower()
+    color = color[2 .. color.len-1].toLower()
     lookup[color] = ord(c)
 for c in BackgroundColor.low..BackgroundColor.high:
     lookup[($c).toLower()] = ord(c)

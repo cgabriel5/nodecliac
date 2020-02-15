@@ -1,16 +1,17 @@
-from re import re, replace
 from strutils import split
 from os import getEnv, paramStr, paramCount, splitFile, DirSep
 from streams import close, readAll, write, newFileStream, openFileStream
 
-# Expands starting tilde ('~') to user's home directory.
+# Expands starting tilde ('~') in path.
 #
 # @param {string} 1) - Path to expand.
 # @return {string} - The expanded path.
 #
 # @resource: [https://nim-lang.org/docs/os.html#expandTilde%2Cstring]
 proc expand_tilde*(p: string): string =
-    return p.replace(re("^~"), os.getEnv("HOME"))
+    result = p
+    if p[0] == '~': result = os.getEnv("HOME") & p[1 .. p.high]
+
 
 # Get file path information (i.e. file name and directory path).
 #

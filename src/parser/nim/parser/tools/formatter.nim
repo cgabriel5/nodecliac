@@ -10,7 +10,7 @@ from ../helpers/types import State, Node
 #
 # @param  {object} S - State object.
 # @return {string} - The prettied file contents.
-proc formatter*(S: var State): tuple =
+proc formatter*(S: State): tuple =
     let igc = S.args.igc
     var nodes = S.tables.tree["nodes"]
     var output = ""

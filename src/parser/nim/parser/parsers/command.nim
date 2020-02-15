@@ -25,7 +25,7 @@ import ../helpers/[error, tracer, forward, rollback, brace_checks]
 #
 # @param  {object} S - State object.
 # @return {object} - Node object.
-proc p_command*(S: var State) =
+proc p_command*(S: State) =
     let text = S.text
     var state = "command"
     var N = node(S, "COMMAND")

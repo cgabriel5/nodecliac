@@ -11,7 +11,7 @@ from types import State, Node, Branch
 # @param  {object} S - State object.
 # @param  {object} N - Node object.
 # @return {object} - Object containing parsed information.
-proc validate*(S: var State, N: var Node, `type`: string = ""): string =
+proc validate*(S: State, N: Node, `type`: string = ""): string =
     var value = N.value.value
     var `type` = `type`
 

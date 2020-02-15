@@ -13,7 +13,7 @@ from ../helpers/types import State, node
 #
 # @param  {object} S - State object.
 # @return - Nothing is returned.
-proc p_comment*(S: var State) =
+proc p_comment*(S: State) =
     let text = S.text
     var N = node(S, "COMMENT")
     N.comment.start = S.i

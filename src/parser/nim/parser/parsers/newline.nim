@@ -8,7 +8,7 @@ from ../helpers/types import State, node
 
 # @param  {object} S - State object.
 # @return Nothing is returned.
-proc p_newline*(S: var State) =
+proc p_newline*(S: State) =
     var N = node(S, "NEWLINE")
 
     N.start = S.i

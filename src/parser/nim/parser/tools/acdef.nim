@@ -14,7 +14,7 @@ from ../helpers/types import State, Node
 # @param  {object} S - State object.
 # @param  {string} cmdname - Name of <command>.acdef being parsed.
 # @return {object} - Object containing acdef, config, and keywords contents.
-proc acdef*(S: var State, cmdname: string): tuple =
+proc acdef*(S: State, cmdname: string): tuple =
     var oSets = initTable[string, Table[string, bool]]()
     var oGroups = initTable[int, Table[string, seq[Node]]]()
     var oDefaults = initTable[string, string]()

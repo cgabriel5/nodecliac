@@ -18,7 +18,7 @@ from ../helpers/patterns import r_nl, r_space, r_letter, r_quote
 #
 # @param  {object} S - State object.
 # @return - Nothing is returned.
-proc p_variable*(S: var State) =
+proc p_variable*(S: State) =
     let text = S.text
     var qchar = ""
     var state = "sigil"

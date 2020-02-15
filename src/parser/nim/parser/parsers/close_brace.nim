@@ -15,7 +15,7 @@ import ../helpers/[error, forward, rollback, brace_checks]
 #
 # @param  {object} S - State object.
 # @return {undefined} - Nothing is returned.
-proc p_closebrace*(S: var State) =
+proc p_closebrace*(S: State) =
     let text = S.text
     var state = "brace"
     var N = node(S, "BRACE")

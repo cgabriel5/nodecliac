@@ -8,7 +8,7 @@ from ../helpers/types import State
 # @param  {object} S - State object.
 # @param  {string} line_type - The line's line type.
 # @return - Nothing is returned.
-proc specificity*(S: var State, line_type: string, parserfile: string) =
+proc specificity*(S: State, line_type: string, parserfile: string) =
     # Note: [Hierarchy lookup table] The higher the number the higher its
     # precedence. Therefore: command > flag > option. Variables, settings,
     # and command chains have the same precedence as they are same-level

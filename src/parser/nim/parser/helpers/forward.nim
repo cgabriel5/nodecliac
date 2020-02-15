@@ -4,6 +4,6 @@ from types import State
 #
 # @param  {object} S - State object.
 # @return - Nothing is returned.
-proc forward*(S: var State) =
+proc forward*(S: State) =
     inc(S.i)
     inc(S.column)

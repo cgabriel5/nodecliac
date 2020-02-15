@@ -9,7 +9,7 @@ from ../helpers/types import State, Node, node
 # @param  {object} N - Node object.
 # @param  {string} check - The check to run.
 # @return - Nothing is returned.
-proc bracechecks*(S: var State, N: Node = Node(), check: string) =
+proc bracechecks*(S: State, N: Node = Node(), check: string) =
     case (check):
         # Note: Error if pre-existing command scope exists.
         # Command can't be declared inside a command scope.

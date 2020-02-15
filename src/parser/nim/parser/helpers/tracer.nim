@@ -4,7 +4,7 @@ from ../helpers/types import State
 # Basic tracing of parsers used for debugging.
 #
 # @return - Nothing is returned.
-proc trace*(S: var State, parser: string) =
+proc trace*(S: State, parser: string) =
     if not S.args.trace: return # Only trace if flag is set.
 
     var msg = ""

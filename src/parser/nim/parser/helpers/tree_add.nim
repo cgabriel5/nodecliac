@@ -7,5 +7,5 @@ from types import State, Node
 # @param  {object} S - State object.
 # @param  {object} N - Node object.
 # @return - Nothing is returned.
-proc add*(S: var State, N: Node) =
+proc add*(S: State, N: Node) =
     S.tables.tree["nodes"].add(N)

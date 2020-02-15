@@ -41,10 +41,10 @@ proc info*(p: string): any =
             fobject.ext = name_parts[^1]
     return fobject
 
-#  Returns file contents.
+# Returns file contents.
 #
-#  @param  {string} p - The path of file to read.
-#  @return {string} - The file contents.
+# @param  {string} p - The path of file to read.
+# @return {string} - The file contents.
 proc read*(p: string): string =
     # Use stream to gulp file contents.
     var strm = openFileStream(p, fmRead)
@@ -53,11 +53,11 @@ proc read*(p: string): string =
         result = strm.readAll()
         strm.close()
 
-#  Writes contents to file.
+# Writes contents to file.
 #
-#  @param  {string} p - The path of file to read.
-#  @param  {contents} contents - The data to write to file.
-#  @return {string} - The file contents.
+# @param  {string} p - The path of file to read.
+# @param  {contents} contents - The data to write to file.
+# @return {string} - The file contents.
 proc write*(p: string, contents: string) =
     var strm = newFileStream(p, fmWrite)
     if not isNil(strm):

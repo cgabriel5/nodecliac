@@ -15,7 +15,6 @@ type
     Tables* = object of RootObj
         variables*: Table[string, string]
         linestarts*: Table[int, int]
-        # tree*: Table[string, Table[string, seq[Node]]]
         tree*: Table[string, seq[Node]]
     Args* = object of RootObj
         action*, source*: string

@@ -4,19 +4,19 @@ type
 
     # State objects.
 
-    State* = object
+    State* = ref object
         line*, column*, i*, l*, specf*, last_line_num*: int
         sol_char*, text*: string
         scopes*: Scopes
         tables*: Tables
         args*: Args
-    Scopes* = object
+    Scopes* = ref object
         command*, flag*: Node # Track command/flag scopes.
-    Tables* = object
+    Tables* = ref object
         variables*: Table[string, string]
         linestarts*: Table[int, int]
         tree*: Table[string, seq[Node]]
-    Args* = object
+    Args* = ref object
         action*, source*: string
         trace*, igc*, test*: bool
         fmt*: tuple[`char`: char, amount: int]
@@ -25,7 +25,7 @@ type
 
     NodeKind* = enum
         comment, newline, setting, variable, command, flag, option, brace
-    Node* = object
+    Node* = ref object
         node*: string
         line*, start*, `end`*: int
 
@@ -51,7 +51,7 @@ type
             singleton*: bool
         of option: bullet*: Branch
         of brace: brace*: Branch
-    Branch* = object
+    Branch* = ref object
         start*, `end`*: int
         value*: string
 
@@ -59,40 +59,92 @@ type
 
 proc state*(action: string, text: string, source: string, fmt: tuple,
     trace: bool, igc: bool, test: bool): State =
+    new(result)
 
     var linestarts = initTable[int, int]()
     var variables = initTable[string, string]()
     var tree = initTable[string, seq[Node]]()
     tree["nodes"] = @[]
 
-    result = State(
-        line: 1,
-        column: 0,
-        i: 0,
-        l: text.len,
-        text: text,
-        sol_char: "", # First non-whitespace char of line.
-        specf: 0, # Default to allow anything initially.
-        scopes: Scopes(), #Scopes(command: Node, flag: Node),
-        tables: Tables(variables: variables, linestarts: linestarts, tree: tree), # Parsing lookup tables.
-        # Arguments/parameters for quick access across parsers.
-        args: Args(action: action, source: source, fmt: fmt, trace: trace, igc: igc, test: test)
-    )
+    result.line = 1
+    result.column = 0
+    result.i = 0
+    result.l = text.len
+    result.text = text
+    result.sol_char = "" # First non-whitespace char of line.
+    result.specf = 0 # Default to allow anything initially.
+    result.scopes = Scopes(command: Node(), flag: Node()) #Scopes(command: Node, flag: Node),
+    result.tables = Tables(variables: variables, linestarts: linestarts, tree: tree) # Parsing lookup tables.
+    # Arguments/parameters for quick access across parsers.
+    result.args = Args(action: action, source: source, fmt: fmt, trace: trace, igc: igc, test: test)
 
 proc node*(S: State, node: string): Node =
+    new(result)
+
     # [https://github.com/nim-lang/Nim/issues/11395]
     # [https://forum.nim-lang.org/t/2799#17448]
     case (node):
-    of "COMMENT": result = Node(kind: comment)
+
+    # Define each Node's props: [https://forum.nim-lang.org/t/4381]
+    # [https://nim-lang.org/docs/manual.html#types-reference-and-pointer-types]
+
+    of "COMMENT":
+        result = Node(kind: comment)
+        result.comment = Branch()
+
     of "NEWLINE": result = Node(kind: newline)
-    of "SETTING": result = Node(kind: setting)
-    of "VARIABLE": result = Node(kind: variable)
-    of "COMMAND": result = Node(kind: command)
-    of "FLAG": result = Node(kind: flag)
-    of "OPTION": result = Node(kind: option)
-    of "BRACE": result = Node(kind: brace)
+
+    of "SETTING":
+        result = Node(kind: setting)
+        result.sigil = Branch()
+        result.name = Branch()
+        result.assignment = Branch()
+        result.value = Branch()
+        result.args = @[]
+
+    of "VARIABLE":
+        result = Node(kind: variable)
+        result.sigil = Branch()
+        result.name = Branch()
+        result.assignment = Branch()
+        result.value = Branch()
+        result.args = @[]
+
+    of "COMMAND":
+        result = Node(kind: command)
+        result.command = Branch()
+        result.name = Branch()
+        result.brackets = Branch()
+        result.assignment = Branch()
+        result.delimiter = Branch()
+        result.value = Branch()
+        result.flags = @[]
+
+    of "FLAG":
+        result = Node(kind: flag)
+        result.hyphens = Branch()
+        result.variable = Branch()
+        result.name = Branch()
+        result.boolean = Branch()
+        result.assignment = Branch()
+        result.multi = Branch()
+        result.brackets = Branch()
+        result.value = Branch()
+        result.keyword = Branch()
+        result.singleton = false
+        result.args = @[]
+
+    of "OPTION":
+        result = Node(kind: option)
+        result.bullet = Branch()
+        result.value = Branch()
+        result.args = @[]
+
+    of "BRACE":
+        result = Node(kind: brace)
+        result.brace = Branch()
 
     result.node = node
     result.line = S.line
     result.start = S.i
-    result.end = -1
+    result.`end` = -1

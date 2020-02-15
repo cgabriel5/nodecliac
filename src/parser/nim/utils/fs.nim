@@ -12,34 +12,30 @@ proc expand_tilde*(p: string): string =
     result = p
     if p[0] == '~': result = os.getEnv("HOME") & p[1 .. p.high]
 
+type FileInfo = ref object
+    name*, dirname*, ext*, path*: string
 
 # Get file path information (i.e. file name and directory path).
 #
 # @param  {string} p - The complete file path.
 # @return {object} - Object containing file path components.
-proc info*(p: string): any =
-    let c = splitFile(p)
+proc info*(p: string): FileInfo =
+    new(result)
 
-    type FileInfo = object
-        name*: string
-        dirname*: string
-        ext*: string
-        path*: string
-
-    var fobject = FileInfo(dirname: c.dir, path: p)
-    let ext = c.ext;
+    let (dir, name, ext) = splitFile(p)
+    result.dirname = dir
+    result.path = p
 
     if ext != "":
-        fobject.name = c.name & ext
-        fobject.ext = ext[1..ext.len-1]
+        result.name = name & ext
+        result.ext = ext[1 .. ext.len-1]
     else:
         let path_parts = p.split(DirSep)
         let name = path_parts[^1]
         let name_parts = name.split(".")
         if name_parts.len > 0:
-            fobject.name = name
-            fobject.ext = name_parts[^1]
-    return fobject
+            result.name = name
+            result.ext = name_parts[^1]
 
 # Returns file contents.
 #

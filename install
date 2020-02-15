@@ -305,8 +305,8 @@ if [[ "$installer" == "binary" ]]; then
 	cp -pr "$outputdir"/src/scripts/. ~/.nodecliac/src/ # [https://askubuntu.com/a/86891]
 
 	# Copy over platform specific nodecliac binary.
-	ncliac_binfilepath="$outputdir/nodecliac/src/parser/nim/nodecliac.$platform"
-	if [[ -f "$ncliac_binfilepath" ]]; then
+	ncliac_binfilepath="$outputdir/src/parser/nim/nodecliac.$platform"
+	if [[ -e "$ncliac_binfilepath" ]]; then
 		cp -pr "$ncliac_binfilepath" ~/.nodecliac/src/bin/
 	fi
 

@@ -10,7 +10,8 @@ from streams import close, readAll, write, newFileStream, openFileStream
 # @resource: [https://nim-lang.org/docs/os.html#expandTilde%2Cstring]
 proc expand_tilde*(p: string): string =
     result = p
-    if p[0] == '~': result = os.getEnv("HOME") & p[1 .. p.high]
+    if p.len == 0: result = ""
+    elif p[0] == '~': result = os.getEnv("HOME") & p[1 .. p.len - 1]
 
 type FileInfo = ref object
     name*, dirname*, ext*, path*: string

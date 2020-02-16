@@ -61,11 +61,25 @@ for f in "$TESTDIR"/acmaps/*.acmap; do
 	# Run with `--test` flag to prevent printing headers/meta information.
 	if [[ "$ACTION" == "parse" ]]; then
 		output_js="$(nodecliac make --source "$f" --test)"
+		if [[ "$output_js" == "["* ]]; then
+			# Remove colors from output: [https://stackoverflow.com/a/54648447]
+			output_js="$(echo "$output_js" | sed $'s,\x1b\\[[0-9;]*[a-zA-Z],,g')"
+		fi
 		output_nim="$("$NIM_BIN" make --source "$f" --test)"
+		if [[ "$output_nim" == "["* ]]; then
+			output_nim="$(echo "$output_nim" | sed $'s,\x1b\\[[0-9;]*[a-zA-Z],,g')"
+		fi
 		if [[ "$output_js" == "$output_nim" ]]; then output="$output_js"; fi
 	else
 		output_js="$(nodecliac format --source "$f" --indent "t:1" --test)"
+		if [[ "$output_js" == "["* ]]; then
+			# Remove colors from output: [https://stackoverflow.com/a/54648447]
+			output_js="$(echo "$output_js" | sed $'s,\x1b\\[[0-9;]*[a-zA-Z],,g')"
+		fi
 		output_nim="$("$NIM_BIN" format --source "$f" --indent "t:1" --test)"
+		if [[ "$output_nim" == "["* ]]; then
+			output_nim="$(echo "$output_nim" | sed $'s,\x1b\\[[0-9;]*[a-zA-Z],,g')"
+		fi
 		if [[ "$output_js" == "$output_nim" ]]; then output="$output_js"; fi
 	fi
 

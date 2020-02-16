@@ -2,6 +2,7 @@
 
 const state = require("./helpers/state.js");
 const error = require("./helpers/error.js");
+const { hasProp } = require("../utils/toolbox.js");
 const formatter = require("./tools/formatter.js");
 const p_newline = require("./parsers/newline.js");
 const linetype = require("./helpers/line-type.js");
@@ -26,7 +27,7 @@ module.exports = (action, text, cmdname, source, fmt, trace, igc, test) => {
 		}
 
 		// Store line start index.
-		if (!linestarts[S.line]) linestarts[S.line] = S.i;
+		if (!hasProp(linestarts, S.line)) linestarts[S.line] = S.i;
 
 		// Start parsing at first non-ws character.
 		if (!S.sol_char && !r_space.test(char)) {

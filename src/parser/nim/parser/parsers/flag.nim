@@ -24,7 +24,7 @@ from ../helpers/patterns import r_nl, r_space, r_letter, r_quote
 # @param  {string} isoneliner - Whether to treat flag as a oneliner.
 # @return {object} - Node object.
 proc p_flag*(S: State, isoneliner: string): Node =
-    var text = S.text
+    let text = S.text
     var state = if text[S.i] == '-': "hyphen" else: "keyword"
     var stop = false # Flag: true - stops parser.
     var `end` = false # Flag: true - ends consuming chars.

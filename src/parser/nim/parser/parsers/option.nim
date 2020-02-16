@@ -16,7 +16,7 @@ import ../helpers/[error, validate, forward, rollback, brace_checks]
 # @param  {object} S - State object.
 # @return {undefined} - Nothing is returned.
 proc p_option*(S: State): Node =
-    var text = S.text
+    let text = S.text
     var state = "bullet"
     var `end` = false # Flag: true - ends consuming chars.
     var `type` = "escaped"

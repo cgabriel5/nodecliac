@@ -150,6 +150,4 @@ proc p_command*(S: State) =
     for n in N.flags: add(S, n)
 
     # If scope is created store ref to Node object.
-    if N.value.value == "[":
-        S.scopes.command = N
-
+    if N.value.value == "[": S.scopes.command = N

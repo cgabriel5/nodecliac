@@ -49,11 +49,14 @@ proc error*(S: State, parserfile: string, code: int = 0) =
     let line = S.line
     let column = S.column
     var source = S.args.source
-    let parser = extractFilename(parserfile).replace(re"\.nim$")
+    var parser = extractFilename(parserfile).replace(re"\.nim$")
 
     # if not code code = 0; # Use default if code doesn't exist.
     # let error = errors[code ? parser : "*"][code];
     let error = if code == 0: errors["*"][code] else: errors[parser][code]
+
+    # Replace '_' to '-' to match JS error.
+    if '_' in parser: parser = parser.replace(re"_", "-")
 
     let pos = fmt"{line}:{column}".chalk("bold", "red")
     let einfo = "[" & "err".chalk("red") & fmt" {parser},{code}" & "]"

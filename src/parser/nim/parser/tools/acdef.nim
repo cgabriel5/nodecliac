@@ -62,16 +62,18 @@ proc acdef*(S: State, cmdname: string): tuple =
     # # else if (a.length > b.length) return 1
     # # else return 0
 
-    type Cobj = object
-            i: int
-            m: int
+    type Cobj = ref object
+            i, m: int
             val: string
 
     proc aobj(s: string): Cobj =
-        result = Cobj(val: s.toLower())
+        new (result)
+        result.val = s.toLower()
 
     proc fobj(s: string): Cobj =
-        result = Cobj(val: s.toLower(), m: s.endsWith("=*").int )
+        new(result)
+        result.val = s.toLower()
+        result.m = s.endsWith("=*").int
 
     proc asort(a, b: Cobj): int =
         if a.val != b.val:

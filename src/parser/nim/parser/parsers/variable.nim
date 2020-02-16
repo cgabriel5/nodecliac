@@ -24,11 +24,11 @@ proc p_variable*(S: State) =
     var state = "sigil"
     var N = node(S, "VARIABLE")
 
-    var `char`: char
+    var `char`: string
     while S.i < S.l:
-        `char` = text[S.i]
+        `char` = $text[S.i]
 
-        if match($`char`, r_nl):
+        if match(`char`, r_nl):
             rollback(S)
             N.`end` = S.i
             break # Stop at nl char.
@@ -41,27 +41,27 @@ proc p_variable*(S: State) =
 
             of "name":
                 if N.name.value == "":
-                    if not match($`char`, r_letter): error(S, currentSourcePath)
+                    if not match(`char`, r_letter): error(S, currentSourcePath)
 
                     N.name.start = S.i
                     N.name.`end` = S.i
-                    N.name.value = $`char`
+                    N.name.value = `char`
                 else:
-                    if match($`char`, re"[-_a-zA-Z]"):
+                    if match(`char`, re"[-_a-zA-Z]"):
                         N.name.`end` = S.i
-                        N.name.value &= $`char`
-                    elif match($`char`, r_space):
+                        N.name.value &= `char`
+                    elif match(`char`, r_space):
                         state = "name-wsb"
                         forward(S)
                         continue
-                    elif $`char` == "=":
+                    elif `char` == "=":
                         state = "assignment"
                         rollback(S)
                     else: error(S, currentSourcePath)
 
             of "name-wsb":
-                if not match($`char`, r_space):
-                    if $`char` == "=":
+                if not match(`char`, r_space):
+                    if `char` == "=":
                         state = "assignment"
                         rollback(S)
                     else: error(S, currentSourcePath)
@@ -69,39 +69,39 @@ proc p_variable*(S: State) =
             of "assignment":
                 N.assignment.start = S.i
                 N.assignment.`end` = S.i
-                N.assignment.value = $`char`
+                N.assignment.value = `char`
                 state = "value-wsb"
 
             of "value-wsb":
-                if not match($`char`, r_space):
+                if not match(`char`, r_space):
                     state = "value"
                     rollback(S)
 
             of "value":
                 if N.value.value == "":
-                    if not match($`char`, re("[\"'a-zA-Z0-9]")): error(S, currentSourcePath)
+                    if not match(`char`, re("[\"'a-zA-Z0-9]")): error(S, currentSourcePath)
 
-                    if match($`char`, r_quote): qchar = $`char`
+                    if match(`char`, r_quote): qchar = `char`
                     N.value.start = S.i
                     N.value.`end` = S.i
-                    N.value.value = $`char`
+                    N.value.value = `char`
                 else:
                     if qchar != "":
-                        let pchar = text[S.i - 1]
+                        let pchar = $text[S.i - 1]
 
-                        if $`char` == qchar and $pchar != "\\": state = "eol-wsb"
+                        if `char` == qchar and pchar != "\\": state = "eol-wsb"
                         N.value.`end` = S.i
-                        N.value.value &= $`char`
+                        N.value.value &= `char`
                     else:
-                        if match($`char`, r_space):
+                        if match(`char`, r_space):
                             state = "eol-wsb"
                             rollback(S)
                         else:
                             N.value.`end` = S.i
-                            N.value.value &= $`char`
+                            N.value.value &= `char`
 
             of "eol-wsb":
-                if not match($`char`, r_space): error(S, currentSourcePath)
+                if not match(`char`, r_space): error(S, currentSourcePath)
 
             else: discard
 

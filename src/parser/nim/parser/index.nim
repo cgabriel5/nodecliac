@@ -12,14 +12,13 @@ proc parser*(action: string, text: string, cmdname: string, source: string,
     var S = state(action, text, source, fmt, trace, igc, test)
     var ltype = ""
 
-    let l = S.l; var `char`, nchar: char
+    let l = S.l; var `char`, nchar: string
     while S.i < S.l:
-        `char` = text[S.i]
-        nchar = if S.i + 1 < l: text[S.i + 1] else: '\0'
-        # [https://stackoverflow.com/a/18410258]
+        `char` = $text[S.i]
+        nchar = if S.i + 1 < l: $text[S.i + 1] else: ""
 
         # Handle newlines.
-        if `char` == '\n':
+        if `char` == "\n":
             p_newline(S)
             forward(S)
             continue
@@ -29,13 +28,13 @@ proc parser*(action: string, text: string, cmdname: string, source: string,
             S.tables.linestarts[S.line] = S.i
 
         # Start parsing at first non-ws character.
-        if S.sol_char == "" and not match($`char`, r_space):
-            S.sol_char = $`char`
+        if S.sol_char == "" and not match(`char`, r_space):
+            S.sol_char = `char`
 
             # Sol char must be allowed.
-            if not match($`char`, r_sol_char): error(S, currentSourcePath, 10)
+            if not match(`char`, r_sol_char): error(S, currentSourcePath, 10)
 
-            ltype = linetype(S, $`char`, $nchar)
+            ltype = linetype(S, `char`, nchar)
             if ltype == "terminator": break
 
             specificity(S, ltype, currentSourcePath)

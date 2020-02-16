@@ -99,19 +99,19 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                 # Ignore starting '$(' and ending ')' when looping.
                 let l = value.len - 1
                 while i < l:
-                    let `char` = value[i]
-                    let pchar = if i - 0 > 0: value[i - 1] else: '\0'
-                    let nchar = if i + 1 < l: value[i + 1] else: '\0'
+                    let `char` = $value[i]
+                    let pchar = if i - 0 > 0: $value[i - 1] else: ""
+                    let nchar = if i + 1 < l: $value[i + 1] else: ""
 
                     if qchar == "":
                         # Look for unescaped quote characters.
-                        if match($`char`, re("[\"']")) and $pchar != "\\":
+                        if match(`char`, re("[\"']")) and pchar != "\\":
                             vsi = resume_index
-                            qchar = $`char`
-                            argument &= $`char`
-                        elif match($`char`, re"[ \t]"): discard
+                            qchar = `char`
+                            argument &= `char`
+                        elif match(`char`, re"[ \t]"): discard
                             # Ignore any whitespace outside of quotes.
-                        elif $`char` == ",":
+                        elif `char` == ",":
                             # Track count of command delimiters.
                             inc(delimiter_count)
                             delimiter_index = i
@@ -121,9 +121,9 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                                 S.column = resumepoint + i
                                 error(S, currentSourcePath, 14)
                         # Look for '$' prefixed strings.
-                        elif $`char` == "$" and match($nchar, re("[\"']")):
+                        elif `char` == "$" and match($nchar, re("[\"']")):
                             qchar = $nchar
-                            argument &= $`char` & $nchar
+                            argument &= `char` & $nchar
                             inc(resume_index)
                             inc(i)
                             vsi = resume_index
@@ -138,9 +138,9 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                             S.column = resumepoint + i
                             error(S, currentSourcePath)
                     else:
-                        argument &= $`char`
+                        argument &= `char`
 
-                        if $`char` == qchar and $pchar != "\\":
+                        if `char` == qchar and pchar != "\\":
                             var tN = tNode(vsi, argument.len - 1, argument)
                             argument = validate(S, tN, "quoted")
                             args.add(argument)
@@ -191,24 +191,24 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                 # Ignore starting '(' and ending ')' when looping.
                 let l = value.len - 1
                 while i < l:
-                    let `char` = value[i]
-                    let pchar = if i - 0 > 0: value[i - 1] else: '\0'
+                    let `char` = $value[i]
+                    let pchar = if i - 0 > 0: $value[i - 1] else: ""
 
                     if mode == "":
                         # Skip unescaped ws delimiters.
-                        if match($`char`, re"[ \t]") and $pchar != "\\":
+                        if match(`char`, re"[ \t]") and pchar != "\\":
                             inc(i); inc(resume_index);
                             continue
 
                         # Set mode depending on the character.
-                        if match($`char`, re("[\"']")) and $pchar != "\\":
+                        if match(`char`, re("[\"']")) and pchar != "\\":
                             vsi = resume_index
                             mode = "quoted"
-                            qchar = $`char`
-                        elif $`char` == "$" and $pchar != "\\":
+                            qchar = `char`
+                        elif `char` == "$" and pchar != "\\":
                             vsi = resume_index
                             mode = "command-flag"
-                        elif not match($`char`, re"[ \t]"):
+                        elif not match(`char`, re"[ \t]"):
                             vsi = resume_index
                             mode = "escaped"
                         # All other characters are invalid so error.
@@ -222,16 +222,16 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                         # Example:
                         # subl.command = --flag=(1234 "ca"t"    $("cat"))
                         # --------------------------------^ Error point.
-                        if args.len != 0 and not match($pchar, re"[ \t]"):
+                        if args.len != 0 and not match(pchar, re"[ \t]"):
                             S.column = resumepoint + i
                             error(S, currentSourcePath)
 
-                        argument &= $`char`
+                        argument &= `char`
                     elif mode != "":
                         if mode == "quoted":
                             # Stop at same-style quote `char`.
-                            if $`char` == qchar and $pchar != "\\":
-                                argument &= $`char`
+                            if `char` == qchar and pchar != "\\":
+                                argument &= `char`
 
                                 let `end` = argument.len - 1
                                 var tN = tNode(vsi, `end`, argument)
@@ -241,11 +241,11 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                                 argument = ""
                                 mode = ""
                                 vsi = 0
-                            else: argument &= $`char`
+                            else: argument &= `char`
                         elif mode == "escaped":
                             # Stop at unescaped ws `char`.
-                            if match($`char`, re"[ \t]") and $pchar != "\\":
-                                # argument &= $`char` # Store character.
+                            if match(`char`, re"[ \t]") and pchar != "\\":
+                                # argument &= `char` # Store character.
 
                                 let `end` = argument.len - 1
                                 var tN = tNode(vsi, `end`, argument)
@@ -255,11 +255,11 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                                 argument = ""
                                 mode = ""
                                 vsi = 0
-                            else: argument &= $`char`
+                            else: argument &= `char`
                         elif mode == "command-flag":
                             # Stop at unescaped ')' char.
-                            if $`char` == ")" and $pchar != "\\":
-                                argument &= $`char`
+                            if `char` == ")" and pchar != "\\":
+                                argument &= `char`
 
                                 let `end` = argument.len - 1
                                 var tN = tNode(vsi, `end`, argument)
@@ -269,7 +269,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                                 argument = ""
                                 mode = ""
                                 vsi = 0
-                            else: argument &= $`char`
+                            else: argument &= `char`
 
                     inc(i); inc(resume_index)
 

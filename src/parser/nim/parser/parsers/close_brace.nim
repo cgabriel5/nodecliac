@@ -20,11 +20,11 @@ proc p_closebrace*(S: State) =
     var state = "brace"
     var N = node(S, "BRACE")
 
-    var `char`: char
+    var `char`: string
     while S.i < S.l:
-        `char` = text[S.i]
+        `char` = $text[S.i]
 
-        if match($`char`, r_nl):
+        if match(`char`, r_nl):
             rollback(S)
             N.`end` = S.i
             break # Stop at nl char.
@@ -33,11 +33,11 @@ proc p_closebrace*(S: State) =
             of "brace":
                 N.brace.start = S.i
                 N.brace.`end` = S.i
-                N.brace.value = $`char`
+                N.brace.value = `char`
                 state = "eol-wsb"
 
             of "eol-wsb":
-                if not match($`char`, r_space): error(S, currentSourcePath)
+                if not match(`char`, r_space): error(S, currentSourcePath)
 
             else: discard
 

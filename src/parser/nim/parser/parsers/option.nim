@@ -25,11 +25,11 @@ proc p_option*(S: State): Node =
     # Error if flag scope doesn't exist.
     bracechecks(S, check = "pre-existing-fs")
 
-    let l = S.l; var `char`: char
+    let l = S.l; var `char`: string
     while S.i < S.l:
-        `char` = text[S.i]
+        `char` = $text[S.i]
 
-        if match($`char`, r_nl):
+        if match(`char`, r_nl):
             rollback(S)
             N.`end` = S.i
             break # Stop at nl char.
@@ -38,44 +38,44 @@ proc p_option*(S: State): Node =
             of "bullet":
                 N.bullet.start = S.i
                 N.bullet.`end` = S.i
-                N.bullet.value = $`char`
+                N.bullet.value = `char`
                 state = "spacer"
 
             of "spacer":
-                if not match($`char`, r_space): error(S, currentSourcePath)
+                if not match(`char`, r_space): error(S, currentSourcePath)
                 state = "wsb-prevalue"
 
             of "wsb-prevalue":
-                if not match($`char`, r_space):
+                if not match(`char`, r_space):
                     rollback(S)
                     state = "value"
 
             of "value":
-                let pchar = if S.i - 1 < l: text[S.i - 1] else: '\0'
+                let pchar = if S.i - 1 < l: $text[S.i - 1] else: ""
 
                 if N.value.value == "":
                     # Determine value type.
-                    if $`char` == "$": `type` = "command-flag"
-                    elif $`char` == "(": `type` = "list"
-                    elif match($`char`, r_quote): `type` = "quoted"
+                    if `char` == "$": `type` = "command-flag"
+                    elif `char` == "(": `type` = "list"
+                    elif match(`char`, r_quote): `type` = "quoted"
 
                     N.value.start = S.i
                     N.value.`end` = S.i
-                    N.value.value = $`char`
+                    N.value.value = `char`
                 else:
                     # If flag is set and chars can still be consumed
                     # then there is a syntax error. For example, string
                     # may be improperly quoted/escaped so error.
                     if `end`: error(S, currentSourcePath)
 
-                    let isescaped = $pchar != "\\"
+                    let isescaped = pchar != "\\"
                     if `type` == "escaped":
-                        if match($`char`, r_space) and isescaped: `end` = true
+                        if match(`char`, r_space) and isescaped: `end` = true
                     elif `type` == "quoted":
                         let vfchar = N.value.value[0]
-                        if $`char` == $vfchar and isescaped: `end` = true
+                        if `char` == $vfchar and isescaped: `end` = true
                     N.value.`end` = S.i
-                    N.value.value &= $`char`
+                    N.value.value &= `char`
 
             else: discard
 

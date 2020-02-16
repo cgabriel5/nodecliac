@@ -18,11 +18,11 @@ proc p_comment*(S: State) =
     var N = node(S, "COMMENT")
     N.comment.start = S.i
 
-    var `char`: char
+    var `char`: string
     while S.i < S.l:
-        `char` = text[S.i]
+        `char` = $text[S.i]
 
-        if match($`char`, r_nl):
+        if match(`char`, r_nl):
             rollback(S)
             N.`end` = S.i
             break # Stop at nl char.

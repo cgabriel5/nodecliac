@@ -67,7 +67,7 @@ proc state*(action: string, text: string, source: string, fmt: tuple,
     tree["nodes"] = @[]
 
     result.line = 1
-    result.column = 0
+    result.column = 1
     result.i = 0
     result.l = text.len
     result.text = text

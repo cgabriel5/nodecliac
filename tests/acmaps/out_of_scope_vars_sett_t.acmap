@@ -1,0 +1,15 @@
+# Out of scope variable interpolation.
+
+program = [
+	# Settings/variables best placed at top
+	# but allowed in scope.
+	@placehold = true
+	$var = "value"
+	--help=(
+		- option
+		- "${var}"
+	)
+]
+
+# Variable still works even when declared inside a scope.
+program.command = --flag="Will still interpolate: ${var}"

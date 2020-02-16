@@ -1,0 +1,6 @@
+		- option
+		# ^Line should error.
+program = [
+	--help=(
+	)
+]

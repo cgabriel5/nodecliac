@@ -1,0 +1,4 @@
+ --help=|--help="value"|--help=option
+.command --flag=|--flag="Will still interpolate: value"
+
+@placehold = true

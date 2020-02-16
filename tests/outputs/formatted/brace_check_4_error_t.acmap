@@ -1,0 +1,1 @@
+[err brace-checks,13] ...tests/acmaps/brace_check_4_error_t.acmap:3:3 — Flag option declared out of scope

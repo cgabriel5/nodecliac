@@ -153,4 +153,3 @@ proc p_command*(S: State) =
     if N.value.value == "[":
         S.scopes.command = N
 
-    # return N

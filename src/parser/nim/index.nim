@@ -50,7 +50,7 @@ if not existsFile(source):
     echo "Path " & source.chalk("bold") & " doesn't exist."
     exit()
 
-let res = read(source)
+var res = read(source);shallow(res)
 let pres = parser(action, res, cmdname, source, fmtinfo, trace, igc, test)
 let acdef = pres.acdef
 let config = pres.config

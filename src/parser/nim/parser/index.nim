@@ -1,9 +1,8 @@
-from re import match
 from tables import `[]=`, `[]`, hasKey, `$`
 
 import tools/[acdef, formatter]
 from helpers/types import state
-from helpers/patterns import r_space, r_sol_char
+from helpers/patterns import c_nl, c_spaces, c_sol_chars
 import helpers/[brace_checks, error, linetype, specificity, tracer, rollback, forward]
 import parsers/[comment, newline, setting, variable, command, flag, option, close_brace]
 
@@ -12,13 +11,13 @@ proc parser*(action: string, text: string, cmdname: string, source: string,
     var S = state(action, text, source, fmt, trace, igc, test)
     var ltype = ""
 
-    let l = S.l; var `char`, nchar: string
+    let l = S.l; var `char`, nchar: char
     while S.i < S.l:
-        `char` = $text[S.i]
-        nchar = if S.i + 1 < l: $text[S.i + 1] else: ""
+        `char` = text[S.i]
+        nchar = if S.i + 1 < l: text[S.i + 1] else: '\0'
 
         # Handle newlines.
-        if `char` == "\n":
+        if `char` in c_nl:
             p_newline(S)
             forward(S)
             continue
@@ -28,11 +27,11 @@ proc parser*(action: string, text: string, cmdname: string, source: string,
             S.tables.linestarts[S.line] = S.i
 
         # Start parsing at first non-ws character.
-        if S.sol_char == "" and not match(`char`, r_space):
+        if S.sol_char == '\0' and `char` notin c_spaces:
             S.sol_char = `char`
 
             # Sol char must be allowed.
-            if not match(`char`, r_sol_char): error(S, currentSourcePath, 10)
+            if `char` notin c_sol_chars: error(S, currentSourcePath, 10)
 
             ltype = linetype(S, `char`, nchar)
             if ltype == "terminator": break

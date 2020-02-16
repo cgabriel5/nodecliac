@@ -6,7 +6,8 @@ type
 
     State* = ref object
         line*, column*, i*, l*, specf*, last_line_num*: int
-        sol_char*, text*: string
+        sol_char*: char
+        text*: string
         scopes*: Scopes
         tables*: Tables
         args*: Args
@@ -71,7 +72,7 @@ proc state*(action: string, text: string, source: string, fmt: tuple,
     result.i = 0
     result.l = text.len
     result.text = text
-    result.sol_char = "" # First non-whitespace char of line.
+    result.sol_char = '\0' # First non-whitespace char of line.
     result.specf = 0 # Default to allow anything initially.
     result.scopes = Scopes(command: Node(), flag: Node()) #Scopes(command: Node, flag: Node),
     result.tables = Tables(variables: variables, linestarts: linestarts, tree: tree) # Parsing lookup tables.

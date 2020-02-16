@@ -1,9 +1,9 @@
-from strutils import join, replace, find
-from re import re, match, replace, findAll
+from strutils import join, replace, find, startsWith, endsWith
+from re import re, replace, findAll
 from tables import toTable, hasKey, initTable, `[]=`, `[]`, `$`
 
 import error
-from patterns import r_quote
+from patterns import c_quotes, c_spaces
 from types import State, Node, Branch
 
 # Validates string and interpolates its variables.
@@ -21,10 +21,10 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
     # Determine type if not provided.
     if `type` == "":
         `type` = "escaped"
-        let `char` = $value[0]
-        if `char` == "$": `type` = "command-flag"
-        elif `char` == "(": `type` = "list"
-        elif match(`char`, r_quote): `type` = "quoted"
+        let `char` = value[0]
+        if `char` == '$': `type` = "command-flag"
+        elif `char` == '(': `type` = "list"
+        elif `char` in c_quotes: `type` = "quoted"
 
     # Get column index to resume error checks at.
     var resumepoint = N.value.start - S.tables.linestarts[S.line]
@@ -38,14 +38,18 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
 
     case (`type`):
         of "quoted":
-                # Error if improperly quoted.
-                if not match(value, re("^\\$?(\"|').*?\\1$")):
-                    S.column = resumepoint
-                    error(S, currentSourcePath, 10)
-                # Error it string is empty.
-                if match(value, re("^(\"|')\\1$")):
-                    S.column = resumepoint
-                    error(S, currentSourcePath, 11)
+                let fchar = if value[0] == '$': value[1] else: value[0]
+                let isquoted = fchar in c_quotes
+                let lchar = value[^1]
+                if isquoted:
+                    # Error if improperly quoted.
+                    if lchar != fchar:
+                        S.column = resumepoint
+                        error(S, currentSourcePath, 10)
+                    # Error it string is empty.
+                    if lchar == fchar and value.len == 2:
+                        S.column = resumepoint
+                        error(S, currentSourcePath, 11)
 
                 # Interpolate variables.
                 let r = re"(?<!\\)\$\{\s*[^}]*\s*\}"
@@ -79,17 +83,17 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
             N.args = @[value]
         of "command-flag":
                 # Error if command-flag doesn't start with '$('.
-                if not match(value, re"^\$\("):
+                if not value.startsWith("$("):
                     S.column = resumepoint + 1
                     error(S, currentSourcePath, 13)
                 # Error if command-flag doesn't end with ')'.
-                if not match(value, re"\)$", start=value.high):
+                if not value.endsWith(')'):
                     S.column = resumepoint + value.len - 1
                     error(S, currentSourcePath, 13)
 
                 var argument = ""
                 var args: seq[string] = @[]
-                var qchar = ""
+                var qchar: char
                 var delimiter_count = 0
                 var delimiter_index = -1
                 var i = 2 # Offset to account for '$('.
@@ -99,19 +103,19 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                 # Ignore starting '$(' and ending ')' when looping.
                 let l = value.len - 1
                 while i < l:
-                    let `char` = $value[i]
-                    let pchar = if i - 0 > 0: $value[i - 1] else: ""
-                    let nchar = if i + 1 < l: $value[i + 1] else: ""
+                    let `char` = value[i]
+                    let pchar = if i - 0 > 0: value[i - 1] else: '\0'
+                    let nchar = if i + 1 < l: value[i + 1] else: '\0'
 
-                    if qchar == "":
+                    if qchar == '\0':
                         # Look for unescaped quote characters.
-                        if match(`char`, re("[\"']")) and pchar != "\\":
+                        if `char` in c_quotes and pchar != '\\':
                             vsi = resume_index
                             qchar = `char`
-                            argument &= `char`
-                        elif match(`char`, re"[ \t]"): discard
+                            argument &= $`char`
+                        elif `char` in c_spaces: discard
                             # Ignore any whitespace outside of quotes.
-                        elif `char` == ",":
+                        elif `char` == ',':
                             # Track count of command delimiters.
                             inc(delimiter_count)
                             delimiter_index = i
@@ -121,9 +125,9 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                                 S.column = resumepoint + i
                                 error(S, currentSourcePath, 14)
                         # Look for '$' prefixed strings.
-                        elif `char` == "$" and match($nchar, re("[\"']")):
-                            qchar = $nchar
-                            argument &= `char` & $nchar
+                        elif `char` == '$' and nchar in c_quotes:
+                            qchar = nchar
+                            argument &= $`char` & $nchar
                             inc(resume_index)
                             inc(i)
                             vsi = resume_index
@@ -138,15 +142,15 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                             S.column = resumepoint + i
                             error(S, currentSourcePath)
                     else:
-                        argument &= `char`
+                        argument &= $`char`
 
-                        if `char` == qchar and pchar != "\\":
+                        if `char` == qchar and pchar != '\\':
                             var tN = tNode(vsi, argument.len - 1, argument)
                             argument = validate(S, tN, "quoted")
                             args.add(argument)
 
                             argument = ""
-                            qchar = ""
+                            qchar = '\0'
                             delimiter_index = -1
                             delimiter_count = 0
 
@@ -172,17 +176,17 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
 
         of "list":
                 # Error if list doesn't start with '('.
-                if not match(value, re"^\("):
+                if not value.startsWith("("):
                     S.column = resumepoint
                     error(S, currentSourcePath, 15)
                 # Error if command-flag doesn't end with ')'.
-                if not match(value, re"\)$", start=value.high):
+                if not value.endsWith(')'):
                     S.column = resumepoint + value.len - 1
                     error(S, currentSourcePath, 15)
 
                 var argument = ""
                 var args: seq[string] = @[]
-                var qchar = ""
+                var qchar: char
                 var mode = ""
                 var i = 1 # Offset to account for '('.
                 var resume_index = N.value.start + i
@@ -191,24 +195,24 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                 # Ignore starting '(' and ending ')' when looping.
                 let l = value.len - 1
                 while i < l:
-                    let `char` = $value[i]
-                    let pchar = if i - 0 > 0: $value[i - 1] else: ""
+                    let `char` = value[i]
+                    let pchar = if i - 0 > 0: value[i - 1] else: '\0'
 
                     if mode == "":
                         # Skip unescaped ws delimiters.
-                        if match(`char`, re"[ \t]") and pchar != "\\":
+                        if `char` in c_spaces and pchar != '\\':
                             inc(i); inc(resume_index);
                             continue
 
                         # Set mode depending on the character.
-                        if match(`char`, re("[\"']")) and pchar != "\\":
+                        if `char` in c_quotes and pchar != '\\':
                             vsi = resume_index
                             mode = "quoted"
                             qchar = `char`
-                        elif `char` == "$" and pchar != "\\":
+                        elif `char` == '$' and pchar != '\\':
                             vsi = resume_index
                             mode = "command-flag"
-                        elif not match(`char`, re"[ \t]"):
+                        elif `char` notin c_spaces:
                             vsi = resume_index
                             mode = "escaped"
                         # All other characters are invalid so error.
@@ -222,16 +226,16 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                         # Example:
                         # subl.command = --flag=(1234 "ca"t"    $("cat"))
                         # --------------------------------^ Error point.
-                        if args.len != 0 and not match(pchar, re"[ \t]"):
+                        if args.len != 0 and pchar notin c_spaces:
                             S.column = resumepoint + i
                             error(S, currentSourcePath)
 
-                        argument &= `char`
+                        argument &= $`char`
                     elif mode != "":
                         if mode == "quoted":
-                            # Stop at same-style quote `char`.
-                            if `char` == qchar and pchar != "\\":
-                                argument &= `char`
+                            # Stop at same-style quote char.
+                            if `char` == qchar and pchar != '\\':
+                                argument &= $`char`
 
                                 let `end` = argument.len - 1
                                 var tN = tNode(vsi, `end`, argument)
@@ -241,11 +245,11 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                                 argument = ""
                                 mode = ""
                                 vsi = 0
-                            else: argument &= `char`
+                            else: argument &= $`char`
                         elif mode == "escaped":
-                            # Stop at unescaped ws `char`.
-                            if match(`char`, re"[ \t]") and pchar != "\\":
-                                # argument &= `char` # Store character.
+                            # Stop at unescaped ws char.
+                            if `char` in c_spaces and pchar != '\\':
+                                # argument &= $`char` # Store character.
 
                                 let `end` = argument.len - 1
                                 var tN = tNode(vsi, `end`, argument)
@@ -255,11 +259,11 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                                 argument = ""
                                 mode = ""
                                 vsi = 0
-                            else: argument &= `char`
+                            else: argument &= $`char`
                         elif mode == "command-flag":
                             # Stop at unescaped ')' char.
-                            if `char` == ")" and pchar != "\\":
-                                argument &= `char`
+                            if `char` == ')' and pchar != '\\':
+                                argument &= $`char`
 
                                 let `end` = argument.len - 1
                                 var tN = tNode(vsi, `end`, argument)
@@ -269,7 +273,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                                 argument = ""
                                 mode = ""
                                 vsi = 0
-                            else: argument &= `char`
+                            else: argument &= $`char`
 
                     inc(i); inc(resume_index)
 

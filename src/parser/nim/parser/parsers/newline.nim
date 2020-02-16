@@ -16,6 +16,6 @@ proc p_newline*(S: State) =
 
     S.line = S.line + 1
     S.column = 0
-    S.sol_char = ""
+    S.sol_char = '\0'
 
     add(S, N)

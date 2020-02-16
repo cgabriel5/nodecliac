@@ -1,8 +1,6 @@
-from re import match
-
 from ../helpers/tree_add import add
 from ../helpers/types import State, node
-from ../helpers/patterns import r_nl, r_space
+from ../helpers/patterns import c_nl, c_spaces
 import ../helpers/[error, forward, rollback, brace_checks]
 
 # ------------------------------------------------------------ Parsing Breakdown
@@ -20,11 +18,11 @@ proc p_closebrace*(S: State) =
     var state = "brace"
     var N = node(S, "BRACE")
 
-    var `char`: string
+    var `char`: char
     while S.i < S.l:
-        `char` = $text[S.i]
+        `char` = text[S.i]
 
-        if match(`char`, r_nl):
+        if `char` in c_nl:
             rollback(S)
             N.`end` = S.i
             break # Stop at nl char.
@@ -33,11 +31,11 @@ proc p_closebrace*(S: State) =
             of "brace":
                 N.brace.start = S.i
                 N.brace.`end` = S.i
-                N.brace.value = `char`
+                N.brace.value = $`char`
                 state = "eol-wsb"
 
             of "eol-wsb":
-                if not match(`char`, r_space): error(S, currentSourcePath)
+                if `char` notin c_spaces: error(S, currentSourcePath)
 
             else: discard
 

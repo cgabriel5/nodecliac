@@ -1,9 +1,8 @@
-from re import re, match
-
 from ../helpers/tree_add import add
 from ../helpers/types import State, node
 import ../helpers/[error, validate, forward, rollback]
-from ../helpers/patterns import r_nl, r_space, r_letter, r_quote
+from ../helpers/patterns import
+    c_nl, c_letters, c_setting_chars, c_spaces, c_quotes, c_setting_value
 
 # ------------------------------------------------------------ Parsing Breakdown
 # @setting = true
@@ -19,15 +18,15 @@ from ../helpers/patterns import r_nl, r_space, r_letter, r_quote
 # @return - Nothing is returned.
 proc p_setting*(S: State) =
     let text = S.text
-    var qchar = ""
+    var qchar: char
     var state = "sigil"
     var N = node(S, "SETTING")
 
-    var `char`: string
+    var `char`: char
     while S.i < S.l:
-        `char` = $text[S.i]
+        `char` = text[S.i]
 
-        if match(`char`, r_nl):
+        if `char` in c_nl:
             rollback(S)
             N.`end` = S.i
             break # Stop at nl char.
@@ -40,27 +39,27 @@ proc p_setting*(S: State) =
 
             of "name":
                 if N.name.value == "":
-                    if not match(`char`, r_letter): error(S, currentSourcePath)
+                    if `char` notin c_letters: error(S, currentSourcePath)
 
                     N.name.start = S.i
                     N.name.`end` = S.i
-                    N.name.value = `char`
+                    N.name.value = $`char`
                 else:
-                    if match(`char`, re"[-_a-zA-Z]"):
+                    if `char` in c_setting_chars:
                         N.name.`end` = S.i
-                        N.name.value &= `char`
-                    elif match(`char`, r_space):
+                        N.name.value &= $`char`
+                    elif `char` in c_spaces:
                         state = "name-wsb"
                         forward(S)
                         continue
-                    elif `char` == "=":
+                    elif `char` == '=':
                         state = "assignment"
                         rollback(S)
                     else: error(S, currentSourcePath)
 
             of "name-wsb":
-                if not match(`char`, r_space):
-                    if `char` == "=":
+                if `char` notin c_spaces:
+                    if `char` == '=':
                         state = "assignment"
                         rollback(S)
                     else: error(S, currentSourcePath)
@@ -68,39 +67,39 @@ proc p_setting*(S: State) =
             of "assignment":
                 N.assignment.start = S.i
                 N.assignment.`end` = S.i
-                N.assignment.value = `char`
+                N.assignment.value = $`char`
                 state = "value-wsb"
 
             of "value-wsb":
-                if not match(`char`, r_space):
+                if `char` notin c_spaces:
                     state = "value"
                     rollback(S)
 
             of "value":
                 if N.value.value == "":
-                    if not match(`char`, re("[\"'a-zA-Z0-9]")): error(S, currentSourcePath)
+                    if `char` notin c_setting_value: error(S, currentSourcePath)
 
-                    if match(`char`, r_quote): qchar = `char`
+                    if `char` in c_quotes: qchar = `char`
                     N.value.start = S.i
                     N.value.`end` = S.i
-                    N.value.value = `char`
+                    N.value.value = $`char`
                 else:
-                    if qchar != "":
-                        let pchar = $text[S.i - 1]
+                    if qchar != '\0':
+                        let pchar = text[S.i - 1]
 
-                        if `char` == qchar and pchar != "\\": state = "eol-wsb"
+                        if `char` == qchar and pchar != '\\': state = "eol-wsb"
                         N.value.`end` = S.i
-                        N.value.value &= `char`
+                        N.value.value &= $`char`
                     else:
-                        if match(`char`, r_space):
+                        if `char` in c_spaces:
                             state = "eol-wsb"
                             rollback(S)
                         else:
                             N.value.`end` = S.i
-                            N.value.value &= `char`
+                            N.value.value &= $`char`
 
             of "eol-wsb":
-                if not match(`char`, r_space): error(S, currentSourcePath)
+                if `char` notin c_spaces: error(S, currentSourcePath)
 
             else: discard
 

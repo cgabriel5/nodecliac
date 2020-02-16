@@ -1,10 +1,9 @@
-from re import re, match
-
 import flag
 from ../helpers/tree_add import add
-from ../helpers/patterns import r_nl, r_space
 from ../helpers/types import State, Node, node
 import ../helpers/[error, tracer, forward, rollback, brace_checks]
+from ../helpers/patterns import c_nl, c_spaces, c_command_fchars,
+    c_command_chars, c_command_vchars
 
 # ------------------------------------------------------------ Parsing Breakdown
 # program.command
@@ -33,11 +32,11 @@ proc p_command*(S: State) =
     # Error if cc scope exists (brace not closed).
     bracechecks(S, check = "pre-existing-cs")
 
-    let l = S.l; var `char`: string
+    let l = S.l; var `char`: char
     while S.i < S.l:
-        `char` = $text[S.i]
+        `char` = text[S.i]
 
-        if match(`char`, r_nl):
+        if `char` in c_nl:
             rollback(S)
             N.`end` = S.i
             break # Stop at nl char.
@@ -45,51 +44,51 @@ proc p_command*(S: State) =
         case (state):
             of "command":
                 if N.command.value == "":
-                    if not match(`char`, re("[:a-zA-Z]")): error(S, currentSourcePath)
+                    if `char` notin c_command_fchars : error(S, currentSourcePath)
 
                     N.command.start = S.i
                     N.command.`end` = S.i
-                    N.command.value &= `char`
+                    N.command.value &= $`char`
                 else:
-                    if match(`char`, re"[-_.:+\\/a-zA-Z0-9]"):
+                    if `char` in c_command_chars:
                         N.command.`end` = S.i
-                        N.command.value &= `char`
+                        N.command.value &= $`char`
 
                         # Note: When escaping anything but a dot do not
                         # include the '\' as it is not needed. For example,
                         # if the command is 'com\mand\.name' we should return
                         # 'command\.name' and not 'com\mand\.name'.
-                        if `char` == "\\":
-                            let nchar = if S.i + 1 < l: $text[S.i + 1] else: ""
+                        if `char` == '\\':
+                            let nchar = if S.i + 1 < l: text[S.i + 1] else: '\0'
 
                             # nchar must exist else escaping nothing.
-                            if nchar == "": error(S, currentSourcePath, 10)
+                            if nchar == '\0': error(S, currentSourcePath, 10)
 
                             # Only dots can be escaped.
-                            if nchar != ".":
+                            if nchar != '.':
                                 error(S, currentSourcePath, 10)
 
                                 # Remove last escape char as it isn't needed.
                                 let command = N.command.value[0 .. ^2]
                                 N.command.value = command
-                    elif match(`char`, r_space):
+                    elif `char` in c_spaces:
                         state = "chain-wsb"
                         forward(S)
                         continue
-                    elif `char` == "=":
+                    elif `char` == '=':
                         state = "assignment"
                         rollback(S)
-                    elif `char` == ",":
+                    elif `char` == ',':
                         state = "delimiter"
                         rollback(S)
                     else: error(S, currentSourcePath)
 
             of "chain-wsb":
-                if not match(`char`, r_space):
-                    if `char` == "=":
+                if `char` notin c_spaces:
+                    if `char` == '=':
                         state = "assignment"
                         rollback(S)
-                    elif `char` == ",":
+                    elif `char` == ',':
                         state = "delimiter"
                         rollback(S)
                     else: error(S, currentSourcePath)
@@ -97,42 +96,42 @@ proc p_command*(S: State) =
             of "assignment":
                 N.assignment.start = S.i
                 N.assignment.`end` = S.i
-                N.assignment.value = `char`
+                N.assignment.value = $`char`
                 state = "value-wsb"
 
             of "delimiter":
                 N.delimiter.start = S.i
                 N.delimiter.`end` = S.i
-                N.delimiter.value = `char`
+                N.delimiter.value = $`char`
                 state = "eol-wsb"
 
             of "value-wsb":
-                if not match(`char`, r_space):
+                if `char` notin c_spaces:
                     state = "value"
                     rollback(S)
 
             of "value":
                 # Note: Intermediary step - remove it?
-                if not match(`char`, re"[-d[]"): error(S, currentSourcePath)
-                state = if `char` == "[": "open-bracket" else: "oneliner"
+                if `char` notin c_command_vchars: error(S, currentSourcePath)
+                state = if `char` == '[': "open-bracket" else: "oneliner"
                 rollback(S)
 
             of "open-bracket":
                 # Note: Intermediary step - remove it?
                 N.brackets.start = S.i
-                N.brackets.value = `char`
-                N.value.value = `char`
+                N.brackets.value = $`char`
+                N.value.value = $`char`
                 state = "open-bracket-wsb"
 
             of "open-bracket-wsb":
-                if not match(`char`, r_space):
+                if `char` notin c_spaces:
                     state = "close-bracket"
                     rollback(S)
 
             of "close-bracket":
-                if `char` != "]": error(S, currentSourcePath)
+                if `char` != ']': error(S, currentSourcePath)
                 N.brackets.`end` = S.i
-                N.value.value &= `char`
+                N.value.value &= $`char`
                 state = "eol-wsb"
 
             of "oneliner":
@@ -140,7 +139,7 @@ proc p_command*(S: State) =
                 N.flags.add(p_flag(S, "oneliner"))
 
             of "eol-wsb":
-                if not match(`char`, r_space): error(S, currentSourcePath)
+                if `char` notin c_spaces: error(S, currentSourcePath)
 
             else: discard
 

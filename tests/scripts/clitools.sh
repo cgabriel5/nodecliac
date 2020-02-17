@@ -53,11 +53,18 @@ if [[ "$STAGED_FILES" != *"src/"* && $(notset "$FORCE") ]]; then
 	if [[ $(notset "$FORCE") ]]; then exit 0; fi # Exit if not forced.
 fi
 
+# Delete existing log files.
+logpath="$TESTDIR/$output_path/logs"
+if [[ -e "$logpath" ]]; then rm -rf "$logpath"; fi
+
+decor="==============="
+
 for f in "$TESTDIR"/acmaps/*.acmap; do
 	((files_count++))
 
 	forg="$f"
 	output=""
+	log=""
 	# Run with `--test` flag to prevent printing headers/meta information.
 	if [[ "$ACTION" == "parse" ]]; then
 		output_js="$(nodecliac make --source "$f" --test)"
@@ -69,7 +76,22 @@ for f in "$TESTDIR"/acmaps/*.acmap; do
 		if [[ "$output_nim" == "["* ]]; then
 			output_nim="$(echo "$output_nim" | sed $'s,\x1b\\[[0-9;]*[a-zA-Z],,g')"
 		fi
-		if [[ "$output_js" == "$output_nim" ]]; then output="$output_js"; fi
+		if [[ "$output_js" == "$output_nim" ]]; then
+			output="$output_js"
+		else
+			log="true"
+			output=" -:- parsing -:-\n\n"
+			output+="# $decor <JS $decor\n"
+			output+="$output_js"
+			output+="\n#\n\n"
+			output+="# $decor >Nim $decor\n"
+			output+="$output_nim"
+			output+="\n#"
+			# [https://stackoverflow.com/a/454549]
+			# [https://linuxconfig.org/add-character-to-the-beginning-of-each-line-using-sed]
+			diffoutput="$(diff  <(echo "$output_js" ) <(echo "$output_nim") | sed 's/^/# /')"
+			output+="\n\n# $decor DIFF $decor\n$diffoutput"
+		fi
 	else
 		output_js="$(nodecliac format --source "$f" --indent "t:1" --test)"
 		if [[ "$output_js" == "["* ]]; then
@@ -80,7 +102,20 @@ for f in "$TESTDIR"/acmaps/*.acmap; do
 		if [[ "$output_nim" == "["* ]]; then
 			output_nim="$(echo "$output_nim" | sed $'s,\x1b\\[[0-9;]*[a-zA-Z],,g')"
 		fi
-		if [[ "$output_js" == "$output_nim" ]]; then output="$output_js"; fi
+		if [[ "$output_js" == "$output_nim" ]]; then
+			output="$output_js"
+		else
+			log="true"
+			output=" -:- formatting -:-\n\n"
+			output+="# $decor <JS $decor\n"
+			output+="$output_js"
+			output+="\n#\n\n"
+			output+="# $decor >Nim $decor\n"
+			output+="$output_nim"
+			output+="\n#"
+			diffoutput="$(diff  <(echo "$output_js" ) <(echo "$output_nim") | sed 's/^/# /')"
+			output+="\n\n# $decor DIFF $decor\n$diffoutput"
+		fi
 	fi
 
 	# Get basename from file path.
@@ -103,6 +138,12 @@ for f in "$TESTDIR"/acmaps/*.acmap; do
 	# The output file path.
 	foutput="$TESTDIR/$output_path/$f.$EXTENSION"
 
+	# Create log files if tests fail.
+	if [[ "$log" == "true" ]]; then
+		mkdir -p "$logpath"
+		echo -e "$output" > "$logpath/$f.$EXTENSION"
+	fi
+	
 	# If output folder is not yet populated, populate it.
 	if [[ ! -e "$foutput" ]]; then
 		echo "$output" >> "$foutput"

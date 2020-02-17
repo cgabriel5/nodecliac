@@ -3,7 +3,7 @@ from ../helpers/tree_add import add
 from ../helpers/types import State, Node, node
 import ../helpers/[error, tracer, forward, rollback, brace_checks]
 from ../helpers/patterns import C_NL, C_SPACES,
-    C_CMD_IDENT_START_CHARS, C_CMD_IDENT_CHARS, C_CMD_VALUE_CHARS
+    C_CMD_IDENT_START, C_CMD_IDENT, C_CMD_VALUE
 
 # ------------------------------------------------------------ Parsing Breakdown
 # program.command
@@ -44,13 +44,13 @@ proc p_command*(S: State) =
         case (state):
             of "command":
                 if N.command.value == "":
-                    if `char` notin C_CMD_IDENT_START_CHARS : error(S, currentSourcePath)
+                    if `char` notin C_CMD_IDENT_START : error(S, currentSourcePath)
 
                     N.command.start = S.i
                     N.command.`end` = S.i
                     N.command.value &= $`char`
                 else:
-                    if `char` in C_CMD_IDENT_CHARS:
+                    if `char` in C_CMD_IDENT:
                         N.command.`end` = S.i
                         N.command.value &= $`char`
 
@@ -112,7 +112,7 @@ proc p_command*(S: State) =
 
             of "value":
                 # Note: Intermediary step - remove it?
-                if `char` notin C_CMD_VALUE_CHARS: error(S, currentSourcePath)
+                if `char` notin C_CMD_VALUE: error(S, currentSourcePath)
                 state = if `char` == '[': "open-bracket" else: "oneliner"
                 rollback(S)
 

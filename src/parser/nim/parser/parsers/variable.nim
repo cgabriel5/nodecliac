@@ -4,7 +4,7 @@ from ../helpers/tree_add import add
 from ../helpers/types import State, node
 import ../helpers/[error, validate, forward, rollback]
 from ../helpers/patterns import C_NL, C_LETTERS, C_SPACES, C_QUOTES,
-    C_VAR_IDENT_CHARS, C_VAR_VALUE_CHARS
+    C_VAR_IDENT, C_VAR_VALUE
 
 # ------------------------------------------------------------ Parsing Breakdown
 # $variable = "value"
@@ -47,7 +47,7 @@ proc p_variable*(S: State) =
                     N.name.`end` = S.i
                     N.name.value = $`char`
                 else:
-                    if `char` in C_VAR_IDENT_CHARS:
+                    if `char` in C_VAR_IDENT:
                         N.name.`end` = S.i
                         N.name.value &= $`char`
                     elif `char` in C_SPACES:
@@ -79,7 +79,7 @@ proc p_variable*(S: State) =
 
             of "value":
                 if N.value.value == "":
-                    if `char` notin C_VAR_VALUE_CHARS: error(S, currentSourcePath)
+                    if `char` notin C_VAR_VALUE: error(S, currentSourcePath)
 
                     if `char` in C_QUOTES: qchar = `char`
                     N.value.start = S.i

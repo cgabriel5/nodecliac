@@ -2,7 +2,7 @@ from tables import `[]=`, `[]`, hasKey, `$`
 
 import tools/[acdef, formatter]
 from helpers/types import state
-from helpers/patterns import C_NL, C_SPACES, C_SOL_CHARS
+from helpers/patterns import C_NL, C_SPACES, C_SOL
 import helpers/[brace_checks, error, linetype, specificity, tracer, rollback, forward]
 import parsers/[comment, newline, setting, variable, command, flag, option, close_brace]
 
@@ -31,7 +31,7 @@ proc parser*(action: string, text: string, cmdname: string, source: string,
             S.sol_char = `char`
 
             # Sol char must be allowed.
-            if `char` notin C_SOL_CHARS: error(S, currentSourcePath, 10)
+            if `char` notin C_SOL: error(S, currentSourcePath, 10)
 
             ltype = linetype(S, `char`, nchar)
             if ltype == "terminator": break

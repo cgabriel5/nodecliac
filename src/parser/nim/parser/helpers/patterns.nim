@@ -1,6 +1,5 @@
 from strutils import Digits, Letters, Newlines
 
-# Start-of-line characters.
 const C_NL* = Newlines
 const C_LETTERS* = Letters
 const C_QUOTES* = {'"', '\''}

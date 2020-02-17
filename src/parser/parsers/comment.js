@@ -3,7 +3,7 @@
 const node = require("../helpers/nodes.js");
 const add = require("../helpers/tree-add.js");
 const rollback = require("../helpers/rollback.js");
-const { r_nl } = require("../helpers/patterns.js");
+const { cin, C_NL } = require("../helpers/patterns.js");
 
 /**
  * ----------------------------------------------------------- Parsing Breakdown
@@ -23,7 +23,7 @@ module.exports = S => {
 	for (; S.i < l; S.i++, S.column++) {
 		let char = text.charAt(S.i);
 
-		if (r_nl.test(char)) {
+		if (cin(C_NL, char)) {
 			N.end = rollback(S) && S.i;
 			break; // Stop at nl char.
 		}

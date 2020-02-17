@@ -7,7 +7,15 @@ const add = require("../helpers/tree-add.js");
 const tracer = require("../helpers/trace.js");
 const rollback = require("../helpers/rollback.js");
 const bracechecks = require("../helpers/brace-checks.js");
-const { r_nl, r_space } = require("../helpers/patterns.js");
+const {
+	cin,
+	cnotin,
+	C_NL,
+	C_SPACES,
+	C_CMD_IDENT_START,
+	C_CMD_IDENT,
+	C_CMD_VALUE
+} = require("../helpers/patterns.js");
 
 /**
  * ----------------------------------------------------------- Parsing Breakdown
@@ -41,7 +49,7 @@ module.exports = S => {
 	for (; S.i < l; S.i++, S.column++) {
 		let char = text.charAt(S.i);
 
-		if (r_nl.test(char)) {
+		if (cin(C_NL, char)) {
 			N.end = rollback(S) && S.i;
 			break; // Stop at nl char.
 		}
@@ -49,12 +57,14 @@ module.exports = S => {
 		switch (state) {
 			case "command":
 				if (!N.command.value) {
-					if (!/[:a-zA-Z]/.test(char)) error(S, __filename);
+					if (cnotin(C_CMD_IDENT_START, char)) {
+						error(S, __filename);
+					}
 
 					N.command.start = N.command.end = S.i;
 					N.command.value += char;
 				} else {
-					if (/[-_.:+\\/a-zA-Z0-9]/.test(char)) {
+					if (cin(C_CMD_IDENT, char)) {
 						N.command.end = S.i;
 						N.command.value += char;
 
@@ -77,7 +87,7 @@ module.exports = S => {
 								N.command.value = command;
 							}
 						}
-					} else if (r_space.test(char)) {
+					} else if (cin(C_SPACES, char)) {
 						state = "chain-wsb";
 						continue;
 					} else if (char === "=") {
@@ -92,7 +102,7 @@ module.exports = S => {
 				break;
 
 			case "chain-wsb":
-				if (!r_space.test(char)) {
+				if (cnotin(C_SPACES, char)) {
 					if (char === "=") {
 						state = "assignment";
 						rollback(S);
@@ -119,7 +129,7 @@ module.exports = S => {
 				break;
 
 			case "value-wsb":
-				if (!r_space.test(char)) {
+				if (cnotin(C_SPACES, char)) {
 					state = "value";
 					rollback(S);
 				}
@@ -128,7 +138,7 @@ module.exports = S => {
 
 			case "value":
 				// Note: Intermediary step - remove it?
-				if (!/[-d[]/.test(char)) error(S, __filename);
+				if (cnotin(C_CMD_VALUE, char)) error(S, __filename);
 				state = char === "[" ? "open-bracket" : "oneliner";
 				rollback(S);
 
@@ -144,7 +154,7 @@ module.exports = S => {
 				break;
 
 			case "open-bracket-wsb":
-				if (!r_space.test(char)) {
+				if (cnotin(C_SPACES, char)) {
 					state = "close-bracket";
 					rollback(S);
 				}
@@ -166,7 +176,7 @@ module.exports = S => {
 				break;
 
 			case "eol-wsb":
-				if (!r_space.test(char)) error(S, __filename);
+				if (cnotin(C_SPACES, char)) error(S, __filename);
 
 				break;
 		}

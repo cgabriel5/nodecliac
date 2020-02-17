@@ -5,7 +5,15 @@ const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
 const rollback = require("../helpers/rollback.js");
 const validate = require("../helpers/validate.js");
-const { r_nl, r_space, r_letter, r_quote } = require("../helpers/patterns.js");
+const {
+	cin,
+	cnotin,
+	C_NL,
+	C_SPACES,
+	C_LETTERS,
+	C_QUOTES,
+	C_FLG_IDENT
+} = require("../helpers/patterns.js");
 
 /**
  * ----------------------------------------------------------- Parsing Breakdown
@@ -44,7 +52,7 @@ module.exports = (S, isoneliner) => {
 	for (; S.i < l; S.i++, S.column++) {
 		let char = text.charAt(S.i);
 
-		if (stop || r_nl.test(char)) {
+		if (stop || cin(C_NL, char)) {
 			N.end = rollback(S) && S.i;
 			break; // Stop at nl char.
 		}
@@ -91,18 +99,18 @@ module.exports = (S, isoneliner) => {
 				break;
 
 			case "keyword-spacer":
-				if (!r_space.test(char)) error(S, __filename);
+				if (cnotin(C_SPACES, char)) error(S, __filename);
 				state = "wsb-prevalue";
 
 				break;
 
 			case "name":
 				if (!N.name.value) {
-					if (!r_letter.test(char)) error(S, __filename);
+					if (cnotin(C_LETTERS, char)) error(S, __filename);
 					N.name.start = N.name.end = S.i;
 					N.name.value = char;
 				} else {
-					if (/[-.a-zA-Z0-9]/.test(char)) {
+					if (cin(C_FLG_IDENT, char)) {
 						N.name.end = S.i;
 						N.name.value += char;
 					} else if (char === "=") {
@@ -114,7 +122,7 @@ module.exports = (S, isoneliner) => {
 					} else if (char === "|") {
 						state = "pipe-delimiter";
 						rollback(S);
-					} else if (r_space.test(char)) {
+					} else if (cin(C_SPACES, char)) {
 						state = "wsb-postname";
 						rollback(S);
 					} else error(S, __filename);
@@ -123,7 +131,7 @@ module.exports = (S, isoneliner) => {
 				break;
 
 			case "wsb-postname":
-				if (!r_space.test(char)) {
+				if (cnotin(C_SPACES, char)) {
 					if (char === "=") {
 						state = "assignment";
 						rollback(S);
@@ -169,7 +177,7 @@ module.exports = (S, isoneliner) => {
 				break;
 
 			case "wsb-prevalue":
-				if (!r_space.test(char)) {
+				if (cnotin(C_SPACES, char)) {
 					if (char === "|") state = "pipe-delimiter";
 					else state = "value";
 					rollback(S);
@@ -185,7 +193,7 @@ module.exports = (S, isoneliner) => {
 						// Determine value type.
 						if (char === "$") type = "command-flag";
 						else if (char === "(") type = "list";
-						else if (r_quote.test(char)) type = "quoted";
+						else if (cin(C_QUOTES, char)) type = "quoted";
 
 						N.value.start = N.value.end = S.i;
 						N.value.value = char;
@@ -201,7 +209,8 @@ module.exports = (S, isoneliner) => {
 
 							let isescaped = pchar !== "\\";
 							if (type === "escaped") {
-								if (r_space.test(char) && isescaped) end = true;
+								if (cin(C_SPACES, char) && isescaped)
+									end = true;
 							} else if (type === "quoted") {
 								let vfchar = N.value.value.charAt(0);
 								if (char === vfchar && isescaped) end = true;

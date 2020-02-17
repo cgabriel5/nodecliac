@@ -5,7 +5,16 @@ const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
 const rollback = require("../helpers/rollback.js");
 const validate = require("../helpers/validate.js");
-const { r_nl, r_space, r_letter, r_quote } = require("../helpers/patterns.js");
+const {
+	cin,
+	cnotin,
+	C_NL,
+	C_SPACES,
+	C_LETTERS,
+	C_QUOTES,
+	C_VAR_IDENT,
+	C_VAR_VALUE
+} = require("../helpers/patterns.js");
 
 /**
  * ----------------------------------------------------------- Parsing Breakdown
@@ -30,7 +39,7 @@ module.exports = S => {
 	for (; S.i < l; S.i++, S.column++) {
 		let char = text.charAt(S.i);
 
-		if (r_nl.test(char)) {
+		if (cin(C_NL, char)) {
 			N.end = rollback(S) && S.i;
 			break; // Stop at nl char.
 		}
@@ -44,15 +53,15 @@ module.exports = S => {
 
 			case "name":
 				if (!N.name.value) {
-					if (!r_letter.test(char)) error(S, __filename);
+					if (cnotin(C_LETTERS, char)) error(S, __filename);
 
 					N.name.start = N.name.end = S.i;
 					N.name.value = char;
 				} else {
-					if (/[-_a-zA-Z]/.test(char)) {
+					if (cin(C_VAR_IDENT, char)) {
 						N.name.end = S.i;
 						N.name.value += char;
-					} else if (r_space.test(char)) {
+					} else if (cin(C_SPACES, char)) {
 						state = "name-wsb";
 						continue;
 					} else if (char === "=") {
@@ -64,7 +73,7 @@ module.exports = S => {
 				break;
 
 			case "name-wsb":
-				if (!r_space.test(char)) {
+				if (cnotin(C_SPACES, char)) {
 					if (char === "=") {
 						state = "assignment";
 						rollback(S);
@@ -81,7 +90,7 @@ module.exports = S => {
 				break;
 
 			case "value-wsb":
-				if (!r_space.test(char)) {
+				if (cnotin(C_SPACES, char)) {
 					state = "value";
 					rollback(S);
 				}
@@ -90,9 +99,9 @@ module.exports = S => {
 
 			case "value":
 				if (!N.value.value) {
-					if (!/["'a-zA-Z0-9]/.test(char)) error(S, __filename);
+					if (cnotin(C_VAR_VALUE, char)) error(S, __filename);
 
-					if (r_quote.test(char)) qchar = char;
+					if (cin(C_QUOTES, char)) qchar = char;
 					N.value.start = N.value.end = S.i;
 					N.value.value = char;
 				} else {
@@ -103,7 +112,7 @@ module.exports = S => {
 						N.value.end = S.i;
 						N.value.value += char;
 					} else {
-						if (r_space.test(char)) {
+						if (cin(C_SPACES, char)) {
 							state = "eol-wsb";
 							rollback(S);
 						} else {
@@ -116,7 +125,7 @@ module.exports = S => {
 				break;
 
 			case "eol-wsb":
-				if (!r_space.test(char)) error(S, __filename);
+				if (cnotin(C_SPACES, char)) error(S, __filename);
 
 				break;
 		}

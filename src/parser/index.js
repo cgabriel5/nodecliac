@@ -8,7 +8,7 @@ const p_newline = require("./parsers/newline.js");
 const linetype = require("./helpers/line-type.js");
 const specificity = require("./helpers/specificity.js");
 const bracechecks = require("./helpers/brace-checks.js");
-const { r_sol_char, r_space } = require("./helpers/patterns.js");
+const { cin, cnotin, C_NL, C_SOL, C_SPACES } = require("./helpers/patterns.js");
 
 module.exports = (action, text, cmdname, source, fmt, trace, igc, test) => {
 	const S = state(action, text, source, fmt, trace, igc, test);
@@ -21,7 +21,7 @@ module.exports = (action, text, cmdname, source, fmt, trace, igc, test) => {
 		let nchar = text.charAt(S.i + 1);
 
 		// Handle newlines.
-		if (char === "\n") {
+		if (cin(C_NL, char)) {
 			p_newline(S);
 			continue;
 		}
@@ -30,11 +30,11 @@ module.exports = (action, text, cmdname, source, fmt, trace, igc, test) => {
 		if (!hasProp(linestarts, S.line)) linestarts[S.line] = S.i;
 
 		// Start parsing at first non-ws character.
-		if (!S.sol_char && !r_space.test(char)) {
+		if (!S.sol_char && cnotin(C_SPACES, char)) {
 			S.sol_char = char;
 
 			// Sol char must be allowed.
-			if (!r_sol_char.test(char)) error(S, __filename, 10);
+			if (cnotin(C_SOL, char)) error(S, __filename, 10);
 
 			ltype = linetype(S, char, nchar);
 			if (ltype === "terminator") break;

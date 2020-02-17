@@ -5,7 +5,7 @@ const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
 const rollback = require("../helpers/rollback.js");
 const bracechecks = require("../helpers/brace-checks.js");
-const { r_nl, r_space } = require("../helpers/patterns.js");
+const { cin, cnotin, C_NL, C_SPACES } = require("../helpers/patterns.js");
 
 /**
  * ----------------------------------------------------------- Parsing Breakdown
@@ -27,7 +27,7 @@ module.exports = S => {
 	for (; S.i < l; S.i++, S.column++) {
 		let char = text.charAt(S.i);
 
-		if (r_nl.test(char)) {
+		if (cin(C_NL, char)) {
 			N.end = rollback(S) && S.i;
 			break; // Stop at nl char.
 		}
@@ -41,7 +41,7 @@ module.exports = S => {
 				break;
 
 			case "eol-wsb":
-				if (!r_space.test(char)) error(S, __filename);
+				if (cnotin(C_SPACES, char)) error(S, __filename);
 				break;
 		}
 	}

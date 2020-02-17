@@ -1,6 +1,6 @@
 "use strict";
 
-const { r_space, r_letter } = require("./patterns.js");
+const { cin, C_SPACES, C_LETTERS } = require("./patterns.js");
 
 /**
  * Determine line's line type.
@@ -26,9 +26,9 @@ module.exports = (S, char, nchar) => {
 	let line_type = types[char];
 
 	// Line type overrides for: command, option, default.
-	if (!line_type && r_letter.test(char)) line_type = "command";
+	if (!line_type && cin(C_LETTERS, char)) line_type = "command";
 	if (line_type === "flag") {
-		if (nchar && r_space.test(nchar)) line_type = "option";
+		if (nchar && cin(C_SPACES, nchar)) line_type = "option";
 	} else if (line_type === "command") {
 		if (text.substr(S.i, 7) === "default") line_type = "flag";
 	}

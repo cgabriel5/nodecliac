@@ -1,7 +1,7 @@
 "use strict";
 
 const error = require("./error.js");
-const { r_quote } = require("./patterns.js");
+const { cin, C_QUOTES } = require("./patterns.js");
 
 /**
  * Validates string and interpolates its variables.
@@ -22,7 +22,7 @@ let validate = (S, N, type) => {
 		let char = value.charAt(0);
 		if (char === "$") type = "command-flag";
 		else if (char === "(") type = "list";
-		else if (r_quote.test(char)) type = "quoted";
+		else if (cin(C_QUOTES, char)) type = "quoted";
 	}
 
 	// Get column index to resume error checks at.

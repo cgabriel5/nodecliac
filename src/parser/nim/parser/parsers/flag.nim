@@ -36,7 +36,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
     if S.scopes.flag.node != "": error(S, currentSourcePath, 11)
 
     let l = S.l; var `char`: char
-    while S.i < S.l:
+    while S.i < l:
         `char` = text[S.i]
 
         if stop or `char` in c_nl:

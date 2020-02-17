@@ -33,7 +33,7 @@ proc p_command*(S: State) =
     bracechecks(S, check = "pre-existing-cs")
 
     let l = S.l; var `char`: char
-    while S.i < S.l:
+    while S.i < l:
         `char` = text[S.i]
 
         if `char` in c_nl:

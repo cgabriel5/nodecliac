@@ -18,8 +18,8 @@ proc p_closebrace*(S: State) =
     var state = "brace"
     var N = node(S, "BRACE")
 
-    var `char`: char
-    while S.i < S.l:
+    let l = S.l; var `char`: char
+    while S.i < l:
         `char` = text[S.i]
 
         if `char` in c_nl:

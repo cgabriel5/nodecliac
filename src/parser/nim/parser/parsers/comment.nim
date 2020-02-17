@@ -16,8 +16,8 @@ proc p_comment*(S: State) =
     var N = node(S, "COMMENT")
     N.comment.start = S.i
 
-    var `char`: char
-    while S.i < S.l:
+    let l = S.l; var `char`: char
+    while S.i < l:
         `char` = text[S.i]
 
         if `char` in c_nl:

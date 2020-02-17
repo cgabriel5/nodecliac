@@ -3,8 +3,8 @@ from re import re, replace, findAll
 from tables import toTable, hasKey, initTable, `[]=`, `[]`, `$`
 
 import error
-from patterns import c_quotes, c_spaces
 from types import State, Node, Branch
+from patterns import C_QUOTES, C_SPACES
 
 # Validates string and interpolates its variables.
 #
@@ -24,7 +24,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
         let `char` = value[0]
         if `char` == '$': `type` = "command-flag"
         elif `char` == '(': `type` = "list"
-        elif `char` in c_quotes: `type` = "quoted"
+        elif `char` in C_QUOTES: `type` = "quoted"
 
     # Get column index to resume error checks at.
     var resumepoint = N.value.start - S.tables.linestarts[S.line]
@@ -39,7 +39,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
     case (`type`):
         of "quoted":
                 let fchar = if value[0] == '$': value[1] else: value[0]
-                let isquoted = fchar in c_quotes
+                let isquoted = fchar in C_QUOTES
                 let lchar = value[^1]
                 if isquoted:
                     # Error if improperly quoted.
@@ -109,11 +109,11 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
 
                     if qchar == '\0':
                         # Look for unescaped quote characters.
-                        if `char` in c_quotes and pchar != '\\':
+                        if `char` in C_QUOTES and pchar != '\\':
                             vsi = resume_index
                             qchar = `char`
                             argument &= $`char`
-                        elif `char` in c_spaces: discard
+                        elif `char` in C_SPACES: discard
                             # Ignore any whitespace outside of quotes.
                         elif `char` == ',':
                             # Track count of command delimiters.
@@ -125,7 +125,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                                 S.column = resumepoint + i
                                 error(S, currentSourcePath, 14)
                         # Look for '$' prefixed strings.
-                        elif `char` == '$' and nchar in c_quotes:
+                        elif `char` == '$' and nchar in C_QUOTES:
                             qchar = nchar
                             argument &= $`char` & $nchar
                             inc(resume_index)
@@ -200,19 +200,19 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
 
                     if mode == "":
                         # Skip unescaped ws delimiters.
-                        if `char` in c_spaces and pchar != '\\':
+                        if `char` in C_SPACES and pchar != '\\':
                             inc(i); inc(resume_index);
                             continue
 
                         # Set mode depending on the character.
-                        if `char` in c_quotes and pchar != '\\':
+                        if `char` in C_QUOTES and pchar != '\\':
                             vsi = resume_index
                             mode = "quoted"
                             qchar = `char`
                         elif `char` == '$' and pchar != '\\':
                             vsi = resume_index
                             mode = "command-flag"
-                        elif `char` notin c_spaces:
+                        elif `char` notin C_SPACES:
                             vsi = resume_index
                             mode = "escaped"
                         # All other characters are invalid so error.
@@ -226,7 +226,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                         # Example:
                         # subl.command = --flag=(1234 "ca"t"    $("cat"))
                         # --------------------------------^ Error point.
-                        if args.len != 0 and pchar notin c_spaces:
+                        if args.len != 0 and pchar notin C_SPACES:
                             S.column = resumepoint + i
                             error(S, currentSourcePath)
 
@@ -248,7 +248,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                             else: argument &= $`char`
                         elif mode == "escaped":
                             # Stop at unescaped ws char.
-                            if `char` in c_spaces and pchar != '\\':
+                            if `char` in C_SPACES and pchar != '\\':
                                 # argument &= $`char` # Store character.
 
                                 let `end` = argument.high

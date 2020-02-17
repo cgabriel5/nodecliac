@@ -1,7 +1,7 @@
 from ../helpers/tree_add import add
 import ../helpers/[forward, rollback]
 from ../helpers/types import State, node
-from ../helpers/patterns import c_nl
+from ../helpers/patterns import C_NL
 
 # ------------------------------------------------------------ Parsing Breakdown
 # # Comment body.
@@ -20,7 +20,7 @@ proc p_comment*(S: State) =
     while S.i < l:
         `char` = text[S.i]
 
-        if `char` in c_nl:
+        if `char` in C_NL:
             rollback(S)
             N.`end` = S.i
             break # Stop at nl char.

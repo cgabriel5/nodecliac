@@ -1,14 +1,16 @@
 from strutils import Digits, Letters, Newlines
 
 # Start-of-line characters.
-const c_sol_chars* = Letters + {'-', '@', ')', '\\', ']', '$', ';', '#'}
-const c_nl* = Newlines
-const c_letters* = Letters
-const c_spaces* = {' ', '\t'} # Whitespace.
-const c_quotes* = {'"', '\''}
-const c_setting_chars* = Letters + {'-', '_'}
-const c_setting_value* = c_quotes + Letters + Digits
-const c_flag_chars* = Letters + Digits + {'-', '.'}
-const c_command_fchars* = Letters + {':'}
-const c_command_chars* = Letters + Digits + {'-', '_', '.', ':', '+', '\\', '/'}
-const c_command_vchars* = {'-', 'd', '['}
+const C_NL* = Newlines
+const C_LETTERS* = Letters
+const C_QUOTES* = {'"', '\''}
+const C_SPACES* = {' ', '\t'}
+const C_SOL_CHARS* = Letters + {'-', '@', ')', '\\', ']', '$', ';', '#'}
+const C_SET_IDENT* = Letters + {'-', '_'}
+const C_SET_VALUE_CHARS* = C_QUOTES + Letters + Digits
+const C_VAR_IDENT_CHARS* = C_SET_IDENT
+const C_VAR_VALUE_CHARS* = C_SET_VALUE_CHARS
+const C_FLG_IDENT_CHARS* = Letters + Digits + {'-', '.'}
+const C_CMD_IDENT_START_CHARS* = Letters + {':'}
+const C_CMD_IDENT_CHARS* = Letters + Digits + {'-', '_', '.', ':', '+', '\\', '/'}
+const C_CMD_VALUE_CHARS* = {'-', 'd', '['}

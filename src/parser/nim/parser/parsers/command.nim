@@ -2,8 +2,8 @@ import flag
 from ../helpers/tree_add import add
 from ../helpers/types import State, Node, node
 import ../helpers/[error, tracer, forward, rollback, brace_checks]
-from ../helpers/patterns import c_nl, c_spaces, c_command_fchars,
-    c_command_chars, c_command_vchars
+from ../helpers/patterns import C_NL, C_SPACES,
+    C_CMD_IDENT_START_CHARS, C_CMD_IDENT_CHARS, C_CMD_VALUE_CHARS
 
 # ------------------------------------------------------------ Parsing Breakdown
 # program.command
@@ -36,7 +36,7 @@ proc p_command*(S: State) =
     while S.i < l:
         `char` = text[S.i]
 
-        if `char` in c_nl:
+        if `char` in C_NL:
             rollback(S)
             N.`end` = S.i
             break # Stop at nl char.
@@ -44,13 +44,13 @@ proc p_command*(S: State) =
         case (state):
             of "command":
                 if N.command.value == "":
-                    if `char` notin c_command_fchars : error(S, currentSourcePath)
+                    if `char` notin C_CMD_IDENT_START_CHARS : error(S, currentSourcePath)
 
                     N.command.start = S.i
                     N.command.`end` = S.i
                     N.command.value &= $`char`
                 else:
-                    if `char` in c_command_chars:
+                    if `char` in C_CMD_IDENT_CHARS:
                         N.command.`end` = S.i
                         N.command.value &= $`char`
 
@@ -71,7 +71,7 @@ proc p_command*(S: State) =
                                 # Remove last escape char as it isn't needed.
                                 let command = N.command.value[0 .. ^2]
                                 N.command.value = command
-                    elif `char` in c_spaces:
+                    elif `char` in C_SPACES:
                         state = "chain-wsb"
                         forward(S)
                         continue
@@ -84,7 +84,7 @@ proc p_command*(S: State) =
                     else: error(S, currentSourcePath)
 
             of "chain-wsb":
-                if `char` notin c_spaces:
+                if `char` notin C_SPACES:
                     if `char` == '=':
                         state = "assignment"
                         rollback(S)
@@ -106,13 +106,13 @@ proc p_command*(S: State) =
                 state = "eol-wsb"
 
             of "value-wsb":
-                if `char` notin c_spaces:
+                if `char` notin C_SPACES:
                     state = "value"
                     rollback(S)
 
             of "value":
                 # Note: Intermediary step - remove it?
-                if `char` notin c_command_vchars: error(S, currentSourcePath)
+                if `char` notin C_CMD_VALUE_CHARS: error(S, currentSourcePath)
                 state = if `char` == '[': "open-bracket" else: "oneliner"
                 rollback(S)
 
@@ -124,7 +124,7 @@ proc p_command*(S: State) =
                 state = "open-bracket-wsb"
 
             of "open-bracket-wsb":
-                if `char` notin c_spaces:
+                if `char` notin C_SPACES:
                     state = "close-bracket"
                     rollback(S)
 
@@ -139,7 +139,7 @@ proc p_command*(S: State) =
                 N.flags.add(p_flag(S, "oneliner"))
 
             of "eol-wsb":
-                if `char` notin c_spaces: error(S, currentSourcePath)
+                if `char` notin C_SPACES: error(S, currentSourcePath)
 
             else: discard
 

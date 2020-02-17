@@ -3,8 +3,8 @@ from tables import Table, `[]=`, `$`, pairs
 from ../helpers/tree_add import add
 from ../helpers/types import State, node
 import ../helpers/[error, validate, forward, rollback]
-from ../helpers/patterns import
-    c_nl, c_letters, c_setting_chars, c_spaces, c_quotes, c_setting_value
+from ../helpers/patterns import C_NL, C_LETTERS, C_SPACES, C_QUOTES,
+    C_VAR_IDENT_CHARS, C_VAR_VALUE_CHARS
 
 # ------------------------------------------------------------ Parsing Breakdown
 # $variable = "value"
@@ -28,7 +28,7 @@ proc p_variable*(S: State) =
     while S.i < l:
         `char` = text[S.i]
 
-        if `char` in c_nl:
+        if `char` in C_NL:
             rollback(S)
             N.`end` = S.i
             break # Stop at nl char.
@@ -41,16 +41,16 @@ proc p_variable*(S: State) =
 
             of "name":
                 if N.name.value == "":
-                    if `char` notin c_letters: error(S, currentSourcePath)
+                    if `char` notin C_LETTERS: error(S, currentSourcePath)
 
                     N.name.start = S.i
                     N.name.`end` = S.i
                     N.name.value = $`char`
                 else:
-                    if `char` in c_setting_chars:
+                    if `char` in C_VAR_IDENT_CHARS:
                         N.name.`end` = S.i
                         N.name.value &= $`char`
-                    elif `char` in c_spaces:
+                    elif `char` in C_SPACES:
                         state = "name-wsb"
                         forward(S)
                         continue
@@ -60,7 +60,7 @@ proc p_variable*(S: State) =
                     else: error(S, currentSourcePath)
 
             of "name-wsb":
-                if `char` notin c_spaces:
+                if `char` notin C_SPACES:
                     if `char` == '=':
                         state = "assignment"
                         rollback(S)
@@ -73,15 +73,15 @@ proc p_variable*(S: State) =
                 state = "value-wsb"
 
             of "value-wsb":
-                if `char` notin c_spaces:
+                if `char` notin C_SPACES:
                     state = "value"
                     rollback(S)
 
             of "value":
                 if N.value.value == "":
-                    if `char` notin c_setting_value: error(S, currentSourcePath)
+                    if `char` notin C_VAR_VALUE_CHARS: error(S, currentSourcePath)
 
-                    if `char` in c_quotes: qchar = `char`
+                    if `char` in C_QUOTES: qchar = `char`
                     N.value.start = S.i
                     N.value.`end` = S.i
                     N.value.value = $`char`
@@ -93,7 +93,7 @@ proc p_variable*(S: State) =
                         N.value.`end` = S.i
                         N.value.value &= $`char`
                     else:
-                        if `char` in c_spaces:
+                        if `char` in C_SPACES:
                             state = "eol-wsb"
                             rollback(S)
                         else:
@@ -101,7 +101,7 @@ proc p_variable*(S: State) =
                             N.value.value &= $`char`
 
             of "eol-wsb":
-                if `char` notin c_spaces: error(S, currentSourcePath)
+                if `char` notin C_SPACES: error(S, currentSourcePath)
 
             else: discard
 

@@ -2,7 +2,7 @@ from tables import `[]=`, `[]`, hasKey, `$`
 
 import tools/[acdef, formatter]
 from helpers/types import state
-from helpers/patterns import c_nl, c_spaces, c_sol_chars
+from helpers/patterns import C_NL, C_SPACES, C_SOL_CHARS
 import helpers/[brace_checks, error, linetype, specificity, tracer, rollback, forward]
 import parsers/[comment, newline, setting, variable, command, flag, option, close_brace]
 
@@ -17,7 +17,7 @@ proc parser*(action: string, text: string, cmdname: string, source: string,
         nchar = if S.i + 1 < l: text[S.i + 1] else: '\0'
 
         # Handle newlines.
-        if `char` in c_nl:
+        if `char` in C_NL:
             p_newline(S)
             forward(S)
             continue
@@ -27,11 +27,11 @@ proc parser*(action: string, text: string, cmdname: string, source: string,
             S.tables.linestarts[S.line] = S.i
 
         # Start parsing at first non-ws character.
-        if S.sol_char == '\0' and `char` notin c_spaces:
+        if S.sol_char == '\0' and `char` notin C_SPACES:
             S.sol_char = `char`
 
             # Sol char must be allowed.
-            if `char` notin c_sol_chars: error(S, currentSourcePath, 10)
+            if `char` notin C_SOL_CHARS: error(S, currentSourcePath, 10)
 
             ltype = linetype(S, `char`, nchar)
             if ltype == "terminator": break

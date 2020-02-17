@@ -1,7 +1,8 @@
 from ../helpers/tree_add import add
 from ../helpers/types import State, Node, node
 import ../helpers/[error, validate, forward, rollback]
-from ../helpers/patterns import c_nl, c_spaces, c_letters, c_quotes, c_flag_chars
+from ../helpers/patterns import C_NL, C_SPACES, C_LETTERS, C_QUOTES,
+    C_FLG_IDENT_CHARS
 
 # ------------------------------------------------------------ Parsing Breakdown
 # --flag
@@ -39,7 +40,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
     while S.i < l:
         `char` = text[S.i]
 
-        if stop or `char` in c_nl:
+        if stop or `char` in C_NL:
             rollback(S)
             N.`end` = S.i
             break # Stop at nl char.
@@ -79,17 +80,17 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 S.column = S.column + (keyword_len)
 
             of "keyword-spacer":
-                if `char` notin c_spaces: error(S, currentSourcePath)
+                if `char` notin C_SPACES: error(S, currentSourcePath)
                 state = "wsb-prevalue"
 
             of "name":
                 if N.name.value == "":
-                    if `char` notin c_letters: error(S, currentSourcePath)
+                    if `char` notin C_LETTERS: error(S, currentSourcePath)
                     N.name.start = S.i
                     N.name.`end` = S.i
                     N.name.value = $`char`
                 else:
-                    if `char` in c_flag_chars:
+                    if `char` in C_FLG_IDENT_CHARS:
                         N.name.`end` = S.i
                         N.name.value &= $`char`
                     elif `char` == '=':
@@ -101,13 +102,13 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     elif `char` == '|':
                         state = "pipe-delimiter"
                         rollback(S)
-                    elif `char` in c_spaces:
+                    elif `char` in C_SPACES:
                         state = "wsb-postname"
                         rollback(S)
                     else: error(S, currentSourcePath)
 
             of "wsb-postname":
-                if `char` notin c_spaces:
+                if `char` notin C_SPACES:
                     if `char` == '=':
                         state = "assignment"
                         rollback(S)
@@ -144,7 +145,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 stop = true
 
             of "wsb-prevalue":
-                if `char` notin c_spaces:
+                if `char` notin C_SPACES:
                     if `char` == '|': state = "pipe-delimiter"
                     else: state = "value"
                     rollback(S)
@@ -156,7 +157,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     # Determine value type.
                     if `char` == '$': `type` = "command-flag"
                     elif `char` == '(': `type` = "list"
-                    elif `char` in c_quotes: `type` = "quoted"
+                    elif `char` in C_QUOTES: `type` = "quoted"
 
                     N.value.start = S.i
                     N.value.`end` = S.i
@@ -173,7 +174,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
 
                         let isescaped = pchar != '\\'
                         if `type` == "escaped":
-                            if `char` in c_spaces and isescaped: `end` = true
+                            if `char` in C_SPACES and isescaped: `end` = true
                         elif `type` == "quoted":
                             let vfchar = N.value.value[0]
                             if `char` == vfchar and isescaped: `end` = true

@@ -1,6 +1,6 @@
 from ../helpers/tree_add import add
 from ../helpers/types import State, Node, node
-from ../helpers/patterns import c_nl, c_spaces, c_quotes
+from ../helpers/patterns import C_NL, C_SPACES, C_QUOTES
 import ../helpers/[error, validate, forward, rollback, brace_checks]
 
 # ------------------------------------------------------------ Parsing Breakdown
@@ -27,7 +27,7 @@ proc p_option*(S: State): Node =
     while S.i < l:
         `char` = text[S.i]
 
-        if `char` in c_nl:
+        if `char` in C_NL:
             rollback(S)
             N.`end` = S.i
             break # Stop at nl char.
@@ -40,11 +40,11 @@ proc p_option*(S: State): Node =
                 state = "spacer"
 
             of "spacer":
-                if `char` notin c_spaces: error(S, currentSourcePath)
+                if `char` notin C_SPACES: error(S, currentSourcePath)
                 state = "wsb-prevalue"
 
             of "wsb-prevalue":
-                if `char` notin c_spaces:
+                if `char` notin C_SPACES:
                     rollback(S)
                     state = "value"
 
@@ -55,7 +55,7 @@ proc p_option*(S: State): Node =
                     # Determine value type.
                     if `char` == '$': `type` = "command-flag"
                     elif `char` == '(': `type` = "list"
-                    elif `char` in c_quotes: `type` = "quoted"
+                    elif `char` in C_QUOTES: `type` = "quoted"
 
                     N.value.start = S.i
                     N.value.`end` = S.i
@@ -68,7 +68,7 @@ proc p_option*(S: State): Node =
 
                     let isescaped = pchar != '\\'
                     if `type` == "escaped":
-                        if `char` in c_spaces and isescaped: `end` = true
+                        if `char` in C_SPACES and isescaped: `end` = true
                     elif `type` == "quoted":
                         let vfchar = N.value.value[0]
                         if `char` == vfchar and isescaped: `end` = true

@@ -1,7 +1,7 @@
 from tables import toTable, hasKey, `[]`, `$`
 
 from ../helpers/types import State
-from patterns import c_letters, c_spaces
+from patterns import C_LETTERS, C_SPACES
 
 # Determine line's line type.
 #
@@ -25,9 +25,9 @@ proc linetype*(S: State, `char`, nchar: char): string =
     var line_type = if types.hasKey(`char`): types[`char`] else: ""
 
     # Line type overrides for: command, option, default.
-    if line_type == "" and `char` in c_letters: line_type = "command"
+    if line_type == "" and `char` in C_LETTERS: line_type = "command"
     if line_type == "flag":
-        if nchar != '\0' and nchar in c_spaces: line_type = "option"
+        if nchar != '\0' and nchar in C_SPACES: line_type = "option"
     elif line_type == "command":
         if text[S.i .. S.i + 6] == "default": line_type = "flag"
 

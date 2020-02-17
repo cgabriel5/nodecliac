@@ -1,4 +1,4 @@
-from strutils import join, replace, find, startsWith, endsWith
+from strutils import join, replace, find, startsWith
 from re import re, replace, findAll
 from tables import toTable, hasKey, initTable, `[]=`, `[]`, `$`
 
@@ -87,7 +87,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                     S.column = resumepoint + 1
                     error(S, currentSourcePath, 13)
                 # Error if command-flag doesn't end with ')'.
-                if not value.endsWith(')'):
+                if value[^1] != ')':
                     S.column = resumepoint + value.high
                     error(S, currentSourcePath, 13)
 
@@ -176,11 +176,11 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
 
         of "list":
                 # Error if list doesn't start with '('.
-                if not value.startsWith("("):
+                if value[0] != '(':
                     S.column = resumepoint
                     error(S, currentSourcePath, 15)
                 # Error if command-flag doesn't end with ')'.
-                if not value.endsWith(')'):
+                if value[^1] != ')':
                     S.column = resumepoint + value.high
                     error(S, currentSourcePath, 15)
 

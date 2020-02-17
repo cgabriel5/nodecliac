@@ -11,7 +11,7 @@ from streams import close, readAll, write, newFileStream, openFileStream
 proc expand_tilde*(p: string): string =
     result = p
     if p.len == 0: result = ""
-    elif p[0] == '~': result = os.getEnv("HOME") & p[1 .. p.len - 1]
+    elif p[0] == '~': result = os.getEnv("HOME") & p[1 .. p.high]
 
 type FileInfo = ref object
     name*, dirname*, ext*, path*: string

@@ -35,7 +35,7 @@ proc argvparse*(): Arguments =
 
     let args = commandLineParams()
     var p = initOptParser(
-        args[1 .. args.len - 1],  # Exclude action.
+        args[1 .. args.high],  # Exclude action.
         allowWhitespaceAfterColon = false
     )
     var i = 1

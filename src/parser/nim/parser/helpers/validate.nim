@@ -88,7 +88,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                     error(S, currentSourcePath, 13)
                 # Error if command-flag doesn't end with ')'.
                 if not value.endsWith(')'):
-                    S.column = resumepoint + value.len - 1
+                    S.column = resumepoint + value.high
                     error(S, currentSourcePath, 13)
 
                 var argument = ""
@@ -101,7 +101,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                 var vsi: int # Index where value starts.
 
                 # Ignore starting '$(' and ending ')' when looping.
-                let l = value.len - 1
+                let l = value.high
                 while i < l:
                     let `char` = value[i]
                     let pchar = if i - 0 > 0: value[i - 1] else: '\0'
@@ -145,7 +145,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                         argument &= $`char`
 
                         if `char` == qchar and pchar != '\\':
-                            var tN = tNode(vsi, argument.len - 1, argument)
+                            var tN = tNode(vsi, argument.high, argument)
                             argument = validate(S, tN, "quoted")
                             args.add(argument)
 
@@ -165,7 +165,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                 if argument != "":
                     dec(i) # Reduce to account for last completed iteration.
 
-                    var tN = tNode(vsi, argument.len - 1, argument)
+                    var tN = tNode(vsi, argument.high, argument)
                     argument = validate(S, tN, "quoted")
                     args.add(argument)
 
@@ -181,7 +181,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                     error(S, currentSourcePath, 15)
                 # Error if command-flag doesn't end with ')'.
                 if not value.endsWith(')'):
-                    S.column = resumepoint + value.len - 1
+                    S.column = resumepoint + value.high
                     error(S, currentSourcePath, 15)
 
                 var argument = ""
@@ -193,7 +193,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                 var vsi: int # Index where value starts.
 
                 # Ignore starting '(' and ending ')' when looping.
-                let l = value.len - 1
+                let l = value.high
                 while i < l:
                     let `char` = value[i]
                     let pchar = if i - 0 > 0: value[i - 1] else: '\0'
@@ -237,7 +237,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                             if `char` == qchar and pchar != '\\':
                                 argument &= $`char`
 
-                                let `end` = argument.len - 1
+                                let `end` = argument.high
                                 var tN = tNode(vsi, `end`, argument)
                                 argument = validate(S, tN, mode)
                                 args.add(argument)
@@ -251,7 +251,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                             if `char` in c_spaces and pchar != '\\':
                                 # argument &= $`char` # Store character.
 
-                                let `end` = argument.len - 1
+                                let `end` = argument.high
                                 var tN = tNode(vsi, `end`, argument)
                                 argument = validate(S, tN, mode)
                                 args.add(argument)
@@ -265,7 +265,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                             if `char` == ')' and pchar != '\\':
                                 argument &= $`char`
 
-                                let `end` = argument.len - 1
+                                let `end` = argument.high
                                 var tN = tNode(vsi, `end`, argument)
                                 argument = validate(S, tN, mode)
                                 args.add(argument)
@@ -279,7 +279,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
 
                 # Get last argument.
                 if argument != "":
-                    var tN = tNode(vsi, argument.len - 1, argument)
+                    var tN = tNode(vsi, argument.high, argument)
                     argument = validate(S, tN, mode)
                     args.add(argument)
 

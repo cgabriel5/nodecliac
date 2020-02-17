@@ -175,7 +175,7 @@ proc acdef*(S: State, cmdname: string): tuple =
                 # Create missing parent chains.
                 var commands = cval.split(re"(?<!\\)\.")
                 discard commands.pop() # Remove last command (already made).
-                var i = commands.len - 1
+                var i = commands.high
                 while i > -1:
                     let rchain = commands.join(".") # Remainder chain.
                     if not oSets.hasKey(rchain):
@@ -193,7 +193,7 @@ proc acdef*(S: State, cmdname: string): tuple =
         elif `type` == "OPTION":
             # Add value to last flag in group.
             var fxN = oGroups[count]["flags"]
-            oGroups[count]["flags"][fxN.len - 1].args.add(N.value.value)
+            oGroups[count]["flags"][fxN.high].args.add(N.value.value)
 
             # Increment count: start new group.
             if nN.node != "" and nN.node notin ["FLAG", "OPTION"]: inc(count)

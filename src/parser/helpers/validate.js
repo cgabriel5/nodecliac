@@ -1,7 +1,7 @@
 "use strict";
 
 const error = require("./error.js");
-const { cin, C_QUOTES } = require("./patterns.js");
+const { cin, cnotin, C_SPACES, C_QUOTES } = require("./patterns.js");
 
 /**
  * Validates string and interpolates its variables.
@@ -39,15 +39,20 @@ let validate = (S, N, type) => {
 	switch (type) {
 		case "quoted":
 			{
-				// Error if improperly quoted.
-				if (!/^\$?("|').*?\1$/.test(value)) {
-					S.column = resumepoint;
-					error(S, __filename, 10);
-				}
-				// Error it string is empty.
-				if (/^("|')\1$/.test(value)) {
-					S.column = resumepoint;
-					error(S, __filename, 11);
+				let fchar = value.charAt(~~(value.charAt(0) === "$"));
+				let isquoted = cin(C_QUOTES, fchar);
+				let lchar = value.charAt(value.length - 1);
+				if (isquoted) {
+					// Error if improperly quoted.
+					if (lchar !== fchar) {
+						S.column = resumepoint;
+						error(S, __filename, 10);
+					}
+					// Error it string is empty.
+					if (lchar === fchar && value.length === 2) {
+						S.column = resumepoint;
+						error(S, __filename, 11);
+					}
 				}
 
 				// Interpolate variables.
@@ -81,12 +86,12 @@ let validate = (S, N, type) => {
 		case "command-flag":
 			{
 				// Error if command-flag doesn't start with '$('.
-				if (!/^\$\(/.test(value)) {
+				if (!value.startsWith("$(")) {
 					S.column = resumepoint + 1;
 					error(S, __filename, 13);
 				}
 				// Error if command-flag doesn't end with ')'.
-				if (!/\)$/.test(value)) {
+				if (value.charAt(value.length - 1) !== ")") {
 					S.column = resumepoint + value.length - 1;
 					error(S, __filename, 13);
 				}
@@ -108,11 +113,11 @@ let validate = (S, N, type) => {
 
 					if (!qchar) {
 						// Look for unescaped quote characters.
-						if (/["']/.test(char) && pchar !== "\\") {
+						if (cin(C_QUOTES, char) && pchar !== "\\") {
 							vsi = resume_index;
 							qchar = char;
 							argument += char;
-						} else if (/[ \t]/.test(char)) {
+						} else if (cin(C_SPACES, char)) {
 							// Ignore any whitespace outside of quotes.
 						} else if (char === ",") {
 							// Track count of command delimiters.
@@ -126,7 +131,7 @@ let validate = (S, N, type) => {
 							}
 						}
 						// Look for '$' prefixed strings.
-						else if (char === "$" && /["']/.test(nchar)) {
+						else if (char === "$" && cin(C_QUOTES, nchar)) {
 							qchar = nchar;
 							argument += `${char}${nchar}`;
 							resume_index++;
@@ -184,12 +189,12 @@ let validate = (S, N, type) => {
 		case "list":
 			{
 				// Error if list doesn't start with '('.
-				if (!/^\(/.test(value)) {
+				if (value.charAt(0) !== "(") {
 					S.column = resumepoint;
 					error(S, __filename, 15);
 				}
 				// Error if command-flag doesn't end with ')'.
-				if (!/\)$/.test(value)) {
+				if (value.charAt(value.length - 1) !== ")") {
 					S.column = resumepoint + value.length - 1;
 					error(S, __filename, 15);
 				}
@@ -209,17 +214,17 @@ let validate = (S, N, type) => {
 
 					if (!mode) {
 						// Skip unescaped ws delimiters.
-						if (/[ \t]/.test(char) && pchar !== "\\") continue;
+						if (cin(C_SPACES, char) && pchar !== "\\") continue;
 
 						// Set mode depending on the character.
-						if (/["']/.test(char) && pchar !== "\\") {
+						if (cin(C_QUOTES, char) && pchar !== "\\") {
 							vsi = resume_index;
 							mode = "quoted";
 							qchar = char;
 						} else if (char === "$" && pchar !== "\\") {
 							vsi = resume_index;
 							mode = "command-flag";
-						} else if (!/[ \t]/.test(char)) {
+						} else if (cnotin(C_SPACES, char)) {
 							vsi = resume_index;
 							mode = "escaped";
 						}
@@ -235,7 +240,7 @@ let validate = (S, N, type) => {
 						// Example:
 						// subl.command = --flag=(1234 "ca"t"    $("cat"))
 						// --------------------------------^ Error point.
-						if (args.length && !/[ \t]/.test(pchar)) {
+						if (args.length && cnotin(C_SPACES, pchar)) {
 							S.column = resumepoint + i;
 							error(S, __filename);
 						}
@@ -257,7 +262,7 @@ let validate = (S, N, type) => {
 							} else argument += char;
 						} else if (mode === "escaped") {
 							// Stop at unescaped ws char.
-							if (/[ \t]/.test(char) && pchar !== "\\") {
+							if (cin(C_SPACES, char) && pchar !== "\\") {
 								// argument += char; // Store character.
 
 								let end = argument.length - 1;

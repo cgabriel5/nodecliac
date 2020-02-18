@@ -4,7 +4,7 @@ from tables import toTable, hasKey, initTable, `[]=`, `[]`, `$`
 
 import error
 from types import State, Node, Branch
-from patterns import C_QUOTES, C_SPACES
+from charsets import C_QUOTES, C_SPACES
 
 # Validates string and interpolates its variables.
 #

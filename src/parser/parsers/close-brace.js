@@ -5,7 +5,7 @@ const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
 const rollback = require("../helpers/rollback.js");
 const bracechecks = require("../helpers/brace-checks.js");
-const { cin, cnotin, C_NL, C_SPACES } = require("../helpers/patterns.js");
+const { cin, cnotin, C_NL, C_SPACES } = require("../helpers/charsets.js");
 
 /**
  * ----------------------------------------------------------- Parsing Breakdown

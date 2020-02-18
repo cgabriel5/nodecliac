@@ -2,7 +2,7 @@ import flag
 from ../helpers/tree_add import add
 from ../helpers/types import State, Node, node
 import ../helpers/[error, tracer, forward, rollback, brace_checks]
-from ../helpers/patterns import C_NL, C_SPACES,
+from ../helpers/charsets import C_NL, C_SPACES,
     C_CMD_IDENT_START, C_CMD_IDENT, C_CMD_VALUE
 
 # ------------------------------------------------------------ Parsing Breakdown

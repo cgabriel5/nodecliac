@@ -1,7 +1,7 @@
 from ../helpers/tree_add import add
 from ../helpers/types import State, node
 import ../helpers/[error, validate, forward, rollback]
-from ../helpers/patterns import C_NL, C_LETTERS, C_SPACES, C_QUOTES,
+from ../helpers/charsets import C_NL, C_LETTERS, C_SPACES, C_QUOTES,
     C_SET_IDENT, C_SET_VALUE
 
 # ------------------------------------------------------------ Parsing Breakdown

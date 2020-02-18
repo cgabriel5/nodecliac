@@ -1,6 +1,6 @@
 "use strict";
 
-const { cin, C_SPACES, C_LETTERS } = require("./patterns.js");
+const { cin, C_SPACES, C_LETTERS } = require("./charsets.js");
 
 /**
  * Determine line's line type.

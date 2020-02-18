@@ -2,7 +2,7 @@ from tables import `[]=`, `[]`, hasKey, `$`
 
 import tools/[acdef, formatter]
 from helpers/types import state
-from helpers/patterns import C_NL, C_SPACES, C_SOL
+from helpers/charsets import C_NL, C_SPACES, C_SOL
 import helpers/[brace_checks, error, linetype, specificity, tracer, rollback, forward]
 import parsers/[comment, newline, setting, variable, command, flag, option, close_brace]
 

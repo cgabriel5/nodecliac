@@ -3,7 +3,7 @@
 const node = require("../helpers/nodes.js");
 const add = require("../helpers/tree-add.js");
 const rollback = require("../helpers/rollback.js");
-const { cin, C_NL } = require("../helpers/patterns.js");
+const { cin, C_NL } = require("../helpers/charsets.js");
 
 /**
  * ----------------------------------------------------------- Parsing Breakdown

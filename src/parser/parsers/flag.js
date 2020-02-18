@@ -13,7 +13,7 @@ const {
 	C_LETTERS,
 	C_QUOTES,
 	C_FLG_IDENT
-} = require("../helpers/patterns.js");
+} = require("../helpers/charsets.js");
 
 /**
  * ----------------------------------------------------------- Parsing Breakdown

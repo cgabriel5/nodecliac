@@ -1,7 +1,7 @@
 from ../helpers/tree_add import add
 import ../helpers/[forward, rollback]
 from ../helpers/types import State, node
-from ../helpers/patterns import C_NL
+from ../helpers/charsets import C_NL
 
 # ------------------------------------------------------------ Parsing Breakdown
 # # Comment body.

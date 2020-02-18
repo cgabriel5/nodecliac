@@ -14,7 +14,7 @@ const {
 	C_QUOTES,
 	C_VAR_IDENT,
 	C_VAR_VALUE
-} = require("../helpers/patterns.js");
+} = require("../helpers/charsets.js");
 
 /**
  * ----------------------------------------------------------- Parsing Breakdown

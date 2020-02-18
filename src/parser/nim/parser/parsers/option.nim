@@ -1,6 +1,6 @@
 from ../helpers/tree_add import add
 from ../helpers/types import State, Node, node
-from ../helpers/patterns import C_NL, C_SPACES, C_QUOTES
+from ../helpers/charsets import C_NL, C_SPACES, C_QUOTES
 import ../helpers/[error, validate, forward, rollback, brace_checks]
 
 # ------------------------------------------------------------ Parsing Breakdown

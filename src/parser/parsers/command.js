@@ -15,7 +15,7 @@ const {
 	C_CMD_IDENT_START,
 	C_CMD_IDENT,
 	C_CMD_VALUE
-} = require("../helpers/patterns.js");
+} = require("../helpers/charsets.js");
 
 /**
  * ----------------------------------------------------------- Parsing Breakdown

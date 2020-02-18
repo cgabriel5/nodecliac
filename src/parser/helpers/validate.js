@@ -1,7 +1,7 @@
 "use strict";
 
 const error = require("./error.js");
-const { cin, cnotin, C_SPACES, C_QUOTES } = require("./patterns.js");
+const { cin, cnotin, C_SPACES, C_QUOTES } = require("./charsets.js");
 
 /**
  * Validates string and interpolates its variables.

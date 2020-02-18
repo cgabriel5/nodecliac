@@ -1,7 +1,7 @@
 from tables import toTable, hasKey, `[]`, `$`
 
 from ../helpers/types import State
-from patterns import C_LETTERS, C_SPACES
+from charsets import C_LETTERS, C_SPACES
 
 # Determine line's line type.
 #

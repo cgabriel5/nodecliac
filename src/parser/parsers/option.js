@@ -12,7 +12,7 @@ const {
 	C_NL,
 	C_SPACES,
 	C_QUOTES
-} = require("../helpers/patterns.js");
+} = require("../helpers/charsets.js");
 
 /**
  * ----------------------------------------------------------- Parsing Breakdown

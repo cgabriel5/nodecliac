@@ -14,6 +14,7 @@ module.exports = (S, cmdname) => {
 	let oGroups = {};
 	let oDefaults = {};
 	let oSettings = {};
+	let settings_count = 0;
 	let oPlaceholders = {};
 	let omd5Hashes = {};
 	let count = 0;
@@ -24,7 +25,7 @@ module.exports = (S, cmdname) => {
 	let has_root = false;
 
 	// Escape '+' chars in commands.
-	const rcmdname = cmdname.replace(/(\+)/g, "\\$1");
+	const rcmdname = cmdname.replace(/\+/g, "\\+");
 	const r = new RegExp(`^(${rcmdname}|[-_a-zA-Z0-9]+)`);
 
 	const date = new Date();
@@ -47,7 +48,7 @@ module.exports = (S, cmdname) => {
 	 * @resource [https://stackoverflow.com/a/50490371]
 	 * @resource [http://ecma-international.org/ecma-402/1.0/#CompareStrings]
 	 */
-	let lsort = (a, b) => a.localeCompare(b);
+	// let lsort = (a, b) => a.localeCompare(b);
 
 	/**
 	 * compare function: Sorts alphabetically.
@@ -144,62 +145,75 @@ module.exports = (S, cmdname) => {
 	 */
 	let rm_fcmd = chain => chain.replace(r, "");
 
-	// Get needed Nodes.
-
-	let xN = [];
-	const types = ["SETTING", "COMMAND", "FLAG", "OPTION"];
-	S.tables.tree.nodes.forEach(N => {
-		let type = N.node;
-		if (types.includes(type)) {
-			if (type !== "SETTING") xN.push(N);
-			else oSettings[N.name.value] = N.value.value;
-		}
-	});
-
 	// Group commands with their flags.
 
+	let last = "";
+	let rN = {}; // Reference node.
+	let xN = S.tables.tree.nodes;
+	const ftypes = new Set(["FLAG", "OPTION"]);
+	const types = new Set(["SETTING", "COMMAND", "FLAG", "OPTION"]);
 	for (let i = 0, l = xN.length; i < l; i++) {
 		let N = xN[i];
-		let nN = xN[i + 1] || {};
 		let type = N.node;
 
-		if (!types.includes(type)) continue;
+		if (!types.has(type)) continue;
 
-		if (type === "COMMAND") {
-			// Store command in current group.
-			if (!oGroups[count]) oGroups[count] = { commands: [N], flags: [] };
-			else oGroups[count].commands.push(N);
-
-			const cval = N.command.value;
-			if (!hasProp(oSets, cval)) {
-				oSets[cval] = new Set();
-
-				// Create missing parent chains.
-				let commands = cval.split(/(?<!\\)\./);
-				commands.pop(); // Remove last command (already made).
-				for (let i = commands.length - 1; i > -1; i--) {
-					let rchain = commands.join("."); // Remainder chain.
-					if (!hasProp(oSets, rchain)) oSets[rchain] = new Set();
-					commands.pop(); // Remove last command.
-				}
+		// Check whether new group must be started.
+		if (last) {
+			if (last === "COMMAND") {
+				if (type === "COMMAND" && !rN.delimiter.value) count++;
+			} else if (ftypes.has(last)) {
+				if (!ftypes.has(type)) count++;
 			}
 
-			// Increment count: start new group.
-			if (nN && nN.node === "COMMAND" && !N.delimiter.value) count++;
-		} else if (type === "FLAG") {
-			oGroups[count].flags.push(N); // Store command in current group.
+			last = "";
+		}
 
-			// Increment count: start new group.
-			if (nN && !["FLAG", "OPTION"].includes(nN.node)) count++;
-		} else if (type === "OPTION") {
-			// Add value to last flag in group.
-			let { flags: fxN } = oGroups[count];
-			fxN[fxN.length - 1].args.push(N.value.value);
+		switch (type) {
+			case "COMMAND":
+				// Store command in current group.
+				if (!oGroups[count]) {
+					oGroups[count] = { commands: [N], flags: [] };
+				} else oGroups[count].commands.push(N);
 
-			// Increment count: start new group.
-			if (nN && !["FLAG", "OPTION"].includes(nN.node)) count++;
-		} else if (type === "SETTING") {
-			oSettings[N.name.value] = N.value.value;
+				const cval = N.command.value;
+				if (!hasProp(oSets, cval)) {
+					oSets[cval] = new Set();
+
+					// Create missing parent chains.
+					let commands = cval.split(/(?<!\\)\./);
+					commands.pop(); // Remove last command (already made).
+					for (let i = commands.length - 1; i > -1; i--) {
+						let rchain = commands.join("."); // Remainder chain.
+						if (!hasProp(oSets, rchain)) oSets[rchain] = new Set();
+						commands.pop(); // Remove last command.
+					}
+				}
+
+				last = type;
+				rN = N; // Store reference to node.
+
+				break;
+
+			case "FLAG":
+				oGroups[count].flags.push(N); // Store command in current group.
+				last = type;
+
+				break;
+
+			case "OPTION":
+				// Add value to last flag in group.
+				let { flags: fxN } = oGroups[count];
+				fxN[fxN.length - 1].args.push(N.value.value);
+				last = type;
+
+				break;
+
+			case "SETTING":
+				if (!hasProp(oSettings, N.name.value)) settings_count++;
+				oSettings[N.name.value] = N.value.value;
+
+				break;
 		}
 	}
 
@@ -225,16 +239,15 @@ module.exports = (S, cmdname) => {
 
 			// Flag with values: build each flag + value.
 			if (args.length) {
+				baseflag(fN, cxN, flag); // add multi-flag indicator?
 				args.forEach(arg => {
-					baseflag(fN, cxN, flag); // add multi-flag indicator?
-
 					cxN.forEach(N => {
 						let add = `${flag}${aval || ""}${arg || ""}`;
 						oSets[N.command.value].add(add);
 					});
 				});
 			} else {
-				// Flag is a boolean...
+				// Boolean flag...
 				const val = bval ? "?" : aval ? "=" : "";
 				cxN.forEach(N => oSets[N.command.value].add(`${flag}${val}`));
 			}
@@ -278,23 +291,25 @@ module.exports = (S, cmdname) => {
 
 	// Build defaults contents.
 	let defs = mapsort(Object.keys(oDefaults), asort, aobj);
-	defs.forEach(c => (defaults += `${rm_fcmd(c)} default ${oDefaults[c]}\n`));
+	let dl = defs.length;
+	defs.forEach((c, i) => {
+		defaults += `${rm_fcmd(c)} default ${oDefaults[c]}`;
+		if (i < dl - 1) defaults += "\n";
+	});
 	if (defaults) defaults = "\n\n" + defaults;
 
 	// Build settings contents.
+	settings_count--;
 	for (let setting in oSettings) {
 		if (hasProp(oSettings, setting)) {
-			config += `@${setting} = ${oSettings[setting]}\n`;
+			config += `@${setting} = ${oSettings[setting]}`;
+			if (settings_count) config += "\n";
+			settings_count--;
 		}
 	}
 
 	acdef = header + mapsort(acdef_lines, asort, aobj).join("\n");
 	config = header + config;
 
-	return {
-		acdef: acdef.replace(/\s*$/g, ""),
-		config: config.replace(/\s*$/g, ""),
-		keywords: defaults.replace(/\s*$/g, ""),
-		placeholders: oPlaceholders
-	};
+	return { acdef, config, keywords: defaults, placeholders: oPlaceholders };
 };

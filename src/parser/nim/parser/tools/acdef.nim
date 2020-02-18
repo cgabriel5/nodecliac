@@ -3,8 +3,9 @@ from algorithm import sort
 from sequtils import insert
 from unicode import toLower
 from re import re, split, replace
+from strutils import join, endsWith
+from sets import toHashSet, contains
 from times import format, getTime, toUnix
-from strutils import join, strip, endsWith
 from tables import Table, initTable, initOrderedTable, `[]=`, toTable, hasKey, len, del, `$`
 
 from ../helpers/types import State, Node
@@ -19,6 +20,7 @@ proc acdef*(S: State, cmdname: string): tuple =
     var oGroups = initTable[int, Table[string, seq[Node]]]()
     var oDefaults = initTable[string, string]()
     var oSettings = initOrderedTable[string, string]()
+    var settings_count = 0
     var oPlaceholders = initTable[string, string]()
     var omd5Hashes = initTable[string, string]()
     var count = 0
@@ -140,65 +142,67 @@ proc acdef*(S: State, cmdname: string): tuple =
     proc rm_fcmd(chain: string): string =
         result = chain.replace(r)
 
-    # Get needed Nodes.
-
-    var xN: seq[Node] = @[]
-    const types = ["SETTING", "COMMAND", "FLAG", "OPTION"]
-    for N in S.tables.tree["nodes"]:
-        let `type` = N.node
-        if `type` in types:
-            if `type` != "SETTING": xN.add(N)
-            else: oSettings[N.name.value] = N.value.value
-
     # Group commands with their flags.
+
+    var last = ""
+    var rN: Node # Reference node.
+    var xN = S.tables.tree["nodes"]
+    const ftypes = toHashSet(["FLAG", "OPTION"])
+    const types = toHashSet(["SETTING", "COMMAND", "FLAG", "OPTION"])
 
     var i = 0; var l = xN.len; while i < l:
         let N = xN[i]
-        let nN = if i + 1 < l: xN[i + 1] else: Node()
         let `type` = N.node
 
-        if `type` notin types: inc(i); continue
+        if not types.contains(`type`): inc(i); continue
 
-        if `type` == "COMMAND":
-            # Store command in current group.
-            if not oGroups.hasKey(count):
-                var tb = initTable[string, seq[Node]]()
-                tb["commands"] = @[N]
-                tb["flags"] = @[]
-                oGroups[count] = tb
-            else: oGroups[count]["commands"].add(N)
+        # Check whether new group must be started.
+        if last != "":
+            if last == "COMMAND":
+                if `type` == "COMMAND" and rN.delimiter.value == "": inc(count)
+            elif ftypes.contains(last):
+                if not ftypes.contains(`type`): inc(count)
 
-            let cval = N.command.value
-            if not oSets.hasKey(cval):
-                oSets[cval] = initTable[string, bool]()
+            last = ""
 
-                # Create missing parent chains.
-                var commands = cval.split(re"(?<!\\)\.")
-                discard commands.pop() # Remove last command (already made).
-                var i = commands.high
-                while i > -1:
-                    let rchain = commands.join(".") # Remainder chain.
-                    if not oSets.hasKey(rchain):
-                        oSets[rchain] = initTable[string, bool]()
-                    discard commands.pop() # Remove last command.
-                    dec(i)
+        case (`type`):
+            of "COMMAND":
+                # Store command in current group.
+                if not oGroups.hasKey(count):
+                    oGroups[count] = {"commands": @[N], "flags": @[]}.toTable
+                else: oGroups[count]["commands"].add(N)
 
-            # Increment count: start new group.
-            if (nN.node == "COMMAND" and N.delimiter.value == ""): inc(count)
-        elif `type` == "FLAG":
-            oGroups[count]["flags"].add(N) # Store command in current group.
+                let cval = N.command.value
+                if not oSets.hasKey(cval):
+                    oSets[cval] = initTable[string, bool]()
 
-            # Increment count: start new group.
-            if nN.node != "" and nN.node notin ["FLAG", "OPTION"]: inc(count)
-        elif `type` == "OPTION":
-            # Add value to last flag in group.
-            var fxN = oGroups[count]["flags"]
-            oGroups[count]["flags"][fxN.high].args.add(N.value.value)
+                    # Create missing parent chains.
+                    var commands = cval.split(re"(?<!\\)\.")
+                    discard commands.pop() # Remove last command (already made).
+                    var i = commands.high
+                    while i > -1:
+                        let rchain = commands.join(".") # Remainder chain.
+                        if not oSets.hasKey(rchain):
+                            oSets[rchain] = initTable[string, bool]()
+                        discard commands.pop() # Remove last command.
+                        dec(i)
 
-            # Increment count: start new group.
-            if nN.node != "" and nN.node notin ["FLAG", "OPTION"]: inc(count)
-        elif `type` == "SETTING":
-            oSettings[N.name.value] = N.value.value
+                last = `type`
+                rN = N # Store reference to node.
+
+            of "FLAG":
+                oGroups[count]["flags"].add(N) # Store command in current group.
+                last = `type`
+
+            of "OPTION":
+                # Add value to last flag in group.
+                var fxN = oGroups[count]["flags"]
+                oGroups[count]["flags"][fxN.high].args.add(N.value.value)
+                last = `type`
+
+            of "SETTING":
+                if not oSettings.hasKey(N.name.value): inc(settings_count)
+                oSettings[N.name.value] = N.value.value
 
         inc(i)
 
@@ -221,12 +225,11 @@ proc acdef*(S: State, cmdname: string): tuple =
 
             # Flag with values: build each flag + value.
             if args.len > 0:
+                baseflag(fN, cxN, flag) # add multi-flag indicator?
                 for arg in args:
-                    baseflag(fN, cxN, flag) # add multi-flag indicator?
-
                     for cN in cxN: oSets[cN.command.value][flag & aval & arg] = true
             else:
-                # Flag is a boolean...
+                # Boolean flag...
                 var val = ""
                 if bval != "": val = "?"
                 elif aval != "": val = "="
@@ -271,12 +274,19 @@ proc acdef*(S: State, cmdname: string): tuple =
     var deflist: seq[string] = @[]
     for default in oDefaults.keys: deflist.add(default)
     let defs = mapsort(deflist, asort, "aobj")
-    for c in defs: defaults &= rm_fcmd(c) & " default " & oDefaults[c] & "\n"
+    let dl = defs.high
+    for i, c in defs:
+        defaults &= rm_fcmd(c) & " default " & oDefaults[c]
+        if i != dl: defaults &= "\n"
+
     if defaults != "": defaults = "\n\n" & defaults
 
     # Build settings contents.
+    dec(settings_count)
     for setting in oSettings.keys:
-        config &= "@" & setting & " = " & oSettings[setting] & "\n"
+        config &= "@" & setting & " = " & oSettings[setting]
+        if settings_count != 0: config &= "\n"
+        dec(settings_count)
 
     acdef = header & mapsort(acdef_lines, asort, "aobj").join("\n")
     config = header & config
@@ -289,8 +299,8 @@ proc acdef*(S: State, cmdname: string): tuple =
         placeholders: Table[string, string]
     ]
 
-    data.acdef = acdef.strip(leading = false, trailing = true)
-    data.config = config.strip(leading = false, trailing = true)
-    data.keywords = defaults.strip(leading = false, trailing = true)
+    data.acdef = acdef
+    data.config = config
+    data.keywords = defaults
     data.placeholders = oPlaceholders
     result = data

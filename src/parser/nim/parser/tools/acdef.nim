@@ -4,8 +4,8 @@ from sequtils import insert
 from unicode import toLower
 from re import re, split, replace
 from strutils import join, endsWith
-from sets import toHashSet, contains
 from times import format, getTime, toUnix
+from sets import HashSet, initHashSet, incl, excl, toHashSet, contains, len, items
 from tables import Table, initTable, initOrderedTable, `[]=`, toTable, hasKey, len, del, `$`
 
 from ../helpers/types import State, Node
@@ -16,7 +16,7 @@ from ../helpers/types import State, Node
 # @param  {string} cmdname - Name of <command>.acdef being parsed.
 # @return {object} - Object containing acdef, config, and keywords contents.
 proc acdef*(S: State, cmdname: string): tuple =
-    var oSets = initTable[string, Table[string, bool]]()
+    var oSets = initTable[string, HashSet[string]]()
     var oGroups = initTable[int, Table[string, seq[Node]]]()
     var oDefaults = initTable[string, string]()
     var oSettings = initOrderedTable[string, string]()
@@ -130,8 +130,8 @@ proc acdef*(S: State, cmdname: string): tuple =
         let add = flag & "=" & (if ismulti: "*" else: "")
         let del = flag & "=" & (if ismulti: "" else: "*")
         for cN in cxN:
-            oSets[cN.command.value][add] = true
-            oSets[cN.command.value].del(del)
+            oSets[cN.command.value].incl(add)
+            oSets[cN.command.value].excl(del)
 
     # Removes first command in command chain. However, when command name
     # is not the main command in (i.e. in a test file) just remove the
@@ -174,7 +174,7 @@ proc acdef*(S: State, cmdname: string): tuple =
 
                 let cval = N.command.value
                 if not oSets.hasKey(cval):
-                    oSets[cval] = initTable[string, bool]()
+                    oSets[cval] = initHashSet[string]()
 
                     # Create missing parent chains.
                     var commands = cval.split(re"(?<!\\)\.")
@@ -183,7 +183,7 @@ proc acdef*(S: State, cmdname: string): tuple =
                     while i > -1:
                         let rchain = commands.join(".") # Remainder chain.
                         if not oSets.hasKey(rchain):
-                            oSets[rchain] = initTable[string, bool]()
+                            oSets[rchain] = initHashSet[string]()
                         discard commands.pop() # Remove last command.
                         dec(i)
 
@@ -227,13 +227,13 @@ proc acdef*(S: State, cmdname: string): tuple =
             if args.len > 0:
                 baseflag(fN, cxN, flag) # add multi-flag indicator?
                 for arg in args:
-                    for cN in cxN: oSets[cN.command.value][flag & aval & arg] = true
+                    for cN in cxN: oSets[cN.command.value].incl(flag & aval & arg)
             else:
                 # Boolean flag...
                 var val = ""
                 if bval != "": val = "?"
                 elif aval != "": val = "="
-                for cN in cxN: oSets[cN.command.value][flag & val] = true
+                for cN in cxN: oSets[cN.command.value].incl(flag & val)
 
     # Generate acdef.
 
@@ -247,7 +247,7 @@ proc acdef*(S: State, cmdname: string): tuple =
         # [https://stackoverflow.com/a/21194765]
         if `set`.len > 0:
             var commands: seq[string] = @[]
-            for command in `set`.keys: commands.add(command)
+            for command in `set`.items: commands.add(command)
             flags = mapsort(commands, fsort, "fobj").join("|")
 
         # Note: Placehold long flag sets to reduce the file's chars.

@@ -82,18 +82,19 @@ module.exports = (S, isoneliner) => {
 			case "keyword":
 				{
 					let keyword_len = 7;
+					let endpoint = keyword_len - 1;
 					let keyword = text.substr(S.i, keyword_len);
 
 					// If keyword isn't 'default', error.
 					if (keyword !== "default") error(S, __filename);
 					N.keyword.start = S.i;
-					N.keyword.end = S.i + keyword_len - 1;
+					N.keyword.end = S.i + endpoint;
 					N.keyword.value = keyword;
 					state = "keyword-spacer";
 
 					// Note: Forward indices to skip keyword chars.
-					S.i += keyword_len - 1;
-					S.column += keyword_len - 1;
+					S.i += endpoint;
+					S.column += endpoint;
 				}
 
 				break;

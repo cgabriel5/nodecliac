@@ -66,18 +66,19 @@ proc p_flag*(S: State, isoneliner: string): Node =
 
             of "keyword":
                 const keyword_len = 6
-                let keyword = text[S.i .. S.i + keyword_len]
+                let endpoint = S.i + keyword_len
+                let keyword = text[S.i .. endpoint]
 
                 # If keyword isn't 'default', error.
                 if keyword != "default": error(S, currentSourcePath)
                 N.keyword.start = S.i
-                N.keyword.`end` = S.i + keyword_len
+                N.keyword.`end` = endpoint
                 N.keyword.value = keyword
                 state = "keyword-spacer"
 
                 # Note: Forward indices to skip keyword chars.
-                S.i = S.i + (keyword_len)
-                S.column = S.column + (keyword_len)
+                S.i += keyword_len
+                S.column += keyword_len
 
             of "keyword-spacer":
                 if `char` notin C_SPACES: error(S, currentSourcePath)

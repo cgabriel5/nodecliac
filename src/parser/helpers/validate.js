@@ -72,7 +72,7 @@ let validate = (S, N, type) => {
 
 				// Interpolate variables.
 				value = value.replace(r, function(match, index) {
-					match = match.replace(/^\$\{\s*|\s*\}$/g, "");
+					match = match.slice(2, -1).trim();
 
 					// Don't interpolate when formatting.
 					if (S.args.action === "format") return `\${${match}}`;

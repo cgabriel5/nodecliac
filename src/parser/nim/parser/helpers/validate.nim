@@ -1,5 +1,5 @@
-from strutils import join, replace, find, startsWith
-from re import re, replace, findAll
+from strutils import join, replace, find, strip, startsWith
+from re import re, findAll
 from tables import toTable, hasKey, initTable, `[]=`, `[]`, `$`
 
 import error
@@ -64,14 +64,13 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                     error(S, currentSourcePath, 11)
 
             # Interpolate variables.
-            let r_decor = re"^\$\{\s*|\s*\}$"
             var matches = findAll(value, r)
             var replacements: seq[string] = @[]
             var startpoints: seq[int] = @[]
             if matches.len > 0:
                 for m in matches:
                     startpoints.add(value.find(m)) # Match index.
-                    replacements.add(m.replace(r_decor))
+                    replacements.add(m[2 .. ^2].strip(trailing=true))
 
             for i, m in matches:
                 let rp = replacements[i]

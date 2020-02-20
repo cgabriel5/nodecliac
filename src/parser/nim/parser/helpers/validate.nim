@@ -1,10 +1,11 @@
-from strutils import join, replace, find, strip, startsWith
 from re import re, findAll
+from strutils import join, find, strip, startsWith
 from tables import toTable, hasKey, initTable, `[]=`, `[]`, `$`
 
 import error
 from types import State, Node, Branch
 from charsets import C_QUOTES, C_SPACES
+from ../../utils/regex import findAllBounds
 let r = re"(?<!\\)\$\{\s*[^}]*\s*\}"
 
 # Validates string and interpolates its variables.
@@ -64,27 +65,23 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                     error(S, currentSourcePath, 11)
 
             # Interpolate variables.
-            var matches = findAll(value, r)
-            var replacements: seq[string] = @[]
-            var startpoints: seq[int] = @[]
-            if matches.len > 0:
-                for m in matches:
-                    startpoints.add(value.find(m)) # Match index.
-                    replacements.add(m[2 .. ^2].strip(trailing=true))
+            var bounds = findAllBounds(value, r)
+            if bounds.len > 0:
+                var action = S.args.action
+                let vars = S.tables.variables
+                for i in countdown(bounds.high, 0):
+                    let bound = bounds[i]
+                    let rp = value[bound.first .. bound.last][2 .. ^2].strip(trailing=true)
 
-            for i, m in matches:
-                let rp = replacements[i]
-
-                # Don't interpolate when formatting.
-                if S.args.action == "format":
-                    value = value.replace(m, by = "${" & rp & "}")
-                else:
-                    # Error if var is being used before declared.
-                    if not S.tables.variables.hasKey(rp):
-                        S.column = resumepoint + startpoints[i]
-                        error(S, currentSourcePath, 12)
-
-                    value = value.replace(m, by=S.tables.variables[rp])
+                    var sub = ""
+                    if action == "make":
+                        # Error if var is being used before declared.
+                        if not vars.hasKey(rp):
+                            S.column = resumepoint + bound.first
+                            error(S, currentSourcePath, 12)
+                        sub = vars[rp]
+                    else: sub = "${" & rp & "}"
+                    value[bound.first .. bound.last] = sub
 
             N.args = @[value]
             N.value.value = value

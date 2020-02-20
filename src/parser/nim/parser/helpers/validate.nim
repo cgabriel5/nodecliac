@@ -49,254 +49,254 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
 
     case (`type`):
         of "quoted":
-                let fchar = if value[0] == '$': value[1] else: value[0]
-                let isquoted = fchar in C_QUOTES
-                let lchar = value[^1]
-                if isquoted:
-                    # Error if improperly quoted.
-                    if lchar != fchar:
-                        S.column = resumepoint
-                        error(S, currentSourcePath, 10)
-                    # Error it string is empty.
-                    if lchar == fchar and value.len == 2:
-                        S.column = resumepoint
-                        error(S, currentSourcePath, 11)
+            let fchar = if value[0] == '$': value[1] else: value[0]
+            let isquoted = fchar in C_QUOTES
+            let lchar = value[^1]
+            if isquoted:
+                # Error if improperly quoted.
+                if lchar != fchar:
+                    S.column = resumepoint
+                    error(S, currentSourcePath, 10)
+                # Error it string is empty.
+                if lchar == fchar and value.len == 2:
+                    S.column = resumepoint
+                    error(S, currentSourcePath, 11)
 
-                # Interpolate variables.
-                let r = re"(?<!\\)\$\{\s*[^}]*\s*\}"
-                let r_decor = re"^\$\{\s*|\s*\}$"
-                var matches = findAll(value, r)
-                var replacements: seq[string] = @[]
-                var startpoints: seq[int] = @[]
-                if matches.len > 0:
-                    for m in matches:
-                        startpoints.add(value.find(m)) # Match index.
-                        replacements.add(m.replace(r_decor))
+            # Interpolate variables.
+            let r = re"(?<!\\)\$\{\s*[^}]*\s*\}"
+            let r_decor = re"^\$\{\s*|\s*\}$"
+            var matches = findAll(value, r)
+            var replacements: seq[string] = @[]
+            var startpoints: seq[int] = @[]
+            if matches.len > 0:
+                for m in matches:
+                    startpoints.add(value.find(m)) # Match index.
+                    replacements.add(m.replace(r_decor))
 
-                for i, m in matches:
-                    let rp = replacements[i]
+            for i, m in matches:
+                let rp = replacements[i]
 
-                    # Don't interpolate when formatting.
-                    if S.args.action == "format":
-                        value = value.replace(m, by = "${" & rp & "}")
-                    else:
-                        # Error if var is being used before declared.
-                        if not S.tables.variables.hasKey(rp):
-                            S.column = resumepoint + startpoints[i]
-                            error(S, currentSourcePath, 12)
+                # Don't interpolate when formatting.
+                if S.args.action == "format":
+                    value = value.replace(m, by = "${" & rp & "}")
+                else:
+                    # Error if var is being used before declared.
+                    if not S.tables.variables.hasKey(rp):
+                        S.column = resumepoint + startpoints[i]
+                        error(S, currentSourcePath, 12)
 
-                        value = value.replace(m, by=S.tables.variables[rp])
+                    value = value.replace(m, by=S.tables.variables[rp])
 
-                N.args = @[value]
-                N.value.value = value
+            N.args = @[value]
+            N.value.value = value
 
         of "escaped":
             N.args = @[value]
         of "command-flag":
-                # Error if command-flag doesn't start with '$('.
-                if not value.startsWith("$("):
-                    S.column = resumepoint + 1
-                    error(S, currentSourcePath, 13)
-                # Error if command-flag doesn't end with ')'.
-                if value[^1] != ')':
-                    S.column = resumepoint + value.high
-                    error(S, currentSourcePath, 13)
+            # Error if command-flag doesn't start with '$('.
+            if not value.startsWith("$("):
+                S.column = resumepoint + 1
+                error(S, currentSourcePath, 13)
+            # Error if command-flag doesn't end with ')'.
+            if value[^1] != ')':
+                S.column = resumepoint + value.high
+                error(S, currentSourcePath, 13)
 
-                var argument = ""
-                var args: seq[string] = @[]
-                var qchar: char
-                var delimiter_count = 0
-                var delimiter_index = -1
-                var i = 2 # Offset to account for '$('.
-                var resume_index = N.value.start + i
-                var vsi: int # Index where value starts.
+            var argument = ""
+            var args: seq[string] = @[]
+            var qchar: char
+            var delimiter_count = 0
+            var delimiter_index = -1
+            var i = 2 # Offset to account for '$('.
+            var resume_index = N.value.start + i
+            var vsi: int # Index where value starts.
 
-                # Ignore starting '$(' and ending ')' when looping.
-                let l = value.high
-                while i < l:
-                    let `char` = value[i]
-                    let pchar = if i - 0 > 0: value[i - 1] else: '\0'
-                    let nchar = if i + 1 < l: value[i + 1] else: '\0'
+            # Ignore starting '$(' and ending ')' when looping.
+            let l = value.high
+            while i < l:
+                let `char` = value[i]
+                let pchar = if i - 0 > 0: value[i - 1] else: '\0'
+                let nchar = if i + 1 < l: value[i + 1] else: '\0'
 
-                    if qchar == '\0':
-                        # Look for unescaped quote characters.
-                        if `char` in C_QUOTES and pchar != '\\':
-                            vsi = resume_index
-                            qchar = `char`
-                            argument &= $`char`
-                        elif `char` in C_SPACES: discard
-                            # Ignore any whitespace outside of quotes.
-                        elif `char` == ',':
-                            # Track count of command delimiters.
-                            inc(delimiter_count)
-                            delimiter_index = i
-
-                            # If delimiter count is >1, there are empty args.
-                            if delimiter_count > 1 or args.len == 0:
-                                S.column = resumepoint + i
-                                error(S, currentSourcePath, 14)
-                        # Look for '$' prefixed strings.
-                        elif `char` == '$' and nchar in C_QUOTES:
-                            qchar = nchar
-                            argument &= $`char` & $nchar
-                            inc(resume_index)
-                            inc(i)
-                            vsi = resume_index
-                        else:
-                            # Note: Anything else isn't allowed. For example,
-                            # hitting this block means a character isn't
-                            # being quoted. Something like this can trigger
-                            # this block.
-                            # Example: $("arg1", "arg2", arg3 )
-                            # ---------------------------^ Value is unquoted.
-
-                            S.column = resumepoint + i
-                            error(S, currentSourcePath)
-                    else:
+                if qchar == '\0':
+                    # Look for unescaped quote characters.
+                    if `char` in C_QUOTES and pchar != '\\':
+                        vsi = resume_index
+                        qchar = `char`
                         argument &= $`char`
+                    elif `char` in C_SPACES: discard
+                        # Ignore any whitespace outside of quotes.
+                    elif `char` == ',':
+                        # Track count of command delimiters.
+                        inc(delimiter_count)
+                        delimiter_index = i
 
+                        # If delimiter count is >1, there are empty args.
+                        if delimiter_count > 1 or args.len == 0:
+                            S.column = resumepoint + i
+                            error(S, currentSourcePath, 14)
+                    # Look for '$' prefixed strings.
+                    elif `char` == '$' and nchar in C_QUOTES:
+                        qchar = nchar
+                        argument &= $`char` & $nchar
+                        inc(resume_index)
+                        inc(i)
+                        vsi = resume_index
+                    else:
+                        # Note: Anything else isn't allowed. For example,
+                        # hitting this block means a character isn't
+                        # being quoted. Something like this can trigger
+                        # this block.
+                        # Example: $("arg1", "arg2", arg3 )
+                        # ---------------------------^ Value is unquoted.
+
+                        S.column = resumepoint + i
+                        error(S, currentSourcePath)
+                else:
+                    argument &= $`char`
+
+                    if `char` == qchar and pchar != '\\':
+                        tNset(vsi, argument.high, argument)
+                        argument = validate(S, tN, "quoted")
+                        args.add(argument)
+
+                        argument = ""
+                        qchar = '\0'
+                        delimiter_index = -1
+                        delimiter_count = 0
+
+                inc(i); inc(resume_index)
+
+            # If flag is still there is a trailing command delimiter.
+            if delimiter_index > -1 and argument == "":
+                S.column = resumepoint + delimiter_index
+                error(S, currentSourcePath, 14)
+
+            # Get last argument.
+            if argument != "":
+                dec(i) # Reduce to account for last completed iteration.
+
+                tNset(vsi, argument.high, argument)
+                argument = validate(S, tN, "quoted")
+                args.add(argument)
+
+            let cvalue = "$(" & args.join(",") & ")" # Build clean cmd-flag.
+            N.args = @[cvalue]
+            N.value.value = cvalue
+            value = cvalue
+
+        of "list":
+            # Error if list doesn't start with '('.
+            if value[0] != '(':
+                S.column = resumepoint
+                error(S, currentSourcePath, 15)
+            # Error if command-flag doesn't end with ')'.
+            if value[^1] != ')':
+                S.column = resumepoint + value.high
+                error(S, currentSourcePath, 15)
+
+            var argument = ""
+            var args: seq[string] = @[]
+            var qchar: char
+            var mode = ""
+            var i = 1 # Offset to account for '('.
+            var resume_index = N.value.start + i
+            var vsi: int # Index where value starts.
+
+            # Ignore starting '(' and ending ')' when looping.
+            let l = value.high
+            while i < l:
+                let `char` = value[i]
+                let pchar = if i - 0 > 0: value[i - 1] else: '\0'
+
+                if mode == "":
+                    # Skip unescaped ws delimiters.
+                    if `char` in C_SPACES and pchar != '\\':
+                        inc(i); inc(resume_index);
+                        continue
+
+                    # Set mode depending on the character.
+                    if `char` in C_QUOTES and pchar != '\\':
+                        vsi = resume_index
+                        mode = "quoted"
+                        qchar = `char`
+                    elif `char` == '$' and pchar != '\\':
+                        vsi = resume_index
+                        mode = "command-flag"
+                    elif `char` notin C_SPACES:
+                        vsi = resume_index
+                        mode = "escaped"
+                    # All other characters are invalid so error.
+                    else:
+                        S.column = resumepoint + i
+                        error(S, currentSourcePath)
+
+                    # Note: If arguments array is already populated
+                    # and if the previous `char` is not a space then
+                    # the argument was not delimited so give an error.
+                    # Example:
+                    # subl.command = --flag=(1234 "ca"t"    $("cat"))
+                    # --------------------------------^ Error point.
+                    if args.len != 0 and pchar notin C_SPACES:
+                        S.column = resumepoint + i
+                        error(S, currentSourcePath)
+
+                    argument &= $`char`
+                elif mode != "":
+                    if mode == "quoted":
+                        # Stop at same-style quote char.
                         if `char` == qchar and pchar != '\\':
-                            tNset(vsi, argument.high, argument)
-                            argument = validate(S, tN, "quoted")
+                            argument &= $`char`
+
+                            let `end` = argument.high
+                            tNset(vsi, `end`, argument)
+                            argument = validate(S, tN, mode)
                             args.add(argument)
 
                             argument = ""
-                            qchar = '\0'
-                            delimiter_index = -1
-                            delimiter_count = 0
-
-                    inc(i); inc(resume_index)
-
-                # If flag is still there is a trailing command delimiter.
-                if delimiter_index > -1 and argument == "":
-                    S.column = resumepoint + delimiter_index
-                    error(S, currentSourcePath, 14)
-
-                # Get last argument.
-                if argument != "":
-                    dec(i) # Reduce to account for last completed iteration.
-
-                    tNset(vsi, argument.high, argument)
-                    argument = validate(S, tN, "quoted")
-                    args.add(argument)
-
-                let cvalue = "$(" & args.join(",") & ")" # Build clean cmd-flag.
-                N.args = @[cvalue]
-                N.value.value = cvalue
-                value = cvalue
-
-        of "list":
-                # Error if list doesn't start with '('.
-                if value[0] != '(':
-                    S.column = resumepoint
-                    error(S, currentSourcePath, 15)
-                # Error if command-flag doesn't end with ')'.
-                if value[^1] != ')':
-                    S.column = resumepoint + value.high
-                    error(S, currentSourcePath, 15)
-
-                var argument = ""
-                var args: seq[string] = @[]
-                var qchar: char
-                var mode = ""
-                var i = 1 # Offset to account for '('.
-                var resume_index = N.value.start + i
-                var vsi: int # Index where value starts.
-
-                # Ignore starting '(' and ending ')' when looping.
-                let l = value.high
-                while i < l:
-                    let `char` = value[i]
-                    let pchar = if i - 0 > 0: value[i - 1] else: '\0'
-
-                    if mode == "":
-                        # Skip unescaped ws delimiters.
+                            mode = ""
+                            vsi = 0
+                        else: argument &= $`char`
+                    elif mode == "escaped":
+                        # Stop at unescaped ws char.
                         if `char` in C_SPACES and pchar != '\\':
-                            inc(i); inc(resume_index);
-                            continue
+                            # argument &= $`char` # Store character.
 
-                        # Set mode depending on the character.
-                        if `char` in C_QUOTES and pchar != '\\':
-                            vsi = resume_index
-                            mode = "quoted"
-                            qchar = `char`
-                        elif `char` == '$' and pchar != '\\':
-                            vsi = resume_index
-                            mode = "command-flag"
-                        elif `char` notin C_SPACES:
-                            vsi = resume_index
-                            mode = "escaped"
-                        # All other characters are invalid so error.
-                        else:
-                            S.column = resumepoint + i
-                            error(S, currentSourcePath)
+                            let `end` = argument.high
+                            tNset(vsi, `end`, argument)
+                            argument = validate(S, tN, mode)
+                            args.add(argument)
 
-                        # Note: If arguments array is already populated
-                        # and if the previous `char` is not a space then
-                        # the argument was not delimited so give an error.
-                        # Example:
-                        # subl.command = --flag=(1234 "ca"t"    $("cat"))
-                        # --------------------------------^ Error point.
-                        if args.len != 0 and pchar notin C_SPACES:
-                            S.column = resumepoint + i
-                            error(S, currentSourcePath)
+                            argument = ""
+                            mode = ""
+                            vsi = 0
+                        else: argument &= $`char`
+                    elif mode == "command-flag":
+                        # Stop at unescaped ')' char.
+                        if `char` == ')' and pchar != '\\':
+                            argument &= $`char`
 
-                        argument &= $`char`
-                    elif mode != "":
-                        if mode == "quoted":
-                            # Stop at same-style quote char.
-                            if `char` == qchar and pchar != '\\':
-                                argument &= $`char`
+                            let `end` = argument.high
+                            tNset(vsi, `end`, argument)
+                            argument = validate(S, tN, mode)
+                            args.add(argument)
 
-                                let `end` = argument.high
-                                tNset(vsi, `end`, argument)
-                                argument = validate(S, tN, mode)
-                                args.add(argument)
+                            argument = ""
+                            mode = ""
+                            vsi = 0
+                        else: argument &= $`char`
 
-                                argument = ""
-                                mode = ""
-                                vsi = 0
-                            else: argument &= $`char`
-                        elif mode == "escaped":
-                            # Stop at unescaped ws char.
-                            if `char` in C_SPACES and pchar != '\\':
-                                # argument &= $`char` # Store character.
+                inc(i); inc(resume_index)
 
-                                let `end` = argument.high
-                                tNset(vsi, `end`, argument)
-                                argument = validate(S, tN, mode)
-                                args.add(argument)
+            # Get last argument.
+            if argument != "":
+                tNset(vsi, argument.high, argument)
+                argument = validate(S, tN, mode)
+                args.add(argument)
 
-                                argument = ""
-                                mode = ""
-                                vsi = 0
-                            else: argument &= $`char`
-                        elif mode == "command-flag":
-                            # Stop at unescaped ')' char.
-                            if `char` == ')' and pchar != '\\':
-                                argument &= $`char`
-
-                                let `end` = argument.high
-                                tNset(vsi, `end`, argument)
-                                argument = validate(S, tN, mode)
-                                args.add(argument)
-
-                                argument = ""
-                                mode = ""
-                                vsi = 0
-                            else: argument &= $`char`
-
-                    inc(i); inc(resume_index)
-
-                # Get last argument.
-                if argument != "":
-                    tNset(vsi, argument.high, argument)
-                    argument = validate(S, tN, mode)
-                    args.add(argument)
-
-                N.args = args
-                let cargs =  "(" & args.join(" ") & ")"
-                N.value.value = cargs
-                value = cargs
+            N.args = args
+            let cargs =  "(" & args.join(" ") & ")"
+            N.value.value = cargs
+            value = cargs
 
     return value

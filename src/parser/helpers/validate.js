@@ -2,6 +2,7 @@
 
 const error = require("./error.js");
 const { cin, cnotin, C_SPACES, C_QUOTES } = require("./charsets.js");
+const r = /(?<!\\)\$\{\s*[^}]*\s*\}/g;
 
 /**
  * Validates string and interpolates its variables.
@@ -70,7 +71,6 @@ let validate = (S, N, type) => {
 				}
 
 				// Interpolate variables.
-				const r = /(?<!\\)\$\{\s*[^}]*\s*\}/g;
 				value = value.replace(r, function(match, index) {
 					match = match.replace(/^\$\{\s*|\s*\}$/g, "");
 

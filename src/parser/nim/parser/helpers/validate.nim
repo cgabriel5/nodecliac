@@ -5,6 +5,7 @@ from tables import toTable, hasKey, initTable, `[]=`, `[]`, `$`
 import error
 from types import State, Node, Branch
 from charsets import C_QUOTES, C_SPACES
+let r = re"(?<!\\)\$\{\s*[^}]*\s*\}"
 
 # Validates string and interpolates its variables.
 #
@@ -63,7 +64,6 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                     error(S, currentSourcePath, 11)
 
             # Interpolate variables.
-            let r = re"(?<!\\)\$\{\s*[^}]*\s*\}"
             let r_decor = re"^\$\{\s*|\s*\}$"
             var matches = findAll(value, r)
             var replacements: seq[string] = @[]

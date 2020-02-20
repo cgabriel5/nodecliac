@@ -9,7 +9,10 @@
 module.exports = S => {
 	let { fmt, igc } = S.args;
 	let { nodes } = S.tables.tree;
-	let output = "";
+	const eN = {};
+	let output = [];
+	let passed = [];
+	const r = /^[ \t]+/g;
 
 	// Indentation level multipliers.
 	let MXP = {
@@ -29,26 +32,57 @@ module.exports = S => {
 	const [ichar, iamount] = fmt;
 	let indent = (type, count) => ichar.repeat((count || MXP[type]) * iamount);
 
-	// Filter comment nodes when flag is provided.
-	if (igc) {
-		let flag = false;
-		nodes = nodes.filter(N => {
-			// Remove newline node directly after comment node.
-			if (flag) {
-				flag = false;
-				if (N.node === "NEWLINE") return false;
+	/**
+	 * Gets next node that is not a comment. Also takes into account
+	 *     subsequent newline node.
+	 *
+	 * @param  {number} i - The index to start search.
+	 * @param  {number} l - The length of array.
+	 * @return {object} - The node object.
+	 */
+	let nextnode = (i, l) => {
+		let r = eN;
+		if (igc) {
+			for (i = i + 1; i < l; i++) {
+				let N = nodes[i];
+				let type = N.node;
+				if (type !== "COMMENT") {
+					r = N;
+					break;
+				} else if (type === "COMMENT") i++;
 			}
+		} else r = nodes[i + 1];
 
-			let check = N.node !== "COMMENT";
-			// flag = N.node === "COMMENT";
-			flag = !check;
-			return check;
-		});
-	}
+		return r;
+	};
+
+	/**
+	 * Gets the node previously iterated over.
+	 *
+	 * @param  {number} i - The index to start search.
+	 * @param  {number} l - The length of array.
+	 * @return {object} - The node object.
+	 */
+	let lastnode = (i, l) => {
+		let r = eN;
+		if (igc) r = passed[passed.length - 1];
+		else r = nodes[i - 1];
+		return r;
+	};
 
 	// Loop over nodes to build formatted file.
-	nodes.forEach((N, i) => {
+
+	for (let i = 0, l = nodes.length; i < l; i++) {
+		let N = nodes[i];
 		let type = N.node;
+
+		// Ignore starting newlines.
+		if (!output.length && type === "NEWLINE") continue;
+		// Remove comments when flag is provided.
+		if (igc && type === "COMMENT") {
+			i++;
+			continue;
+		}
 
 		switch (type) {
 			case "COMMENT":
@@ -56,18 +90,28 @@ module.exports = S => {
 					let scope = scopes[scopes.length - 1] || null;
 					let pad = indent(null, scope);
 
-					output += `${pad}${N.comment.value}`;
+					output.push(`${pad}${N.comment.value}`);
 				}
 
 				break;
 
 			case "NEWLINE":
 				{
-					let nN = nodes[i + 1];
+					let nN = nextnode(i, l);
 
-					if (nl_count <= 1) output += "\n";
+					if (nl_count <= 1) output.push("\n");
 					nl_count++;
 					if (nN && nN.node !== "NEWLINE") nl_count = 0;
+
+					if (scopes.length) {
+						let last = output[output.length - 2];
+						let lchar = last[last.length - 1];
+						let isbrace = lchar === "[" || lchar === "(";
+						if (isbrace && nN && nN.node === "NEWLINE") nl_count++;
+						if (nN.node === "BRACE") {
+							if (lastnode(i, l).node === "NEWLINE") output.pop();
+						}
+					}
 				}
 
 				break;
@@ -78,7 +122,18 @@ module.exports = S => {
 					let aval = N.assignment.value;
 					let vval = N.value.value;
 
-					output += `@${nval} ${aval} ${vval}`;
+					let r = "@";
+					if (nval) {
+						r += nval;
+						if (aval) {
+							r += ` ${aval}`;
+							if (vval) {
+								r += ` ${vval}`;
+							}
+						}
+					}
+
+					output.push(r);
 				}
 
 				break;
@@ -89,7 +144,18 @@ module.exports = S => {
 					let aval = N.assignment.value;
 					let vval = N.value.value;
 
-					output += `$${nval} ${aval} ${vval}`;
+					let r = "$";
+					if (nval) {
+						r += nval;
+						if (aval) {
+							r += ` ${aval}`;
+							if (vval) {
+								r += ` ${vval}`;
+							}
+						}
+					}
+
+					output.push(r);
 				}
 
 				break;
@@ -101,7 +167,24 @@ module.exports = S => {
 					let dval = N.delimiter.value;
 					let aval = N.assignment.value;
 
-					output += `${cval}${dval} ${aval} ${vval}`;
+					let r = "";
+					if (cval) {
+						r += cval;
+						if (dval) {
+							r += dval;
+						} else {
+							if (aval) {
+								r += ` ${aval}`;
+								if (vval) {
+									r += ` ${vval}`;
+								}
+							}
+						}
+					}
+
+					let nN = nextnode(i, l);
+					if (nN && nN.node === "FLAG") r += " ";
+					output.push(r);
 					if (vval && vval === "[") scopes.push(1); // Track scope.
 				}
 
@@ -122,20 +205,36 @@ module.exports = S => {
 
 					// Note: If nN is a flag reset var.
 					if (pipe_del) {
-						let nN = nodes[i + 1];
+						let nN = nextnode(i, l);
 						if (nN && nN.node !== "FLAG") pipe_del = "";
 					}
 
-					output += // [https://stackoverflow.com/a/23867090]
-						pad +
-						(kval ? kval + " " : "") +
-						hval +
-						nval +
-						bval +
-						aval +
-						mval +
-						vval +
-						pipe_del;
+					// [https://stackoverflow.com/a/23867090]
+					let r = pad;
+
+					if (kval) {
+						r += kval;
+						if (vval) r += ` ${vval}`;
+					} else {
+						if (hval) {
+							r += hval;
+							if (nval) {
+								r += nval;
+								if (bval) {
+									r += bval;
+								} else if (aval) {
+									r += aval;
+									if (mval) {
+										r += mval;
+									}
+
+									if (vval) r += vval;
+								}
+							}
+						}
+					}
+
+					output.push(r + pipe_del);
 
 					if (vval && vval === "(") scopes.push(2); // Track scope.
 				}
@@ -148,7 +247,15 @@ module.exports = S => {
 					let vval = N.value.value;
 					let pad = indent("OPTION");
 
-					output += `${pad}${bval} ${vval}`;
+					let r = pad;
+					if (bval) {
+						r += bval;
+						if (vval) {
+							r += ` ${vval}`;
+						}
+					}
+
+					output.push(r);
 				}
 
 				break;
@@ -158,22 +265,48 @@ module.exports = S => {
 					let bval = N.brace.value;
 					let pad = indent(null, bval === "]" ? 0 : 1);
 
-					output += `${pad}${bval}`;
+					if (bval === ")") {
+						let l = output.length;
+						let last = output[l - 1];
+						let slast = output[l - 2];
+						let ll = last.length;
+						let lfchar = last.replace(r, "")[0];
+						let slchar = slast[slast.length - 1];
+
+						if (lfchar === "-" && last[ll - 1] === "(") pad = "";
+						else if (last === "\n" && slchar === "(") {
+							pad = "";
+							output.pop();
+						}
+					} else if (bval === "]") {
+						let l = output.length;
+						let last = output[l - 1];
+						let slast = output[l - 2];
+						if (last === "\n" && slast === "\n") {
+							output.pop();
+						} else {
+							let sl = slast.length;
+							let slchar = slast[sl - 1];
+							if (last === "\n" && slchar === "[") output.pop();
+						}
+					}
+
+					output.push(`${pad}${bval}`);
 					scopes.pop(); // Un-track last scope.
 				}
 
 				break;
 		}
-	});
 
-	// Final newline replacements.
-	output = output
-		.replace(/(\[|\()$\n{2}/gm, "$1\n")
-		.replace(/\n{2}([ \t]*)(\]|\))$/gm, "\n$1$2")
-		.replace(/^\s*|\s*$/g, "");
-	// .replace(/^((@|\$).+)$\n{2,}^(@|\$)/gm, "$1\n$3");
+		passed.push(N);
+	}
 
-	if (igc) output = output.replace(/^(\s*(-{1}|default).+)$\n{2,}/gm, "$1\n");
+	let i = output.length - 1;
+	while (true) {
+		if (output[i] !== "\n") break;
+		output.pop();
+		i--;
+	}
 
-	return output.replace(/ *$/gm, "") + "\n";
+	return output.join("") + "\n";
 };

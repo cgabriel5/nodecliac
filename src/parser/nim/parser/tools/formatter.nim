@@ -1,6 +1,5 @@
 from strformat import fmt
-from sequtils import filter
-from strutils import repeat
+from strutils import join, repeat
 from tables import Table, `[]`, toTable, `$`
 from re import re, replace, replacef, reMultiLine
 
@@ -13,7 +12,10 @@ from ../helpers/types import State, Node
 proc formatter*(S: State): tuple =
     let igc = S.args.igc
     var nodes = S.tables.tree["nodes"]
-    var output = ""
+    let eN = Node()
+    var output: seq[string] = @[]
+    var passed: seq[Node] = @[]
+    let r = re"^[ \t]+"
 
     # Indentation level multipliers.
     const MXP = {
@@ -35,53 +37,106 @@ proc formatter*(S: State): tuple =
         let level = if count > 0: count else: MXP[`type`]
         result = ichar.repeat(level * iamount)
 
-    # Filter comment nodes when flag is provided.
-    if igc:
-        var flag = false
-        nodes = nodes.filter(proc (N: Node): bool =
-            # Remove newline node directly after comment node.
-            if flag:
-                flag = false
-                if N.node == "NEWLINE": return false
+    # Gets next node that is not a comment. Also takes into account
+    #     subsequent newline node.
+    #
+    # @param  {number} i - The index to start search.
+    # @param  {number} l - The length of array.
+    # @return {object} - The node object.
+    proc nextnode(i, l: int): Node =
+        result = eN
+        if igc:
+            var i = i + 1
+            while i < l:
+                let N = nodes[i]
+                let `type` = N.node
+                if `type` != "COMMENT":
+                    result = N
+                    break
+                elif `type` == "COMMENT":
+                    inc(i)
+                inc(i)
+        else: result = if i + 1 < l: nodes[i + 1] else: eN
 
-            var check = N.node != "COMMENT"
-            flag = not check
-            return check
-        )
+    # Gets the node previously iterated over.
+    #
+    # @param  {number} i - The index to start search.
+    # @param  {number} l - The length of array.
+    # @return {object} - The node object.
+    proc lastnode(i, l: int): Node =
+        result = eN
+        if igc: result = passed[passed.high]
+        else: result = if i - 1 < l: nodes[i - 1] else: eN
 
     # Loop over nodes to build formatted file.
-    let l = nodes.len
 
-    for i, N in nodes:
+    var i = 0
+    let l = nodes.len
+    while i < l:
+        let N = nodes[i]
         let `type` = N.node
+
+        # Ignore starting newlines.
+        if output.len == 0 and `type` == "NEWLINE":
+            inc(i)
+            continue
+        # Remove comments when flag is provided.
+        if igc and `type` == "COMMENT":
+            inc(i) # + 1 to skip next newline node.
+            inc(i) # + 1 to account for continue.
+            continue
 
         case (`type`):
             of "COMMENT":
                 let scope = if scopes.len > 0: scopes[^1] else: 0
                 let pad = indent(count = scope)
 
-                output &= fmt"{pad}{N.comment.value}"
+                output.add(fmt"{pad}{N.comment.value}")
 
             of "NEWLINE":
-                let nN = if i + 1 < l: nodes[i + 1] else: Node()
+                let nN = nextnode(i, l);
 
-                if nl_count <= 1: output &= "\n"
+                if nl_count <= 1: output.add("\n")
                 inc(nl_count)
                 if nN.node != "NEWLINE": nl_count = 0
+
+                if scopes.len != 0:
+                    let last = output[output.len - 2]
+                    let lchar = last[last.len - 1]
+                    let isbrace = lchar == '[' or lchar == '('
+                    if isbrace and nN.node == "NEWLINE": inc(nl_count)
+                    if nN.node == "BRACE":
+                        if lastnode(i, l).node == "NEWLINE": discard output.pop()
 
             of "SETTING":
                 let nval = N.name.value
                 let aval = N.assignment.value
                 let vval = N.value.value
 
-                output &= fmt"@{nval} {aval} {vval}"
+                var r = "@"
+                if nval != "":
+                    r &= nval
+                    if aval != "":
+                        r &= fmt" {aval}"
+                        if vval != "":
+                            r &= fmt" {vval}"
+
+                output.add(r)
 
             of "VARIABLE":
                 let nval = N.name.value
                 let aval = N.assignment.value
                 let vval = N.value.value
 
-                output &= fmt"${nval} {aval} {vval}"
+                var r = "$"
+                if nval != "":
+                    r &= nval
+                    if aval != "":
+                        r &= fmt" {aval}"
+                        if vval != "":
+                            r &= fmt" {vval}"
+
+                output.add(r)
 
             of "COMMAND":
                 let vval = N.value.value
@@ -89,7 +144,20 @@ proc formatter*(S: State): tuple =
                 let dval = N.delimiter.value
                 let aval = N.assignment.value
 
-                output &= fmt"{cval}{dval} {aval} {vval}"
+                var r = ""
+                if cval != "":
+                    r &= cval
+                    if dval != "":
+                        r &= dval
+                    else:
+                        if aval != "":
+                            r &= fmt" {aval}"
+                            if vval != "":
+                                r &= fmt" {vval}"
+
+                let nN = nextnode(i, l)
+                if nN.node == "FLAG": r &= " "
+                output.add(r)
                 if vval != "" and vval == "[": scopes.add(1) # Track scope.
 
             of "FLAG":
@@ -106,19 +174,29 @@ proc formatter*(S: State): tuple =
 
                 # Note: If nN is a flag reset var.
                 if pipe_del != "":
-                    let nN = if i + 1 < l: nodes[i + 1] else: Node()
+                    let nN = nextnode(i, l)
                     if nN.node != "FLAG": pipe_del = ""
 
-                output &= # [https://stackoverflow.com/a/23867090]
-                    pad &
-                    (if kval != "": kval & " " else: "") &
-                    hval &
-                    nval &
-                    bval &
-                    aval &
-                    mval &
-                    vval &
-                    pipe_del
+                var r = pad
+
+                if kval != "":
+                    r &= kval
+                    if vval != "": r &= fmt" {vval}"
+                else:
+                    if hval != "":
+                        r &= hval
+                        if nval != "":
+                            r &= nval
+                            if bval != "":
+                                r &= bval
+                            elif aval != "":
+                                r &= aval
+                                if mval != "":
+                                    r &= mval
+
+                                if vval != "": r &= vval
+
+                output.add(r & pipe_del)
 
                 if vval != "" and vval == "(": scopes.add(2) # Track scope.
 
@@ -127,26 +205,52 @@ proc formatter*(S: State): tuple =
                 let vval = N.value.value
                 let pad = indent("OPTION")
 
-                output &= fmt"{pad}{bval} {vval}"
+                var r = pad
+                if bval != "":
+                    r &= bval
+                    if vval != "":
+                        r &= fmt" {vval}"
 
+                output.add(r)
 
             of "BRACE":
                 let bval = N.brace.value
-                let pad = indent(count = if bval == "]": 0 else: 1)
+                var pad = indent(count = if bval == "]": 0 else: 1)
 
-                output &= fmt"{pad}{bval}"
-                discard scopes.pop() # Un-track last scope.
+                if bval == ")":
+                    let l = output.len
+                    let last = output[l - 1]
+                    let slast = output[l - 2]
+                    let ll = last.len
+                    let lfchar = last.replace(r, "")[0]
+                    let slchar = slast[slast.len - 1]
 
-    # Final newline replacements.
-    output = output
-            .replacef(re("(\\[|\\()$\n{2}", {reMultiLine}), "$1\n")
-            .replacef(re("\n{2}([ \t]*)(\\]|\\))$", {reMultiLine}), "\n$1$2")
-            .replace(re"^\s*|\s*$")
-            # .replacef(re("^((@|\\$).+)$\\n{2,}^(@|\\$)", {reMultiLine}), "$1\n$3")
+                    if lfchar == '-' and last[ll - 1] == '(': pad = ""
+                    elif last == "\n" and slchar == '(':
+                        pad = ""
+                        discard output.pop()
+                elif bval == "]":
+                    let l = output.len
+                    let last = output[l - 1]
+                    let slast = output[l - 2]
+                    if last == "\n" and slast == "\n":
+                        discard output.pop()
+                    else:
+                        let sl = slast.len
+                        let slchar = slast[sl - 1]
+                        if last == "\n" and slchar == '[': discard output.pop()
 
-    if igc: output = output.replacef(re("^(\\s*(-{1}|default).+)$\n{2,}", {reMultiLine}), "$1\n")
+                output.add(fmt"{pad}{bval}")
+                if scopes.len > 0: discard scopes.pop() # Un-track last scope.
 
-    output = output.replace(re(" {1,}$", {reMultiLine})) & "\n"
+        passed.add(N)
+        inc(i)
+
+    i = output.high
+    while true:
+        if output[i] != "\n": break
+        discard output.pop()
+        dec(i)
 
     var data: tuple[
         acdef: string,
@@ -155,5 +259,5 @@ proc formatter*(S: State): tuple =
         formatted: string,
         placeholders: Table[string, string]
     ]
-    data.formatted = output
+    data.formatted = output.join("") & "\n"
     result = data

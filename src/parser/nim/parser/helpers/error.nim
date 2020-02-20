@@ -71,4 +71,4 @@ proc error*(S: State, parserfile: string, code: int = 0) =
     let dirname = splitFile(source).dir
 
     echo fmt"{einfo} {dirname}/{filename}:{pos} — {error}"
-    if true: quit()
+    quit()

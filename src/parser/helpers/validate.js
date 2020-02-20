@@ -34,7 +34,21 @@ let validate = (S, N, type) => {
 	 *
 	 * @type {object} - The temp Node object.
 	 */
-	let tNode = (start, end, value) => ({ value: { start, end, value } });
+	let tN = { value: { start: 0, end: 0, value: "" } };
+	/**
+	 * Set temporary Node.value values.
+	 *
+	 * @param  {number} start - The start index.
+	 * @param  {numbers} end - The end index.
+	 * @param  {string} val - The value.
+	 * @return {undefined} - Nothing is returned.
+	 */
+	let tNset = (start, end, val) => {
+		let { value } = tN;
+		value.start = start;
+		value.end = end;
+		value.value = val;
+	};
 
 	switch (type) {
 		case "quoted":
@@ -152,7 +166,7 @@ let validate = (S, N, type) => {
 						argument += char;
 
 						if (char === qchar && pchar !== "\\") {
-							let tN = tNode(vsi, argument.length - 1, argument);
+							tNset(vsi, argument.length - 1, argument);
 							argument = validate(S, tN, "quoted");
 							args.push(argument);
 
@@ -174,7 +188,7 @@ let validate = (S, N, type) => {
 				if (argument) {
 					i--; // Reduce to account for last completed iteration.
 
-					let tN = tNode(vsi, argument.length - 1, argument);
+					tNset(vsi, argument.length - 1, argument);
 					argument = validate(S, tN, "quoted");
 					args.push(argument);
 				}
@@ -253,7 +267,7 @@ let validate = (S, N, type) => {
 								argument += char;
 
 								let end = argument.length - 1;
-								let tN = tNode(vsi, end, argument);
+								tNset(vsi, end, argument);
 								argument = validate(S, tN, mode);
 								args.push(argument);
 
@@ -266,7 +280,7 @@ let validate = (S, N, type) => {
 								// argument += char; // Store character.
 
 								let end = argument.length - 1;
-								let tN = tNode(vsi, end, argument);
+								tNset(vsi, end, argument);
 								argument = validate(S, tN, mode);
 								args.push(argument);
 
@@ -279,7 +293,7 @@ let validate = (S, N, type) => {
 								argument += char;
 
 								let end = argument.length - 1;
-								let tN = tNode(vsi, end, argument);
+								tNset(vsi, end, argument);
 								argument = validate(S, tN, mode);
 								args.push(argument);
 
@@ -292,7 +306,7 @@ let validate = (S, N, type) => {
 
 				// Get last argument.
 				if (argument) {
-					let tN = tNode(vsi, argument.length - 1, argument);
+					tNset(vsi, argument.length - 1, argument);
 					argument = validate(S, tN, mode);
 					args.push(argument);
 				}

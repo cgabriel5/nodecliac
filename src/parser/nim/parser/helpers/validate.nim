@@ -33,8 +33,19 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
     # Create temporary Node.
     #
     # @type {object} - The temp Node object.
-    proc tNode(start: int, `end`: int, value: string): Node =
-        result = Node(value: Branch(start: start, `end`: `end`, value: value))
+    let tN = Node(value: Branch())
+
+    # Set temporary Node.value values.
+    #
+    # @param  {number} start - The start index.
+    # @param  {numbers} end - The end index.
+    # @param  {string} val - The value.
+    # @return - Nothing is returned.
+    proc tNset(start: int, `end`: int, val: string) =
+        let value = tN.value
+        value.start = start
+        value.`end` = `end`
+        value.value = val
 
     case (`type`):
         of "quoted":
@@ -145,7 +156,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                         argument &= $`char`
 
                         if `char` == qchar and pchar != '\\':
-                            var tN = tNode(vsi, argument.high, argument)
+                            tNset(vsi, argument.high, argument)
                             argument = validate(S, tN, "quoted")
                             args.add(argument)
 
@@ -165,7 +176,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                 if argument != "":
                     dec(i) # Reduce to account for last completed iteration.
 
-                    var tN = tNode(vsi, argument.high, argument)
+                    tNset(vsi, argument.high, argument)
                     argument = validate(S, tN, "quoted")
                     args.add(argument)
 
@@ -238,7 +249,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                                 argument &= $`char`
 
                                 let `end` = argument.high
-                                var tN = tNode(vsi, `end`, argument)
+                                tNset(vsi, `end`, argument)
                                 argument = validate(S, tN, mode)
                                 args.add(argument)
 
@@ -252,7 +263,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                                 # argument &= $`char` # Store character.
 
                                 let `end` = argument.high
-                                var tN = tNode(vsi, `end`, argument)
+                                tNset(vsi, `end`, argument)
                                 argument = validate(S, tN, mode)
                                 args.add(argument)
 
@@ -266,7 +277,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                                 argument &= $`char`
 
                                 let `end` = argument.high
-                                var tN = tNode(vsi, `end`, argument)
+                                tNset(vsi, `end`, argument)
                                 argument = validate(S, tN, mode)
                                 args.add(argument)
 
@@ -279,7 +290,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
 
                 # Get last argument.
                 if argument != "":
-                    var tN = tNode(vsi, argument.high, argument)
+                    tNset(vsi, argument.high, argument)
                     argument = validate(S, tN, mode)
                     args.add(argument)
 

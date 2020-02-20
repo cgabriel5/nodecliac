@@ -1,4 +1,4 @@
-from re import re, findAll
+from re import re
 from strutils import join, find, strip, startsWith
 from tables import toTable, hasKey, initTable, `[]=`, `[]`, `$`
 

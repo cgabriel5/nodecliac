@@ -119,20 +119,6 @@ proc acdef*(S: State, cmdname: string): tuple =
         for i in 0 ..< T.len: R.insert(@[A[T[i].i]], i)
         return R
 
-    # Add base flag to Set (adds '--flag=' or '--flag=*').
-    #
-    # @param  {object} fN - Flag Node object.
-    # @param  {array} cxN - List of commands to attach flags to.
-    # @param  {string} flag - The flag (hyphen(s) + flag name).
-    # @return - Nothing is returned.
-    proc baseflag(fN: Node, cxN: seq[Node], flag: string) =
-        let ismulti = fN.multi.value != ""
-        let add = flag & "=" & (if ismulti: "*" else: "")
-        let del = flag & "=" & (if ismulti: "" else: "*")
-        for cN in cxN:
-            oSets[cN.command.value].incl(add)
-            oSets[cN.command.value].excl(del)
-
     # Removes first command in command chain. However, when command name
     # is not the main command in (i.e. in a test file) just remove the
     # first command name in the chain.
@@ -211,29 +197,41 @@ proc acdef*(S: State, cmdname: string): tuple =
     for i, group in oGroups.pairs:
         var cxN = group["commands"]
         var fxN = group["flags"]
+        var queue_keywords: HashSet[string]
+        var queue_flags: HashSet[string]
+
         for fN in fxN:
             let args = fN.args
-            let fval = fN.value.value
-            let aval = fN.assignment.value
-            let bval = fN.boolean.value
-            let flag = fN.hyphens.value & fN.name.value
 
             # If flag is a default/keyword store it.
             if fN.keyword.value != "":
-                for cN in cxN: oDefaults[cN.command.value] = fval
+                queue_keywords.incl(fN.value.value)
                 continue # defaults don't need to be added to Sets.
+
+            let aval = fN.assignment.value
+            let bval = fN.boolean.value
+            let flag = fN.hyphens.value & fN.name.value
+            let ismulti = fN.multi.value != ""
 
             # Flag with values: build each flag + value.
             if args.len > 0:
-                baseflag(fN, cxN, flag) # add multi-flag indicator?
-                for arg in args:
-                    for cN in cxN: oSets[cN.command.value].incl(flag & aval & arg)
+                # Baseflag: add multi-flag indicator?
+                # Add base flag to Set (adds '--flag=' or '--flag=*').
+                queue_flags.incl(flag & "=" & (if ismulti: "*" else: ""))
+                queue_flags.excl(flag & "=" & (if ismulti: "" else: "*"))
+
+                for arg in args: queue_flags.incl(flag & aval & arg)
             else:
                 # Boolean flag...
                 var val = ""
                 if bval != "": val = "?"
                 elif aval != "": val = "="
-                for cN in cxN: oSets[cN.command.value].incl(flag & val)
+                queue_flags.incl(flag & val)
+
+        for cN in cxN:
+            let value = cN.command.value;
+            for item in queue_flags.items: oSets[value].incl(item)
+            for item in queue_keywords.items: oDefaults[value] = item
 
     # Generate acdef.
 

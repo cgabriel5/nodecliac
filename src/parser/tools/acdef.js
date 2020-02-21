@@ -121,21 +121,6 @@ module.exports = (S, cmdname) => {
 	};
 
 	/**
-	 * Add base flag to Set (adds '--flag=' or '--flag=*').
-	 *
-	 * @param  {object} fN - Flag Node object.
-	 * @param  {array} cxN - List of commands to attach flags to.
-	 * @param  {string} flag - The flag (hyphen(s) + flag name).
-	 * @return {undefined} - Nothing is returned.
-	 */
-	let baseflag = (fN, cxN, flag) => {
-		const ismulti = fN.multi.value;
-		const add = `${flag}=${ismulti ? "*" : ""}`;
-		const del = `${flag}=${ismulti ? "" : "*"}`;
-		cxN.forEach(N => oSets[N.command.value].add(add).delete(del));
-	};
-
-	/**
 	 * Removes first command in command chain. However, when command name
 	 * is not the main command in (i.e. in a test file) just remove the
 	 * first command name in the chain.
@@ -223,34 +208,43 @@ module.exports = (S, cmdname) => {
 		if (!hasProp(oGroups, i)) continue;
 
 		let { commands: cxN, flags: fxN } = oGroups[i];
+		let queue_keywords = new Set();
+		let queue_flags = new Set();
+
 		for (let i = 0, l = fxN.length; i < l; i++) {
 			let fN = fxN[i];
 			let { args } = fN;
-			const fval = fN.value.value;
-			const aval = fN.assignment.value;
-			const bval = fN.boolean.value;
-			const flag = `${fN.hyphens.value}${fN.name.value}`;
 
 			// If flag is a default/keyword store it.
 			if (fN.keyword.value) {
-				cxN.forEach(N => (oDefaults[N.command.value] = fval));
+				queue_keywords.add(fN.value.value);
 				continue; // defaults don't need to be added to Sets.
 			}
 
+			const aval = fN.assignment.value;
+			const bval = fN.boolean.value;
+			const flag = `${fN.hyphens.value}${fN.name.value}`;
+			const ismulti = fN.multi.value !== "";
+
 			// Flag with values: build each flag + value.
 			if (args.length) {
-				baseflag(fN, cxN, flag); // add multi-flag indicator?
-				args.forEach(arg => {
-					cxN.forEach(N => {
-						let add = `${flag}${aval || ""}${arg || ""}`;
-						oSets[N.command.value].add(add);
-					});
-				});
+				// Baseflag: add multi-flag indicator?
+				// Add base flag to Set (adds '--flag=' or '--flag=*').
+				queue_flags.add(`${flag}=${ismulti ? "*" : ""}`);
+				queue_flags.delete(`${flag}=${ismulti ? "" : "*"}`);
+
+				args.forEach(arg => queue_flags.add(flag + aval + arg));
 			} else {
 				// Boolean flag...
 				const val = bval ? "?" : aval ? "=" : "";
-				cxN.forEach(N => oSets[N.command.value].add(`${flag}${val}`));
+				queue_flags.add(flag + val);
 			}
+		}
+
+		for (let i = 0, l = cxN.length; i < l; i++) {
+			let value = cxN[i].command.value;
+			for (let item of queue_flags) oSets[value].add(item);
+			for (let item of queue_keywords) oDefaults[value] = item;
 		}
 	}
 

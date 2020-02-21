@@ -286,8 +286,11 @@ proc acdef*(S: State, cmdname: string): tuple =
         if settings_count != 0: config &= "\n"
         dec(settings_count)
 
-    acdef = header & mapsort(acdef_lines, asort, "aobj").join("\n")
-    config = header & config
+    # If contents exist, add newline after header.
+    let sheader = if header != "": header[0 .. ^2] else: ""
+    let acdef_contents = mapsort(acdef_lines, asort, "aobj").join("\n")
+    acdef = if acdef_contents != "": header & acdef_contents else: sheader
+    config = if config != "": header & config else: sheader
 
     var data: tuple[
         acdef: string,

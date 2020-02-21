@@ -302,8 +302,11 @@ module.exports = (S, cmdname) => {
 		}
 	}
 
-	acdef = header + mapsort(acdef_lines, asort, aobj).join("\n");
-	config = header + config;
+	// If contents exist, add newline after header.
+	let sheader = header.replace(/\n$/, "");
+	let acdef_contents = mapsort(acdef_lines, asort, aobj).join("\n");
+	acdef = acdef_contents ? header + acdef_contents : sheader;
+	config = config ? header + config : sheader;
 
 	return { acdef, config, keywords: defaults, placeholders: oPlaceholders };
 };

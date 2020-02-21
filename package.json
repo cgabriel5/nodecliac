@@ -21,8 +21,7 @@
 		"tests": "tests/scripts/main.sh",
 		"tests:silent": "tests/scripts/main.sh -p false",
 		"tests:force": "tests/scripts/main.sh -f true",
-		"build:acdev": "./compile -d",
-		"build:acprod": "./compile -p",
+		"build:acbin": "src/scripts/main/compile.sh -i src/scripts/ac/ac.nim",
 		"build:nimbin": "bash -c \"OS=`uname`;USER_OS=\\\"\\${OS,,}\\\";USER_OS=\\\"\\${USER_OS/darwin/macosx}\\\"; src/scripts/main/compile.sh -i src/parser/nim/index.nim \\$0 && mv src/parser/nim/index.\\\"\\$USER_OS\\\" src/parser/nim/nodecliac.\\\"\\$USER_OS\\\"\"",
 		"files": "bash -c \"find . -not -path \\\"*/node_modules/*\\\" -type f -name \\\"*.\\$0\\\" -not -path '*/\\\\.*'\"",
 		"install:binary": "bash -c \"s=\\\"\\$(cat ./install)\\\"; echo \\\"\\$s\\\" | bash -s -- --installer=binary --branch=\\$0 && source ~/.bashrc\""

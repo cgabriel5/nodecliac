@@ -122,60 +122,41 @@ const valid_flg_chars = Letters + Digits + {'-', '_', }
 #     echo "      isquoted: '" & $(isquoted) & "'"
 #     echo "autocompletion: '" & $(autocompletion) & "'"
 
-# Checks whether the provided string is a valid file or directory.
+# Peek string for '/','~'. If contained assume it's a file/dir.
 #
-# @param  {string} 1) - The string to check.
-# @return {number}    - 0 or 1 to represent boolean.
+# @param  {string} item - The string to check.
+# @return {bool}
 #
 # Test with following commands:
 # $ nodecliac uninstall subcmd subcmd noncmd ~ --
 # $ nodecliac add ~ --
 # $ nodecliac ~ --
 proc fn_is_file_or_dir(item: string): bool =
-    # If arg contains a '/' sign check if it's a path. If so let it pass.
-    return ('/' in item or item == "~")
+    return '/' in item or item == "~"
 
-# Escape '\' characters and replace unescaped slashes '/' with '.' (dots)
-#     command strings
+# Escape '\' chars and replace unescaped slashes '/' with '.'.
 #
-# @param {string} 1) - The item (command) string to escape.
+# @param  {string} item - The item (command) string to escape.
 # @return {string} - The escaped item (command) string.
 proc fn_normalize_command(item: var string): string =
-    # If string is a file/directory then return.
     if fn_is_file_or_dir(item): return item
-
-    item = item.replacef(re"\.", "\\\\.") # Escape dots.
-               .replacef(re"([^\\]|^)\/", "$1.") # Replace unescaped '/' with '.' dots.
-
-    # Finally, validate that only allowed characters are in string.
-    # if not allCharsInSet(item, valid_cmd_chars): quit() # Is this really needed?
-
-    # Returned normalized item string.
-    return item
+    return item.replace(".", "\\\\.") # Escape periods.
 
 # Validates whether command/flag (--flag) only contain valid characters.
-#     If word command/flag contains invalid characters the script will
-#     exit. In turn, terminating auto completion.
+#     Containing invalid chars exits script - terminating completion.
 #
-# @param {string} 1) - The word to check.
+# @param  {string} item - The word to check.
 # @return {string} - The validated argument.
 proc fn_validate_flag(item: string): string =
-    # If string is a file/directory then return.
     if fn_is_file_or_dir(item): return item
-
-    # Finally, validate that only allowed characters are in string.
+    # All chars must all be allowed.
     if not allCharsInSet(item, valid_flg_chars): quit()
-
-    # Return word.
     return item
 
-# Look at fn_validate_flag for function details.
+# Look at fn_validate_flag for details.
 proc fn_validate_command(item: string): string =
     if fn_is_file_or_dir(item): return item
-
-    # Finally, validate that only allowed characters are in string.
     if not allCharsInSet(item, valid_cmd_chars): quit()
-
     return item
 
 # START=========================================================HELPER-FUNCTIONS

@@ -72,82 +72,50 @@ my $prefix = 'NODECLIAC_';
 # 	print "autocompletion: '$autocompletion'\n";
 # }
 
-# Checks whether the provided string is a valid file or directory.
+# Peek string for '/'/'~'. If contained assume it's a file/dir.
 #
-# @param {string} 1) - The string to check.
-# @return {number} - 0 or 1 to represent boolean.
+# @param  {string} item - The string to check.
+# @return {number} - 0: false, 1: true
 #
 # Test with following commands:
 # $ nodecliac uninstall subcmd subcmd noncmd ~ --
 # $ nodecliac add ~ --
 # $ nodecliac ~ --
 sub __is_file_or_dir {
-	# Get arguments.
 	my ($item) = @_;
-
-	# If arg contains a '/' sign check if it's a path. If so let it pass.
 	return ($item =~ tr/\/// || $item eq '~');
-	# $item =~ s/^~/$hdir/; # Expand tilde in path.
-
-	# With tilde expanded, check if string is a path.
-	# return (-e $item || -d $item) ? 1 : 0;
-	# return (-e $item) ? 1 : 0;
 }
 
-# Escape '\' characters and replace unescaped slashes '/' with '.' (dots)
-#     command strings
+# Escape '\' chars and replace unescaped slashes '/' with '.'.
 #
-# @param {string} 1) - The item (command) string to escape.
+# @param  {string} item - The item (command) string to escape.
 # @return {string} - The escaped item (command) string.
 sub __normalize_command {
-	# Get arguments.
 	my ($item) = @_;
 
-	# If string is a file/directory then return.
 	if (__is_file_or_dir($item)) { return $item; }
-
-	# Chain replacements: [https://stackoverflow.com/a/43007999]
-	$item = $item =~ s/\./\\\\./r # Escape dots.
-				  =~ s/([^\\]|^)\//$1\./r; # Replace unescaped '/' with '.' dots.
-
-	# Finally, validate that only allowed characters are in string.
-	# tr///c does not do any variable interpolation do character sets need
-	# to be hardcoded: [https://www.perlmonks.org/?node_id=445971]
-	# [https://stackoverflow.com/a/15534516]
-	# if ($item =~ tr/-._:\\a-zA-Z0-9//c) { exit; } # Is this really needed?
-
-	# Returned normalized item string.
-	return $item;
+	return $item =~ s/\./\\\\./r; # Escape periods.
 }
 
 # Validates whether command/flag (--flag) only contain valid characters.
-#     If word command/flag contains invalid characters the script will
-#     exit. In turn, terminating auto completion.
+#     Containing invalid chars exits script - terminating completion.
 #
-# @param {string} 1) - The word to check.
+# @param  {string} item - The word to check.
 # @return {string} - The validated argument.
 sub __validate_flag {
-	# Get arguments.
 	my ($item) = @_;
 
-	# If string is a file/directory then return.
 	if (__is_file_or_dir($item)) { return $item; }
-
-	# # Determine what matching pattern to use (command/flag).
-	# my $pattern = ($type eq 'command') ? '[^-_.:a-zA-Z0-9\\\/]+' : '[^-_a-zA-Z0-9]+';
-	# # Exit script if invalid characters are found (failed RegExp).
-	# if ($item =~ /$pattern/) { exit; }
-
-	# Finally, validate that only allowed characters are in string.
-	# Determine character list to use (command or flag).
-	# tr///c does not do any variable interpolation do character sets need
-	# to be hardcoded: [https://www.perlmonks.org/?node_id=445971]
-	# [https://stackoverflow.com/a/15534516]
+	# All chars must all be allowed.
 	if ($item =~ tr/-_a-zA-Z0-9//c) { exit; }
 
-	# Return word.
+	# Note: tr///c does not do any variable interpolation so character
+	# sets need to be hardcoded: [https://www.perlmonks.org/?node_id=445971]
+	# [https://stackoverflow.com/a/15534516]
+
 	return $item;
 }
+
 # Look at __validate_flag for function details.
 sub __validate_command {
 	my ($item) = @_;

@@ -7,18 +7,6 @@
 # use warnings;
 # use diagnostics;
 
-# Get environment variables.
-# Get user's home directory.
-# [https://stackoverflow.com/a/1475447]
-# [https://stackoverflow.com/a/1475396]
-# [https://stackoverflow.com/a/4045032]
-# [https://stackoverflow.com/a/4043831]
-# [https://stackoverflow.com/a/18123004]
-# my $hdir = glob('~'); # ← Slowest...
-# my $hdir = `echo "\$HOME"`; # ← Less slow...
-# [https://stackoverflow.com/q/1475357]
-my $hdir = $ENV{'HOME'}; # ← Fastest way but is it reliable?
-
 # Get arguments.
 my $oinput = $ARGV[0]; # Original unmodified CLI input.
 my $cline = $ARGV[1]; # CLI input (could be modified via pre-parse).
@@ -33,13 +21,21 @@ my $type = '';
 my @foundflags = ();
 my @completions = ();
 my $commandchain = '';
-my $lastchar; # = substr($cline, $cpoint - 1, 1); # Character before caret.
+my $lastchar; # Character before caret.
 my $nextchar = substr($cline, $cpoint, 1); # Character after caret.
 my $cline_length = length($cline); # Original input's length.
 my $isquoted = 0;
 my $autocompletion = 1;
 my $input = substr($cline, 0, $cpoint); # CLI input from start to caret index.
 my $input_remainder = substr($cline, $cpoint, -1); # CLI input from caret index to input string end.
+# Get user's home directory.
+# [https://stackoverflow.com/a/1475447]
+# [https://stackoverflow.com/a/1475396]
+# [https://stackoverflow.com/a/4045032]
+# [https://stackoverflow.com/a/4043831]
+# [https://stackoverflow.com/a/18123004]
+# [https://stackoverflow.com/q/1475357]
+my $hdir = $ENV{'HOME'};
 
 # Vars - ACDEF file parsing variables.
 my %db;
@@ -106,7 +102,6 @@ sub __validate_flag {
 	my ($item) = @_;
 
 	if (__is_file_or_dir($item)) { return $item; }
-	# All chars must all be allowed.
 	if ($item =~ tr/-_a-zA-Z0-9//c) { exit; }
 
 	# Note: tr///c does not do any variable interpolation so character
@@ -124,7 +119,7 @@ sub __validate_command {
 	return $item;
 }
 
-# START=========================================================HELPER-FUNCTIONS
+# ------------------------------------------------------------- HELPER-FUNCTIONS
 
 # # Given a string and a character list, will return an array containing
 # #     the first found character and it's index.
@@ -152,16 +147,13 @@ sub __validate_command {
 
 # END===========================================================HELPER-FUNCTIONS
 
-# Parse and run command-flag (flag) or default command chain command
-#     (commandchain).
+# Parse and run command-flag (flag) or default command chain.
 #
-# @param {string} 1) - The command to run in string.
-# @return {null} - Nothing is returned.
+# @param {string} - The command to run in string.
+# @return - Nothing is returned.
 sub __execute_command {
-	# Get arguments.
 	my ($command_str, $flags, $last_fkey) = @_;
 
-	# Cache captured string command.
 	my @arguments = __paramparse($command_str);
 	my $args_count = pop(@arguments);
 
@@ -175,19 +167,15 @@ sub __execute_command {
 	# [https://unix.stackexchange.com/a/144519]
 	# [https://stackoverflow.com/a/1711985]
 
-	# Start creating command string. Will take the
-	# following form: `$command 2> /dev/null`
+	# Start creating command string: `$command 2> /dev/null`.
 	my $cmd = substr($command, 1, -1); # Remove start/end quotes.
 
 	# Only command and delimiter.
 	if ($args_count > 1) {
-		# print last element
-		# $cdelimiter = $arguments[-1];
 		my $cdelimiter = pop(@arguments);
 
-		# Set custom delimiter if provided. To be
-		# provided it must be more than 2 characters.
-		# Meaning more than the 2 quotes.
+        # Set custom delimiter if provided. To be provided it must be
+        # more than 2 characters. Meaning more than the 2 quotes.
 		if (length($cdelimiter) >= 2) {
 			# [https://stackoverflow.com/a/5745667]
 			$delimiter = substr($cdelimiter, 1, -1);
@@ -199,40 +187,27 @@ sub __execute_command {
 
 		# Add arguments to command string.
 		for (my $i = 1; $i < $args_count; $i++) {
-			# Cache argument.
 			my $arg = $arguments[$i];
 
 			# Run command if '$' is prefix to string.
 			if (rindex($arg, '$', 0) == 0) {
-				# Remove '$' command indicator.
-				$arg = substr($arg, 1);
-				# Get the used quote type.
-				my $quote_char = substr($arg, 0, 1);
+				$arg = substr($arg, 1); # Remove '$' indicator.
+				my $quote_char = substr($arg, 0, 1); # Get quote type.
 
-				# Remove start/end quotes.
-				$arg = substr($arg, 1, -1);
+				$arg = substr($arg, 1, -1); # Remove start/end quotes.
 
-				# Run command and append result to command string.
+				# Run command and append result.
 				my $cmdarg = "$arg 2> /dev/null";
 				$cmd .= " $quote_char" . `$cmdarg` . $quote_char;
-
-				# # If the result is empty after
-				# # trimming then do not append?
-				# my $result = `$cmdarg`;
-				# if ($result =~ s/^\s*|\s*$//rg) {}
 			} else {
-				# Append non-command argument to
-				# command string.
-				$cmd .= " $arg";
+				$cmd .= " $arg"; # Append non-command argument.
 			}
 		}
 	}
 
-	# Close command string. Suppress any/all errors.
-	$cmd .= ' 2> /dev/null';
+	$cmd .= ' 2> /dev/null'; # Close command string.
 
-	# Reset command string.
-	$command = $cmd;
+	$command = $cmd; # Reset command string.
 
 	# Run command. Add an or logical statement in case
 	# the command returns nothing or an error is return.
@@ -246,28 +221,18 @@ sub __execute_command {
 	# Set all environment variables to access in custom scripts.
 	__set_envs();
 
-	# Run the command.
+	# Run command.
 	my $res = `$command`;
-	# Note: command_str (the provided command string) will
-	# be injected as is. Meaning it will be provided to
-	# 'bash' with the provided surrounding quotes. User
-	# needs to make sure to properly use and escape
-	# quotes as needed. ' 2> /dev/null' will suppress
-	# all errors in the event the command fails.
 
 	# Unset environment vars once command is ran.
 	# [https://stackoverflow.com/a/8770380]
 	# Is this needed? For example, unset NODECLIAC_INPUT:
 	# delete $ENV{"${prefix}INPUT"};
 
-	# By default if the command generates output split
-	# it by lines. Unless a delimiter was provided.
-	# Then split by custom delimiter to then add to
-	# flags array.
+	# Output is split by lines unless a delimiter was provided.
 	if ($res) {
 		# Trim string if using custom delimiter.
 		if ($delimiter ne "\$\\r\?\\n") {
-			# [https://perlmaven.com/trim]
 			$res =~ s/^\s+|\s+$//g;
 		}
 
@@ -279,17 +244,7 @@ sub __execute_command {
 		if ($type eq 'flag') {
 			# Add each line to flags array.
 			foreach my $line (@lines) {
-				# # Remove starting left line break in line,
-				# # if it exists, before adding to flags.
-				# if ($delimiter eq "\$") {
-				# 	$line =~ s/^\n//;
-				# }
-
-				# Line cannot be empty.
-				if ($line) {
-					# Finally, add to flags array.
-					push(@$flags, $last_fkey . "=$line");
-				}
+				if ($line) { push(@$flags, $last_fkey . "=$line"); }
 			}
 		}
 		# Run logic for default command chain commands.
@@ -299,21 +254,18 @@ sub __execute_command {
 				# Line cannot be empty.
 				if ($line) {
 					if ($last) {
-						# When last word is present only
-						# add words that start with last
-						# word.
+                        # When last word is present only add words that
+                        # start with last word.
 
-						# Since we are completing a command we only
-						# want words that start with the current
-						# command we are trying to complete.
+                        # Since we are completing a command we only want
+                        # words that start with the current command we are
+                        # trying to complete.
 						if (rindex($line, $last, 0) == 0) {
-							# Finally, add to flags array.
 							push(@completions, $line);
 						}
 					} else {
-						# Lines starting with '!' are ignored.
+						# Ignore '!' prefixed lines.
 						if (rindex($line, '!', 0) == 0) { next; }
-						# Finally, add to flags array.
 						push(@completions, $line);
 					}
 				}
@@ -325,55 +277,43 @@ sub __execute_command {
 			if (!@completions && $res =~ /$pattern/m) { push(@completions, $last); }
 		}
 	}
-
-	# return;
 }
 
-# Parse string command flag ($("")) arguments.
+# Parse string command flag `$("")` arguments.
 #
-# @param  {string} 1) input - The string command-flag to parse.
+# @param  {string} input - The string command-flag to parse.
 # @return {string} - The cleaned command-flag string.
 sub __paramparse {
-	# Get arguments.
-	my ($input) = @_;
-
 	# Parse command string to get individual arguments. Things to note: each
 	# argument is to be encapsulated with strings. User can decide which to
 	# use, either single or double. As long as their contents are properly
 	# escaped.
 
-	# Vars.
-	my $argument = '';
-	my @arguments = ();
-	# my $l = length($input);
-	# my $ll = $l - 1;
-	my $args_count = 0;
-	my $qchar = '';
-	# Loop character variables (current, previous characters).
-	my $c; my $p;
-
-	# Input must not be empty.
-	if (!$input) { push(@arguments, 0); return @arguments; }
-
 	# Command flag syntax:
 	# $("COMMAND-STRING" [, [<ARG1>, <ARGN> [, "<DELIMITER>"]]])
+
+	my ($input) = @_;
+
+	my $argument = '';
+	my @arguments = ();
+	my $args_count = 0;
+	my $qchar = '';
+	my $c; my $p;
+
+	if (!$input) { push(@arguments, 0); return @arguments; }
 
 	# Loop over every input char: [https://stackoverflow.com/q/10487316]
 	# [https://stackoverflow.com/q/18906514]
 	# [https://stackoverflow.com/q/13952870]
 	# [https://stackoverflow.com/q/1007981]
 	while ($input) {
-		# Get needed characters.
-		$c = substr($input, 0, 1, ''); # 'Chop' first char from string.
-		$p = chop($argument); # Remove last char from string and store value.
+		$c = substr($input, 0, 1, ''); # Remove first char.
+		$p = chop($argument); # Remove last char.
 		$argument .= $p; # Re-add last character.
 
-		# qchar is set, grab all chars until an unescaped qchar is hit.
 		if (!$qchar) {
 			if ($c =~ tr/"'// && $p ne '\\') {
-				# Set qchar as the opening quote character.
 				$qchar = $c;
-				# Capture character.
 				$argument .= $c;
 			}
 
@@ -386,17 +326,16 @@ sub __paramparse {
 		} else {
 			# Unescape '|' (pipe) characters.
 			if ($c eq '|' && $p eq '\\') {
-				chop($argument); # Remove last escaping slash to unescape pipe.
+				# Remove last escaping slash to unescape pipe.
+				chop($argument);
 			}
 
-			# Capture character.
 			$argument .= $c;
 
 			if ($c eq $qchar && $p ne '\\') {
 				# Store argument and reset vars.
 				push(@arguments, $argument);
 				$args_count++;
-				# Clear/reset variables.
 				$argument = '';
 				$qchar = '';
 			}
@@ -409,124 +348,113 @@ sub __paramparse {
 	# Push argument counter to array.
 	push(@arguments, $args_count);
 
-	# Return arguments array.
-	# [https://stackoverflow.com/a/11303607]
+	# Return arguments array: [https://stackoverflow.com/a/11303607]
 	return @arguments;
 }
 
 # Set environment variables to access in custom scripts.
 #
-# @param  {string} 1) arguments - N amount of env names to set.
-# @return {undefined} - Nothing is returned.
+# @param  {string} arguments - N amount of env names to set.
+# @return - Nothing is returned.
 sub __set_envs {
-	# Get parsed arguments count.
 	my $l = $#args + 1;
 
-	# Use hash to store environment variables: [https://perlmaven.com/perl-hashes]
+	# Use hash to store environment variables.
 	my %envs = (
 		# Following env vars are provided by bash but exposed via nodecliac.
+
 		"${prefix}COMP_LINE" => $cline, # Original (unmodified) CLI input.
-		"${prefix}COMP_POINT" => $cpoint, # Caret index when [tab] key was pressed.
+		# Caret index when [tab] key was pressed.
+		"${prefix}COMP_POINT" => $cpoint,
 
 		# Following env vars are custom and exposed via nodecliac.
-		# "${prefix}ACDEF" => $acdef,
-		"${prefix}MAIN_COMMAND" => $maincommand, # The command auto completion is being performed for.
+
+		# The command auto completion is being performed for.
+		"${prefix}MAIN_COMMAND" => $maincommand,
 		"${prefix}COMMAND_CHAIN" => $commandchain, # The parsed command chain.
 		# "${prefix}USED_FLAGS" => $usedflags, # The parsed used flags.
-		"${prefix}LAST" => $last, # The last parsed word item (note: could be a partial word item. This happens
-		# when the [tab] key gets pressed within a word item. For example, take the input 'maincommand command'. If
-		# the [tab] key was pressed like so: 'maincommand comm[tab]and' then the last word item is 'comm' and it is
-		# a partial as its remaining text is 'and'. This will result in using 'comm' to determine possible auto
-		# completion word possibilities.).
-		"${prefix}PREV" => $args[-2], # The word item preceding the last word item.
+        # The last parsed word item (note: could be a partial word item.
+        # This happens when the [tab] key gets pressed within a word item.
+        # For example, take the input 'maincommand command'. If
+        # the [tab] key was pressed like so: 'maincommand comm[tab]and' then
+        # the last word item is 'comm' and it is a partial as its remaining
+        # text is 'and'. This will result in using 'comm' to determine
+        # possible auto completion word possibilities.).
+		"${prefix}LAST" => $last,
+		"${prefix}PREV" => $args[-2], # The word item preceding last word item.
 		"${prefix}INPUT" => $input, # CLI input from start to caret index.
 		"${prefix}INPUT_ORIGINAL" => $oinput, # Original unmodified CLI input.
-		"${prefix}INPUT_REMAINDER" => $input_remainder, # CLI input from start to caret index.
+		# CLI input from start to caret index.
+		"${prefix}INPUT_REMAINDER" => $input_remainder,
 		"${prefix}LAST_CHAR" => $lastchar, # Character before caret.
-		"${prefix}NEXT_CHAR" => $nextchar, # Character after caret. If char is not '' (empty) then the last word
+		# Character after caret. If char is not '' (empty) then the last word
 		# item is a partial word.
-		"${prefix}COMP_LINE_LENGTH" => $cline_length, # Original input's length.
-		"${prefix}INPUT_LINE_LENGTH" => length($input), # CLI input length from beginning of string to caret position.
-		"${prefix}ARG_COUNT" => $l, # Amount arguments parsed before caret position/index.
-		# Store collected positional arguments after validating the command-chain to access in plugin auto-completion scripts.
+		"${prefix}NEXT_CHAR" => $nextchar,
+		# Original input's length.
+		"${prefix}COMP_LINE_LENGTH" => $cline_length,
+		# CLI input length from beginning of string to caret position.
+		"${prefix}INPUT_LINE_LENGTH" => length($input),
+		# Amount arguments parsed before caret position/index.
+		"${prefix}ARG_COUNT" => $l,
+		# Store collected positional arguments after validating the
+		# command-chain to access in plugin auto-completion scripts.
 		"${prefix}USED_DEFAULT_POSITIONAL_ARGS" => $used_default_pa_args
 	);
 
     # Add parsed arguments as individual environment variables to table.
     my $i = 0; foreach my $arg (@args) { $envs{"${prefix}ARG_${i}"} = $arg; $i++; }
 
-	# Dynamically set arguments.
-	# for (my $i = 0; $i < $l; $i++) { $ENV{"${prefix}ARG_${i}"} = $args[$i]; }
-
-	# If no arguments are provided then we set all env variables.
-	# [https://stackoverflow.com/a/19234273]
-	# [https://alvinalexander.com/blog/post/perl/how-access-arguments-perl-subroutine-function]
+	# If no arguments are provided all env variables get set.
 	if (@_ == 0) {
-		# Set environment variable: [https://alvinalexander.com/blog/post/perl/how-to-traverse-loop-items-elements-perl-hash]
+		# Set environment variable:
 		foreach my $key (keys %envs) { $ENV{$key} = $envs{$key}; }
 	} else {
-		# Split rows by lines: [https://stackoverflow.com/a/11746174]
 		foreach my $env_name (@_) {
 			my $key = "${prefix}$env_name";
-			# Set environment if provided env name exists in envs lookup hash table.
-			# [https://alvinalexander.com/blog/post/perl/perl-how-test-hash-contains-key]
+			# Set if provided env name exists in envs lookup table.
 			if (exists($envs{$key})) { $ENV{$key} = $envs{$key}; }
 		}
 	}
-
-	# return;
 }
 
-# ----------------------------------------------------------------MAIN-FUNCTIONS
+# --------------------------------------------------------------- MAIN-FUNCTIONS
 
-# Parses CLI input. Returns input similar to that of process.argv.slice(2).
-#     Adapted from argsplit module.
+# Parses CLI input.
 #
-# @param {string} 1) - The string to parse.
 # @return {undefined} - Nothing is returned.
 sub __parser {
-	# Vars.
 	my $argument = '';
 	my $qchar = '';
-	my $input = $input; # Copy string since it ill be destroyed during loop.
-	# Loop character variables (current, previous characters).
+	my $input = $input;
 	my $c; my $p;
 
-	# Input must not be empty.
 	if (!$input) { return; }
 
-	# Given the following input: '-n5 -abc "val"', the input will be turned
-	#     into '-n 5 -a -b -c "val"'.
-	#
-	# @param {string} 1) - The string to spread.
-	# @return {string} - The remaining argument.
+    # Spread input, ex: '-n5 -abc "val"' => '-n 5 -a -b -c "val"'
+    #
+    # @param  {string} argument - The string to spread.
+    # @return {string} - The remaining argument.
 	sub spread {
-		# Get arguments.
 		my ($argument, $args) = @_;
 
-		# Must pass following checks:
-		# - Start with a hyphen.
-		# - String must be >= 3 chars in length.
-		# - Must only start with a single hyphen.
 		if (length($argument) >= 3 && substr($argument, 1, 1) ne '-') {
-			substr($argument, 0, 1, ""); # Remove hyphen from argument.
+			substr($argument, 0, 1, ""); # Remove hyphen.
 			my $lchar = chop($argument); # Get last letter.
-			$argument .= $lchar; # Re-add last character.
+			$argument .= $lchar; # Re-add last char.
 
-			# If the last character is a number then everything after the
-			# first letter character (the flag) is its value.
+            # If last char is a number everything after the
+            # first letter char (the flag) is its value.
 			if ($lchar =~ tr/1234567890//) {
 				# Get the single letter argument.
 				my $argletter = substr($argument, 0, 1);
-				# Remove first char (letter) from argument.
-				substr($argument, 0, 1, "");
+				substr($argument, 0, 1, ""); # Remove first char (letter).
 
 				# Add letter argument to args array.
 				push(@$args, "-$argletter");
 
-			# Else, all other characters after are individual flags.
+			# All other cahrs after are individual flags.
 			} else {
-				# Add each other characters as single hyphen flags.
+				# Add each other chars as single hyphen flags.
 				my @chars = split(//, $argument);
 				my $l = $#chars + 1;
 				my $i = 0; my $hyphenref = 0; foreach my $char (@chars) {
@@ -558,26 +486,22 @@ sub __parser {
 		# [https://www.tek-tips.com/viewthread.cfm?qid=1056438]
 		# [https://www.oreilly.com/library/view/perl-cookbook/1565922433/ch01s06.html]
 		# [https://stackoverflow.com/questions/1083269/is-perls-unpack-ever-faster-than-substr]
-		# Note: Of all methods tried to parse a string of text char-by-char
-		# this method seems the fastest. Here's how it works. Using a while
-		# loop we chip away at the first character from the string. Therefore,
-		# the loop will end once the string is empty (no more characters).
-		# The way substr is used here is basically a reverse chop and is
-		# surprisingly pretty fast. Also, this method does not require the
-		# need of using the length method to loop. Moreover, we need also need
-		# the previous char. To get it, instead of making another call to
-		# substr we use the chop method which is super fast. Once the last
-		# character is chopped we just append it right back. This combination
-		# is the fastest of all methods tried.
+        # Note: Of all methods tried to parse a string of text char-by-char
+        # this method seems the fastest. Here's how it works. Using a while
+        # loop we chip away at the first character from the string. Therefore,
+        # the loop will end once the string is empty (no more characters).
+        # The way substr is used here is basically a reverse chop and is
+        # surprisingly pretty fast. Also, this method does not require the
+        # need of using the length method to loop. Moreover, we need also need
+        # the previous char. To get it, instead of making another call to
+        # substr we use the chop method. Once the last character is chopped
+        # we just append it right back.
 
-		# Get needed characters.
-		$c = substr($input, 0, 1, ''); # 'Chop' first char from string.
-		$p = chop($argument); # Remove last char from string and store value.
+		$c = substr($input, 0, 1, ''); # Remove first char.
+		$p = chop($argument); # Remove last char and store.
 		$argument .= $p; # Re-add last character.
 
-		# qchar is set, grab all chars until an unescaped qchar is hit.
 		if ($qchar) {
-			# Capture character.
 			$argument .= $c;
 
 			if ($c eq $qchar && $p ne '\\') {
@@ -592,39 +516,34 @@ sub __parser {
 
 				# Store argument and reset vars.
 				push(@args, rindex($argument, '-', 0) ? $argument : spread($argument, \@args));
-				# Clear/reset variables.
 				$argument = '';
 				$qchar = '';
 			}
 		} else {
-			# Check if current character is a quote character.
+			# Is current char a quote?
 			if ($c =~ tr/"'// && $p ne '\\') {
-				# Set qchar as the opening quote character.
 				$qchar = $c;
-				# Capture character.
 				$argument .= $c;
 
 			# For non quote characters add all except non-escaped spaces.
 			} elsif ($c =~ tr/ \t// && $p ne '\\') {
-				# If argument variable is not populated don't add to array.
+				# If argument variable isn't populated don't add to array.
 				if (!$argument) { next; }
 
 				# Store argument and reset vars.
 				push(@args, rindex($argument, '-', 0) ? $argument : spread($argument, \@args));
-				# Clear/reset variables.
 				$argument = '';
 				$qchar = '';
 			} else {
-				# Capture character.
 				$argument .= $c;
 			}
 		}
 	}
 
-	# Get last argument.
+	# If a last argument exists store it.
 	if ($argument) { push(@args, rindex($argument, '-', 0) ? $argument : spread($argument, \@args)); }
 
-	# Get/store last character of input.
+	# Get/store last char of input.
 	$lastchar = !($c ne ' ' && $p ne '\\') ? $c : '';
 }
 
@@ -649,36 +568,29 @@ sub __parser {
 # myapp run -u $(id -u $USER):$(id -g $USER\ )
 # myapp run -u $(id -u $USER):$(id -g $USER )
 sub __extractor {
-	# Vars.
 	my $l = $#args + 1;
 	my @oldchains = ();
-	# Following variables are used when validating command chain.
 	my $last_valid_chain = '';
 	my $collect_used_pa_args = '';
 	my %normalized;
 
-	# Loop over CLI arguments.
 	for (my $i = 1; $i < $l; $i++) {
-		# Cache current loop item.
 		my $item = $args[$i];
 		my $nitem = $args[$i + 1];
 
 		# Skip quoted (string) items.
-		if (substr($item, 0, 1) =~ tr/"'//) { # If first char is a quote...
+		if (substr($item, 0, 1) =~ tr/"'//) {
 			next;
-
-		# Else if the argument is not quoted check if item contains
-		# an escape sequences. If so skip the item.
+		# Else if item contains an escape sequence, skip.
 		} elsif ($item =~ tr/\\//) { next; }
 
-		# If a command (does not start with a hyphen.)
 		# [https://stackoverflow.com/a/34951053]
 		# [https://www.thoughtco.com/perl-chr-ord-functions-quick-tutorial-2641190]
-		if (rindex($item, '-', 0)) { # If not a flag...
+		if (rindex($item, '-', 0)) {
 			# Store default positional argument if flag is set.
 			if ($collect_used_pa_args) {
 				$used_default_pa_args .= "$item\n"; # Add used argument.
-				next; # Skip all following logic.
+				next;
 			}
 
 			# Store command.
@@ -687,7 +599,7 @@ sub __extractor {
 			# Check that command chain exists in acdef.
 			my $pattern = '^' . quotemeta($commandchain) . '[^ ]* ';
 			if ($acdef =~ /$pattern/m) {
-				# If there is a match then store chain.
+				# If there is a match store chain.
 				$last_valid_chain = $commandchain;
 			} else {
 				# Revert command chain back to last valid command chain.
@@ -699,9 +611,10 @@ sub __extractor {
 				$used_default_pa_args .= "$item\n";
 			}
 
-			# Reset used flags.
-			@foundflags = ();
+			@foundflags = (); # Reset used flags.
+
 		} else { # We have a flag.
+
 			# Store commandchain to revert to it if needed.
 			if ($commandchain) { push(@oldchains, $commandchain); }
 			$commandchain = '';
@@ -725,10 +638,8 @@ sub __extractor {
 				next;
 			}
 
-			# Validate argument.
-			my $vitem = __validate_flag($item);
-			# Check whether flag is a boolean:
-			my $skipflagval = 0;
+			my $vitem = __validate_flag($item); # Validate argument.
+			my $skipflagval = 0; # Check whether flag is a boolean:
 
 			# Look ahead to check if next item exists. If a word
 			# exists then we need to check whether is a value option
@@ -760,8 +671,7 @@ sub __extractor {
 					if (!$skipflagval) {
 						$vitem .= "=$nitem";
 
-						# Increase index to skip added flag value.
-						$i++;
+						$i++; # Increase index to skip added flag value.
 
 					# It's a boolean flag so add boolean marker (?).
 					} else { $args[$i] = $args[$i] . '?'; }
@@ -815,7 +725,6 @@ sub __extractor {
 
 	# Remove boolean indicator from flags.
 	for my $i (0 .. $#args) {
-		# Cache argument.
 		my $arg = $args[$i];
 		# If argument starts with a hyphen, does not contain an eq sign, and
 		# last character is a boolean - remove boolean indicator and reset the
@@ -827,7 +736,6 @@ sub __extractor {
 
 	# Set last word. If the last char is a space then the last word
 	# will be empty. Else set it to the last word.
-	# Switch statement: [https://stackoverflow.com/a/22575299]
 	$last = ($lastchar eq ' ') ? '' : $args[-1];
 
 	# Check whether last word is quoted or not.
@@ -937,8 +845,7 @@ sub __lookup {
 				$flag_list = do{local(@ARGV,$/)="$hdir/.nodecliac/registry/$maincommand/placeholders/$1";<>};
 			}
 
-			# Set completion type:
-			$type = 'flag';
+			$type = 'flag'; # Set completion type.
 
 			# If no flags exist skip line.
 			if ($flag_list eq '--') { return; }
@@ -1204,8 +1111,7 @@ sub __lookup {
 		}
 	} else { # Command completion:
 
-		# Set completion type:
-		$type = 'command';
+		$type = 'command'; # Set completion type.
 
 		# If command chain and used flags exits, don't complete.
 		if (%usedflags && $commandchain) {
@@ -1401,7 +1307,7 @@ sub __printer {
 	my %frqz; # Frequency of prefixes.
 	my %indices; # Track indices of strings containing any found prefixes.
 	my %aindices; # Track indices order.
-	my $prefixes = (); # Final collection of found prefixes.
+	# my $prefixes = (); # Final collection of found prefixes.
 
 	# Final result tuple and its sequence values.
 	my @prxs = ();

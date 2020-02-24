@@ -415,29 +415,32 @@ program.uninstall
 
 #### Flags (dynamic values)
 
-Sometimes hard-coded values are not enough so a `command-flag` can be used. A `command-flag` runs a shell command string. By default the returned command's output expects each completion item to be on its own line (newline (`\n`) delimited list). However, if you need to change the delimiter character to a space, hyphen, etc. then simply add the delimiter character to the `command-flag`. The syntax for a `command-flag` is as follows:
+Sometimes static values are not enough so a `command-flag` can be used. A `command-flag` is just a runnable line of shell code.
 
-- `$("cat ~/colors.text")`: Will run command and split output on newlines to get individual options.
-- `$("cat ~/colors.text", " ")`: Will run command and split output on spaces to get individual options.
+`command-flag` syntax:
 
-If the command requires arguments they can be _hard-coded_ or _dynamically_ supplied.
+- Begins with starting `$(`, followed by command, and ends with closing `)`.
+- Output: a newline (`\n`) delimited list is expected.
+  - Each completion item should be on its own line.
+- Example: `$("cat ~/colors.text")`
+- **Note**: Command must be quoted (double or single).
 
-- `$("cat ~/colors.text", "!red", $"cat ~/names.text", "-")`:
-  - This will provide the hard-coded `!red` value and run the `cat ~/names.text` flag command argument.
-  - Once all dynamic arguments are ran their outputs along with the hard-coded values are passed to the command `cat ~/colors.text` in the order they were provided.
-  - So `!red` will be argument `0` and the output of `cat ~/names.text` will be argument `1`.
-  - Once `cat ~/colors.text` is run, its output will be split by hyphens.
-- **Note**: _dynamic_ flag command arguments must be prefixed with a dollar-sign (`$`) character.
+_static_ or _dynamic_ arguments may be provided.
 
-**Escaping**: `$` and `|` are used internally by nodecliac so they have special meaning. Therefore, if used they need escaping. Take the following examples:
+- Example: `$("cat ~/colors.text", "!red", $"cat ~/names.text")`:
+  - This provides the _static_ `!red` and _dynamic_ `cat ~/names.text` arguments.
+  - `!red` will be argument `0` and the output of `cat ~/names.text` will be argument `1`.
+- **Note**: _dynamic_ arguments must be dollar-sign prefixed (`$`).
 
-- `--flag=$("echo \$0-\$1", $"echo 'john'", "doe", "-")`:
+**Escaping**: `$` and `|` are used internally so require escaping when used.
+
+- `--flag=$("echo \$0-\$1", $"echo 'john'", "doe")`:
   - The `$`s in the command are escaped.
 - `--flag=$("nodecliac registry \| grep -oP \"(?<=─ )([-a-z]*)\"")`:
-  - Here the `|` gets escaped as well.
-  - **Note**: Inner quotes are also escaped for obvious reasons.
+  - The `|` gets escaped here.
+  - **Note**: Inner quotes are also escaped like one would on the command-line.
 
-**Example**: Showcases dynamic and hard-coded values.
+**Example**: Showcases _dynamic_ and _static_ values.
 
 ```acmap
 program.command = [
@@ -456,7 +459,7 @@ program.command = [
     - index.js
     - ':task:js'
     - "some-thing"
-    - $("cat ~/file.text")
+    - $("cat ~/values.text")
   )
 ]
 program.uninstall

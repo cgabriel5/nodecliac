@@ -168,7 +168,7 @@ proc seqItem(sequence: seq, position: int = -1): string =
 # ------------------------------------------------------------------------------
 
 # Predefine procs to maintain proc order with ac.pl.
-proc fn_paramparse(input: var string): tuple
+proc parseCmdStr(input: var string): seq[string]
 proc setEnvs(arguments: varargs[string])
 
 # Parse and run command-flag (flag) or default command chain.
@@ -183,25 +183,17 @@ proc setEnvs(arguments: varargs[string])
 # @resource [https://stackoverflow.com/a/1711985]
 # @resource [https://stackoverflow.com/a/15678831]
 # @resource [https://stackoverflow.com/a/3374285]
-proc fn_execute_command(command_str: var string , flags: var seq = @[""], last_fkey: string = "") =
-    var (args_count, arguments) = fn_paramparse(command_str)
-
+proc execCommand(command_str: var string): seq[string] =
+    var arguments = parseCmdStr(command_str)
+    let count = arguments.high
     var command = arguments[0]
     unquote(command)
     var delimiter = "\\r?\\n"
+    var r: seq[string] = @[]
 
-    if args_count > 1:
-        # If provided, unquote and use custom delimiter.
-        var cdelimiter = arguments.pop()
-        if cdelimiter.len >= 2:
-            delimiter = cdelimiter
-            unquote(delimiter)
-
-        # Reduce to account for popping off delimiter.
-        # dec(args_count)
-
-        # Add arguments to command string.
-        for i in countup(1, args_count - 1, 1):
+    # Add any command-string has arguments.
+    if count > 1:
+        for i in countup(1, count, 1):
             var arg = arguments[i]
 
             # Run '$' string.
@@ -212,46 +204,22 @@ proc fn_execute_command(command_str: var string , flags: var seq = @[""], last_f
                 var cmdarg = arg & " 2> /dev/null"
                 command &= " " & qchar & osproc.execProcess(cmdarg) & qchar
             else:
-                command &= " " & arg # Append static argument.
+                command &= " " & arg # Static argument.
 
     setEnvs()
     var res = osproc.execProcess(command & " 2> /dev/null")
+    result = if res != "": split(res, re(delimiter)) else: r
 
-    if res != "":
-        if delimiter != "\\r?\\n": res = res.strip()
-        var lines = split(res, re(delimiter))
-
-        if `type` == "flag":
-            for line in lines:
-                if line != "": flags.add(last_fkey & "=" & line)
-        else:
-            for line in lines:
-                if line != "":
-                    if last != "":
-                        # Since we are completing a command we only
-                        # want words that start with the current
-                        # command we are trying to complete.
-                        if line.startsWith(last): completions.add(line)
-                    else:
-                        if line.startsWith('!'): continue
-                        completions.add(line)
-
-            # If completions array is empty and last word is a valid completion
-            # item add add it to completions array to append a trailing space.
-            var pattern = "^\\!?" & quotemeta(last) & "$"
-            let bounds = findBounds(res, re(pattern, {reMultiLine}))
-            if (completions.len == 0 and bounds.first != -1): completions.add(last)
-
-# Parse string command flag `$("")` arguments.
+# Parse string command `$("")` and returns its arguments.
 #
 # Syntax:
 # $("COMMAND-STRING" [, [<ARG1>, <ARGN> [, "<DELIMITER>"]]])
 #
 # @param  {string} input - The string command-flag to parse.
 # @return {string} - The cleaned command-flag string.
-proc fn_paramparse(input: var string): tuple =
+proc parseCmdStr(input: var string): seq[string] =
     var argument = ""
-    var args: tuple[count: int, list: seq[string]]
+    var args: seq[string] = @[]
     var qchar = '\0'
     var c, p: char
 
@@ -270,13 +238,11 @@ proc fn_paramparse(input: var string): tuple =
             argument &= $c
 
             if c == qchar and p != '\\':
-                args.list.add(argument)
-                inc(args.count)
+                args.add(argument)
                 argument = ""
                 qchar = '\0'
 
-    if argument != "": args.list.add(argument)
-
+    if argument != "": args.add(argument)
     return args
 
 # Set environment variables to access in custom scripts.
@@ -689,7 +655,9 @@ proc fn_lookup(): string =
                     # If value is a command-flag: --flag=$("<COMMAND-STRING>"),
                     # run command and add returned words to flags array.
                     if flag_value.startsWith("$(") and flag_value.endsWith(')'):
-                        fn_execute_command(flag_value, flags, last_fkey)
+                        let lines = execCommand(flag_value)
+                        for line in lines:
+                            if line != "": flags.add(last_fkey & "=" & line)
                         # Don't add literal command to completions.
                         inc(i)
                         continue
@@ -890,8 +858,23 @@ proc fn_lookup(): string =
                     # Run command string.
                     if command_str.startsWith("$(") and lchar == ')':
                         discard shift(command_str, 1)
-                        var empty_seq = @[""]
-                        fn_execute_command(command_str, empty_seq)
+                        let lines = execCommand(command_str)
+                        for line in lines:
+                            if line != "":
+                                if last != "":
+                                    # When completing a command only words
+                                    # starting with current command are allowed.
+                                    if line.startsWith(last): completions.add(line)
+                                else:
+                                    if line.startsWith('!'): continue
+                                    completions.add(line)
+
+                        # If no completions and last word is a valid completion
+                        # item, add it to completions to add a trailing space.
+                        if completions.len == 0:
+                            var pattern = "^\\!?" & quotemeta(last) & "$"
+                            let bounds = findBounds(lines.join("\n"), re(pattern, {reMultiLine}))
+                            if bounds.first != -1: completions.add(last)
 
                     # Else add static command-string value.
                     else:

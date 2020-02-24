@@ -115,26 +115,18 @@ sub __validate_command {
 # @resource [https://stackoverflow.com/a/1711985]
 # @resource [https://stackoverflow.com/a/15678831]
 # @resource [https://stackoverflow.com/a/3374285]
-sub __execute_command {
-	my ($command_str, $flags, $last_fkey) = @_;
+sub __exec_command {
+	my ($command_str) = @_;
 
-	my @arguments = __paramparse($command_str);
-	my $args_count = pop(@arguments);
+	my @arguments = @{ __parse_cmdstr($command_str) };
+	my $count = $#argument;
 	my $command = substr($arguments[0], 1, -1); # Unquote.
 	my $delimiter = "\$\\r\?\\n";
+	my @r = ();
 
-	if ($args_count > 1) {
-        # If provided, unquote and use custom delimiter.
-		my $cdelimiter = pop(@arguments);
-		if (length($cdelimiter) >= 2) {
-			$delimiter = substr($cdelimiter, 1, -1); # Unquote.
-		}
-
-		# Reduce to account for popping off delimiter.
-		$args_count -= 1;
-
-		# Add arguments to command string.
-		for (my $i = 1; $i < $args_count; $i++) {
+	# Add any command-string has arguments.
+	if ($count > 1) {
+		for (my $i = 1; $i < $count; $i++) {
 			my $arg = $arguments[$i];
 
 			# Run '$' string.
@@ -145,64 +137,34 @@ sub __execute_command {
 				my $cmdarg = "$arg 2> /dev/null";
 				$command .= " $qchar" . `$cmdarg` . $qchar;
 			} else {
-				$command .= " $arg"; # Append static argument.
+				$command .= " $arg"; # Static argument.
 			}
 		}
 	}
 
 	__set_envs();
-	my $res = `$command  2> /dev/null`;
+	my $res = `$command 2> /dev/null`;
 
-	if ($res) {
-		if ($delimiter ne "\$\\r\?\\n") { $res =~ s/^\s+|\s+$//g; }
-		my @lines = split(/$delimiter/m, $res);
-
-		if ($type eq 'flag') {
-			foreach my $line (@lines) {
-				if ($line) { push(@$flags, $last_fkey . "=$line"); }
-			}
-		} else {
-			foreach my $line (@lines) {
-				if ($line) {
-					if ($last) {
-		                # Since we are completing a command we only
-		                # want words that start with the current
-		                # command we are trying to complete.
-						if (rindex($line, $last, 0) == 0) {
-							push(@completions, $line);
-						}
-					} else {
-						if (rindex($line, '!', 0) == 0) { next; }
-						push(@completions, $line);
-					}
-				}
-			}
-
-			# If completions array is empty and last word is a valid completion
-			# item add add it to completions array to append a trailing space.
-			my $pattern = '^\!?' . quotemeta($last) . '$';
-			if (!@completions && $res =~ /$pattern/m) { push(@completions, $last); }
-		}
-	}
+	if ($res) { @r = split(/$delimiter/m, $res); }
+	return \@r;
 }
 
-# Parse string command flag `$("")` arguments.
+# Parse string command `$("")` and returns its arguments.
 #
 # Syntax:
 # $("COMMAND-STRING" [, [<ARG1>, <ARGN> [, "<DELIMITER>"]]])
 #
 # @param  {string} input - The string command-flag to parse.
 # @return {string} - The cleaned command-flag string.
-sub __paramparse {
+sub __parse_cmdstr {
 	my ($input) = @_;
 
 	my $argument = '';
 	my @arguments = ();
-	my $args_count = 0;
 	my $qchar = '';
 	my $c; my $p;
 
-	if (!$input) { push(@arguments, 0); return @arguments; }
+	if (!$input) { return \@arguments; }
 
 	while ($input) {
 		$c = substr($input, 0, 1, '');
@@ -220,7 +182,6 @@ sub __paramparse {
 
 			if ($c eq $qchar && $p ne '\\') {
 				push(@arguments, $argument);
-				$args_count++;
 				$argument = '';
 				$qchar = '';
 			}
@@ -228,9 +189,8 @@ sub __paramparse {
 	}
 
 	if ($argument) { push(@arguments, $argument); }
-	push(@arguments, $args_count);
 
-	return @arguments; # [https://stackoverflow.com/a/11303607]
+	return \@arguments; # [https://stackoverflow.com/a/11303607]
 }
 
 # Set environment variables to access in custom scripts.
@@ -670,7 +630,10 @@ sub __lookup {
 					# If value is a command-flag: --flag=$("<COMMAND-STRING>"),
 					# run command and add returned words to flags array.
 					if (rindex($flag_value, "\$(", 0) == 0 && substr($flag_value, -1) eq ')') {
-						__execute_command($flag_value, \@flags, $last_fkey);
+						my @lines = @{ __exec_command($flag_value) };
+						foreach my $line (@lines) {
+							if ($line) { push(@flags, $last_fkey . "=$line"); }
+						}
 						next; # Don't add literal command to completions.
 					}
 
@@ -878,7 +841,30 @@ sub __lookup {
 					# Run command string.
 					if (rindex($command_str, '$(', 0) == 0 && $lchar eq ')') {
 						substr($command_str, 0, 2, "");
-						__execute_command($command_str);
+						my @lines = @{ __exec_command($command_str) };
+						foreach my $line (@lines) {
+							if ($line) {
+								if ($last) {
+									# When completing a command only words
+									# starting with current command are allowed.
+									if (rindex($line, $last, 0) == 0) {
+										push(@completions, $line);
+									}
+								} else {
+									if (rindex($line, '!', 0) == 0) { next; }
+									push(@completions, $line);
+								}
+							}
+						}
+
+						# If no completions and last word is a valid completion
+						# item, add it to completions to add a trailing space.
+						if (!@completions) {
+							my $pattern = '^\!?' . quotemeta($last) . '$';
+							if (join('\n', @lines) =~ /$pattern/m) {
+								push(@completions, $last);
+							}
+						}
 
 					# Else add static command-string value.
 					} else {

@@ -186,7 +186,7 @@ let lcp = (strs, options = {}) => {
 };
 
 module.exports = function(s) {
-	return md5(s);
+	return lcp(s);
 };
 
 // // Examples:

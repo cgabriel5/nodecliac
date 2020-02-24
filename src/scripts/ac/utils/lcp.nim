@@ -15,7 +15,7 @@ from strutils import startsWith
 # @resource [https://stackoverflow.com/a/1917041]
 # @resource [https://softwareengineering.stackexchange.com/q/262242]
 # @resource [https://stackoverflow.com/q/11397137]
-proc lcp(
+proc lcp*(
             strs: var seq[string],
             charloop_startindex = 0, # Index where char loop will start at.
             min_frqz_prefix_len = 1, # Min length string should be to store frqz.
@@ -156,427 +156,427 @@ proc lcp(
     r = (prefixes: prxs, indices: xids)
     return r
 
-# Examples:
+# # Examples:
 
-var strs: seq[string] = @[]
+# var strs: seq[string] = @[]
 
-strs = @[
-    "Call Mike and schedule meeting.",
-    "Call Lisa",
-    # "Cat",
-    "Call Adam and ask for quote.",
-    "Implement new class for iPhone project",
-    "Implement new class for Rails controller",
-    "Buy groceries"
-    # "Buy groceries"
-]
-echo 13, " ", lcp(strs)
+# strs = @[
+#     "Call Mike and schedule meeting.",
+#     "Call Lisa",
+#     # "Cat",
+#     "Call Adam and ask for quote.",
+#     "Implement new class for iPhone project",
+#     "Implement new class for Rails controller",
+#     "Buy groceries"
+#     # "Buy groceries"
+# ]
+# echo 13, " ", lcp(strs)
 
-strs = @["--hintUser=", "--hintUser=", "--hintUser="]
-echo -1, " ", lcp(
-    strs,
-    charloop_startindex = 2,
-    min_frqz_prefix_len = 2,
-    min_prefix_len = 3,
-    min_frqz_count = 3,
-    char_break_points = ['='],
-    prepend = "--",
-    append = "..."
-)
+# strs = @["--hintUser=", "--hintUser=", "--hintUser="]
+# echo -1, " ", lcp(
+#     strs,
+#     charloop_startindex = 2,
+#     min_frqz_prefix_len = 2,
+#     min_prefix_len = 3,
+#     min_frqz_count = 3,
+#     char_break_points = ['='],
+#     prepend = "--",
+#     append = "..."
+# )
 
-strs = @[
-    "--app=",
-    "--assertions=",
-    "--boundChecks=",
-    "--checks=",
-    "--cincludes=",
-    "--clib=",
-    "--clibdir=",
-    "--colors=",
-    "--compileOnly=",
-    "--cppCompileToNamespace=",
-    "--cpu=",
-    "--debugger=",
-    "--debuginfo=",
-    "--define=",
-    "--docInternal ",
-    "--docSeeSrcUrl=",
-    "--dynlibOverride=",
-    "--dynlibOverrideAll ",
-    "--embedsrc=",
-    "--errorMax=",
-    "--excessiveStackTrace=",
-    "--excludePath=",
-    "--expandMacro=",
-    "--experimental=",
-    "--fieldChecks=",
-    "--floatChecks=",
-    "--forceBuild=",
-    "--fullhelp ",
-    "--gc=",
-    "--genDeps=",
-    "--genScript=",
-    "--help ",
-    "--hintCC=",
-    "--hintCodeBegin=",
-    "--hintCodeEnd=",
-    "--hintCondTrue=",
-    "--hintConf=",
-    "--hintConvFromXtoItselfNotNeeded=",
-    "--hintConvToBaseNotNeeded=",
-    "--hintDependency=",
-    "--hintExec=",
-    "--hintExprAlwaysX=",
-    "--hintExtendedContext=",
-    "--hintGCStats=",
-    "--hintGlobalVar=",
-    "--hintLineTooLong=",
-    "--hintLink=",
-    "--hintName=",
-    "--hintPath=",
-    "--hintPattern=",
-    "--hintPerformance=",
-    "--hintProcessing=",
-    "--hintQuitCalled=",
-    "--hints=",
-    "--hintSource=",
-    "--hintStackTrace=",
-    "--hintSuccess=",
-    "--hintSuccessX=",
-    "--hintUser=",
-    "--hintUserRaw=",
-    "--hintXDeclaredButNotUsed=",
-    "--hotCodeReloading=",
-    "--implicitStatic=",
-    "--import=",
-    "--include=",
-    "--incremental=",
-    "--index=",
-    "--infChecks=",
-    "--laxStrings=",
-    "--legacy=",
-    "--lib=",
-    "--lineDir=",
-    "--lineTrace=",
-    "--listCmd ",
-    "--listFullPaths=",
-    "--memTracker=",
-    "--multimethods=",
-    "--nanChecks=",
-    "--newruntime ",
-    "--nilChecks=",
-    "--nilseqs=",
-    "--NimblePath=",
-    "--nimcache=",
-    "--noCppExceptions ",
-    "--noLinking=",
-    "--noMain=",
-    "--noNimblePath ",
-    "--objChecks=",
-    "--oldast=",
-    "--oldNewlines=",
-    "--opt=",
-    "--os=",
-    "--out=",
-    "--outdir=",
-    "--overflowChecks=",
-    "--parallelBuild=",
-    "--passC=",
-    "--passL=",
-    "--path=",
-    "--profiler=",
-    "--project ",
-    "--putenv=",
-    "--rangeChecks=",
-    "--refChecks=",
-    "--run ",
-    "--showAllMismatches=",
-    "--skipCfg=",
-    "--skipParentCfg=",
-    "--skipProjCfg=",
-    "--skipUserCfg=",
-    "--stackTrace=",
-    "--stdout=",
-    "--styleCheck=",
-    "--taintMode=",
-    "--threadanalysis=",
-    "--threads=",
-    "--tlsEmulation=",
-    "--trmacros=",
-    "--undef=",
-    "--useVersion=",
-    "--verbosity=",
-    "--version ",
-    "--warningCannotOpenFile=",
-    "--warningConfigDeprecated=",
-    "--warningDeprecated=",
-    "--warningEachIdentIsTuple=",
-    "--warningOctalEscape=",
-    "--warnings=",
-    "--warningSmallLshouldNotBeUsed=",
-    "--warningUser="
-]
-echo 1, " ", lcp(
-    strs,
-    charloop_startindex = 2,
-    min_frqz_prefix_len = 2,
-    min_prefix_len = 3,
-    min_frqz_count = 3,
-    char_break_points = ['='],
-    prepend = "--",
-    append = "..."
-)
+# strs = @[
+#     "--app=",
+#     "--assertions=",
+#     "--boundChecks=",
+#     "--checks=",
+#     "--cincludes=",
+#     "--clib=",
+#     "--clibdir=",
+#     "--colors=",
+#     "--compileOnly=",
+#     "--cppCompileToNamespace=",
+#     "--cpu=",
+#     "--debugger=",
+#     "--debuginfo=",
+#     "--define=",
+#     "--docInternal ",
+#     "--docSeeSrcUrl=",
+#     "--dynlibOverride=",
+#     "--dynlibOverrideAll ",
+#     "--embedsrc=",
+#     "--errorMax=",
+#     "--excessiveStackTrace=",
+#     "--excludePath=",
+#     "--expandMacro=",
+#     "--experimental=",
+#     "--fieldChecks=",
+#     "--floatChecks=",
+#     "--forceBuild=",
+#     "--fullhelp ",
+#     "--gc=",
+#     "--genDeps=",
+#     "--genScript=",
+#     "--help ",
+#     "--hintCC=",
+#     "--hintCodeBegin=",
+#     "--hintCodeEnd=",
+#     "--hintCondTrue=",
+#     "--hintConf=",
+#     "--hintConvFromXtoItselfNotNeeded=",
+#     "--hintConvToBaseNotNeeded=",
+#     "--hintDependency=",
+#     "--hintExec=",
+#     "--hintExprAlwaysX=",
+#     "--hintExtendedContext=",
+#     "--hintGCStats=",
+#     "--hintGlobalVar=",
+#     "--hintLineTooLong=",
+#     "--hintLink=",
+#     "--hintName=",
+#     "--hintPath=",
+#     "--hintPattern=",
+#     "--hintPerformance=",
+#     "--hintProcessing=",
+#     "--hintQuitCalled=",
+#     "--hints=",
+#     "--hintSource=",
+#     "--hintStackTrace=",
+#     "--hintSuccess=",
+#     "--hintSuccessX=",
+#     "--hintUser=",
+#     "--hintUserRaw=",
+#     "--hintXDeclaredButNotUsed=",
+#     "--hotCodeReloading=",
+#     "--implicitStatic=",
+#     "--import=",
+#     "--include=",
+#     "--incremental=",
+#     "--index=",
+#     "--infChecks=",
+#     "--laxStrings=",
+#     "--legacy=",
+#     "--lib=",
+#     "--lineDir=",
+#     "--lineTrace=",
+#     "--listCmd ",
+#     "--listFullPaths=",
+#     "--memTracker=",
+#     "--multimethods=",
+#     "--nanChecks=",
+#     "--newruntime ",
+#     "--nilChecks=",
+#     "--nilseqs=",
+#     "--NimblePath=",
+#     "--nimcache=",
+#     "--noCppExceptions ",
+#     "--noLinking=",
+#     "--noMain=",
+#     "--noNimblePath ",
+#     "--objChecks=",
+#     "--oldast=",
+#     "--oldNewlines=",
+#     "--opt=",
+#     "--os=",
+#     "--out=",
+#     "--outdir=",
+#     "--overflowChecks=",
+#     "--parallelBuild=",
+#     "--passC=",
+#     "--passL=",
+#     "--path=",
+#     "--profiler=",
+#     "--project ",
+#     "--putenv=",
+#     "--rangeChecks=",
+#     "--refChecks=",
+#     "--run ",
+#     "--showAllMismatches=",
+#     "--skipCfg=",
+#     "--skipParentCfg=",
+#     "--skipProjCfg=",
+#     "--skipUserCfg=",
+#     "--stackTrace=",
+#     "--stdout=",
+#     "--styleCheck=",
+#     "--taintMode=",
+#     "--threadanalysis=",
+#     "--threads=",
+#     "--tlsEmulation=",
+#     "--trmacros=",
+#     "--undef=",
+#     "--useVersion=",
+#     "--verbosity=",
+#     "--version ",
+#     "--warningCannotOpenFile=",
+#     "--warningConfigDeprecated=",
+#     "--warningDeprecated=",
+#     "--warningEachIdentIsTuple=",
+#     "--warningOctalEscape=",
+#     "--warnings=",
+#     "--warningSmallLshouldNotBeUsed=",
+#     "--warningUser="
+# ]
+# echo 1, " ", lcp(
+#     strs,
+#     charloop_startindex = 2,
+#     min_frqz_prefix_len = 2,
+#     min_prefix_len = 3,
+#     min_frqz_count = 3,
+#     char_break_points = ['='],
+#     prepend = "--",
+#     append = "..."
+# )
 
-strs = @[
-    "--app=",
-    "--assertions=",
-    "--boundChecks=",
-    "--checks=",
-    "--cincludes=",
-    "--clib=",
-    "--clibdir=",
-    "--colors="
-]
-echo 2, " ", lcp(
-    strs,
-    charloop_startindex = 2,
-    min_frqz_prefix_len = 2,
-    min_prefix_len = 3,
-    min_frqz_count = 3,
-    char_break_points = ['='],
-    prepend = "--",
-    append = "..."
-)
+# strs = @[
+#     "--app=",
+#     "--assertions=",
+#     "--boundChecks=",
+#     "--checks=",
+#     "--cincludes=",
+#     "--clib=",
+#     "--clibdir=",
+#     "--colors="
+# ]
+# echo 2, " ", lcp(
+#     strs,
+#     charloop_startindex = 2,
+#     min_frqz_prefix_len = 2,
+#     min_prefix_len = 3,
+#     min_frqz_count = 3,
+#     char_break_points = ['='],
+#     prepend = "--",
+#     append = "..."
+# )
 
-strs = @[
-    "--warningCannotOpenFile",
-    "--warningConfigDeprecated",
-    "--warningDeprecated",
-    "--warningEachIdentIsTuple",
-    "--warningOctalEscape",
-    "--warnings",
-    "--warningSmallLshouldNotBeUsed",
-    "--warningUser"
-]
-echo 3, " ", lcp(
-    strs,
-    charloop_startindex = 2,
-    min_frqz_prefix_len = 2,
-    min_prefix_len = 3,
-    min_frqz_count = 3,
-    char_break_points = ['='],
-    prepend = "--",
-    append = "..."
-)
+# strs = @[
+#     "--warningCannotOpenFile",
+#     "--warningConfigDeprecated",
+#     "--warningDeprecated",
+#     "--warningEachIdentIsTuple",
+#     "--warningOctalEscape",
+#     "--warnings",
+#     "--warningSmallLshouldNotBeUsed",
+#     "--warningUser"
+# ]
+# echo 3, " ", lcp(
+#     strs,
+#     charloop_startindex = 2,
+#     min_frqz_prefix_len = 2,
+#     min_prefix_len = 3,
+#     min_frqz_count = 3,
+#     char_break_points = ['='],
+#     prepend = "--",
+#     append = "..."
+# )
 
-strs = @[
-    "--skipCfg=",
-    "--skipParentCfg=",
-    "--skipProjCfg=",
-    "--skipUserCfg="
-]
-echo 4, " ", lcp(
-    strs,
-    charloop_startindex = 2,
-    min_frqz_prefix_len = 2,
-    min_prefix_len = 3,
-    min_frqz_count = 3,
-    char_break_points = ['='],
-    prepend = "--",
-    append = "..."
-)
+# strs = @[
+#     "--skipCfg=",
+#     "--skipParentCfg=",
+#     "--skipProjCfg=",
+#     "--skipUserCfg="
+# ]
+# echo 4, " ", lcp(
+#     strs,
+#     charloop_startindex = 2,
+#     min_frqz_prefix_len = 2,
+#     min_prefix_len = 3,
+#     min_frqz_count = 3,
+#     char_break_points = ['='],
+#     prepend = "--",
+#     append = "..."
+# )
 
-strs = @[
-    "--hintCC=",
-    "--hintCodeBegin=",
-    "--hintCodeEnd=",
-    "--hintCondTrue=",
-    "--hintConf=",
-    "--hintConvFromXtoItselfNotNeeded=",
-    "--hintConvToBaseNotNeeded=",
-    "--hintDependency=",
-    "--hintExec=",
-    "--hintExprAlwaysX=",
-    "--hintExtendedContext=",
-    "--hintGCStats=",
-    "--hintGlobalVar=",
-    "--hintLineTooLong=",
-    "--hintLink=",
-    "--hintName=",
-    "--hintPath=",
-    "--hintPattern=",
-    "--hintPerformance=",
-    "--hintProcessing=",
-    "--hintQuitCalled=",
-    "--hints=",
-    "--hintSource=",
-    "--hintStackTrace=",
-    "--hintSuccess=",
-    "--hintSuccessX=",
-    "--hintUser=",
-    "--hintUserRaw="
-]
-echo 5, " ", lcp(
-    strs,
-    charloop_startindex = 2,
-    min_frqz_prefix_len = 2,
-    min_prefix_len = 3,
-    min_frqz_count = 3,
-    char_break_points = ['='],
-    prepend = "--",
-    append = "..."
-)
+# strs = @[
+#     "--hintCC=",
+#     "--hintCodeBegin=",
+#     "--hintCodeEnd=",
+#     "--hintCondTrue=",
+#     "--hintConf=",
+#     "--hintConvFromXtoItselfNotNeeded=",
+#     "--hintConvToBaseNotNeeded=",
+#     "--hintDependency=",
+#     "--hintExec=",
+#     "--hintExprAlwaysX=",
+#     "--hintExtendedContext=",
+#     "--hintGCStats=",
+#     "--hintGlobalVar=",
+#     "--hintLineTooLong=",
+#     "--hintLink=",
+#     "--hintName=",
+#     "--hintPath=",
+#     "--hintPattern=",
+#     "--hintPerformance=",
+#     "--hintProcessing=",
+#     "--hintQuitCalled=",
+#     "--hints=",
+#     "--hintSource=",
+#     "--hintStackTrace=",
+#     "--hintSuccess=",
+#     "--hintSuccessX=",
+#     "--hintUser=",
+#     "--hintUserRaw="
+# ]
+# echo 5, " ", lcp(
+#     strs,
+#     charloop_startindex = 2,
+#     min_frqz_prefix_len = 2,
+#     min_prefix_len = 3,
+#     min_frqz_count = 3,
+#     char_break_points = ['='],
+#     prepend = "--",
+#     append = "..."
+# )
 
-strs = @[
-    "--warnings=",
-    "--warningCannotOpenFile=",
-    "--warningXonfigDeprecated=",
-    "--warningPofigApple=",
-    "--warningCofigApple=",
-    "--warningCofigApple=",
-    "--warningCofigApple=",
-    "--warningCofigApple=",
-    "--warningCofigApple=",
-    "--warningCofigApple=",
-    "--warningCofgTest="
-]
-echo 6, " ", lcp(
-    strs,
-    charloop_startindex = 2,
-    min_frqz_prefix_len = 2,
-    min_prefix_len = 3,
-    min_frqz_count = 3,
-    char_break_points = ['='],
-    prepend = "--",
-    append = "..."
-)
+# strs = @[
+#     "--warnings=",
+#     "--warningCannotOpenFile=",
+#     "--warningXonfigDeprecated=",
+#     "--warningPofigApple=",
+#     "--warningCofigApple=",
+#     "--warningCofigApple=",
+#     "--warningCofigApple=",
+#     "--warningCofigApple=",
+#     "--warningCofigApple=",
+#     "--warningCofigApple=",
+#     "--warningCofgTest="
+# ]
+# echo 6, " ", lcp(
+#     strs,
+#     charloop_startindex = 2,
+#     min_frqz_prefix_len = 2,
+#     min_prefix_len = 3,
+#     min_frqz_count = 3,
+#     char_break_points = ['='],
+#     prepend = "--",
+#     append = "..."
+# )
 
-strs = @["--warnings=", "--warningCannotOpenFile="]
-echo 7, " ", lcp(
-    strs,
-    charloop_startindex = 2,
-    min_frqz_prefix_len = 2,
-    min_prefix_len = 3,
-    min_frqz_count = 3,
-    char_break_points = ['='],
-    prepend = "--",
-    append = "..."
-)
+# strs = @["--warnings=", "--warningCannotOpenFile="]
+# echo 7, " ", lcp(
+#     strs,
+#     charloop_startindex = 2,
+#     min_frqz_prefix_len = 2,
+#     min_prefix_len = 3,
+#     min_frqz_count = 3,
+#     char_break_points = ['='],
+#     prepend = "--",
+#     append = "..."
+# )
 
-strs = @["--warnings="]
-echo 8, " ", lcp(
-    strs,
-    charloop_startindex = 2,
-    min_frqz_prefix_len = 2,
-    min_prefix_len = 3,
-    min_frqz_count = 3,
-    char_break_points = ['='],
-    prepend = "--",
-    append = "..."
-)
+# strs = @["--warnings="]
+# echo 8, " ", lcp(
+#     strs,
+#     charloop_startindex = 2,
+#     min_frqz_prefix_len = 2,
+#     min_prefix_len = 3,
+#     min_frqz_count = 3,
+#     char_break_points = ['='],
+#     prepend = "--",
+#     append = "..."
+# )
 
-strs = @[
-    "--hintCC=",
-    "--hintCodeBegin=",
-    "--hintCodeEnd=",
-    "--hintCondTrue=",
-    "--hintConf=",
-    "--hintConvFromXtoItselfNotNeeded=",
-    "--hintConvToBaseNotNeeded=",
-    "--hintDependency=",
-    "--hintExec=",
-    "--hintExprAlwaysX=",
-    "--hintExtendedContext=",
-    "--hintGCStats=",
-    "--hintGlobalVar=",
-    "--hintLineTooLong=",
-    "--hintLink=",
-    "--hintName=",
-    "--hintPath=",
-    "--hintPattern=",
-    "--hintPerformance=",
-    "--hintProcessing=",
-    "--hintQuitCalled=",
-    "--hints=",
-    "--hintSource=",
-    "--hintStackTrace=",
-    "--hintSuccess=",
-    "--hintSuccessX=",
-    "--hintUser=",
-    "--hintUserRaw=",
-    "--hintXDeclaredButNotUsed="
-]
-echo 9, " ", lcp(
-    strs,
-    charloop_startindex = 2,
-    min_frqz_prefix_len = 2,
-    min_prefix_len = 3,
-    min_frqz_count = 3,
-    char_break_points = ['='],
-    prepend = "--",
-    append = "..."
-)
+# strs = @[
+#     "--hintCC=",
+#     "--hintCodeBegin=",
+#     "--hintCodeEnd=",
+#     "--hintCondTrue=",
+#     "--hintConf=",
+#     "--hintConvFromXtoItselfNotNeeded=",
+#     "--hintConvToBaseNotNeeded=",
+#     "--hintDependency=",
+#     "--hintExec=",
+#     "--hintExprAlwaysX=",
+#     "--hintExtendedContext=",
+#     "--hintGCStats=",
+#     "--hintGlobalVar=",
+#     "--hintLineTooLong=",
+#     "--hintLink=",
+#     "--hintName=",
+#     "--hintPath=",
+#     "--hintPattern=",
+#     "--hintPerformance=",
+#     "--hintProcessing=",
+#     "--hintQuitCalled=",
+#     "--hints=",
+#     "--hintSource=",
+#     "--hintStackTrace=",
+#     "--hintSuccess=",
+#     "--hintSuccessX=",
+#     "--hintUser=",
+#     "--hintUserRaw=",
+#     "--hintXDeclaredButNotUsed="
+# ]
+# echo 9, " ", lcp(
+#     strs,
+#     charloop_startindex = 2,
+#     min_frqz_prefix_len = 2,
+#     min_prefix_len = 3,
+#     min_frqz_count = 3,
+#     char_break_points = ['='],
+#     prepend = "--",
+#     append = "..."
+# )
 
-strs = @["--hintCC="]
-echo 10, " ", lcp(
-    strs,
-    charloop_startindex = 2,
-    min_frqz_prefix_len = 2,
-    min_prefix_len = 3,
-    min_frqz_count = 3,
-    char_break_points = ['='],
-    prepend = "--",
-    append = "..."
-)
+# strs = @["--hintCC="]
+# echo 10, " ", lcp(
+#     strs,
+#     charloop_startindex = 2,
+#     min_frqz_prefix_len = 2,
+#     min_prefix_len = 3,
+#     min_frqz_count = 3,
+#     char_break_points = ['='],
+#     prepend = "--",
+#     append = "..."
+# )
 
-strs = @["--hintUser=", "--hintUserRaw=", "--hintXDeclaredButNotUsed="]
-echo 11, " ", lcp(
-    strs,
-    charloop_startindex = 2,
-    min_frqz_prefix_len = 2,
-    min_prefix_len = 3,
-    min_frqz_count = 3,
-    char_break_points = ['='],
-    prepend = "--",
-    append = "..."
-)
+# strs = @["--hintUser=", "--hintUserRaw=", "--hintXDeclaredButNotUsed="]
+# echo 11, " ", lcp(
+#     strs,
+#     charloop_startindex = 2,
+#     min_frqz_prefix_len = 2,
+#     min_prefix_len = 3,
+#     min_frqz_count = 3,
+#     char_break_points = ['='],
+#     prepend = "--",
+#     append = "..."
+# )
 
-strs = @[
-    "--hintSuccessX=",
-    "--hintUser=",
-    "--hintUserRaw=",
-    "--hintXDeclaredButNotUsed="
-]
-echo 12, " ", lcp(
-    strs,
-    charloop_startindex = 2,
-    min_frqz_prefix_len = 2,
-    min_prefix_len = 3,
-    min_frqz_count = 3,
-    char_break_points = ['='],
-    prepend = "--",
-    append = "..."
-)
+# strs = @[
+#     "--hintSuccessX=",
+#     "--hintUser=",
+#     "--hintUserRaw=",
+#     "--hintXDeclaredButNotUsed="
+# ]
+# echo 12, " ", lcp(
+#     strs,
+#     charloop_startindex = 2,
+#     min_frqz_prefix_len = 2,
+#     min_prefix_len = 3,
+#     min_frqz_count = 3,
+#     char_break_points = ['='],
+#     prepend = "--",
+#     append = "..."
+# )
 
-strs = @[
-    "Call Mike and schedule meeting.",
-    "Call Lisa",
-    "Call Adam and ask for quote.",
-    "Implement new class for iPhone project",
-    "Implement new class for Rails controller",
-    "Buy groceries"
-]
-echo 13, " ", lcp(strs)
+# strs = @[
+#     "Call Mike and schedule meeting.",
+#     "Call Lisa",
+#     "Call Adam and ask for quote.",
+#     "Implement new class for iPhone project",
+#     "Implement new class for Rails controller",
+#     "Buy groceries"
+# ]
+# echo 13, " ", lcp(strs)
 
-strs = @["interspecies", "interstelar", "interstate"]
-echo 14, lcp(strs) # "inters"
-strs = @["throne", "throne"]
-echo 15, lcp(strs) # "throne"
-strs = @["throne", "dungeon"]
-echo 16, lcp(strs) # ""
-strs = @["cheese"]
-echo 17, lcp(strs) # "cheese"
-strs = @[]
-echo 18, lcp(strs) # ""
-strs = @["prefix", "suffix"]
-echo 19, lcp(strs) # ""
+# strs = @["interspecies", "interstelar", "interstate"]
+# echo 14, lcp(strs) # "inters"
+# strs = @["throne", "throne"]
+# echo 15, lcp(strs) # "throne"
+# strs = @["throne", "dungeon"]
+# echo 16, lcp(strs) # ""
+# strs = @["cheese"]
+# echo 17, lcp(strs) # "cheese"
+# strs = @[]
+# echo 18, lcp(strs) # ""
+# strs = @["prefix", "suffix"]
+# echo 19, lcp(strs) # ""

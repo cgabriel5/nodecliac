@@ -185,460 +185,464 @@ let lcp = (strs, options = {}) => {
 	return r;
 };
 
-// Examples:
+module.exports = function(s) {
+	return md5(s);
+};
 
-// eslint-disable-next-line no-redeclare
-var strs = [
-	"Call Mike and schedule meeting.",
-	"Call Lisa",
-	// "Cat",
-	"Call Adam and ask for quote.",
-	"Implement new class for iPhone project",
-	"Implement new class for Rails controller",
-	"Buy groceries"
-	// "Buy groceries"
-];
-console.log(13, lcp(strs));
+// // Examples:
 
-// eslint-disable-next-line no-redeclare
-var strs = ["--hintUser=", "--hintUser=", "--hintUser="];
-console.log(
-	-1,
-	lcp(strs, {
-		charloop_startindex: 2,
-		min_frqz_prefix_len: 2,
-		min_prefix_len: 3,
-		min_frqz_count: 3,
-		char_break_points: ["="],
-		prepend: "--",
-		append: "..."
-	})
-);
+// // eslint-disable-next-line no-redeclare
+// var strs = [
+// 	"Call Mike and schedule meeting.",
+// 	"Call Lisa",
+// 	// "Cat",
+// 	"Call Adam and ask for quote.",
+// 	"Implement new class for iPhone project",
+// 	"Implement new class for Rails controller",
+// 	"Buy groceries"
+// 	// "Buy groceries"
+// ];
+// console.log(13, lcp(strs));
 
-// eslint-disable-next-line no-redeclare
-var strs = [
-	"--app=",
-	"--assertions=",
-	"--boundChecks=",
-	"--checks=",
-	"--cincludes=",
-	"--clib=",
-	"--clibdir=",
-	"--colors=",
-	"--compileOnly=",
-	"--cppCompileToNamespace=",
-	"--cpu=",
-	"--debugger=",
-	"--debuginfo=",
-	"--define=",
-	"--docInternal ",
-	"--docSeeSrcUrl=",
-	"--dynlibOverride=",
-	"--dynlibOverrideAll ",
-	"--embedsrc=",
-	"--errorMax=",
-	"--excessiveStackTrace=",
-	"--excludePath=",
-	"--expandMacro=",
-	"--experimental=",
-	"--fieldChecks=",
-	"--floatChecks=",
-	"--forceBuild=",
-	"--fullhelp ",
-	"--gc=",
-	"--genDeps=",
-	"--genScript=",
-	"--help ",
-	"--hintCC=",
-	"--hintCodeBegin=",
-	"--hintCodeEnd=",
-	"--hintCondTrue=",
-	"--hintConf=",
-	"--hintConvFromXtoItselfNotNeeded=",
-	"--hintConvToBaseNotNeeded=",
-	"--hintDependency=",
-	"--hintExec=",
-	"--hintExprAlwaysX=",
-	"--hintExtendedContext=",
-	"--hintGCStats=",
-	"--hintGlobalVar=",
-	"--hintLineTooLong=",
-	"--hintLink=",
-	"--hintName=",
-	"--hintPath=",
-	"--hintPattern=",
-	"--hintPerformance=",
-	"--hintProcessing=",
-	"--hintQuitCalled=",
-	"--hints=",
-	"--hintSource=",
-	"--hintStackTrace=",
-	"--hintSuccess=",
-	"--hintSuccessX=",
-	"--hintUser=",
-	"--hintUserRaw=",
-	"--hintXDeclaredButNotUsed=",
-	"--hotCodeReloading=",
-	"--implicitStatic=",
-	"--import=",
-	"--include=",
-	"--incremental=",
-	"--index=",
-	"--infChecks=",
-	"--laxStrings=",
-	"--legacy=",
-	"--lib=",
-	"--lineDir=",
-	"--lineTrace=",
-	"--listCmd ",
-	"--listFullPaths=",
-	"--memTracker=",
-	"--multimethods=",
-	"--nanChecks=",
-	"--newruntime ",
-	"--nilChecks=",
-	"--nilseqs=",
-	"--NimblePath=",
-	"--nimcache=",
-	"--noCppExceptions ",
-	"--noLinking=",
-	"--noMain=",
-	"--noNimblePath ",
-	"--objChecks=",
-	"--oldast=",
-	"--oldNewlines=",
-	"--opt=",
-	"--os=",
-	"--out=",
-	"--outdir=",
-	"--overflowChecks=",
-	"--parallelBuild=",
-	"--passC=",
-	"--passL=",
-	"--path=",
-	"--profiler=",
-	"--project ",
-	"--putenv=",
-	"--rangeChecks=",
-	"--refChecks=",
-	"--run ",
-	"--showAllMismatches=",
-	"--skipCfg=",
-	"--skipParentCfg=",
-	"--skipProjCfg=",
-	"--skipUserCfg=",
-	"--stackTrace=",
-	"--stdout=",
-	"--styleCheck=",
-	"--taintMode=",
-	"--threadanalysis=",
-	"--threads=",
-	"--tlsEmulation=",
-	"--trmacros=",
-	"--undef=",
-	"--useVersion=",
-	"--verbosity=",
-	"--version ",
-	"--warningCannotOpenFile=",
-	"--warningConfigDeprecated=",
-	"--warningDeprecated=",
-	"--warningEachIdentIsTuple=",
-	"--warningOctalEscape=",
-	"--warnings=",
-	"--warningSmallLshouldNotBeUsed=",
-	"--warningUser="
-];
-console.log(
-	1,
-	lcp(strs, {
-		charloop_startindex: 2,
-		min_frqz_prefix_len: 2,
-		min_prefix_len: 3,
-		min_frqz_count: 3,
-		char_break_points: ["="],
-		prepend: "--",
-		append: "..."
-	})
-);
+// // eslint-disable-next-line no-redeclare
+// var strs = ["--hintUser=", "--hintUser=", "--hintUser="];
+// console.log(
+// 	-1,
+// 	lcp(strs, {
+// 		charloop_startindex: 2,
+// 		min_frqz_prefix_len: 2,
+// 		min_prefix_len: 3,
+// 		min_frqz_count: 3,
+// 		char_break_points: ["="],
+// 		prepend: "--",
+// 		append: "..."
+// 	})
+// );
 
-// eslint-disable-next-line no-redeclare
-var strs = [
-	"--app=",
-	"--assertions=",
-	"--boundChecks=",
-	"--checks=",
-	"--cincludes=",
-	"--clib=",
-	"--clibdir=",
-	"--colors="
-];
-console.log(
-	2,
-	lcp(strs, {
-		charloop_startindex: 2,
-		min_frqz_prefix_len: 2,
-		min_prefix_len: 3,
-		min_frqz_count: 3,
-		char_break_points: ["="],
-		prepend: "--",
-		append: "..."
-	})
-);
+// // eslint-disable-next-line no-redeclare
+// var strs = [
+// 	"--app=",
+// 	"--assertions=",
+// 	"--boundChecks=",
+// 	"--checks=",
+// 	"--cincludes=",
+// 	"--clib=",
+// 	"--clibdir=",
+// 	"--colors=",
+// 	"--compileOnly=",
+// 	"--cppCompileToNamespace=",
+// 	"--cpu=",
+// 	"--debugger=",
+// 	"--debuginfo=",
+// 	"--define=",
+// 	"--docInternal ",
+// 	"--docSeeSrcUrl=",
+// 	"--dynlibOverride=",
+// 	"--dynlibOverrideAll ",
+// 	"--embedsrc=",
+// 	"--errorMax=",
+// 	"--excessiveStackTrace=",
+// 	"--excludePath=",
+// 	"--expandMacro=",
+// 	"--experimental=",
+// 	"--fieldChecks=",
+// 	"--floatChecks=",
+// 	"--forceBuild=",
+// 	"--fullhelp ",
+// 	"--gc=",
+// 	"--genDeps=",
+// 	"--genScript=",
+// 	"--help ",
+// 	"--hintCC=",
+// 	"--hintCodeBegin=",
+// 	"--hintCodeEnd=",
+// 	"--hintCondTrue=",
+// 	"--hintConf=",
+// 	"--hintConvFromXtoItselfNotNeeded=",
+// 	"--hintConvToBaseNotNeeded=",
+// 	"--hintDependency=",
+// 	"--hintExec=",
+// 	"--hintExprAlwaysX=",
+// 	"--hintExtendedContext=",
+// 	"--hintGCStats=",
+// 	"--hintGlobalVar=",
+// 	"--hintLineTooLong=",
+// 	"--hintLink=",
+// 	"--hintName=",
+// 	"--hintPath=",
+// 	"--hintPattern=",
+// 	"--hintPerformance=",
+// 	"--hintProcessing=",
+// 	"--hintQuitCalled=",
+// 	"--hints=",
+// 	"--hintSource=",
+// 	"--hintStackTrace=",
+// 	"--hintSuccess=",
+// 	"--hintSuccessX=",
+// 	"--hintUser=",
+// 	"--hintUserRaw=",
+// 	"--hintXDeclaredButNotUsed=",
+// 	"--hotCodeReloading=",
+// 	"--implicitStatic=",
+// 	"--import=",
+// 	"--include=",
+// 	"--incremental=",
+// 	"--index=",
+// 	"--infChecks=",
+// 	"--laxStrings=",
+// 	"--legacy=",
+// 	"--lib=",
+// 	"--lineDir=",
+// 	"--lineTrace=",
+// 	"--listCmd ",
+// 	"--listFullPaths=",
+// 	"--memTracker=",
+// 	"--multimethods=",
+// 	"--nanChecks=",
+// 	"--newruntime ",
+// 	"--nilChecks=",
+// 	"--nilseqs=",
+// 	"--NimblePath=",
+// 	"--nimcache=",
+// 	"--noCppExceptions ",
+// 	"--noLinking=",
+// 	"--noMain=",
+// 	"--noNimblePath ",
+// 	"--objChecks=",
+// 	"--oldast=",
+// 	"--oldNewlines=",
+// 	"--opt=",
+// 	"--os=",
+// 	"--out=",
+// 	"--outdir=",
+// 	"--overflowChecks=",
+// 	"--parallelBuild=",
+// 	"--passC=",
+// 	"--passL=",
+// 	"--path=",
+// 	"--profiler=",
+// 	"--project ",
+// 	"--putenv=",
+// 	"--rangeChecks=",
+// 	"--refChecks=",
+// 	"--run ",
+// 	"--showAllMismatches=",
+// 	"--skipCfg=",
+// 	"--skipParentCfg=",
+// 	"--skipProjCfg=",
+// 	"--skipUserCfg=",
+// 	"--stackTrace=",
+// 	"--stdout=",
+// 	"--styleCheck=",
+// 	"--taintMode=",
+// 	"--threadanalysis=",
+// 	"--threads=",
+// 	"--tlsEmulation=",
+// 	"--trmacros=",
+// 	"--undef=",
+// 	"--useVersion=",
+// 	"--verbosity=",
+// 	"--version ",
+// 	"--warningCannotOpenFile=",
+// 	"--warningConfigDeprecated=",
+// 	"--warningDeprecated=",
+// 	"--warningEachIdentIsTuple=",
+// 	"--warningOctalEscape=",
+// 	"--warnings=",
+// 	"--warningSmallLshouldNotBeUsed=",
+// 	"--warningUser="
+// ];
+// console.log(
+// 	1,
+// 	lcp(strs, {
+// 		charloop_startindex: 2,
+// 		min_frqz_prefix_len: 2,
+// 		min_prefix_len: 3,
+// 		min_frqz_count: 3,
+// 		char_break_points: ["="],
+// 		prepend: "--",
+// 		append: "..."
+// 	})
+// );
 
-// eslint-disable-next-line no-redeclare
-var strs = [
-	"--warningCannotOpenFile",
-	"--warningConfigDeprecated",
-	"--warningDeprecated",
-	"--warningEachIdentIsTuple",
-	"--warningOctalEscape",
-	"--warnings",
-	"--warningSmallLshouldNotBeUsed",
-	"--warningUser"
-];
-console.log(
-	3,
-	lcp(strs, {
-		charloop_startindex: 2,
-		min_frqz_prefix_len: 2,
-		min_prefix_len: 3,
-		min_frqz_count: 3,
-		char_break_points: ["="],
-		prepend: "--",
-		append: "..."
-	})
-);
+// // eslint-disable-next-line no-redeclare
+// var strs = [
+// 	"--app=",
+// 	"--assertions=",
+// 	"--boundChecks=",
+// 	"--checks=",
+// 	"--cincludes=",
+// 	"--clib=",
+// 	"--clibdir=",
+// 	"--colors="
+// ];
+// console.log(
+// 	2,
+// 	lcp(strs, {
+// 		charloop_startindex: 2,
+// 		min_frqz_prefix_len: 2,
+// 		min_prefix_len: 3,
+// 		min_frqz_count: 3,
+// 		char_break_points: ["="],
+// 		prepend: "--",
+// 		append: "..."
+// 	})
+// );
 
-// eslint-disable-next-line no-redeclare
-var strs = [
-	"--skipCfg=",
-	"--skipParentCfg=",
-	"--skipProjCfg=",
-	"--skipUserCfg="
-];
-console.log(
-	4,
-	lcp(strs, {
-		charloop_startindex: 2,
-		min_frqz_prefix_len: 2,
-		min_prefix_len: 3,
-		min_frqz_count: 3,
-		char_break_points: ["="],
-		prepend: "--",
-		append: "..."
-	})
-);
+// // eslint-disable-next-line no-redeclare
+// var strs = [
+// 	"--warningCannotOpenFile",
+// 	"--warningConfigDeprecated",
+// 	"--warningDeprecated",
+// 	"--warningEachIdentIsTuple",
+// 	"--warningOctalEscape",
+// 	"--warnings",
+// 	"--warningSmallLshouldNotBeUsed",
+// 	"--warningUser"
+// ];
+// console.log(
+// 	3,
+// 	lcp(strs, {
+// 		charloop_startindex: 2,
+// 		min_frqz_prefix_len: 2,
+// 		min_prefix_len: 3,
+// 		min_frqz_count: 3,
+// 		char_break_points: ["="],
+// 		prepend: "--",
+// 		append: "..."
+// 	})
+// );
 
-// eslint-disable-next-line no-redeclare
-var strs = [
-	"--hintCC=",
-	"--hintCodeBegin=",
-	"--hintCodeEnd=",
-	"--hintCondTrue=",
-	"--hintConf=",
-	"--hintConvFromXtoItselfNotNeeded=",
-	"--hintConvToBaseNotNeeded=",
-	"--hintDependency=",
-	"--hintExec=",
-	"--hintExprAlwaysX=",
-	"--hintExtendedContext=",
-	"--hintGCStats=",
-	"--hintGlobalVar=",
-	"--hintLineTooLong=",
-	"--hintLink=",
-	"--hintName=",
-	"--hintPath=",
-	"--hintPattern=",
-	"--hintPerformance=",
-	"--hintProcessing=",
-	"--hintQuitCalled=",
-	"--hints=",
-	"--hintSource=",
-	"--hintStackTrace=",
-	"--hintSuccess=",
-	"--hintSuccessX=",
-	"--hintUser=",
-	"--hintUserRaw="
-];
-console.log(
-	5,
-	lcp(strs, {
-		charloop_startindex: 2,
-		min_frqz_prefix_len: 2,
-		min_prefix_len: 3,
-		min_frqz_count: 3,
-		char_break_points: ["="],
-		prepend: "--",
-		append: "..."
-	})
-);
+// // eslint-disable-next-line no-redeclare
+// var strs = [
+// 	"--skipCfg=",
+// 	"--skipParentCfg=",
+// 	"--skipProjCfg=",
+// 	"--skipUserCfg="
+// ];
+// console.log(
+// 	4,
+// 	lcp(strs, {
+// 		charloop_startindex: 2,
+// 		min_frqz_prefix_len: 2,
+// 		min_prefix_len: 3,
+// 		min_frqz_count: 3,
+// 		char_break_points: ["="],
+// 		prepend: "--",
+// 		append: "..."
+// 	})
+// );
 
-// eslint-disable-next-line no-redeclare
-var strs = [
-	"--warnings=",
-	"--warningCannotOpenFile=",
-	"--warningXonfigDeprecated=",
-	"--warningPofigApple=",
-	"--warningCofigApple=",
-	"--warningCofigApple=",
-	"--warningCofigApple=",
-	"--warningCofigApple=",
-	"--warningCofigApple=",
-	"--warningCofigApple=",
-	"--warningCofgTest="
-];
-console.log(
-	6,
-	lcp(strs, {
-		charloop_startindex: 2,
-		min_frqz_prefix_len: 2,
-		min_prefix_len: 3,
-		min_frqz_count: 3,
-		char_break_points: ["="],
-		prepend: "--",
-		append: "..."
-	})
-);
+// // eslint-disable-next-line no-redeclare
+// var strs = [
+// 	"--hintCC=",
+// 	"--hintCodeBegin=",
+// 	"--hintCodeEnd=",
+// 	"--hintCondTrue=",
+// 	"--hintConf=",
+// 	"--hintConvFromXtoItselfNotNeeded=",
+// 	"--hintConvToBaseNotNeeded=",
+// 	"--hintDependency=",
+// 	"--hintExec=",
+// 	"--hintExprAlwaysX=",
+// 	"--hintExtendedContext=",
+// 	"--hintGCStats=",
+// 	"--hintGlobalVar=",
+// 	"--hintLineTooLong=",
+// 	"--hintLink=",
+// 	"--hintName=",
+// 	"--hintPath=",
+// 	"--hintPattern=",
+// 	"--hintPerformance=",
+// 	"--hintProcessing=",
+// 	"--hintQuitCalled=",
+// 	"--hints=",
+// 	"--hintSource=",
+// 	"--hintStackTrace=",
+// 	"--hintSuccess=",
+// 	"--hintSuccessX=",
+// 	"--hintUser=",
+// 	"--hintUserRaw="
+// ];
+// console.log(
+// 	5,
+// 	lcp(strs, {
+// 		charloop_startindex: 2,
+// 		min_frqz_prefix_len: 2,
+// 		min_prefix_len: 3,
+// 		min_frqz_count: 3,
+// 		char_break_points: ["="],
+// 		prepend: "--",
+// 		append: "..."
+// 	})
+// );
 
-// eslint-disable-next-line no-redeclare
-var strs = ["--warnings=", "--warningCannotOpenFile="];
-console.log(
-	7,
-	lcp(strs, {
-		charloop_startindex: 2,
-		min_frqz_prefix_len: 2,
-		min_prefix_len: 3,
-		min_frqz_count: 3,
-		char_break_points: ["="],
-		prepend: "--",
-		append: "..."
-	})
-);
+// // eslint-disable-next-line no-redeclare
+// var strs = [
+// 	"--warnings=",
+// 	"--warningCannotOpenFile=",
+// 	"--warningXonfigDeprecated=",
+// 	"--warningPofigApple=",
+// 	"--warningCofigApple=",
+// 	"--warningCofigApple=",
+// 	"--warningCofigApple=",
+// 	"--warningCofigApple=",
+// 	"--warningCofigApple=",
+// 	"--warningCofigApple=",
+// 	"--warningCofgTest="
+// ];
+// console.log(
+// 	6,
+// 	lcp(strs, {
+// 		charloop_startindex: 2,
+// 		min_frqz_prefix_len: 2,
+// 		min_prefix_len: 3,
+// 		min_frqz_count: 3,
+// 		char_break_points: ["="],
+// 		prepend: "--",
+// 		append: "..."
+// 	})
+// );
 
-// eslint-disable-next-line no-redeclare
-var strs = ["--warnings="];
-console.log(
-	8,
-	lcp(strs, {
-		charloop_startindex: 2,
-		min_frqz_prefix_len: 2,
-		min_prefix_len: 3,
-		min_frqz_count: 3,
-		char_break_points: ["="],
-		prepend: "--",
-		append: "..."
-	})
-);
+// // eslint-disable-next-line no-redeclare
+// var strs = ["--warnings=", "--warningCannotOpenFile="];
+// console.log(
+// 	7,
+// 	lcp(strs, {
+// 		charloop_startindex: 2,
+// 		min_frqz_prefix_len: 2,
+// 		min_prefix_len: 3,
+// 		min_frqz_count: 3,
+// 		char_break_points: ["="],
+// 		prepend: "--",
+// 		append: "..."
+// 	})
+// );
 
-// eslint-disable-next-line no-redeclare
-var strs = [
-	"--hintCC=",
-	"--hintCodeBegin=",
-	"--hintCodeEnd=",
-	"--hintCondTrue=",
-	"--hintConf=",
-	"--hintConvFromXtoItselfNotNeeded=",
-	"--hintConvToBaseNotNeeded=",
-	"--hintDependency=",
-	"--hintExec=",
-	"--hintExprAlwaysX=",
-	"--hintExtendedContext=",
-	"--hintGCStats=",
-	"--hintGlobalVar=",
-	"--hintLineTooLong=",
-	"--hintLink=",
-	"--hintName=",
-	"--hintPath=",
-	"--hintPattern=",
-	"--hintPerformance=",
-	"--hintProcessing=",
-	"--hintQuitCalled=",
-	"--hints=",
-	"--hintSource=",
-	"--hintStackTrace=",
-	"--hintSuccess=",
-	"--hintSuccessX=",
-	"--hintUser=",
-	"--hintUserRaw=",
-	"--hintXDeclaredButNotUsed="
-];
-console.log(
-	9,
-	lcp(strs, {
-		charloop_startindex: 2,
-		min_frqz_prefix_len: 2,
-		min_prefix_len: 3,
-		min_frqz_count: 3,
-		char_break_points: ["="],
-		prepend: "--",
-		append: "..."
-	})
-);
+// // eslint-disable-next-line no-redeclare
+// var strs = ["--warnings="];
+// console.log(
+// 	8,
+// 	lcp(strs, {
+// 		charloop_startindex: 2,
+// 		min_frqz_prefix_len: 2,
+// 		min_prefix_len: 3,
+// 		min_frqz_count: 3,
+// 		char_break_points: ["="],
+// 		prepend: "--",
+// 		append: "..."
+// 	})
+// );
 
-// eslint-disable-next-line no-redeclare
-var strs = ["--hintCC="];
-console.log(
-	10,
-	lcp(strs, {
-		charloop_startindex: 2,
-		min_frqz_prefix_len: 2,
-		min_prefix_len: 3,
-		min_frqz_count: 3,
-		char_break_points: ["="],
-		prepend: "--",
-		append: "..."
-	})
-);
+// // eslint-disable-next-line no-redeclare
+// var strs = [
+// 	"--hintCC=",
+// 	"--hintCodeBegin=",
+// 	"--hintCodeEnd=",
+// 	"--hintCondTrue=",
+// 	"--hintConf=",
+// 	"--hintConvFromXtoItselfNotNeeded=",
+// 	"--hintConvToBaseNotNeeded=",
+// 	"--hintDependency=",
+// 	"--hintExec=",
+// 	"--hintExprAlwaysX=",
+// 	"--hintExtendedContext=",
+// 	"--hintGCStats=",
+// 	"--hintGlobalVar=",
+// 	"--hintLineTooLong=",
+// 	"--hintLink=",
+// 	"--hintName=",
+// 	"--hintPath=",
+// 	"--hintPattern=",
+// 	"--hintPerformance=",
+// 	"--hintProcessing=",
+// 	"--hintQuitCalled=",
+// 	"--hints=",
+// 	"--hintSource=",
+// 	"--hintStackTrace=",
+// 	"--hintSuccess=",
+// 	"--hintSuccessX=",
+// 	"--hintUser=",
+// 	"--hintUserRaw=",
+// 	"--hintXDeclaredButNotUsed="
+// ];
+// console.log(
+// 	9,
+// 	lcp(strs, {
+// 		charloop_startindex: 2,
+// 		min_frqz_prefix_len: 2,
+// 		min_prefix_len: 3,
+// 		min_frqz_count: 3,
+// 		char_break_points: ["="],
+// 		prepend: "--",
+// 		append: "..."
+// 	})
+// );
 
-// eslint-disable-next-line no-redeclare
-var strs = ["--hintUser=", "--hintUserRaw=", "--hintXDeclaredButNotUsed="];
-console.log(
-	11,
-	lcp(strs, {
-		charloop_startindex: 2,
-		min_frqz_prefix_len: 2,
-		min_prefix_len: 3,
-		min_frqz_count: 3,
-		char_break_points: ["="],
-		prepend: "--",
-		append: "..."
-	})
-);
+// // eslint-disable-next-line no-redeclare
+// var strs = ["--hintCC="];
+// console.log(
+// 	10,
+// 	lcp(strs, {
+// 		charloop_startindex: 2,
+// 		min_frqz_prefix_len: 2,
+// 		min_prefix_len: 3,
+// 		min_frqz_count: 3,
+// 		char_break_points: ["="],
+// 		prepend: "--",
+// 		append: "..."
+// 	})
+// );
 
-// eslint-disable-next-line no-redeclare
-var strs = [
-	"--hintSuccessX=",
-	"--hintUser=",
-	"--hintUserRaw=",
-	"--hintXDeclaredButNotUsed="
-];
-console.log(
-	12,
-	lcp(strs, {
-		charloop_startindex: 2,
-		min_frqz_prefix_len: 2,
-		min_prefix_len: 3,
-		min_frqz_count: 3,
-		char_break_points: ["="],
-		prepend: "--",
-		append: "..."
-	})
-);
+// // eslint-disable-next-line no-redeclare
+// var strs = ["--hintUser=", "--hintUserRaw=", "--hintXDeclaredButNotUsed="];
+// console.log(
+// 	11,
+// 	lcp(strs, {
+// 		charloop_startindex: 2,
+// 		min_frqz_prefix_len: 2,
+// 		min_prefix_len: 3,
+// 		min_frqz_count: 3,
+// 		char_break_points: ["="],
+// 		prepend: "--",
+// 		append: "..."
+// 	})
+// );
 
-// eslint-disable-next-line no-redeclare
-var strs = [
-	"Call Mike and schedule meeting.",
-	"Call Lisa",
-	"Call Adam and ask for quote.",
-	"Implement new class for iPhone project",
-	"Implement new class for Rails controller",
-	"Buy groceries"
-];
-console.log(13, lcp(strs));
+// // eslint-disable-next-line no-redeclare
+// var strs = [
+// 	"--hintSuccessX=",
+// 	"--hintUser=",
+// 	"--hintUserRaw=",
+// 	"--hintXDeclaredButNotUsed="
+// ];
+// console.log(
+// 	12,
+// 	lcp(strs, {
+// 		charloop_startindex: 2,
+// 		min_frqz_prefix_len: 2,
+// 		min_prefix_len: 3,
+// 		min_frqz_count: 3,
+// 		char_break_points: ["="],
+// 		prepend: "--",
+// 		append: "..."
+// 	})
+// );
 
-console.log(14, lcp(["interspecies", "interstelar", "interstate"])); // "inters"
-console.log(15, lcp(["throne", "throne"])); // "throne"
-console.log(16, lcp(["throne", "dungeon"])); // ""
-console.log(17, lcp(["cheese"])); // "cheese"
-console.log(18, lcp([])); // ""
-console.log(19, lcp(["prefix", "suffix"])); // ""
+// // eslint-disable-next-line no-redeclare
+// var strs = [
+// 	"Call Mike and schedule meeting.",
+// 	"Call Lisa",
+// 	"Call Adam and ask for quote.",
+// 	"Implement new class for iPhone project",
+// 	"Implement new class for Rails controller",
+// 	"Buy groceries"
+// ];
+// console.log(13, lcp(strs));
+
+// console.log(14, lcp(["interspecies", "interstelar", "interstate"])); // "inters"
+// console.log(15, lcp(["throne", "throne"])); // "throne"
+// console.log(16, lcp(["throne", "dungeon"])); // ""
+// console.log(17, lcp(["cheese"])); // "cheese"
+// console.log(18, lcp([])); // ""
+// console.log(19, lcp(["prefix", "suffix"])); // ""

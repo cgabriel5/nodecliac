@@ -209,7 +209,7 @@ proc execCommand(command_str: var string): seq[string] =
     var res = osproc.execProcess(command & " 2> /dev/null")
     result = if res != "": split(res, re(delimiter)) else: r
 
-# Parse string command `$("")` and returns its arguments.
+# Parse command string `$("")` and returns its arguments.
 #
 # Syntax:
 # $("COMMAND-STRING" [, [<ARG1>, <ARGN> [, "<DELIMITER>"]]])

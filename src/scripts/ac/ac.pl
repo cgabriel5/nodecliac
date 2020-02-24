@@ -189,7 +189,6 @@ sub __parse_cmdstr {
 	}
 
 	if ($argument) { push(@arguments, $argument); }
-
 	return \@arguments; # [https://stackoverflow.com/a/11303607]
 }
 

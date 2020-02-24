@@ -162,7 +162,6 @@ proc seqItem(sequence: seq, position: int = -1): string =
     else:
         if i > l: return ""
         i = l - i
-
     return $(sequence[i])
 
 # ------------------------------------------------------------------------------

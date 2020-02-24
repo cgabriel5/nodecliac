@@ -1,8 +1,6 @@
 #!/usr/bin/perl
-# ------------- ^Use '-d:NYTProf' flag to profile script.
+# '-d:NYTProf' to profile script.
 
-# [https://stackoverflow.com/questions/8023959/why-use-strict-and-warnings]
-# [http://perldoc.perl.org/functions/use.html]
 # use strict;
 # use warnings;
 # use diagnostics;

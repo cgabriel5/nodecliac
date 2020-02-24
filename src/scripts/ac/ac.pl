@@ -212,13 +212,13 @@ sub __set_envs {
 		"${prefix}MAIN_COMMAND" => $maincommand,
 		"${prefix}COMMAND_CHAIN" => $commandchain, # The parsed command chain.
 		# "${prefix}USED_FLAGS" => $usedflags, # The parsed used flags.
-        # The last parsed word item (note: could be a partial word item.
-        # This happens when the [tab] key gets pressed within a word item.
-        # For example, take the input 'maincommand command'. If
-        # the [tab] key was pressed like so: 'maincommand comm[tab]and' then
-        # the last word item is 'comm' and it is a partial as its remaining
-        # text is 'and'. This will result in using 'comm' to determine
-        # possible auto completion word possibilities.).
+		# The last parsed word item (note: could be a partial word item.
+		# This happens when the [tab] key gets pressed within a word item.
+		# For example, take the input 'maincommand command'. If
+		# the [tab] key was pressed like so: 'maincommand comm[tab]and' then
+		# the last word item is 'comm' and it is a partial as its remaining
+		# text is 'and'. This will result in using 'comm' to determine
+		# possible auto completion word possibilities.).
 		"${prefix}LAST" => $last,
 		"${prefix}PREV" => $args[-2], # The word item preceding last word item.
 		"${prefix}INPUT" => $input, # CLI input from start to caret index.
@@ -240,15 +240,14 @@ sub __set_envs {
 		"${prefix}USED_DEFAULT_POSITIONAL_ARGS" => $used_default_pa_args
 	);
 
-    # Add parsed arguments as individual env variables.
-    my $i = 0; foreach my $arg (@args) { $envs{"${prefix}ARG_${i}"} = $arg; $i++; }
+	# Add parsed arguments as individual env variables.
+	my $i = 0; foreach my $arg (@args) { $envs{"${prefix}ARG_${i}"} = $arg; $i++; }
 
 	# Set all env variables.
 	if (@_ == 0) { foreach my $key (keys %envs) { $ENV{$key} = $envs{$key}; }
 	} else { # Set requested ones only.
 		foreach my $env_name (@_) {
 			my $key = "${prefix}$env_name";
-			# Set if provided env name exists in envs lookup table.
 			if (exists($envs{$key})) { $ENV{$key} = $envs{$key}; }
 		}
 	}
@@ -267,10 +266,10 @@ sub __parser {
 
 	if (!$input) { return; }
 
-    # Spreads input, ex: '-n5 -abc "val"' => '-n 5 -a -b -c "val"'
-    #
-    # @param  {string} argument - The string to spread.
-    # @return {string} - The remaining argument.
+	# Spreads input, ex: '-n5 -abc "val"' => '-n 5 -a -b -c "val"'
+	#
+	# @param  {string} argument - The string to spread.
+	# @return {string} - The remaining argument.
 	sub spread {
 		my ($argument, $args) = @_;
 
@@ -292,10 +291,10 @@ sub __parser {
 					# and beyond are now the value of the last argument.
 					if ($char eq '-') { $hyphenref = 1; last; }
 
-                    # Note: If the argument is not a hyphen and is the last
-                    # item in the array, remove it from the array as it will
-                    # get added back later in the main loop.
-                    elsif (i == max) { last; }
+					# Note: If the argument is not a hyphen and is the last
+					# item in the array, remove it from the array as it will
+					# get added back later in the main loop.
+					elsif (i == max) { last; }
 
 					push(@$args, "-$char"); $i++;
 				}
@@ -408,8 +407,8 @@ sub __extractor {
 			my $vitem = __validate_flag($item);
 			my $skipflagval = 0;
 
-            # If next item exists check if it's a value for the current flag
-            # or if it's another flag and do the proper actions for both.
+			# If next item exists check if it's a value for the current flag
+			# or if it's another flag and do the proper actions for both.
 			if ($nitem) {
 				# Normalize colons: '--flag:value' to '--flag=value'.
 				if (!exists($normalized{$i}) && $nitem =~ tr/://) {
@@ -487,9 +486,9 @@ sub __extractor {
 	# Check if last word is quoted.
 	if (substr($last, 0, 1) =~ tr/"'//) { $isquoted = 1; }
 
-    # Note: If autocompletion is off check for one of following cases:
-    # '$ maincommand --flag ' or '$ maincommand --flag val'. If so, show
-    # value options for the flag or complete started value option.
+	# Note: If autocompletion is off check for one of following cases:
+	# '$ maincommand --flag ' or '$ maincommand --flag val'. If so, show
+	# value options for the flag or complete started value option.
 	if (!$autocompletion && $nextchar ne '-') {
 		my $islast_aspace = ($lastchar eq ' ');
 		my $nlast = $args[($islast_aspace ? -1 : -2)];
@@ -591,9 +590,8 @@ sub __lookup {
 
 			my $last_val_quoted = (substr($last_value, 0, 1) =~ tr/"'//);
 
-			# Loop over flags.
+			# Process flags.
 			foreach my $flag (@flags) {
-				# Skip flags not starting with same char as last word.
 				if (rindex($flag, $last_fkey, 0) != 0) { next; }
 
 				my $flag_fkey = $flag;
@@ -605,8 +603,6 @@ sub __lookup {
 
 				# If flag contains an eq sign.
 				# [https://stackoverflow.com/a/87565]
-				# [https://perldoc.perl.org/perlvar.html]
-				# [https://www.perlmonks.org/?node_id=327021]
 				if ($flag_fkey =~ tr/\=//) {
 					my $eqsign_index = index($flag, '=');
 					$flag_fkey = substr($flag, 0, $eqsign_index);
@@ -626,8 +622,7 @@ sub __lookup {
 					# Create completion flag item.
 					$cflag = "$flag_fkey=$flag_value";
 
-					# If value is a command-flag: --flag=$("<COMMAND-STRING>"),
-					# run command and add returned words to flags array.
+					# If a command-flag, run it and add items to array.
 					if (rindex($flag_value, "\$(", 0) == 0 && substr($flag_value, -1) eq ')') {
 						my @lines = @{ __exec_command($flag_value) };
 						foreach my $line (@lines) {
@@ -640,10 +635,8 @@ sub __lookup {
 					$parsedflags{"$flag_fkey=$flag_value"} = undef;
 				} else {
 					if (rindex($flag_fkey, '?') > -1) { chop($flag_fkey); }
-
 					# Create completion flag item.
 					$cflag = $flag_fkey;
-
 					# Store for later checks.
 					$parsedflags{"$flag_fkey"} = undef;
 				}
@@ -661,7 +654,7 @@ sub __lookup {
 				# Let multi-flags through.
 				if (exists($usedflags{multi}{$flag_fkey})) {
 
-					# Although a multi-starred flag, check if value has been used or not.
+					# Check if multi-starred flag value has been used.
 					if ($flag_value && exists($usedflags{$flag_fkey}{$flag_value})) { $dupe = 1; }
 
 				} elsif (!$flag_eqsign) {
@@ -671,9 +664,9 @@ sub __lookup {
 
 				} else { # --flag=<value> (with value) dupe check.
 
-					# If usedflags contains <flag:value> at root level...
+					# If usedflags contains <flag:value> at root level.
 					if (exists($usedflags{$flag_fkey})) {
-						# If no values exists...
+						# If no values exists.
 						if (!$flag_value) { $dupe = 1; # subl -n 2, subl -n 23
 
 						# Else check that value exists...
@@ -684,9 +677,8 @@ sub __lookup {
 							if ($usedflags{counts}{$flag_fkey} > 1) { $dupe = 1; }
 						}
 
-					# If no root level entry...
+					# If no root level entry.
 					} else {
-						# It last word/flag key match and flag value is used.
 						if ($last ne $flag_fkey
 							&& exists($usedflags{valueless}{$flag_fkey})) {
 
@@ -710,22 +702,20 @@ sub __lookup {
 					}
 				}
 
-				# Skip if dupe.
-				if ($dupe) { next; }
+				if ($dupe) { next; } # Skip if dupe.
 
 				# Note: Don't list single letter flags. Listing them along
 				# with double hyphen flags is awkward. Therefore, only list
-				# then when completing or showing its value(s).
+				# them when completing or showing its value(s).
 				if (length($flag_fkey) == 2 && !$flag_value) { next; }
 
 				# [End] Remove duplicate flag logic ----------------------------
 
-                # If last word is in the form '--flag=', remove the last
-                # word from the flag to only return its options/values.
+				# If last word is in the form '--flag=', remove the last
+				# word from the flag to only return its option/value.
 				if ($last_eqsign) {
-					# Flag value has to start with last flag value.
 					if (rindex($flag_value, $last_value, 0) != 0 || !$flag_value) { next; }
-					$cflag = $flag_value; # Clear array.
+					$cflag = $flag_value;
 				}
 
 				push(@completions, $cflag);
@@ -762,7 +752,7 @@ sub __lookup {
 				# completed to '--flag=77'.
 				if ($last_value && @completions >= 2) {
 					my $last_val_length = length($last_value);
-					# Remove values of same length as current value.
+					# Remove values same length as current value.
 					@completions = grep {length != $last_val_length} @completions;
 				}
 			}
@@ -802,37 +792,30 @@ sub __lookup {
 
 				# Add last command it not yet already added.
 				if (!$row || exists($usedcommands{$row})) { next; }
-                # If the character before the caret is not a space, assume
-                # we are completing a command.
+				# If char before caret isn't a space, completing a command.
 				if ($lastchar_notspace) {
-                    # Since completing a command only words that start with
-                    # the current command we are trying to complete.
 					if (rindex($row, $last, 0) == 0) { push(@completions, $row); }
-				} else {
-					# If not completing a command, return all possible completions.
-					push(@completions, $row);
-				}
+				} else { push(@completions, $row); } # Allow all.
 
 				$usedcommands{$row} = undef;
 			}
 		}
 
-		# Note: If there is only one command in the command completions
-		# array, check whether the command is already in the commandchain.
-		# If so, empty completions array as it has already been used.
+		# Note: If only 1 completion exists, check if command exists in
+		# commandchain. If so, it's already used so clear completions.
 		if ($nextchar && @completions == 1) {
 			my $pattern = '.' . $completions[0] . '(\\.|$)';
 			if ($commandchain =~ /$pattern/) { @completions = (); }
 		}
 
-		# If no completions exist run default command if it exists.
+		# Run default command if no completions were found.
 		if (!@completions) {
 			my $copy_commandchain = $commandchain;
 			my $pattern = '\.((?:\\\.)|[^\.])+$'; # ((?:\\\.)|[^\.]*?)*$
 
 			# Loop over command chains to build individual chain levels.
 			while ($copy_commandchain) {
-				# Get command-string, parse it, then run it...
+				# Get command-string, parse and run it.
 				my $command_str = $db{fallbacks}{$copy_commandchain};
 				if ($command_str) {
 					my $lchar = chop($command_str);
@@ -844,8 +827,7 @@ sub __lookup {
 						foreach my $line (@lines) {
 							if ($line) {
 								if ($last) {
-									# When completing a command only words
-									# starting with current command are allowed.
+									# Must start with command.
 									if (rindex($line, $last, 0) == 0) {
 										push(@completions, $line);
 									}
@@ -865,12 +847,12 @@ sub __lookup {
 							}
 						}
 
-					# Else add static command-string value.
+					# Static value.
 					} else {
 						$command_str .= $lchar;
 
 						if ($last) {
-							# Completion item must start with command.
+							# Must start with command.
 							if (rindex($command_str, $last, 0) == 0) {
 								push(@completions, $command_str);
 							}
@@ -883,14 +865,6 @@ sub __lookup {
 				# Remove last command chain from overall command chain.
 				$copy_commandchain =~ s/$pattern//;
 			}
-
-			# Note: 'always' keyword has quirks so comment out for now.
-			# Note: When running the 'always' fallback should the current command
-			# chain's fallback be looked and run or should the command chain also
-			# be broken up into levels and run the first available fallback always
-			# command-string?
-			# my @chains = ($commandchain);
-			# __fallback_cmd_string('always', \@chains);
 		}
 	}
 }
@@ -1164,14 +1138,14 @@ sub __printer {
 
 		# Get completion's common prefixes.
 		my $res = __lcp(\@completions, 2, 2, 3, 3, 0, "--", "...", ('='));
-		my @prefixes = @{ $res->{prefixes} }; # Get array ref and deference.
-		my %rm_indices = %{ $res->{indices} }; # Get indices ref and deference.
+		my @prefixes = @{ $res->{prefixes} }; # Array ref/deref.
+		my %rm_indices = %{ $res->{indices} }; # Indices ref/deref.
 
 		# Remove strings (collapse) from main array.
 		my $index = -1;
 		@completions = grep {
 			$index++;
-			# If the index exists in the remove indices tables and it's
+			# If the index exists in the remove indices table and it's
 			# value is set to `true` then do not remove from completions.
 			!(exists($rm_indices{$index}) && $rm_indices{$index});
 		} @completions;
@@ -1183,7 +1157,7 @@ sub __printer {
 	# When for example, completing 'nodecliac print --command' we remove
 	# the first and only completion item's '='. This is better suited for
 	# CLI programs that implement/allow for a colon ':' separator. Maybe
-	# this should be something that should be opted for via an acmap setting?
+	# something that should be opted for via an acmap setting?
 	if (@completions == 1 && !$iscommand) {
 		my $fcompletion = $completions[0];
 		if ($fcompletion =~ /^--?[-a-zA-Z0-9]+\=$/ &&
@@ -1220,7 +1194,7 @@ sub __printer {
 }
 
 sub __makedb {
-	if (!$commandchain) { # For first level commands only.
+	if (!$commandchain) { # First level commands only.
 		if (!$last) {
 			foreach my $line (split /\n/, $acdef) {
 				next if rindex($line, '.', 0) != 0;
@@ -1232,23 +1206,21 @@ sub __makedb {
 				my $command = substr($chain, 0, $dot_index != -1 ? $dot_index : $space_index);
 				$db{levels}{1}{$command} = undef;
 			}
-		} else { # For first level flags...
+		} else { # First level flags.
 			if ($acdef =~ /^ ([^\n]+)/m) {$db{dict}{''}{''} = { flags => $1 };}
 		}
-	} else { # General auto-completion. Parse entire .acdef file contents.
+	} else { # Go through entire .acdef file contents.
 		my %letters;
 
-		# Extract and place command chains and fallbacks into their own arrays.
-		# [https://www.perlmonks.org/?node_id=745018], [https://perlmaven.com/for-loop-in-perl]
 		foreach my $line (split /\n/, $acdef) {
 			next if (rindex($line, $commandchain, 0) != 0);
 
 			my $chain = substr($line, 0, index($line, ' ') + 1, '');
 			chop($chain); # Flag list left remaining.
 
-            # If retrieving next possible levels for the command chain,
-            # lastchar must be an empty space and and the commandchain
-            # does not equal the chain of the line, skip the line.
+			# If retrieving next possible levels for the command chain,
+			# lastchar must be an empty space and the commandchain does
+			# not equal the chain of the line, skip the line.
 			next if ($lastchar eq ' ' && rindex($chain . '.', $commandchain . '.', 0) != 0);
 
 			my @commands = split(/(?<!\\)\./, substr($chain, 1));

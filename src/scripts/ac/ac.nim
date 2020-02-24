@@ -616,7 +616,7 @@ proc fn_lookup(): string =
 
             let last_val_quoted = last_value.find(C_QUOTES) == 0
 
-            # Loop over flags.
+            # Process flags.
             var i = 0; while i < flags.len:
                 let flag = flags[i]
 
@@ -630,9 +630,6 @@ proc fn_lookup(): string =
                 var cflag = ""
 
                 # If flag contains an eq sign.
-                # [https://stackoverflow.com/a/87565]
-                # [https://perldoc.perl.org/perlvar.html]
-                # [https://www.perlmonks.org/?node_id=327021]
                 if '=' in flag_fkey:
                     var eqsign_index = flag.find('=')
                     flag_fkey = flag.substr(0, eqsign_index - 1)
@@ -651,8 +648,7 @@ proc fn_lookup(): string =
                     # Create completion flag item.
                     cflag = fmt"{flag_fkey}={flag_value}"
 
-                    # If value is a command-flag: --flag=$("<COMMAND-STRING>"),
-                    # run command and add returned words to flags array.
+                    # If a command-flag, run it and add items to array.
                     if flag_value.startsWith("$(") and flag_value.endsWith(')'):
                         let lines = execCommand(flag_value)
                         for line in lines:
@@ -665,10 +661,8 @@ proc fn_lookup(): string =
                     parsedflags[fmt"{flag_fkey}={flag_value}"] = 1
                 else:
                     if '?' in flag_fkey: flag_isbool = chop(flag_fkey)
-
                     # Create completion flag item.
                     cflag = flag_fkey
-
                     # Store for later checks.
                     parsedflags[flag_fkey] = 1
 
@@ -687,7 +681,7 @@ proc fn_lookup(): string =
                 # Let multi-flags through.
                 if usedflags_multi.hasKey(flag_fkey):
 
-                    # Although a multi-starred flag, check if value has been used or not.
+                    # Check if multi-starred flag value has been used.
                     if flag_value != "":
                         # Add flag to usedflags root level.
                         if not usedflags.hasKey(flag_fkey):
@@ -702,9 +696,9 @@ proc fn_lookup(): string =
 
                 else: # --flag=<value> (with value) dupe check.
 
-                    # If usedflags contains <flag:value> at root level...
+                    # If usedflags contains <flag:value> at root level.
                     if usedflags.hasKey(flag_fkey):
-                        # If no values exists...
+                        # If no values exists.
                         if flag_value == "": dupe = 1 # subl -n 2, subl -n 23
 
                         else:
@@ -716,9 +710,8 @@ proc fn_lookup(): string =
                             elif usedflags_counts.hasKey(flag_fkey):
                                 if usedflags_counts[flag_fkey] > 1: dupe = 1
 
-                    # If no root level entry...
+                    # If no root level entry.
                     else:
-                        # It last word/flag key match and flag value is used.
                         if last != flag_fkey and usedflags_valueless.hasKey(flag_fkey):
                             # Add flag to usedflags root level.
                             if not usedflags.hasKey(flag_fkey):
@@ -726,22 +719,20 @@ proc fn_lookup(): string =
                             if not usedflags[flag_fkey].hasKey(flag_value):
                                 dupe = 1 # subl --type=, subl --type= --
 
-                # Skip if dupe.
-                if dupe == 1: inc(i); continue
+                if dupe == 1: inc(i); continue # Skip if dupe.
 
                 # Note: Don't list single letter flags. Listing them along
                 # with double hyphen flags is awkward. Therefore, only list
-                # then when completing or showing its value(s).
+                # them when completing or showing its value(s).
                 if flag_fkey.len == 2 and flag_value == "": inc(i); continue
 
                 # [End] Remove duplicate flag logic ----------------------------
 
                 # If last word is in the form '--flag=', remove the last
-                # word from the flag to only return its options/values.
+                # word from the flag to only return its option/value.
                 if last_eqsign != '\0':
-                    # Flag value has to start with last flag value.
                     if not flag_value.startsWith(last_value) or flag_value == "": inc(i); continue
-                    cflag = flag_value # Clear array.
+                    cflag = flag_value
 
                 completions.add(cflag)
 
@@ -776,7 +767,7 @@ proc fn_lookup(): string =
                 # completed to '--flag=77'.
                 if last_value != "" and completions.len >= 2:
                     var last_val_length = last_value.len
-                    # Remove values of same length as current value.
+                    # Remove values same length as current value.
                     completions = filter(completions, proc (x: string): bool =
                         x.len != last_val_length
                     )
@@ -794,12 +785,10 @@ proc fn_lookup(): string =
             if db_levels.hasKey(1): completions = toSeq(db_levels[1].keys)
         else:
             let letter = if commandchain != "": commandchain[1] else: '_'
-
             # Letter must exist in dictionary.
             if not db_dict.hasKey(letter): return ""
-
             var rows = toSeq(db_dict[letter].keys)
-            var lastchar_notspace = lastchar != ' '
+            let lastchar_notspace = lastchar != ' '
 
             if rows.len == 0: return ""
 
@@ -814,7 +803,6 @@ proc fn_lookup(): string =
 
             for row in rows:
                 var row = row
-
                 # Command must exist.
                 if not h[row].hasKey("commands"): continue
 
@@ -823,33 +811,27 @@ proc fn_lookup(): string =
 
                 # Add last command it not yet already added.
                 if row == "" or usedcommands.hasKey(row): continue
-                # If the character before the caret is not a space, assume
-                # we are completing a command.
+                # If char before caret isn't a space, completing a command.
                 if lastchar_notspace:
-                    # Since completing a command only words that start with
-                    # the current command we are trying to complete.
                     if row.startsWith(last): completions.add(row)
-                else:
-                    # If not completing a command, return all possible completions.
-                    completions.add(row)
+                else: completions.add(row) # Allow all.
 
                 usedcommands[row] = 1
 
-        # Note: If there is only one command in the command completions
-        # array, check whether the command is already in the commandchain.
-        # If so, empty completions array as it has already been used.
+        # Note: If only 1 completion exists, check if command exists in
+        # commandchain. If so, it's already used so clear completions.
         if nextchar != "" and completions.len == 1:
             var pattern = "." & completions[0] & "(\\.|$)"
             if contains(commandchain, re(pattern)): completions.setLen(0)
 
-        # If no completions exist run default command if it exists.
+        # Run default command if no completions were found.
         if completions.len == 0:
             var copy_commandchain = commandchain
             let pattern = re"\.((?:\\\.)|[^\.])+$" # ((?:\\\.)|[^\.]*?)*$
 
             # Loop over command chains to build individual chain levels.
             while copy_commandchain != "":
-                # Get command-string, parse it, then run it...
+                # Get command-string, parse and run it.
                 var command_str = if db_fallbacks.hasKey(copy_commandchain): db_fallbacks[copy_commandchain] else: ""
                 if command_str != "":
                     var lchar = chop(command_str)
@@ -861,8 +843,7 @@ proc fn_lookup(): string =
                         for line in lines:
                             if line != "":
                                 if last != "":
-                                    # When completing a command only words
-                                    # starting with current command are allowed.
+                                    # Must start with command.
                                     if line.startsWith(last): completions.add(line)
                                 else:
                                     if line.startsWith('!'): continue
@@ -875,12 +856,12 @@ proc fn_lookup(): string =
                             let bounds = findBounds(lines.join("\n"), re(pattern, {reMultiLine}))
                             if bounds.first != -1: completions.add(last)
 
-                    # Else add static command-string value.
+                    # Static value.
                     else:
                         command_str &= lchar
 
                         if last != "":
-                            # Completion item must start with command.
+                            # Must start with command.
                             if command_str.startsWith(last):
                                 completions.add(command_str)
                         else: completions.add(command_str)
@@ -1127,7 +1108,7 @@ proc fn_printer() =
         var index = -1
         completions = filter(completions, proc (x: string): bool =
             inc(index)
-            # If the index exists in the remove indices tables and it's
+            # If the index exists in the remove indices table and it's
             # value is set to `true` then do not remove from completions.
             return not (rm_indices.hasKey(index) and rm_indices[index])
         )
@@ -1138,7 +1119,7 @@ proc fn_printer() =
     # When for example, completing 'nodecliac print --command' we remove
     # the first and only completion item's '='. This is better suited for
     # CLI programs that implement/allow for a colon ':' separator. Maybe
-    # this should be something that should be opted for via an acmap setting?
+    # something that should be opted for via an acmap setting?
     if completions.len == 1 and not iscommand:
         var fcompletion = completions[0]
         if fcompletion =~ re"^--?[-a-zA-Z0-9]+\=$" and last != fcompletion and ((fcompletion.len - last.len) > 1):
@@ -1162,7 +1143,7 @@ proc fn_printer() =
     echo lines & completions.join("")
 
 proc fn_makedb() =
-    if commandchain == "": # For first level commands only.
+    if commandchain == "": # First level commands only.
         if last == "":
             for line in acdef.splitLines:
                 if not line.startsWith('.'): continue
@@ -1176,7 +1157,7 @@ proc fn_makedb() =
                 if not db_levels.hasKey(1): db_levels[1] = initTable[string, int]()
                 db_levels[1][command] = 1
 
-        else: # For first level flags...
+        else: # First level flags.
             let (start, `end`) = findBounds(acdef, re("^ ([^\n]+)", {reMultiLine}))
             if start != -1:
                 db_dict['_'] = initTable[string, Table[string, seq[string]]]()
@@ -1184,9 +1165,8 @@ proc fn_makedb() =
                 # [Bug: https://github.com/nim-lang/Nim/issues/12267]
                 db_dict['_']["_"] = {"flags": @[acdef[start + 1 .. `end`]]}.toTable
 
-    else: # General auto-completion. Parse entire .acdef file contents.
+    else: # Go through entire .acdef file contents.
 
-        # Extract and place command chains and fallbacks into their own arrays.
         for line in acdef.splitLines:
             var line = line
             if not line.startsWith(commandchain): continue
@@ -1195,8 +1175,8 @@ proc fn_makedb() =
             line.removePrefix(chain & " ") # Flag list left remaining.
 
             # If retrieving next possible levels for the command chain,
-            # lastchar must be an empty space and and the commandchain
-            # does not equal the chain of the line, skip the line.
+            # lastchar must be an empty space and the commandchain does
+            # not equal the chain of the line, skip the line.
             if lastchar == ' ' and not (chain & ".").startsWith(commandchain & "."): continue
 
             let commands = (chain[0 .. ^1]).split(re"(?<!\\)\.")

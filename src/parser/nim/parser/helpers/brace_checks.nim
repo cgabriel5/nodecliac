@@ -21,10 +21,10 @@ proc bracechecks*(S: State, N: Node = Node(), check: string) =
         # the closing brace was wrongly used so error.
         of "reset-scope":
             let `type` = if N.brace.value == "]": "command" else: "flag"
-            if `type` == "command":
-                if S.scopes.command.node != "": S.scopes.command = Node()
-            elif `type` == "flag":
-                if S.scopes.flag.node != "": S.scopes.flag = Node()
+            if `type` == "command" and S.scopes.command.node != "":
+                S.scopes.command = Node()
+            elif `type` == "flag" and S.scopes.flag.node != "":
+                S.scopes.flag = Node()
             else: error(S, currentSourcePath, 11)
 
         # Note: Error if scope was left unclosed.

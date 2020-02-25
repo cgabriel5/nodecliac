@@ -193,7 +193,7 @@ for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-i
 
 	# [test-suite: nodecliac]
 	xtest contains "nodecliac " "uninstall"
-	xtest contains "nodecliac --engine=" "1"
+	# xtest contains "nodecliac --engine=" "1"
 	xtest contains "nodecliac --engine=2 --" "--version "
 	xtest contains "nodecliac print --command=" "subl"
 	xtest contains "nodecliac print --command" "--command="

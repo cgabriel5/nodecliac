@@ -38,7 +38,7 @@ const C_VAR_IDENT = C_SET_IDENT;
 const C_VAR_VALUE = C_SET_VALUE;
 const C_FLG_IDENT = create(C_LETTERS, C_DIGITS, ["-", "."]);
 const C_CMD_IDENT_START = create(C_LETTERS, [":"]);
-const C_CMD_IDENT_REM = ["-", "_", ".", ":", "+", "\\", "/"];
+const C_CMD_IDENT_REM = ["-", "_", ".", ":", "+", "\\"];
 const C_CMD_IDENT = create(C_LETTERS, C_DIGITS, C_CMD_IDENT_REM);
 const C_CMD_VALUE = new Set(["-", "d", "["]);
 

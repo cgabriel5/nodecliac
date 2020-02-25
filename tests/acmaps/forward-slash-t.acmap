@@ -1,5 +1,4 @@
-# [RANDOM `program` COMMAND ACMAP
-# Checks for the use of '/' in command-chains.]
+# ['/' no longer allowed in command chains. Should fail to parse.]
 
 @compopt = false
 

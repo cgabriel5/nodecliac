@@ -52,7 +52,6 @@ proc error*(S: State, parserfile: string, code: int = 0) =
     var parser = extractFilename(parserfile).replace(re"\.nim$")
 
     # if not code code = 0; # Use default if code doesn't exist.
-    # let error = errors[code ? parser : "*"][code];
     let error = if code == 0: errors["*"][code] else: errors[parser][code]
 
     # Replace '_' to '-' to match JS error.

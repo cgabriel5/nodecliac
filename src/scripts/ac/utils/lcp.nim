@@ -16,7 +16,7 @@ from strutils import startsWith
 # @resource [https://softwareengineering.stackexchange.com/q/262242]
 # @resource [https://stackoverflow.com/q/11397137]
 proc lcp*(
-            strs: var seq[string],
+            strs: var openArray[string],
             charloop_startindex = 0, # Index where char loop will start at.
             min_frqz_prefix_len = 1, # Min length string should be to store frqz.
             min_prefix_len = 1, # Min length prefixes should be.

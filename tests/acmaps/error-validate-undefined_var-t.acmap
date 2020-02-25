@@ -1,0 +1,4 @@
+program = [
+	# Will error since variable hasn't been declared.
+	--help=("${var}")
+]

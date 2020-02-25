@@ -1,0 +1,5 @@
+# Pointless escape will give error.
+pr\ogram = [
+	--help=(
+	)
+]

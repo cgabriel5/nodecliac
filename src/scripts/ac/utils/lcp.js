@@ -12,7 +12,7 @@
  * @resource [https://softwareengineering.stackexchange.com/q/262242]
  * @resource [https://stackoverflow.com/q/11397137]
  */
-let lcp = (strs, options = {}) => {
+module.exports = (strs, options = {}) => {
 	let l = strs.length;
 	let frqz = {};
 	let indices = {};
@@ -184,8 +184,4 @@ let lcp = (strs, options = {}) => {
 		}
 	}
 	return r;
-};
-
-module.exports = function(s) {
-	return lcp(s);
 };

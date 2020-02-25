@@ -68,7 +68,8 @@ let lcp = (strs, options = {}) => {
 		};
 
 		switch (l) {
-			case 0: return r;
+			case 0:
+				return r;
 			case 1:
 				xids[0] = false;
 				r.prefixes.push(stringloop(strs[0]));

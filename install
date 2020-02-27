@@ -194,8 +194,8 @@ if [[ "$installer" == "binary" ]]; then
 	mainpath="$outputdir/src/scripts/main"
 	binpath="$outputdir/src/scripts/bin"
 	mkdir -p ~/.nodecliac/{registry,src}
-	mkdir -p "$dest/{bin,main}"
-	mkdir -p "$dest/ac/utils"
+	mkdir -p "$dest"/{bin,main}
+	mkdir -p "$dest"/ac/utils
 	cp -pr "$acpath"/ac.pl "$dest/ac"
 	cp -pr "$acpath"/utils/LCP.pm "$dest/ac/utils"
 	cp -pr "$mainpath"/{init,connector}.sh "$dest/main"

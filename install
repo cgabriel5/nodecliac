@@ -44,13 +44,6 @@ os=`platform`
 outputdir="$HOME/.nodecliac-src"
 # Unix timestamp in ms: [https://stackoverflow.com/a/21640976]
 timestamp=$(perl -MTime::HiRes=time -e 'print int(time() * 1000);')
-# timestamp=$(python -c 'from time import time; print int(round(time() * 1000))')
-repourl="https://api.github.com/repos/cgabriel5/nodecliac/tarball/$branch_name"
-branchurl="https://api.github.com/repos/cgabriel5/nodecliac/branches/$branch_name"
-gitbranch_https="https://github.com/cgabriel5/nodecliac.git"
-gitbranch_ssh="git@github.com:cgabriel5/nodecliac.git"
-branch_npm="https://github.com/cgabriel5/nodecliac/tarball/$branch_name"
-branch_yarn="cgabriel5/nodecliac#$branch_name"
 binfilepath="/usr/local/bin/nodecliac" # [https://unix.stackexchange.com/a/8664]
 branch_name="master"
 installer=""
@@ -84,6 +77,13 @@ while (( "$#" )); do
 done
 eval set -- "$params"
 shift
+
+repourl="https://api.github.com/repos/cgabriel5/nodecliac/tarball/$branch_name"
+branchurl="https://api.github.com/repos/cgabriel5/nodecliac/branches/$branch_name"
+gitbranch_https="https://github.com/cgabriel5/nodecliac.git"
+gitbranch_ssh="git@github.com:cgabriel5/nodecliac.git"
+branch_npm="https://github.com/cgabriel5/nodecliac/tarball/$branch_name"
+branch_yarn="cgabriel5/nodecliac#$branch_name"
 
 if [[ ! -n "$installer" ]]; then
 	if [[ -n "$(exists yarn)" ]]; then installer="yarn"

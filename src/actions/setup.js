@@ -59,9 +59,20 @@ module.exports = async args => {
 	opts.overwrite = true;
 	opts.dot = false;
 	opts.debug = false;
-	opts.filter = filename => {
-		return !/^\._/.test(filename);
-	};
+	const files = new Set([
+		"ac/ac.pl",
+		"ac/utils",
+		"ac/utils/LCP.pm",
+		"bin/ac.linux",
+		"main/config.pl",
+		"main/connector.sh",
+		"main/init.sh"
+	]);
+	if (process.platform === "darwin") {
+		files.delete("bin/ac.linux");
+		files.add("bin/ac.macosx");
+	}
+	opts.filter = filename => files.has(filename);
 	opts.transform = (src /*dest, stats*/) => {
 		if (!/\.(sh|pl|nim)$/.test(path.extname(src))) return null;
 		// Remove comments from files and return.

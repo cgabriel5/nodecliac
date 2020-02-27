@@ -1,13 +1,10 @@
 #!/bin/bash
 
-# ---------------------------------------------------------------------FUNCTIONS
-
 # Get platform name.
 #
 # @return {string} - User's platform.
-#
 # @resource [https://stackoverflow.com/a/18434831]
-function __platform() {
+function platform() {
 	case "$OSTYPE" in
 		solaris*) echo "solaris" ;;
 		darwin*)  echo "macosx" ;;
@@ -18,17 +15,43 @@ function __platform() {
 	esac
 }
 
-# Checks whether command exists.
+# Checks if command exists.
 #
 # @param {string} 1) - Command name.
-# @return {string}   - Command path if exists.
-#
+# @return {string} - Command path if exists.
 # @resource [https://stackoverflow.com/a/677212]
-function __exists() {
+function exists() {
 	echo `command -v "$1"`
 }
 
-# CLI arg flags.
+# Remove last line from terminal output.
+#
+# @return - Nothing is returned.
+# @resource [https://stackoverflow.com/a/27326630]
+function cline() {
+	tput cuu 1 && tput el
+}
+
+# Print provided message and exit.
+#
+# @param {string} 1) - Message to print.
+# @return - Nothing is returned.
+function err() {
+	echo -e "\033[0;31mError\033[0m: $1" && exit
+}
+
+os=`platform`
+outputdir="$HOME/.nodecliac-src"
+# Unix timestamp in ms: [https://stackoverflow.com/a/21640976]
+timestamp=$(perl -MTime::HiRes=time -e 'print int(time() * 1000);')
+# timestamp=$(python -c 'from time import time; print int(round(time() * 1000))')
+repourl="https://api.github.com/repos/cgabriel5/nodecliac/tarball/$branch_name"
+branchurl="https://api.github.com/repos/cgabriel5/nodecliac/branches/$branch_name"
+gitbranch_https="https://github.com/cgabriel5/nodecliac.git"
+gitbranch_ssh="git@github.com:cgabriel5/nodecliac.git"
+branch_npm="https://github.com/cgabriel5/nodecliac/tarball/$branch_name"
+branch_yarn="cgabriel5/nodecliac#$branch_name"
+binfilepath="/usr/local/bin/nodecliac" # [https://unix.stackexchange.com/a/8664]
 branch_name="master"
 installer=""
 rcfilepath=""
@@ -55,338 +78,182 @@ while (( "$#" )); do
 			if [[ -n "$2" && "$2" != *"-" ]]; then rcfilepath="$2"; fi; shift ;;
 
 		--) shift; break ;; # End argument parsing.
-		-*|--*=)
-			# echo "Error: Unsupported flag $1" >&2; exit 1
-			shift ;; # Unsupported flags.
+		-*|--*=) shift ;; # Unsupported flags.
 		*) shift ;; # Preserve positional arguments.
 	esac
 done
-eval set -- "$params" # Set positional arguments in their proper place
-shift # Remove command from arguments array.
+eval set -- "$params"
+shift
 
-# Remove last line from terminal output.
-#
-# @return {undefined} - Nothing is returned.
-#
-# @resource [https://stackoverflow.com/a/27326630]
-function clear_last_line() {
-	tput cuu 1 && tput el
-}
-
-# Print provided message. Exit script if needed.
-#
-# @param {string} 1) - Message to print.
-# @return {undefined} - Nothing is returned.
-function log() {
-	clear_last_line && echo -e "$1" # Clear last line and print message.
-}
-
-# --------------------------------------------------------------------------VARS
-
-# Vars - Args.
-if [[ ! -n "$installer" ]]; then # Find first installed command to use.
-	if [[ -n "$(__exists "yarn")" ]]; then
-		installer="yarn"
-	elif [[ -n "$(__exists "npm")" ]]; then
-		installer="npm"
-	else
-		installer="binary"
-	fi
+if [[ ! -n "$installer" ]]; then
+	if [[ -n "$(exists yarn)" ]]; then installer="yarn"
+	elif [[ -n "$(exists npm)" ]]; then installer="npm"
+	else installer="binary"; fi
 fi
 
-# Fallback to ~/.bashrc if provided bash file path doesn't exist.
+# Fallback to ~/.bashrc if needed.
 if [[ -n "$rcfilepath" && ! -f "$rcfilepath" || -z "$rcfilepath" ]]; then
-	rcfilepath=~/.bashrc # Default bashrc file.
-	# Only create bash file if it doesn't already exist.
+	rcfilepath=~/.bashrc
 	if [[ ! -f "$rcfilepath" ]]; then touch "$rcfilepath"; fi
 fi
 
-# Vars.
-platform=`__platform`
-outputdir="$HOME/.nodecliac-src"
-# Use python to generate unix timestamp in milliseconds that's cross platform.
-timestamp=$(python -c 'from time import time; print int(round(time() * 1000))')
-# timestamp=$(($(date +%s%N)/1000000)) # Generate timestamp.
-repourl="https://api.github.com/repos/cgabriel5/nodecliac/tarball/$branch_name"
-branchurl="https://api.github.com/repos/cgabriel5/nodecliac/branches/$branch_name"
+# -------------------------------------------------------- LANGUAGE-REQUIREMENTS
 
-# [https://www.utf8-chartable.de/unicode-utf8-table.pl?start=9984&number=128&names=-&utf8=string-literal]
-CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m"
-X_MARK="\033[0;31m\xe2\x9c\x98\033[0m"
-
-# Vars - OS based.
-binfilepath=""
-
-# --------------------------------------------------------POPULATE-PLATFORM-VARS
-
-# Command binary locations: [https://unix.stackexchange.com/a/8664]
-
-# Depending on platform populate variables.
-if [[ "$platform" == "linux" ]]; then
-	binfilepath="/usr/local/bin/nodecliac"
-elif [[ "$platform" == "macosx" ]]; then
-	binfilepath="/usr/local/bin/nodecliac"
-fi
-
-# ---------------------------------------------------------LANGUAGE-REQUIREMENTS
-
-# Check that Perl is installed.
-echo " - Perl version requirement."
-if [[ -z "$(__exists "perl")" ]]; then
-	log " $X_MARK Perl 5 not installed. Install and try again."
-	exit
-fi
-# Check that perl is at least v5.
+if [[ -z "$(exists perl)" ]]; then err "Perl not installed."; fi
 perl_majorv="$(perl --version | perl -ne 'print $1 if /\(v([^.]).*\)/')"
-if [[ "$((perl_majorv + 0))" -lt 5 ]]; then
-	log " $X_MARK Perl 5 is needed. Update Perl and try again."
-	exit
-fi
-log " $CHECK_MARK Perl version requirement."
+if [[ "$((perl_majorv + 0))" -lt 5 ]]; then err "Perl 5 is needed."; fi
 
-# Get version information.
 vmajor=${BASH_VERSINFO[0]}
 vminor=${BASH_VERSINFO[1]}
-# Bash version must be 4.3+ to register completion scripts to commands.
-echo " - Bash version requirement."
 if [[ "$vmajor" -lt 4 ]] || [[ "$vmajor" -eq 4 && "$vminor" -le 2 ]]; then
-	log " $X_MARK Bash 4.3+ is needed. Update Bash and try again."
-	exit
-fi
-log " $CHECK_MARK Bash version requirement."
-
-# ------------------------------------------------------------------------CHECKS
-
-# Exit script if platform is not supported.
-echo " - Verifying platform..."
-if [[ " linux macosx " != *" $platform "* ]]; then
-	log " $X_MARK Platform: '$platform' is not supported."
-	exit
-fi
-log " $CHECK_MARK User platform: '$platform'."
-
-# Check that needed arguments were provided.
-if [[ $# -gt 2 ]]; then # [https://stackoverflow.com/a/34807585]
-	echo -e " $X_MARK 2 arguments are allowed: [installer, branch] but $# provided."
-	exit
+	err "Bash 4.3+ is needed."
 fi
 
-# # Check that git is installed.
-# if [[ -z "$(__exists "git")" ]]; then
-# 	echo -e " $X_MARK git is not installed. Install git and try again."
-# 	exit
-# fi
+# ----------------------------------------------------------------------- CHECKS
 
-# Exit if installer is not valid.
-echo " - Verifying installer method..."
+if [[ " linux macosx " != *" $os "* ]]; then
+	err "Platform '$os' not supported."
+fi
+if [[ $# -gt 2 ]]; then
+	err -e "2 arguments are allowed: [installer, branch] but $# provided."
+fi
+
 if [[ " yarn npm binary " != *" $installer "* ]]; then
-	log " $X_MARK Invalid installer: '$installer'. Provide: 'yarn|npm|binary'."
-	exit
+	err "Invalid installer '$installer'. Provide: 'yarn|npm|binary'."
 fi
-# Check that installer is installed to continue.
 if [[ "$installer" == "yarn" ]]; then
-	if [[ -z "$(__exists "yarn")" ]]; then
-		log " $X_MARK yarn is not installed. Install 'yarn' and try again."
-		exit
-	fi
+	if [[ -z "$(exists yarn)" ]]; then err "yarn not installed."; fi
 elif [[ "$installer" == "npm" ]]; then
-	if [[ -z "$(__exists "npm")" ]]; then
-		log " $X_MARK npm is not installed. Install 'npm' and try again."
-		exit
-	fi
+	if [[ -z "$(exists npm)" ]]; then err "npm not installed."; fi
 fi
-log " $CHECK_MARK Using installer: '$installer'."
 
-# Check that repo branch exists: [https://stackoverflow.com/a/23916276]
+# Check branch exists: [https://stackoverflow.com/a/23916276]
 echo " - Verifying branch name..."
-if [[ -n "$(command -v wget)" ]]; then
+if [[ -n "$(exists wget)" ]]; then
 	if [[ -z "$(wget -qO- "$branchurl" | grep -o tree)" ]]; then
-		log " $X_MARK Branch: '$branch_name' doesn't exist."
-		exit
+		cline && err "Branch '$branch_name' doesn't exist."
 	fi
-elif [[ -n "$(command -v curl)" ]]; then
+elif [[ -n "$(exists curl)" ]]; then
 	if [[ -z "$(curl -Ls "$branchurl" | grep -o tree)" ]]; then
-		log " $X_MARK Branch: '$branch_name' doesn't exist."
-		exit
+		cline && err "Branch '$branch_name' doesn't exist."
 	fi
-# elif [[ -n "$(command -v git)" ]]; then
-# 	# Check that branch name indeed exists: [https://stackoverflow.com/a/30524983]
-# 	if [[ -z "$(git ls-remote --heads git@github.com:cgabriel5/nodecliac.git "$branch_name")" ]]; then
-# 		log " $X_MARK Branch: '$branch_name' doesn't exist."
-# 		exit
-# 	fi
 fi
-log " $CHECK_MARK Using branch: '$branch_name'."
+cline
 
-# -------------------------------------------------------------BACKUP-OLD-FOLDER
-
-# If ~/.nodecliac exists rename folder to allow for new one.
+# If ~/.nodecliac exists back it up.
 if [[ -e ~/.nodecliac ]]; then
-	echo " - Backing up old ~/.nodecliac..."
 	cp -a ~/.nodecliac "$HOME/.nodecliac.bak.$timestamp"
-	log " $CHECK_MARK Backed up old ~/.nodecliac folder."
 fi
 
-# ---------------------------------------------------------UNINSTALL-OLD-INSTALL
-
-# Remove nodecliac global module from npm and yarn.
-# yarn global bin
-# yarn global list
-# npm list --silent -q -g --depth=0
-
-# Run uninstall command.
-echo " - Running 'nodecliac uninstall'..."
-if [[ -n "$(__exists "nodecliac")" ]]; then
+if [[ -n "$(exists nodecliac)" ]]; then
+	echo " - Running 'nodecliac uninstall'..."
 	nodecliac uninstall > /dev/null 2>&1
-	log " $CHECK_MARK Uninstalled old nodecliac."
-else
-	clear_last_line
+	cline
 fi
-# Uninstall from yarn if installed globally.
-echo " - Removing global nodecliac from yarn..."
-if [[ -n "$(__exists "yarn")" && -n "$(yarn global list | grep -o "nodecliac@")" ]]; then
+if [[ -n "$(exists yarn)" && -n "$(yarn global list | grep -o "nodecliac@")" ]]; then
+	echo " - Removing global nodecliac from yarn..."
 	yarn global remove nodecliac > /dev/null 2>&1
-	log " $CHECK_MARK Removed yarn nodecliac global package."
-else
-	clear_last_line
+	cline
 fi
-# Uninstall from npm if installed globally.
-echo " - Removing global nodecliac from npm..."
-if [[ -n "$(__exists "npm")" && -n "$(npm list -g --depth=0 | grep -o "nodecliac@")" ]]; then
+if [[ -n "$(exists npm)" && -n "$(npm list -g --depth=0 | grep -o "nodecliac@")" ]]; then
+	echo " - Removing global nodecliac from npm..."
 	sudo npm uninstall -g nodecliac > /dev/null 2>&1
-	log " $CHECK_MARK Removed npm nodecliac global package."
-else
-	clear_last_line
+	cline
 fi
 
-# ---------------------------------------------------------------INSTALLER-LOGIC
+# -------------------------------------------------------------- INSTALLER-LOGIC
 
 if [[ "$installer" == "binary" ]]; then
 	uhdir="${HOME/#$HOME/\~}" # Un-expand tilde:
 
-	# Clone repo with first found command. (order: wget > curl > git)
-	if [[ -n "$(command -v wget)" ]]; then
-		echo " - Downloading repo... (wget)"
-		wget -q -c "$repourl" -O ~/.nodecliac-src.tar.gz
-		log " $CHECK_MARK Downloaded repo. (wget)"
+	# Clone repo (wget > curl > git).
+	usewget="$(exists wget)"
+	usecurl="$(exists curl)"
+	if [[ -n "$usewget$usecurl" ]]; then
+		echo " - Downloading repo..."
+		tarname="$HOME/.nodecliac-src.tar.gz"
+		if [[ -n "$usewget" ]]; then wget -q -c "$repourl" -O "$tarname"
+		else curl -Ls "$repourl" -o "$tarname"; fi
+		cline
 		echo " - Extracting package..."
-		tar -xzf ~/.nodecliac-src.tar.gz -C ~/
-		log " $CHECK_MARK Extracted package."
+		tar -xzf "$tarname" -C ~/
+		cline
 		echo " - Moving package to '$uhdir'..."
 		rm -rf "$outputdir"/* && mv -f ~/cgabriel5-nodecliac-* "$outputdir"
-		log " $CHECK_MARK Moved package to '$uhdir'."
-	elif [[ -n "$(command -v curl)" ]]; then
-		echo " - Downloading repo... (curl)"
-		curl -Ls "$repourl" -o ~/.nodecliac-src.tar.gz
-		log " $CHECK_MARK Downloaded repo. (curl)"
-		echo " - Extracting package..."
-		tar -xzf ~/.nodecliac-src.tar.gz -C ~/
-		log " $CHECK_MARK Extracted package."
-		echo " - Moving package to '$uhdir'..."
-		rm -rf "$outputdir"/* && mv -f ~/cgabriel5-nodecliac-* "$outputdir"
-		log " $CHECK_MARK Moved package to '$uhdir'."
-	elif [[ -n "$(command -v git)" ]]; then
-		echo " - Downloading repo... (git)"
-		git clone -q -b "$branch_name" --single-branch https://github.com/cgabriel5/nodecliac.git "$outputdir"
-		log " $CHECK_MARK Downloaded repo. (git)"
-		# git clone -q -b "$branch_name" --single-branch git@github.com:cgabriel5/nodecliac.git "$outputdir"
+		cline
+	elif [[ -n "$(exists git)" ]]; then
+		echo " - Downloading repo..."
+		git clone -q -b "$branch_name" --single-branch "$gitbranch_https" "$outputdir"
+		# git clone -q -b "$branch_name" --single-branch "$gitbranch_ssh" "$outputdir"
+		cline
 	fi
 
-	# Create needed directories.
-	echo " - Creating project structure..."
+	# Copy relevant/platform specific files.
+	dest="$HOME/.nodecliac/src"
+	acpath="$outputdir/src/scripts/ac"
+	mainpath="$outputdir/src/scripts/main"
+	binpath="$outputdir/src/scripts/bin"
 	mkdir -p ~/.nodecliac/{registry,src}
-	log " $CHECK_MARK Created project structure."
-
-	# Copy nodecliac scripts. [https://superuser.com/a/114198]
-	echo " - Copying nodecliac scripts..."
-	# cp -a "$outputdir"/src/scripts/*.* ~/.nodecliac/src
-	cp -pr "$outputdir"/src/scripts/. ~/.nodecliac/src/ # [https://askubuntu.com/a/86891]
-
-	# Copy over platform specific nodecliac binary.
-	ncliac_binfilepath="$outputdir/src/parser/nim/nodecliac.$platform"
-	if [[ -e "$ncliac_binfilepath" ]]; then
-		cp -pr "$ncliac_binfilepath" ~/.nodecliac/src/bin/
-	fi
-
-	log " $CHECK_MARK Copied nodecliac scripts."
-
-	# Copy registry completion packages.
-	echo " - Copying registry packages..."
-	# cp: [https://stackoverflow.com/a/8055544]
+	mkdir -p "$dest/{bin,main}"
+	mkdir -p "$dest/ac/utils"
+	cp -pr "$acpath"/ac.pl "$dest/ac"
+	cp -pr "$acpath"/utils/LCP.pm "$dest/ac/utils"
+	cp -pr "$mainpath"/{init,connector}.sh "$dest/main"
+	cp -pr "$mainpath"/config.pl "$dest/main"
+	cp -pr "$binpath"/binary.sh "$dest/bin"
 	cp -pr "$outputdir"/resources/packages/* ~/.nodecliac/registry
-	log " $CHECK_MARK Copied registry packages."
+	nimbin="$outputdir/src/parser/nim/nodecliac.$os"
+	if [[ -e "$nimbin" ]]; then cp -pr "$nimbin" "$dest/bin"; fi
 
-	# Create setup file.
-	echo " - Creating .setup.db.json..."
-	# Get package.json version number. [https://stackoverflow.com/a/4794172]
 	version="$(perl -ne 'print $1 if /"version":\s*"([^"]+)/' "$outputdir/package.json")"
 	echo "{ \"force\": false, \"rcfilepath\": \"$rcfilepath\", \"time\": \"$timestamp\", \"binary\": true, \"version\": \"$version\" }" > ~/.nodecliac/.setup.db.json
-	log " $CHECK_MARK Created .setup.db.json."
 
-	# Strip comments/empty lines from files.
-	echo " - Stripping comments from scripts..."
-	perl -pi -e 's/^\s*#(?!!).*?$//g;s/\s{1,}#\s{1,}.+$//g;s!^\s+?$!!' ~/.nodecliac/src/**/*.{sh,pl,nim}
-	log " $CHECK_MARK Stripped comments from scripts."
+	# Strip comments/empty lines.
 	# [http://isunix.github.io/blog/2014/07/24/perl-one-liner-to-remove-blank-lines/].
 	# [https://stackoverflow.com/a/6995010], [https://unix.stackexchange.com/a/179449]
+	perl -pi -e 's/^\s*#(?!!).*?$//g;s/\s{1,}#\s{1,}.+$//g;s!^\s+?$!!' ~/.nodecliac/src/**/*.{sh,pl,nim}
 
-	# Add nodecliac to rcfile if not already.
+	# Add nodecliac to rcfile.
 	if [[ -z "$(grep -o "ncliac=~/.nodecliac/src/main/init.sh" "$rcfilepath")" ]]; then
-		echo " - Adding nodecliac to rcfile..."
 		echo -e '\nncliac=~/.nodecliac/src/main/init.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;' >> "$rcfilepath"
-		# echo " - Adding trailing '\n' to rcfile..."
-		perl -i -lpe 's/\x0a$//' "$rcfilepath" # Ensure newline ending: [https://www.unix.com/shell-programming-and-scripting/229399-how-add-newline-character-end-file.html]
-		# log " $CHECK_MARK Added trailing '\n' to rcfile."
-		log " $CHECK_MARK Added nodecliac to rcfile."
+		perl -i -lpe 's/\x0a$//' "$rcfilepath"
+		# [https://www.unix.com/shell-programming-and-scripting/229399-how-add-newline-character-end-file.html]
 		# [https://knowledge.ni.com/KnowledgeArticleDetails?id=kA00Z0000019KZDSA2]
 		# [https://stackoverflow.com/a/9021745]
 	fi
 
 	# # Modify nodecliac.acdef for binary.
-	# echo " - Modifying nodecliac.acdef..."
 	# # Remove all but the following commands.
 	# allowed_commands="add|remove|link|unlink|enable|disable|print|status|registry|uninstall"
 	# perl -i -lne 'if (/^(#|\.('"$allowed_commands"') --| )/) { if ($1 eq " ") { print "\n --"} elsif ($1 eq ".uninstall --") { print "$1" } else { print } }' ~/.nodecliac/registry/nodecliac/nodecliac.acdef
 	# # Add back '--version'.
 	# perl -p -i -e 's/^ \-\-/ \-\-version?/m if /^ /' ~/.nodecliac/registry/nodecliac/nodecliac.acdef
-	# log " $CHECK_MARK Modified nodecliac.acdef."
 
-	# Create bin file.
-	echo " - Creating bin file..."
 	sudo cp -p "$outputdir/src/scripts/bin/binary.sh" "$binfilepath"
 	sudo chmod +x "$binfilepath"
-	log " $CHECK_MARK Created bin file."
 
-	# Delete cloned repo.
-	echo " - Deleting repo source..."
 	rm -rf ~/.nodecliac-src*
-	log " $CHECK_MARK Deleted repo source."
-
 else
-	# Reset/force $PATH to rebuild.
-	# echo " - Reseting \$PATH..."
-	hash -r # [https://unix.stackexchange.com/a/5610]
-	# log " $CHECK_MARK \$PATH reset."
+	hash -r # Rebuild $PATH: [https://unix.stackexchange.com/a/5610]
 
 	if [[ "$installer" == "npm" ]]; then
 		echo " - Installing nodecliac via npm..."
-		# Global installs can't install shorthand branch method: [https://stackoverflow.com/a/32436218]
+		# Global installs can't install shorthand branch method:
+		# [https://stackoverflow.com/a/32436218]
 		# sudo npm i -g "cgabriel5/nodecliac#$branch_name" > /dev/null 2>&1
-		sudo npm i -g https://github.com/cgabriel5/nodecliac/tarball/"$branch_name" > /dev/null 2>&1
-		log " $CHECK_MARK nodecliac installed."
+		sudo npm i -g "$branch_npm" > /dev/null 2>&1
+		cline
 	elif [[ "$installer" == "yarn" ]]; then
 		echo " - Installing nodecliac via yarn..."
-		yarn global add "cgabriel5/nodecliac#$branch_name" > /dev/null 2>&1
-		log " $CHECK_MARK nodecliac installed."
+		yarn global add branch_yarn > /dev/null 2>&1
+		cline
 	fi
 
-	# Finally, setup nodecliac.
 	echo " - Setting up nodecliac..."
 	nodecliac setup > /dev/null 2>&1
-	log " $CHECK_MARK nodecliac setup."
+	cline
 fi
 
-# Use \033 rather than \e: [https://stackoverflow.com/a/37366139], [https://misc.flogisoft.com/bash/tip_colors_and_formatting]
-echo -e " - \033[1;34mTip\033[0m Reload rcfile before using:"
-echo -e " - \033[1m\$ source ${rcfilepath/#$HOME/\~}\033[0m"
-
+# Use \033 rather than \e: [https://stackoverflow.com/a/37366139]
+echo -e "\033[0;32mSuccess\033[0m: nodecliac installed."
+echo -e "\033[1;34mTip\033[0m: Reload rcfile before using: \033[1msource ${rcfilepath/#$HOME/\~}\033[0m"

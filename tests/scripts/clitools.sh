@@ -5,7 +5,7 @@
 # @return {string} - User's platform.
 #
 # @resource [https://stackoverflow.com/a/18434831]
-function __platform() {
+function platform() {
 	case "$OSTYPE" in
 		solaris*) echo "solaris" ;;
 		darwin*)  echo "macosx" ;;
@@ -19,27 +19,25 @@ function __platform() {
 # Script checks whether `nodecliac make` returns same output. If so
 # the parser is working properly.
 
-# -----------------------------------------------------------------------IMPORTS
+# ---------------------------------------------------------------------- IMPORTS
 
-. "$__filepath/common.sh" # Import functions/variables.
+. "$__filepath/common.sh"
 
-# --------------------------------------------------------------------------VARS
+# ------------------------------------------------------------------------- VARS
 
 # Get path of current script. [https://stackoverflow.com/a/246128]
 __filepath="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 TESTDIR=$(chipdir "$__filepath" 1) # The tests script's path.
-NIM_BIN="$(chipdir "$__filepath" 2)/src/parser/nim/nodecliac.$(__platform)"
+NIM_BIN="$(chipdir "$__filepath" 2)/src/parser/nim/nodecliac.$(platform)"
 
-# The output path.
 output_path="outputs/$OUTPUT_DIR"
-# Create needed folder it not already created.
 mkdir -p "$TESTDIR/$output_path"
 
 files_count=0
 passed_count=0
 
-# --------------------------------------------------------------------------TEST
+# ------------------------------------------------------------------------- TEST
 
 # Print header.
 if [[ $(isset "$PRINT") ]]; then echo -e "\033[1m[Testing $HEADER]\033[0m"; fi
@@ -149,7 +147,6 @@ for f in "$TESTDIR"/acmaps/*.acmap; do
 		echo "$output" >> "$foutput"
 	fi
 
-	# else
 	# Compare output with output file.
 	contents="$(<"$foutput")"
 	# If the contents don't match the output something failed.

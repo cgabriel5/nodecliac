@@ -7,7 +7,7 @@
 # --print    [-p]: Log output: true|false
 # --override [-o]: Override used complete script with: nim|pl
 
-# -----------------------------------------------------------------CLI-ARGUMENTS
+# ---------------------------------------------------------------- CLI-ARGUMENTS
 
 PRINT="true"
 FORCE="false" # Forces tests to run regardless of conditions.
@@ -41,22 +41,21 @@ shift $((OPTIND - 1))
 # Get path of current script. [https://stackoverflow.com/a/246128]
 __filepath="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
-# -----------------------------------------------------------------------IMPORTS
+# ---------------------------------------------------------------------- IMPORTS
 
-. "$__filepath/common.sh" # Import functions/variables.
+. "$__filepath/common.sh"
 
-# --------------------------------------------------------------------------VARS
+# ------------------------------------------------------------------------- VARS
 
-ROOTDIR=$(chipdir "$__filepath" 2) # Get the project's root directory.
-TESTDIR="$ROOTDIR/tests/scripts" # The tests script's path.
+ROOTDIR=$(chipdir "$__filepath" 2)
+TESTDIR="$ROOTDIR/tests/scripts"
 
-args=() # Contain arguments in an array.
-# [https://stackoverflow.com/a/1951554]
+args=() # [https://stackoverflow.com/a/1951554]
 if [[ -n "$PRINT" ]]; then args+=("-p"); args+=("$PRINT"); fi
 if [[ -n "$FORCE" ]]; then args+=("-f"); args+=("$FORCE"); fi
 if [[ -n "$OVERRIDE" ]]; then args+=("-o"); args+=("$OVERRIDE"); fi
 
-# -------------------------------------------------------------------------TESTS
+# ------------------------------------------------------------------------ TESTS
 
 # Run tests with arguments: [https://stackoverflow.com/a/16989110]
 # [https://stackoverflow.com/a/42985721]

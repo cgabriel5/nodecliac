@@ -2,22 +2,21 @@
 
 # Common functions and variables used across the test scripts.
 
-# ---------------------------------------------------------------------FUNCTIONS
+# -------------------------------------------------------------------- FUNCTIONS
 
 # [https://stackoverflow.com/questions/10986794/remove-part-of-path-on-unix]
 chipdir() {
-	local dir="$1" # The provided directory path.
+	local dir="$1"
 	# Remove last directory from path.
 	for ((x=0; x<"$2"; x++)); do dir="${dir%/*}"; done
-	echo "$dir" # Return modified path.
+	echo "$dir"
 
 	# Note: The built-in function `dirname` can also be used
 	# to remove the last directory from a path.
 	# [https://unix.stackexchange.com/a/28773]
 	# Example: $(dirname "$dir")
 
-	# Or parameter expansion with a loop can be used to remove
-	# the last directory.
+	# Param expan. with a loop can also be used.
 	# [https://stackoverflow.com/a/4170409]
 }
 
@@ -35,7 +34,7 @@ notset() {
 	echo $([[ -z "$1" ]] && echo 1 || echo "")
 }
 
-# --------------------------------------------------------------------------VARS
+# ------------------------------------------------------------------------- VARS
 
 # [https://www.utf8-chartable.de/unicode-utf8-table.pl?start=9984&number=128&names=-&utf8=string-literal]
 # [https://misc.flogisoft.com/bash/tip_colors_and_formatting]

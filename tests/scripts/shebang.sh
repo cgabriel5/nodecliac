@@ -15,13 +15,15 @@
 # use the updated Bash version.
 # 
 # Note: This could all be avoided by using the shebang: #!/usr/bin/env bash
-# However, has some drawbacks. For one, this poses some security concerns when
-# the path is not explicitly provided/hard-coded.
+# However, it has some drawbacks. For one, this poses some security concerns
+# when the path is not explicitly provided/hard-coded.
 # [https://stackoverflow.com/a/16365367], [https://unix.stackexchange.com/a/206366].
 # Secondly, providing additional arguments to the interpreter is sometimes
 # not allowed: [https://stackoverflow.com/a/16365367].
 # More reading:
 # [https://www.reddit.com/r/linuxadmin/comments/975nok/binbash_vs_usrbinenv_bash/e46xh7y/]
+# 
+# Note: This script runs automatically post npm/yarn install.
 # 
 # Bash locations per OS:
 # Ubuntu: /bin/bash
@@ -34,11 +36,11 @@
 # Get path of current script. [https://stackoverflow.com/a/246128]
 __filepath="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
-# -----------------------------------------------------------------------IMPORTS
+# ---------------------------------------------------------------------- IMPORTS
 
-. "$__filepath/common.sh" # Import functions/variables.
+. "$__filepath/common.sh"
 
-# --------------------------------------------------------------------------VARS
+# ------------------------------------------------------------------------- VARS
 
 # Get list of valid Bash login shells: [https://stackoverflow.com/a/58270646]
 list=$(grep "/bin/bash$" <<< cat /etc/shells)
@@ -53,9 +55,8 @@ valid_bash="" # Path to valid 4.3+ version of path.
 
 # Loop over shell paths.
 for ((i=${#shells[@]}-1; i>=0; i--)); do # [https://unix.stackexchange.com/a/27400]
-	path="${shells[$i]}" # Cache shell's path.
+	path="${shells[$i]}"
 
-	# Get version of Bash.
 	# [https://stackoverflow.com/a/9450628]
 	version=$(perl -ne 'if (/ version ([\.\d]{3,})/) { print "$1"; }' <<< "$("$path" --version)")
 
@@ -73,7 +74,7 @@ if [[ -n "$valid_bash" ]]; then
 	# [https://superuser.com/a/397325]
 	# [https://stackoverflow.com/a/5927391]
 	# [https://stackoverflow.com/a/14132309]
-	# Get list of files to run sgebang change on.
+	# Get list of files to run shebang change on.
 	files="$(
 		find "$ROOTDIR" -type f \
 		! -path '*/\.*' \

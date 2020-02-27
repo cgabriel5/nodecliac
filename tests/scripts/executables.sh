@@ -3,7 +3,7 @@
 # If binary files (ac.macosx or ac.linux) are staged this script
 # checks whether the file(s) are executable. If not the script fails.
 
-# -----------------------------------------------------------------CLI-ARGUMENTS
+# ---------------------------------------------------------------- CLI-ARGUMENTS
 
 PRINT=""
 
@@ -23,15 +23,14 @@ shift $((OPTIND - 1))
 # Get path of current script. [https://stackoverflow.com/a/246128]
 __filepath="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
-# -----------------------------------------------------------------------IMPORTS
+# ---------------------------------------------------------------------- IMPORTS
 
-. "$__filepath/common.sh" # Import functions/variables.
+. "$__filepath/common.sh"
 
-# --------------------------------------------------------------------------VARS
+# ------------------------------------------------------------------------- VARS
 
 # If no files are staged then exit.
 if [[ -z "$STAGED_FILES" ]]; then
-	# Print header.
 	if [[ $(isset "$PRINT") ]]; then
 		echo -e "\033[1m[Binary Executables]\033[0m"
 	fi
@@ -69,7 +68,6 @@ done
 
 # If array is populated there are errors.
 if [[ ${#binaries[@]} -ne 0 ]]; then # [https://serverfault.com/a/477506]
-	# Print header.
 	if [[ $(isset "$PRINT") ]]; then
 		echo -e "\033[1m[Binary Executables]\033[0m"
 	fi
@@ -85,7 +83,6 @@ if [[ ${#binaries[@]} -ne 0 ]]; then # [https://serverfault.com/a/477506]
 fi
 
 # If this block gets is there were no staged binaries so give message.
-# Print header.
 if [[ $(isset "$PRINT") ]]; then
 	echo -e "\033[1m[Binary Executables]\033[0m"
 fi

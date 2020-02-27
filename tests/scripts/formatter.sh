@@ -3,7 +3,7 @@
 # Script checks whether `nodecliac format` returns same output. If so
 # the formatter is working properly.
 
-# -----------------------------------------------------------------CLI-ARGUMENTS
+# ---------------------------------------------------------------- CLI-ARGUMENTS
 
 PRINT=""
 FORCE=""
@@ -26,7 +26,7 @@ while getopts 'p:f:o:' flag; do # [https://stackoverflow.com/a/18003735]
 done
 shift $((OPTIND - 1))
 
-# --------------------------------------------------------------------------VARS
+# ------------------------------------------------------------------------- VARS
 
 ACTION="format"
 OUTPUT_DIR="formatted"
@@ -40,10 +40,10 @@ args=() # Contain arguments in an array.
 if [[ -n "$PRINT" ]]; then args+=("-p"); args+=("$PRINT"); fi
 if [[ -n "$FORCE" ]]; then args+=("-f"); args+=("$FORCE"); fi
 
-# -----------------------------------------------------------------------IMPORTS
+# ---------------------------------------------------------------------- IMPORTS
 
-. "$__filepath/common.sh" # Import functions/variables.
+. "$__filepath/common.sh"
 
-# -----------------------------------------------------------------RUN-TEST-FILE
+# ----------------------------------------------------------------- RUN-TEST-FILE
 
-. "$__filepath/clitools.sh" "${args[@]}" # Run test.
+. "$__filepath/clitools.sh" "${args[@]}"

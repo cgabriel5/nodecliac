@@ -1,13 +1,13 @@
 #!/bin/bash
 
-if [[ "$#" -eq 0 ]]; then exit; fi # Exit if no arguments provided.
+if [[ "$#" -eq 0 ]]; then exit; fi
 
 # Get platform name.
 #
 # @return {string} - User's platform.
 #
 # @resource [https://stackoverflow.com/a/18434831]
-function __platform() {
+function platform() {
 	case "$OSTYPE" in
 		solaris*) echo "solaris" ;;
 		darwin*)  echo "macosx" ;;
@@ -18,7 +18,6 @@ function __platform() {
 	esac
 }
 
-# CLI arg flags.
 rcfilepath=""
 prcommand=""
 enablencliac=""
@@ -100,7 +99,7 @@ case "$command" in
 	make|format)
 
 		# Run Nim binary if it exists.
-		binfilepath=~/.nodecliac/src/bin/nodecliac.$(__platform)""
+		binfilepath=~/.nodecliac/src/bin/nodecliac.$(platform)""
 		if [[ -f "$binfilepath" ]]; then "$binfilepath" "${args[@]}"; fi
 
 		;;
@@ -178,7 +177,7 @@ case "$command" in
 
 				# Resolve symlink: [https://stackoverflow.com/a/42918]
 				# Using Python: [https://apple.stackexchange.com/a/4822]
-				if [[ "$(__platform)" == "macosx" ]]; then
+				if [[ "$(platform)" == "macosx" ]]; then
 					resolved_path=$(readlink "$pkgpath")
 				else
 					resolved_path=$(readlink -f "$pkgpath")
@@ -377,7 +376,7 @@ case "$command" in
 
 			# Resolve symlink: [https://stackoverflow.com/a/42918]
 			# Using Python: [https://apple.stackexchange.com/a/4822]
-			if [[ "$(__platform)" == "macosx" ]]; then
+			if [[ "$(platform)" == "macosx" ]]; then
 				resolved_path=$(readlink "$filepath")
 			else
 				resolved_path=$(readlink -f "$filepath")

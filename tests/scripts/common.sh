@@ -40,6 +40,3 @@ notset() {
 # [https://misc.flogisoft.com/bash/tip_colors_and_formatting]
 CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m"
 X_MARK="\033[0;31m\xe2\x9c\x98\033[0m"
-
-# Get list of staged files. [https://stackoverflow.com/a/33610683]
-STAGED_FILES=$(git diff --name-only --cached)

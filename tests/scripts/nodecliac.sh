@@ -82,7 +82,7 @@ if [[ $(notset "$(command -v nodecliac)") ]]; then
 fi
 
 # To run tests there needs to be modified src/ files or force flag.
-if [[ "$STAGED_FILES" != *"src/"* && $(notset "$FORCE") ]]; then
+if [[ "$(git diff --name-only --cached)" != *"src/"* && $(notset "$FORCE") ]]; then
 	if [[ $(isset "$PRINT") ]]; then
 		echo -e "\033[1m[Testing Completion Script]\033[0m [script=, override=$OVERRIDE]"
 		echo -e " $CHECK_MARK [skipped] No staged \033[1;34msrc/\033[0m files.\n"

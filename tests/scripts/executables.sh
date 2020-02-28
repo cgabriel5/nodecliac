@@ -29,6 +29,9 @@ __filepath="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 # ------------------------------------------------------------------------- VARS
 
+# Get list of staged files. [https://stackoverflow.com/a/33610683]
+STAGED_FILES=$(git diff --name-only --cached)
+
 # If no files are staged then exit.
 if [[ -z "$STAGED_FILES" ]]; then
 	if [[ $(isset "$PRINT") ]]; then
@@ -44,7 +47,7 @@ if [[ -z "$STAGED_FILES" ]]; then
 fi
 
 # Read staged files list into an array.
-readarray -t list <<<"$STAGED_FILES" # [https://stackoverflow.com/a/19772067]
+readarray -t list <<< "$STAGED_FILES" # [https://stackoverflow.com/a/19772067]
 
 ROOTDIR=$(chipdir "$__filepath" 2) # Get the project's root directory.
 

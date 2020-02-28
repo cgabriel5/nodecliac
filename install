@@ -284,4 +284,4 @@ fi
 
 # Use \033 rather than \e: [https://stackoverflow.com/a/37366139]
 echo -e "\033[1;32mSuccess\033[0m: nodecliac installed."
-echo -e "\033[1;34mTip\033[0m: Reload rcfile before using: \033[1msource ${rcfilepath/#$HOME/\~}\033[0m"
+echo -e "    \033[1;34mTip\033[0m: Reload rcfile before using: \033[1msource ${rcfilepath/#$HOME/\~}\033[0m"

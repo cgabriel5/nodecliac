@@ -37,7 +37,7 @@ function cline() {
 # @param {string} 1) - Message to print.
 # @return - Nothing is returned.
 function err() {
-	echo -e "\033[0;31mError\033[0m: $1" && exit
+	echo -e "\033[1;31mError\033[0m: $1" && exit
 }
 
 # Print success message.

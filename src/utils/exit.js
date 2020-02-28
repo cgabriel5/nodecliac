@@ -3,29 +3,27 @@
 const log = require("fancy-log");
 
 /**
- * Logs messages then exits script.
+ * Logs messages and exit if needed.
  *
  * @param  {array} message - List of messages to log.
- * @return {undefined} - Nothing.
+ * @return {undefined} - Nothing is returned.
  */
 let exit = (messages, stop, normal_log) => {
-	// Log all provided messages.
 	for (let i = 0, l = messages.length; i < l; i++) {
-		// Cache current loop item.
 		let message = messages[i];
-
-		if (normal_log) {
-			console.log(message);
-		} else {
-			log(message);
-		}
+		if (normal_log) console.log(message);
+		else log(message);
 	}
 
-	if (stop === undefined) {
-		process.exit();
-	}
+	if (stop === undefined) process.exit();
 };
-// Use console.log over fancy-log.
+
+/**
+ * Use regular console.log over fancy-log to print messages.
+ *
+ * @param  {array} message - List of messages to log.
+ * @return {undefined} - Nothing is returned.
+ */
 exit.normal = (messages, stop) => {
 	exit(messages, stop, true);
 };

@@ -1,0 +1,72 @@
+
+Customs:
+1 1 @["--hintUser..."]
+2 3 @["--hint...", "--skip...", "--warning..."]
+3 0 @[]
+4 1 @["--warning..."]
+5 1 @["--skip..."]
+6 1 @["--hint..."]
+7 1 @["--warning..."]
+8 1 @["--warning..."]
+9 1 @["--warnings..."]
+10 1 @["--hint..."]
+11 1 @["--hintCC..."]
+12 1 @["--hint..."]
+13 1 @["--hint..."]
+
+Defaults:
+1 2 @["Call ", "Implement new class for "]
+2 1 @["inters"]
+3 1 @["throne"]
+4 0 @[]
+5 1 @["cheese"]
+6 0 @[]
+7 0 @[]
+
+Customs:
+1 1 [ '--hintUser...' ]
+2 3 [ '--hint...', '--skip...', '--warning...' ]
+3 0 []
+4 1 [ '--warning...' ]
+5 1 [ '--skip...' ]
+6 1 [ '--hint...' ]
+7 1 [ '--warning...' ]
+8 1 [ '--warning...' ]
+9 1 [ '--warnings...' ]
+10 1 [ '--hint...' ]
+11 1 [ '--hintCC...' ]
+12 1 [ '--hint...' ]
+13 1 [ '--hint...' ]
+
+Defaults:
+1 2 [ 'Call ', 'Implement new class for ' ]
+2 1 [ 'inters' ]
+3 1 [ 'throne' ]
+4 0 []
+5 1 [ 'cheese' ]
+6 0 []
+7 0 []
+
+Customs
+1 1 |--hintUser...|
+2 3 |--hint...||--skip...||--warning...|
+3 0 
+4 1 |--warning...|
+5 1 |--skip...|
+6 1 |--hint...|
+7 1 |--warning...|
+8 1 |--warning...|
+9 1 |--warnings...|
+10 1 |--hint...|
+11 1 |--hintCC...|
+12 1 |--hint...|
+13 1 |--hint...|
+
+Defaults
+1 2 |Call ||Implement new class for |
+2 1 |inters|
+3 1 |throne|
+4 0 
+5 1 |cheese|
+6 0 
+7 0 

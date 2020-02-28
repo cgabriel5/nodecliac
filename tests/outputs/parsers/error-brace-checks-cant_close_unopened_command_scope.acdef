@@ -1,0 +1,1 @@
+[err brace-checks,11] ...tests/acmaps/error-brace-checks-cant_close_unopened_command_scope-t.acmap:2:1 — Can't close an unopened command scope

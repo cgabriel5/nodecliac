@@ -6,10 +6,10 @@ const fe = require("file-exists");
 const { exit, paths, read, fmt } = require("../utils/toolbox.js");
 
 module.exports = async args => {
-	let { registrypath } = paths; // Get needed paths.
-	let { command } = args; // Get CLI args.
+	let { registrypath } = paths;
+	let { command } = args;
 	// eslint-disable-next-line no-unused-vars
-	let err, res; // Declare empty variables to reuse for all await operations.
+	let err, res;
 	let tstring = "";
 
 	// Source must be provided.
@@ -21,23 +21,23 @@ module.exports = async args => {
 	// If command is supplied then print its acdef/config file contents.
 	if (command) {
 		// Break apart command.
-		let [, commandname = ""] = command.match(/^(.*?)(\.(acdef))?$/);
+		let [, cmdname = ""] = command.match(/^(.*?)(\.(acdef))?$/);
 		let ext = ".acdef";
 
 		// Exit and give error if a command name not provided.
-		if (!commandname) {
+		if (!cmdname) {
 			tstring = "Please provide a command name (i.e. --command=?).";
 			exit([fmt(tstring, chalk.bold("nodecliac.acdef"))]);
 		}
 
 		// Check if command chain contains invalid characters.
 		let r = /[^-._:a-zA-Z0-9\\/]/;
-		if (r.test(commandname)) {
+		if (r.test(cmdname)) {
 			// Loop over command chain to highlight invalid character.
 			let chars = [];
 			let invalid_char_count = 0;
-			for (let i = 0, l = commandname.length; i < l; i++) {
-				let char = commandname[i]; // Cache current loop item.
+			for (let i = 0, l = cmdname.length; i < l; i++) {
+				let char = cmdname[i];
 
 				// If an invalid character highlight.
 				if (r.test(char)) {
@@ -56,9 +56,9 @@ module.exports = async args => {
 		}
 
 		// File paths.
-		let pathstart = `${registrypath}/${commandname}`;
-		let filepath = `${pathstart}/${commandname}${ext}`;
-		let filepathconfig = `${pathstart}/.${commandname}.config${ext}`;
+		let pathstart = `${registrypath}/${cmdname}`;
+		let filepath = `${pathstart}/${cmdname}${ext}`;
+		let filepathconfig = `${pathstart}/.${cmdname}.config${ext}`;
 
 		// Check if acdef file exists.
 		[err, res] = await flatry(fe(filepath));
@@ -68,7 +68,7 @@ module.exports = async args => {
 			[err, res] = await flatry(read(filepath));
 
 			// Log file contents.
-			console.log(`\n[${chalk.bold(`${commandname}${ext}`)}]\n`);
+			console.log(`\n[${chalk.bold(`${cmdname}${ext}`)}]\n`);
 			console.log(res);
 
 			// Check if config file exists.
@@ -78,14 +78,14 @@ module.exports = async args => {
 				[err, res] = await flatry(read(filepathconfig));
 
 				// Log file contents.
-				let header = chalk.bold(`.${commandname}.config${ext}`);
+				let header = chalk.bold(`.${cmdname}.config${ext}`);
 				console.log(`[${header}]\n`);
 				console.log(res);
 			}
 		} else {
 			// If acdef file does not exist log a message and exit script.
-			let bcommandname = chalk.bold(commandname);
-			exit([`acdef file for command ${bcommandname} does not exist.`]);
+			let bcmdname = chalk.bold(cmdname);
+			exit([`acdef file for command ${bcmdname} does not exist.`]);
 		}
 	}
 };

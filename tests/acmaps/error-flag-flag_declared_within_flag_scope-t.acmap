@@ -1,0 +1,6 @@
+program = [
+	--help=(
+		--flag
+		- option
+	)
+]

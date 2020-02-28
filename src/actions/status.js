@@ -8,44 +8,36 @@ const fe = require("file-exists");
 const { exit, paths, remove, write, fmt } = require("../utils/toolbox.js");
 
 module.exports = async args => {
-	let { customdir } = paths; // Get needed paths.
-	let { enable, disable } = args; // Get CLI args.
-	let dotfile = path.join(customdir, ".disable"); // Dot file path.
+	let { enable, disable } = args;
+	let dotfile = path.join(paths.ncliacdir, ".disable");
 	// eslint-disable-next-line no-unused-vars
-	let err, res; // Declare empty variables to reuse for all await operations.
+	let err, res;
 	let tstring = "";
 
 	// If no flag is supplied then only print the status.
 	if (!enable && !disable) {
 		[err, res] = await flatry(fe(dotfile));
-
 		let message = res ? chalk.red("disabled") : chalk.green("enabled");
-		log(`nodecliac: ${message}`); // Print status.
+		log(`nodecliac: ${message}`);
 	} else {
-		// If both flags are provided give message and exit.
 		if (enable && disable) {
 			let varg1 = chalk.bold("--enable");
 			let varg2 = chalk.bold("--disable");
-			tstring = // Template string.
-				"Both ? and ? flags supplied but only one can be provided.";
+			tstring = "? and ? given when only one can be provided.";
 			exit([fmt(tstring, varg1, varg2)]);
 		}
 
-		// If enable flag provided..
 		if (enable) {
-			[err, res] = await flatry(fe(dotfile)); // Remove dot file.
+			[err, res] = await flatry(fe(dotfile));
 			if (res) {
-				[err, res] = await flatry(remove(dotfile)); // Remove script.
-				log(chalk.green("Enabled.")); // Log success message.
-			} else log(chalk.green("Enabled.")); // Log success message.
-		}
-		// If disable flag provided...
-		else if (disable) {
+				[err, res] = await flatry(remove(dotfile));
+				log(chalk.green("Enabled."));
+			} else log(chalk.green("Enabled."));
+		} else if (disable) {
 			// Create blocking dot file.
 			let contents = `Disabled: ${new Date()};${Date.now()}`;
 			[err, res] = await flatry(write(dotfile, contents));
-
-			log(chalk.red("Disabled.")); // Log success message.
+			log(chalk.red("Disabled."));
 		}
 	}
 };

@@ -1,0 +1,6 @@
+# Unexpected character is the general syntax
+# error given when there is a parsing issue.
+program = = [
+	--help=(
+	)
+]

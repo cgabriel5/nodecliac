@@ -1,0 +1,6 @@
+ --flag1=|--flag1=option1|--flag2=|--flag2=option2|--flag3=|--flag3=option3|--flag4=|--flag4=option4
+.com1 --flag=|--flag=optional1|--flag=optional2
+.com2 --flag=|--flag=optional3|--flag=optional4
+.com3 --flag=|--flag=optional5
+.com4 --flag=|--flag=optional6
+.com5 --flag=|--flag=optional7

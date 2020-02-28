@@ -7,38 +7,31 @@ const flatry = require("flatry");
 const log = require("fancy-log");
 const de = require("directory-exists");
 const fe = require("file-exists");
-const {
-	exit,
-	paths,
-	readdir,
-	lstats,
-	realpath
-} = require("../utils/toolbox.js");
+const toolbox = require("../utils/toolbox.js");
+const { paths, readdir, lstats, realpath } = toolbox;
 
 module.exports = async () => {
-	let { registrypath } = paths; // Get needed paths.
+	let { registrypath } = paths;
 	let files = [];
 	// eslint-disable-next-line no-unused-vars
-	let err, res; // Declare empty variables to reuse for all await operations.
+	let err, res, commands;
 
 	// Maps path needs to exist to list acdef files.
 	[err, res] = await flatry(de(registrypath));
-	if (!res) exit([]); // Exit without message.
+	if (!res) process.exit();
 
 	// Get list of directory command folders.
-	[err, res] = await flatry(readdir(registrypath));
-	let commands = res;
+	[err, commands] = await flatry(readdir(registrypath));
 	let count = commands.length;
 
 	console.log(`${chalk.bold(registrypath)} (${count})`); // Print header.
 
 	if (!count) process.exit(); // Exit if directory is empty.
 
-	// Loop over command folders to get respective .acdef/config files.
+	// Loop over folders to get .acdef files.
 	for (let i = 0, l = count; i < l; i++) {
-		let command = commands[i]; // Cache current loop item.
+		let command = commands[i];
 
-		// Build .acdef file paths.
 		let filename = `${command}.acdef`;
 		let configfilename = `.${command}.config.acdef`;
 		let acdefpath = path.join(registrypath, command, filename);
@@ -56,12 +49,12 @@ module.exports = async () => {
 		let check;
 
 		check = false;
-		[err, res] = await flatry(fe(acdefpath)); // Check for .acdef.
+		[err, res] = await flatry(fe(acdefpath));
 		if (res) check = true;
-		[err, res] = await flatry(fe(configpath)); // Check for config file.
+		[err, res] = await flatry(fe(configpath));
 		if (res && check) data.hasacdefs = true;
 
-		// If files exists check whether it's a symlink.
+		// Check whether it's a symlink.
 		let pkgpath = `${registrypath}/${command}`;
 		[err, res] = await flatry(lstats(pkgpath));
 		data.isdir = res.is.directory;
@@ -76,46 +69,39 @@ module.exports = async () => {
 			data.issymlinkdir = res.is.directory;
 			if (res.is.directory) data.isdir = true;
 
-			// Confirm symlink directory contain needed .acdefs.
+			// Confirm symlink dir gave .acdefs.
 			let sympath = path.join(resolved_path, command, filename);
 			let sympathconf = path.join(resolved_path, command, configfilename);
 
 			check = false;
-			[err, res] = await flatry(fe(sympath)); // Check for .acdef.
+			[err, res] = await flatry(fe(sympath));
 			if (res) check = true;
-			[err, res] = await flatry(fe(sympathconf)); // Check for config file.
+			[err, res] = await flatry(fe(sympathconf));
 			if (res && check) data.issymlink_valid = true;
 		}
 
-		files.push(data); // Add data to files array.
+		files.push(data);
 	}
 
-	// List commands if any exist.
+	// List commands.
 	if (files.length) {
 		files
 			.sort(function(a, b) {
 				return a.command.localeCompare(b.command);
 			})
 			.forEach(async function(data, i) {
-				let {
-					command,
-					isdir,
-					hasacdefs,
-					issymlink,
-					issymlinkdir,
-					realpath,
-					issymlink_valid
-				} = data;
+				let { command, isdir, hasacdefs, issymlink } = data;
+				let { issymlinkdir, realpath, issymlink_valid } = data;
 
 				// Remove user name from path.
 				let homedir = os.homedir();
 				realpath = realpath.replace(new RegExp("^" + homedir), "~");
 
+				// Decorate commands.
 				let bcommand = chalk.bold.blue(command);
 				let ccommand = chalk.bold.cyan(command);
 				let rcommand = chalk.bold.red(command);
-
-				// Row declaration.
+				// Row decor.
 				let decor = count !== i + 1 ? "├── " : "└── ";
 
 				if (!issymlink) {

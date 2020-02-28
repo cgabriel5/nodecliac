@@ -6,32 +6,19 @@ const chalk = require("chalk");
 const minimist = require("minimist");
 const { exit, fmt } = require("./utils/toolbox.js");
 
-const args = minimist(process.argv.slice(2)); // Get CLI parameters.
-let [action] = args._; // Get the provided action to run.
-// Allowed actions.
-const actions = [
-	"make",
-	"format",
-	"print",
-	"setup",
-	"status",
-	"registry",
-	"uninstall",
-	"add",
-	"remove",
-	"link",
-	"unlink",
-	"enable",
-	"disable"
-];
+const args = minimist(process.argv.slice(2));
+let [action] = args._;
 
-// Run action's respective file if provided.
+// Allowed actions.
+const ac_main = ["make", "format"];
+const ac_mis = ["print", "setup", "status", "registry", "uninstall"];
+const ac_pkg = ["add", "remove", "link", "unlink", "enable", "disable"];
+const actions = ac_main.concat(ac_mis, ac_pkg);
+
 if (action) {
-	// Check if command exists.
 	let tstring = "Unknown command ?.";
 	if (!actions.includes(action)) exit([fmt(tstring, chalk.bold(action))]);
-	require(`./actions/${action}.js`)(args); // Run action script.
+	require(`./actions/${action}.js`)(args);
 } else {
-	// If version flag supplied, show version.
 	if (args.version) console.log(require("../package.json").version);
 }

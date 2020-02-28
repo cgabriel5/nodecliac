@@ -2,21 +2,19 @@
 
 const fs = require("fs");
 const path = require("path");
+const rimraf = require("rimraf");
 const ext = require("file-extension");
 
 /**
  * Wrapper for readFile method. Returns a Promise.
  *
- * @param  {string} filepath - The path of file to read.
+ * @param  {string} p - The path of file to read.
  * @return {promise} - Promise is returned.
  */
-let read = filepath => {
+let read = p => {
 	return new Promise((resolve, reject) => {
-		fs.readFile(filepath, (err, data) => {
-			// Reject on error.
+		fs.readFile(p, (err, data) => {
 			if (err) reject(err);
-
-			// Return file contents on success.
 			resolve(data.toString());
 		});
 	});
@@ -24,14 +22,14 @@ let read = filepath => {
 /**
  * Wrapper for writeFile method. Returns a Promise.
  *
- * @param  {string} filepath - The path of file to read.
+ * @param  {string} p - The path of file to read.
  * @param  {string} data - The file's contents.
  * @param  {string} mode - The script's mode (chmod) value.
  * @return {promise} - Promise is returned.
  */
-let write = (filepath, data, mode) => {
+let write = (p, data, mode) => {
 	return new Promise((resolve, reject) => {
-		fs.writeFile(filepath, data, err => {
+		fs.writeFile(p, data, err => {
 			// Apply file mode if supplied.
 			if (mode) {
 				// Using options.mode does not work as expected:
@@ -41,18 +39,12 @@ let write = (filepath, data, mode) => {
 				// [https://x-team.com/blog/file-system-permissions-umask-node-js/]
 
 				// Apply file mode (chmod) explicitly.
-				fs.chmod(filepath, mode, err => {
-					// Reject on error.
+				fs.chmod(p, mode, err => {
 					if (err) reject(err);
-
-					// Return true boolean on success.
 					resolve(true);
 				});
 			} else {
-				// Reject on error.
 				if (err) reject(err);
-
-				// Return true boolean on success.
 				resolve(true);
 			}
 		});
@@ -61,18 +53,15 @@ let write = (filepath, data, mode) => {
 /**
  * Wrapper for copyFile method. Returns a Promise.
  *
- * @param  {string} filepath - The path of file to copy.
+ * @param  {string} p - The path of file to copy.
  * @return {promise} - Promise is returned.
  *
  * @resource [https://stackoverflow.com/a/46253698]
  */
-let copy = (filepath, destination) => {
+let copy = (p, destination) => {
 	return new Promise((resolve, reject) => {
-		fs.copyFile(filepath, destination, err => {
-			// Reject on error.
+		fs.copyFile(p, destination, err => {
 			if (err) reject(err);
-
-			// Return boolean on success.
 			resolve(true);
 		});
 	});
@@ -81,16 +70,13 @@ let copy = (filepath, destination) => {
 /**
  * Wrapper for unlink method. Returns a Promise.
  *
- * @param  {string} filepath - The path of file to remove.
+ * @param  {string} p - The path of file to remove.
  * @return {promise} - Promise is returned.
  */
-let remove = filepath => {
+let remove = p => {
 	return new Promise((resolve, reject) => {
-		fs.unlink(filepath, err => {
-			// Reject on error.
+		fs.unlink(p, err => {
 			if (err) reject(err);
-
-			// Return file contents on success.
 			resolve(true);
 		});
 	});
@@ -99,37 +85,32 @@ let remove = filepath => {
 /**
  * Get file path information (i.e. file name and directory path).
  *
- * @param  {string} filepath - The complete file path.
+ * @param  {string} p - The complete file path.
  * @return {object} - Object containing file path components.
  */
-let info = filepath => {
-	// Get file extension.
-	let extension = ext(filepath);
-	// Get file name and directory path.
-	let name = path.basename(filepath);
-	let dirname = path.dirname(filepath);
+let info = p => {
+	let extension = ext(p);
+	let name = path.basename(p);
+	let dirname = path.dirname(p);
 
 	return {
 		name,
 		dirname,
 		ext: extension,
-		path: filepath
+		path: p
 	};
 };
 
 /**
  * Wrapper for readFile method. Returns a Promise.
  *
- * @param  {string} filepath - The path of file to read.
+ * @param  {string} p - The path of file to read.
  * @return {promise} - Promise is returned.
  */
-let readdir = filepath => {
+let readdir = p => {
 	return new Promise((resolve, reject) => {
-		fs.readdir(filepath, (err, list) => {
-			// Reject on error.
+		fs.readdir(p, (err, list) => {
 			if (err) reject(err);
-
-			// Return directory contents list (array).
 			resolve(list);
 		});
 	});
@@ -157,17 +138,17 @@ let ispath_abs = p => {
 /**
  * Get file paths stats.
  *
- * @param  {string} filepath - The file path to use.
+ * @param  {string} p - The file path to use.
  * @return {object} - The file path's stats object.
  *
  * @resource [https://stackoverflow.com/a/15630832]
  * @resource [https://pubs.opengroup.org/onlinepubs/7908799/xsh/lstat.html]
  * @resource [https://www.brainbell.com/javascript/fs-stats-structure.html]
  */
-let lstats = filepath => {
+let lstats = p => {
 	return new Promise((resolve, reject) => {
-		fs.lstat(filepath, (err, stats) => {
-			if (err) reject(err); // Reject on error.
+		fs.lstat(p, (err, stats) => {
+			if (err) reject(err);
 
 			// Add other pertinent information to object:
 			// [https://stackoverflow.com/a/15630832]
@@ -182,7 +163,6 @@ let lstats = filepath => {
 				socket: stats.isSocket()
 			};
 
-			// Return file contents on success.
 			resolve(stats);
 		});
 	});
@@ -191,17 +171,31 @@ let lstats = filepath => {
 /**
  * Resolve paths `real` path. This means solving symlinks.
  *
- * @param  {string} filepath - The file path to use.
+ * @param  {string} p - The file path to use.
  * @return {string} - The resolved real path.
  *
  * @resource [https://nodejs.org/docs/latest/api/fs.html#fs_fs_realpath_path_options_callback]
  */
-let realpath = filepath => {
+let realpath = p => {
 	return new Promise((resolve, reject) => {
-		fs.realpath(filepath, (err, resolved_path) => {
-			if (err) reject(err); // Reject on error.
+		fs.realpath(p, (err, resolved_path) => {
+			if (err) reject(err);
+			resolve(resolved_path);
+		});
+	});
+};
 
-			resolve(resolved_path); // Return resolved true path.
+/**
+ * Wrapper for rimraf module.
+ *
+ * @param  {string} p - The path to delete.
+ * @return {promise} - rimraf promise.
+ */
+let rmrf = p => {
+	return new Promise((resolve, reject) => {
+		rimraf(p, err => {
+			if (err) reject(err);
+			resolve(true);
 		});
 	});
 };
@@ -209,12 +203,10 @@ let realpath = filepath => {
 /**
  * Use provided path to build the file's correct source path.
  *
- * @param  {string} filepath - The source's file path.
+ * @param  {string} p - The source's file path.
  * @return {string} - The corrected source's file path.
  */
-// let fixpath = filepath => {
-// 	return path.join(path.dirname(__dirname), filepath);
-// };
+// let fixpath = p => { return path.join(path.dirname(__dirname), p); };
 
 module.exports = {
 	ispath_abs,
@@ -225,5 +217,6 @@ module.exports = {
 	write,
 	info,
 	read,
+	rmrf,
 	copy
 };

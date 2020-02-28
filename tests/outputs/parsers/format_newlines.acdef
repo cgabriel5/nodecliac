@@ -1,0 +1,5 @@
+ --flag|--flag=|--flag="String"|--flag=option
+
+ default $("cat ~/Desktop/file.text")
+
+@setting = true

@@ -11,7 +11,7 @@ const fmt = function(template, ...args) {
 	let rmap = {};
 
 	for (let i = 0, l = args.length; i < l; i++) {
-		let arg = args[i]; // Cache current loop item.
+		let arg = args[i];
 		if (typeof arg !== "object") rmap[i] = arg;
 		else {
 			rmap[i] = ""; // Add empty entry to map.
@@ -52,8 +52,8 @@ let rtp = (rstrings, ...values) => {
 	let res = "";
 
 	for (let i = 0, l = rstrings.length; i < l; i++) {
-		let rstring = rstrings[i]; // Cache current loop item.
-		// Weave in the value after the raw string.
+		let rstring = rstrings[i];
+		// Weave value in after raw string.
 		res += rstring + (values[i] || "");
 	}
 

@@ -1,0 +1,136 @@
+# File tests removal of newlines after and before braces,
+# at start of file, and at the end of the file.
+
+# Comment
+@setting = true
+
+# Comment
+
+$var = "value"
+
+# Case: 1
+program = []
+
+# Case: 2
+program = []
+
+# Case: 3
+program = [
+	# Comment
+]
+
+# Case: 4
+program = [
+	# Comment
+
+	# Comment
+]
+
+# Case: 5
+program = []
+
+# Case: 6
+program = []
+
+# Case: 7
+program = []
+
+# Case: 8
+program = []
+
+# Case: 9
+program = [
+	--flag
+	--flag
+]
+
+# Case: 10
+program = [
+	--flag
+	--flag
+]
+
+# Case: 11
+program = [
+	--flag
+	--flag
+]
+
+# Case: 12
+program = [
+	--flag
+	--flag
+]
+
+# Case: 13
+program = [
+	--flag
+	--flag=()
+]
+
+# Case: 14
+program = [
+	--flag
+	--flag=()
+]
+
+# Case: 15
+program = [
+	--flag
+	--flag=()
+]
+
+# Case: 16
+program = [
+	--flag
+	--flag=()
+]
+
+# Case: 17
+program = [
+	--flag
+	--flag=()
+]
+
+# Case: 18
+program = [
+	# Comment
+
+	--flag
+	--flag=()
+]
+
+# Case: 19
+program = [
+	# Comment
+
+	--flag
+	--flag=()
+	default $("cat ~/Desktop/file.text")
+]
+
+# Case: 20
+program = [
+	# Comment
+
+	--flag
+	--flag=()
+
+	default $("cat ~/Desktop/file.text")
+]
+
+# Case: 21
+program = [
+	--flag=()
+
+	--flag=()
+
+	--flag=(
+		- option
+		- "String"
+	)
+
+	# Comment
+
+	# Comment
+]

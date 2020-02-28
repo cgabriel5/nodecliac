@@ -1,34 +1,49 @@
 #!/bin/bash
 
+# Get platform name.
+#
+# @return {string} - User's platform.
+#
+# @resource [https://stackoverflow.com/a/18434831]
+function platform() {
+	case "$OSTYPE" in
+		solaris*) echo "solaris" ;;
+		darwin*)  echo "macosx" ;;
+		linux*)   echo "linux" ;;
+		bsd*)     echo "bsd" ;;
+		msys*)    echo "windows" ;;
+		*)        echo "unknown" ;;
+	esac
+}
+
 # Script checks whether `nodecliac make` returns same output. If so
 # the parser is working properly.
 
-# -----------------------------------------------------------------------IMPORTS
+# ---------------------------------------------------------------------- IMPORTS
 
-. "$__filepath/common.sh" # Import functions/variables.
+. "$__filepath/common.sh"
 
-# --------------------------------------------------------------------------VARS
+# ------------------------------------------------------------------------- VARS
 
 # Get path of current script. [https://stackoverflow.com/a/246128]
 __filepath="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 TESTDIR=$(chipdir "$__filepath" 1) # The tests script's path.
+NIM_BIN="$(chipdir "$__filepath" 2)/src/parser/nim/nodecliac.$(platform)"
 
-# The output path.
 output_path="outputs/$OUTPUT_DIR"
-# Create needed folder it not already created.
 mkdir -p "$TESTDIR/$output_path"
 
 files_count=0
 passed_count=0
 
-# --------------------------------------------------------------------------TEST
+# ------------------------------------------------------------------------- TEST
 
 # Print header.
 if [[ $(isset "$PRINT") ]]; then echo -e "\033[1m[Testing $HEADER]\033[0m"; fi
 
 # To run tests there needs to be modified src/ files or force flag.
-if [[ "$STAGED_FILES" != *"src/"* && $(notset "$FORCE") ]]; then
+if [[ "$(git diff --name-only --cached)" != *"src/"* && $(notset "$FORCE") ]]; then
 	if [[ $(isset "$PRINT") ]]; then
 		echo -e " $CHECK_MARK [skipped] No staged \033[1;34msrc/\033[0m files.\n"
 	fi
@@ -36,15 +51,69 @@ if [[ "$STAGED_FILES" != *"src/"* && $(notset "$FORCE") ]]; then
 	if [[ $(notset "$FORCE") ]]; then exit 0; fi # Exit if not forced.
 fi
 
+# Delete existing log files.
+logpath="$TESTDIR/$output_path/logs"
+if [[ -e "$logpath" ]]; then rm -rf "$logpath"; fi
+
+decor="==============="
+
 for f in "$TESTDIR"/acmaps/*.acmap; do
 	((files_count++))
 
 	forg="$f"
+	output=""
+	log=""
 	# Run with `--test` flag to prevent printing headers/meta information.
 	if [[ "$ACTION" == "parse" ]]; then
-		output="$(nodecliac make --source "$f" --test)"
+		output_js="$(nodecliac make --source "$f" --test)"
+		if [[ "$output_js" == "["* ]]; then
+			# Remove colors from output: [https://stackoverflow.com/a/54648447]
+			output_js="$(echo "$output_js" | sed $'s,\x1b\\[[0-9;]*[a-zA-Z],,g')"
+		fi
+		output_nim="$("$NIM_BIN" make --source "$f" --test)"
+		if [[ "$output_nim" == "["* ]]; then
+			output_nim="$(echo "$output_nim" | sed $'s,\x1b\\[[0-9;]*[a-zA-Z],,g')"
+		fi
+		if [[ "$output_js" == "$output_nim" ]]; then
+			output="$output_js"
+		else
+			log="true"
+			output=" -:- parsing -:-\n\n"
+			output+="# $decor <JS $decor\n"
+			output+="$output_js"
+			output+="\n#\n\n"
+			output+="# $decor >Nim $decor\n"
+			output+="$output_nim"
+			output+="\n#"
+			# [https://stackoverflow.com/a/454549]
+			# [https://linuxconfig.org/add-character-to-the-beginning-of-each-line-using-sed]
+			diffoutput="$(diff  <(echo "$output_js" ) <(echo "$output_nim") | sed 's/^/# /')"
+			output+="\n\n# $decor DIFF $decor\n$diffoutput"
+		fi
 	else
-		output="$(nodecliac format --source "$f" --indent "t:1" --test)"
+		output_js="$(nodecliac format --source "$f" --indent "t:1" --test)"
+		if [[ "$output_js" == "["* ]]; then
+			# Remove colors from output: [https://stackoverflow.com/a/54648447]
+			output_js="$(echo "$output_js" | sed $'s,\x1b\\[[0-9;]*[a-zA-Z],,g')"
+		fi
+		output_nim="$("$NIM_BIN" format --source "$f" --indent "t:1" --test)"
+		if [[ "$output_nim" == "["* ]]; then
+			output_nim="$(echo "$output_nim" | sed $'s,\x1b\\[[0-9;]*[a-zA-Z],,g')"
+		fi
+		if [[ "$output_js" == "$output_nim" ]]; then
+			output="$output_js"
+		else
+			log="true"
+			output=" -:- formatting -:-\n\n"
+			output+="# $decor <JS $decor\n"
+			output+="$output_js"
+			output+="\n#\n\n"
+			output+="# $decor >Nim $decor\n"
+			output+="$output_nim"
+			output+="\n#"
+			diffoutput="$(diff  <(echo "$output_js" ) <(echo "$output_nim") | sed 's/^/# /')"
+			output+="\n\n# $decor DIFF $decor\n$diffoutput"
+		fi
 	fi
 
 	# Get basename from file path.
@@ -67,12 +136,17 @@ for f in "$TESTDIR"/acmaps/*.acmap; do
 	# The output file path.
 	foutput="$TESTDIR/$output_path/$f.$EXTENSION"
 
+	# Create log files if tests fail.
+	if [[ "$log" == "true" ]]; then
+		mkdir -p "$logpath"
+		echo -e "$output" > "$logpath/$f.$EXTENSION"
+	fi
+	
 	# If output folder is not yet populated, populate it.
 	if [[ ! -e "$foutput" ]]; then
 		echo "$output" >> "$foutput"
 	fi
 
-	# else
 	# Compare output with output file.
 	contents="$(<"$foutput")"
 	# If the contents don't match the output something failed.

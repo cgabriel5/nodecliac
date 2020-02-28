@@ -49,10 +49,10 @@ $ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/in
 
 <details><summary>Installation flags</summary>
 
-- `--installer`: The installer to use. (default: `yarn` > `npm` > `aconly`)
+- `--installer`: The installer to use. (default: `yarn` > `npm` > `binary`)
   - `yarn`: Uses [yarn](https://yarnpkg.com/en/) to install.
   - `npm`: Uses [Node.js](https://nodejs.org/en/)'s [npm](https://www.npmjs.com/get-npm) to install.
-  - `aconly`: _Only_ Bash completion (no nodecliac JavaScript CLI tools).
+  - `binary`: Uses nodecliac's [Nim](https://nim-lang.org/) Linux/macOS CLI tools.
 - `--branch`: An _existing_ nodecliac branch name to install. (default: `master`)
 - `--rcfilepath`: Path of `bashrc` file to use when installing nodecliac. (default: `~/.bashrc`)
 
@@ -62,8 +62,7 @@ $ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/in
   <summary>Requirements</summary>
 
 - Node.js `8+`
-  - nodecliac and its CLI tools (`.acmap` to `.acdef` parser, formatter, etc.) are written in JavaScript.
-  - **Note**: If _only_ Bash completion is needed (i.e. not developing a completion package &mdash; don't need nodecliac's core CLI tools (parser, formatter, etc.)) then Node.js is _not_ required. Simply install with `aconly` installer.
+  - Required if installing via `npm` or `yarn`.
 - Perl `5+`
   - Runs needed Perl Bash completion scripts.
   - Works in tandem with Bash shell scripts.
@@ -129,7 +128,7 @@ nodecliac uses two custom files: **a**uto-**c**ompletion **map** (`.acmap`) and 
 - Settings begin with an at-sign (`@`) followed by the setting name.
 - Setting values are assigned with `=` followed by the setting value.
 - Any amount of whitespace before and after `=` is fine, but keep things tidy.
-- No amount of indentation can precede a setting declaration.
+- Whitespace indentation can precede a setting declaration.
 - **Note**: Settings can be declared _anywhere_ within your `.acmap` file.
   - However, it's best if declared at the start of file to quickly spot them.
 
@@ -161,7 +160,7 @@ nodecliac uses two custom files: **a**uto-**c**ompletion **map** (`.acmap`) and 
 - Variable values are assigned with `=` followed by the variable value.
 - A variable's value must be enclosed with quotes.
 - Any amount of whitespace before and after `=` is fine, but keep things tidy.
-- No amount of indentation can precede a setting declaration.
+- Whitespace indentation can precede a variable declaration.
 - **Note**: Variables can be declared _anywhere_ within your `.acmap`.
 
 ```acmap
@@ -196,7 +195,7 @@ yarn.run = default $("${mainscript} run")
 - They start with the CLI program's name, are followed by any commands/subcommands, and are dot (`.`) delimited.
 - If a (sub)command happens to use a dot then simply escape the dot.
   - Non escaped dots will be used as delimiters.
-- No amount of indentation can precede a command chain.
+- Whitespace indentation can precede a command chain.
 
 **Example**: Say the CLI program `program` has two commands `install` and `uninstall`. It's `.acmap` file will be:
 
@@ -416,29 +415,32 @@ program.uninstall
 
 #### Flags (dynamic values)
 
-Sometimes hard-coded values are not enough so a `command-flag` can be used. A `command-flag` runs a shell command string. By default the returned command's output expects each completion item to be on its own line (newline (`\n`) delimited list). However, if you need to change the delimiter character to a space, hyphen, etc. then simply add the delimiter character to the `command-flag`. The syntax for a `command-flag` is as follows:
+Sometimes static values are not enough so a `command-flag` can be used. A `command-flag` is just a runnable line of shell code.
 
-- `$("cat ~/colors.text")`: Will run command and split output on newlines to get individual options.
-- `$("cat ~/colors.text", " ")`: Will run command and split output on spaces to get individual options.
+`command-flag` syntax:
 
-If the command requires arguments they can be _hard-coded_ or _dynamically_ supplied.
+- Begins with starting `$(`, followed by command, and ends with closing `)`.
+- Output: a newline (`\n`) delimited list is expected.
+  - Each completion item should be on its own line.
+- Example: `$("cat ~/colors.text")`
+- **Note**: Command must be quoted (double or single).
 
-- `$("cat ~/colors.text", "!red", $"cat ~/names.text", "-")`:
-  - This will provide the hard-coded `!red` value and run the `cat ~/names.text` flag command argument.
-  - Once all dynamic arguments are ran their outputs along with the hard-coded values are passed to the command `cat ~/colors.text` in the order they were provided.
-  - So `!red` will be argument `0` and the output of `cat ~/names.text` will be argument `1`.
-  - Once `cat ~/colors.text` is run, its output will be split by hyphens.
-- **Note**: _dynamic_ flag command arguments must be prefixed with a dollar-sign (`$`) character.
+_static_ or _dynamic_ arguments may be provided.
 
-**Escaping**: `$` and `|` are used internally by nodecliac so they have special meaning. Therefore, if used they need escaping. Take the following examples:
+- Example: `$("cat ~/colors.text", "!red", $"cat ~/names.text")`:
+  - This provides the _static_ `!red` and _dynamic_ `cat ~/names.text` arguments.
+  - `!red` will be argument `0` and the output of `cat ~/names.text` will be argument `1`.
+- **Note**: _dynamic_ arguments must be dollar-sign prefixed (`$`).
 
-- `--flag=$("echo \$0-\$1", $"echo 'john'", "doe", "-")`:
+**Escaping**: `$` and `|` are used internally so require escaping when used.
+
+- `--flag=$("echo \$0-\$1", $"echo 'john'", "doe")`:
   - The `$`s in the command are escaped.
 - `--flag=$("nodecliac registry \| grep -oP \"(?<=─ )([-a-z]*)\"")`:
-  - Here the `|` gets escaped as well.
-  - **Note**: Inner quotes are also escaped for obvious reasons.
+  - The `|` gets escaped here.
+  - **Note**: Inner quotes are also escaped like one would on the command-line.
 
-**Example**: Showcases dynamic and hard-coded values.
+**Example**: Showcases _dynamic_ and _static_ values.
 
 ```acmap
 program.command = [
@@ -457,7 +459,7 @@ program.command = [
     - index.js
     - ':task:js'
     - "some-thing"
-    - $("cat ~/file.text")
+    - $("cat ~/values.text")
   )
 ]
 program.uninstall

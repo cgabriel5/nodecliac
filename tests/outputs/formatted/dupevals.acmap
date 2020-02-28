@@ -8,8 +8,8 @@
 @setting = val\ue
 @setting = false
 @setting = true
-@setting null null
-@path = null
+@setting
+@path =
 @config = 12
 
 program = [

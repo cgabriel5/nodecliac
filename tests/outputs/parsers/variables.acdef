@@ -6,8 +6,8 @@
 .config.get --
 .config.list --
 .config.set --global
-.tests --nums=*|--flag=|--flag="string list.text"|--flag=$("cat \"$HOME/Desktop/list.text\"")|--name=|--name="str list.text"|--name=$("string list.text",$"string list.text")|--name=123|--name=false|--name=s\tring|--name=str|--name=string|--name=string\ string|--name=true|--nums="\n"|--nums="st\\ri\\ng list.text"|--nums="str list.text"|--nums="string list.text"|--nums=$("cat list.text","list.text")|--nums=$("cat list.text",$"CAT list.text")|--nums=$("cat list.text")|--nums=1|--nums=13|--nums=2|--nums=false|--nums=stri\&ng|--nums=strin\gs|--nums=true|--something=|--something=$("string list.text")
-\.test --nums=*|--flag=|--flag="string list.text"|--flag=$("cat \"$HOME/Desktop/list.text\"")|--name=|--name="str list.text"|--name=$("string list.text",$"string list.text")|--name=123|--name=false|--name=s\tring|--name=str|--name=string|--name=string\ string|--name=true|--nums="\n"|--nums="st\\ri\\ng list.text"|--nums="str list.text"|--nums="string list.text"|--nums=$("cat list.text","list.text")|--nums=$("cat list.text",$"CAT list.text")|--nums=$("cat list.text")|--nums=1|--nums=13|--nums=2|--nums=false|--nums=stri\&ng|--nums=strin\gs|--nums=true|--something=|--something=$("string list.text")
+.tests --flag=|--flag="string list.text"|--name=|--name="str list.text"|--name=$("string list.text",$"string list.text")|--name=123|--name=false|--name=s\tring|--name=str|--name=string|--name=string\ string|--name=true
+\.test --nums=*|--flag=|--flag=$("cat \"$HOME/Desktop/list.text\"")|--nums="\n"|--nums="st\\ri\\ng list.text"|--nums="str list.text"|--nums="string list.text"|--nums=$("cat list.text")|--nums=$("cat list.text","list.text")|--nums=$("cat list.text",$"CAT list.text")|--nums=1|--nums=13|--nums=2|--nums=false|--nums=stri\&ng|--nums=strin\gs|--nums=true|--something=|--something=$("string list.text")
 
 .command default $("remove")
 .command2 default $("cat ~/.nodecliac/resources/program/config.sh")

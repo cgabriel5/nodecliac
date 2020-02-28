@@ -3,7 +3,7 @@
 # Script tests both ac.pl and ac.nim auto-completion scripts against
 # pre-prepared completion statements.
 
-# -----------------------------------------------------------------CLI-ARGUMENTS
+# ---------------------------------------------------------------- CLI-ARGUMENTS
 
 PRINT=""
 FORCE=""
@@ -35,14 +35,14 @@ shift $((OPTIND - 1))
 # Get path of current script. [https://stackoverflow.com/a/246128]
 __filepath="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
-# -----------------------------------------------------------------------IMPORTS
+# ---------------------------------------------------------------------- IMPORTS
 
-. "$__filepath/common.sh" # Import functions/variables.
+. "$__filepath/common.sh"
 
-# --------------------------------------------------------------------------VARS
+# ------------------------------------------------------------------------- VARS
 
 # [https://www.thegeekstuff.com/2010/06/bash-array-tutorial/]
-declare -a scripts=() # Create scripts array.
+declare -a scripts=()
 perlscript_path=~/.nodecliac/src/ac/ac.pl # The Perl ac script path.
 
 # Detect which nodecliac ac script is being used (bin or Perl script).
@@ -54,7 +54,7 @@ if [[ $(isset "$OVERRIDE") ]]; then
 		acpl_script="$perlscript_path"
 	fi
 	
-	scripts=("$acpl_script") # Add script to array.
+	scripts=("$acpl_script")
 else
 	acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo ${e/darwin/macosx})"
 	# acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo $e)"
@@ -63,9 +63,8 @@ else
 	# Fallback to Perl script if Nim os binary is not supported.
 	if [[ ! -e "$acpl_script"  ]]; then
 		acpl_script="$perlscript_path"
-		scripts=("$acpl_script") # Add script to array.
+		scripts=("$acpl_script")
 	else
-		# Add script to array.
 		scripts=("$perlscript_path" "$acpl_script")
 	fi
 fi
@@ -83,7 +82,7 @@ if [[ $(notset "$(command -v nodecliac)") ]]; then
 fi
 
 # To run tests there needs to be modified src/ files or force flag.
-if [[ "$STAGED_FILES" != *"src/"* && $(notset "$FORCE") ]]; then
+if [[ "$(git diff --name-only --cached)" != *"src/"* && $(notset "$FORCE") ]]; then
 	if [[ $(isset "$PRINT") ]]; then
 		echo -e "\033[1m[Testing Completion Script]\033[0m [script=, override=$OVERRIDE]"
 		echo -e " $CHECK_MARK [skipped] No staged \033[1;34msrc/\033[0m files.\n"
@@ -92,13 +91,12 @@ if [[ "$STAGED_FILES" != *"src/"* && $(notset "$FORCE") ]]; then
 	if [[ $(notset "$FORCE") ]]; then exit 0; fi # Exit if not forced.
 fi
 
-# ---------------------------------------------------------------------FUNCTIONS
+# -------------------------------------------------------------------- FUNCTIONS
 
 # Run nodecliac against provided test/mock CLI input.
 #
 # @param {string} - The test CLI input.
 function xnodecliac {
-	# Get arguments.
 	local oinput="$1"
 	local cline=$([[ -n "$2" ]] && echo "$2" || echo "$1")
 	local cpoint=$([[ -n "$3" ]] && echo "$3" || echo "${#oinput}")
@@ -116,7 +114,7 @@ function xnodecliac {
 #
 # @param {string} 1) - The test to run.
 # @param {string} 2) - The test input.
-# @param {string} 2) - The answer's test.
+# @param {string} 3) - The answer's test.
 function xtest {
 	local testname="$1"
 	local teststring="$2"
@@ -179,7 +177,7 @@ function xtest_omits {
 	if [[ "$output" == *"$answer"* ]]; then echo 0; else echo 1; fi
 }
 
-# -------------------------------------------------------------------------TESTS
+# ------------------------------------------------------------------------ TESTS
 
 # Note: When `OVERRIDE` is present then we only test that
 # specificity script once. Else we test both the Nim and Perl scripts.
@@ -193,7 +191,7 @@ for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-i
 
 	# [test-suite: nodecliac]
 	xtest contains "nodecliac " "uninstall"
-	xtest contains "nodecliac --engine=" "1"
+	# xtest contains "nodecliac --engine=" "1"
 	xtest contains "nodecliac --engine=2 --" "--version "
 	xtest contains "nodecliac print --command=" "subl"
 	xtest contains "nodecliac print --command" "--command="

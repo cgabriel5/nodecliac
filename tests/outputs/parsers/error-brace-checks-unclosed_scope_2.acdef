@@ -1,0 +1,1 @@
+[err brace-checks,12] ...tests/acmaps/error-brace-checks-unclosed_scope_2-t.acmap:2:9 — Unclosed scope

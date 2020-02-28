@@ -2,57 +2,42 @@
 
 const flatry = require("flatry");
 const fe = require("file-exists");
-const {
-	paths,
-	read,
-	write,
-	realpath,
-	readdir
-} = require("../utils/toolbox.js");
+const toolbox = require("../utils/toolbox.js");
+const { paths, read, write, realpath, readdir } = toolbox;
 
 module.exports = async args => {
-	let { registrypath } = paths; // Get needed paths.
+	let { registrypath } = paths;
 	// eslint-disable-next-line no-unused-vars
-	let err, res; // Declare empty variables to reuse for all await operations.
+	let err, res, resolved_path;
 
-	let { all } = args; // CLI args.
-	let packages = args._; // Get provided packages.
-	let action = packages[0]; // Get main action.
-	packages.shift(); // Remove action from list.
+	let { all } = args;
+	let packages = args._;
+	let action = packages[0];
+	packages.shift();
 	let state = action === "enable" ? "false" : "true";
 
 	// Get all packages when '--all' is provided.
-	if (all) {
-		[err, res] = await flatry(readdir(registrypath));
-		packages = res;
-	}
+	if (all) [err, packages] = await flatry(readdir(registrypath));
 
 	// Loop over packages and remove each if its exists.
 	for (let i = 0, l = packages.length; i < l; i++) {
-		let pkg = packages[i]; // Cache current loop item.
+		let pkg = packages[i];
 
-		// Needed paths.
 		let filepath = `${registrypath}/${pkg}/.${pkg}.config.acdef`;
-		[err, res] = await flatry(realpath(filepath));
-		let resolved_path = res;
+		[err, resolved_path] = await flatry(realpath(filepath));
 
-		// Ensure file exists before anything.
 		[err, res] = await flatry(fe(resolved_path));
 		if (err || !res) continue;
-
-		[err, res] = await flatry(read(resolved_path)); // Get config file contents.
+		[err, res] = await flatry(read(resolved_path));
 		if (err) continue;
 
-		// Remove current value from config.
-		let contents = res.trim(); // Trim config before using.
+		let contents = res.trim();
 		contents = contents.replace(/^@disable[^\n]*/gm, "").trim();
-		contents += `\n@disable = ${state}\n`; // Add new value to config.
-
-		// Cleanup contents.
+		contents += `\n@disable = ${state}\n`;
 		contents = contents.replace(/^\n/gm, ""); // Remove newlines.
 		contents = contents.replace(/\n/, "\n\n"); // Add newline after header.
 
-		[err, res] = await flatry(write(filepath, contents)); // Save changes.
+		[err, res] = await flatry(write(filepath, contents));
 		if (err) continue;
 	}
 };

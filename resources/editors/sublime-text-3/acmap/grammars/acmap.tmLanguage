@@ -381,7 +381,7 @@
 			<key>setting</key>
 			<dict>
 				<key>begin</key>
-				<string>^((@)([a-zA-Z][_a-zA-Z0-9]*))\s*(=)\s*</string> <!-- (?=[^\\s]{2,}) -->
+				<string>^\s*((@)([a-zA-Z][_a-zA-Z0-9]*))\s*(=)\s*</string> <!-- (?=[^\\s]{2,}) -->
 				<key>beginCaptures</key>
 				<dict>
 					<key>1</key>
@@ -449,7 +449,7 @@
 			<key>variable</key>
 			<dict>
 				<key>begin</key>
-				<string>^((\$)([_a-zA-Z][_a-zA-Z0-9]*))\s*(=)\s*</string> <!-- (?=[^\\s]{2,}) -->
+				<string>^\s*((\$)([_a-zA-Z][_a-zA-Z0-9]*))\s*(=)\s*</string> <!-- (?=[^\\s]{2,}) -->
 
 				<key>beginCaptures</key>
 				<dict>
@@ -609,7 +609,7 @@
 			<key>command</key>
 			<dict>
 				<key>begin</key>
-				<string>^(?=\.?[a-zA-Z])</string>
+				<string>^\s*(?=\.?[a-zA-Z])</string>
 
 				<key>contentName</key>
 				<string>entity.other.command.acmap</string> <!-- **italicize -->

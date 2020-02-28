@@ -1,0 +1,4 @@
+program = [
+	--help=$"cat ~/files.text")
+	# Missing '(' after '$'.
+]

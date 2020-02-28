@@ -103,7 +103,10 @@ if [[ -n "$valid_bash" ]]; then
 	# [https://www.perlmonks.org/?node_id=151267]
 	# [https://stackoverflow.com/a/28035653]
 	# [https://gist.github.com/joyrexus/7328094]
-	perl -i -ne "if (\$. == 1 and /^#!\/.*\/bash$/) { print \"#!$valid_bash\\n\" } else { print \$_ }; $. = 0 if eof" $files
+	# perl -i -ne "if (\$. == 1 and /^#!\/.*\/bash$/) { print \"#!$valid_bash\\n\" } else { print \$_ }; $. = 0 if eof" $files
+	if [[ -n "$files" ]]; then
+		perl -i -ne "if (\$. == 1 and /^#!\/.*\/bash$/) { print \"#!$valid_bash\\n\" } else { print \$_ }; $. = 0 if eof" $files
+	fi
 
 	# GNU grep method (different output in macOS):
 	# [https://unix.stackexchange.com/a/355388]

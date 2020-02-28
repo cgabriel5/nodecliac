@@ -32,7 +32,7 @@ function cline() {
 	tput cuu 1 && tput el
 }
 
-# Print provided message and exit.
+# Print error message and exit.
 #
 # @param {string} 1) - Message to print.
 # @return - Nothing is returned.
@@ -40,11 +40,20 @@ function err() {
 	echo -e "\033[0;31mError\033[0m: $1" && exit
 }
 
+# Print success message.
+#
+# @param {string} 1) - Message to print.
+# @return - Nothing is returned.
+function success() {
+	cline && echo -e " $CHECK_MARK $1" && sleep 0.1 && cline
+}
+
 os=`platform`
 outputdir="$HOME/.nodecliac-src"
 # Unix timestamp in ms: [https://stackoverflow.com/a/21640976]
 timestamp=$(perl -MTime::HiRes=time -e 'print int(time() * 1000);')
 binfilepath="/usr/local/bin/nodecliac" # [https://unix.stackexchange.com/a/8664]
+CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m"
 branch_name="master"
 installer=""
 rcfilepath=""
@@ -128,7 +137,7 @@ elif [[ "$installer" == "npm" ]]; then
 fi
 
 # Check branch exists: [https://stackoverflow.com/a/23916276]
-echo " - Verifying branch name..."
+echo " - Verifying branch..."
 if [[ -n "$(exists wget)" ]]; then
 	if [[ -z "$(wget -qO- "$branchurl" | grep -o tree)" ]]; then
 		cline && err "Branch '$branch_name' doesn't exist."
@@ -138,27 +147,37 @@ elif [[ -n "$(exists curl)" ]]; then
 		cline && err "Branch '$branch_name' doesn't exist."
 	fi
 fi
-cline
+success "Verified branch."
 
 # If ~/.nodecliac exists back it up.
 if [[ -e ~/.nodecliac ]]; then
+	echo " - Backing up old ~/.nodecliac directory..."
 	cp -a ~/.nodecliac "$HOME/.nodecliac.bak.$timestamp"
+	success "Backed up old ~/.nodecliac directory."
 fi
 
 if [[ -n "$(exists nodecliac)" ]]; then
 	echo " - Running 'nodecliac uninstall'..."
 	nodecliac uninstall > /dev/null 2>&1
-	cline
+	success "Ran 'nodecliac uninstall'."
 fi
-if [[ -n "$(exists yarn)" && -n "$(yarn global list | grep -o "nodecliac@")" ]]; then
-	echo " - Removing global nodecliac from yarn..."
-	yarn global remove nodecliac > /dev/null 2>&1
-	cline
+if [[ -n "$(exists yarn)" ]]; then
+	echo " - Checking for yarn global nodecliac install..."
+	if [[ -n "$(yarn global list | grep -o "nodecliac@")" ]]; then
+		cline && echo " - Removing global nodecliac from yarn..."
+		yarn global remove nodecliac > /dev/null 2>&1
+		success "Removed global yarn nodecliac install."
+	fi
+	success "No global yarn nodecliac install to remove."
 fi
-if [[ -n "$(exists npm)" && -n "$(npm list -g --depth=0 | grep -o "nodecliac@")" ]]; then
-	echo " - Removing global nodecliac from npm..."
-	sudo npm uninstall -g nodecliac > /dev/null 2>&1
-	cline
+if [[ -n "$(exists npm)" ]]; then
+	echo " - Checking for npm global nodecliac install..."
+	if [[ -n "$(npm list -g --depth=0 | grep -o "nodecliac@")" ]]; then
+		cline && echo " - Removing global nodecliac from npm..."
+		sudo npm uninstall -g nodecliac > /dev/null 2>&1
+		success "Removed global npm nodecliac install."
+	fi
+	success "No global npm nodecliac install to remove."
 fi
 
 # -------------------------------------------------------------- INSTALLER-LOGIC
@@ -170,25 +189,26 @@ if [[ "$installer" == "binary" ]]; then
 	usewget="$(exists wget)"
 	usecurl="$(exists curl)"
 	if [[ -n "$usewget$usecurl" ]]; then
-		echo " - Downloading repo..."
+		echo " - Downloading repository..."
 		tarname="$HOME/.nodecliac-src.tar.gz"
 		if [[ -n "$usewget" ]]; then wget -q -c "$repourl" -O "$tarname"
 		else curl -Ls "$repourl" -o "$tarname"; fi
-		cline
-		echo " - Extracting package..."
+		success "Downloaded repository."
+		echo " - Extracting repository..."
 		tar -xzf "$tarname" -C ~/
-		cline
-		echo " - Moving package to '$uhdir'..."
+		success "Extracted repository."
+		echo " - Moving repository to '$uhdir'..."
 		rm -rf "$outputdir"/* && mv -f ~/cgabriel5-nodecliac-* "$outputdir"
-		cline
+		success "Moved repository to '$uhdir'."
 	elif [[ -n "$(exists git)" ]]; then
-		echo " - Downloading repo..."
+		echo " - Downloading repository..."
 		git clone -q -b "$branch_name" --single-branch "$gitbranch_https" "$outputdir"
 		# git clone -q -b "$branch_name" --single-branch "$gitbranch_ssh" "$outputdir"
-		cline
+		success "Downloaded repository."
 	fi
 
 	# Copy relevant/platform specific files.
+	echo " - Setting up ~/.nodecliac..."
 	dest="$HOME/.nodecliac/src"
 	acpath="$outputdir/src/scripts/ac"
 	mainpath="$outputdir/src/scripts/main"
@@ -213,10 +233,14 @@ if [[ "$installer" == "binary" ]]; then
 	# [https://stackoverflow.com/a/6995010], [https://unix.stackexchange.com/a/179449]
 	perl -pi -e 's/^\s*#(?!!).*?$//g;s/\s{1,}#\s{1,}.+$//g;s!^\s+?$!!' ~/.nodecliac/src/**/*.{sh,pl}
 
+	success "Setup ~/.nodecliac."
+
 	# Add nodecliac to rcfile.
 	if [[ -z "$(grep -o "ncliac=~/.nodecliac/src/main/init.sh" "$rcfilepath")" ]]; then
+		echo " - Adding nodecliac to $rcfilepath..."
 		echo -e '\nncliac=~/.nodecliac/src/main/init.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;' >> "$rcfilepath"
 		perl -i -lpe 's/\x0a$//' "$rcfilepath"
+		success "Added nodecliac to $rcfilepath."
 		# [https://www.unix.com/shell-programming-and-scripting/229399-how-add-newline-character-end-file.html]
 		# [https://knowledge.ni.com/KnowledgeArticleDetails?id=kA00Z0000019KZDSA2]
 		# [https://stackoverflow.com/a/9021745]
@@ -229,10 +253,14 @@ if [[ "$installer" == "binary" ]]; then
 	# # Add back '--version'.
 	# perl -p -i -e 's/^ \-\-/ \-\-version?/m if /^ /' ~/.nodecliac/registry/nodecliac/nodecliac.acdef
 
+	echo " - Creating $binfilepath..."
 	sudo cp -p "$outputdir/src/scripts/bin/binary.sh" "$binfilepath"
 	sudo chmod +x "$binfilepath"
+	success "Created $binfilepath."
 
+	echo " - Cleaning up..."
 	rm -rf ~/.nodecliac-src*
+	success "Cleanup completed."
 else
 	hash -r # Rebuild $PATH: [https://unix.stackexchange.com/a/5610]
 
@@ -242,16 +270,16 @@ else
 		# [https://stackoverflow.com/a/32436218]
 		# sudo npm i -g "cgabriel5/nodecliac#$branch_name" > /dev/null 2>&1
 		sudo npm i -g "$branch_npm" > /dev/null 2>&1
-		cline
+		success "Installed nodecliac via npm."
 	elif [[ "$installer" == "yarn" ]]; then
 		echo " - Installing nodecliac via yarn..."
-		yarn global add branch_yarn > /dev/null 2>&1
-		cline
+		yarn global add "$branch_yarn" > /dev/null 2>&1
+		success "Installed nodecliac via yarn."
 	fi
 
 	echo " - Setting up nodecliac..."
 	nodecliac setup > /dev/null 2>&1
-	cline
+	success "Setup nodecliac."
 fi
 
 # Use \033 rather than \e: [https://stackoverflow.com/a/37366139]

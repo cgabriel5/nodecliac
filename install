@@ -128,7 +128,7 @@ if [[ $# -gt 2 ]]; then
 fi
 
 if [[ " yarn npm binary " != *" $installer "* ]]; then
-	err "Invalid installer '$installer'. Provide: 'yarn|npm|binary'."
+	err "Invalid installer '$installer'. Allowed: 'yarn|npm|binary'"
 fi
 if [[ "$installer" == "yarn" ]]; then
 	if [[ -z "$(exists yarn)" ]]; then err "yarn not installed."; fi

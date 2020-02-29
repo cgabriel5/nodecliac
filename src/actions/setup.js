@@ -65,7 +65,6 @@ module.exports = async args => {
 		"ac/utils/LCP.pm",
 		"bin/ac.linux",
 		"main/config.pl",
-		"main/connector.sh",
 		"main/init.sh"
 	]);
 	if (process.platform === "darwin") {

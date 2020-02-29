@@ -763,7 +763,7 @@ Some programs are more complicated than others. Let's use [`yarn.acdef`](/resour
 
 - `hooks/pre-parse.sh`
   - Purpose: `pre-parse.sh` is _meant_ to modify `acdef` and `cline` variables before running [completion script](/src/scripts/ac).
-  - **Note**: However, since the hook script is `sourced` into [`connector.sh`](/src/scripts/main/connector.sh) it has _access_ to other [`connector.sh`](/src/scripts/main/connector.sh) variables.
+  - **Note**: However, since hook script is `sourced` it has _access_ to it's parent's script variables.
   - Hook script should be seen as [glue code](https://en.wikipedia.org/wiki/Scripting_language#Glue_languages) intended to run actual logic.
     - For example, take yarn's [`pre-parse.sh`](/resources/packages/yarn/hooks/pre-parse.sh) script. The [script](/resources/packages/yarn/hooks/pre-parse.sh) actually runs a Perl script ([`pre-parse.pl`](/resources/packages/yarn/hooks/pre-parse.pl)) which returns the repo's `package.json` `scripts` as well as modified CLI input.
     - The point here is to use the language _needed for the job_. Bash simply _glues_ it together.
@@ -780,7 +780,7 @@ This section will continue to use yarn's [`pre-parse.sh`](/resources/packages/ya
 
 - [`pre-parse.sh`](/resources/packages/yarn/hooks/pre-parse.sh) runs a Perl script ([`pre-parse.pl`](/resources/packages/yarn/hooks/pre-parse.pl)) which returns the repo's `package.json` `scripts` as well as modified CLI input.
 - [`pre-parse.sh`](/resources/packages/yarn/hooks/pre-parse.sh) then modifies the `acdef` and the CLI input.
-- Since the pre-parse script is sourced into [`connector.sh`](/src/scripts/main/connector.sh) nothing is echoed to script.
+- Since the pre-parse script is `sourced` nothing is echoed to script.
 - Instead, the `acdef` and `cline` variables are reset/overwritten.
 - These new values are then used by nodecliac to provide Bash completions.
 

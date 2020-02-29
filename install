@@ -218,7 +218,7 @@ if [[ "$installer" == "binary" ]]; then
 	mkdir -p "$dest"/ac/utils
 	cp -pr "$acpath"/ac.pl "$dest/ac"
 	cp -pr "$acpath"/utils/LCP.pm "$dest/ac/utils"
-	cp -pr "$mainpath"/{init,connector}.sh "$dest/main"
+	cp -pr "$mainpath"/init.sh "$dest/main"
 	cp -pr "$mainpath"/config.pl "$dest/main"
 	cp -pr "$binpath"/binary.sh "$dest/bin"
 	cp -pr "$outputdir"/resources/packages/* ~/.nodecliac/registry

@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# Script has access to connector.sh variables. If changes need to be made
-# override needed variables.
+# Change the following variables.
 # $COMP_LINE    # Original (complete) CLI input.
 # $cpoint       # Caret index when [TAB] key was pressed.
 # $maincommand  # The command name making completions for.

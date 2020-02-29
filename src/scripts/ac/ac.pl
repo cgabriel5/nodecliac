@@ -702,12 +702,12 @@ sub __lookup {
 
 				if ($dupe) { next; } # Skip if dupe.
 
+				# [End] Remove duplicate flag logic ----------------------------
+
 				# Note: Don't list single letter flags. Listing them along
 				# with double hyphen flags is awkward. Therefore, only list
 				# them when completing or showing its value(s).
 				if (length($flag_fkey) == 2 && !$flag_value) { next; }
-
-				# [End] Remove duplicate flag logic ----------------------------
 
 				# If last word is in the form '--flag=', remove the last
 				# word from the flag to only return its option/value.

@@ -205,12 +205,7 @@ function xtest_omits {
 
 # Note: When `OVERRIDE` is present then we only test that
 # specificity script once. Else we test both the Nim and Perl scripts.
-# cc=0
 for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-in-bash-script]
-	# if [[ "$cc" == 0 ]]; then
-	# 	((cc++))
-	# 	continue
-	# fi
 	acpl_script="$script" # Reset variable.
 
 	# Print header.

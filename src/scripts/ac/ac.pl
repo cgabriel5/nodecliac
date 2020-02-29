@@ -132,8 +132,8 @@ sub __exec_command {
 				$arg = substr($arg, 1);
 				my $qchar = substr($arg, 0, 1);
 				$arg = substr($arg, 1, -1); # Unquote.
-				my $cmdarg = "$arg 2> /dev/null";
-				$command .= " $qchar" . `$cmdarg` . $qchar;
+				my $cmdarg = $arg . ' 2> /dev/null';
+				$command .= " $qchar" . qx{$cmdarg} . $qchar;
 			} else {
 				$command .= " $arg"; # Static argument.
 			}
@@ -141,7 +141,7 @@ sub __exec_command {
 	}
 
 	__set_envs();
-	my $res = `$command 2> /dev/null`;
+	my $res = qx{$command 2> /dev/null};
 
 	if ($res) { @r = split(/$delimiter/m, $res); }
 	return \@r;

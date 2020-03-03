@@ -191,8 +191,7 @@ proc execCommand(command_str: var string): seq[string] =
     var delimiter = "\\r?\\n"
     var r: seq[string] = @[]
 
-    # Add any command-string has arguments.
-    if count > 1:
+    if count > 1: # Add arguments.
         for i in countup(1, count, 1):
             var arg = arguments[i]
 

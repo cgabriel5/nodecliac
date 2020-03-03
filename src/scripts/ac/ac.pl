@@ -122,8 +122,7 @@ sub __exec_command {
 	my $delimiter = "\$\\r\?\\n";
 	my @r = ();
 
-	# Add any command-string has arguments.
-	if ($count > 1) {
+	if ($count > 1) { # Add arguments.
 		for (my $i = 1; $i < $count; $i++) {
 			my $arg = $arguments[$i];
 

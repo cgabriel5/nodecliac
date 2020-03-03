@@ -141,8 +141,7 @@ sub __exec_command {
 	}
 
 	__set_envs();
-	my $res = qx{$command 2> /dev/null};
-
+	my $res = do { open(EPIPE, '-|', $command); local $/; <EPIPE>; };
 	if ($res) { @r = split(/$delimiter/m, $res); }
 	return \@r;
 }

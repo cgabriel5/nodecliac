@@ -132,10 +132,10 @@ sub __exec_command {
 				$arg = substr($arg, 1);
 				my $qchar = substr($arg, 0, 1);
 				$arg = substr($arg, 1, -1); # Unquote.
-				my $cmdarg = $arg . ' 2> /dev/null';
-				$command .= " $qchar" . qx{$cmdarg} . $qchar;
+				$command .= " \"$($qchar" . $arg . "$qchar)\"";
 			} else {
-				$command .= " $arg"; # Static argument.
+				$arg = substr($arg, 1, -1); # Unquote.
+				$command .= " $arg";
 			}
 		}
 	}

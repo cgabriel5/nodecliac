@@ -201,10 +201,8 @@ proc execCommand(command_str: var string): seq[string] =
                 discard shift(arg)
                 let qchar = arg[0]
                 unquote(arg)
-                var cmdarg = arg & " 2> /dev/null"
-                command &= " " & qchar & osproc.execProcess(cmdarg) & qchar
-            else:
-                command &= " " & arg # Static argument.
+                command &= " \"$(" & qchar & arg & qchar & ")\""
+            else: command &= " " & arg
 
     setEnvs()
     var res = ""

@@ -207,7 +207,9 @@ proc execCommand(command_str: var string): seq[string] =
                 command &= " " & arg # Static argument.
 
     setEnvs()
-    var res = osproc.execProcess(command & " 2> /dev/null")
+    var res = ""
+    try: res = execProcess(command)
+    except: discard
     result = if res != "": split(res, re(delimiter)) else: r
 
 # Parse command string `$("")` and returns its arguments.

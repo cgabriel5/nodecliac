@@ -185,14 +185,14 @@ proc setEnvs(arguments: varargs[string])
 # @resource [https://stackoverflow.com/a/3374285]
 proc execCommand(command_str: var string): seq[string] =
     var arguments = parseCmdStr(command_str)
-    let count = arguments.high
+    let count = arguments.len
     var command = arguments[0]
     unquote(command)
     var delimiter = "\\r?\\n"
     var r: seq[string] = @[]
 
     if count > 1: # Add arguments.
-        for i in countup(1, count, 1):
+        for i in countup(1, count - 1, 1):
             var arg = arguments[i]
 
             # Run '$' string.

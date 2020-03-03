@@ -117,7 +117,7 @@ sub __exec_command {
 	my ($command_str) = @_;
 
 	my @arguments = @{ __parse_cmdstr($command_str) };
-	my $count = $#argument;
+	my $count = $#arguments + 1;
 	my $command = substr($arguments[0], 1, -1); # Unquote.
 	my $delimiter = "\$\\r\?\\n";
 	my @r = ();

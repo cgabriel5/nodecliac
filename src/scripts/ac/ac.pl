@@ -738,6 +738,7 @@ sub __lookup {
 				my $key = $last_fkey . (!$last_value ? "" : "=$last_value");
 				my $item = (!$last_value ? $last : $last_value);
 				if (exists($parsedflags{$key})) { push(@completions, $item); }
+				if (!@completions) { exit; }
 			} else {
 				# Note: If the last word (the flag in this case) is an options
 				# flag (i.e. --flag=val) we need to remove the possibly already

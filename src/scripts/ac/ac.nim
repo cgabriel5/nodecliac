@@ -757,6 +757,7 @@ proc fn_lookup(): string =
                 var key = last_fkey & (if last_value == "": "" else: "=" & last_value)
                 var item = if last_value == "": last else: last_value
                 if parsedflags.hasKey(key): completions.add(item)
+                if completions.len == 0: quit()
             else:
                 # Note: If the last word (the flag in this case) is an options
                 # flag (i.e. --flag=val) we need to remove the possibly already

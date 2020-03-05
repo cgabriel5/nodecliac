@@ -215,6 +215,7 @@ for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-i
 
 	# [test-suite: nodecliac]
 	xtest contains "nodecliac " "uninstall"
+	# xtest match "nodecliac --nonexistantflag " ""
 	# xtest contains "nodecliac --engine=" "1"
 	xtest contains "nodecliac --engine=2 --" "--version "
 	xtest contains "nodecliac print --command=" "subl"
@@ -232,7 +233,7 @@ for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-i
 	xtest contains "prettier-cli-watcher --watcher=hou" "hound "
 	xtest contains "prettier-cli-watcher --watcher=hound" "hound "
 	xtest omits "prettier-cli-watcher --watcher=hound --" "--watcher"
-	xtest matches "prettier-cli-watcher --watcher=hound --w" "flag:--w"
+	xtest matches "prettier-cli-watcher --watcher=hound --w" ""
 	# xtest omits "prettier-cli-watcher --watcher=hound --watcher " "chokidar"
 	# xtest omits "prettier-cli-watcher --watcher=hound --watcher=" "chokidar"
 	xtest matches "prettier-cli-watcher --watcher=hound --" "$(cat <<-END
@@ -249,9 +250,9 @@ for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-i
 	xtest contains "prettier-cli-watcher --watcher hou" "hound "
 	xtest contains "prettier-cli-watcher --watcher hound" "hound "
 	xtest omits "prettier-cli-watcher --watcher hound --" "--watcher"
-	xtest matches "prettier-cli-watcher --watcher hound --w" "flag:--w"
+	xtest matches "prettier-cli-watcher --watcher hound --w" ""
 	xtest omits "prettier-cli-watcher --watcher hound --watcher " "chokidar"
-	xtest matches "prettier-cli-watcher --watcher hound --watcher" "flag:--watcher"
+	xtest matches "prettier-cli-watcher --watcher hound --watcher" ""
 	xtest omits "prettier-cli-watcher --watcher=hound --watcher=" "chokidar"
 	xtest omits "prettier-cli-watcher --watcher=hound --watcher" "chokidar"
 	xtest omits "prettier-cli-watcher --watcher=hound --watcher chok" "chokidar"

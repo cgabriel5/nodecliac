@@ -95,6 +95,53 @@ fi
 
 # -------------------------------------------------------------------- FUNCTIONS
 
+function _nodecliac() {
+	local command="$1"
+	local sum=""
+	local output=""
+	local usecache=0
+	local cline="$2"
+	local cpoint="$3"
+	local cachepath="$HOME/.nodecliac/cache/$command-mod"
+	local lmod="$([[ -e "$cachepath" ]] && cat "$cachepath")"
+	local acdefpath=~/.nodecliac/registry/$command/$command.acdef
+	local prehook=~/.nodecliac/registry/"$command"/hooks/pre-parse.sh
+	local hasprehook=0
+	if [[ -e "$prehook" ]]; then hasprehook=1; fi
+	if [[ "$hasprehook" == 0 ]]; then
+		if [[ -n "$lmod" ]]; then
+			cmod=$(date -r "$acdefpath" "+%s")
+			if [[ "$cmod" == "$lmod" ]]; then
+				sum="$(md5sum <<< "$cline")"
+				sum="${sum:0:8}"
+				cachefile="$HOME/.nodecliac/cache/$sum"
+				if [[ -e "$cachefile" ]]; then
+					usecache=1
+					output=$(<$cachefile)
+				fi
+			fi
+		else
+			cmod=$(date -r "$acdefpath" "+%s")
+			echo -n "$cmod" > "$cachepath"
+		fi
+	fi
+
+	if [[ "$usecache" == 0 ]]; then
+		# if [[ "$hasprehook" == 1 ]]; then source "$prehook"; fi
+
+		local acdef=$(<"$acdefpath")
+		output=$("$acpl_script" "$COMP_LINE" "$cline" "$cpoint" "$command" "$acdef")
+
+		if [[ -z "$sum" ]]; then
+			sum="$(md5sum <<< "$COMP_LINE")"
+			sum="${sum:0:8}"
+		fi
+		echo "$output" > "$HOME/.nodecliac/cache/$sum"
+	fi
+
+	echo "$output"
+}
+
 # Run nodecliac against provided test/mock CLI input.
 #
 # @param {string} - The test CLI input.
@@ -104,13 +151,12 @@ function xnodecliac {
 	local cpoint=$([[ -n "$3" ]] && echo "$3" || echo "${#oinput}")
 	# local cpoint=${#oinput}
 	local maincommand=${1%% *}
-	local acdef="$(<~/.nodecliac/registry/$maincommand/$maincommand.acdef)"
 
 	# Run nodecliac and return output.
 	# [https://unix.stackexchange.com/a/12069]
 	# [https://stackoverflow.com/a/4617688]
 	# [https://stackoverflow.com/a/2409214]
-	echo "$( { time "$acpl_script" "$oinput" "$cline" "$cpoint" "$maincommand" "$acdef"; } 2>&1 )"
+	echo "$( { time _nodecliac "$maincommand" "$cline" "$cpoint"; } 2>&1 )"
 }
 
 # Main test function.

@@ -4,6 +4,7 @@ vmajor=${BASH_VERSINFO[0]}
 vminor=${BASH_VERSINFO[1]}
 if [[ "$vmajor" -ge 4 ]]; then
 	if [[ "$vmajor" -eq 4 && "$vminor" -le 2 ]]; then return; fi
+	mkdir -p ~/.nodecliac/cache
 	# [https://superuser.com/a/352387]
 	# [https://askubuntu.com/a/427290]
 	# [https://askubuntu.com/a/1137769]
@@ -57,30 +58,54 @@ function _nodecliac() {
 		return
 	fi
 
-	# Bash-completion data guide:
-	# "${COMP_WORDS[@]}"           # Array of parsed CLI input.
-	# ${COMP_WORDS[COMP_CWORD]}    # Currently typed in word.
-	# ${COMP_WORDS[COMP_CWORD-1]}  # Word before current word.
-	# $COMP_LINE                   # All CLI input in a string.
-	# $COMP_CWORD                  # Index of current word.
-	# $COMP_POINT                  # Index of caret position.
-
+	local sum=""
+	local output=""
+	local usecache=0
 	local cline="$COMP_LINE"
 	local cpoint="$COMP_POINT"
-	local acdef="$(<~/.nodecliac/registry/$command/$command.acdef)"
-
-	# Try Nim script, fallback to Perl script.
-	local os=$(uname); os=${os,,}
-	local ac=~/.nodecliac/src/ac/ac.pl
-	if [[ " linux darwin " == *" $os "* ]]; then
-		ac=~/.nodecliac/src/bin/ac."${os/darwin/macosx}"
+	local cachepath=~/.nodecliac/cache/"$command-mod"
+	local lmod="$([[ -e "$cachepath" ]] && cat "$cachepath")"
+	local acdefpath=~/.nodecliac/registry/"$command/$command.acdef"
+	local prehook=~/.nodecliac/registry/"$command"/hooks/pre-parse.sh
+	local hasprehook=0
+	if [[ -e "$prehook" ]]; then hasprehook=1; fi
+	if [[ "$hasprehook" == 0 ]]; then
+		if [[ -n "$lmod" ]]; then
+			cmod=$(date -r "$acdefpath" "+%s")
+			if [[ "$cmod" == "$lmod" ]]; then
+				sum="$(md5sum <<< "$cline$PWD")"
+				sum="${sum:0:8}"
+				cachefile=~/.nodecliac/cache/"$sum"
+				if [[ -e "$cachefile" ]]; then
+					usecache=1
+					output=$(<$cachefile)
+				fi
+			fi
+		else
+			cmod=$(date -r "$acdefpath" "+%s")
+			echo -n "$cmod" > "$cachepath"
+		fi
 	fi
 
-	prehook=~/.nodecliac/registry/$1/hooks/pre-parse.sh
-	if [[ -e "$prehook" ]]; then source "$prehook"; fi
+	if [[ "$usecache" == 0 ]]; then
+		local acdef=$(<"$acdefpath")
+		local os=$(uname); os=${os,,}
+		local ac=~/.nodecliac/src/ac/ac.pl
+		if [[ " linux darwin " == *" $os "* ]]; then
+			ac=~/.nodecliac/src/bin/ac."${os/darwin/macosx}"
+		fi
 
-	local output=$("$ac" "$COMP_LINE" "$cline" "$cpoint" "$command" "$acdef")
-	# "$ac" "$COMP_LINE" "$cline" "$cpoint" "$command" "$acdef"
+		if [[ "$hasprehook" == 1 ]]; then source "$prehook"; fi
+
+		output=$("$ac" "$COMP_LINE" "$cline" "$cpoint" "$command" "$acdef")
+		# "$ac" "$COMP_LINE" "$cline" "$cpoint" "$command" "$acdef"
+
+		if [[ -z "$sum" ]]; then
+			sum="$(md5sum <<< "$COMP_LINE$PWD")"
+			sum="${sum:0:8}"
+		fi
+		echo "$output" > ~/.nodecliac/cache/"$sum"
+	fi
 
 	# 1st line is meta info (completion type, last word, etc.).
 	# [https://stackoverflow.com/a/2440685]
@@ -89,6 +114,7 @@ function _nodecliac() {
 	local last="${firstline#*:}"
 	nlpos=$((${#firstline} + 1))
 	output="${output:$nlpos:${#output}-2}"
+	if [[ -z "$output" ]]; then return; fi
 
 	if [[ "$type" == "command" ]]; then
 		# [https://stackoverflow.com/a/18551488]

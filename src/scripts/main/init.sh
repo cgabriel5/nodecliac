@@ -4,7 +4,7 @@ vmajor=${BASH_VERSINFO[0]}
 vminor=${BASH_VERSINFO[1]}
 if [[ "$vmajor" -ge 4 ]]; then
 	if [[ "$vmajor" -eq 4 && "$vminor" -le 2 ]]; then return; fi
-	mkdir -p ~/.nodecliac/cache
+	mkdir -p ~/.nodecliac/.cache
 	# [https://superuser.com/a/352387]
 	# [https://askubuntu.com/a/427290]
 	# [https://askubuntu.com/a/1137769]
@@ -63,28 +63,16 @@ function _nodecliac() {
 	local usecache=0
 	local cline="$COMP_LINE"
 	local cpoint="$COMP_POINT"
-	local cachepath=~/.nodecliac/cache/"$command-mod"
-	local lmod="$([[ -e "$cachepath" ]] && cat "$cachepath")"
 	local acdefpath=~/.nodecliac/registry/"$command/$command.acdef"
 	local prehook=~/.nodecliac/registry/"$command"/hooks/pre-parse.sh
-	local hasprehook=0
-	if [[ -e "$prehook" ]]; then hasprehook=1; fi
-	if [[ "$hasprehook" == 0 ]]; then
-		if [[ -n "$lmod" ]]; then
-			cmod=$(date -r "$acdefpath" "+%s")
-			if [[ "$cmod" == "$lmod" ]]; then
-				sum="$(md5sum <<< "$cline$PWD")"
-				sum="${sum:0:8}"
-				cachefile=~/.nodecliac/cache/"$sum"
-				if [[ -e "$cachefile" ]]; then
-					usecache=1
-					output=$(<$cachefile)
-				fi
-			fi
-		else
-			cmod=$(date -r "$acdefpath" "+%s")
-			echo -n "$cmod" > "$cachepath"
-		fi
+	local hasprehook=0; if [[ -e "$prehook" ]]; then hasprehook=1; fi
+
+	sum="$(md5sum <<< "$cline$PWD")"
+	sum="${sum:0:8}"
+	local cachefile=~/.nodecliac/.cache/"$sum"
+	if [[ -e "$cachefile" ]]; then
+		usecache=1
+		output=$(<$cachefile)
 	fi
 
 	if [[ "$usecache" == 0 ]]; then
@@ -99,12 +87,6 @@ function _nodecliac() {
 
 		output=$("$ac" "$COMP_LINE" "$cline" "$cpoint" "$command" "$acdef")
 		# "$ac" "$COMP_LINE" "$cline" "$cpoint" "$command" "$acdef"
-
-		if [[ -z "$sum" ]]; then
-			sum="$(md5sum <<< "$COMP_LINE$PWD")"
-			sum="${sum:0:8}"
-		fi
-		echo "$output" > ~/.nodecliac/cache/"$sum"
 	fi
 
 	# 1st line is meta info (completion type, last word, etc.).
@@ -112,15 +94,20 @@ function _nodecliac() {
 	read -r firstline <<< "$output"
 	local type="${firstline%%:*}"
 	local last="${firstline#*:}"
-	nlpos=$((${#firstline} + 1))
-	output="${output:$nlpos:${#output}-2}"
-	if [[ -z "$output" ]]; then return; fi
+	local nlpos=$((${#firstline} + 1))
+	local items="${output:$nlpos:${#output}-2}"
+	local cacheopt=1; if [[ "$type" == *"nocache"* ]]; then cacheopt=0; fi
+	if [[ -z "$items" ]]; then return; fi
 
-	if [[ "$type" == "command" ]]; then
+	if [[ "$cacheopt" == 1 && "$hasprehook" == 0 ]]; then
+		echo "$output" > ~/.nodecliac/.cache/"$sum"
+	fi
+
+	if [[ "$type" == "command"* ]]; then
 		# [https://stackoverflow.com/a/18551488]
 		# [https://stackoverflow.com/a/35164798]
-		# COMPREPLY=($(echo -e "$(awk 'NR>1' <<< "$output")"))
-		COMPREPLY=($(echo -e "$output"))
+		# COMPREPLY=($(echo -e "$(awk 'NR>1' <<< "$items")"))
+		COMPREPLY=($(echo -e "$items"))
 		__ltrim_colon_completions "$last"
 
 		# When COMPREPLY is empty (no completions), the command was
@@ -146,7 +133,7 @@ function _nodecliac() {
 			fi
 		fi
 
-	elif [[ "$type" == *"flag"* ]]; then
+	elif [[ "$type" == "flag"* ]]; then
 		# Disable bash's default behavior of adding a trailing space to
 		# completions when hitting the [tab] key. This will be handled
 		# manually. Only leave on when completing a quoted flag value.
@@ -159,7 +146,7 @@ function _nodecliac() {
 		# [https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html#index-mapfile]
 		# [http://mywiki.wooledge.org/BashFAQ/001]
 		# [http://mywiki.wooledge.org/BashFAQ/005?highlight=%28readarray%29#Loading_lines_from_a_file_or_stream]
-		# mapfile -t COMPREPLY < <(awk 'NR>1' <<< "$output")
-		mapfile -t COMPREPLY < <(echo -e "$output")
+		# mapfile -t COMPREPLY < <(awk 'NR>1' <<< "$items")
+		mapfile -t COMPREPLY < <(echo -e "$items")
 	fi
 }

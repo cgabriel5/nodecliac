@@ -650,6 +650,7 @@ proc fn_lookup(): string =
 
                     # If a command-flag, run it and add items to array.
                     if flag_value.startsWith("$(") and flag_value.endsWith(')'):
+                        `type` = "flag;nocache"
                         let lines = execCommand(flag_value)
                         for line in lines:
                             if line != "": flags.add(last_fkey & "=" & line)
@@ -867,6 +868,7 @@ proc fn_lookup(): string =
                                 completions.add(command_str)
                         else: completions.add(command_str)
 
+                    `type` &= ";nocache"
                     break # Stop once a command-string is found/ran.
 
                 # Remove last command chain from overall command chain.
@@ -876,7 +878,7 @@ proc fn_lookup(): string =
 proc fn_printer() =
     var lines = fmt"{`type`}:{last}"
 
-    var iscommand = `type` == "command"
+    var iscommand = `type`.startsWith('c')
     if iscommand: lines &= "\n"
 
     var sep = if iscommand: " " else: "\n"

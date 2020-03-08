@@ -102,41 +102,33 @@ function _nodecliac() {
 	local usecache=0
 	local cline="$2"
 	local cpoint="$3"
-	local cachepath="$HOME/.nodecliac/cache/$command-mod"
-	local lmod="$([[ -e "$cachepath" ]] && cat "$cachepath")"
 	local acdefpath=~/.nodecliac/registry/$command/$command.acdef
 	local prehook=~/.nodecliac/registry/"$command"/hooks/pre-parse.sh
-	local hasprehook=0
-	if [[ -e "$prehook" ]]; then hasprehook=1; fi
-	if [[ "$hasprehook" == 0 ]]; then
-		if [[ -n "$lmod" ]]; then
-			cmod=$(date -r "$acdefpath" "+%s")
-			if [[ "$cmod" == "$lmod" ]]; then
-				sum="$(md5sum <<< "$cline")"
-				sum="${sum:0:8}"
-				cachefile="$HOME/.nodecliac/cache/$sum"
-				if [[ -e "$cachefile" ]]; then
-					usecache=1
-					output=$(<$cachefile)
-				fi
-			fi
-		else
-			cmod=$(date -r "$acdefpath" "+%s")
-			echo -n "$cmod" > "$cachepath"
-		fi
+	local hasprehook=0; if [[ -e "$prehook" ]]; then hasprehook=1; fi
+
+	sum="$(md5sum <<< "$cline$PWD")"
+	sum="${sum:0:8}"
+	local cachefile=~/.nodecliac/.cache/"$sum"
+	if [[ -e "$cachefile" ]]; then
+		usecache=1
+		output=$(<$cachefile)
 	fi
 
 	if [[ "$usecache" == 0 ]]; then
-		# if [[ "$hasprehook" == 1 ]]; then source "$prehook"; fi
+		if [[ "$hasprehook" == 1 ]]; then source "$prehook"; fi
 
 		local acdef=$(<"$acdefpath")
 		output=$("$acpl_script" "$COMP_LINE" "$cline" "$cpoint" "$command" "$acdef")
+	fi
 
-		if [[ -z "$sum" ]]; then
-			sum="$(md5sum <<< "$COMP_LINE")"
-			sum="${sum:0:8}"
-		fi
-		echo "$output" > "$HOME/.nodecliac/cache/$sum"
+	# 1st line is meta info (completion type, last word, etc.).
+	# [https://stackoverflow.com/a/2440685]
+	read -r firstline <<< "$output"
+	local type="${firstline%%:*}"
+	local cacheopt=1; if [[ "$type" == *"nocache"* ]]; then cacheopt=0; fi
+
+	if [[ "$cacheopt" == 1 && "$hasprehook" == 0 ]]; then
+		echo "$output" > ~/.nodecliac/.cache/"$sum"
 	fi
 
 	echo "$output"
@@ -309,7 +301,7 @@ for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-i
 	xtest contains "yarn run " "pretty"
 	xtest contains "yarn remove " "prettier"
 	# Completing a non existing argument should not append a trailing space.
-	xtest matches "yarn remove nonexistantarg" "command:nonexistantarg"
+	xtest matches "yarn remove nonexistantarg" "command;nocache:nonexistantarg"
 	xtest contains "yarn add prettier-cli-watcher@* --" "--dev"
 
 	# [test-suite: nim]

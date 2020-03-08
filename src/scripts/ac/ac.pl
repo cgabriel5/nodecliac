@@ -620,6 +620,7 @@ sub __lookup {
 
 					# If a command-flag, run it and add items to array.
 					if (rindex($flag_value, "\$(", 0) == 0 && substr($flag_value, -1) eq ')') {
+						$type = "flag;nocache";
 						my @lines = @{ __exec_command($flag_value) };
 						foreach my $line (@lines) {
 							if ($line) { push(@flags, $last_fkey . "=$line"); }
@@ -856,6 +857,7 @@ sub __lookup {
 						} else { push(@completions, $command_str); }
 					}
 
+					$type .= ";nocache";
 					last; # Stop once a command-string is found/ran.
 				}
 
@@ -870,7 +872,7 @@ sub __lookup {
 sub __printer {
 	my $lines = "$type:$last";
 
-	my $iscommand = $type eq 'command';
+	my $iscommand = rindex($type, 'c', 0) == 0;
 	if ($iscommand) { $lines .= "\n"; }
 
 	my $sep = ($iscommand) ? ' ' : "\n";

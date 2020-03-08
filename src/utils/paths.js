@@ -16,6 +16,7 @@ let acmapssource = path.join(homedir, `.${projectname}`, "src");
 let setupfilepath = path.join(ncliacdir, `.setup.db.json`);
 let resourcespath = path.join(cwd, "resources", "packages");
 let resourcessrcs = path.join(cwd, "src", "scripts");
+let cachepath = path.join(homedir, `.${projectname}`, ".cache");
 
 module.exports = {
 	paths: {
@@ -28,6 +29,7 @@ module.exports = {
 		acmapssource,
 		setupfilepath,
 		resourcespath,
-		resourcessrcs
+		resourcessrcs,
+		cachepath
 	}
 };

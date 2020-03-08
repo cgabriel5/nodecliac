@@ -24,6 +24,7 @@ enablencliac=""
 disablencliac=""
 command=""
 version=""
+ccache=""
 all=""
 
 # [https://medium.com/@Drew_Stokes/bash-argument-parsing-54f3b81a6a8f]
@@ -40,25 +41,28 @@ while (( "$#" )); do
 	case "$1" in
 		--version) version="1"; shift ;;
 
-			# Custom `print` command flags.
+		# `print` command flags.
 		--command=*)
 			flag="${1%%=*}"; value="${1#*=}"
 			if [[ -n "$value" ]]; then prcommand="$value"; fi; shift ;;
 		--command)
 			if [[ -n "$2" && "$2" != *"-" ]]; then prcommand="$2"; fi; shift ;;
 
-			# Custom `status` command flags.
+		# `status` command flags.
 		--enable) enablencliac="1"; shift ;;
 		--disable) disablencliac="1"; shift ;;
 
-			# Custom `uninstall` command flags.
+		# `cache` command flags.
+		--clear) ccache="1"; shift ;;
+
+		# `uninstall` command flags.
 		--rcfilepath=*)
 			# Expand `~` in path: [https://stackoverflow.com/a/27485157]
 			if [[ -n "$value" ]]; then rcfilepath="${value/#\~/$HOME}"; fi; shift ;;
 		--rcfilepath)
 			if [[ -n "$2" && "$2" != *"-" ]]; then rcfilepath="$2"; fi; shift ;;
 
-		# Custom `remove|unlink|enable|disable` command flags.
+		# `remove|unlink|enable|disable` command flags.
 		--all) all="1"; shift ;;
 
 		--) shift; break ;; # End argument parsing.
@@ -91,7 +95,7 @@ if [[ -z "$command" && "$version" == "1" && -f "$setupfilepath" ]]; then
 fi
 
 # Allowed commands.
-commands=" make format print registry setup status uninstall add remove link unlink enable disable "
+commands=" make format print registry setup status uninstall add remove link unlink enable disable cache "
 
 if [[ "$commands" != *"$command"* ]]; then exit; fi # Exit if invalid command.
 
@@ -399,6 +403,17 @@ case "$command" in
 
 			echo "$contents" > "$filepath" # Save changes.
 		done
+
+		;;
+
+	cache)
+
+		cachepath=~/.nodecliac/.cache
+
+		if [[ -d "$cachepath" && "$ccache" == "1" ]]; then
+			rm -rf "$cachepath"/*
+			echo -e "\033[0;32mSuccessfully\033[0m cleared cache."
+		fi
 
 		;;
 

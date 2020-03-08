@@ -20,3 +20,4 @@ nodecliac.disable = --all
 
 # Other commands:
 nodecliac = --version?
+nodecliac.cache = --clear?

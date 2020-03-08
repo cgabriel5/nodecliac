@@ -1,7 +1,8 @@
-# DON'T EDIT FILE —— GENERATED: Tue Feb 25 2020 13:55:52 (1582667752)
+# DON'T EDIT FILE —— GENERATED: Sun Mar 08 2020 11:13:15 (1583691195)
 
  --version?
 .add --
+.cache --clear?
 .disable --all
 .enable --all
 .format --indent|--print?|--source|--strip-comments?

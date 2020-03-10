@@ -118,7 +118,7 @@ function _nodecliac() {
 		if [[ "$hasprehook" == 1 ]]; then source "$prehook"; fi
 
 		local acdef=$(<"$acdefpath")
-		output=$("$acpl_script" "$COMP_LINE" "$cline" "$cpoint" "$command" "$acdef")
+		output=$("$acpl_script" "$2" "$cline" "$cpoint" "$command" "$acdef")
 	fi
 
 	# 1st line is meta info (completion type, last word, etc.).

@@ -303,6 +303,7 @@ for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-i
 
 	# [test-suite: yarn]
 	xtest matches "yarn remov " "command:" # `remov` command does not exit.
+	xtest contains "yarn remove ch" "chalk"
 	xtest contains "yarn " "config"
 	xtest contains "yarn run " "pretty"
 	xtest contains "yarn remove " "prettier"

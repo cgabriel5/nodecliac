@@ -618,6 +618,14 @@ Main commands are `make` and `format`. Followed by helper commands: `setup`, `st
 
 ---
 
+**cache**: Deals with nodecliac's cache system.
+
+- `--clear`: Clears cache.
+- `--level=<Level>`:
+  - _Without_ argument it prints the current cache level.
+  - _With_ argument it sets cache level to provide level.
+    - Levels: `0`, `1`, `2`
+
 **setup**: Setups nodecliac.
 
 - `--force`: (**required** _if nodecliac is already setup)_: Old setup is backed up and nodecliac is setup as new.
@@ -842,6 +850,26 @@ Hook scripts are provided environment variables.
 | <img width=220/> <br /> [Create](/docs/packages/creating.md) <img width=220/> | <img width=220/> <br /> [Add / Link](/docs/packages/adding.md) <img width=220/> | <img width=220/> <br /> [Remove / Unlink](/docs/packages/removing.md) <img width=220/> | <img width=220/> <br /> [Disable](/docs/packages/disabling.md) <img width=220/> | <img width=220/> <br /> [Enable](/docs/packages/enabling.md) <img width=220/> |
 | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
 
+
+<a name="caching"></a>
+
+## Caching
+
+nodecliac caches completion results to provide faster completions. _It may be turned off if not needed._
+
+<details><summary>Expand cache section</summary>
+
+##### Cache levels:
+
+- `0`: No caching.
+- `1`: Cache all but `command-string` (dynamic) completions (`default`).
+- `2`: Cache everything.
+
+**Set** cache level: `nodecliac cache --level=<LEVEL>`
+
+**Clear** cache: `nodecliac cache --clear`.
+
+</details>
 
 <a name="support"></a>
 

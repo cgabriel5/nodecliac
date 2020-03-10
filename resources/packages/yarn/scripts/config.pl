@@ -1,9 +1,7 @@
 #!/usr/bin/perl
 
-# Script will return config keys to set|get|delete subcommands.
+# Script returns config keys to set|get|delete subcommands.
 
-# [https://stackoverflow.com/questions/8023959/why-use-strict-and-warnings]
-# [http://perldoc.perl.org/functions/use.html]
 # use strict;
 # use warnings;
 # use diagnostics;
@@ -32,28 +30,18 @@ my %args = (
 	'version-tag-prefix' => undef
 );
 
-# Get environment variables.
 my $last = $ENV{'NODECLIAC_LAST'};
 my $lchar = $ENV{'NODECLIAC_LAST_CHAR'};
 my $nchar = $ENV{'NODECLIAC_NEXT_CHAR'};
-
-# Get environment variable containing used default positional arguments.
 my $used = $ENV{'NODECLIAC_USED_DEFAULT_POSITIONAL_ARGS'};
-# $used =~ s/^\s+|\s+$//g; # Trim string.
 chomp($used); # Remove trailing newline.
-# Split string into individual items.
 my @used_args = split(/[\n ]/, $used);
 
 foreach my $uarg (@used_args) {
 	if (exists($args{$uarg})) {
-		delete $args{$uarg}; # Delete to re-add key + used modifier ('!').
+		delete $args{$uarg};
 		$args{"!$uarg"} = undef;
 	}
 }
 
-# Prune arguments and return remaining.
 print join("\n", (keys %args));
-
-# Prune arguments and return remaining.
-# require "$ENV{'HOME'}/.nodecliac/registry/yarn/scripts/prune.pl";
-# print(ARGPruner::main($keys));

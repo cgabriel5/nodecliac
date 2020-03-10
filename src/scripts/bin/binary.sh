@@ -25,6 +25,8 @@ disablencliac=""
 command=""
 version=""
 ccache=""
+level=""
+setlevel=0
 all=""
 
 # [https://medium.com/@Drew_Stokes/bash-argument-parsing-54f3b81a6a8f]
@@ -54,6 +56,13 @@ while (( "$#" )); do
 
 		# `cache` command flags.
 		--clear) ccache="1"; shift ;;
+		--level=*)
+			setlevel=1
+			flag="${1%%=*}"; value="${1#*=}"
+			if [[ -n "$value" ]]; then level="$value"; fi; shift ;;
+		--level)
+			setlevel=1
+			if [[ -n "$2" && "$2" != *"-" ]]; then level="$2"; fi; shift ;;
 
 		# `uninstall` command flags.
 		--rcfilepath=*)
@@ -413,6 +422,15 @@ case "$command" in
 		if [[ -d "$cachepath" && "$ccache" == "1" ]]; then
 			rm -rf "$cachepath"/*
 			echo -e "\033[0;32mSuccessfully\033[0m cleared cache."
+		fi
+
+		if [[ "$setlevel" == 1 ]]; then
+			if [[ ! -z "${level##*[!0-9]*}" ]]; then
+				if [[ " 0 1 2 " != *" $level "* ]]; then level=1; fi
+				echo "$level" > ~/.nodecliac/.cache-level
+			else
+				echo "$(<~/.nodecliac/.cache-level)"
+			fi
 		fi
 
 		;;

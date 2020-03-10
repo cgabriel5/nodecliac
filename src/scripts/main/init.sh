@@ -5,6 +5,8 @@ vminor=${BASH_VERSINFO[1]}
 if [[ "$vmajor" -ge 4 ]]; then
 	if [[ "$vmajor" -eq 4 && "$vminor" -le 2 ]]; then return; fi
 	mkdir -p ~/.nodecliac/.cache
+	cachefile=~/.nodecliac/.cache-level
+	if [[ ! -e "$cachefile" ]]; then echo "1" > "$cachefile"; fi
 	# [https://superuser.com/a/352387]
 	# [https://askubuntu.com/a/427290]
 	# [https://askubuntu.com/a/1137769]
@@ -60,19 +62,23 @@ function _nodecliac() {
 
 	local sum=""
 	local output=""
-	local usecache=0
 	local cline="$COMP_LINE"
 	local cpoint="$COMP_POINT"
 	local acdefpath=~/.nodecliac/registry/"$command/$command.acdef"
 	local prehook=~/.nodecliac/registry/"$command"/hooks/pre-parse.sh
 	local hasprehook=0; if [[ -e "$prehook" ]]; then hasprehook=1; fi
+	read -r -n 1 clevel < ~/.nodecliac/.cache-level
+	local cachefile=""
+	local usecache=0
 
-	sum="$(md5sum <<< "$cline$PWD")"
-	sum="${sum:0:8}"
-	local cachefile=~/.nodecliac/.cache/"$sum"
-	if [[ -e "$cachefile" ]]; then
-		usecache=1
-		output=$(<$cachefile)
+	if [[ "$clevel" != "0" ]]; then
+		sum="$(md5sum <<< "$cline$PWD")"
+		sum="${sum:0:8}"
+		cachefile=~/.nodecliac/.cache/"$sum"
+		if [[ -e "$cachefile" ]]; then
+			usecache=1
+			output=$(<$cachefile)
+		fi
 	fi
 
 	if [[ "$usecache" == 0 ]]; then
@@ -83,7 +89,7 @@ function _nodecliac() {
 			ac=~/.nodecliac/src/bin/ac."${os/darwin/macosx}"
 		fi
 
-		if [[ "$hasprehook" == 1 ]]; then source "$prehook"; fi
+		if [[ "$hasprehook" == 1 ]]; then . "$prehook"; fi
 
 		output=$("$ac" "$COMP_LINE" "$cline" "$cpoint" "$command" "$acdef")
 		# "$ac" "$COMP_LINE" "$cline" "$cpoint" "$command" "$acdef"
@@ -99,8 +105,10 @@ function _nodecliac() {
 	local cacheopt=1; if [[ "$type" == *"nocache"* ]]; then cacheopt=0; fi
 	if [[ -z "$items" ]]; then return; fi
 
-	if [[ "$cacheopt" == 1 && "$hasprehook" == 0 ]]; then
-		echo "$output" > ~/.nodecliac/.cache/"$sum"
+	if [[ "$clevel" != "0" && "$usecache" == 0 ]]; then
+		if [[ "$cacheopt" == 1 && "$hasprehook" == 0 ]] || [[ "$clevel" == "2" ]]; then
+			echo "$output" > ~/.nodecliac/.cache/"$sum"
+		fi
 	fi
 
 	if [[ "$type" == "command"* ]]; then

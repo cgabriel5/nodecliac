@@ -99,23 +99,27 @@ function _nodecliac() {
 	local command="$1"
 	local sum=""
 	local output=""
-	local usecache=0
 	local cline="$2"
 	local cpoint="$3"
-	local acdefpath=~/.nodecliac/registry/$command/$command.acdef
+	local acdefpath=~/.nodecliac/registry/"$command/$command.acdef"
 	local prehook=~/.nodecliac/registry/"$command"/hooks/pre-parse.sh
 	local hasprehook=0; if [[ -e "$prehook" ]]; then hasprehook=1; fi
+	read -r -n 1 clevel < ~/.nodecliac/.cache-level
+	local cachefile=""
+	local usecache=0
 
-	sum="$(md5sum <<< "$cline$PWD")"
-	sum="${sum:0:8}"
-	local cachefile=~/.nodecliac/.cache/"$sum"
-	if [[ -e "$cachefile" ]]; then
-		usecache=1
-		output=$(<$cachefile)
+	if [[ "$clevel" != "0" ]]; then
+		sum="$(md5sum <<< "$cline$PWD")"
+		sum="${sum:0:8}"
+		cachefile=~/.nodecliac/.cache/"$sum"
+		if [[ -e "$cachefile" ]]; then
+			usecache=1
+			output=$(<$cachefile)
+		fi
 	fi
 
 	if [[ "$usecache" == 0 ]]; then
-		if [[ "$hasprehook" == 1 ]]; then source "$prehook"; fi
+		if [[ "$hasprehook" == 1 ]]; then . "$prehook"; fi
 
 		local acdef=$(<"$acdefpath")
 		output=$("$acpl_script" "$2" "$cline" "$cpoint" "$command" "$acdef")
@@ -127,8 +131,10 @@ function _nodecliac() {
 	local type="${firstline%%:*}"
 	local cacheopt=1; if [[ "$type" == *"nocache"* ]]; then cacheopt=0; fi
 
-	if [[ "$cacheopt" == 1 && "$hasprehook" == 0 ]]; then
-		echo "$output" > ~/.nodecliac/.cache/"$sum"
+	if [[ "$clevel" != "0" && "$usecache" == 0 ]]; then
+		if [[ "$cacheopt" == 1 && "$hasprehook" == 0 ]] || [[ "$clevel" == "2" ]]; then
+			echo "$output" > ~/.nodecliac/.cache/"$sum"
+		fi
 	fi
 
 	echo "$output"

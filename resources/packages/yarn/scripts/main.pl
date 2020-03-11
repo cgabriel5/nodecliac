@@ -54,9 +54,9 @@ if ($action eq 'run') {
 	}
 }
 
-my $last = $ENV{'NODECLIAC_LAST'};
-my $lchar = $ENV{'NODECLIAC_LAST_CHAR'};
-my $nchar = $ENV{'NODECLIAC_NEXT_CHAR'};
+# my $last = $ENV{'NODECLIAC_LAST'};
+# my $lchar = $ENV{'NODECLIAC_LAST_CHAR'};
+# my $nchar = $ENV{'NODECLIAC_NEXT_CHAR'};
 my $used = $ENV{'NODECLIAC_USED_DEFAULT_POSITIONAL_ARGS'};
 chomp($used); # Remove trailing newline.
 my @used_args = split(/[\n ]/, $used);

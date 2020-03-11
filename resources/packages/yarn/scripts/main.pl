@@ -26,7 +26,6 @@ if (!$useglobal) {
 		"$hdir/.yarn/global/package.json"
 	);
 
-	$pkg = '';
 	foreach my $path (@paths) { if (-f $path) { $pkg = $path; last; } }
 }
 

@@ -47,7 +47,7 @@ if ($action eq 'run') {
 	}
 } else { # Remaining actions: remove|outdated|unplug|upgrade
 	my $pkgcontents = do{local(@ARGV,$/)=$pkg;<>};
-	my @matches = ($pkgcontents =~ /"(dependencies|devDependencies)"\s*:\s*{([\s\S]*?)}(,|$)/g);
+	my @matches = ($pkgcontents =~ /"(?:dependencies|devDependencies)"\s*:\s*{([\s\S]*?)}(,|$)/g);
 	foreach my $match (@matches) {
 		my @deps = ($match =~ /"([^"]*)"\s*:/g);
 		foreach (@deps) { $args{"$_"} = undef; }

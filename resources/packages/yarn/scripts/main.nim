@@ -8,8 +8,8 @@ from nre import re, `[]`, get, find, split, isSome, captures, findIter
 let argcount = os.paramCount()
 if argcount == 0: quit()
 
-let action = if argcount > 1: os.paramStr(1): else ""
-let useglobal = if argcount > 2: os.paramStr(2): else ""
+let action = if argcount > 1: os.paramStr(1) else: ""
+let useglobal = if argcount > 2: os.paramStr(2) else: ""
 var cwd = os.getEnv("PWD")
 let hdir = os.getEnv("HOME")
 let input = os.getEnv("NODECLIAC_INPUT_ORIGINAL")

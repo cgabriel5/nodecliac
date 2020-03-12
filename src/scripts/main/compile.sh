@@ -8,6 +8,7 @@
 # -o: Path of binary output.
 # -d: Compile development binary.
 # -p: Compile production binary.
+# -n: Optional binary file name.
 #
 # Examples:
 #
@@ -37,7 +38,8 @@ COMPILE_PROD=""
 file=""
 ext=""
 name=""
-while getopts ':i:o:dp' flag; do
+oname=""
+while getopts ':i:o:n:dp' flag; do
 	case "$flag" in
 		i) INPUT_PATH="$OPTARG" ;;
 		o)
@@ -49,12 +51,12 @@ while getopts ':i:o:dp' flag; do
 			file=$(basename -- "$INPUT_PATH")
 			ext="${file##*.}" # File extension.
 			name="${file%.*}" # File name.
-
-			OUTPUT_PATH+="$name.$USER_OS" # Append output file name.
+			oname="$name.$USER_OS"
 			# [https://stackoverflow.com/a/6121114]
 			# fdir="$(dirname "$INPUT_PATH")"
 			# fname="$(basename "$INPUT_PATH")"
 		;;
+		n) oname="$OPTARG" ;;
 		d) COMPILE_DEV="true"; COMPILE_PROD="" ;;
 		p) COMPILE_PROD="true"; COMPILE_DEV="" ;;
 	esac
@@ -86,9 +88,9 @@ if [[ -z "$OUTPUT_PATH" ]]; then
 	file=$(basename -- "$INPUT_PATH")
 	ext="${file##*.}" # File extension.
 	name="${file%.*}" # File name.
-
-	OUTPUT_PATH+="/$name.$USER_OS"
+	if [[ -z "$oname" ]]; then oname="$name.$USER_OS"; fi
 fi
+OUTPUT_PATH+="/$oname" # Append output file name.
 
 if [[ "$ext" != "nim" ]]; then
 	echo "[ABORTED] Please provide a '.nim' file."

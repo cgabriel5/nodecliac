@@ -124,10 +124,13 @@ elif [[ -n "$COMPILE_PROD" ]]; then
 	--hints:off \
 	--showAllMismatches:off \
 	--forceBuild:on \
+	--stackTrace:off \
+	--lineTrace:off \
+	--deadCodeElim:on \
 	--out:"$OUTPUT_PATH" \
 	"$INPUT_PATH"
 	if [[ "$USER_OS" == "linux" ]]; then strip -s "$OUTPUT_PATH"; fi
+	if [[ -n "$(command -v upx)" ]]; then upx --best "$OUTPUT_PATH"; fi
 fi
 
 chmod +x "$OUTPUT_PATH"
-

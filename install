@@ -224,6 +224,8 @@ if [[ "$installer" == "binary" ]]; then
 	cp -pr "$outputdir"/resources/packages/* ~/.nodecliac/registry
 	nimbin="$outputdir/src/parser/nim/nodecliac.$os"
 	if [[ -e "$nimbin" ]]; then cp -pr "$nimbin" "$dest/bin"; fi
+	acbin="$binpath/ac.$os"
+	if [[ -e "$acbin" ]]; then cp -pr "$acbin" "$dest/bin"; fi
 
 	version="$(perl -ne 'print $1 if /"version":\s*"([^"]+)/' "$outputdir/package.json")"
 	echo "{ \"force\": false, \"rcfilepath\": \"$rcfilepath\", \"time\": \"$timestamp\", \"binary\": true, \"version\": \"$version\" }" > ~/.nodecliac/.setup.db.json

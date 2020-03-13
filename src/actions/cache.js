@@ -30,7 +30,7 @@ module.exports = async args => {
 			);
 		} else {
 			[err, res] = await flatry(read(cachelevel));
-			if (!err) console.log(res);
+			if (!err) console.log(res.trim());
 		}
 	}
 };

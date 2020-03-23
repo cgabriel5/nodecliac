@@ -367,7 +367,7 @@ proc fn_parser() =
                 # -------------------------------------------^Whitespace char.
                 # If argument is not spaced out or at the end of the input
                 # do not add it to the array. Just skip to next iteration.
-                if input != "" and not input.startsWith(' '): continue
+                # if input != "" and not input.startsWith(' '): continue
 
                 args.add(if not argument.startsWith('-'): argument else: spread(argument))
                 argument = ""

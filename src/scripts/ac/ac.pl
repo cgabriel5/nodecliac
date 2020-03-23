@@ -319,7 +319,7 @@ sub __parser {
 				# -------------------------------------------^Whitespace char.
 				# If argument is not spaced out or at the end of the input
 				# do not add it to the array. Just skip to next iteration.
-				if ($input && rindex($input, ' ', 0) != 0) { next; }
+				# if ($input && rindex($input, ' ', 0) != 0) { next; }
 
 				push(@args, rindex($argument, '-', 0) ? $argument : spread($argument, \@args));
 				$argument = '';

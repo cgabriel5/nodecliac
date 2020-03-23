@@ -794,6 +794,11 @@ proc fn_lookup(): string =
 
             if rows.len == 0: return ""
 
+            # When there is only 1 completion item and it's the last command
+            # in the command chain, clear the completions array to not re-add
+            # the same command.
+            if (rows.len == 1 and commandchain.endsWith(rows[0])): rows.setLen(0)
+
             var usedcommands = initTable[string, int]()
             var commands = (commandchain[0 .. ^1]).split(re"(?<!\\)\.")
             var level = commands.len - 1

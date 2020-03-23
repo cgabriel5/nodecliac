@@ -775,6 +775,13 @@ sub __lookup {
 
 			if (!@rows) { return; }
 
+			# When there is only 1 completion item and it's the last command
+			# in the command chain, clear the completions array to not re-add
+			# the same command.
+			if (@rows == 1 && $rows[0] eq substr($commandchain, -length($rows[0]))) {
+				@rows = ();
+			}
+
 			my %usedcommands;
 			my @commands = split(/(?<!\\)\./, substr($commandchain, 1));
 			my $level = $#commands;

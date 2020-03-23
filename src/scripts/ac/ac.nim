@@ -30,7 +30,7 @@ var foundflags: seq[string] = @[]
 var completions: seq[string] = @[]
 var commandchain = ""
 var lastchar: char # Character before caret.
-var nextchar = cline.substr(cpoint, cpoint) # Character after caret.
+let nextchar = cline.substr(cpoint, cpoint) # Character after caret.
 var cline_length = cline.len # Original input's length.
 var isquoted = false
 var autocompletion = true

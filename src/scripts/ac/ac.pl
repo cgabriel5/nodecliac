@@ -736,6 +736,12 @@ sub __lookup {
 
 			# If no completions, add last item so Bash compl. can add a space.
 			if (!@completions) {
+                # Exit if last word is in the form '--flag='. The '=' makes
+                # Bash append the entire flag again. This is possibly due to
+                # the way readline splits words with $COMP_WORDBREAKS chars.
+				my $lchar = chop($last); $last .= $lchar;
+				if (!$last_value && $lchar eq '=') { exit; }
+
 				my $key = $last_fkey . (!$last_value ? "" : "=$last_value");
 				my $item = (!$last_value ? $last : $last_value);
 				if (exists($parsedflags{$key})) { push(@completions, $item); }

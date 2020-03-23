@@ -755,6 +755,11 @@ proc fn_lookup(): string =
 
             # If no completions, add last item so Bash compl. can add a space.
             if completions.len == 0:
+                # Exit if last word is in the form '--flag='. The '=' makes
+                # Bash append the entire flag again. This is possibly due to
+                # the way readline splits words with $COMP_WORDBREAKS chars.
+                if last_value == "" and last.endsWith('='): quit()
+
                 var key = last_fkey & (if last_value == "": "" else: "=" & last_value)
                 var item = if last_value == "": last else: last_value
                 if parsedflags.hasKey(key): completions.add(item)

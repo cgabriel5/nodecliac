@@ -267,7 +267,7 @@ sub __parser {
 	# @param  {string} argument - The string to spread.
 	# @return {string} - The remaining argument.
 	sub spread {
-		my ($argument, $args) = @_;
+		my ($argument) = @_;
 
 		if (length($argument) >= 3 && substr($argument, 1, 1) ne '-') {
 			substr($argument, 0, 1, "");
@@ -278,6 +278,7 @@ sub __parser {
 				my $argletter = substr($argument, 0, 1);
 				substr($argument, 0, 1, "");
 				push(@$args, "-$argletter");
+				push(@args, "-$argletter");
 			} else {
 				my @chars = split(//, $argument);
 				my $max = $#chars;
@@ -292,7 +293,7 @@ sub __parser {
 					# get added back later in the main loop.
 					elsif (i == max) { last; }
 
-					push(@$args, "-$char"); $i++;
+					push(@args, "-$char"); $i++;
 				}
 
 				# Reset value to final argument.
@@ -321,7 +322,7 @@ sub __parser {
 				# do not add it to the array. Just skip to next iteration.
 				# if ($input && rindex($input, ' ', 0) != 0) { next; }
 
-				push(@args, rindex($argument, '-', 0) ? $argument : spread($argument, \@args));
+				push(@args, rindex($argument, '-', 0) ? $argument : spread($argument));
 				$argument = '';
 				$qchar = '';
 			}
@@ -332,7 +333,7 @@ sub __parser {
 			} elsif ($c =~ tr/ \t// && $p ne '\\') {
 				if (!$argument) { next; }
 
-				push(@args, rindex($argument, '-', 0) ? $argument : spread($argument, \@args));
+				push(@args, rindex($argument, '-', 0) ? $argument : spread($argument));
 				$argument = '';
 				$qchar = '';
 			} else { $argument .= $c; }
@@ -340,7 +341,7 @@ sub __parser {
 	}
 
 	# Get last argument.
-	if ($argument) { push(@args, rindex($argument, '-', 0) ? $argument : spread($argument, \@args)); }
+	if ($argument) { push(@args, rindex($argument, '-', 0) ? $argument : spread($argument)); }
 	# Get/store last char of input.
 	$lastchar = !($c ne ' ' && $p ne '\\') ? $c : '';
 }

@@ -24,6 +24,8 @@ let maincommand = os.paramStr(4) # Get command name from sourced passed-in argum
 let acdef = os.paramStr(5) # Get the acdef definitions file.
 
 var args: seq[string] = @[]
+# Arguments meta data: [eq-sign index, isBool]
+var ameta: seq[array[2, int]] = @[]
 var last = ""
 var `type` = ""
 var foundflags: seq[string] = @[]
@@ -143,27 +145,6 @@ proc splitchars(s: string): seq[char] =
 # @resource [https://perldoc.perl.org/functions/quotemeta.html]
 proc quotemeta(s: string): string =
     for c in s: result &= (if c notin C_QUOTEMETA: '\\' & c else: $c)
-
-# ---------------------------------------------------------------- SEQ-FUNCTIONS
-
-# Return item at index. Return empty string when out of bounds.
-#
-# @param  {sequence} sequence - The sequence to use.
-# @param  {index} position - The item's index.
-# @return {string} - The item at the index.
-proc seqItem(sequence: seq, position: int = -1): string =
-    let l = sequence.len
-    var i = position
-    let ispositive = i >= 0
-    i = abs(i)
-
-    if l == 0: return ""
-    elif ispositive:
-        if i > l - 1: return ""
-    else:
-        if i > l: return ""
-        i = l - i
-    return $(sequence[i])
 
 # ------------------------------------------------------------------------------
 
@@ -308,10 +289,11 @@ proc setEnvs(arguments: varargs[string]) =
 # Parses CLI input.
 #
 # @return - Nothing is returned.
-proc fn_parser() =
+proc fn_tokenize() =
     var argument = ""
     var qchar: char
     var input = input
+    var delindex = -1
     var c, p: char
 
     if input == "": return
@@ -328,6 +310,7 @@ proc fn_parser() =
             if lchar in "1234567890":
                 let argletter = argument[0]
                 discard shift(argument)
+                ameta.add([delindex, 0]); delindex = -1
                 args.add(fmt"-{argletter}")
             else:
                 let chars = splitchars(argument)
@@ -345,6 +328,7 @@ proc fn_parser() =
                     # get added back later in the main loop.
                     elif i == max: break
 
+                    ameta.add([delindex, 0]); delindex = -1
                     args.add(fmt"-{chr}"); inc(i)
 
                 # Reset value to final argument.
@@ -369,6 +353,7 @@ proc fn_parser() =
                 # do not add it to the array. Just skip to next iteration.
                 # if input != "" and not input.startsWith(' '): continue
 
+                ameta.add([delindex, 0]); delindex = -1
                 args.add(if not argument.startsWith('-'): argument else: spread(argument))
                 argument = ""
                 qchar = '\0'
@@ -381,184 +366,123 @@ proc fn_parser() =
             elif c in C_SPACES and p != '\\':
                 if argument == "": continue
 
+                ameta.add([delindex, 0]); delindex = -1
                 args.add(if not argument.startsWith('-'): argument else: spread(argument))
                 argument = ""
                 qchar = '\0'
-            else: argument &= $c
+
+            else:
+                if c in "=:" and delindex == -1 and argument.len > 0 and argument.startsWith('-'):
+                    delindex = argument.len
+                    c = '=' # Normalize ':' to '='.
+                argument &= $c
 
     # Get last argument.
-    if argument != "": args.add(if not argument.startsWith('-'): argument else: spread(argument))
+    if argument != "":
+        ameta.add([delindex, 0]); delindex = -1
+        args.add(if not argument.startsWith('-'): argument else: spread(argument))
+
     # Get last char of input.
     lastchar = if not (c != ' ' and p != '\\'): c else: '\0'
 
 # Determine command chain, used flags, and set needed variables.
 #
 # @return - Nothing is returned.
-proc fn_extractor() =
-    var l = args.len
-    var oldchains: seq[string] = @[]
-    var last_valid_chain = ""
-    var collect_used_pa_args = false
-    var normalized = initTable[int, int]()
+proc fn_analyze() =
+    let l = args.len
+    var cargs: seq[string] = @[]
+    var commands: seq[string] = @[""]
+    var chainstrings: seq[string] = @[" "]
+    var chainflags: seq[seq[string]] = @[@[""]]
+    var delindices: seq[seq[int]] = @[@[0]]
+    var bounds: seq[int] = @[0]
+    var posargs: seq[string] = @[]
+    var cmdend = false
+    var aindex = 0
 
     var i = 1; while i < l:
         var item = args[i]
-        var nitem = seqItem(args, i + 1)
+        let nitem = if i + 1 < l: args[i + 1] else: ""
 
         # Skip quoted or escaped items.
-        if item[0] in C_QUOTES or '\\' in item: inc(i); continue
+        if item[0] in C_QUOTES or '\\' in item: cargs.add(item); inc(i); continue
 
         if not item.startsWith('-'):
-            if collect_used_pa_args:
-                used_default_pa_args &= item & "\n"
-                inc(i); continue
+            if not cmdend:
+                let command = fn_normalize_command(item)
+                var chain = commands.join(".") & "." & command
+                if not chain.startsWith('.'): chain = "." & chain
 
-            commandchain &= "." & fn_normalize_command(item)
-
-            # Validate command chain.
-            let pattern = "^" & quotemeta(commandchain) & "[^ ]* "
-            if findBounds(acdef, re(pattern, {reMultiLine})).first != -1:
-                last_valid_chain = commandchain
-            else:
-                # Revert to last valid chain.
-                commandchain = last_valid_chain
-                collect_used_pa_args = true
-                used_default_pa_args &= item & "\n"
-
-            foundflags.setLen(0)
-
-        else: # Flag...
-
-            # Store to revert if needed.
-            if commandchain != "": oldchains.add(commandchain)
-
-            commandchain = ""
-            used_default_pa_args = ""
-            collect_used_pa_args = false
-
-            # Normalize colons: '--flag:value' to '--flag=value'.
-            if not normalized.hasKey(i) and ':' in item:
-                let findex = item.find({':', '='})
-                if findex > -1:
-                    item[findex] = '='
-                    args[i] = item
-                normalized[i] = 1 # Memoize.
-
-            if '=' in item: foundflags.add(item); inc(i); continue
-
-            var vitem = fn_validate_flag(item)
-            var skipflagval = false
-
-            # If next item exists check if it's a value for the current flag
-            # or if it's another flag and do the proper actions for both.
-            if nitem != "":
-                # Normalize colons: '--flag:value' to '--flag=value'.
-                if not normalized.hasKey(i) and ':' in nitem:
-                    var findex = nitem.find({':', '='})
-                    if findex > -1:
-                        nitem[findex] = '='
-                        args[i] = nitem
-                    normalized[i] = 1 # Memoize.
-
-                # If next word is a value (not a flag).
-                if not nitem.startsWith('-'):
-                    var pattern = "^" & quotemeta(seqItem(oldchains)) & " (.+)$"
-                    let (start, `end`) = findBounds(acdef, re(pattern, {reMultiLine}))
-                    if start != -1:
-                        # If flag is boolean set flag.
-                        pattern = item & "\\?(\\||$)"
-                        if contains(acdef[start .. `end`], re(pattern)): skipflagval = true
-
-                    # If flag isn't found, add it as its value.
-                    if not skipflagval:
-                        vitem &= "=" & nitem
-                        inc(i)
-
-                    # Boolean flag so add marker.
-                    else: args[i] = args[i] & "?"
-
-                foundflags.add(vitem)
-
-            else:
-                var pattern = "^" & quotemeta(seqItem(oldchains)) & " (.+)$"
+                let pattern = "^" & quotemeta(chain) & "[^ ]* "
                 let (start, `end`) = findBounds(acdef, re(pattern, {reMultiLine}))
                 if start != -1:
-                    # If flag is boolean set flag.
-                    pattern = item & "\\?(\\||$)"
-                    if contains(acdef[start .. `end`], re(pattern)): skipflagval = true
+                    chainstrings.add(acdef[start .. `end`])
+                    chainflags.add(@[])
+                    delindices.add(@[])
+                    bounds.add(start)
+                    commands.add(command)
+                    inc(aindex)
+                else:
+                    cmdend = true
+                    posargs.add(item)
+            else: posargs.add(item)
 
-                # Boolean flag so add marker.
-                if skipflagval: args[i] = args[i] & "?"
+            cargs.add(item)
 
-                foundflags.add(vitem)
+        else:
+            if ameta[i][0] > -1:
+                cargs.add(item)
+                chainflags[^1].add(item)
+                delindices[^1].add(ameta[i][0])
+                inc(i)
+                continue
+
+            let flag = fn_validate_flag(item)
+            var pattern = "^" & quotemeta(chainstrings[^1]) & "(.+)$"
+            let (start, `end`) = findBounds(acdef, re(pattern, {reMultiLine}), start=bounds[aindex])
+            let row = acdef[start .. `end`]
+
+            pattern = flag & "\\?(\\||$)"
+            if contains(row, re(pattern)):
+                cargs.add(flag)
+                ameta[i][1] = 1
+                chainflags[^1].add(flag)
+                delindices[^1].add(ameta[i][0])
+
+            else:
+                if nitem != "" and not nitem.startsWith('-'):
+                    let vitem = flag & "=" & nitem
+                    cargs.add(vitem)
+                    chainflags[^1].add(vitem)
+                    ameta[i][0] = flag.len
+                    delindices[^1].add(ameta[i][0])
+                    inc(i)
+                else:
+                    cargs.add(flag)
+                    chainflags[^1].add(flag)
+                    delindices[^1].add(ameta[i][0])
 
         inc(i)
 
-    # Validate command chain.
-    commandchain = fn_validate_command(if commandchain != "": commandchain else: seqItem(oldchains))
+    # Set needed data: cc, pos args, last word, and found flags.
 
-    # Determine whether to turn off autocompletion.
-    var lword = seqItem(args)
-    if lastchar == ' ':
-        if lword.startsWith('-'):
-            autocompletion = lword.find({'=', '?'}) > -1
-    else:
-        if not lword.startsWith('-'):
-            var sword = seqItem(args, -2)
-            if sword.startsWith('-'):
-                autocompletion = sword.find({'=', '?'}) > -1
+    commandchain = fn_validate_command(commands.join("."))
+    if not commandchain.startsWith('.'): commandchain = "." & commandchain
+    if commandchain == ".": commandchain = ""
 
-    # Remove boolean markers from flags.
-    for i, arg in args:
-        var arg = arg
-        if arg.startsWith('-') and '=' notin arg and chop(arg) == '?':
-            args[i] = arg
+    if posargs.len > 0: used_default_pa_args = posargs.join("\n")
 
-    # Set last word.
-    last = if lastchar == ' ': "" else: seqItem(args)
-
-    # Check if last word is quoted.
+    last = if lastchar == ' ': "" else: cargs[^1]
     if last.find(C_QUOTES) == 0: isquoted = true
 
-    # Note: If autocompletion is off check for one of following cases:
-    # '$ maincommand --flag ' or '$ maincommand --flag val'. If so, show
-    # value options for the flag or complete started value option.
-    if not autocompletion and nextchar != "-":
-        let islast_aspace = lastchar == ' '
-        let nlast = seqItem(args, if islast_aspace: -1 else: -2)
-        var pattern = "^" & commandchain & " (.*)$"
-
-        if nlast.startsWith('-') and '=' notin nlast:
-            if islast_aspace:
-                # Check if flag exists like: '--flag='
-                let (start, `end`) = findBounds(acdef, re(pattern, {reMultiLine}))
-                if start != -1:
-                    # Check if flag exists with option(s).
-                    var pattern = nlast & "=(?!\\*).*?(\\||$)"
-                    if contains(acdef[start .. `end`], re(pattern)):
-                        # Modify last used flag.
-                        foundflags[^1] = foundflags[^1] & "="
-                        last = nlast & "="
-                        lastchar = '='
-                        autocompletion = true
-            else: # Complete started value option.
-                # Check if flag exists like: '--flag='
-                let (start, `end`) = findBounds(acdef, re(pattern, {reMultiLine}))
-                if start != -1:
-                    # Check if flag exists with option(s).
-                    var pattern = nlast & "=(" & quotemeta(last) & "|\\$\\().*?(\\||$)"
-                    if contains(acdef[start .. `end`], re(pattern)):
-                        last = nlast & "=" & last
-                        lastchar = last[^1]
-                        autocompletion = true
-
-    # Store used flags for later lookup.
-    for uflag in foundflags:
+    foundflags = chainflags[^1]
+    let usedflags_meta = delindices[^1]
+    for i, uflag in foundflags:
         var uflag_fkey = uflag
         var uflag_value = ""
 
-        if '=' in uflag_fkey:
-            let eqsign_index = uflag.find('=')
+        let eqsign_index = usedflags_meta[i]
+        if eqsign_index > -1:
             uflag_fkey = uflag.substr(0, eqsign_index - 1)
             uflag_value = uflag.substr(eqsign_index + 1)
 
@@ -783,9 +707,9 @@ proc fn_lookup(): string =
 
         `type` = "command"
 
-        # If command chain and used flags exits, don't complete.
-        if usedflags.len > 0 and commandchain != "":
-            commandchain = if last == "": "" else: last
+        # # If command chain and used flags exits, don't complete.
+        # if usedflags.len > 0 and commandchain != "":
+        #     commandchain = if last == "": "" else: last
 
         # If no cc get first level commands.
         if commandchain == "" and last == "":
@@ -802,7 +726,7 @@ proc fn_lookup(): string =
             # When there is only 1 completion item and it's the last command
             # in the command chain, clear the completions array to not re-add
             # the same command.
-            if (rows.len == 1 and commandchain.endsWith(rows[0])): rows.setLen(0)
+            # if (rows.len == 1 and commandchain.endsWith(rows[0])): rows.setLen(0)
 
             var usedcommands = initTable[string, int]()
             var commands = (commandchain[0 .. ^1]).split(re"(?<!\\)\.")
@@ -1001,4 +925,4 @@ proc fn_makedb() =
             else: # Store fallback.
                 if not db_fallbacks.hasKey(chain): db_fallbacks[chain] = line.substr(8)
 
-fn_parser();fn_extractor();fn_makedb();discard fn_lookup();fn_printer()
+fn_tokenize();fn_analyze();fn_makedb();discard fn_lookup();fn_printer()

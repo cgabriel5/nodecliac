@@ -305,8 +305,10 @@ for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-i
 	xtest matches "yarn remov " "command:" # `remov` command does not exit.
 	xtest contains "yarn remove ch" "chalk"
 	xtest contains "yarn " "config"
+	xtest omits "yarn run" "nocache"
 	xtest contains "yarn run " "pretty"
 	xtest contains "yarn remove " "prettier"
+	xtest contains "yarn remove prettier " "-"
 	# Completing a non existing argument should not append a trailing space.
 	xtest matches "yarn remove nonexistantarg" "command;nocache:nonexistantarg"
 	xtest contains "yarn add prettier-cli-watcher@* --" "--dev"

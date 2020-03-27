@@ -1,5 +1,6 @@
  --version?
 .add --
+.cache --clear?|--level=|--level=0|--level=1|--level=2
 .disable --all
 .enable --all
 .format --indent|--print?|--source|--strip-comments?

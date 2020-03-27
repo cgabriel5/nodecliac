@@ -291,7 +291,7 @@ sub __parser {
 					# Note: If the argument is not a hyphen and is the last
 					# item in the array, remove it from the array as it will
 					# get added back later in the main loop.
-					elsif (i == max) { last; }
+					elsif ($i == $max) { last; }
 
 					push(@args, "-$char"); $i++;
 				}

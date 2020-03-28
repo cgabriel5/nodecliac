@@ -569,7 +569,7 @@ sub __lookup {
 					$cflag = "$flag_fkey=$flag_value";
 
 					# If a command-flag, run it and add items to array.
-					if (rindex($flag_value, "\$(", 0) == 0 && substr($flag_value, -1) eq ')') {
+					if (rindex($flag_value, "\$(", 0) == 0 && substr($flag_value, -1) eq ')' && $last_eqsign == '=') {
 						$type = "flag;nocache";
 						my @lines = @{ __exec_command($flag_value) };
 						foreach my $line (@lines) {

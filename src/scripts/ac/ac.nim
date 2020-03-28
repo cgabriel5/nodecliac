@@ -573,7 +573,7 @@ proc fn_lookup(): string =
                     cflag = fmt"{flag_fkey}={flag_value}"
 
                     # If a command-flag, run it and add items to array.
-                    if flag_value.startsWith("$(") and flag_value.endsWith(')'):
+                    if flag_value.startsWith("$(") and flag_value.endsWith(')') and last_eqsign == '=':
                         `type` = "flag;nocache"
                         let lines = execCommand(flag_value)
                         for line in lines:

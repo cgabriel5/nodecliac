@@ -72,7 +72,8 @@ function _nodecliac() {
 	local usecache=0
 
 	if [[ "$clevel" != "0" ]]; then
-		sum="$(md5sum <<< "$cline$PWD")"
+		# [https://stackoverflow.com/a/28844659]
+		sum="$(cksum <<< "$cline$PWD")"
 		sum="${sum:0:8}"
 		cachefile=~/.nodecliac/.cache/"$sum"
 		if [[ -e "$cachefile" ]]; then

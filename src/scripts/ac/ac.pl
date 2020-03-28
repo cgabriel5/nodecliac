@@ -427,7 +427,7 @@ sub __analyze {
             $start = 0; $end = 0;
             pos($acdef) = $bounds[$aindex];
             if ($acdef =~ /$pattern/m) { $start = $-[0]; $end = $+[0]; }
-            pos($acdef) = 0;
+            pos($acdef) = 0; # [https://stackoverflow.com/a/4587683]
             my $row = substr($acdef, $start, $end - $start);
 
             $pattern = $flag . '\?(\||$)';

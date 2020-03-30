@@ -475,6 +475,18 @@ proc fn_analyze() =
     last = if lastchar == ' ': "" else: cargs[^1]
     if last.find(C_QUOTES) == 0: isquoted = true
 
+    # Handle case: 'nodecliac print --command [TAB]'
+    if last == "" and cargs.len > 0 and cargs[^1].startsWith('-') and
+    ameta[^1][0] == -1 and ameta[^1][1] == 0:
+        let r = cargs[^1] & "="
+        lastchar = '\0'
+        last = r
+        cargs[^1] = r
+        args[^1] = r
+        ameta[^1][0] = r.high
+        chainflags[^1][chainflags[^1].high] = r
+        delindices[^1][delindices[^1].high] = r.high
+
     foundflags = chainflags[^1]
     let usedflags_meta = delindices[^1]
     for i, uflag in foundflags:

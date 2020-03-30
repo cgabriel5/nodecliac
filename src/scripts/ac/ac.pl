@@ -465,6 +465,20 @@ sub __analyze {
     $last = ($lastchar eq ' ') ? '' : $cargs[-1];
     if (substr($last, 0, 1) =~ tr/"'//) { $isquoted = 1; }
 
+	# Handle case: 'nodecliac print --command [TAB]'
+	if ($last eq '' && @cargs && rindex($cargs[-1], '-', 0) == 0 &&
+		$ameta[-1][0] == -1 && $ameta[-1][1] == 0) {
+		my $r = $cargs[-1] . '=';
+		my $l = length($r) - 1;
+		$lastchar = '';
+		$last = $r;
+		$cargs[-1] = $r;
+		$args[-1] = $r;
+		$ameta[-1][0] = $l;
+		$chainflags[-1][length($chainflags[-1]) - 1] = $r;
+		$delindices[-1][length($delindices[-1]) - 1] = $l;
+	}
+
 	# Store used flags for later lookup.
     @foundflags = @{$chainflags[-1]};
     my @usedflags_meta = $delindices[-1];

@@ -36,7 +36,7 @@
 		"file-extension": "^4.0.5",
 		"flatry": "^1.0.12",
 		"make-dir": "^3.0.0",
-		"minimist": "^1.2.0",
+		"minimist": "^1.2.3",
 		"path-exists": "^4.0.0",
 		"recursive-copy": "^2.0.10",
 		"rimraf": "^3.0.0",

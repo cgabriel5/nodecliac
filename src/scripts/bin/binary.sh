@@ -93,7 +93,7 @@ while (( "$#" )); do
 			shift; ;; # Preserve positional arguments.
 	esac
 done
-eval set -- "$params" # Set positional arguments in their proper place
+eval set -- "$params" # Set positional arguments in their proper place.
 shift # Remove command from arguments array.
 
 # If no command given but '--version' flag supplied show version.

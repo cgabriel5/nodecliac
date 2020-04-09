@@ -331,6 +331,11 @@ for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-i
 	xtest contains "nim compile --app=con" "console"
 	xtest contains "nim compile --app:con" "console"
 
+	# [test-suite: nimble]
+	xtest contains "nimble install " "a"
+	xtest contains "nimble uninstall " "@"
+	xtest contains "nimble path " "regex"
+
 	if [[ $(isset "$PRINT") ]]; then echo ""; fi # Pad output.
 	test_id=0
 done

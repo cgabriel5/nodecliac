@@ -281,6 +281,7 @@ for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-i
 	xtest contains "nodecliac print --command " "nodecliac "
 	xtest contains "nodecliac print --comm" "--command"
 	xtest contains "nodecliac make --sou path/to/file" "source" "20"
+	xtest omits "nodecliac make --source install --print --so" "--source"
 	xtest contains "nodecliac format --source command.acmap --print --indent \"s:2\" --" "strip-comments"
 
 	# [test-suite: prettier-cli-watcher]

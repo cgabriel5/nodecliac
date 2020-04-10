@@ -629,7 +629,11 @@ proc fn_lookup(): string =
                 elif flag_eqsign == '\0':
 
                     # Valueless --flag (no-value) dupe check.
-                    if usedflags_valueless.hasKey(flag_fkey): dupe = 1
+                    if usedflags_valueless.hasKey(flag_fkey) or
+                    # Check if flag was used with a value already.
+                        (usedflags.hasKey(flag_fkey) and
+                        usedflags_counts[flag_fkey] < 2 and
+                        lastchar == '\0'): dupe = 1
 
                 else: # --flag=<value> (with value) dupe check.
 

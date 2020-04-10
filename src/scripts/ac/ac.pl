@@ -621,7 +621,12 @@ sub __lookup {
 				} elsif (!$flag_eqsign) {
 
 					# Valueless --flag (no-value) dupe check.
-					if (exists($usedflags{valueless}{$flag_fkey})) { $dupe = 1; }
+					if (exists($usedflags{valueless}{$flag_fkey}) || (
+					# Check if flag was used with a value already.
+						exists($usedflags{$flag_fkey}) &&
+						$usedflags{counts}{$flag_fkey} < 2 &&
+						!$lastchar
+					)) { $dupe = 1; }
 
 				} else { # --flag=<value> (with value) dupe check.
 

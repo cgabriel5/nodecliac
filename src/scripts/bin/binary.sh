@@ -288,7 +288,7 @@ case "$command" in
 		# Remove nodecliac from ~/.bashrc.
 		if [[ -n "$(grep -o "ncliac=~/.nodecliac/src/main/init.sh" "$rcfilepath")" ]]; then
 			# [https://stackoverflow.com/a/57813295]
-			perl -0pi -e 's/ncliac=~\/.nodecliac\/src\/main\/init.sh;if \[ -f "\$ncliac" \];then source "\$ncliac";fi;//;s/\n+(\n)$/\1/gs' "$rcfilepath"
+			perl -0pi -e 's/([# \t]*)\bncliac.*"\$ncliac";?\n?//g;s/\n+(\n)$/\1/gs' ~/.bashrc
 			# perl -pi -e "s/ncliac=~\/.nodecliac\/src\/main\/init.sh;if \[ -f \"\\\$ncliac\" \];then source \"\\\$ncliac\";fi;// if /^ncliac/" "$rcfilepath"
 			echo -e "\033[32mSuccessfully\033[0m reverted \033[1m"$rcfilepath"\033[0m changes."
 		fi

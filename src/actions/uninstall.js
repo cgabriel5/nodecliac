@@ -36,7 +36,7 @@ module.exports = async args => {
 		if (res) {
 			[err, res] = await flatry(read(bashrcpath));
 			if (/^ncliac=~/m.test(res)) {
-				res = res.replace(/ncliac=~[\s\S]*?"\$ncliac";\s*fi;/g, "");
+				res = res.replace(/([# \t]*)\bncliac.*"\$ncliac";?\n?/g, "");
 				await flatry(write(bashrcpath, res));
 
 				let varg1 = chalk.green("Successfully");

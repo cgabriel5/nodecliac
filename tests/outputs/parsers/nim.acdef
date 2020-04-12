@@ -1,21 +1,24 @@
  --help|--version
-.buildIndex --p#082f08
-.c --p#082f08
-.cc --p#082f08
-.check --p#082f08
-.compile --p#082f08
-.compileToC --p#082f08
-.compileToCpp --p#082f08
-.compileToOC --p#082f08
-.cpp --p#082f08
-.ctags --p#082f08
-.dump --p#082f08
-.e --p#082f08
-.genDepend --p#082f08
-.js --p#082f08
-.jsondoc --p#082f08
-.objc --p#082f08
-.rst2html --p#082f08
-.rst2tex --p#082f08
+.buildIndex --p#07d43e
+.c --p#07d43e
+.cc --p#07d43e
+.check --p#07d43e
+.compile --p#07d43e
+.compileToC --p#07d43e
+.compileToCpp --p#07d43e
+.compileToOC --p#07d43e
+.cpp --p#07d43e
+.ctags --p#07d43e
+.doc --p#07d43e
+.doc2 --p#07d43e
+.dump --p#07d43e
+.e --p#07d43e
+.genDepend --p#07d43e
+.js --p#07d43e
+.jsondoc --p#07d43e
+.objc --p#07d43e
+.rst2html --p#07d43e
+.rst2tex --p#07d43e
 
 @placehold = true
+@filedir = "@(nim)"

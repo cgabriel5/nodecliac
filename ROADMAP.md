@@ -9,6 +9,8 @@ _Document serves to give insight into project plans (i.e. possible features, imp
   - For example, to be able to show `x` command/flag only when `y` command/flag is/isn't already used.
 - [ ] Look into building a GUI (maybe website) to help with `.acmap` file creation.
 - [x] _Caching_: Look into supporting a cache system to provide quicker completions.
+- [ ] _Syntax_, _Flexibility_: Add support for `_filedir` on a command chain basis (like `default` keyword).
+- [ ] _Syntax_, _Sugar_: Add `,` delimiter support for flag values (like command delimiter but for flag values).
 
 ### Support
 
@@ -18,3 +20,4 @@ _Document serves to give insight into project plans (i.e. possible features, imp
 ### Improvements
 
 - [x] Look into porting `.acmap` JavaScript CLI tools (parser/formatter) to Nim to remove Node.js requirement when building completion packages.
+- [ ] Improve short flag support.

@@ -66,19 +66,32 @@ function _nodecliac() {
 	local cpoint="$COMP_POINT"
 	local acdefpath=~/.nodecliac/registry/"$command/$command.acdef"
 	local prehook=~/.nodecliac/registry/"$command"/hooks/pre-parse.sh
-	local hasprehook=0; if [[ -e "$prehook" ]]; then hasprehook=1; fi
 	read -r -n 1 clevel < ~/.nodecliac/.cache-level
 	local cachefile=""
+	local xcachefile=""
 	local usecache=0
 
-	if [[ "$clevel" != "0" ]]; then
-		sum="$(md5sum <<< "$cline$PWD")"
-		sum="${sum:0:8}"
+	if [[ "$clevel" != 0 ]]; then
+		# [https://stackoverflow.com/a/28844659]
+		sum="$(cksum <<< "$cline$PWD")"
+		sum="${sum:0:7}"
 		cachefile=~/.nodecliac/.cache/"$sum"
-		if [[ -e "$cachefile" ]]; then
+		xcachefile=~/.nodecliac/.cache/"x$sum"
+
+		if [[ -e "$xcachefile" ]]; then
+			m=$(date -r "$xcachefile" "+%s")
+			c=$(date +"%s")
+			if [[ $(($c-$m)) -lt 3 ]]; then
+				usecache=1
+				output=$(<$xcachefile)
+			fi
+
+		elif [[ -e "$cachefile" ]]; then
 			usecache=1
 			output=$(<$cachefile)
 		fi
+
+		rm -rf ~/.nodecliac/.cache/x*
 	fi
 
 	if [[ "$usecache" == 0 ]]; then
@@ -89,7 +102,7 @@ function _nodecliac() {
 			ac=~/.nodecliac/src/bin/ac."${os/darwin/macosx}"
 		fi
 
-		if [[ "$hasprehook" == 1 ]]; then . "$prehook"; fi
+		if [[ -e "$prehook" ]]; then . "$prehook"; fi
 
 		output=$("$ac" "$COMP_LINE" "$cline" "$cpoint" "$command" "$acdef")
 		# "$ac" "$COMP_LINE" "$cline" "$cpoint" "$command" "$acdef"
@@ -105,10 +118,9 @@ function _nodecliac() {
 	local cacheopt=1; if [[ "$type" == *"nocache"* ]]; then cacheopt=0; fi
 	if [[ -z "$items" ]]; then return; fi
 
-	if [[ "$clevel" != "0" && "$usecache" == 0 ]]; then
-		if [[ "$cacheopt" == 1 && "$hasprehook" == 0 ]] || [[ "$clevel" == "2" ]]; then
-			echo "$output" > ~/.nodecliac/.cache/"$sum"
-		fi
+	if [[ "$clevel" != 0 && "$usecache" == 0 ]]; then
+		if [[ "$cacheopt" == 0 && "$clevel" == 1 ]]; then sum="x$sum"; fi
+		echo "$output" > ~/.nodecliac/.cache/"$sum"
 	fi
 
 	if [[ "$type" == "command"* ]]; then

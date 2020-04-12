@@ -12,6 +12,8 @@ my $maincommand = $ARGV[3]; # Get command name from sourced passed-in argument.
 my $acdef = $ARGV[4]; # Get the acdef definitions file.
 
 my @args = ();
+# Arguments meta data: [eq-sign index, isBool]
+my @ameta = ();
 my $last = '';
 my $type = '';
 my @foundflags = ();
@@ -254,10 +256,11 @@ sub __set_envs {
 # Parses CLI input.
 #
 # @return - Nothing is returned.
-sub __parser {
+sub __tokenize {
 	my $argument = '';
 	my $qchar = '';
 	my $input = $input;
+	my $delindex = -1;
 	my $c; my $p;
 
 	if (!$input) { return; }
@@ -267,7 +270,7 @@ sub __parser {
 	# @param  {string} argument - The string to spread.
 	# @return {string} - The remaining argument.
 	sub spread {
-		my ($argument, $args) = @_;
+		my ($argument) = @_;
 
 		if (length($argument) >= 3 && substr($argument, 1, 1) ne '-') {
 			substr($argument, 0, 1, "");
@@ -277,7 +280,8 @@ sub __parser {
 			if ($lchar =~ tr/1234567890//) {
 				my $argletter = substr($argument, 0, 1);
 				substr($argument, 0, 1, "");
-				push(@$args, "-$argletter");
+				push(@ameta, [$delindex, 0]); $delindex = -1;
+				push(@args, "-$argletter");
 			} else {
 				my @chars = split(//, $argument);
 				my $max = $#chars;
@@ -290,9 +294,10 @@ sub __parser {
 					# Note: If the argument is not a hyphen and is the last
 					# item in the array, remove it from the array as it will
 					# get added back later in the main loop.
-					elsif (i == max) { last; }
+					elsif ($i == $max) { last; }
 
-					push(@$args, "-$char"); $i++;
+					push(@ameta, [$delindex, 0]); $delindex = -1;
+					push(@args, "-$char"); $i++;
 				}
 
 				# Reset value to final argument.
@@ -319,9 +324,10 @@ sub __parser {
 				# -------------------------------------------^Whitespace char.
 				# If argument is not spaced out or at the end of the input
 				# do not add it to the array. Just skip to next iteration.
-				if ($input && rindex($input, ' ', 0) != 0) { next; }
+				# if ($input && rindex($input, ' ', 0) != 0) { next; }
 
-				push(@args, rindex($argument, '-', 0) ? $argument : spread($argument, \@args));
+				push(@ameta, [$delindex, 0]); $delindex = -1;
+				push(@args, rindex($argument, '-', 0) ? $argument : spread($argument));
 				$argument = '';
 				$qchar = '';
 			}
@@ -329,18 +335,31 @@ sub __parser {
 			if ($c =~ tr/"'// && $p ne '\\') {
 				$qchar = $c;
 				$argument .= $c;
+
 			} elsif ($c =~ tr/ \t// && $p ne '\\') {
 				if (!$argument) { next; }
 
-				push(@args, rindex($argument, '-', 0) ? $argument : spread($argument, \@args));
+				push(@ameta, [$delindex, 0]); $delindex = -1;
+				push(@args, rindex($argument, '-', 0) ? $argument : spread($argument));
 				$argument = '';
 				$qchar = '';
-			} else { $argument .= $c; }
+
+			} else {
+				if ($c =~ tr/=:// && $delindex == -1 && length($argument) > 0 && rindex($argument, '-', 0) == 0) {
+					$delindex = length($argument);
+					$c = '='; # Normalize ':' to '='.
+				}
+				$argument .= $c;
+			}
 		}
 	}
 
 	# Get last argument.
-	if ($argument) { push(@args, rindex($argument, '-', 0) ? $argument : spread($argument, \@args)); }
+	if ($argument) {
+		push(@ameta, [$delindex, 0]); $delindex = -1;
+		push(@args, rindex($argument, '-', 0) ? $argument : spread($argument));
+	}
+
 	# Get/store last char of input.
 	$lastchar = !($c ne ' ' && $p ne '\\') ? $c : '';
 }
@@ -348,184 +367,128 @@ sub __parser {
 # Determine command chain, used flags, and set needed variables.
 #
 # @return - Nothing is returned.
-sub __extractor {
+sub __analyze {
 	my $l = $#args + 1;
-	my @oldchains = ();
-	my $last_valid_chain = '';
-	my $collect_used_pa_args = '';
-	my %normalized;
+    my @cargs = ();
+    my @commands = ('');
+    my @chainstrings = (' ');
+    my @chainflags = (['']);
+    my @delindices = ([0]);
+    my @bounds = (0);
+    my @posargs = ();
+    my $cmdend = 0;
+    my $aindex = 0;
+    my $start = 0;
+    my $end = 0;
 
 	for (my $i = 1; $i < $l; $i++) {
 		my $item = $args[$i];
 		my $nitem = $args[$i + 1];
 
 		# Skip quoted or escaped items.
-		if (substr($item, 0, 1) =~ tr/"'// || $item =~ tr/\\//) { next; }
+		if (substr($item, 0, 1) =~ tr/"'// || $item =~ tr/\\//) { push(@cargs, $item); next; }
 
 		if (rindex($item, '-', 0)) {
-			if ($collect_used_pa_args) {
-				$used_default_pa_args .= "$item\n";
-				next;
-			}
+            if (!$cmdend) {
+                my $command = __normalize_command($item);
+                my $chain = join('.', @commands) . '.' . $command;
+                if (rindex($chain, '.', 0) != 0) { $chain = '.' . $chain; }
 
-			$commandchain .= '.' . __normalize_command($item);
-
-			# Validate command chain.
-			my $pattern = '^' . quotemeta($commandchain) . '[^ ]* ';
-			if ($acdef =~ /$pattern/m) { $last_valid_chain = $commandchain;
-			} else {
-				# Revert to last valid chain.
-				$commandchain = $last_valid_chain;
-				$collect_used_pa_args = 1;
-				$used_default_pa_args .= "$item\n";
-			}
-
-			@foundflags = ();
-
-		} else { # Flag...
-
-			# Store to revert if needed.
-			if ($commandchain) { push(@oldchains, $commandchain); }
-
-			$commandchain = '';
-			$used_default_pa_args = '';
-			$collect_used_pa_args = 0;
-
-			# Normalize colons: '--flag:value' to '--flag=value'.
-			if (!exists($normalized{$i}) && $item =~ tr/://) {
-				$item =~ s/[:=]/=/;
-				$args[$i] = $item;
-				$normalized{$i} = undef; # Memoize.
-			}
-
-			if ($item =~ tr/=//) { push(@foundflags, $item); next; }
-
-			my $vitem = __validate_flag($item);
-			my $skipflagval = 0;
-
-			# If next item exists check if it's a value for the current flag
-			# or if it's another flag and do the proper actions for both.
-			if ($nitem) {
-				# Normalize colons: '--flag:value' to '--flag=value'.
-				if (!exists($normalized{$i}) && $nitem =~ tr/://) {
-					$nitem =~ s/[:=]/=/;
-					$args[$i] = $nitem;
-					$normalized{$i} = undef; # Memoize.
-				}
-
-				# If next word is a value (not a flag).
-				if (rindex($nitem, '-', 0)) {
-					my $pattern = '^' . quotemeta($oldchains[-1]) . ' (.+)$';
-					if ($acdef =~ /$pattern/m) {
-						# If flag is boolean set flag.
-						$pattern = "$item\\?(\\||\$)";
-						if ($1 =~ /$pattern/) { $skipflagval = 1; }
-					}
-
-					# If flag isn't found, add it as its value.
-					if (!$skipflagval) {
-						$vitem .= "=$nitem";
-						$i++;
-
-					# Boolean flag so add marker.
-					} else { $args[$i] = $args[$i] . '?'; }
-				}
-
-				push(@foundflags, $vitem);
-
-			} else {
-				my $pattern = '^' . quotemeta($oldchains[-1]) . ' (.+)$';
+                # [https://stackoverflow.com/a/87504]
+                my $pattern = '^' . quotemeta($chain) . '[^ ]* ';
+                $start = 0; $end = 0;
 				if ($acdef =~ /$pattern/m) {
-					# If flag is boolean set flag.
-					$pattern = "$item\\?(\\||\$)";
-					if ($1 =~ /$pattern/) { $skipflagval = 1; }
-				}
+					$start = $-[0]; $end = $+[0]; }
+                if ($start) {
+                    push(@chainstrings, substr($acdef, $start, $end - $start));
+                    push(@chainflags, []);
+                    push(@delindices, []);
+                    push(@bounds, $start);
+                    push(@commands, $command);
+                    $aindex++;
+                } else {
+                    $cmdend = 1;
+                    push(@posargs, $item);
+                }
+            } else { push(@posargs, $item); }
 
-				# Boolean flag so add marker.
-				if ($skipflagval) { $args[$i] = $args[$i] . '?'; }
+            push(@cargs, $item);
 
-				push(@foundflags, $vitem);
-			}
-		}
+        } else {
+            if ($ameta[$i]->[0] > -1) {
+                push(@cargs, $item);
+                push(@{$chainflags[-1]}, $item);
+                push(@{$delindices[-1]}, $ameta[$i]->[0]);
+                next;
+	        }
 
-	}
+            my $flag = __validate_flag($item);
+            my $pattern = '^' . quotemeta($chainstrings[-1]) . '(.+)$';
+            $start = 0; $end = 0;
+            pos($acdef) = $bounds[$aindex];
+            if ($acdef =~ /$pattern/m) { $start = $-[0]; $end = $+[0]; }
+            pos($acdef) = 0; # [https://stackoverflow.com/a/4587683]
+            my $row = substr($acdef, $start, $end - $start);
 
-	# Validate command chain.
-	$commandchain = __validate_command($commandchain || $oldchains[-1]);
+            $pattern = $flag . '\?(\||$)';
+            if ($row =~ /$pattern/m) {
+                push(@cargs, $flag);
+                $ameta[$i]->[1] = 1;
+                push(@{$chainflags[-1]}, $flag);
+                push(@{$delindices[-1]}, $ameta[$i]->[0]);
 
-	# Determine whether to turn off autocompletion.
-	my $lword = $args[-1];
-	if ($lastchar eq ' ') {
-		if (rindex($lword, '-', 0) == 0) {
-			$autocompletion = ($lword =~ tr/=?//);
-		}
-	} else {
-		if (rindex($lword, '-', 0)) {
-			my $sword = $args[-2];
-			if (rindex($sword, '-', 0) == 0) {
-				$autocompletion = ($sword =~ tr/=?//);
+            } else {
+                if ($nitem && rindex($nitem, '-', 0) != 0) {
+                    my $vitem = $flag . '=' . $nitem;
+                    push(@cargs, $vitem);
+                    push(@{$chainflags[-1]}, $vitem);
+                    $ameta[$i]->[0] = length($flag);
+                    push(@{$delindices[-1]}, $ameta[$i]->[0]);
+                    $i++;
+                } else {
+                    push(@cargs, $flag);
+                    push(@{$chainflags[-1]}, $flag);
+                    push(@{$delindices[-1]}, $ameta[$i]->[0]);
+                }
 			}
 		}
 	}
 
-	# Remove boolean markers from flags.
-	for my $i (0 .. $#args) {
-		my $arg = $args[$i];
-		if (rindex($arg, '-', 0) == 0 && $arg !~ tr/=// && chop($arg) eq '?') {
-			$args[$i] = $arg;
-		}
-	}
+    # Set needed data: cc, pos args, last word, and found flags.
 
-	# Set last word.
-	$last = ($lastchar eq ' ') ? '' : $args[-1];
+    $commandchain = __validate_command(join('.', @commands));
+    if (rindex($commandchain, '.', 0)) { $commandchain = '.' . $commandchain; }
+    if ($commandchain eq '.') { $commandchain = ''; }
 
-	# Check if last word is quoted.
-	if (substr($last, 0, 1) =~ tr/"'//) { $isquoted = 1; }
+    if (@posargs) { $used_default_pa_args = join("\n", @posargs); }
 
-	# Note: If autocompletion is off check for one of following cases:
-	# '$ maincommand --flag ' or '$ maincommand --flag val'. If so, show
-	# value options for the flag or complete started value option.
-	if (!$autocompletion && $nextchar ne '-') {
-		my $islast_aspace = ($lastchar eq ' ');
-		my $nlast = $args[($islast_aspace ? -1 : -2)];
-		my $pattern = '^' . $commandchain . ' (.*)$';
+    $last = ($lastchar eq ' ') ? '' : $cargs[-1];
+    if (substr($last, 0, 1) =~ tr/"'//) { $isquoted = 1; }
 
-		if (rindex($nlast, '-', 0) == 0 && $nlast !~ tr/=//) {
-			if ($islast_aspace) {
-				# Check if flag exists like: '--flag='
-				if ($acdef =~ /$pattern/m) {
-					# Check if flag exists with option(s).
-					my $pattern = $nlast . '=(?!\*).*?(\||$)';
-					if ($1 =~ /$pattern/) {
-						# Modify last used flag.
-						$foundflags[-1] = $foundflags[-1] . '=';
-						$last = $nlast . '=';
-						$lastchar = '=';
-						$autocompletion = 1;
-					}
-				}
-			} else { # Complete currently started value option.
-				# Check if flag exists like: '--flag='
-				if ($acdef =~ /$pattern/m) {
-					# Check if flag exists with option(s).
-					my $pattern = $nlast . '=(' . quotemeta($last) . '|\$\().*?(\||$)';
-					if ($1 =~ /$pattern/) {
-						$last = $nlast . '=' . $last;
-						$lastchar = substr($last, -1);
-						$autocompletion = 1;
-					}
-				}
-			}
-		}
+	# Handle case: 'nodecliac print --command [TAB]'
+	if ($last eq '' && @cargs && rindex($cargs[-1], '-', 0) == 0 &&
+		$ameta[-1][0] == -1 && $ameta[-1][1] == 0) {
+		my $r = $cargs[-1] . '=';
+		my $l = length($r) - 1;
+		$lastchar = '';
+		$last = $r;
+		$cargs[-1] = $r;
+		$args[-1] = $r;
+		$ameta[-1][0] = $l;
+		$chainflags[-1][length($chainflags[-1]) - 1] = $r;
+		$delindices[-1][length($delindices[-1]) - 1] = $l;
 	}
 
 	# Store used flags for later lookup.
+    @foundflags = @{$chainflags[-1]};
+    my @usedflags_meta = $delindices[-1];
+    my $i = 0;
 	foreach my $uflag (@foundflags) {
 		my $uflag_fkey = $uflag;
 		my $uflag_value = '';
 
-		# [https://stackoverflow.com/a/87565]
-		if ($uflag_fkey =~ tr/\=//) {
+		my $eqsign_index = $usedflags_meta[$i];
+        if ($eqsign_index > -1) {
 			my $eqsign_index = index($uflag, '=');
 			$uflag_fkey = substr($uflag, 0, $eqsign_index);
 			$uflag_value = substr($uflag, $eqsign_index + 1);
@@ -536,6 +499,8 @@ sub __extractor {
 
 		# Track times flag was used.
 		$usedflags{counts}{$uflag_fkey}++;
+
+		$i++;
 	}
 }
 
@@ -598,7 +563,6 @@ sub __lookup {
 				my $cflag = '';
 
 				# If flag contains an eq sign.
-				# [https://stackoverflow.com/a/87565]
 				if ($flag_fkey =~ tr/\=//) {
 					my $eqsign_index = index($flag, '=');
 					$flag_fkey = substr($flag, 0, $eqsign_index);
@@ -619,7 +583,7 @@ sub __lookup {
 					$cflag = "$flag_fkey=$flag_value";
 
 					# If a command-flag, run it and add items to array.
-					if (rindex($flag_value, "\$(", 0) == 0 && substr($flag_value, -1) eq ')') {
+					if (rindex($flag_value, "\$(", 0) == 0 && substr($flag_value, -1) eq ')' && $last_eqsign == '=') {
 						$type = "flag;nocache";
 						my @lines = @{ __exec_command($flag_value) };
 						foreach my $line (@lines) {
@@ -657,7 +621,12 @@ sub __lookup {
 				} elsif (!$flag_eqsign) {
 
 					# Valueless --flag (no-value) dupe check.
-					if (exists($usedflags{valueless}{$flag_fkey})) { $dupe = 1; }
+					if (exists($usedflags{valueless}{$flag_fkey}) || (
+					# Check if flag was used with a value already.
+						exists($usedflags{$flag_fkey}) &&
+						$usedflags{counts}{$flag_fkey} < 2 &&
+						!$lastchar
+					)) { $dupe = 1; }
 
 				} else { # --flag=<value> (with value) dupe check.
 
@@ -736,6 +705,12 @@ sub __lookup {
 
 			# If no completions, add last item so Bash compl. can add a space.
 			if (!@completions) {
+                # Exit if last word is in the form '--flag='. The '=' makes
+                # Bash append the entire flag again. This is possibly due to
+                # the way readline splits words with $COMP_WORDBREAKS chars.
+				my $lchar = chop($last); $last .= $lchar;
+				if (!$last_value && $lchar eq '=') { exit; }
+
 				my $key = $last_fkey . (!$last_value ? "" : "=$last_value");
 				my $item = (!$last_value ? $last : $last_value);
 				if (exists($parsedflags{$key})) { push(@completions, $item); }
@@ -760,10 +735,10 @@ sub __lookup {
 
 		$type = 'command';
 
-		# If command chain and used flags exits, don't complete.
-		if (%usedflags && $commandchain) {
-			$commandchain = "" . (!$last ? "" : $last);
-		}
+		# # If command chain and used flags exits, don't complete.
+		# if (%usedflags && $commandchain) {
+		# 	$commandchain = "" . (!$last ? "" : $last);
+		# }
 
 		# If no cc get first level commands.
 		if (!$commandchain && !$last) {
@@ -774,6 +749,13 @@ sub __lookup {
 			my $lastchar_notspace = ($lastchar ne ' ');
 
 			if (!@rows) { return; }
+
+			# When there is only 1 completion item and it's the last command
+			# in the command chain, clear the completions array to not re-add
+			# the same command.
+			# if (@rows == 1 && $rows[0] eq substr($commandchain, -length($rows[0]))) {
+			# 	@rows = ();
+			# }
 
 			my %usedcommands;
 			my @commands = split(/(?<!\\)\./, substr($commandchain, 1));
@@ -991,4 +973,4 @@ sub __makedb {
 	}
 }
 
-__parser();__extractor();__makedb();__lookup();__printer();
+__tokenize();__analyze();__makedb();__lookup();__printer();

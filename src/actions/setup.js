@@ -40,8 +40,7 @@ module.exports = async args => {
 	[err, res] = await flatry(read(bashrcpath));
 	if (!/^ncliac=~/m.test(res)) {
 		res = res.replace(/\n*$/g, ""); // Remove trailing newlines.
-		tstring =
-			'?\n\nncliac=~/.nodecliac/src/main/?;if [ -f "$ncliac" ];then source "$ncliac";fi;';
+		tstring = '?\nncliac=~/.nodecliac/src/main/?; [ -f "$ncliac" ] && . "$ncliac";';
 		await flatry(write(bashrcpath, fmt(tstring, res, mainscriptname)));
 	}
 

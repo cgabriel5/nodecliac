@@ -631,7 +631,7 @@ Main commands are `make` and `format`. Followed by helper commands: `setup`, `st
 - `--force`: (**required** _if nodecliac is already setup)_: Old setup is backed up and nodecliac is setup as new.
 - `--rcfilepath`: By default `~/.bashrc` is used. If another rc file should be used provide its path.
   - **Note**: This gets appended to rc file:
-    - `ncliac=~/.nodecliac/src/main/init.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;`
+    - `ncliac=~/.nodecliac/src/main/init.sh; [ -f "$ncliac" ] && . "$ncliac";`
 
 **status**: Returns status of nodecliac (enabled or disabled).
 

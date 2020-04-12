@@ -1,8 +1,8 @@
 # Nim CLI Compiler: [https://nim-lang.org/docs/nimc.html]
-
-# nim command [options] [projectfile] [arguments]
+# [https://github.com/nim-lang/Nim/blob/devel/tools/nim.bash-completion]
 
 @placehold = true
+@filedir = "@(nim)"
 
 nim = [
 	--help
@@ -11,6 +11,8 @@ nim = [
 
 nim.js,
 nim.e,
+nim.doc,
+nim.doc2,
 nim.rst2html,
 nim.rst2tex,
 nim.jsondoc,
@@ -138,6 +140,7 @@ nim.objc = [
 	--memTracker=(on off)
 	--hotCodeReloading=(on off)
 	--excessiveStackTrace=(on off)
+	--stackTraceMsgs=(on off)
 	--oldNewlines=(on off)
 	--laxStrings=(on off)
 	--nilseqs=(on off)
@@ -146,7 +149,7 @@ nim.objc = [
 	--skipUserCfg=(on off)
 	--skipParentCfg=(on off)
 	--skipProjCfg=(on off)
-	--gc=(refc markAndSweep boehm go none regions)
+	--gc=(arc refc markAndSweep boehm go none regions)
 	--index=(on off)
 	--putenv=
 	--NimblePath=
@@ -158,13 +161,17 @@ nim.objc = [
 	--dynlibOverride=
 	--dynlibOverrideAll
 	--listCmd
+	--asm
 	--parallelBuild=
 	--incremental=(on off)
 	--verbosity=(0 1 2 3)
 	--errorMax=
 	--experimental=
 	--legacy=
-	--useVersion=
+	--useVersion=1.0
 	--newruntime
 	--profiler=(on off)
+	--benchmarkVM=(on off)
+	--sinkInference=(on off)
+	--panics=(on off)
 ]

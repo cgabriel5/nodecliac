@@ -240,7 +240,7 @@ if [[ "$installer" == "binary" ]]; then
 	# Add nodecliac to rcfile.
 	if [[ -z "$(grep -o "ncliac=~/.nodecliac/src/main/init.sh" "$rcfilepath")" ]]; then
 		echo " - Adding nodecliac to $rcfilepath..."
-		echo -e '\nncliac=~/.nodecliac/src/main/init.sh;if [ -f "$ncliac" ];then source "$ncliac";fi;' >> "$rcfilepath"
+		echo 'ncliac=~/.nodecliac/src/main/init.sh; [ -f "$ncliac" ] && . "$ncliac";' >> "$rcfilepath"
 		perl -i -lpe 's/\x0a$//' "$rcfilepath"
 		success "Added nodecliac to $rcfilepath."
 		# [https://www.unix.com/shell-programming-and-scripting/229399-how-add-newline-character-end-file.html]

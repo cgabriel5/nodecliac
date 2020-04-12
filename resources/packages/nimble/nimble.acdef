@@ -1,4 +1,4 @@
-# DON'T EDIT FILE —— GENERATED: Tue Feb 25 2020 13:53:52 (1582667632)
+# DON'T EDIT FILE —— GENERATED: Thu Apr 09 2020 10:5:48 (1586451948)
 
  --accept|--debug|--help|--nimbleDir=|--noColor|--reject|--ver|--verbose|--version
 .build --
@@ -21,3 +21,7 @@
 .tasks --
 .test --continue
 .uninstall --inclDeps
+
+.install default $("nimble list \| grep -v '^ ' \| tr -d ':'")
+.path default $("nimble list -i \| cut -d' ' -f1")
+.uninstall default $("nimble list -i \| perl -pne 's/\s+\[/\@/;s/\]//'")

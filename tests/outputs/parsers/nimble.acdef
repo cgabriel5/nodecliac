@@ -19,3 +19,7 @@
 .tasks --
 .test --continue
 .uninstall --inclDeps
+
+.install default $("nimble list \| grep -v '^ ' \| tr -d ':'")
+.path default $("nimble list -i \| cut -d' ' -f1")
+.uninstall default $("nimble list -i \| perl -pne 's/\s+\[/\@/;s/\]//'")

@@ -55,10 +55,9 @@ fi
 function _nodecliac() {
 	local command="$1"
 
+	[[ ! "$(command -v nodecliac)" || ! -e ~/.nodecliac ]] && return
 	# If disabled, only allow nodecliac completion.
-	if [[ -e ~/.nodecliac/.disable && "$command" != "nodecliac" ]]; then
-		return
-	fi
+	[[ -e ~/.nodecliac/.disable && "$command" != "nodecliac" ]] && return
 
 	local sum=""
 	local output=""

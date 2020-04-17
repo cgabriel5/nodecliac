@@ -32,10 +32,12 @@ if (!$useglobal) {
 my %args;
 
 if ($action eq 'run') {
-	my $pkgcontents = do{local(@ARGV,$/)=$pkg;<>};
-	if ($pkgcontents =~ /"scripts"\s*:\s*{([\s\S]*?)}(,|$)/) {
-		my @matches = ($1 =~ /"([^"]*)"\s*:/g);
-		foreach (@matches) { $args{"$_"} = undef; }
+	if ($pkg) {
+		my $pkgcontents = do{local(@ARGV,$/)=$pkg;<>};
+		if ($pkgcontents =~ /"scripts"\s*:\s*{([\s\S]*?)}(,|$)/) {
+			my @matches = ($1 =~ /"([^"]*)"\s*:/g);
+			foreach (@matches) { $args{"$_"} = undef; }
+		}
 	}
 } elsif ($action eq 'workspace') {
 	my $workspaces_info = `LC_ALL=C yarn workspaces info -s 2> /dev/null`;
@@ -46,11 +48,13 @@ if ($action eq 'run') {
 		while ($workspaces_info =~ /"location":\s*"([^"]+)",/g) { $args{"$1"} = undef; }
 	}
 } else { # Remaining actions: remove|outdated|unplug|upgrade
-	my $pkgcontents = do{local(@ARGV,$/)=$pkg;<>};
-	my @matches = ($pkgcontents =~ /"(?:dependencies|devDependencies)"\s*:\s*{([\s\S]*?)}(,|$)/g);
-	foreach my $match (@matches) {
-		my @deps = ($match =~ /"([^"]*)"\s*:/g);
-		foreach (@deps) { $args{"$_"} = undef; }
+	if ($pkg) {
+		my $pkgcontents = do{local(@ARGV,$/)=$pkg;<>};
+		my @matches = ($pkgcontents =~ /"(?:dependencies|devDependencies)"\s*:\s*{([\s\S]*?)}(,|$)/g);
+		foreach my $match (@matches) {
+			my @deps = ($match =~ /"([^"]*)"\s*:/g);
+			foreach (@deps) { $args{"$_"} = undef; }
+		}
 	}
 }
 

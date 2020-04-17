@@ -40,12 +40,13 @@ else:
 var args = initHashSet[string]()
 
 if action == "run":
-    let pkgcontents = readFile(pkg)
-    let p1 = re("\"scripts\"\\s*:\\s*{([\\s\\S]*?)}(,|$)")
-    let p2 = re("\"([^\"]*)\"\\s*:")
-    for m in findIter(pkgcontents, p1):
-        for m in findIter(m.captures[0], p2):
-            args.incl(m.captures[0])
+    if action != "":
+        let pkgcontents = readFile(pkg)
+        let p1 = re("\"scripts\"\\s*:\\s*{([\\s\\S]*?)}(,|$)")
+        let p2 = re("\"([^\"]*)\"\\s*:")
+        for m in findIter(pkgcontents, p1):
+            for m in findIter(m.captures[0], p2):
+                args.incl(m.captures[0])
 
 elif action == "workspace":
     let workspaces_info = execProcess("LC_ALL=C yarn workspaces info -s 2> /dev/null")
@@ -57,12 +58,13 @@ elif action == "workspace":
         for m in findIter(workspaces_info, pattern): args.incl(m.captures[0])
 
 else: # Remaining actions: remove|outdated|unplug|upgrade
-    let pkgcontents = readFile(pkg)
-    let p1 = re("\"(?:dependencies|devDependencies)\"\\s*:\\s*{([\\s\\S]*?)}(?:,|$)")
-    let p2 = re("\"([^\"]*)\"\\s*:")
-    for m in findIter(pkgcontents, p1):
-        for k in findIter(m.captures[0], p2):
-            args.incl(k.captures[0])
+    if action != "":
+        let pkgcontents = readFile(pkg)
+        let p1 = re("\"(?:dependencies|devDependencies)\"\\s*:\\s*{([\\s\\S]*?)}(?:,|$)")
+        let p2 = re("\"([^\"]*)\"\\s*:")
+        for m in findIter(pkgcontents, p1):
+            for k in findIter(m.captures[0], p2):
+                args.incl(k.captures[0])
 
 # let last = os.getEnv("NODECLIAC_LAST")
 # let lchar = os.getEnv("NODECLIAC_LAST_CHAR")

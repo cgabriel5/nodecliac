@@ -153,7 +153,7 @@ case "$command" in
 		if [[ $count -lt 0 ]]; then ((count=count-1)); fi # Account for 0 base index.
 		counter=0
 
-		echo -e "\033[1;30m$registrypath\033[0m ($count)" # Print header.
+		echo -e "\033[1m$registrypath\033[0m ($count)" # Print header.
 
 		# Exit if directory is empty.
 		if [[ "$count" == "0" ]]; then exit; fi

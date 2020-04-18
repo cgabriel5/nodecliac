@@ -104,6 +104,7 @@ fi
 if [[ -n "$rcfilepath" && ! -f "$rcfilepath" || -z "$rcfilepath" ]]; then
 	rcfilepath=~/.bashrc; [[ ! -f "$rcfilepath" ]] && touch "$rcfilepath"
 fi
+cp -a "$rcfilepath" "$HOME/.bashrc_ncliac.bk" # Backup rcfile.
 
 # -------------------------------------------------------- LANGUAGE-REQUIREMENTS
 

@@ -256,6 +256,20 @@ else
 	hash -r # Rebuild $PATH: [https://unix.stackexchange.com/a/5610]
 
 	if [[ "$installer" == "npm" ]]; then
+		configstore=~/.config/configstore
+		echo " - Checking local config store..."
+		[[ ! -d "$configstore" ]] && cline && err "$configstore doesn't exist."
+		success "Local config store exists."
+
+		# ~/.config/configstore must be owned by the user.
+		# [https://unix.stackexchange.com/a/7733]
+		echo " - Checking local config store ownership..."
+		if [[ $(ls -ld "$configstore" | awk '{print $3}') != "$USER" ]]; then
+			cline && err "Change local config store ownership."
+			echo -e "Run: \033[1msudo chown -R \$USER:\$(id -gn \$USER) $configstore\033[0m"
+		fi
+		success "Proper config store ownership."
+
 		echo " - Installing nodecliac via npm..."
 		# Global installs can't install shorthand branch method:
 		# [https://stackoverflow.com/a/32436218]

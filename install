@@ -94,56 +94,45 @@ gitbranch_ssh="git@github.com:cgabriel5/nodecliac.git"
 branch_npm="https://github.com/cgabriel5/nodecliac/tarball/$branch_name"
 branch_yarn="cgabriel5/nodecliac#$branch_name"
 
-if [[ ! -n "$installer" ]]; then
-	if [[ -n "$(exists yarn)" ]]; then installer="yarn"
-	elif [[ -n "$(exists npm)" ]]; then installer="npm"
+if [[ -z "$installer" ]]; then
+	if [[ "$(exists yarn)" ]]; then installer="yarn"
+	elif [[ "$(exists npm)" ]]; then installer="npm"
 	else installer="binary"; fi
 fi
 
-# Fallback to ~/.bashrc if needed.
+# Create default rcfile if needed.
 if [[ -n "$rcfilepath" && ! -f "$rcfilepath" || -z "$rcfilepath" ]]; then
-	rcfilepath=~/.bashrc
-	if [[ ! -f "$rcfilepath" ]]; then touch "$rcfilepath"; fi
+	rcfilepath=~/.bashrc; [[ ! -f "$rcfilepath" ]] && touch "$rcfilepath"
 fi
 
 # -------------------------------------------------------- LANGUAGE-REQUIREMENTS
 
-if [[ -z "$(exists perl)" ]]; then err "Perl not installed."; fi
-perl_majorv="$(perl --version | perl -ne 'print $1 if /\(v([^.]).*\)/')"
-if [[ "$((perl_majorv + 0))" -lt 5 ]]; then err "Perl 5 is needed."; fi
+[[ -z "$(exists perl)" ]] && err "Perl not installed."
+perl_majorv="$(perl -ne 'print $1 if /\(v([^.]).*\)/' <<< $(perl --version))"
+[[ "$((perl_majorv + 0))" -lt 5 ]] && err "Perl 5 is needed."
 
-vmajor=${BASH_VERSINFO[0]}
-vminor=${BASH_VERSINFO[1]}
-if [[ "$vmajor" -lt 4 ]] || [[ "$vmajor" -eq 4 && "$vminor" -le 2 ]]; then
-	err "Bash 4.3+ is needed."
-fi
+bversion="${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]}"
+pcommand=$'print 1 if /^([4]\.([3-9]+|3)|([5-9]|\d{2,})\.\d{1,})/'
+[[ ! "$(perl -ne "$pcommand" <<< "$bversion")" ]] && err "Bash 4.3+ is needed."
 
 # ----------------------------------------------------------------------- CHECKS
 
-if [[ " linux macosx " != *" $os "* ]]; then
-	err "Platform '$os' not supported."
-fi
-if [[ $# -gt 2 ]]; then
-	err -e "2 arguments are allowed: [installer, branch] but $# provided."
-fi
-
-if [[ " yarn npm binary " != *" $installer "* ]]; then
-	err "Invalid installer '$installer'. Allowed: 'yarn|npm|binary'"
-fi
-if [[ "$installer" == "yarn" ]]; then
-	if [[ -z "$(exists yarn)" ]]; then err "yarn not installed."; fi
-elif [[ "$installer" == "npm" ]]; then
-	if [[ -z "$(exists npm)" ]]; then err "npm not installed."; fi
-fi
+[[ " linux macosx " != *" $os "* ]] && err "Platform '$os' not supported."
+[[ $# -gt 2 ]] && err -e "2 arguments are allowed: [installer, branch] but $# provided."
+[[ " yarn npm binary " != *" $installer "* ]] && err \
+"Invalid installer '$installer'. Allowed: 'yarn|npm|binary'"
+case "$installer" in
+	yarn|npm) [[ ! "$(exists $installer)" ]] && err "$installer not installed." ;;
+esac
 
 # Check branch exists: [https://stackoverflow.com/a/23916276]
 echo " - Verifying branch..."
-if [[ -n "$(exists wget)" ]]; then
-	if [[ -z "$(wget -qO- "$branchurl" | grep -o tree)" ]]; then
+if [[ "$(exists wget)" ]]; then
+	if [[ ! $(grep -F tree <<< $(wget -qO- "$branchurl")) ]]; then
 		cline && err "Branch '$branch_name' doesn't exist."
 	fi
-elif [[ -n "$(exists curl)" ]]; then
-	if [[ -z "$(curl -Ls "$branchurl" | grep -o tree)" ]]; then
+elif [[ "$(exists curl)" ]]; then
+	if [[ ! $(grep -F tree <<< $(curl -Ls "$branchurl")) ]]; then
 		cline && err "Branch '$branch_name' doesn't exist."
 	fi
 fi
@@ -156,23 +145,23 @@ if [[ -e ~/.nodecliac ]]; then
 	success "Backed up old ~/.nodecliac directory."
 fi
 
-if [[ -n "$(exists nodecliac)" ]]; then
+if [[ "$(exists nodecliac)" ]]; then
 	echo " - Running 'nodecliac uninstall'..."
 	nodecliac uninstall > /dev/null 2>&1
 	success "Ran 'nodecliac uninstall'."
 fi
-if [[ -n "$(exists yarn)" ]]; then
+if [[ "$(exists yarn)" ]]; then
 	echo " - Checking for yarn global nodecliac install..."
-	if [[ -n "$(yarn global list | grep -o "nodecliac@")" ]]; then
+	if [[ -n "$(yarn global list | grep -F "nodecliac@")" ]]; then
 		cline && echo " - Removing global nodecliac from yarn..."
 		yarn global remove nodecliac > /dev/null 2>&1
 		success "Removed global yarn nodecliac install."
 	fi
 	success "No global yarn nodecliac install to remove."
 fi
-if [[ -n "$(exists npm)" ]]; then
+if [[ "$(exists npm)" ]]; then
 	echo " - Checking for npm global nodecliac install..."
-	if [[ -n "$(npm list -g --depth=0 | grep -o "nodecliac@")" ]]; then
+	if [[ -n "$(npm list -g --depth=0 | grep -F "nodecliac@")" ]]; then
 		cline && echo " - Removing global nodecliac from npm..."
 		sudo npm uninstall -g nodecliac > /dev/null 2>&1
 		success "Removed global npm nodecliac install."
@@ -200,7 +189,7 @@ if [[ "$installer" == "binary" ]]; then
 		echo " - Moving repository to '$uhdir'..."
 		rm -rf "$outputdir"/* && mv -f ~/cgabriel5-nodecliac-* "$outputdir"
 		success "Moved repository to '$uhdir'."
-	elif [[ -n "$(exists git)" ]]; then
+	elif [[ "$(exists git)" ]]; then
 		echo " - Downloading repository..."
 		git clone -q -b "$branch_name" --single-branch "$gitbranch_https" "$outputdir"
 		# git clone -q -b "$branch_name" --single-branch "$gitbranch_ssh" "$outputdir"
@@ -223,9 +212,8 @@ if [[ "$installer" == "binary" ]]; then
 	cp -pr "$binpath"/binary.sh "$dest/bin"
 	cp -pr "$outputdir"/resources/packages/* ~/.nodecliac/registry
 	nimbin="$outputdir/src/parser/nim/nodecliac.$os"
-	if [[ -e "$nimbin" ]]; then cp -pr "$nimbin" "$dest/bin"; fi
-	acbin="$binpath/ac.$os"
-	if [[ -e "$acbin" ]]; then cp -pr "$acbin" "$dest/bin"; fi
+	[[ -e "$nimbin" ]] && cp -pr "$nimbin" "$dest/bin"
+	acbin="$binpath/ac.$os"; [[ -e "$acbin" ]] && cp -pr "$acbin" "$dest/bin"
 
 	version="$(perl -ne 'print $1 if /"version":\s*"([^"]+)/' "$outputdir/package.json")"
 	echo "{ \"force\": false, \"rcfilepath\": \"$rcfilepath\", \"time\": \"$timestamp\", \"binary\": true, \"version\": \"$version\" }" > ~/.nodecliac/.setup.db.json
@@ -238,7 +226,7 @@ if [[ "$installer" == "binary" ]]; then
 	success "Setup ~/.nodecliac."
 
 	# Add nodecliac to rcfile.
-	if [[ -z "$(grep -o "ncliac=~/.nodecliac/src/main/init.sh" "$rcfilepath")" ]]; then
+	if [[ -z "$(grep -F "ncliac=~/.nodecliac/src/main/init.sh" "$rcfilepath")" ]]; then
 		echo " - Adding nodecliac to $rcfilepath..."
 		echo 'ncliac=~/.nodecliac/src/main/init.sh; [ -f "$ncliac" ] && . "$ncliac";' >> "$rcfilepath"
 		perl -i -lpe 's/\x0a$//' "$rcfilepath"
@@ -285,5 +273,7 @@ else
 fi
 
 # Use \033 rather than \e: [https://stackoverflow.com/a/37366139]
-echo -e "\033[1;32mSuccess\033[0m: nodecliac installed."
-echo -e "    \033[1;34mTip\033[0m: Reload rcfile before using: \033[1msource ${rcfilepath/#$HOME/\~}\033[0m"
+if [[ "$(exists nodecliac)" ]]; then
+	echo -e "\033[1;32mSuccess\033[0m: nodecliac installed."
+	echo -e "    \033[1;34mTip\033[0m: Reload rcfile before using: \033[1msource ${rcfilepath/#$HOME/\~}\033[0m"
+fi

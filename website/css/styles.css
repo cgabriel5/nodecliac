@@ -88,7 +88,7 @@ body {
 
 .topic {
 	padding-bottom: 80px;
-	border-bottom: 1px dashed #d6d6d6;
+	border-bottom: 1px solid #ededed;
 	display: -webkit-box;
 	display: -ms-flexbox;
 	display: flex;
@@ -125,8 +125,8 @@ body {
 	text-transform: lowercase;
 	font-weight: bold;
 	margin-left: 5px;
-	line-height: 2;
-	height: 24px;
+	line-height: 20px;
+	/*height: 24px;*/
 	padding: 1px 5px 0 5px;
 	display: -webkit-box;
 	display: -ms-flexbox;
@@ -326,11 +326,12 @@ code {
 	padding: 10px 20px;
 	border-left: 2px solid transparent;
 	background: transparent;
-	font-size: 14px;
+	font-size: 12px;
 	font-weight: 400;
 }
 
 .action-button {
+	margin-top: 30px;
 	padding: 20px 20px 30px 20px;
 	display: -webkit-box;
 	display: -ms-flexbox;

@@ -56,6 +56,8 @@
 				<div class="tags-cont">
 					<div class="topic-tag"><span>cli-tool</span></div>
 					<div class="topic-tag"><span>bash-completion</span></div>
+					<div class="topic-tag"><span>macos</span></div>
+					<div class="topic-tag"><span>linux</span></div>
 				</div>
 				<div class="topic-title">
 					<span class="bold">node</span>-<span class="bold">cli</span
@@ -69,6 +71,19 @@
 			</div>
 		</div>
 		<main class="main-cont">
+			<section>
+				<div class="section-title">
+					<a class="anchor" href="#install">Install</a>
+					<a name="install"></a>
+				</div>
+
+				<div class="section-list">
+					<pre
+						class="code-block-cont"
+					><code class="code-block"><span class="grayed unselectable">$</span><span class="unselectable"> </span><span class="sh-command">sudo</span> curl <span class="italic">-Ls</span> https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install <span class="operator">|</span> <span class="sh-command">bash</span> <span class="italic">-s</span> <span class="operator">&&</span> <span class="sh-command">source</span> <span class="operator">~</span>/.bashrc</code></pre>
+				</div>
+			</section>
+
 			<section>
 				<div class="section-title">
 					<a class="anchor" href="#what-is-nodecliac"
@@ -87,7 +102,7 @@
 						></code
 					>
 					for CLI programs is awesome. It enhances the user experience
-					by completing filenames, commands, flags, etc. What
+					by completing file names, commands, flags, etc. What
 					<span class="italic">isn't</span> is the time and effort
 					required to add it.
 				</p>
@@ -95,9 +110,8 @@
 				<br />
 
 				<p class="section-paragraph">
-					<span class="italic">nodecliac</span> provides an easier
-					way. By simply mapping a program's commands with their flags
-					in an
+					<span class="italic">nodecliac</span> makes supporting
+					bash-completion easy. Simply create the program's
 					<code
 						><a
 							class="anchor"
@@ -106,7 +120,9 @@
 							>.acmap</a
 						></code
 					>
-					file, nodecliac can leave a program Bash completion ready.
+					file (a file containing the program's command to flag
+					mappings) and nodecliac handles the rest. Leaving the
+					program Bash completion ready.
 				</p>
 
 				<br />
@@ -117,87 +133,73 @@
 					community made completion packages for all to enjoy. This
 					way, more programs come baked with bash-completion support.
 				</p>
-			</section>
-
-			<section>
-				<div class="section-title">
-					<a class="anchor" href="#install">Install</a>
-					<a name="install"></a>
-				</div>
-
-				<div class="section-list">
-					<pre
-						class="code-block-cont"
-					><code class="code-block"><span class="grayed unselectable">$</span><span class="unselectable"> </span><span class="sh-command">sudo</span> curl <span class="italic">-Ls</span> https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install <span class="operator">|</span> <span class="sh-command">bash</span> <span class="italic">-s</span> <span class="operator">&&</span> <span class="sh-command">source</span> <span class="operator">~</span>/.bashrc</code></pre>
-				</div>
 
 				<div class="action-button">
 					<a
 						class="a-button"
 						href="https://github.com/cgabriel5/nodecliac#nodecliac"
 						target="_blank"
-						>Get Started</a
+						>View full docs</a
 					>
 				</div>
-
-				<footer class="footer">
-					<div class="note-cont note-tip">
-						<span class="bold">Notes:</span>
-						<div>
-							<span class="bold">1.</span>
-							<span class="italic">The name?</span> Though
-							originally made for Node.js programs, as development
-							continued it proved useful for non Node.js programs
-							as well.
-						</div>
-						<div>
-							<span class="bold">2.</span>
-							<code>
-								<a
-									class="anchor"
-									href="https://www.gnu.org/software/bash/"
-									target="_blank"
-									>Bash</a
-								></code
-							>,
-							<code
-								><a
-									class="anchor"
-									href="https://www.perl.org/"
-									target="_blank"
-									>Perl</a
-								></code
-							>, and
-							<code
-								><a
-									class="anchor"
-									href="https://nim-lang.org/"
-									target="_blank"
-									>Nim</a
-								></code
-							>
-							provide completion logic. nodecliac's tools (parser,
-							formatter) are written in<code
-								><a
-									class="anchor"
-									href="https://developer.mozilla.org/en-US/docs/Web/JavaScript"
-									target="_blank"
-									>JavaScript</a
-								></code
-							>
-							which require
-							<code
-								><a
-									class="anchor"
-									href="https://nodejs.org/en/"
-									target="_blank"
-									>Node.js</a
-								></code
-							>.
-						</div>
-					</div>
-				</footer>
 			</section>
+
+			<footer class="footer">
+				<div class="note-cont note-tip">
+					<span class="bold">Notes:</span>
+					<div>
+						<span class="bold">1.</span>
+						<span class="italic">The name?</span> Though made for
+						Node.js programs, as development continued it proved
+						useful for non Node.js programs as well.
+					</div>
+					<div>
+						<span class="bold">2.</span>
+						<code>
+							<a
+								class="anchor"
+								href="https://www.gnu.org/software/bash/"
+								target="_blank"
+								>Bash</a
+							></code
+						>,
+						<code
+							><a
+								class="anchor"
+								href="https://www.perl.org/"
+								target="_blank"
+								>Perl</a
+							></code
+						>, and
+						<code
+							><a
+								class="anchor"
+								href="https://nim-lang.org/"
+								target="_blank"
+								>Nim</a
+							></code
+						>
+						provide completion logic. nodecliac's CLI tools (parser,
+						formatter) are written in<code
+							><a
+								class="anchor"
+								href="https://developer.mozilla.org/en-US/docs/Web/JavaScript"
+								target="_blank"
+								>JavaScript</a
+							></code
+						>
+						and
+						<code
+							><a
+								class="anchor"
+								href="https://nim-lang.org/"
+								target="_blank"
+								>Nim</a
+							></code
+						>.
+					</div>
+				</div>
+			</footer>
 		</main>
 	</body>
 </html>

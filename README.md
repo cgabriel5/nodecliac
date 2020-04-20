@@ -122,13 +122,13 @@ The idea is simple. nodecliac uses two custom files: **a**uto-**c**ompletion **m
 
 <p align="center"><img src="./docs/diagrams/nodecliac_diagram.png?raw=true" alt="nodecliac CLI diagram" title="nodecliac CLI diagram" width="90%"></p>
 
-With program's completion package created and in the [registry](#registry), the following is possible:
+With the program's completion package created and in the [registry](#registry), the following is possible:
 
 - **User presses <kbd>Tab</kbd> key**: Bash completion invokes nodecliac's completion function for the program.
 
 - **CLI input analysis**: Input is parsed for commands, flags, positional arguments, etc.
 
-- `.acdef` **lookup**: Program's `.acdef` is compared against parsed CLI data; returning possible completions.
+- `.acdef` **lookup**: The program's `.acdef` is compared against parsed CLI data; returning possible completions.
 
 _Complete events/details are oversimplified and condensed in above bullets to get the main points across._
 

@@ -120,7 +120,7 @@ The idea is simple. nodecliac uses two custom files: **a**uto-**c**ompletion **m
 
 <details><summary>Expand section</summary>
 
-<p align="center"><img src="./docs/diagrams/nodecliac_diagram.svg" alt="nodecliac CLI diagram" title="nodecliac CLI diagram" width="90%"></p>
+<p align="center"><img src="./docs/diagrams/nodecliac_diagram.png?raw=true" alt="nodecliac CLI diagram" title="nodecliac CLI diagram" width="90%"></p>
 
 With program's completion package created and in the [registry](#registry), the following is possible:
 

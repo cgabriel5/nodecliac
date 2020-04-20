@@ -48,15 +48,13 @@ The [.acmap syntax](https://github.com/cgabriel5/nodecliac/new/master#syntax) he
 
 ### Generating Completion Package
 
-**Note**: _The following steps require [Node.js](https://nodejs.org/en/) as nodecliac's CLI tools are written in JavaScript._
-
-With the `.acmap` ready, the next thing to do is generate its `.acdef` file. In the root of the completion package run:
+With the `.acmap` ready, the next thing to do is generate its `.acdef` file. Run:
 
 ```sh
-$ nodecliac make --source ~/Desktop/subl.acmap
+$ nodecliac make --source ~/Desktop/subl/subl.acmap
 ```
 
-This generates two files: `subl.acmap` and `.subl.config.acdef`. Both of which are needed by nodecliac.
+This generates two files: `subl.acmap` and `.subl.config.acdef`.
 
 ### Adding To Registry
 
@@ -66,13 +64,13 @@ The package must now be added to the registry for nodecliac to use it. While in 
 $ nodecliac add
 ```
 
-**Note**: When developing a package the `link` and `unlink` commands should be used. Once package development is complete the `add` command should be used to add a real package to the registry instead of a symlink.
+**Note**: When developing a package the `link` and `unlink` commands should be used. Once package development is complete the `add` command should be used to copy package to the registry instead of using a symlink.
 
 **Tip**: Confirm package is in registry by running: `$ nodecliac registry`. Output should include the name of your package.
 
 ### Using It
 
-Open a new Terminal (or `$ source ~/.bashrc` current one), type `$ subl --`, and hit `[TAB][TAB]` to see completions.
+Open a new Terminal (or `$ source ~/.bashrc` current one), type `$ subl --`, and hit <kbd>Tab</kbd><kbd>Tab</kbd> to see completions.
 
 <!-- [https://superuser.com/a/836349] -->
 
@@ -80,6 +78,6 @@ Open a new Terminal (or `$ source ~/.bashrc` current one), type `$ subl --`, and
 
 ### What's Next
 
-That was it for the `subl` command. Yes, the command is relatively simple and for that reason it's used in this guide. However, as should go without saying, the more complex a CLI program is the more that will have to added to the `.acmap` file. `.acmap`s for various programs (of varying degrees of complexity) can be found [here](resources/packages).
+That was it for the `subl` command. Admittedly, the command is relatively simple and for that reason it's used in this guide. However, as should go without saying, the more complex a CLI program is the more the fleshed out `.acmap` will become. `.acmap`s for various programs (of varying degrees of complexity) can be found [here](resources/packages).
 
 For a more complex example which uses a `pre-hook` and `Perl` scripts take a look at the [yarn completion package](https://github.com/cgabriel5/nodecliac/tree/master/resources/nodecliac/yarn).

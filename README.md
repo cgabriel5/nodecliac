@@ -79,6 +79,12 @@ $ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/in
 $ nodecliac uninstall
 ```
 
+If a custom rcfile path was used during install provide it again during uninstall.
+
+```sh
+$ nodecliac uninstall --rcfilepath=path/to/custom/.bashrc
+```
+
 </details>
 
 <!-- <details><summary>Download <a href="https://stackoverflow.com/a/4568323" target="_blank" rel="nofollow">specific branch</a></summary>
@@ -96,13 +102,194 @@ $ git clone -b BRANCH_NAME --single-branch https://github.com/cgabriel5/nodeclia
 
 </details> -->
 
+<a name="what-is-nodecliac"></a>
+
+## What is nodecliac?
+
+`bash-completion` is awesome. It enhances the user experience by completing paths, file names, commands, flags, etc. However, the time and effort required to support it _isn't_ awesome.
+
+nodecliac provides a simple approach to bash-completion. How? By mapping a program's commands with their flags in an `.acmap` file. That's is. Let nodecliac handle the rest.
+
+The goals behind this project are a few: `1` minimize the effort needed to add bash-completion so more programs support it, `2` provide a uniform bash-completion experience, and `3` to ultimately build a collection of community made completion packages for all to enjoy.
+
 <a name="how-it-works"></a>
 
 ## How It Works
 
-nodecliac uses two custom files: **a**uto-**c**ompletion **map** (`.acmap`) and **a**uto-**c**ompletion **def**inition (`.acdef`) files. With that said the idea here is simple. One _writes_ their program's `.acmap` file to _map_ the program's commands with their respective flags. This `program.acmap` file can then be passed to nodecliac (via its CLI tools) to generate the command's `program.acdef` file. It's these _definition_ files nodecliac references when provide completions. In the end, how elaborate completion packages become depend on the needs of the program. Yet at their core all will contain their program's `program.acdef` file.
+The idea is simple. nodecliac uses two custom files: **a**uto-**c**ompletion **map** (`.acmap`) and **a**uto-**c**ompletion **def**inition (`.acdef`) files. An `.acmap` file serves to _map_ a programs' commands with their respective flags. However, this file is user generated and, therefore, meant to be user readable. It must be converted to an `.acdef` file via nodecliac's CLI tools. It is through these _definition_ files completions can be made.
 
-**tl;dr**: _Write the program's `.acmap` file then pass it to nodecliac (via CLI) to generate its `.acdef` file. Flesh out the completion package as needed and move it to the [registry](#registry) for use with nodecliac. Finally, open a new Terminal to start using._
+<details><summary>Expand section</summary>
+
+<p align="center"><img src="./docs/diagrams/nodecliac_diagram.svg" alt="nodecliac CLI diagram" title="nodecliac CLI diagram" width="90%"></p>
+
+With program's completion package created and in the [registry](#registry), the following is possible:
+
+- **User presses <kbd>Tab</kbd> key**: Bash completion invokes nodecliac's completion function for the program.
+
+- **CLI input analysis**: Input is parsed for commands, flags, positional arguments, etc.
+
+- `.acdef` **lookup**: Program's `.acdef` is compared against parsed CLI data; returning possible completions.
+
+_Complete events/details are oversimplified and condensed in above bullets to get the main points across._
+
+</details>
+
+<a name="packages"></a>
+
+## Packages
+
+<!-- Table formatting hack: [https://stackoverflow.com/a/51701842] -->
+
+| <img width=220/> <br /> [Create](/docs/packages/creating.md) <img width=220/> | <img width=220/> <br /> [Add / Link](/docs/packages/adding.md) <img width=220/> | <img width=220/> <br /> [Remove / Unlink](/docs/packages/removing.md) <img width=220/> | <img width=220/> <br /> [Disable](/docs/packages/disabling.md) <img width=220/> | <img width=220/> <br /> [Enable](/docs/packages/enabling.md) <img width=220/> |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+
+
+<a name="cli"></a>
+
+## CLI
+
+<details>
+  <summary>CLI commands/flags</summary>
+
+---
+
+Main commands are `make` and `format`. Followed by helper commands: `setup`, `status`, `uninstall`, `print` and `registry`. The `print` command exists to help showcase `command-string`s. Commands dealing with packages are: `add`, `remove`, `link`, `unlink`, `enable`, and `disable`.
+
+**format**: Format (prettify) `.acmap` file.
+
+- `--source=`: (**required**): Path to `.acmap` file.
+- `--strip-comments`: Remove comments when formatting.
+- `--indent="(s|t):Number"`: Formatting indentation string:
+  - `s` for spaces or `t` for tabs followed by amount-per-indentation level.
+    - `t:1`: Use 1 tab per indentation level (_default_).
+    - `s:2`: Use 2 spaces per indentation level.
+- `--print`: Log output to console.
+
+<details><summary>Test/debugging flags</summary>
+
+- `--trace`: Trace parsers (_for debugging_).
+- `--test`: Log output without file headers (_for tests_).
+
+</details>
+
+**make**: Generates `.acdef` file from provided `.acmap` file.
+
+- `--source=`: (**required**): Path to `.acmap` file.
+- `--print`: Log output to console.
+
+<details><summary>Test/debugging flags</summary>
+
+- `--trace`: Trace parsers (_for debugging_).
+- `--test`: Log output without file headers (_for tests_).
+
+</details>
+
+---
+
+**cache**: Deals with nodecliac's cache system.
+
+- `--clear`: Clears cache.
+- `--level=<Level>`:
+  - _Without_ argument it prints the current cache level.
+  - _With_ argument it sets cache level to provide level.
+    - Levels: `0`, `1`, `2`
+
+**setup**: Setups nodecliac.
+
+- `--force`: (**required** _if nodecliac is already setup)_: Old setup is backed up and nodecliac is setup as new.
+- `--rcfilepath`: By default `~/.bashrc` is used. If another rc file should be used provide its path.
+  - **Note**: This gets appended to rc file:
+    - `ncliac=~/.nodecliac/src/main/init.sh; [ -f "$ncliac" ] && . "$ncliac";`
+
+**status**: Returns status of nodecliac (enabled or disabled).
+
+- `--enable`: Enables nodecliac.
+- `--disable`: Disables nodecliac.
+
+**uninstall**: Uninstalls nodecliac.
+
+- `--rcfilepath`: Path of rc file used in setup to remove changes from.
+
+---
+
+**print**: Print acmap/def file contents for files in registry.
+
+- `--command=`: Name of command (list dynamically generated from available packages in registry).
+
+**registry**: Lists packages in registry.
+
+- _No arguments_
+
+---
+
+**add**: Adds package to registry.
+
+- _No arguments_
+- Must be run in package root.
+
+**remove**: Removes package(s) from registry.
+
+- Takes n-amount of package names as arguments.
+- `--all`: Removes all packages in registry.
+
+**link**: Creates soft symbolic link of package in registry.
+
+- _No arguments_
+- Must be run in package root.
+- Use when developing completion package.
+
+**unlink**: Alias to `remove` command.
+
+- See `remove` command.
+
+**enable**: Enables completions for package(s).
+
+- Takes n-amount of package names as arguments.
+- `--all`: Enables all packages in registry.
+
+**disable**: Disables completions for package(s).
+
+- Takes n-amount of package names as arguments.
+- `--all`: Disables all packages in registry.
+
+---
+
+</details>
+
+<details><summary>CLI usage examples</summary>
+
+#### Generate program.acdef
+
+```sh
+$ nodecliac make --source path/to/program.acmap
+```
+
+#### Prettify ACMAP file
+
+```sh
+# Prettify using 2 spaces per indentation level and print output.
+$ nodecliac format --source path/to/program.acmap --print --indent "s:2"
+```
+
+</details>
+
+<details><summary>CLI anatomy breakdown</summary>
+
+#### CLI Anatomy (breakdown)
+
+nodecliac assumes following CLI program [design](http://programmingpractices.blogspot.com/2008/04/anatomy-of-command-line.html) pathway:
+
+- `program-name` → [`subcommands`](https://github.com/mosop/cli/wiki/Defining-Subcommands) → `short-flags`/`long-flags` → `positional-parameters`
+
+```
+$ program [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] [file ...]
+  ^^^^^^^  ^^^^^^^^^^^^^^   ^^^^^^^   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^   ^^^^^^^^
+     |            \             \                      |                   /
+  CLI program's   Program        Program          Program long     Program's (flag-less)
+  command.        subcommands.   short flags.     flags.           positional parameters.
+```
+
+</details>
 
 <a name="syntax"></a>
 
@@ -576,153 +763,6 @@ For example, the line `.workspaces.run --` can be viewed as `yarn.workspaces.run
 
 </details>
 
-<a name="cli"></a>
-
-## CLI
-
-<details>
-  <summary>CLI commands/flags</summary>
-
----
-
-Main commands are `make` and `format`. Followed by helper commands: `setup`, `status`, `uninstall`, `print` and `registry`. The `print` command exists to help showcase `command-string`s. Commands dealing with packages are: `add`, `remove`, `link`, `unlink`, `enable`, and `disable`.
-
-**format**: Format (prettify) `.acmap` file.
-
-- `--source=`: (**required**): Path to `.acmap` file.
-- `--strip-comments`: Remove comments when formatting.
-- `--indent="(s|t):Number"`: Formatting indentation string:
-  - `s` for spaces or `t` for tabs followed by amount-per-indentation level.
-    - `t:1`: Use 1 tab per indentation level (_default_).
-    - `s:2`: Use 2 spaces per indentation level.
-- `--print`: Log output to console.
-
-<details><summary>Test/debugging flags</summary>
-
-- `--trace`: Trace parsers (_for debugging_).
-- `--test`: Log output without file headers (_for tests_).
-
-</details>
-
-**make**: Generates `.acdef` file from provided `.acmap` file.
-
-- `--source=`: (**required**): Path to `.acmap` file.
-- `--print`: Log output to console.
-
-<details><summary>Test/debugging flags</summary>
-
-- `--trace`: Trace parsers (_for debugging_).
-- `--test`: Log output without file headers (_for tests_).
-
-</details>
-
----
-
-**cache**: Deals with nodecliac's cache system.
-
-- `--clear`: Clears cache.
-- `--level=<Level>`:
-  - _Without_ argument it prints the current cache level.
-  - _With_ argument it sets cache level to provide level.
-    - Levels: `0`, `1`, `2`
-
-**setup**: Setups nodecliac.
-
-- `--force`: (**required** _if nodecliac is already setup)_: Old setup is backed up and nodecliac is setup as new.
-- `--rcfilepath`: By default `~/.bashrc` is used. If another rc file should be used provide its path.
-  - **Note**: This gets appended to rc file:
-    - `ncliac=~/.nodecliac/src/main/init.sh; [ -f "$ncliac" ] && . "$ncliac";`
-
-**status**: Returns status of nodecliac (enabled or disabled).
-
-- `--enable`: Enables nodecliac.
-- `--disable`: Disables nodecliac.
-
-**uninstall**: Uninstalls nodecliac.
-
-- `--rcfilepath`: Path of rc file used in setup to remove changes from.
-
----
-
-**print**: Print acmap/def file contents for files in registry.
-
-- `--command=`: Name of command (list dynamically generated from available packages in registry).
-
-**registry**: Lists packages in registry.
-
-- _No arguments_
-
----
-
-**add**: Adds package to registry.
-
-- _No arguments_
-- Must be run in package root.
-
-**remove**: Removes package(s) from registry.
-
-- Takes n-amount of package names as arguments.
-- `--all`: Removes all packages in registry.
-
-**link**: Creates soft symbolic link of package in registry.
-
-- _No arguments_
-- Must be run in package root.
-- Use when developing completion package.
-
-**unlink**: Alias to `remove` command.
-
-- See `remove` command.
-
-**enable**: Enables completions for package(s).
-
-- Takes n-amount of package names as arguments.
-- `--all`: Enables all packages in registry.
-
-**disable**: Disables completions for package(s).
-
-- Takes n-amount of package names as arguments.
-- `--all`: Disables all packages in registry.
-
----
-
-</details>
-
-<details><summary>CLI usage examples</summary>
-
-#### Generate program.acdef
-
-```sh
-$ nodecliac make --source path/to/program.acmap
-```
-
-#### Prettify ACMAP file
-
-```sh
-# Prettify using 2 spaces per indentation level and print output.
-$ nodecliac format --source path/to/program.acmap --print --indent "s:2"
-```
-
-</details>
-
-<details><summary>CLI anatomy breakdown</summary>
-
-#### CLI Anatomy (breakdown)
-
-nodecliac assumes following CLI program [design](http://programmingpractices.blogspot.com/2008/04/anatomy-of-command-line.html) pathway:
-
-- `program-name` → [`subcommands`](https://github.com/mosop/cli/wiki/Defining-Subcommands) → `short-flags`/`long-flags` → `positional-parameters`
-
-```
-$ program [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] [file ...]
-  ^^^^^^^  ^^^^^^^^^^^^^^   ^^^^^^^   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^   ^^^^^^^^
-     |            \             \                      |                   /
-  CLI program's   Program        Program          Program long     Program's (flag-less)
-  command.        subcommands.   short flags.     flags.           positional parameters.
-```
-
-</details>
-
 <a name="registry"></a>
 
 ## Registry
@@ -807,16 +847,16 @@ Hook scripts are provided environment variables.
 - Following environment variables are provided by `bash` but exposed by nodecliac.
 
   - `NODECLIAC_COMP_LINE`: Original (unmodified) CLI input.
-  - `NODECLIAC_COMP_POINT`: Caret index when `[TAB]` key was pressed.
+  - `NODECLIAC_COMP_POINT`: Caret index when <kbd>Tab</kbd> key was pressed.
 
 - Following environment variables are custom and exposed by nodecliac.
   - `NODECLIAC_MAIN_COMMAND`: The command auto completion is being performed for.
   - `NODECLIAC_COMMAND_CHAIN`: The parsed command chain.
   - `NODECLIAC_LAST`: The last parsed word item.
     - **Note**: Last word item could be a _partial_ word item.
-      - This happens when the `[TAB]` key gets pressed _within_ a word item. For example, take the following input: `$ program command`. If the `[TAB]` key was pressed like so: `$ program comm[TAB]and`, the last word item is `comm`. Thus a _partial_ word with a remainder string of `and`. Resulting in finding completions for `comm`.
+      - This happens when the <kbd>Tab</kbd> key gets pressed _within_ a word item. For example, take the following input:`$ program command`. If the<kbd>Tab</kbd> key was pressed like so: <code>\$ program comm<kbd>Tab</kbd>and</code>, the last word item is `comm`. Thus a _partial_ word with a remainder string of `and`. Resulting in finding completions for `comm`.
   - `NODECLIAC_PREV`: The word item preceding the last word item.
-  - `NODECLIAC_INPUT`: CLI input from start to caret (`[TAB]` key press) index.
+  - `NODECLIAC_INPUT`: CLI input from start to caret (<kbd>Tab</kbd> key press) index.
   - `NODECLIAC_INPUT_ORIGINAL`: Original unmodified CLI input.
   - `NODECLIAC_INPUT_REMAINDER`: CLI input from start to caret index.
   - `NODECLIAC_LAST_CHAR`: Character before caret.
@@ -840,16 +880,6 @@ Hook scripts are provided environment variables.
   - `NODECLIAC_USED_DEFAULT_POSITIONAL_ARGS`: Collected positional arguments after validating the command-chain.
 
 </details>
-
-<a name="packages"></a>
-
-## Packages
-
-<!-- Table formatting hack: [https://stackoverflow.com/a/51701842] -->
-
-| <img width=220/> <br /> [Create](/docs/packages/creating.md) <img width=220/> | <img width=220/> <br /> [Add / Link](/docs/packages/adding.md) <img width=220/> | <img width=220/> <br /> [Remove / Unlink](/docs/packages/removing.md) <img width=220/> | <img width=220/> <br /> [Disable](/docs/packages/disabling.md) <img width=220/> | <img width=220/> <br /> [Enable](/docs/packages/enabling.md) <img width=220/> |
-| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-
 
 <a name="caching"></a>
 

@@ -32,14 +32,15 @@ $ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/ins
 
 <details><summary>More installation methods</summary>
 
-**With** `curl` (_use defaults_):
+<br>
+
+**With** `curl` (_explicit defaults_):
 
 ```sh
-$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s \
-  -- --installer= --branch=master --rcfilepath=~/.bashrc && source ~/.bashrc
+$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s -- --installer= --branch=master --rcfilepath=~/.bashrc && source ~/.bashrc
 ```
 
-**With** `wget` (_use defaults_):
+**With** `wget` (_defaults_):
 
 ```sh
 $ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s && source ~/.bashrc
@@ -47,33 +48,38 @@ $ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/in
 
 </details>
 
-<details><summary>Installation flags</summary>
+<details><summary>Installation options</summary>
+
+<br>
 
 - `--installer`: The installer to use. (default: `yarn` > `npm` > `binary`)
   - `yarn`: Uses [yarn](https://yarnpkg.com/en/) to install.
   - `npm`: Uses [Node.js](https://nodejs.org/en/)'s [npm](https://www.npmjs.com/get-npm) to install.
   - `binary`: Uses nodecliac's [Nim](https://nim-lang.org/) Linux/macOS CLI tools.
 - `--branch`: An _existing_ nodecliac branch name to install. (default: `master`)
-- `--rcfilepath`: Path of `bashrc` file to use when installing nodecliac. (default: `~/.bashrc`)
+- `--rcfilepath`: `bashrc` file to install nodecliac to. (default: `~/.bashrc`)
 
 </details>
 
 <details>
   <summary>Requirements</summary>
 
+<br>
+
 - Node.js `8+`
   - Required if installing via `npm` or `yarn`.
 - Perl `5+`
-  - Runs needed Perl Bash completion scripts.
+  - Runs needed Perl/Bash completion scripts.
   - Works in tandem with Bash shell scripts.
 - Bash `4.3+`
   - Runs Bash completion scripts.
   - Works in tandem with Perl/Nim scripts.
-  - `macOS`, by default, comes with with Bash `3.2` so an update is required.
-    - [Homebrew](https://brew.sh/) can be used to [update bash](https://akrabat.com/upgrading-to-bash-4-on-macos/).
+  - `macOS`: Stock Bash is outdated (`v3.2`). Update via [Homebrew](https://brew.sh/) to [`v4.3+`](https://akrabat.com/upgrading-to-bash-4-on-macos/).
       </details>
 
 <details><summary>Uninstall</summary>
+
+<br>
 
 ```sh
 $ nodecliac uninstall
@@ -82,7 +88,7 @@ $ nodecliac uninstall
 If a custom rcfile path was used during install provide it again during uninstall.
 
 ```sh
-$ nodecliac uninstall --rcfilepath=path/to/custom/.bashrc
+$ nodecliac uninstall --rcfilepath=path/to/.bashrc
 ```
 
 </details>
@@ -104,58 +110,104 @@ $ git clone -b BRANCH_NAME --single-branch https://github.com/cgabriel5/nodeclia
 
 <a name="what-is-nodecliac"></a>
 
-## What is nodecliac?
+## What Is nodecliac?
 
-`bash-completion` is awesome. It enhances the user experience by completing paths, file names, commands, flags, etc. However, the time and effort required to support it _isn't_ awesome.
+[`bash-completion`](https://github.com/scop/bash-completion) is awesome. It enhances the user experience by completing paths, file names, commands, flags, etc. Ironically enough, having to use [`Bash`](https://www.gnu.org/software/bash/) to implement it puts some off from using it.
 
-nodecliac provides a simple approach to bash-completion. How? By mapping a program's commands with their flags in an `.acmap` file. That's is. Let nodecliac handle the rest.
+nodecliac's approach is different. Rather than _directly_ using Bash, nodecliac lets one easily _map_ a program's commands with their flags in an **a**uto-**c**ompletion **map** (`.acmap`) file. Merely write the program's `.acmap`, compile to `.acdef`, and let nodecliac handle the rest. That's it.
 
-The goals behind this project are a few: `1` minimize the effort needed to add bash-completion so more programs support it, `2` provide a uniform bash-completion experience, and `3` to ultimately build a collection of community made completion packages for all to enjoy.
+If Bash _is_ needed, `.acmap` files are flexible enough to run Bash commands. Better yet, write necessary completion logic in a familiar language like [`Perl`](https://www.perl.org/), [`Python`](https://www.python.org/), [`Ruby`](https://www.ruby-lang.org/en/), etc., and use Bash as [glue code](https://en.wikipedia.org/wiki/Scripting_language#Glue_languages) to tie it all together.
+
+In all, this project aims to `1` minimize the effort needed to add bash-completion so more programs support it, `2` provide a uniform bash-completion experience, and `3` to ultimately build a collection of community made completion packages for all to enjoy.
+
+_Why the name nodecliac?_ Originally it was made in mind for [Node.js](https://nodejs.org/en/) programs. However, as development continued it proved useful for non Node.js programs as well.
 
 <a name="how-it-works"></a>
 
 ## How It Works
 
-The idea is simple. nodecliac uses two custom files: **a**uto-**c**ompletion **map** (`.acmap`) and **a**uto-**c**ompletion **def**inition (`.acdef`) files. An `.acmap` file serves to _map_ a programs' commands with their respective flags. However, this file is user generated and, therefore, meant to be user readable. It must be converted to an `.acdef` file via nodecliac's CLI tools. It is through these _definition_ files completions can be made.
+The idea is simple. nodecliac uses two file types: **a**uto-**c**ompletion **map** (`.acmap`) and **a**uto-**c**ompletion **def**inition (`.acdef`). Those familiar with CSS preprocessors will quickly understand. Similar to how `.sass` and `.less` files are compiled to `.css` &mdash; `.acmap` files must be compiled to `.acdef`.
+
+Therefore, an `.acmap` is a user generated file that uses a simple syntax to _map_ a program's commands with their flags. While an `.acdef` is a nodecliac generated _definition_ file. It's this file nodecliac uses to provide completions.
+
+Ok, `1` but where do these files go? `2` How does nodecliac use them? Good questions. `1` **Files** will end up in the command's [completion package](./docs/packages/creating.md); a _folder_ containing the necessary files needed to provide completions for a command. `2` **Completion packages** will end up in nodecliac's [registry](#registry) (nodecliac's _collection_ of completion packages).
+
+With that, nodecliac can provide Bash completions for programs by using their respective completion package stored in the registry.
 
 <details><summary>Expand section</summary>
 
-<p align="center"><img src="./docs/diagrams/nodecliac_diagram.png?raw=true" alt="nodecliac CLI diagram" title="nodecliac CLI diagram" width="90%"></p>
+<p align="center"><img src="./docs/diagrams/nodecliac_diagram.png?raw=true" alt="nodecliac CLI diagram" title="nodecliac CLI diagram" width="75%"></p>
 
-With the program's completion package created and in the [registry](#registry), the following is possible:
+With the program's [completion package created](https://github.com/cgabriel5/nodecliac/blob/docs/docs/packages/creating.md) and stored in the [registry](#registry) the following is possible:
 
-- **User presses <kbd>Tab</kbd> key**: Bash completion invokes nodecliac's completion function for the program.
+1. **<kbd>Tab</kbd> key pressed**: Bash completion invokes nodecliac's completion function for the program.
 
-- **CLI input analysis**: Input is parsed for commands, flags, positional arguments, etc.
+2. **CLI input analysis**: Input is parsed for commands, flags, positional arguments, etc.
 
-- `.acdef` **lookup**: The program's `.acdef` is compared against parsed CLI data; returning possible completions.
+3. `.acdef` **lookup**: The program's `.acdef` is compared against the CLI input to return possible completions.
 
-_Complete events/details are oversimplified and condensed in above bullets to get the main points across._
+_Complete details/events are oversimplified and condensed to get the main points across._
 
 </details>
-
-<a name="packages"></a>
-
-## Packages
-
-<!-- Table formatting hack: [https://stackoverflow.com/a/51701842] -->
-
-| <img width=220/> <br /> [Create](/docs/packages/creating.md) <img width=220/> | <img width=220/> <br /> [Add / Link](/docs/packages/adding.md) <img width=220/> | <img width=220/> <br /> [Remove / Unlink](/docs/packages/removing.md) <img width=220/> | <img width=220/> <br /> [Disable](/docs/packages/disabling.md) <img width=220/> | <img width=220/> <br /> [Enable](/docs/packages/enabling.md) <img width=220/> |
-| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-
 
 <a name="cli"></a>
 
 ## CLI
 
 <details>
-  <summary>CLI commands/flags</summary>
+  <summary>CLI options</summary>
+
+###### Commands:
+
+- Main:
+  - [`make`](#cli-command-make)
+  - [`format`](#cli-command-format)
+- Helper:
+  - [`cache`](#cli-command-cache)
+  - [`setup`](#cli-command-setup)
+  - [`status`](#cli-command-status)
+  - [`uninstall`](#cli-command-uninstall)
+  - [`print`](#cli-command-print)
+  - [`registry`](#cli-command-registry)
+- Package:
+  - [`add`](#cli-command-add)
+  - [`remove`](#cli-command-remove)
+  - [`link`](#cli-command-link)
+  - [`unlink`](#cli-command-unlink)
+  - [`enable`](#cli-command-enable)
+  - [`disable`](#cli-command-disable)
 
 ---
 
-Main commands are `make` and `format`. Followed by helper commands: `setup`, `status`, `uninstall`, `print` and `registry`. The `print` command exists to help showcase `command-string`s. Commands dealing with packages are: `add`, `remove`, `link`, `unlink`, `enable`, and `disable`.
+<a name="cli-command-make"></a>
 
-**format**: Format (prettify) `.acmap` file.
+<b><i>make</i></b>
+
+> Compile `.acdef`.
+
+- `--source=`: (**required**): Path to `.acmap` file.
+- `--print`: Log output to console.
+
+###### Usage
+
+```sh
+$ nodecliac make --source path/to/program.acmap # Compile .acmap file to .acdef.
+```
+
+<details><summary>Test/debugging flags (internal)</summary>
+
+- `--trace`: Trace parsers (_for debugging_).
+- `--test`: Log output without file headers (_for tests_).
+
+</details>
+
+---
+
+<a name="cli-command-format"></a>
+
+<b><i>format</i></b>
+
+> Format (prettify) `.acmap` file.
 
 - `--source=`: (**required**): Path to `.acmap` file.
 - `--strip-comments`: Remove comments when formatting.
@@ -165,19 +217,14 @@ Main commands are `make` and `format`. Followed by helper commands: `setup`, `st
     - `s:2`: Use 2 spaces per indentation level.
 - `--print`: Log output to console.
 
-<details><summary>Test/debugging flags</summary>
+###### Usage
 
-- `--trace`: Trace parsers (_for debugging_).
-- `--test`: Log output without file headers (_for tests_).
+```sh
+# Prettify using 2 spaces per indentation level and print output.
+$ nodecliac format --source path/to/program.acmap --print --indent "s:2"
+```
 
-</details>
-
-**make**: Generates `.acdef` file from provided `.acmap` file.
-
-- `--source=`: (**required**): Path to `.acmap` file.
-- `--print`: Log output to console.
-
-<details><summary>Test/debugging flags</summary>
+<details><summary>Test/debugging flags (internal)</summary>
 
 - `--trace`: Trace parsers (_for debugging_).
 - `--test`: Log output without file headers (_for tests_).
@@ -186,85 +233,231 @@ Main commands are `make` and `format`. Followed by helper commands: `setup`, `st
 
 ---
 
-**cache**: Deals with nodecliac's cache system.
+<a name="cli-command-cache"></a>
+
+<b><i>cache</i></b>
+
+> Interact with nodecliac's [cache system](#caching).
 
 - `--clear`: Clears cache.
-- `--level=<Level>`:
+- `--level=<level>`:
   - _Without_ argument it prints the current cache level.
   - _With_ argument it sets cache level to provide level.
     - Levels: `0`, `1`, `2`
 
-**setup**: Setups nodecliac.
+###### Usage
 
-- `--force`: (**required** _if nodecliac is already setup)_: Old setup is backed up and nodecliac is setup as new.
-- `--rcfilepath`: By default `~/.bashrc` is used. If another rc file should be used provide its path.
-  - **Note**: This gets appended to rc file:
-    - `ncliac=~/.nodecliac/src/main/init.sh; [ -f "$ncliac" ] && . "$ncliac";`
+```sh
+$ nodecliac cache --clear # Clear cache.
+$ nodecliac cache --level # Print cache level.
+$ nodecliac cache --level 1 # Set cache level to 1.
+```
 
-**status**: Returns status of nodecliac (enabled or disabled).
+---
+
+<a name="cli-command-setup"></a>
+
+<b><i>setup</i></b>
+
+> Setup nodecliac.
+
+- `--force`: (**required** _if nodecliac is already setup)_: Overwrites old nodecliac setup and installs anew.
+- `--rcfilepath`: By default `~/.bashrc` is used. If another rcfile should be used provide its path.
+- **Note**: Setup appends `ncliac=~/.nodecliac/src/main/init.sh; [ -f "$ncliac" ] && . "$ncliac";` to rcfile.
+
+###### Usage
+
+```sh
+$ nodecliac setup # Setup nodecliac.
+```
+
+---
+
+<a name="cli-command-status"></a>
+
+<b><i>status</i></b>
+
+> Returns status of nodecliac (enabled or disabled).
 
 - `--enable`: Enables nodecliac.
 - `--disable`: Disables nodecliac.
 
-**uninstall**: Uninstalls nodecliac.
+###### Usage
 
-- `--rcfilepath`: Path of rc file used in setup to remove changes from.
-
----
-
-**print**: Print acmap/def file contents for files in registry.
-
-- `--command=`: Name of command (list dynamically generated from available packages in registry).
-
-**registry**: Lists packages in registry.
-
-- _No arguments_
+```sh
+$ nodecliac status # Get nodecliac's status.
+$ nodecliac status --enable # Enable nodecliac.
+$ nodecliac status --disable # Disable nodecliac.
+```
 
 ---
 
-**add**: Adds package to registry.
+<a name="cli-command-uninstall"></a>
+
+<b><i>uninstall</i></b>
+
+> Uninstalls nodecliac.
+
+- `--rcfilepath`: Path of rcfile used in setup to remove changes from.
+
+###### Usage
+
+```sh
+$ nodecliac uninstall # Remove nodecliac.
+```
+
+---
+
+<a name="cli-command-print"></a>
+
+<b><i>print</i></b>
+
+> Print acmap/def file contents for files in registry.
+
+- `--command=`: Name of command (uses available packages in registry).
+- **Note**: Command is rather pointless and is primarily used to showcase `command-string`s.
+
+###### Usage
+
+```sh
+$ nodecliac print --command=<command> # Print .acdef for given command.
+```
+
+---
+
+<a name="cli-command-registry"></a>
+
+<b><i>registry</i></b>
+
+> Lists packages in [registry](#registry).
 
 - _No arguments_
-- Must be run in package root.
 
-**remove**: Removes package(s) from registry.
+###### Usage
+
+```sh
+$ nodecliac registry # Print packages in registry.
+```
+
+---
+
+<a name="cli-command-add"></a>
+
+<b><i>add</i></b>
+
+> Adds package to registry.
+
+- _No arguments_
+- **Note**: Must be run in package root.
+
+###### Usage
+
+```sh
+$ nodecliac add # Copies cwd folder (completion package) to registry.
+```
+
+---
+
+<a name="cli-command-remove"></a>
+
+<b><i>remove</i></b>
+
+> Removes package(s) from registry.
 
 - Takes n-amount of package names as arguments.
 - `--all`: Removes all packages in registry.
 
-**link**: Creates soft symbolic link of package in registry.
+###### Usage
+
+```sh
+$ nodecliac remove # Removes cwd folder (completion package) from registry.
+$ nodecliac remove --all # Removes all packages from registry.
+```
+
+---
+
+<a name="cli-command-link"></a>
+
+<b><i>link</i></b>
+
+> Creates soft [symbolic](https://linuxize.com/post/how-to-create-symbolic-links-in-linux-using-the-ln-command/) link of package in registry.
 
 - _No arguments_
-- Must be run in package root.
-- Use when developing completion package.
+- **Note**: Must be run in package root.
+- For use when developing a completion package.
 
-**unlink**: Alias to `remove` command.
+###### Usage
 
-- See `remove` command.
+```sh
+$ nodecliac link # Symlinks cwd folder (completion package) to registry.
+```
 
-**enable**: Enables completions for package(s).
+---
+
+<a name="cli-command-unlink"></a>
+
+<b><i>unlink</i></b>
+
+> Alias to [`remove`](#cli-command-remove) command.
+
+- See [`remove`](#cli-command-remove) command.
+
+###### Usage
+
+```sh
+$ nodecliac unlink # Removes cwd folder (completion package) from registry.
+$ nodecliac unlink --all # Removes all packages from registry.
+```
+
+---
+
+<a name="cli-command-enable"></a>
+
+<b><i>enable</i></b>
+
+> Enables completions for package(s).
 
 - Takes n-amount of package names as arguments.
 - `--all`: Enables all packages in registry.
 
-**disable**: Disables completions for package(s).
+###### Usage
+
+```sh
+$ nodecliac enable # Enables disabled package(s).
+$ nodecliac enable --all # Enables all disabled packages.
+```
+
+---
+
+<a name="cli-command-disable"></a>
+
+<b><i>disable</i></b>
+
+> Disables completions for package(s).
 
 - Takes n-amount of package names as arguments.
 - `--all`: Disables all packages in registry.
+
+###### Usage
+
+```sh
+$ nodecliac disable # Disables enabled package(s).
+$ nodecliac disable --all # Disables all enabled packages.
+```
 
 ---
 
 </details>
 
-<details><summary>CLI usage examples</summary>
+<details><summary>CLI quick usage</summary>
 
-#### Generate program.acdef
+#### Compile `.acmap` files to `.acdef`.
 
 ```sh
 $ nodecliac make --source path/to/program.acmap
 ```
 
-#### Prettify ACMAP file
+#### Prettify `.acmap` file
 
 ```sh
 # Prettify using 2 spaces per indentation level and print output.
@@ -275,7 +468,7 @@ $ nodecliac format --source path/to/program.acmap --print --indent "s:2"
 
 <details><summary>CLI anatomy breakdown</summary>
 
-#### CLI Anatomy (breakdown)
+<br>
 
 nodecliac assumes following CLI program [design](http://programmingpractices.blogspot.com/2008/04/anatomy-of-command-line.html) pathway:
 
@@ -296,31 +489,43 @@ $ program [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] [file
 ## Syntax
 
 <details>
-  <summary>ACMAP: <code>.acmap</code> files are text files with a simple language structure and few language constructs</summary>
+  <summary><code>acmap</code> (<b>a</b>uto-<b>c</b>ompletion <b>map</b>) is a purposefully simple syntax which <i>maps</i> a program's commands to their flags in <code>.acmap</code> files.</summary>
+
+###### Constructs:
+
+- [Comments](#syntax-comments)
+- [Settings](#syntax-settings)
+- [Variables](#syntax-variables)
+- [Command Chains](#syntax-cc)
+- [Flags](#syntax-flags)
+
+<a name="syntax-comments"></a>
 
 #### Comments
 
 - Comments begin with a number-sign (<code>#</code>) and continue to the end of the line.
-- Comments _must_ be on their _own_ line.
 - Whitespace indentation can precede a comment.
+- Comments _must_ be on their _own_ line.
 - Multi-line and trailing comments are _not_ supported.
 
 ```acmap
-# The space after '#' is required.
+# This is a comment.
     # Whitespace can precede comment.
 ```
+
+<a name="syntax-settings"></a>
 
 #### Settings
 
 - Settings begin with an at-sign (`@`) followed by the setting name.
 - Setting values are assigned with `=` followed by the setting value.
-- Any amount of whitespace before and after `=` is fine, but keep things tidy.
+- Any amount of whitespace before and after `=` is allowed.
 - Whitespace indentation can precede a setting declaration.
 - **Note**: Settings can be declared _anywhere_ within your `.acmap` file.
   - However, it's best if declared at the start of file to quickly spot them.
 
 ```acmap
-# Comments before settings are allowed.
+# Available settings.
 @compopt   = "default"
 @filedir   = ""
 @disable   = false
@@ -338,7 +543,9 @@ $ program [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] [file
   - Values: `false`, `true` (default: `false`)
 - `@placehold`: Placehold long `.acdef` rows to provide faster file lookups.
   - Values: `false`, `true` (default: `false`)
-  - **Note**: Used only when generating `.acdef` files.
+  - **Note**: Used only when compiling `.acdef` files.
+
+<a name="syntax-variables"></a>
 
 #### Variables
 
@@ -346,7 +553,7 @@ $ program [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] [file
 - Variable name _must_ start with an underscore (`_`) or a letter (`a-zA-Z`).
 - Variable values are assigned with `=` followed by the variable value.
 - A variable's value must be enclosed with quotes.
-- Any amount of whitespace before and after `=` is fine, but keep things tidy.
+- Any amount of whitespace before and after `=` is allowed.
 - Whitespace indentation can precede a variable declaration.
 - **Note**: Variables can be declared _anywhere_ within your `.acmap`.
 
@@ -359,32 +566,36 @@ $scriptpath    =   "~/path/to/script3.sh"
 # It's final value is: "~/path/to/script3.sh"
 ```
 
-#### Variable Interpolation (template-string)
+<details>
+  <summary>Variable Interpolation</summary>
+
+#### Variable Interpolation
 
 - Variables are intended to be used inside quoted strings.
-- Template strings have the following structure:
-  - A template string is denoted with starting `${` and closing `}`.
-  - Any amount of space between opening/closing syntax is fine, but keep things tidy.
+- Interpolation has the following structure:
+  - Start with `${` and close with `}`.
+  - Any amount of space between opening/closing syntax is allowed.
   - The string between the closing/starting syntax is the variable name.
 
 ```acmap
-# Variables - paths.
 $mainscript = "~/.nodecliac/registry/yarn/init.sh"
 
-# Command chains.
 yarn.remove = default $("${mainscript} remove")
 yarn.run = default $("${mainscript} run")
 ```
 
+</details>
+
+<a name="syntax-cc"></a>
+
 #### Command Chains
 
-- Commands/subcommands should seen as chains which read from left to right.
+- Commands/subcommands should be viewed as chains which read from left to right.
 - They start with the CLI program's name, are followed by any commands/subcommands, and are dot (`.`) delimited.
-- If a (sub)command happens to use a dot then simply escape the dot.
-  - Non escaped dots will be used as delimiters.
+- If a (sub)command happens to use a dot then simply escape the dot. Non escaped dots will be used as delimiters.
 - Whitespace indentation can precede a command chain.
 
-**Example**: Say the CLI program `program` has two commands `install` and `uninstall`. It's `.acmap` file will be:
+**Example**: Say the CLI program `program` has two commands `install` and `uninstall`. It's `.acmap` will be:
 
 ```acmap
 program.install
@@ -396,36 +607,38 @@ program.uninstall
 
 #### Command Chain Default
 
-A command chain's `default` `command-string` (a runable shell string) can be used to dynamically generate auto-completion items. This `command-string` is run when no completion items (commands/flags) are returned. Think of it as a fallback.
-
-For example, say we are implementing an `.acmap` file for the dependency manager [yarn](https://yarnpkg.com/en/) and would like to return the names of installed modules when removing a package (i.e.`$ yarn remove...`). Essentially, we want to extract the `package.json`'s `dependency` and `devDependency` entries and supply them to nodecliac. Using a `command-string` one can run a script/shell command to do just that.
+A command chain's `default` `command-string` (a runable shell command string) can be used to dynamically generate auto-completion items. This `command-string` is run when no completion items (commands/flags) are returned. Think of it as a fallback.
 
 - Start by using the keyword `default` followed by a whitespace character.
-- Follow that with the `command-string` like so:
+- Follow that with the `command-string`:
   - A command string is denoted with starting `$(` and closing `)`.
   - The string between the closing/starting syntax is the `command-string`.
-  - Example `command-string`: `default $("./path/to/custom/script.sh arg1 arg2")`
-  - `yarn.remove` example:
+  - **Example**: `default $("./path/to/script.sh arg1 arg2")`
+
+<details><summary>Command-string example</summary>
+
+<br>
+
+For example, say we are implementing an `.acmap` file for the dependency manager [yarn](https://yarnpkg.com/en/) and would like to return the names of installed packages when removing a package (i.e.`$ yarn remove...`). Essentially, we want to extract the `package.json`'s `dependency` and `devDependency` entries and supply them to nodecliac. Using a `command-string` one can run a script/shell command to do just that.
 
 ```acmap
 yarn.remove = [
-  # The default command will run on '$ yarn remove [TAB]'. In this example, the shell script
-  # 'script.sh' should contain the logic needed to parse package.json to return the installed
-  # (dev)dependency package names.
+  # The command will run on '$ yarn remove [TAB]'. The script 'script.sh' should contain the
+  # logic needed to parse package.json to return the installed (dev)dependency package names.
   default $("~/.nodecliac/registry/yarn/script.sh")
 ]
 ```
+
+</details>
 
 <details>
   <summary>Command-string escaping</summary>
 
 <hr></hr>
 
-_Keep in mind, if escaping gets to be too much, simply running the code from a file will be the easiest way._
+#### Varying Levels Of Escaping.
 
-**Example**: Varying levels of escaping.
-
-Take the hypothetical `file.sh` with the following contents:
+- **Level 0**: Hypothetical `script.sh` with the following contents. _No extra escaping when running a script._
 
 ```sh
 for f in ~/.nodecliac/registry/yarn/hooks/*.*; do
@@ -434,28 +647,29 @@ done
 ```
 
 - **Code Breakdown**
+
   - The code will loop over the `~/.nodecliac/registry/yarn/hooks` directory.
   - File names matching the pattern (`^(pre-parse).[a-zA-Z]+$`) will print to console.
 
-**Level 1**: If `bash` is one's default shell then running this as a one-liner can be as simple as pasting the following into a Terminal:
+- **Level 1**: If `bash` is one's default shell, copy/paste and run this one-liner in a Terminal:
 
 ```bash
 for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ "${f##*/}" =~ ^(pre-parse)\.[a-zA-Z]+$ ]] && echo "$f"; done
 ```
 
-**Level 2**: Now say we want to run the same line of code via `bash -c`. Paste the following into a Terminal.
+- **Level 2**: Now say we want to run the same line of code via `bash -c`. Run the following in a Terminal:
 
 ```bash
 bash -c "for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ \"\${f##*/}\" =~ ^(pre-parse)\\.[a-zA-Z]+$ ]] && echo \"\$f\"; done;"
 ```
 
-**Level 3**: How about using `Perl` to run `bash -c` to execute the command?
+- **Level 3**: How about using `Perl` to run `bash -c` to execute the command?
 
 ```bash
 perl -e 'print `bash -c "for f in ~/.nodecliac/registry/yarn/hooks/*.*; do [[ \\\"\\\${f##*/}\\\" =~ ^(pre-parse)\\.[a-zA-Z]+\$ ]] && echo \"\\\$f\"; done;"`';
 ```
 
-**Note**: As seen, the more programs involved the more escaping required due to the string being passed from program to program.
+As shown, the more programs involved the more escaping required due to the string being passed from program to program. Escaping can get cumbersome. If so, running the code from a file will be the easiest alternative.
 
 **Example**: Command-string escaping.
 
@@ -467,8 +681,7 @@ $ s="";for f in ~/.nodecliac/registry/*/*.acdef; do s="$s$f\n"; done; echo -e "$
 
 Using the following `.acmap` contents the `command-string` would be the following:
 
-- **Note**: Ensure the `|` is properly escaped.
-- **Note**: Ensure `\` character(s) get escaped.
+- **Note**: Ensure the `|` and `\` characters are escaped.
 
 ```acmap
 # The escaped command-string.
@@ -477,10 +690,10 @@ $cmdstr = 's="";for f in ~/.nodecliac/registry/*/*.acdef; do s="$s$f\\n"; done; 
 nodecliac.print = --command=$('${cmdstr}')
 ```
 
-Will generate the following `.acdef` file:
+Compiling to `.acdef`, an `.acdef` file with the following contents will be generated:
 
 ```acdef
-# DON'T EDIT FILE —— GENERATED: Thu Nov 14 2019 21:27:45 GMT-0800 (PST)(1573795665206)
+# DON'T EDIT FILE —— GENERATED: Mon Mar 02 2020 14:15:13 (1583187313)
 
  --
 .print --command=|--command=$('s="";for f in ~/.nodecliac/registry/*/*.acdef; do s="$s$f\\n"; done; echo -e "$s" \| LC_ALL=C perl -ne "print \"\$1\\n\" while /(?! \\/)([^\\/]*)\\.acdef$/g"')
@@ -490,9 +703,15 @@ Will generate the following `.acdef` file:
 
 </details>
 
-**Note**: For more information about `command-string`s please take a look at `ACMAP Syntax > Flags > Flag Variations > Flags (dynamic values)`. The section contains complete details for `command-string`s like special character escaping caveats, dynamic/static arguments, and examples with their breakdowns. Please be aware that the section uses the term `command-flag` due it being used for flags but `command-flag` and `command-string` are effectively the same thing — _just a runable shell command string_. The naming (`command-{string|flag}`) is based on its application (i.e. for command-chains or flags).
+#### Ignoring Options
+
+Letting the completion engine know an option should be ignored (not displayed) is simple. Merely prefix the option with an exclamation-mark (`!`). This is meant to be used when an option has already been used and therefore doesn't need to be shown again as a possible completion item.
+
+**Note**: For more information about `command-string`s take a look at `acmap Syntax > Flags > Flag Variants > Flags (dynamic values)`. The section contains more details for `command-string`s like special character escaping caveats, dynamic/static arguments, and examples with their breakdowns. Keep in mind that the section uses the term `command-flag` due it being used for flags but `command-flag` and `command-string` are effectively the same thing — _just a runable shell command string_. The naming (`command-{string|flag}`) is based on its application (i.e. for command-chains or flags).
 
 </details>
+
+<a name="syntax-flags"></a>
 
 #### Flags
 
@@ -502,7 +721,7 @@ To define flags we need to extend the [command chain](#command-chains) syntax.
 - The `= [` must be on the same line of the command chain.
 - The closing `]` must be on its own line and man have any amount of indentation.
 
-Building on the [command chain](#command-chains) section example, say the `install` command has the flags: `destination/d` and `force/f`. ACMAP can be updated to:
+Building on the [command chain](#command-chains) section example, say the `install` command has the flags: `destination/d` and `force/f`. Code can be updated to:
 
 ```acmap
 program.install = [
@@ -515,7 +734,7 @@ program.uninstall
 ```
 
 <details>
-  <summary>Flag variations</summary>
+  <summary>Flag variants</summary>
 
 #### Flags (user input)
 
@@ -529,8 +748,7 @@ program.command = [
 
 #### Flags (boolean)
 
-- If flag is a switch (yes/no boolean) then append `?` to the flag.
-  - This lets the completion engine know the flag does not require value completion.
+- If flag is a switch (boolean) append a `?` to the flag to let the completion engine know the flag doesn't require value completion.
 
 ```acmap
 program.command = [
@@ -565,7 +783,7 @@ program.command = [
   --flag=(1 "2" false 4)
 
   # If multiple values can be supplied to program use the multi-flag indicator '*'.
-  # This will allow --flag to be used multiple times until all values have been used.
+  # This allows --flag to be used multiple times until all values have been used.
   --flag=*(1 "2" false 4)
 ]
 ```
@@ -602,7 +820,7 @@ program.uninstall
 
 #### Flags (dynamic values)
 
-Sometimes static values are not enough so a `command-flag` can be used. A `command-flag` is just a runnable line of shell code.
+Sometimes static values are not enough so a `command-flag` can be used. A `command-flag` is just a runnable shell command.
 
 `command-flag` syntax:
 
@@ -654,31 +872,24 @@ program.uninstall
 
 </details>
 
-## Miscellaneous
-
-#### Blank Lines
-
-Blank lines (empty lines) are allowed and ignored when generating an `.acdef` file.
-
-<!-- #### Duplicate Command Chains/Flags/Settings
-
-Though allowed the parser will warn when duplicate command-chains/flags/settings are detected. -->
-
-#### Indentation
-
-Indentation is allowed except when declaring command-chains and settings.
-
 </details>
 
 <details>
-  <summary>ACDEF: <code>.acdef</code> files are auto-generated and is what nodecliac references when providing completions</summary>
+  <summary><code>acdef</code> (<b>a</b>uto-<b>c</b>ompletion <b>def</b>inition) uses a stripped down and condensed version of <code>acmap</code> syntax. It's devoid of unnecessary comments, newlines, etc. using only relevant information from an <code>.acmap</code> file.</summary>
 
-#### ACDEF Anatomy
+###### Constructs:
 
-The following example `yarn.acdef` file will be used to explain how to read `.acdef` files.
+- [Header](#syntax-header)
+- [Command/Flags](#syntax-command-flags)
+- [Command Fallbacks](#syntax-command-fallbacks)
+- [Placeholders](#syntax-placeholders)
+
+#### `.acdef` Anatomy
+
+The following example `.acdef` will be used to explain how to read `.acdef` files.
 
 ```acdef
-# DON'T EDIT FILE —— GENERATED: Fri Jun 21 2019 19:59:33 GMT-0700 (PDT)(1561172373941)
+# DON'T EDIT FILE —— GENERATED: Mon Mar 02 2020 14:15:13 (1583187313)
 
  --cache-folder|--check-files|--cwd|--disable-pnp
 .access --
@@ -693,30 +904,35 @@ The following example `yarn.acdef` file will be used to explain how to read `.ac
 .workspaces.info --
 .workspaces.run --
 
-.upgrade default $("~/.nodecliac/registry/yarn/scripts/init.sh upgrade")
-.why default $("yarn list --depth=0 \| perl -wln -e \"/(?! ─ )([-\/_.@(?)a-zA-Z0-9]*)(?=\@)/ and print $&;\"")
-.workspace default $("~/.nodecliac/registry/yarn/scripts/init.sh workspace")
-.workspaces.run default $("~/.nodecliac/registry/yarn/scripts/init.sh run")
+.upgrade default $("~/.nodecliac/registry/command/scripts/init.sh upgrade")
+.why default $("command list --depth=0 \| perl -wln -e \"/(?! ─ )([-\/_.@(?)a-zA-Z0-9]*)(?=\@)/ and print $&;\"")
+.workspace default $("~/.nodecliac/registry/command/scripts/init.sh workspace")
+.workspaces.run default $("~/.nodecliac/registry/command/scripts/init.sh run")
 ```
 
-#### ACDEF Header
+<a name="syntax-header"></a>
 
-- The first line is the `.acdef` file's header.
-  - Header contains a warning to not modify the file as well as the file's creation information.
+#### Header
+
+- The first line is the file's header.
+- It is the only comment in the document.
+- It contains a warning to not modify the file and the file's creation information.
 
 ```acdef
-# DON'T EDIT FILE —— GENERATED: Fri Jun 21 2019 19:59:33 GMT-0700 (PDT)(1561172373941)
+# DON'T EDIT FILE —— GENERATED: Mon Mar 02 2020 14:15:13 (1583187313)
 
 ...
 ```
 
+<a name="syntax-command-flags"></a>
+
 #### Commands/Flags
 
 - The following section contains the command-chains and their respective flags.
-- Each line represents a _row_ which starts with the command chain and is followed by single space.
+- Each line represents a _row_ which starts with the command chain and is followed by a single space.
 - Whatever comes after the single space are the command's flags.
   - Flags are delimited by pipe (`|`) characters.
-- Rows that do not have flags will contain `--` after the single space character.
+- Rows that do not have flags will contain two hyphens (`--`) after the single space character.
 
 ```acdef
 ...
@@ -738,7 +954,9 @@ The following example `yarn.acdef` file will be used to explain how to read `.ac
 ```
 
 **Note**: Command chain lines, lines starting with a single space or a dot (`.`) character, have the program's name removed.
-For example, the line `.workspaces.run --` can be viewed as `yarn.workspaces.run --`.
+For example, the line `.workspaces.run --` can be viewed as `command.workspaces.run --`.
+
+<a name="syntax-command-fallbacks"></a>
 
 #### Command Fallbacks
 
@@ -747,19 +965,48 @@ For example, the line `.workspaces.run --` can be viewed as `yarn.workspaces.run
 ```acdef
 ...
 
-.upgrade default $("~/.nodecliac/registry/yarn/scripts/init.sh upgrade")
-.why default $("yarn list --depth=0 \| perl -wln -e \"/(?! ─ )([-\/_.@(?)a-zA-Z0-9]*)(?=\@)/ and print $&;\"")
-.workspace default $("~/.nodecliac/registry/yarn/scripts/init.sh workspace")
-.workspaces.run default $("~/.nodecliac/registry/yarn/scripts/init.sh run")
+.upgrade default $("~/.nodecliac/registry/command/scripts/init.sh upgrade")
+.why default $("command list --depth=0 \| perl -wln -e \"/(?! ─ )([-\/_.@(?)a-zA-Z0-9]*)(?=\@)/ and print $&;\"")
+.workspace default $("~/.nodecliac/registry/command/scripts/init.sh workspace")
+.workspaces.run default $("~/.nodecliac/registry/command/scripts/init.sh run")
 ```
+
+<a name="syntax-placeholders"></a>
 
 #### Placeholders
 
-- Depending how complex an `.acmap` is, sometimes placeholders are needed.
+- Depending how complex an `.acmap` is sometimes placeholders are needed. They are used internally to speed up reading, what would otherwise be large, `.acdef` files.
 - Placeholder syntax:
   - Begin with `--p#` and are followed by a fixed number of hexadecimal characters.
   - **Example**: `--p#d2eef1`
-- **Note**: They are used internally to speed up reading, what would be otherwise large, `.acdef` files.
+
+The following example `.acdef` showcase placeholders.
+
+```acdef
+# DON'T EDIT FILE —— GENERATED: Thu Apr 09 2020 10:4:22 (1586451862)
+
+ --help|--version
+.buildIndex --p#07d43e
+.c --p#07d43e
+.cc --p#07d43e
+.check --p#07d43e
+.compile --p#07d43e
+.compileToC --p#07d43e
+.compileToCpp --p#07d43e
+.compileToOC --p#07d43e
+.cpp --p#07d43e
+.ctags --p#07d43e
+.doc --p#07d43e
+.doc2 --p#07d43e
+.dump --p#07d43e
+.e --p#07d43e
+.genDepend --p#07d43e
+.js --p#07d43e
+.jsondoc --p#07d43e
+.objc --p#07d43e
+.rst2html --p#07d43e
+.rst2tex --p#07d43e
+```
 
 </details>
 
@@ -767,117 +1014,118 @@ For example, the line `.workspaces.run --` can be viewed as `yarn.workspaces.run
 
 ## Registry
 
-The registry (`~/.nodecliac/registry`) is where nodecliac's completion packages live. Completion packages follow this form: `~/.nodecliac/registry/COMMAND-NAME/`. For example, [yarn's](https://yarnpkg.com/en/) completion [package and its files](/resources/packages/yarn) reside in `~/.nodecliac/registry/yarn/`.
+Simply put, the registry (`~/.nodecliac/registry`) is where completion packages are stored. Completion packages are stored in the form: `~/.nodecliac/registry/<command>`.
 
-<details><summary>Directory structures</summary>
+<a name="packages"></a>
 
-- Required base completion package directory structure:
+## Packages
 
-```
-~/.nodecliac/
-└── registry/
-    └── COMMAND-NAME/
-        ├── COMMAND-NAME.acdef
-        ├── .COMMAND-NAME.config.acdef
-        ├── hooks/
-        └── placeholders/
-```
+Package documentation is divided into their own sections.
 
-- Yarn completion package directory structure:
+<!-- Table formatting hack: [https://stackoverflow.com/a/51701842] -->
 
-```
-~/.nodecliac/
-└── registry/
-    └── yarn/
-        ├── yarn.acdef
-        ├── .yarn.config.acdef
-        ├── hooks/
-        └── placeholders/
-```
+| <img width=220/> <br /> [Create](/docs/packages/creating.md) <img width=220/> | <img width=220/> <br /> [Add / Link](/docs/packages/adding.md) <img width=220/> | <img width=220/> <br /> [Remove / Unlink](/docs/packages/removing.md) <img width=220/> | <img width=220/> <br /> [Enable / Disable](/docs/packages/state.md) <img width=220/> |
+| ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
 
-**Note**: The manner in which files are structured within `~/.nodecliac/registry/COMMAND-NAME/` is up to you. The base directory structure _must_ be adhered to, however.
-
-</details>
 
 <a name="hooks"></a>
 
 ## Hooks
 
-Some programs are more complicated than others. Let's use [`yarn.acdef`](/resources/packages/yarn/yarn.acdef), for example. Before running the completion script, the current repo's `package.json` `scripts` entries need to be [added as commands](https://yarnpkg.com/en/docs/cli/run#toc-yarn-run) to `yarn.acdef`. Doing so requires a `pre-parsing` hook. In essence, before the completion script is run, the `pre-parsing` hook script gives the ability to modify completion script parameters/variables.
+Hooks are _just regular executable shell scripts_ that run at specific points along a completion cycle when a completion is attempted. They let one modify internal aspects of nodecliac's completion logic and behavior.
 
 <details><summary>Expand hook section</summary>
 
-#### Available hook scripts
+#### Available Hooks
 
-- `hooks/pre-parse.sh`
-  - Purpose: `pre-parse.sh` is _meant_ to modify `acdef` and `cline` variables before running [completion script](/src/scripts/ac).
-  - **Note**: However, since hook script is `sourced` it has _access_ to it's parent's script variables.
-  - Hook script should be seen as [glue code](https://en.wikipedia.org/wiki/Scripting_language#Glue_languages) intended to run actual logic.
-    - For example, take yarn's [`pre-parse.sh`](/resources/packages/yarn/hooks/pre-parse.sh) script. The [script](/resources/packages/yarn/hooks/pre-parse.sh) actually runs a Perl script ([`pre-parse.pl`](/resources/packages/yarn/hooks/pre-parse.pl)) which returns the repo's `package.json` `scripts` as well as modified CLI input.
-    - The point here is to use the language _needed for the job_. Bash simply _glues_ it together.
+1. `hooks/pre-parse.sh`: Modifies select initialization variables before running [completion script](/src/scripts/ac).
 
-**Note**: Using a hook script might sound involved/off-putting but it's not. A hook script is _just a regular executable shell script_. The script simply has special meaning in the sense that it is used to **hook** into nodecliac to change some variables used for later Bash completion processing.
+#### `hooks/` Directory
 
-#### Making Hook Script
+In the command's completion package create a `hooks/` directory. All hook scripts will be stored here.
 
-First create the command's resource `hooks/` directory: `~/.nodecliac/registry/COMMAND-NAME/hooks`. All hook scripts reside in the `COMMAND-NAME/hooks` sub directory. For example, yarn's `pre-parse` script is located at `~/.nodecliac/registry/yarn/hooks/pre-parse.sh`.
-
-#### Using Hook Script
-
-This section will continue to use yarn's [`pre-parse.sh`](/resources/packages/yarn/hooks/pre-parse.sh) script as an example.
-
-- [`pre-parse.sh`](/resources/packages/yarn/hooks/pre-parse.sh) runs a Perl script ([`pre-parse.pl`](/resources/packages/yarn/hooks/pre-parse.pl)) which returns the repo's `package.json` `scripts` as well as modified CLI input.
-- [`pre-parse.sh`](/resources/packages/yarn/hooks/pre-parse.sh) then modifies the `acdef` and the CLI input.
-- Since the pre-parse script is `sourced` nothing is echoed to script.
-- Instead, the `acdef` and `cline` variables are reset/overwritten.
-- These new values are then used by nodecliac to provide Bash completions.
-
-**Note**: Perl is used here for quick text processing as doing it in Bash is slow and cumbersome. _However_, use what you _want/need_ to get the job done. Hook scripts just _need_ to be executable scripts stored in `~/.nodecliac/registry/COMMAND-NAME/hooks/`.
-
-**Note**: As a reminder, the provided `.acmap` file gets parsed to generate an `.acdef` file. The created `.acdef` file is what nodecliac actually reads **a**uto-**c**ompletion **def**initions from. Therefore, modifying `.acdef` contents requires knowing `.acdef` syntax.
-
-#### Ignoring Options
-
-Letting the completion engine know an option should be ignored (not used) is simple. Just prefix the option with an exclamation-mark (`!`). This is meant to be used when an option has already been used and therefore doesn't need to be shown again.
+```sh
+<command>/
+  ├── <command>.acmap
+  ├── <command>.acdef
+  ├── .<command>.config.acdef
+  └── hooks/
+```
 
 #### Environment Variables
 
-Hook scripts are provided environment variables.
+Hook scripts are provided parsing information via environment variables.
 
-- Following environment variables are provided by `bash` but exposed by nodecliac.
+<details><summary>Bash provided variables but exposed by nodecliac</summary>
 
-  - `NODECLIAC_COMP_LINE`: Original (unmodified) CLI input.
-  - `NODECLIAC_COMP_POINT`: Caret index when <kbd>Tab</kbd> key was pressed.
+<br>
 
-- Following environment variables are custom and exposed by nodecliac.
-  - `NODECLIAC_MAIN_COMMAND`: The command auto completion is being performed for.
-  - `NODECLIAC_COMMAND_CHAIN`: The parsed command chain.
-  - `NODECLIAC_LAST`: The last parsed word item.
-    - **Note**: Last word item could be a _partial_ word item.
-      - This happens when the <kbd>Tab</kbd> key gets pressed _within_ a word item. For example, take the following input:`$ program command`. If the<kbd>Tab</kbd> key was pressed like so: <code>\$ program comm<kbd>Tab</kbd>and</code>, the last word item is `comm`. Thus a _partial_ word with a remainder string of `and`. Resulting in finding completions for `comm`.
-  - `NODECLIAC_PREV`: The word item preceding the last word item.
-  - `NODECLIAC_INPUT`: CLI input from start to caret (<kbd>Tab</kbd> key press) index.
-  - `NODECLIAC_INPUT_ORIGINAL`: Original unmodified CLI input.
-  - `NODECLIAC_INPUT_REMAINDER`: CLI input from start to caret index.
-  - `NODECLIAC_LAST_CHAR`: Character before caret.
-  - `NODECLIAC_NEXT_CHAR`: Character after caret.
-    - **Note**: If char is _not_ `''` (empty) then the last word item (`NODECLIAC_LAST`) is a _partial_ word.
-  - `NODECLIAC_COMP_LINE_LENGTH`: Original CLI input's length.
-  - `NODECLIAC_INPUT_LINE_LENGTH`: CLI input length from string beginning to caret position.
-  - `NODECLIAC_ARG_COUNT`: Amount of arguments parsed in `NODECLIAC_INPUT` string.
-  - `NODECLIAC_ARG_N`: Parsed arguments can be individually accessed with this variable.
-    - Arguments are _zero-index_ based.
-      - First argument is `NODECLIAC_ARG_0`.
-        - Will _always_ be the program command.
-    - Because input is variable all other arguments can be retrieved with a loop.
-      - Use `NODECLIAC_ARG_COUNT` as max loop iteration.
-    - **Example**: If the following was the CLI input: `$ yarn remove chalk prettier`
-      - Arguments would be:
-        - `NODECLIAC_ARG_0`: `yarn`
-        - `NODECLIAC_ARG_1`: `remove`
-        - `NODECLIAC_ARG_2`: `chalk`
-        - `NODECLIAC_ARG_3`: `prettier`
-  - `NODECLIAC_USED_DEFAULT_POSITIONAL_ARGS`: Collected positional arguments after validating the command-chain.
+- `NODECLIAC_COMP_LINE`: Original (unmodified) CLI input.
+- `NODECLIAC_COMP_POINT`: Caret index when <kbd>Tab</kbd> key was pressed.
+
+</details>
+
+<details><summary>nodecliac provided variables</summary>
+
+<br>
+
+- `NODECLIAC_MAIN_COMMAND`: The command auto completion is being performed for.
+- `NODECLIAC_COMMAND_CHAIN`: The parsed command chain.
+- `NODECLIAC_LAST`: The last parsed word item.
+  - **Note**: Last word item could be a _partial_ word item.
+    - This happens when the <kbd>Tab</kbd> key gets pressed _within_ a word item. For example, take the following input:`$ program command`. If the<kbd>Tab</kbd> key was pressed like so: <code>\$ program comm<kbd>Tab</kbd>and</code>, the last word item is `comm`. Thus a _partial_ word with a remainder string of `and`. Resulting in finding completions for `comm`.
+- `NODECLIAC_PREV`: The word item preceding the last word item.
+- `NODECLIAC_INPUT`: CLI input from start to caret (<kbd>Tab</kbd> key press) index.
+- `NODECLIAC_INPUT_ORIGINAL`: Original unmodified CLI input.
+- `NODECLIAC_INPUT_REMAINDER`: CLI input from start to caret index.
+- `NODECLIAC_LAST_CHAR`: Character before caret.
+- `NODECLIAC_NEXT_CHAR`: Character after caret.
+  - **Note**: If char is _not_ `''` (empty) then the last word item (`NODECLIAC_LAST`) is a _partial_ word.
+- `NODECLIAC_COMP_LINE_LENGTH`: Original CLI input's length.
+- `NODECLIAC_INPUT_LINE_LENGTH`: CLI input length from string beginning to caret position.
+- `NODECLIAC_ARG_COUNT`: Amount of arguments parsed in `NODECLIAC_INPUT` string.
+- `NODECLIAC_ARG_N`: Parsed arguments can be individually accessed with this variable.
+  - First argument is `NODECLIAC_ARG_0` and will _always_ be the program's command.
+  - Because input is variable all other arguments can be retrieved with a loop.
+    - Use `NODECLIAC_ARG_COUNT` as max loop iteration.
+  - **Example**: Given the CLI input: `$ yarn remove chalk prettier`
+    - Arguments would be:
+      - `NODECLIAC_ARG_0`: `yarn`
+      - `NODECLIAC_ARG_1`: `remove`
+      - `NODECLIAC_ARG_2`: `chalk`
+      - `NODECLIAC_ARG_3`: `prettier`
+- `NODECLIAC_USED_DEFAULT_POSITIONAL_ARGS`: Collected positional arguments.
+
+</details>
+
+#### Writing Hook Script
+
+Take yarn's [`pre-parse.sh`](/resources/packages/yarn/hooks/pre-parse.sh) script as an example:
+
+```sh
+#!/bin/bash
+
+# Initialization variables:
+#
+# cline    # CLI input.
+# cpoint   # Index of caret position when [TAB] key was pressed.
+# command  # Program for which completions are for.
+# acdef    # The command's .acdef file contents.
+
+output="$("$HOME/.nodecliac/registry/$command/hooks/pre-parse.pl" "$cline")"
+
+# 1st line is the modified CLI (workspace) input.
+read -r firstline <<< "$output"
+[[ -n "$firstline" ]] && cline="$firstline"
+
+# Remaining lines are package.json's script entries.
+len="${#firstline}"; [[ ! "$len" ]] || len=1
+addon="${output:$len}"; [[ -n "$addon" ]] && acdef+=$'\n'"$addon"
+```
+
+- The Bash script is [glue code](https://en.wikipedia.org/wiki/Scripting_language#Glue_languages). It runs the Perl script [`pre-parse.pl`](/resources/packages/yarn/hooks/pre-parse.pl) to retrieve the cwd `package.json` `scripts` and determine whether yarn is being used in a workspace.
+- Using the Perl script's output the Bash script overwrites the `cline` variable and appends the `package.json` `scripts` to the `acdef` variable. Adding them as their [own commands](https://yarnpkg.com/en/docs/cli/run#toc-yarn-run).
+- nodecliac uses the new values to determine completions.
 
 </details>
 
@@ -885,19 +1133,20 @@ Hook scripts are provided environment variables.
 
 ## Caching
 
-nodecliac caches completion results to provide faster completions. _It may be turned off if not needed._
+To return quicker results completions are cached.
 
 <details><summary>Expand cache section</summary>
 
-##### Cache levels:
+##### Cache Levels:
 
 - `0`: No caching.
-- `1`: Cache all but `command-string` (dynamic) completions (`default`).
+- `1`: Cache all but `command-string` (dynamic) completions. (`default`)
 - `2`: Cache everything.
 
-**Set** cache level: `nodecliac cache --level=<LEVEL>`
-
-**Clear** cache: `nodecliac cache --clear`.
+```sh
+$ nodecliac cache --clear # Clear cache.
+$ nodecliac cache --level 0 # Turn cache off.
+```
 
 </details>
 

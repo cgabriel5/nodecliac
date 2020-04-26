@@ -211,8 +211,8 @@ code {
 }
 
 .link {
-	color: #0d61cb;
-	color: #0088cc;
+	/*color: #0d61cb;*/
+	color: #0088cc !important;
 	text-decoration: none;
 }
 

@@ -95,44 +95,97 @@
 				<p class="section-paragraph">
 					<code
 						><a
-							class="anchor"
+							class="anchor link"
 							href="https://github.com/scop/bash-completion"
 							target="_blank"
 							>bash-completion</a
 						></code
 					>
 					is awesome. It enhances the user experience by completing
-					paths, file names, commands, flags, etc. However, the time
-					and effort required to support it
-					<span class="italic">isn't</span>.
+					paths, file names, commands, flags, etc. Ironically enough,
+					having to use
+					<a
+						class="anchor link"
+						href="https://www.gnu.org/software/bash/"
+						target="_blank"
+						>Bash</a
+					>
+					to implement it puts some off from using it.
 				</p>
 
 				<br />
 
 				<p class="section-paragraph">
-					<span class="italic">nodecliac</span> provides a simple
-					approach to bash-completion. How? By mapping a program's
-					commands with their flags in an
-					<code
-						><a
-							class="anchor"
+					nodecliac's approach is different. Rather than
+					<span class="italic">directly</span> using Bash, nodecliac
+					lets one easily
+					<span class="italic">
+						<a
+							class="anchor link"
 							href="https://github.com/cgabriel5/nodecliac#syntax"
 							target="_blank"
-							>.acmap</a
-						></code
+							>map</a
+						></span
 					>
-					file. That's is. Let nodecliac handle the rest.
+					a program's commands with their flags in an
+					<b>a</b>uto-<b>c</b>ompletion
+					<b>map</b> (<code>.acmap</code>) file. Merely write the
+					program's <code>.acmap</code>, compile to
+					<code>.acdef</code>, and let nodecliac handle the rest.
+					That's it.
 				</p>
 
 				<br />
 
 				<p class="section-paragraph">
-					The goals behind this project are a few:
-					<code>1</code> minimize the effort needed to add
-					bash-completion so more programs support it,
-					<code>2</code> provide a uniform bash-completion experience,
-					and <code>3</code> to ultimately build a collection of
-					community made completion packages for all to enjoy.
+					If Bash <i>is</i> needed, <code>.acmap</code> files are
+					flexible enough to run Bash commands. Better yet, write
+					necessary completion logic in a familiar language like
+					<code
+						><a
+							class="anchor link"
+							href="https://www.perl.org/"
+							target="_blank"
+							>Perl</a
+						></code
+					>
+					,
+					<code
+						><a
+							class="anchor link"
+							href="https://www.python.org/"
+							target="_blank"
+							>Python</a
+						></code
+					>,
+
+					<code
+						><a
+							class="anchor link"
+							href="https://www.ruby-lang.org/en/"
+							target="_blank"
+							>Ruby</a
+						></code
+					>
+					, etc., and use Bash as
+					<a
+						class="anchor link"
+						href="https://en.wikipedia.org/wiki/Scripting_language#Glue_languages"
+						target="_blank"
+						>glue code</a
+					>
+					to tie it all together.
+				</p>
+
+				<br />
+
+				<p class="section-paragraph">
+					In all, this project aims to <code>1</code> minimize the
+					effort needed to add bash-completion so more programs
+					support it, <code>2</code> provide a uniform bash-completion
+					experience, and <code>3</code> to ultimately build a
+					collection of community made completion packages for all to
+					enjoy.
 				</p>
 
 				<div class="action-button">
@@ -158,7 +211,7 @@
 						<span class="bold">2.</span>
 						<code>
 							<a
-								class="anchor"
+								class="anchor link"
 								href="https://www.gnu.org/software/bash/"
 								target="_blank"
 								>Bash</a
@@ -166,7 +219,7 @@
 						>,
 						<code
 							><a
-								class="anchor"
+								class="anchor link"
 								href="https://www.perl.org/"
 								target="_blank"
 								>Perl</a
@@ -174,7 +227,7 @@
 						>, and
 						<code
 							><a
-								class="anchor"
+								class="anchor link"
 								href="https://nim-lang.org/"
 								target="_blank"
 								>Nim</a
@@ -183,7 +236,7 @@
 						provide completion logic. nodecliac's CLI tools (parser,
 						formatter) are written in<code
 							><a
-								class="anchor"
+								class="anchor link"
 								href="https://developer.mozilla.org/en-US/docs/Web/JavaScript"
 								target="_blank"
 								>JavaScript</a
@@ -192,7 +245,7 @@
 						and
 						<code
 							><a
-								class="anchor"
+								class="anchor link"
 								href="https://nim-lang.org/"
 								target="_blank"
 								>Nim</a

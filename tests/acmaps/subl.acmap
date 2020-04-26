@@ -1,4 +1,5 @@
 # [https://www.sublimetext.com/docs/3/osx_command_line.html]
+# [https://sublime-text-unofficial-documentation.readthedocs.io/en/latest/command_line/command_line.html]
 
 # Usage: subl [arguments] [files]         edit the given files
 #    or: subl [arguments] [directories]   open the given directories
@@ -25,7 +26,7 @@ subl = [
 	--project
 	--command
 	--new-window?
-	--add
+	--add?
 	--wait?
 	--background?
 	--stay?

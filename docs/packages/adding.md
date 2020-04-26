@@ -1,27 +1,24 @@
 # Adding/Linking Completion Package
 
-### The Registry
-
-In short, the registry is where all completion packages are kept. It is located at `~/.nodecliac/registry`. Complete information about the registry can be found [here](https://github.com/cgabriel5/nodecliac#registry).
-
 ### Adding
 
+This copies the folder to the registry, `~/.nodecliac/registry`.
+
 ```sh
-$ nodecliac add # run in package root
+$ nodecliac add # Run in package root.
 ```
 
 ### Linking
 
-During development, instead of constantly adding/removing to see changes, its best symlink the package:
+During development symlink package to registry.
 
 ```sh
-$ nodecliac link # run in package root
+$ nodecliac link # Run in package root.
+
+# Once development is complete remove symlink and add to registry.
+$ nodecliac unlink && nodecliac add # Run in package root.
 ```
 
-**Note**: Once development is complete simply [remove](./removing.md) the symlink.
+**Tip**: Run `$ nodecliac registry`. Package should appear in output.
 
-That's it. Once added, run `$ nodecliac registry`. The name of the package should be included in the output.
-
-### Using It
-
-Open a new Terminal (or run `$ source ~/.bashrc` in current one) and start using it.
+Finally, open a Terminal or `$ source ~/.bashrc` current one and start using it.

@@ -1,18 +1,24 @@
 # Creating Completion Package
 
-_Guide shows how to create a completion package for [Sublime Text 3](https://www.sublimetext.com/3)'s `subl` command._
+_This guide uses [Sublime Text 3](https://www.sublimetext.com/3)'s `subl` program to document completion package creation._
 
-### Firsts Things First
+## Summary
 
-If nodecliac is not already installed install it:
+The process is straightforward:
 
-```sh
-$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s
-```
+1. Setup package and create `.acmap` file.
+2. Write `.acmap` file and compile to `.acdef`.
 
-_See complete installation methods [here](https://github.com/cgabriel5/nodecliac/new/master#install)._
+- **Note**: Repeat step until `.acmap` is complete.
 
-### Creating acmap File
+4. Once finished, add completion package to registry.
+5. Source `.bashrc` file to apply changes and start using.
+
+## Steps
+
+<details><summary><b>1.</b> Setup package</summary>
+
+<br>
 
 Let's create the completion package folder and the program's `.acmap` file, `subl.acmap`:
 
@@ -20,22 +26,35 @@ Let's create the completion package folder and the program's `.acmap` file, `sub
 $ cd ~/Desktop && mkdir subl && cd subl && touch subl.acmap
 ```
 
-A folder named `subl` containing the single file `subl.acmap` should now exist on the desktop.
+A folder named `subl` containing the single file `subl.acmap` should now exist on the desktop. The name of the completion package and `.acmap` file will _always_ be the name of the program.
 
-**Note**: The name of the completion package and `.acmap` file will always be the name of the program.
+**Completion package structure**: At the moment the completion package (`~/Desktop/subl`) should only contain an empty `subl.acmap` file. This guide will produce a completion package with the most basic of structure &mdash; _a folder containing `3` files_. This is the simplest a completion package needs to be to work.
 
-### Writing acmap File
+```
+<command>/
+  ├── <command>.acmap
+  ├── <command>.acdef
+  └── .<command>.config.acdef
+```
 
-**Tip**: _Grammar packages for [Sublime Text 3](https://www.sublimetext.com/3), [VSCode](https://code.visualstudio.com/), and [Atom](https://atom.io/) are [available](/resources/editors). Install one for syntax highlighting._
+Packages of more complexity may have a `/placeholders` and or a `/hooks` directory. The `/placeholders` directory is made and used internally by nodecliac after compiling. Therefore, _never_ create this directory manually or store anything in this directory as it gets overwritten after every compile. The `/hooks` directory is created manually and stores [hook scripts](https://github.com/cgabriel5/nodecliac#hooks). Outside of that, the manner in which additional files/folders are structured is up to you.
 
-With `subl.acmap` created, lets write to it. Open it in your editor of choice and add the following:
+</details>
+
+<details><summary><b>2.</b> Write acmap file</summary>
+
+<br>
+
+**Tip**: _Grammar packages for [Sublime Text 3](https://www.sublimetext.com/3), [VSCode](https://code.visualstudio.com/), and [Atom](https://atom.io/) are [available](/resources/editors)._
+
+With `~/Desktop/subl/subl.acmap` created open it and add the following:
 
 ```acmap
 subl = [
     --project
     --command
     --new-window?
-    --add
+    --add?
     --wait?
     --background?
     --stay?
@@ -44,40 +63,59 @@ subl = [
 ]
 ```
 
-The [.acmap syntax](https://github.com/cgabriel5/nodecliac/new/master#syntax) here is simple. As shown, each flag take up their own line. Flags representing switches (`true` or `false`) are appended a `?`.
+[acmap](https://github.com/cgabriel5/nodecliac/new/master#syntax) syntax is used to map the commands with their flags. There is only one command in this case. The program command `subl`. The command's flags each take up their own line. Switches (flags representing either `true` or `false`) are appended a `?`.
 
-### Generating Completion Package
+</details>
 
-With the `.acmap` ready, the next thing to do is generate its `.acdef` file. Run:
+<details><summary><b>3.</b> Compile <code>.acdef</code></summary>
+
+<br>
+
+With the `.acmap` ready, the next thing to do is generate the `.acdef` file. Run:
 
 ```sh
 $ nodecliac make --source ~/Desktop/subl/subl.acmap
 ```
 
-This generates two files: `subl.acmap` and `.subl.config.acdef`.
+The package should now contain two new files: `subl.acdef` and `.subl.config.acdef`.
 
-### Adding To Registry
+```
+subl/
+  ├── subl.acmap
+  ├── subl.acdef
+  └── .subl.config.acdef
+```
 
-The package must now be added to the registry for nodecliac to use it. While in the package root run:
+</details>
+
+<details><summary><b>4.</b> Add to registry</summary>
+
+<br>
+
+This package is now complete. Let's add it to the registry for use with nodecliac. In the package root run:
 
 ```sh
 $ nodecliac add
 ```
 
-**Note**: When developing a package the `link` and `unlink` commands should be used. Once package development is complete the `add` command should be used to copy package to the registry instead of using a symlink.
+**Note**: When developing a package the [`link`](./docs/packages/adding.md#linking) and [`unlink`](./docs/packages/removing.md#removingunlinking) commands should be used. Once package development is complete the [`add`](./docs/packages/adding.md#adding) command should be used to copy package to the registry instead of using a symlink.
 
-**Tip**: Confirm package is in registry by running: `$ nodecliac registry`. Output should include the name of your package.
+**Tip**: Run `$ nodecliac registry` to confirm package is in the registry. Output should list the name of the package.
 
-### Using It
+</details>
 
-Open a new Terminal (or `$ source ~/.bashrc` current one), type `$ subl --`, and hit <kbd>Tab</kbd><kbd>Tab</kbd> to see completions.
+<details><summary><b>5.</b> Reload rcfile</summary>
+
+<br>
+
+Open a Terminal or `$ source ~/.bashrc` current one then type <code>\$ subl --<kbd>Tab</kbd><kbd>Tab</kbd></code> to see completions.
 
 <!-- [https://superuser.com/a/836349] -->
 
 <p align="center"><img src="../../resources/images/subl-completion.gif?raw=true" alt="subl completion" title="subl completion" width="auto"></p>
 
+</details>
+
 ### What's Next
 
-That was it for the `subl` command. Admittedly, the command is relatively simple and for that reason it's used in this guide. However, as should go without saying, the more complex a CLI program is the more the fleshed out `.acmap` will become. `.acmap`s for various programs (of varying degrees of complexity) can be found [here](resources/packages).
-
-For a more complex example which uses a `pre-hook` and `Perl` scripts take a look at the [yarn completion package](https://github.com/cgabriel5/nodecliac/tree/master/resources/nodecliac/yarn).
+That was it for the `subl` command. Admittedly, the command is extremely simple and for that reason it's used in this guide. However, as should go without saying, the more complex a CLI program is the more its `.acmap` will require. Existing completion packages of varying degrees of complexity can be found [here](resources/packages). Take a look at the [yarn completion package](https://github.com/cgabriel5/nodecliac/tree/master/resources/packages/yarn) which make use of a [hook](https://github.com/cgabriel5/nodecliac/tree/docs#hooks) and `Perl` scripts.

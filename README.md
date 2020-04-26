@@ -112,7 +112,7 @@ $ git clone -b BRANCH_NAME --single-branch https://github.com/cgabriel5/nodeclia
 
 ## What Is nodecliac?
 
-[`bash-completion`](https://github.com/scop/bash-completion) is awesome. It enhances the user experience by completing paths, file names, commands, flags, etc. Ironically enough, having to use [`Bash`](https://www.gnu.org/software/bash/) to implement it puts some off from using it.
+[`bash-completion`](https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion.html) is awesome. It enhances the user experience by completing paths, file names, commands, flags, etc. Ironically enough, having to use [`Bash`](https://www.gnu.org/software/bash/) to implement it puts some off from using it.
 
 nodecliac's approach is different. Rather than _directly_ using Bash, nodecliac lets one easily _map_ a program's commands with their flags in an **a**uto-**c**ompletion **map** (`.acmap`) file. Merely write the program's `.acmap`, compile to `.acdef`, and let nodecliac handle the rest. That's it.
 

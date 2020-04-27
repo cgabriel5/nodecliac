@@ -24,6 +24,14 @@ function exists() {
 	echo `command -v "$1"`
 }
 
+# Checks if function exists.
+#
+# @param {string} 1) - Function name.
+# @resource [https://stackoverflow.com/a/1007613]
+function func_exists() {
+	declare -F "$1" > /dev/null; echo $?
+}
+
 # Remove last line from terminal output.
 #
 # @return - Nothing is returned.
@@ -115,6 +123,16 @@ perl_majorv="$(perl -ne 'print $1 if /\(v([^.]).*\)/' <<< $(perl --version))"
 bversion="${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]}"
 pcommand=$'print 1 if /^([4]\.([3-9]+|3)|([5-9]|\d{2,})\.\d{1,})/'
 [[ ! "$(perl -ne "$pcommand" <<< "$bversion")" ]] && err "Bash 4.3+ is needed."
+
+bcpath=/usr/share/bash-completion/bash_completion
+[[ ! -f "$bcpath" ]] && err "bash-completion not installed."
+if [[ -z "$BASH_COMPLETION_VERSINFO" ]]; then
+	bcversion="$(perl -ne '/RELEASE:[ \t]*(.*?)$/ && print($1) && exit' "$bcpath")"
+	[[ -z "$bcversion" ]] && err "bash-completion not installed."
+	pattern='/^(2{1,}\.[1-9]{1,}|([3-9]{1,}|[1-9]{2,})\.[0-9]{1,}).*$/'
+	[[ ! "$(perl -ne "$pattern"' && print(1) && exit' <<< "$bcversion")" ]] \
+	&& err "bash-completion v2.1+ is needed."
+fi
 
 # ----------------------------------------------------------------------- CHECKS
 

@@ -126,7 +126,9 @@ pcommand=$'print 1 if /^([4]\.([3-9]+|3)|([5-9]|\d{2,})\.\d{1,})/'
 
 bcpath=/usr/share/bash-completion/bash_completion
 [[ ! -f "$bcpath" ]] && err "bash-completion not installed."
-if [[ -z "$BASH_COMPLETION_VERSINFO" ]]; then
+pattern='/BASH_COMPLETION_VERSINFO=\((.*?)\)/'
+bcversion="$(perl -ne "$pattern"' && print($1) && exit' "$bcpath")"
+if [[ -z "$bcversion" ]]; then
 	bcversion="$(perl -ne '/RELEASE:[ \t]*(.*?)$/ && print($1) && exit' "$bcpath")"
 	[[ -z "$bcversion" ]] && err "bash-completion not installed."
 	pattern='/^(2{1,}\.[1-9]{1,}|([3-9]{1,}|[1-9]{2,})\.[0-9]{1,}).*$/'

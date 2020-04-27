@@ -132,7 +132,7 @@ function _nodecliac() {
 	fi
 
 	if [[ "$usecache" == 0 ]]; then
-		if [[ -e "$prehook" ]]; then . "$prehook"; fi
+		[[ -e "$prehook" ]] && . "$prehook"
 
 		local acdef=$(<"$acdefpath")
 		output=$("$acpl_script" "$2" "$cline" "$cpoint" "$command" "$acdef")
@@ -142,10 +142,10 @@ function _nodecliac() {
 	# [https://stackoverflow.com/a/2440685]
 	read -r firstline <<< "$output"
 	local type="${firstline%%:*}"
-	local cacheopt=1; if [[ "$type" == *"nocache"* ]]; then cacheopt=0; fi
+	local cacheopt=1; [[ "$type" == *"nocache"* ]] && cacheopt=0
 
 	if [[ "$clevel" != 0 && "$usecache" == 0 ]]; then
-		if [[ "$cacheopt" == 0 && "$clevel" == 1 ]]; then sum="x$sum"; fi
+		[[ "$cacheopt" == 0 && "$clevel" == 1 ]] && sum="x$sum"
 		echo "$output" > ~/.nodecliac/.cache/"$sum"
 	fi
 

@@ -3,10 +3,10 @@
 vmajor=${BASH_VERSINFO[0]}
 vminor=${BASH_VERSINFO[1]}
 if [[ "$vmajor" -ge 4 ]]; then
-	if [[ "$vmajor" -eq 4 && "$vminor" -le 2 ]]; then return; fi
+	[[ "$vmajor" -eq 4 && "$vminor" -le 2 ]] && return
 	mkdir -p ~/.nodecliac/.cache
 	cachefile=~/.nodecliac/.cache-level
-	if [[ ! -e "$cachefile" ]]; then echo "1" > "$cachefile"; fi
+	[[ ! -e "$cachefile" ]] && echo "1" > "$cachefile"
 	# [https://superuser.com/a/352387]
 	# [https://askubuntu.com/a/427290]
 	# [https://askubuntu.com/a/1137769]
@@ -18,27 +18,25 @@ if [[ "$vmajor" -ge 4 ]]; then
 	registrypath=~/.nodecliac/registry
 	dirlist="$(find "$registrypath" -maxdepth 1 -mindepth 1 -type d -name "[!.]*")"
 	# Registry can't be empty.
-	if [[ "$registrypath" == "$dirlist" ]]; then return; fi
+	[[ "$registrypath" == "$dirlist" ]] && return
 
 	for filepath in $dirlist; do
 		# dir=${filepath%/*}
 		filename="${filepath##*/}"
 		command="${filename%%.*}"
 
-		if [[ -z "$command" || ! -e "$filepath/$command.acdef" ]]; then
-			continue
-		fi
+		[[ -z "$command" || ! -e "$filepath/$command.acdef" ]] && continue
 
 		command="${command##*/}"
 		# Skip if command has invalid chars.
-		if [[ "$filename" != "$command" ]]; then continue; fi
+		[[ "$filename" != "$command" ]] && continue
 
 		settings=$(~/.nodecliac/src/main/config.pl "compopt;disable" "$command")
 		config_compopt="${settings%%:*}" # Defaults to 'default'.
 		config_disable="${settings#*:}"
 
 		# Don't register if command is disable.
-		if [[ "$config_disable" == "true" ]]; then return; fi
+		[[ "$config_disable" == "true" ]] && return
 
 		# Register completion function with command.
 		if [[ "$config_compopt" == "false" ]]; then
@@ -101,7 +99,7 @@ function _nodecliac() {
 			ac=~/.nodecliac/src/bin/ac."${os/darwin/macosx}"
 		fi
 
-		if [[ -e "$prehook" ]]; then . "$prehook"; fi
+		[[ -e "$prehook" ]] && . "$prehook"
 
 		output=$("$ac" "$COMP_LINE" "$cline" "$cpoint" "$command" "$acdef")
 		# "$ac" "$COMP_LINE" "$cline" "$cpoint" "$command" "$acdef"
@@ -114,11 +112,11 @@ function _nodecliac() {
 	local last="${firstline#*:}"
 	local nlpos=$((${#firstline} + 1))
 	local items="${output:$nlpos:${#output}-2}"
-	local cacheopt=1; if [[ "$type" == *"nocache"* ]]; then cacheopt=0; fi
-	if [[ -z "$items" ]]; then return; fi
+	local cacheopt=1; [[ "$type" == *"nocache"* ]] && cacheopt=0
+	[[ -z "$items" ]] && return
 
 	if [[ "$clevel" != 0 && "$usecache" == 0 ]]; then
-		if [[ "$cacheopt" == 0 && "$clevel" == 1 ]]; then sum="x$sum"; fi
+		[[ "$cacheopt" == 0 && "$clevel" == 1 ]] && sum="x$sum"
 		echo "$output" > ~/.nodecliac/.cache/"$sum"
 	fi
 
@@ -134,11 +132,11 @@ function _nodecliac() {
 		# is set, run bash completion's _filedir function.
 		if [[ "${#COMPREPLY[@]}" -eq 0 ]]; then
 			registry=$(LC_ALL=C grep -F "_nodecliac $command" <<< "$(complete -p)")
-			if [[ "$registry" != *" -o "* ]]; then return; fi
+			[[ "$registry" != *" -o "* ]] && return
 
 			local fdirval=$(~/.nodecliac/src/main/config.pl "filedir" "$command")
 			if [[ -n "$fdirval" && "$fdirval" != "false" ]]; then
-				if [[ "$fdirval" == "true" ]]; then fdirval=""; fi
+				[[ "$fdirval" == "true" ]] && fdirval=""
 
 				# [https://github.com/gftg85/bash-completion/blob/bb0e3a1777e387e7fd77c3abcaa379744d0d87b3/bash_completion#L549]
 				# [https://unix.stackexchange.com/a/463342]
@@ -158,7 +156,7 @@ function _nodecliac() {
 		# manually. Only leave on when completing a quoted flag value.
 		# [https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html]
 		# [https://github.com/llvm-mirror/clang/blob/master/utils/bash-autocomplete.sh#L59]
-		if [[ "$type" != *"quoted"* ]]; then compopt -o nospace 2> /dev/null; fi
+		[[ "$type" != *"quoted"* ]] && compopt -o nospace 2> /dev/null
 
 		# Use mapfile/readarray to populate COMPREPLY.
 		# [https://stackoverflow.com/a/30988704]

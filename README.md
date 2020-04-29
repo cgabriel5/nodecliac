@@ -1,8 +1,6 @@
-# nodecliac
-
-Easy Bash completion for CLI programs with nodecliac (**node**-**cli**-**a**uto-**c**ompletion).
-
-<p align="center"><img src="./resources/images/nodecliac-completion.gif?raw=true" alt="nodecliac completion" title="nodecliac completion" width="auto"></p>
+<br>
+<img src="https://github.com/cgabriel5/nodecliac/blob/gh-pages/website/media/banner.png?raw=true" alt="nodecliac completion" title="nodecliac completion" width="auto">
+<br>
 
 <!-- ##### Table of Contents
 

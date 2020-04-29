@@ -144,7 +144,7 @@ body {
 	border: 2px solid #000000;
 	border-bottom: 0px;
 	border-left: 0px;
-	border-radius: 0px 5px 0px 0px;
+	border-radius: 0px 0px 0px 0px;
 	background: white;
 	position: absolute;
 	-webkit-transform: skewY(30deg);
@@ -199,7 +199,7 @@ body {
 	border: 2px solid #59666c;
 	border: 2px solid #000000;
 	border-right: 1px solid #000000;
-	border-radius: 0px 0px 0px 5px;
+	border-radius: 0px 0px 0px 0px;
 	background: white;
 	position: absolute;
 	-webkit-transform: skewY(30deg);

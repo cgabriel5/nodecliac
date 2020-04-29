@@ -1,5 +1,9 @@
-<br>
-<img src="https://github.com/cgabriel5/nodecliac/blob/gh-pages/website/media/banner.png?raw=true" alt="nodecliac completion" title="nodecliac completion" width="auto">
+<h1 align="center">nodecliac</h1>
+<p align="center">
+  <img src="https://github.com/cgabriel5/nodecliac/blob/gh-pages/website/media/logo.png?raw=true" alt="nodecliac logo" title="nodecliac logo" width="125px">
+</p>
+
+<div align="center">Easy Bash completion for CLI programs</div>
 <br>
 
 <!-- ##### Table of Contents

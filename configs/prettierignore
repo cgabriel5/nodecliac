@@ -1,0 +1,7 @@
+# [https://eslint.org/docs/user-guide/command-line-interface#ignoring-files-from-linting]
+
+node_modules/*
+bower_components/*
+.git/*
+dist/*
+*.test.js

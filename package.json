@@ -16,7 +16,7 @@
 	},
 	"scripts": {
 		"postinstall": "./src/scripts/main/postinstall.sh",
-		"pretty": "prettier-cli-watcher --configpath='/configs/prettier.config.json'",
+		"pretty": "prettier-cli-watcher --watcher=hound --notify --setup",
 		"lint": "cross-env ESLINT_CFS_VERBOSE=true ./node_modules/eslint/bin/eslint.js -c='configs/eslint.config.js' --ignore-path='configs/eslintignore' --format='simple' '**/*.{js,jsx}'; exit 0",
 		"tests": "tests/scripts/main.sh",
 		"tests:silent": "tests/scripts/main.sh -p false",
@@ -61,7 +61,7 @@
 		"eslint": "^6.8.0",
 		"eslint-config-simple": "*",
 		"eslint-formatter-simple": "*",
-		"prettier": "^2.0.4",
+		"prettier": "^2.0.5",
 		"prettier-cli-watcher": "*"
 	},
 	"files": [

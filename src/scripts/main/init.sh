@@ -76,16 +76,16 @@ function _nodecliac() {
 		xcachefile=~/.nodecliac/.cache/"x$sum"
 
 		if [[ -e "$xcachefile" ]]; then
-			m=$(date -r "$xcachefile" "+%s")
-			c=$(date +"%s")
-			if [[ $(($c-$m)) -lt 3 ]]; then
+			local m=$(date -r "$xcachefile" "+%s")
+			local c=$(date +"%s")
+			if [[ $((c-m)) -lt 3 ]]; then
 				usecache=1
-				output=$(<$xcachefile)
+				output=$(<"$xcachefile")
 			fi
 
 		elif [[ -e "$cachefile" ]]; then
 			usecache=1
-			output=$(<$cachefile)
+			output=$(<"$cachefile")
 		fi
 
 		rm -rf ~/.nodecliac/.cache/x*

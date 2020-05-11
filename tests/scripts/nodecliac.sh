@@ -50,14 +50,14 @@ perlscript_path=~/.nodecliac/src/ac/ac.pl # The Perl ac script path.
 acpl_script=""
 if [[ $(isset "$OVERRIDE") ]]; then
 	if [[ "$OVERRIDE" == "nim" ]]; then
-		acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo ${e/darwin/macosx})"
+		acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo "${e/darwin/macosx}")"
 	else
 		acpl_script="$perlscript_path"
 	fi
 	
 	scripts=("$acpl_script")
 else
-	acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo ${e/darwin/macosx})"
+	acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo "${e/darwin/macosx}")"
 	# acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo $e)"
 	# acpl_script="${acpl_script/darwin/macosx}"
 	#"$(perl -ne 'print $1 if /acpl_script=.*\/(ac.*)$/' <<< "$(<~/.nodecliac/src/ac.sh)")"
@@ -116,16 +116,16 @@ function _nodecliac() {
 		xcachefile=~/.nodecliac/.cache/"x$sum"
 
 		if [[ -e "$xcachefile" ]]; then
-			m=$(date -r "$xcachefile" "+%s")
-			c=$(date +"%s")
-			if [[ $(($c-$m)) -lt 3 ]]; then
+			local m=$(date -r "$xcachefile" "+%s")
+			local c=$(date +"%s")
+			if [[ $((c-m)) -lt 3 ]]; then
 				usecache=1
-				output=$(<$xcachefile)
+				output=$(<"$xcachefile")
 			fi
 
 		elif [[ -e "$cachefile" ]]; then
 			usecache=1
-			output=$(<$cachefile)
+			output=$(<"$cachefile")
 		fi
 
 		rm -rf ~/.nodecliac/.cache/x*
@@ -196,7 +196,7 @@ function xtest {
 	  *) t="\033[0;31m$t\033[0m" ;;
 	esac
 
-	r="$(xtest_${testname} "$n" "$answer")"
+	r="$(xtest_"${testname}" "$n" "$answer")"
 
 	((test_count++))
 	((test_id++))
@@ -266,7 +266,7 @@ for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-i
 
 	# Print header.
 	if [[ $(isset "$PRINT") ]]; then
-		echo -e "\033[1m[Testing Completion Script]\033[0m [script=\033[1;32m$(basename -- $script)\033[0m, override=$OVERRIDE]"
+		echo -e "\033[1m[Testing Completion Script]\033[0m [script=\033[1;32m$(basename -- "$script")\033[0m, override=$OVERRIDE]"
 	fi
 
 	# [test-suite: nodecliac]

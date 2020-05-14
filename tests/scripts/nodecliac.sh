@@ -141,7 +141,8 @@ function _nodecliac() {
 	# 1st line is meta info (completion type, last word, etc.).
 	# [https://stackoverflow.com/a/2440685]
 	read -r firstline <<< "$output"
-	local type="${firstline%%:*}"
+	local meta="${firstline%%+*}"
+	local type="${meta%%:*}"
 	local cacheopt=1; [[ "$type" == *"nocache"* ]] && cacheopt=0
 
 	if [[ "$clevel" != 0 && "$usecache" == 0 ]]; then
@@ -285,17 +286,17 @@ for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-i
 	xtest contains "nodecliac format --source command.acmap --print --indent \"s:2\" --" "strip-comments"
 
 	# [test-suite: prettier-cli-watcher]
-	xtest matches "prettier-cli-watcher " "command:"
+	xtest matches "prettier-cli-watcher " "command:+"
 	xtest contains "prettier-cli-watcher --watcher=" "hound"
 	xtest omits "prettier-cli-watcher --watcher= --" "--watcher"
 	xtest contains "prettier-cli-watcher --watcher=hou" "hound "
 	xtest contains "prettier-cli-watcher --watcher=hound" "hound "
 	xtest omits "prettier-cli-watcher --watcher=hound --" "--watcher"
-	xtest matches "prettier-cli-watcher --watcher=hound --w" ""
+	xtest matches "prettier-cli-watcher --watcher=hound --w" "flag:--w+"
 	# xtest omits "prettier-cli-watcher --watcher=hound --watcher " "chokidar"
 	# xtest omits "prettier-cli-watcher --watcher=hound --watcher=" "chokidar"
 	xtest matches "prettier-cli-watcher --watcher=hound --" "$(cat <<-END
-	flag:--
+	flag:--+
 	--configpath=
 	--dir=
 	--dtime=
@@ -308,15 +309,15 @@ for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-i
 	xtest contains "prettier-cli-watcher --watcher hou" "hound "
 	xtest contains "prettier-cli-watcher --watcher hound" "hound "
 	xtest omits "prettier-cli-watcher --watcher hound --" "--watcher"
-	xtest matches "prettier-cli-watcher --watcher hound --w" ""
+	xtest matches "prettier-cli-watcher --watcher hound --w" "flag:--w+"
 	xtest omits "prettier-cli-watcher --watcher hound --watcher " "chokidar"
-	xtest matches "prettier-cli-watcher --watcher hound --watcher" ""
+	xtest matches "prettier-cli-watcher --watcher hound --watcher" "flag:--watcher+"
 	xtest omits "prettier-cli-watcher --watcher=hound --watcher=" "chokidar"
 	xtest omits "prettier-cli-watcher --watcher=hound --watcher" "chokidar"
 	xtest omits "prettier-cli-watcher --watcher=hound --watcher chok" "chokidar"
 
 	# [test-suite: yarn]
-	xtest matches "yarn remov " "command:" # `remov` command does not exit.
+	xtest matches "yarn remov " "command:+" # `remov` command does not exit.
 	xtest contains "yarn remove ch" "chalk"
 	xtest contains "yarn " "config"
 	xtest omits "yarn run" "nocache"
@@ -324,7 +325,7 @@ for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-i
 	xtest contains "yarn remove " "prettier"
 	xtest contains "yarn remove prettier " "-"
 	# Completing a non existing argument should not append a trailing space.
-	xtest matches "yarn remove nonexistantarg" "command;nocache:nonexistantarg"
+	xtest matches "yarn remove nonexistantarg" "command;nocache:nonexistantarg+"
 	xtest contains "yarn add prettier-cli-watcher@* --" "--dev"
 
 	# [test-suite: nim]

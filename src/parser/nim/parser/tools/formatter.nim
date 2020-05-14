@@ -256,6 +256,7 @@ proc formatter*(S: State): tuple =
         acdef: string,
         config: string,
         keywords: string,
+        filedirs: string,
         formatted: string,
         placeholders: Table[string, string]
     ]

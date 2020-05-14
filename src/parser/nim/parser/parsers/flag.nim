@@ -69,8 +69,8 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 let endpoint = S.i + keyword_len
                 let keyword = text[S.i .. endpoint]
 
-                # If keyword isn't 'default', error.
-                if keyword != "default": error(S, currentSourcePath)
+                # Keyword must be allowed.
+                if keyword notin ["default", "filedir"]: error(S, currentSourcePath)
                 N.keyword.start = S.i
                 N.keyword.`end` = endpoint
                 N.keyword.value = keyword
@@ -147,7 +147,8 @@ proc p_flag*(S: State, isoneliner: string): Node =
 
             of "wsb-prevalue":
                 if `char` notin C_SPACES:
-                    if `char` == '|': state = "pipe-delimiter"
+                    if `char` == '|' and N.keyword.value != "filedir":
+                        state = "pipe-delimiter"
                     else: state = "value"
                     rollback(S)
 
@@ -164,7 +165,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     N.value.`end` = S.i
                     N.value.value = $`char`
                 else:
-                    if `char` == '|' and pchar != '\\':
+                    if `char` == '|' and N.keyword.value != "filedir" and pchar != '\\':
                         state = "pipe-delimiter"
                         rollback(S)
                     else:

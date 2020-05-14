@@ -55,6 +55,7 @@ let pres = parser(action, res, cmdname, source, fmtinfo, trace, igc, test)
 let acdef = pres.acdef
 let config = pres.config
 let keywords = pres.keywords
+let filedirs = pres.filedirs
 let placeholders = pres.placeholders
 let formatted = pres.formatted
 
@@ -70,7 +71,7 @@ if not test:
         let placeholderspaths = joinPath(dirname, "placeholders")
 
         createDir(dirname)
-        write(commandpath, acdef & keywords)
+        write(commandpath, acdef & keywords & filedirs)
         write(commandconfigpath, config)
 
         # Create placeholder files if object is populated.
@@ -86,7 +87,7 @@ if print:
     if not formatting:
         if acdef != "":
             echo "[" & (cmdname & ".acdef").chalk("bold") & "]\n"
-            echo acdef & keywords
+            echo acdef & keywords & filedirs
             if config == "": echo ""
         if config != "":
             let msg = "\n[" & ("." & cmdname & ".config.acdef").chalk("bold") & "]\n"
@@ -98,7 +99,7 @@ if print:
 if test:
     if not formatting:
         if acdef != "":
-            echo acdef & keywords
+            echo acdef & keywords & filedirs
             if config == "": echo ""
         if config != "":
             if acdef != "": echo ""

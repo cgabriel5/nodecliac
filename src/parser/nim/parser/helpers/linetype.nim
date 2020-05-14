@@ -29,6 +29,7 @@ proc linetype*(S: State, `char`, nchar: char): string =
     if line_type == "flag":
         if nchar != '\0' and nchar in C_SPACES: line_type = "option"
     elif line_type == "command":
-        if text[S.i .. S.i + 6] == "default": line_type = "flag"
+        let keyword = text[S.i .. S.i + 6]
+        if keyword in ["default", "filedir"]: line_type = "flag"
 
     return line_type

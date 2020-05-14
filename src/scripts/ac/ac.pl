@@ -848,8 +848,8 @@ sub __lookup {
 
 	# Get filedir of command chain.
 	if (!@completions) {
-		my $pattern = '^' . quotemeta($commandchain) . ' filedir "(.+)"$';
-		if ($acdef =~ /$pattern/m) { $filedir = $1; }
+		my $pattern = '^' . quotemeta($commandchain) . ' filedir ("|\')(.+)\1$';
+		if ($acdef =~ /$pattern/m) { $filedir = $2; }
 	}
 }
 

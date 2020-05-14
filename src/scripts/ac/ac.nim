@@ -823,7 +823,7 @@ proc fn_lookup(): string =
 
     # Get filedir of command chain.
     if completions.len == 0:
-        let pattern = "^" & quotemeta(commandchain) & " filedir \"(.+)\"$"
+        let pattern = "^" & quotemeta(commandchain) & " filedir (.+)$"
         let (start, `end`) = findBounds(acdef, re(pattern, {reMultiLine}))
         if start != -1:
             let row = acdef[start .. `end`]

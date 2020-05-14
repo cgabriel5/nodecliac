@@ -20,5 +20,26 @@
 .rst2html --p#07d43e
 .rst2tex --p#07d43e
 
+.buildIndex filedir '@(nim)'
+.c filedir '@(nim)'
+.cc filedir '@(nim)'
+.check filedir '@(nim)'
+.compile filedir '@(nim)'
+.compileToC filedir '@(nim)'
+.compileToCpp filedir '@(nim)'
+.compileToOC filedir '@(nim)'
+.cpp filedir '@(nim)'
+.ctags filedir '@(nim)'
+.doc filedir '@(nim)'
+.doc2 filedir '@(nim)'
+.dump filedir '@(nim)'
+.e filedir '@(nim)'
+.genDepend filedir '@(nim)'
+.js filedir '@(nim)'
+.jsondoc filedir '@(nim)'
+.objc filedir '@(nim)'
+.rst2html filedir '@(nim)'
+.rst2tex filedir '@(nim)'
+
 @placehold = true
 @filedir = "@(nim)"

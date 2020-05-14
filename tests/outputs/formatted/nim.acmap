@@ -30,6 +30,8 @@ nim.cpp,
 nim.compileToCpp,
 nim.compileToOC,
 nim.objc = [
+	filedir '@(nim)'
+
 	--path=
 	--define=
 	--undef=

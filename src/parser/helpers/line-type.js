@@ -30,7 +30,8 @@ module.exports = (S, char, nchar) => {
 	if (line_type === "flag") {
 		if (nchar && cin(C_SPACES, nchar)) line_type = "option";
 	} else if (line_type === "command") {
-		if (text.substr(S.i, 7) === "default") line_type = "flag";
+		let keyword = text.substr(S.i, 7);
+		if (-~["default", "filedir"].indexOf(keyword)) line_type = "flag";
 	}
 
 	return line_type;

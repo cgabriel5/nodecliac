@@ -13,6 +13,7 @@ module.exports = (S, cmdname) => {
 	let oSets = {};
 	let oGroups = {};
 	let oDefaults = {};
+	let oFiledirs = {};
 	let oSettings = {};
 	let settings_count = 0;
 	let oPlaceholders = {};
@@ -22,6 +23,7 @@ module.exports = (S, cmdname) => {
 	let acdef_lines = [];
 	let config = "";
 	let defaults = "";
+	let filedirs = "";
 	let has_root = false;
 
 	// Escape '+' chars in commands.
@@ -208,16 +210,20 @@ module.exports = (S, cmdname) => {
 		if (!hasProp(oGroups, i)) continue;
 
 		let { commands: cxN, flags: fxN } = oGroups[i];
-		let queue_keywords = new Set();
+		let queue_defs = new Set();
+		let queue_fdir = new Set();
 		let queue_flags = new Set();
 
 		for (let i = 0, l = fxN.length; i < l; i++) {
 			let fN = fxN[i];
 			let { args } = fN;
+			let keyword = fN.keyword.value;
 
 			// If flag is a default/keyword store it.
-			if (fN.keyword.value) {
-				queue_keywords.add(fN.value.value);
+			if (keyword) {
+				let value = fN.value.value;
+				if (keyword === "default") queue_defs.add(value);
+				else if (keyword === "filedir") queue_fdir.add(value);
 				continue; // defaults don't need to be added to Sets.
 			}
 
@@ -244,7 +250,8 @@ module.exports = (S, cmdname) => {
 		for (let i = 0, l = cxN.length; i < l; i++) {
 			let value = cxN[i].command.value;
 			for (let item of queue_flags) oSets[value].add(item);
-			for (let item of queue_keywords) oDefaults[value] = item;
+			for (let item of queue_defs) oDefaults[value] = item;
+			for (let item of queue_fdir) oFiledirs[value] = item;
 		}
 	}
 
@@ -292,6 +299,15 @@ module.exports = (S, cmdname) => {
 	});
 	if (defaults) defaults = "\n\n" + defaults;
 
+	// Build filedirs contents.
+	let fdirs = mapsort(Object.keys(oFiledirs), asort, aobj);
+	let fl = fdirs.length;
+	fdirs.forEach((c, i) => {
+		filedirs += `${rm_fcmd(c)} filedir ${oFiledirs[c]}`;
+		if (i < fl - 1) filedirs += "\n";
+	});
+	if (filedirs) filedirs = "\n\n" + filedirs;
+
 	// Build settings contents.
 	settings_count--;
 	for (let setting in oSettings) {
@@ -308,5 +324,11 @@ module.exports = (S, cmdname) => {
 	acdef = acdef_contents ? header + acdef_contents : sheader;
 	config = config ? header + config : sheader;
 
-	return { acdef, config, keywords: defaults, placeholders: oPlaceholders };
+	return {
+		acdef,
+		config,
+		keywords: defaults,
+		filedirs,
+		placeholders: oPlaceholders
+	};
 };

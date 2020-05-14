@@ -85,8 +85,10 @@ module.exports = (S, isoneliner) => {
 					let endpoint = keyword_len - 1;
 					let keyword = text.substr(S.i, keyword_len);
 
-					// If keyword isn't 'default', error.
-					if (keyword !== "default") error(S, __filename);
+					// Keyword must be allowed.
+					if (!-~["default", "filedir"].indexOf(keyword)) {
+						error(S, __filename);
+					}
 					N.keyword.start = S.i;
 					N.keyword.end = S.i + endpoint;
 					N.keyword.value = keyword;
@@ -179,8 +181,9 @@ module.exports = (S, isoneliner) => {
 
 			case "wsb-prevalue":
 				if (cnotin(C_SPACES, char)) {
-					if (char === "|") state = "pipe-delimiter";
-					else state = "value";
+					if (char === "|" && N.keyword.value !== "filedir") {
+						state = "pipe-delimiter";
+					} else state = "value";
 					rollback(S);
 				}
 
@@ -199,7 +202,11 @@ module.exports = (S, isoneliner) => {
 						N.value.start = N.value.end = S.i;
 						N.value.value = char;
 					} else {
-						if (char === "|" && pchar !== "\\") {
+						if (
+							char === "|" &&
+							N.keyword.value !== "filedir" &&
+							pchar !== "\\"
+						) {
 							state = "pipe-delimiter";
 							rollback(S);
 						} else {

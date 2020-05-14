@@ -1,6 +1,6 @@
 # CLI tool commands:
-nodecliac.format = --indent|--source|--print?|--strip-comments?
-nodecliac.make = --source|--print?
+nodecliac.format = --indent|--source|--print?|--strip-comments?|filedir '@(acmap)'
+nodecliac.make = --source|--print?|filedir '@(acmap)'
 
 # Helper commands:
 nodecliac.setup = --force?|--rcfilepath

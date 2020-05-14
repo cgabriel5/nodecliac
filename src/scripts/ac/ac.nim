@@ -39,10 +39,12 @@ var autocompletion = true
 var input = cline.substr(0, cpoint - 1) # CLI input from start to caret index.
 var input_remainder = cline.substr(cpoint, -1)# CLI input from caret index to input string end.
 let hdir = os.getEnv("HOME")
+var filedir = ""
 
 var db_dict = initTable[char, Table[string, Table[string, seq[string]]]]()
 var db_levels = initTable[int, Table[string, int]]()
-var db_fallbacks = initTable[string, string]()
+var db_defaults = initTable[string, string]()
+var db_filedirs = initTable[string, string]()
 
 var usedflags = initTable[string, Table[string, int]]()
 var usedflags_valueless = initTable[string, int]()
@@ -695,15 +697,10 @@ proc fn_lookup(): string =
 
             # If no completions, add last item so Bash compl. can add a space.
             if completions.len == 0:
-                # Exit if last word is in the form '--flag='. The '=' makes
-                # Bash append the entire flag again. This is possibly due to
-                # the way readline splits words with $COMP_WORDBREAKS chars.
-                if last_value == "" and last.endsWith('='): quit()
-
-                var key = last_fkey & (if last_value == "": "" else: "=" & last_value)
-                var item = if last_value == "": last else: last_value
-                if parsedflags.hasKey(key): completions.add(item)
-                if completions.len == 0: quit()
+                let key = last_fkey & (if last_value == "": "" else: "=" & last_value)
+                let item = if last_value == "": last else: last_value
+                if parsedflags.hasKey(key) and (last_value != "" or not last.endsWith('=')):
+                    completions.add(item)
             else:
                 # Note: If the last word (the flag in this case) is an options
                 # flag (i.e. --flag=val) we need to remove the possibly already
@@ -784,7 +781,7 @@ proc fn_lookup(): string =
             # Loop over command chains to build individual chain levels.
             while copy_commandchain != "":
                 # Get command-string, parse and run it.
-                var command_str = if db_fallbacks.hasKey(copy_commandchain): db_fallbacks[copy_commandchain] else: ""
+                var command_str = if db_defaults.hasKey(copy_commandchain): db_defaults[copy_commandchain] else: ""
                 if command_str != "":
                     var lchar = chop(command_str)
 
@@ -824,9 +821,20 @@ proc fn_lookup(): string =
                 # Remove last command chain from overall command chain.
                 copy_commandchain = copy_commandchain.replace(pattern)
 
+    # Get filedir of command chain.
+    if completions.len == 0:
+        let pattern = "^" & quotemeta(commandchain) & " filedir \"(.+)\"$"
+        let (start, `end`) = findBounds(acdef, re(pattern, {reMultiLine}))
+        if start != -1:
+            let row = acdef[start .. `end`]
+            let kw_index = row.find("filedir")
+            let sp_index = row.find(' ', start=kw_index)
+            filedir = row[sp_index + 2 .. row.high - 1] # Unquote.
+
 # Send all possible completions to bash.
 proc fn_printer() =
     var lines = fmt"{`type`}:{last}"
+    lines &= "+" & filedir
 
     var iscommand = `type`.startsWith('c')
     if iscommand: lines &= "\n"
@@ -938,7 +946,12 @@ proc fn_makedb() =
                     db_dict[fchar] = initTable[string, Table[string, seq[string]]]()
                 db_dict[fchar][chain] = {"commands": commands, "flags": @[line]}.toTable
 
-            else: # Store fallback.
-                if not db_fallbacks.hasKey(chain): db_fallbacks[chain] = line.substr(8)
+            else: # Store keywords.
+                let keyword = line[0 .. 6]
+                let value = line.substr(8)
+                if keyword == "default":
+                    if not db_defaults.hasKey(chain): db_defaults[chain] = value
+                else:
+                    if not db_filedirs.hasKey(chain): db_filedirs[chain] = value
 
 fn_tokenize();fn_analyze();fn_makedb();discard fn_lookup();fn_printer()

@@ -27,9 +27,11 @@ my $autocompletion = 1;
 my $input = substr($cline, 0, $cpoint); # CLI input from start to caret index.
 my $input_remainder = substr($cline, $cpoint, -1); # CLI input from caret index to input string end.
 my $hdir = $ENV{'HOME'};
+my $filedir = '';
 
 my %db;
-$db{'fallbacks'} = {};
+$db{'defaults'} = {};
+$db{'filedirs'} = {};
 
 my %usedflags;
 $usedflags{'valueless'};
@@ -705,16 +707,11 @@ sub __lookup {
 
 			# If no completions, add last item so Bash compl. can add a space.
 			if (!@completions) {
-                # Exit if last word is in the form '--flag='. The '=' makes
-                # Bash append the entire flag again. This is possibly due to
-                # the way readline splits words with $COMP_WORDBREAKS chars.
-				my $lchar = chop($last); $last .= $lchar;
-				if (!$last_value && $lchar eq '=') { exit; }
-
 				my $key = $last_fkey . (!$last_value ? "" : "=$last_value");
 				my $item = (!$last_value ? $last : $last_value);
-				if (exists($parsedflags{$key})) { push(@completions, $item); }
-				if (!@completions) { exit; }
+				if (exists($parsedflags{$key}) && ($last_value ne '' || substr($last, -1) ne '=')) {
+					push(@completions, $item);
+				}
 			} else {
 				# Note: If the last word (the flag in this case) is an options
 				# flag (i.e. --flag=val) we need to remove the possibly already
@@ -796,7 +793,7 @@ sub __lookup {
 			# Loop over command chains to build individual chain levels.
 			while ($copy_commandchain) {
 				# Get command-string, parse and run it.
-				my $command_str = $db{fallbacks}{$copy_commandchain};
+				my $command_str = $db{defaults}{$copy_commandchain};
 				if ($command_str) {
 					my $lchar = chop($command_str);
 
@@ -848,11 +845,18 @@ sub __lookup {
 			}
 		}
 	}
+
+	# Get filedir of command chain.
+	if (!@completions) {
+		my $pattern = '^' . quotemeta($commandchain) . ' filedir "(.+)"$';
+		if ($acdef =~ /$pattern/m) { $filedir = $1; }
+	}
 }
 
 # Send all possible completions to bash.
 sub __printer {
 	my $lines = "$type:$last";
+	$lines .= '+' . $filedir;
 
 	my $iscommand = rindex($type, 'c', 0) == 0;
 	if ($iscommand) { $lines .= "\n"; }
@@ -963,8 +967,14 @@ sub __makedb {
 			if (ord($line) == 45) {
 				my %h = ("commands", \@commands, "flags", $line);
 				$letters{substr($chain, 1, 1)}{$chain} = \%h;
-			} else { # Store fallback.
-				$db{fallbacks}{$chain} = substr($line, 8);
+			} else { # Store keywords.
+				my $keyword = substr($line, 0, 7);
+				my $value = substr($line, 8);
+				if ($keyword eq "default") {
+					$db{defaults}{$chain} = substr($line, 8);
+				} else {
+					$db{filedirs}{$chain} = substr($line, 8);
+				}
 			}
 		}
 

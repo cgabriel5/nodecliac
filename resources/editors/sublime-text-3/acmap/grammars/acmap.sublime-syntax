@@ -220,7 +220,7 @@ contexts:
         - include: default
 
   flag-oneliner:
-    - match: "( |(=)\\s*)(?=(--?|default))"
+    - match: "( |(=)\\s*)(?=(--?|default|filedir))"
       captures:
         2: keyword.operator.assignment.acmap
       push:
@@ -251,10 +251,11 @@ contexts:
         3: constant.numeric.acmap
 
   keywords:
-    - match: "(default)([ \t]{1,})"
+    - match: "(default|filedir)([ \t]{1,})"
       captures:
         1: keyword.control.default.acmap
     - include: command-string
+    - include: strings
 
   flag:
     - match: "(--?)(([a-zA-Z][-_.:a-zA-Z0-9]*)(\\?)?)?" # Handle: '--flag'

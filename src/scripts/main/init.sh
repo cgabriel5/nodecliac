@@ -125,6 +125,13 @@ function _nodecliac() {
 	if [[ -z "$items" ]]; then
 		# If value exists reset var to it. [https://stackoverflow.com/a/20460402]
 		[[ -z "${last##*=*}" ]] && last="${last#*=}"
+
+		# If filedir is empty check for the (global) setting filedir.
+		if [[ -z "$filedir" ]]; then
+			local gfdir=$(~/.nodecliac/src/main/config.pl "filedir" "$command")
+			[[ -n "$gfdir" && "$gfdir" != "false" ]] && filedir="$gfdir"
+		fi
+
 		# [https://unix.stackexchange.com/a/463342]
 		# [https://unix.stackexchange.com/a/463336]
 		# [https://github.com/scop/bash-completion/blob/master/completions/java]

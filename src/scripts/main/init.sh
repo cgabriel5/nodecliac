@@ -148,6 +148,17 @@ function _nodecliac() {
 			COMPREPLY=($(echo -e "$items"))
 			__ltrim_colon_completions "$last"
 
+			# # __ltrim_colon_completions:
+			# # [https://github.com/scop/bash-completion/blob/master/bash_completion]
+			# if [[ "$last" == *:* && $COMP_WORDBREAKS == *:* ]]; then
+			# 	# Remove colon-word prefix from COMPREPLY items
+			# 	local colon_word=${last%"${last##*:}"}
+			# 	local i=${#COMPREPLY[*]}
+			# 	while ((i-- > 0)); do
+			# 		COMPREPLY[i]=${COMPREPLY[i]#"$colon_word"}
+			# 	done
+			# fi
+
 		elif [[ "$type" == "flag"* ]]; then
 			# Disable bash's default behavior of adding a trailing space to
 			# completions when hitting the [tab] key. This will be handled

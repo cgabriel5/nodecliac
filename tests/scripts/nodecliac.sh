@@ -297,13 +297,15 @@ for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-i
 	# xtest omits "prettier-cli-watcher --watcher=hound --watcher=" "chokidar"
 	xtest matches "prettier-cli-watcher --watcher=hound --" "$(cat <<-END
 	flag:--+
-	--configpath=
-	--dir=
-	--dtime=
-	--extensions=
-	--ignoredirs=
-	--nolog 
-	--nonotify 
+	--config 
+	--dir 
+	--dry 
+	--dtime 
+	--ignore 
+	--notify 
+	--quiet 
+	--setup 
+	--version 
 	END
 	)"
 	xtest contains "prettier-cli-watcher --watcher hou" "hound "

@@ -36,7 +36,7 @@ type
         # [https://forum.nim-lang.org/t/2203]
         # [https://forum.nim-lang.org/t/3150]
         # [https://forum.nim-lang.org/t/4233#26335]
-        name*, assignment*, brackets*, value*: Branch
+        name*, assignment*, brackets*, value*, delimiter*: Branch
         args*: seq[string]
 
         # Depending on node type add needed fields.
@@ -45,7 +45,7 @@ type
         of newline: discard
         of setting, variable: sigil*: Branch
         of command:
-            command*, delimiter*: Branch
+            command*: Branch
             flags*: seq[Node]
         of flag:
             hyphens*, variable*, boolean*, multi*, keyword*: Branch
@@ -128,6 +128,7 @@ proc node*(S: State, node: string): Node =
         result.name = Branch()
         result.boolean = Branch()
         result.assignment = Branch()
+        result.delimiter = Branch()
         result.multi = Branch()
         result.brackets = Branch()
         result.value = Branch()

@@ -134,6 +134,7 @@ proc acdef*(S: State, cmdname: string): tuple =
 
     var last = ""
     var rN: Node # Reference node.
+    var dN: seq[Node] = @[] # Delimited flag nodes.
     var xN = S.tables.tree["nodes"]
     const ftypes = toHashSet(["FLAG", "OPTION"])
     const types = toHashSet(["SETTING", "COMMAND", "FLAG", "OPTION"])
@@ -179,6 +180,18 @@ proc acdef*(S: State, cmdname: string): tuple =
                 rN = N # Store reference to node.
 
             of "FLAG":
+                # Add values/arguments to delimited flags.
+                if N.delimiter.value != "":
+                    dN.add(N)
+                else:
+                    let args = N.args
+                    let value = N.value.value
+                    for i, tN in dN:
+                        var tN = dN[i]
+                        tN.args = args
+                        tN.value.value = value
+                    dN.setLen(0)
+
                 oGroups[count]["flags"].add(N) # Store command in current group.
                 last = `type`
 

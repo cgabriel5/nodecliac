@@ -166,6 +166,7 @@ proc formatter*(S: State): tuple =
                 let nval = N.name.value
                 let bval = N.boolean.value
                 let aval = N.assignment.value
+                let dval = N.delimiter.value
                 let mval = N.multi.value
                 let vval = N.value.value
                 let singleton = N.singleton
@@ -191,9 +192,8 @@ proc formatter*(S: State): tuple =
                                 r &= bval
                             elif aval != "":
                                 r &= aval
-                                if mval != "":
-                                    r &= mval
-
+                                if mval != "": r &= mval
+                                if dval != "": r &= dval
                                 if vval != "": r &= vval
 
                 output.add(r & pipe_del)

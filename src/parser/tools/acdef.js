@@ -136,6 +136,7 @@ module.exports = (S, cmdname) => {
 
 	let last = "";
 	let rN = {}; // Reference node.
+	let dN = []; // Delimited flag nodes.
 	let xN = S.tables.tree.nodes;
 	const ftypes = new Set(["FLAG", "OPTION"]);
 	const types = new Set(["SETTING", "COMMAND", "FLAG", "OPTION"]);
@@ -183,6 +184,20 @@ module.exports = (S, cmdname) => {
 				break;
 
 			case "FLAG":
+				// Add values/arguments to delimited flags.
+				if (N.delimiter.value) {
+					dN.push(N);
+				} else {
+					let args = N.args;
+					let value = N.value.value;
+					for (let i = 0, l = dN.length; i < l; i++) {
+						let tN = dN[i];
+						tN.args = args;
+						tN.value.value = value;
+					}
+					dN.length = 0;
+				}
+
 				oGroups[count].flags.push(N); // Store command in current group.
 				last = type;
 

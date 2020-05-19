@@ -67,6 +67,7 @@ module.exports = (S, type) => {
 			N.name = o();
 			N.boolean = o();
 			N.assignment = o();
+			N.delimiter = o();
 			N.multi = o();
 			N.brackets = o();
 			N.value = o();

@@ -119,6 +119,9 @@ module.exports = (S, isoneliner) => {
 					} else if (char === "=") {
 						state = "assignment";
 						rollback(S);
+					} else if (char === ",") {
+						state = "delimiter";
+						rollback(S);
 					} else if (char === "?") {
 						state = "boolean-indicator";
 						rollback(S);
@@ -137,6 +140,9 @@ module.exports = (S, isoneliner) => {
 				if (cnotin(C_SPACES, char)) {
 					if (char === "=") {
 						state = "assignment";
+						rollback(S);
+					} else if (char === ",") {
+						state = "delimiter";
 						rollback(S);
 					} else if (char === "|") {
 						state = "pipe-delimiter";
@@ -167,6 +173,7 @@ module.exports = (S, isoneliner) => {
 					state = "wsb-prevalue";
 				} else {
 					if (char === "|") state = "pipe-delimiter";
+					else if (char === ",") state = "delimiter";
 					else state = "wsb-prevalue";
 					rollback(S);
 				}
@@ -179,11 +186,19 @@ module.exports = (S, isoneliner) => {
 
 				break;
 
+			case "delimiter":
+				N.delimiter.start = N.delimiter.end = S.i;
+				N.delimiter.value = char;
+				state = "eol-wsb";
+
+				break;
+
 			case "wsb-prevalue":
 				if (cnotin(C_SPACES, char)) {
-					if (char === "|" && N.keyword.value !== "filedir") {
-						state = "pipe-delimiter";
-					} else state = "value";
+					let keyword = N.keyword.value !== "filedir";
+					if (char === "|" && keyword) state = "pipe-delimiter";
+					else if (char === ",") state = "delimiter";
+					else state = "value";
 					rollback(S);
 				}
 
@@ -228,6 +243,11 @@ module.exports = (S, isoneliner) => {
 						}
 					}
 				}
+
+				break;
+
+			case "eol-wsb":
+				if (cnotin(C_SPACES, char)) error(S, __filename);
 
 				break;
 		}

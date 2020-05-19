@@ -371,6 +371,9 @@
 					"contentName": "keyword.operator.assignment.acmap",
 					"patterns": [
 						{
+							"include": "#delimiter"
+						},
+						{
 							"include": "#command-string"
 						},
 						{
@@ -594,6 +597,15 @@
 			"captures": {
 				"1": {
 					"name": "invalid.illegal.stray-bracket.acmap"
+				}
+			}
+		},
+		"delimiter": {
+			"match": "\\s*(,)\\s*",
+			"name": "",
+			"captures": {
+				"1": {
+					"name": "punctuation.separator.comma.acmap"
 				}
 			}
 		}

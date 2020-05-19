@@ -764,6 +764,11 @@
 						<array>
 							<dict>
 								<key>include</key>
+								<string>#delimiter</string>
+							</dict>
+
+							<dict>
+								<key>include</key>
 								<string>#command-string</string>
 							</dict>
 
@@ -1173,6 +1178,25 @@
 					<dict>
 						<key>name</key>
 						<string>invalid.illegal.stray-bracket.acmap</string>
+					</dict>
+				</dict>
+			</dict>
+
+
+			<key>delimiter</key>
+			<dict>
+				<key>match</key>
+				<string>\s*(,)\s*</string>
+
+				<key>name</key>
+				<string></string>
+
+				<key>captures</key>
+				<dict>
+					<key>1</key>
+					<dict>
+						<key>name</key>
+						<string>punctuation.separator.comma.acmap</string>
 					</dict>
 				</dict>
 			</dict>

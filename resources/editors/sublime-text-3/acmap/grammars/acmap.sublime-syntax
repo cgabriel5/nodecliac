@@ -213,6 +213,7 @@ contexts:
       push:
         - match: "$"
           pop: true
+        - include: delimiter
         - include: command-string
         - include: constants
         - include: numbers
@@ -304,11 +305,16 @@ contexts:
     - include: default
 
   stray-brace-bracket:
-      - match: '((?<!\\)\[)' # Handle: Imbalanced brace.
-        captures:
-          1: invalid.illegal.stray-bracket.acmap
+    - match: '((?<!\\)\[)' # Handle: Imbalanced brace.
+      captures:
+        1: invalid.illegal.stray-bracket.acmap
 
   stray-brace-parens:
     - match: '((?<!\\)\()' # Handle: Imbalanced brace.
       captures:
         1: invalid.illegal.stray-bracket.acmap
+
+  delimiter:
+    - match: "\\s*(,)\\s*"
+      captures:
+        1: punctuation.separator.comma.acmap # **purple

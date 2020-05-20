@@ -1,0 +1,3 @@
+# Should produce an Unexpected character error
+# as flag delimiter is not allowed via oneliner.
+program = --flag=,|--flag2="value"

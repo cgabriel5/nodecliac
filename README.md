@@ -70,7 +70,7 @@ $ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/in
 
 - [Perl](https://www.perl.org/get.html) `v5+`.
 - [Node.js](https://nodejs.org/en/) `v8+` if installing via `npm` or `yarn`.
-- [bash-completion](https://github.com/scop/bash-completion) `v2.1+`.
+- [bash-completion](https://github.com/scop/bash-completion) `v1.3+`, preferably `v.2.1+`.
 - [Bash](https://www.gnu.org/software/bash/) `v4.3+`.
   - `macOS`: Stock Bash is outdated (`v3.2`). Update via [Homebrew](https://brew.sh/) to [`v4.3+`](https://akrabat.com/upgrading-to-bash-4-on-macos/).
 

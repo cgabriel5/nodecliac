@@ -6,7 +6,7 @@
  * @param  {object} S - State object.
  * @return {undefined} - Nothing is returned.
  */
-module.exports = S => {
+module.exports = (S) => {
 	S.i--;
 	S.column--;
 };

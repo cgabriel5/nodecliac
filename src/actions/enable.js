@@ -5,7 +5,7 @@ const fe = require("file-exists");
 const toolbox = require("../utils/toolbox.js");
 const { paths, read, write, realpath, readdir } = toolbox;
 
-module.exports = async args => {
+module.exports = async (args) => {
 	let { registrypath } = paths;
 	// eslint-disable-next-line no-unused-vars
 	let err, res, resolved_path;

@@ -30,7 +30,7 @@ const {
  * @param  {object} S - State object.
  * @return {undefined} - Nothing is returned.
  */
-module.exports = S => {
+module.exports = (S) => {
 	let { l, text } = S;
 	let qchar;
 	let state = "sigil";

@@ -71,7 +71,7 @@ let validate = (S, N, type) => {
 				}
 
 				// Interpolate variables.
-				value = value.replace(r, function(match, index) {
+				value = value.replace(r, function (match, index) {
 					match = match.slice(2, -1).trim();
 
 					// Don't interpolate when formatting.

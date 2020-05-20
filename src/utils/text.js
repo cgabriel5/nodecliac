@@ -6,7 +6,7 @@
  * @param  {string} contents - The file contents.
  * @return {string} - The file contents with comments removed.
  */
-let strip_comments = contents => {
+let strip_comments = (contents) => {
 	return (
 		contents
 			// Inject acmap.

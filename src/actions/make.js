@@ -9,7 +9,7 @@ const de = require("directory-exists");
 const toolbox = require("../utils/toolbox.js");
 const { fmt, exit, read, write, info, ispath_abs, hasProp } = toolbox;
 
-module.exports = async args => {
+module.exports = async (args) => {
 	// eslint-disable-next-line no-unused-vars
 	let err, res;
 

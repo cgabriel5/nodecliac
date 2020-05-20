@@ -25,10 +25,10 @@ const C_NL = new Set(["\n", "\r"]);
 const C_QUOTES = new Set(['"', "'"]);
 const C_SPACES = new Set([" ", "\t"]);
 const C_DIGITS = new Set(["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]);
-const C_LETTERS = (alphabet => {
+const C_LETTERS = (() => {
 	const list = "abcdefghijklmnopqrstuvwxyz".split("");
 	let r = new Set(list);
-	list.forEach(letter => r.add(letter.toUpperCase()));
+	list.forEach((letter) => r.add(letter.toUpperCase()));
 	return r;
 })();
 const C_SOL = create(C_LETTERS, ["-", "@", ")", "\\", "]", "$", ";", "#"]);

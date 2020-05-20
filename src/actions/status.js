@@ -7,7 +7,7 @@ const log = require("fancy-log");
 const fe = require("file-exists");
 const { exit, paths, remove, write, fmt } = require("../utils/toolbox.js");
 
-module.exports = async args => {
+module.exports = async (args) => {
 	let { enable, disable } = args;
 	let dotfile = path.join(paths.ncliacdir, ".disable");
 	// eslint-disable-next-line no-unused-vars

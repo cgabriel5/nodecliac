@@ -5,7 +5,7 @@ const flatry = require("flatry");
 const fe = require("file-exists");
 const { exit, paths, read, fmt } = require("../utils/toolbox.js");
 
-module.exports = async args => {
+module.exports = async (args) => {
 	let { registrypath } = paths;
 	let { command } = args;
 	// eslint-disable-next-line no-unused-vars

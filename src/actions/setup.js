@@ -12,7 +12,7 @@ const through = require("through2");
 const toolbox = require("../utils/toolbox.js");
 const { fmt, exit, paths, read, write, strip_comments } = toolbox;
 
-module.exports = async args => {
+module.exports = async (args) => {
 	let { force, rcfilepath, commands } = args;
 	let err, res;
 	let tstring = "";
@@ -40,7 +40,8 @@ module.exports = async args => {
 	[err, res] = await flatry(read(bashrcpath));
 	if (!/^ncliac=~/m.test(res)) {
 		res = res.replace(/\n*$/g, ""); // Remove trailing newlines.
-		tstring = '?\nncliac=~/.nodecliac/src/main/?; [ -f "$ncliac" ] && . "$ncliac";';
+		tstring =
+			'?\nncliac=~/.nodecliac/src/main/?; [ -f "$ncliac" ] && . "$ncliac";';
 		await flatry(write(bashrcpath, fmt(tstring, res, mainscriptname)));
 	}
 
@@ -70,7 +71,7 @@ module.exports = async args => {
 		files.delete("bin/ac.linux");
 		files.add("bin/ac.macosx");
 	}
-	opts.filter = filename => files.has(filename);
+	opts.filter = (filename) => files.has(filename);
 	opts.transform = (src /*dest, stats*/) => {
 		if (!/\.(sh|pl|nim)$/.test(path.extname(src))) return null;
 		// Remove comments from files and return.

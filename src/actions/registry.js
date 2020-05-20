@@ -86,10 +86,10 @@ module.exports = async () => {
 	// List commands.
 	if (files.length) {
 		files
-			.sort(function(a, b) {
+			.sort(function (a, b) {
 				return a.command.localeCompare(b.command);
 			})
-			.forEach(async function(data, i) {
+			.forEach(async function (data, i) {
 				let { command, isdir, hasacdefs, issymlink } = data;
 				let { issymlinkdir, realpath, issymlink_valid } = data;
 

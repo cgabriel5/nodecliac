@@ -39,7 +39,7 @@ module.exports = (strs, options = {}) => {
 	 * @return {string} - Modified string.
 	 *
 	 */
-	let decorate = s => `${fprefix}${s}${fsuffix}`;
+	let decorate = (s) => `${fprefix}${s}${fsuffix}`;
 
 	// If char breakpoints are provided create lookup table.
 	let char_bps = {};
@@ -57,7 +57,7 @@ module.exports = (strs, options = {}) => {
 		 * @param  {string} s - String to loop.
 		 * @return {string} - Resulting string from any trimming/clipping.
 		 */
-		let stringloop = s => {
+		let stringloop = (s) => {
 			let prefix = "";
 			for (let i = charloop_startindex, l = s.length; i < l; i++) {
 				let char = s[i];

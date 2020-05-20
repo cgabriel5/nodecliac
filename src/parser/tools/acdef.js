@@ -80,7 +80,7 @@ module.exports = (S, cmdname) => {
 	// 	return a.value !== b.value ? (a.value < b.value ? -1 : 1) : 0;
 	// };
 	let asort = (a, b) => (a.val !== b.val ? (a.val < b.val ? -1 : 1) : 0);
-	let aobj = s => ({ val: s.toLowerCase() });
+	let aobj = (s) => ({ val: s.toLowerCase() });
 
 	/**
 	 * compare function: Gives precedence to flags ending with '=*' else
@@ -97,7 +97,7 @@ module.exports = (S, cmdname) => {
 	 */
 	// let sort = (a, b) => ~~b.endsWith("=*") - ~~a.endsWith("=*") || asort(a, b);
 	let fsort = (a, b) => b.m - a.m || asort(a, b);
-	let fobj = s => ({ val: s.toLowerCase(), m: ~~s.endsWith("=*") });
+	let fobj = (s) => ({ val: s.toLowerCase(), m: ~~s.endsWith("=*") });
 
 	/**
 	 * Uses map sorting to reduce redundant preprocessing on array items.
@@ -130,7 +130,7 @@ module.exports = (S, cmdname) => {
 	 * @param  {string} command - The command chain.
 	 * @return {string} - Modified chain.
 	 */
-	let rm_fcmd = chain => chain.replace(r, "");
+	let rm_fcmd = (chain) => chain.replace(r, "");
 
 	// Group commands with their flags.
 
@@ -158,7 +158,7 @@ module.exports = (S, cmdname) => {
 		}
 
 		switch (type) {
-			case "COMMAND":
+			case "COMMAND": {
 				// Store command in current group.
 				if (!oGroups[count]) {
 					oGroups[count] = { commands: [N], flags: [] };
@@ -182,6 +182,7 @@ module.exports = (S, cmdname) => {
 				rN = N; // Store reference to node.
 
 				break;
+			}
 
 			case "FLAG":
 				// Add values/arguments to delimited flags.
@@ -203,13 +204,14 @@ module.exports = (S, cmdname) => {
 
 				break;
 
-			case "OPTION":
+			case "OPTION": {
 				// Add value to last flag in group.
 				let { flags: fxN } = oGroups[count];
 				fxN[fxN.length - 1].args.push(N.value.value);
 				last = type;
 
 				break;
+			}
 
 			case "SETTING":
 				if (!hasProp(oSettings, N.name.value)) settings_count++;
@@ -254,7 +256,7 @@ module.exports = (S, cmdname) => {
 				queue_flags.add(`${flag}=${ismulti ? "*" : ""}`);
 				queue_flags.delete(`${flag}=${ismulti ? "" : "*"}`);
 
-				args.forEach(arg => queue_flags.add(flag + aval + arg));
+				args.forEach((arg) => queue_flags.add(flag + aval + arg));
 			} else {
 				// Boolean flag...
 				const val = bval ? "?" : aval ? "=" : "";

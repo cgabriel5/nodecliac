@@ -7,7 +7,7 @@
  * @param {any} data - Objects are merged other types are string casted.
  * @return {string} - The formatted template string.
  */
-const fmt = function(template, ...args) {
+const fmt = function (template, ...args) {
 	let rmap = {};
 
 	for (let i = 0, l = args.length; i < l; i++) {
@@ -20,7 +20,7 @@ const fmt = function(template, ...args) {
 	}
 
 	let count = 0;
-	return template.replace(/(?<!\\)\?(\d+|[-a-zA-Z]+)?/g, function(match) {
+	return template.replace(/(?<!\\)\?(\d+|[-a-zA-Z]+)?/g, function (match) {
 		match = match.slice(1); // Remove `?` placeholder identifier.
 		let res = String(rmap[match || count] || undefined);
 		count++;

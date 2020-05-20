@@ -8,7 +8,7 @@ const fe = require("file-exists");
 const de = require("directory-exists");
 const { paths, read, write, rmrf } = require("../utils/toolbox.js");
 
-module.exports = async args => {
+module.exports = async (args) => {
 	let { rcfilepath } = args;
 	let { ncliacdir, bashrcpath, setupfilepath } = paths;
 	// eslint-disable-next-line no-unused-vars

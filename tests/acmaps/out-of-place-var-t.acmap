@@ -1,0 +1,17 @@
+$val = "first"
+
+program = [
+	# Variables are global. Redeclaring overrides previous declaration.
+	$val = "second"
+	--help=(
+		- "${val}"
+		- option
+	)
+]
+
+program.command = [
+	--flag=(
+		# Will use last declared variable value.
+		- "Will still interpolate: ${val}"
+	)
+]

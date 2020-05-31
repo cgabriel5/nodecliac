@@ -111,11 +111,11 @@ $ git clone -b BRANCH_NAME --single-branch https://github.com/cgabriel5/nodeclia
 
 ## What Is nodecliac?
 
-[`bash-completion`](https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion.html) is awesome. It enhances the user experience by completing paths, file names, commands, flags, etc. Ironically enough, having to use [`Bash`](https://www.gnu.org/software/bash/) to implement it puts some off from using it.
+[`bash-completion`](https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion.html) is awesome. It enhances the user experience by completing paths, file names, commands, flags, etc. Ironically enough, having to use [`Bash`](https://www.gnu.org/software/bash/) to add it to one's program puts some off from using it.
 
-nodecliac's approach is different. Rather than _directly_ using Bash, nodecliac lets one easily _map_ a program's commands with their flags in an **a**uto-**c**ompletion **map** (`.acmap`) file. Merely write the program's `.acmap`, compile to `.acdef`, and let nodecliac handle the rest. That's it.
+nodecliac's approach is different. Rather than _directly_ using Bash, nodecliac provides a layer of abstraction. It lets one easily _map_ a program's commands with their flags in an **a**uto-**c**ompletion **map** (`.acmap`) file. Merely write the program's `.acmap`, compile to `.acdef`, and let nodecliac handle the rest. That's it.
 
-If Bash _is_ needed, `.acmap` files are flexible enough to run Bash commands. Better yet, write necessary completion logic in a familiar language like [`Perl`](https://www.perl.org/), [`Python`](https://www.python.org/), [`Ruby`](https://www.ruby-lang.org/en/), etc., and use Bash as [glue code](https://en.wikipedia.org/wiki/Scripting_language#Glue_languages) to tie it all together.
+If Bash _is_ needed, `.acmap` files are flexible enough to run shell code to generate matches. Better yet, write the necessary completion logic in a familiar language like [`Perl`](https://www.perl.org/), [`Python`](https://www.python.org/), [`Ruby`](https://www.ruby-lang.org/en/), etc., and use Bash as [glue code](https://en.wikipedia.org/wiki/Scripting_language#Glue_languages) to tie it all together.
 
 In all, this project aims to `1` minimize the effort needed to add bash-completion so more programs support it, `2` provide a uniform bash-completion experience, and `3` to ultimately build a collection of community made completion packages for all to enjoy.
 

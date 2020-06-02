@@ -14,8 +14,9 @@
 		/>
 		<link href="./website/css/sanitize.css" rel="stylesheet" />
 		<link href="./website/css/styles.css" rel="stylesheet" />
+		<!-- [https://stackoverflow.com/a/35797485] -->
 		<link
-			href="https://fonts.googleapis.com/css2?family=Hind:wght@300;400;600&family=Rubik:wght@300;500&family=Roboto:wght@700&family=Roboto+Mono:wght@700&display=swap"
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@800&family=Hind:wght@300;400;600&family=Roboto:wght@700&family=Roboto+Mono:wght@700&display=swap"
 			rel="stylesheet"
 			async
 			defer
@@ -32,7 +33,6 @@
 
 				<div class="nav-right-links">
 					<div class="nav-item">
-						<!-- [https://buttons.github.io/] -->
 						<a
 							class="github-button"
 							href="https://github.com/cgabriel5/nodecliac"
@@ -42,7 +42,23 @@
 							aria-label="Star cgabriel5/nodecliac on GitHub"
 							>Star</a
 						>
+						&nbsp;
+						<a
+							class="github-button"
+							href="https://github.com/cgabriel5/nodecliac/subscription"
+							data-color-scheme="no-preference: light; light: light; dark: light;"
+							aria-label="Watch cgabriel5/nodecliac on GitHub"
+							>Watch</a
+						>
 					</div>
+					<!-- <div class="nav-item">
+						<a
+							class="github-button"
+							href="https://github.com/cgabriel5/nodecliac/subscription"
+							aria-label="Watch cgabriel5/nodecliac on GitHub"
+							>Watch</a
+						>
+					</div> -->
 					<div class="nav-item none">
 						<span
 							><a
@@ -94,13 +110,13 @@
 
 				<div class="text-cont">
 					<div class="topic-title">
-						<span class="topic-title-text bold4">nodecliac</span>
+						<span class="topic-title-text bold8">nodecliac</span>
 						<div class="topic-title-side">
 							/
-							<span class="bold4">node</span>-<span class="bold4"
+							<span class="bold8">node</span>-<span class="bold8"
 								>cli</span
-							>-<span class="bold4">a</span
-							><span class="dim">uto</span>-<span class="bold4"
+							>-<span class="bold8">a</span
+							><span class="dim">uto</span>-<span class="bold8"
 								>c</span
 							><span class="dim">ompletion</span>
 						</div>
@@ -135,7 +151,7 @@
 			<section>
 				<div class="section-title">
 					<a class="anchor" href="#what-is-nodecliac"
-						>What is nodecliac?</a
+						>What Is nodecliac?</a
 					>
 					<a name="what-is-nodecliac"></a>
 				</div>
@@ -160,7 +176,7 @@
 						rel="noreferrer"
 						>Bash</a
 					>
-					to implement it puts some off from using it.
+					to add it to one's program puts some off from using it.
 				</p>
 
 				<br />
@@ -168,7 +184,7 @@
 				<p class="section-paragraph">
 					nodecliac's approach is different. Rather than
 					<span class="italic">directly</span> using Bash, nodecliac
-					lets one easily
+					provides a layer of abstraction. It lets one easily
 					<span class="italic">
 						<a
 							class="anchor link"
@@ -181,17 +197,17 @@
 					a program's commands with their flags in an
 					<b>a</b>uto-<b>c</b>ompletion
 					<b>map</b> (<code>.acmap</code>) file. Merely write the
-					program's <code>.acmap</code>, compile to
-					<code>.acdef</code>, and let nodecliac handle the rest.
-					That's it.
+					program's <code>.acmap</code> and let nodecliac handle the
+					rest. That's it.
 				</p>
 
 				<br />
 
 				<p class="section-paragraph">
 					If Bash <i>is</i> needed, <code>.acmap</code> files are
-					flexible enough to run Bash commands. Better yet, write
-					necessary completion logic in a familiar language like
+					flexible enough to run shell code to generate matches.
+					Better yet, write the necessary completion logic in a
+					familiar language like
 					<code
 						><a
 							class="anchor link"
@@ -241,6 +257,202 @@
 					experience, and <code>3</code> to ultimately build a
 					collection of community made completion packages for all to
 					enjoy.
+				</p>
+
+				<!-- 			<div class="action-button none">
+					<a
+						class="a-button"
+						href="https://github.com/cgabriel5/nodecliac#nodecliac"
+						target="_blank"
+						rel="noreferrer"
+						>View full docs</a
+					>
+				</div> -->
+			</section>
+
+			<section>
+				<div class="section-title">
+					<a class="anchor" href="#example">Example</a>
+					<a name="example"></a>
+				</div>
+
+				<p class="section-paragraph">
+					Say you have a program called <code>tojson</code> with the
+					following interface.
+				</p>
+
+				<div class="section-list">
+					<pre
+						class="code-block-cont"
+					><code class="code-block">tojson -h | --help | --version
+tojson make --source=&lt;file&gt;
+tojson format --source=&lt;file&gt;</code></pre>
+				</div>
+
+				<p class="section-paragraph">
+					Simple enough. There is the base command
+					<code>tojson</code>, two sub-commands
+					<code>make</code>/<code>format</code>, and their respective
+					flags.
+				</p>
+
+				<br />
+
+				<p class="section-paragraph">
+					Make a folder named <code>tojson</code>. Inside the folder
+					create the file <code>tojson.acmap</code> with the following
+					content:
+				</p>
+				<p class="section-paragraph">
+					(
+					<a
+						class="anchor link"
+						href="https://github.com/cgabriel5/nodecliac#syntax"
+						target="_blank"
+						rel="noreferrer"
+						><code>acmap</code> syntax</a
+					>
+					is used to map commands/flag)
+				</p>
+
+				<div class="section-list">
+					<pre
+						class="code-block-cont"
+					><code class="code-block"><span class="italic">tojson</span> = [
+	-<span class="flag-name">h</span>
+	--<span class="flag-name">help</span>
+	--<span class="flag-name">version</span>
+]
+<span class="italic">tojson<span class="operator">.</span>make</span> = [
+	--<span class="flag-name">source=</span>
+]
+<span class="italic">tojson<span class="operator">.</span>format</span> = [
+	--<span class="flag-name">source</span>=
+]</code></pre>
+				</div>
+
+				<p class="section-paragraph">
+					However, because the program's interface is so simple let's
+					make use of shorthand syntax.
+				</p>
+
+				<div class="section-list">
+					<pre
+						class="code-block-cont"
+					><code class="code-block"><span class="italic">tojson</span> = -<span class="flag-name">h</span>|--<span class="flag-name">help</span>|--<span class="flag-name">version</span>
+<span class="italic">tojson<span class="operator">.</span>make</span> = --<span class="flag-name">source</span>=
+<span class="italic">tojson<span class="operator">.</span>format</span> = --<span class="flag-name">source</span>=</code></pre>
+				</div>
+
+				<p class="section-paragraph">
+					Slightly more compact.
+				</p>
+
+				<div class="section-list">
+					<pre
+						class="code-block-cont"
+					><code class="code-block"><span class="italic">tojson</span> = -<span class="flag-name">h</span>|--<span class="flag-name">help</span>|--<span class="flag-name">version</span>
+<span class="italic">tojson<span class="operator">.</span>make</span><span class="flag-name">,</span>
+<span class="italic">tojson<span class="operator">.</span>format</span> = --<span class="flag-name">source</span>=</code></pre>
+				</div>
+
+				<p class="section-paragraph">
+					Either work and leave <code>tojson.acmap</code> compact yet
+					still readable.
+				</p>
+
+				<br />
+
+				<p class="section-paragraph">
+					From here nodecliac takes over via built in commands (i.e.
+					<code>make</code>, <code>add</code>) like so:
+				</p>
+
+				<div class="section-list">
+					<pre
+						class="code-block-cont"
+					><code class="code-block"><span class="grayed unselectable">$</span> nodecliac make --source path/to/tojson.acmap <span class="operator">&amp;&amp;</span> nodecliac add path/to/tojson</code></pre>
+				</div>
+
+				<p class="section-paragraph">
+					The
+					<code>make</code> command compiles the <code>acmap</code> to
+					an
+					<code
+						><a
+							class="anchor link"
+							href="https://github.com/cgabriel5/nodecliac#syntax"
+							target="_blank"
+							rel="noreferrer"
+							>acdef</a
+						></code
+					>
+					file (the <span class="italic">actual</span> file used by
+					nodecliac when providing completions). The
+					<code>add</code> command adds the program's completion
+					package to the
+					<a
+						class="anchor link"
+						href="https://github.com/cgabriel5/nodecliac#registry"
+						target="_blank"
+						rel="noreferrer"
+						>registry</a
+					>
+					(where completion packages get stored).
+				</p>
+
+				<br />
+
+				<p class="section-paragraph">
+					With everything in place, nodecliac can now provide Bash
+					completions for the program <code>tojson</code>.
+				</p>
+
+				<div class="section-list">
+					<pre
+						class="code-block-cont"
+					><code class="code-block"><span class="grayed unselectable">$</span> tojson ❚[TAB]
+format    make
+
+<span class="grayed unselectable">$</span> tojson -❚[TAB]
+-h    --help    --version</code></pre>
+				</div>
+			</section>
+
+			<section>
+				<div class="section-title">
+					<a class="anchor" href="#documentation">Documentation</a>
+					<a name="documentation"></a>
+				</div>
+
+				<p class="section-paragraph">
+					Although the used example is meant to serve as a quick
+					nodecliac introduction, a proper completion package creation
+					<a
+						class="anchor link"
+						href="https://github.com/cgabriel5/nodecliac/blob/master/docs/packages/creating.md"
+						target="_blank"
+						rel="noreferrer"
+						>guide</a
+					>
+					exists. Additionally, pre-made completion packages for
+					several programs of varying complexity are
+					<a
+						class="anchor link"
+						href="https://github.com/cgabriel5/nodecliac/tree/master/resources/packages"
+						target="_blank"
+						rel="noreferrer"
+						>available</a
+					>
+					for reference.
+				</p>
+
+				<br />
+
+				<p class="section-paragraph">
+					For more in-depth information regarding
+					<code>acmap</code> syntax, nodecliac CLI/commands, .etc
+					&mdash; check out the full documentation.
 				</p>
 
 				<div class="action-button">

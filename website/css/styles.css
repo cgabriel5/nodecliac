@@ -1,4 +1,9 @@
-/* prefixed by https://autoprefixer.github.io (PostCSS: v7.0.26, autoprefixer: v9.7.3) */
+/*
+* Prefixed by https://autoprefixer.github.io
+* PostCSS: v7.0.29,
+* Autoprefixer: v9.7.6
+* Browsers: last 4 version
+*/
 
 body {
 	margin: auto;
@@ -41,7 +46,8 @@ body {
 }
 
 .nav-logo {
-	background: #699935;
+	/*background: #699935;*/
+	background: #444444;
 	width: 20px;
 	height: 20px;
 	border-radius: 400px 1000px 0 1000px;
@@ -329,13 +335,12 @@ body {
 
 .topic-title-text {
 	font-size: 41px;
-	font-family: "Rubik", sans-serif;
+	font-family: "Inter", sans-serif;
 	font-weight: 300;
-	letter-spacing: -3px;
+	letter-spacing: -2px;
 }
 
 .topic-title-side {
-	font-family: "Rubik", sans-serif;
 	font-weight: 300;
 	font-size: 12px;
 	color: #909090;
@@ -344,7 +349,6 @@ body {
 }
 
 .topic-description {
-	font-family: "Rubik", sans-serif;
 	margin-top: -5px;
 	font-size: 18px;
 	font-weight: 200;
@@ -361,6 +365,10 @@ body {
 
 .bold4 {
 	font-weight: 400;
+}
+
+.bold8 {
+	font-weight: 800;
 }
 
 .bold {
@@ -383,8 +391,9 @@ body {
 }
 
 code {
-	background: #fff5cc;
-	color: #71471c;
+	/*background: #fff5cc;*/
+	background: #f2f2f2;
+	/*color: #71471c;*/
 	margin: 0;
 	border-radius: 3px;
 	padding: 0 3px;

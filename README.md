@@ -1058,6 +1058,8 @@ Package documentation is divided into their own sections.
 | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
 
 
+Pre-made completion packages for several programs of varying complexity are [available](https://github.com/cgabriel5/nodecliac/tree/master/resources/packages) for reference.
+
 <a name="hooks"></a>
 
 ## Hooks

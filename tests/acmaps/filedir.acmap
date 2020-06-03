@@ -1,0 +1,9 @@
+# [File checks for valid filedir keyword syntax.]
+
+command = [
+	filedir "@(ext)"
+]
+
+command.a,
+command.b,
+command.c = filedir '@(ext|ext2)'

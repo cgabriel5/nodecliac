@@ -764,6 +764,11 @@
 						<array>
 							<dict>
 								<key>include</key>
+								<string>#delimiter</string>
+							</dict>
+
+							<dict>
+								<key>include</key>
 								<string>#command-string</string>
 							</dict>
 
@@ -798,7 +803,7 @@
 			<key>flag-oneliner</key>
 			<dict>
 				<key>begin</key>
-				<string>( |(=)\s*)(?=(--?|default))</string>
+				<string>( |(=)\s*)(?=(--?|default|filedir))</string>
 
 				<key>beginCaptures</key>
 				<dict>
@@ -923,7 +928,7 @@
 				<array>
 					<dict>
 						<key>match</key>
-						<string>(default)([\x{0020}\t]{1,})</string> <!-- Space char = '\x{0020}' -->
+						<string>(default|filedir)([\x{0020}\t]{1,})</string> <!-- Space char = '\x{0020}' -->
 
 						<key>name</key>
 						<string></string>
@@ -940,6 +945,10 @@
 					<dict>
 						<key>include</key>
 						<string>#command-string</string>
+					</dict>
+					<dict>
+						<key>include</key>
+						<string>#strings</string>
 					</dict>
 				</array>
 			</dict>
@@ -1169,6 +1178,25 @@
 					<dict>
 						<key>name</key>
 						<string>invalid.illegal.stray-bracket.acmap</string>
+					</dict>
+				</dict>
+			</dict>
+
+
+			<key>delimiter</key>
+			<dict>
+				<key>match</key>
+				<string>\s*(,)\s*</string>
+
+				<key>name</key>
+				<string></string>
+
+				<key>captures</key>
+				<dict>
+					<key>1</key>
+					<dict>
+						<key>name</key>
+						<string>punctuation.separator.comma.acmap</string>
 					</dict>
 				</dict>
 			</dict>

@@ -16,7 +16,7 @@
 	},
 	"scripts": {
 		"postinstall": "./src/scripts/main/postinstall.sh",
-		"pretty": "prettier-cli-watcher --configpath='/configs/prettier.config.json'",
+		"pretty": "prettier-cli-watcher --watcher=hound --notify --setup",
 		"lint": "cross-env ESLINT_CFS_VERBOSE=true ./node_modules/eslint/bin/eslint.js -c='configs/eslint.config.js' --ignore-path='configs/eslintignore' --format='simple' '**/*.{js,jsx}'; exit 0",
 		"tests": "tests/scripts/main.sh",
 		"tests:silent": "tests/scripts/main.sh -p false",
@@ -34,14 +34,14 @@
 		"file-exists": "^5.0.1",
 		"file-extension": "^4.0.5",
 		"flatry": "^1.0.12",
-		"make-dir": "^3.0.2",
+		"make-dir": "^3.1.0",
 		"minimist": "^1.2.5",
 		"path-exists": "^4.0.0",
 		"recursive-copy": "^2.0.10",
 		"rimraf": "^3.0.2",
-		"shelljs": "^0.8.3",
+		"shelljs": "^0.8.4",
 		"strip-ansi": "^6.0.0",
-		"symlink-dir": "^3.1.2",
+		"symlink-dir": "^4.0.3",
 		"through2": "^3.0.1"
 	},
 	"author": "Carlos Gabriel",
@@ -58,10 +58,10 @@
 	},
 	"devDependencies": {
 		"cross-env": "^7.0.2",
-		"eslint": "^6.8.0",
+		"eslint": "^7.0.0",
 		"eslint-config-simple": "*",
 		"eslint-formatter-simple": "*",
-		"prettier": "^2.0.4",
+		"prettier": "^2.0.5",
 		"prettier-cli-watcher": "*"
 	},
 	"files": [

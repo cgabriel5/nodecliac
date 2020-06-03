@@ -6,7 +6,7 @@ const mkdirp = require("make-dir");
 const de = require("directory-exists");
 const { paths, rmrf, read, write, hasProp } = require("../utils/toolbox.js");
 
-module.exports = async args => {
+module.exports = async (args) => {
 	let { cachepath, cachelevel } = paths;
 	// eslint-disable-next-line no-unused-vars
 	let err, res;

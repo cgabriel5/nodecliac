@@ -12,7 +12,7 @@ const add = require("../helpers/tree-add.js");
  * @param  {object} S - State object.
  * @return {undefined} - Nothing is returned.
  */
-module.exports = S => {
+module.exports = (S) => {
 	let N = node(S, "NEWLINE");
 
 	N.start = N.end = S.i;

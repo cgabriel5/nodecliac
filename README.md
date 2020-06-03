@@ -70,7 +70,7 @@ $ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/in
 
 - [Perl](https://www.perl.org/get.html) `v5+`.
 - [Node.js](https://nodejs.org/en/) `v8+` if installing via `npm` or `yarn`.
-- [bash-completion](https://github.com/scop/bash-completion) `v2.1+`.
+- [bash-completion](https://github.com/scop/bash-completion) `v1.3+`, preferably `v.2.1+`.
 - [Bash](https://www.gnu.org/software/bash/) `v4.3+`.
   - `macOS`: Stock Bash is outdated (`v3.2`). Update via [Homebrew](https://brew.sh/) to [`v4.3+`](https://akrabat.com/upgrading-to-bash-4-on-macos/).
 
@@ -111,11 +111,11 @@ $ git clone -b BRANCH_NAME --single-branch https://github.com/cgabriel5/nodeclia
 
 ## What Is nodecliac?
 
-[`bash-completion`](https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion.html) is awesome. It enhances the user experience by completing paths, file names, commands, flags, etc. Ironically enough, having to use [`Bash`](https://www.gnu.org/software/bash/) to implement it puts some off from using it.
+[`bash-completion`](https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion.html) is awesome. It enhances the user experience by completing paths, file names, commands, flags, etc. Ironically enough, having to use [`Bash`](https://www.gnu.org/software/bash/) to add it to one's program puts some off from using it.
 
-nodecliac's approach is different. Rather than _directly_ using Bash, nodecliac lets one easily _map_ a program's commands with their flags in an **a**uto-**c**ompletion **map** (`.acmap`) file. Merely write the program's `.acmap`, compile to `.acdef`, and let nodecliac handle the rest. That's it.
+nodecliac's approach is different. Rather than _directly_ using Bash, nodecliac provides a layer of abstraction. It lets one easily _map_ a program's commands with their flags in an **a**uto-**c**ompletion **map** (`.acmap`) file. Merely write the program's `.acmap`, compile to `.acdef`, and let nodecliac handle the rest. That's it.
 
-If Bash _is_ needed, `.acmap` files are flexible enough to run Bash commands. Better yet, write necessary completion logic in a familiar language like [`Perl`](https://www.perl.org/), [`Python`](https://www.python.org/), [`Ruby`](https://www.ruby-lang.org/en/), etc., and use Bash as [glue code](https://en.wikipedia.org/wiki/Scripting_language#Glue_languages) to tie it all together.
+If Bash _is_ needed, `.acmap` files are flexible enough to run shell code to generate matches. Better yet, write the necessary completion logic in a familiar language like [`Perl`](https://www.perl.org/), [`Python`](https://www.python.org/), [`Ruby`](https://www.ruby-lang.org/en/), etc., and use Bash as [glue code](https://en.wikipedia.org/wiki/Scripting_language#Glue_languages) to tie it all together.
 
 In all, this project aims to `1` minimize the effort needed to add bash-completion so more programs support it, `2` provide a uniform bash-completion experience, and `3` to ultimately build a collection of community made completion packages for all to enjoy.
 
@@ -533,11 +533,12 @@ $ program [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] [file
 
 ###### Available Settings:
 
-- `@compopt`: The [`comp-option`](https://gerardnico.com/lang/bash/edition/complete#o_comp-option) ([`-o`](https://www.thegeekstuff.com/2013/12/bash-completion-complete/)) value to provide bash-completion's [`complete`](https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html#Programmable-Completion-Builtins) function.
+- `@compopt`: [`comp-option`](https://gerardnico.com/lang/bash/edition/complete#o_comp-option) ([`-o`](https://www.thegeekstuff.com/2013/12/bash-completion-complete/)) value to Bash's builtin [`complete`](https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html#Programmable-Completion-Builtins) function.
   - Values: `false` (no value), `true` (default: `false`)
-- `@filedir`: The pattern to provide bash-completion's [`_filedir`](https://github.com/gftg85/bash-completion/blob/bb0e3a1777e387e7fd77c3abcaa379744d0d87b3/bash_completion#L549) function.
-  - Values: A string value (i.e. `"@(pdf)"`). (default: `""`)
-  - `_filedir` resources: [\[1\]](https://unix.stackexchange.com/a/463342), [\[2\]](https://unix.stackexchange.com/a/463336), [\[3\]](https://github.com/scop/bash-completion/blob/master/completions/java), [\[4\]](https://stackoverflow.com/a/23999768), [\[5\]](https://unix.stackexchange.com/a/190004), [\[6\]](https://unix.stackexchange.com/a/198025)
+- `@filedir`: [Pattern](https://unix.stackexchange.com/a/108646) to provide [bash-completion](https://github.com/scop/bash-completion/)'s `_filedir` function.
+  - Values: A string value (i.e. `"@(acmap)`, `"-d"`) (default: `""`)
+    <!-- - Values: To complete directories only provide `"-d"`. To complete specific file types provide a pattern like so: `"@(pdf)"`. (default: `""`) -->
+    <!-- - `_filedir` resources: [\[1\]](https://unix.stackexchange.com/a/463342), [\[2\]](https://unix.stackexchange.com/a/463336), [\[3\]](https://github.com/scop/bash-completion/blob/master/completions/java), [\[4\]](https://stackoverflow.com/a/23999768), [\[5\]](https://unix.stackexchange.com/a/190004), [\[6\]](https://unix.stackexchange.com/a/198025) -->
 - `@disable`: Disables bash-completion for command.
   - Values: `false`, `true` (default: `false`)
 - `@placehold`: Placehold long `.acdef` rows to provide faster file lookups.
@@ -613,6 +614,12 @@ A command chain's `default` `command-string` (a runable shell command string) ca
   - A command string is denoted with starting `$(` and closing `)`.
   - The string between the closing/starting syntax is the `command-string`.
   - **Example**: `default $("./path/to/script.sh arg1 arg2")`
+
+```acmap
+program.command = [
+  default $("./path/to/script.sh arg1 arg2")
+]
+```
 
 <details><summary>Command-string example</summary>
 
@@ -770,11 +777,11 @@ program.command = [
 ]
 ```
 
-#### Flags Values (one liner)
+#### Flags (one liner)
 
 - This method should be used when the flag value list can be kept to a single line.
 - **Note**: Values must be delimited with spaces.
-- **Note**: When a flag has many values a [long form list](#flags-values-long-form) should be used for clarities sake.
+- **Note**: When a flag has many values a [long form list](#flags-long-form) should be used for clarities sake.
 
 ```acmap
 program.command = [
@@ -787,9 +794,9 @@ program.command = [
 ]
 ```
 
-<a name="flags-values-long-form"></a>
+<a name="flags-long-form"></a>
 
-#### Flags Values (long form)
+#### Flags (long form)
 
 - Flag long form lists are wrapped with starting `=(` and a closing `)`.
 - The `=(` must be on the same line as the flag.
@@ -868,6 +875,30 @@ program.command = [
 ]
 program.uninstall
 ```
+
+#### Flags (filedir)
+
+When no completion items are found bash-completion's `_filedir` function is used as a fallback. `_filedir` performs file/directory completion. By default it returns both file and directory names. However, this can be controlled to only return directory names or files of certain types.
+
+<!-- [https://www.nebulousresearch.org/other/bashcompletion] -->
+
+- Start by using the keyword `filedir` followed by a whitespace character.
+- Follow that with a string:
+  - To only return directories use `"-d"`.
+  - To filter file type extensions provide a [pattern](https://unix.stackexchange.com/a/108646) like `"@(acmap)"`.
+  - **Example**: `filedir "@(acmap)"`
+
+```acmap
+program.command = [
+  filedir "@(acmap)"
+]
+```
+
+**Note**: This `filedir` usage is per command chain. If this is not needed, a global `filedir` value can be provided via the `@filedir` setting like so: `@filedir = "@(acmap)"`. Both can be used but precedence is as follows:
+
+- If a command uses `filedir` use that.
+- If not, look for `@filedir` setting.
+- If neither are provided all files/directories are returned (_no filtering_).
 
 </details>
 
@@ -1026,6 +1057,8 @@ Package documentation is divided into their own sections.
 | <img width=220/> <br /> [Create](/docs/packages/creating.md) <img width=220/> | <img width=220/> <br /> [Add / Link](/docs/packages/adding.md) <img width=220/> | <img width=220/> <br /> [Remove / Unlink](/docs/packages/removing.md) <img width=220/> | <img width=220/> <br /> [Enable / Disable](/docs/packages/state.md) <img width=220/> |
 | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
 
+
+Pre-made completion packages for several programs of varying complexity are [available](https://github.com/cgabriel5/nodecliac/tree/master/resources/packages) for reference.
 
 <a name="hooks"></a>
 

@@ -124,17 +124,24 @@ bversion="${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]}"
 pcommand=$'print 1 if /^([4]\.([3-9]+|3)|([5-9]|\d{2,})\.\d{1,})/'
 [[ ! "$(perl -ne "$pcommand" <<< "$bversion")" ]] && err "Bash 4.3+ is needed."
 
-bcpath=/usr/share/bash-completion/bash_completion
-[[ ! -f "$bcpath" ]] && err "bash-completion not installed."
-pattern='/BASH_COMPLETION_VERSINFO=\((.*?)\)/'
-bcversion="$(perl -ne "$pattern"' && print($1) && exit' "$bcpath")"
-if [[ -z "$bcversion" ]]; then
-	bcversion="$(perl -ne '/RELEASE:[ \t]*(.*?)$/ && print($1) && exit' "$bcpath")"
-	[[ -z "$bcversion" ]] && err "bash-completion not installed."
-	pattern='/^(2{1,}\.[1-9]{1,}|([3-9]{1,}|[1-9]{2,})\.[0-9]{1,}).*$/'
-	[[ ! "$(perl -ne "$pattern"' && print(1) && exit' <<< "$bcversion")" ]] \
-	&& err "bash-completion v2.1+ is needed."
-fi
+# ---------------------------------------------------------------BASH-COMPLETION
+
+# [https://unix.stackexchange.com/a/62883]
+# [https://stackoverflow.com/a/10574806]
+bcpath="$(sudo find /usr -name bash_completion -print -quit -type f)"
+[[ -z "$bcpath" ]] && err "bash-completion not installed."
+
+# bcpath=/usr/share/bash-completion/bash_completion
+# [[ ! -f "$bcpath" ]] && err "bash-completion not installed."
+# pattern='/BASH_COMPLETION_VERSINFO=\((.*?)\)/'
+# bcversion="$(perl -ne "$pattern"' && print($1) && exit' "$bcpath")"
+# if [[ -z "$bcversion" ]]; then
+# 	bcversion="$(perl -ne '/RELEASE:[ \t]*(.*?)$/ && print($1) && exit' "$bcpath")"
+# 	[[ -z "$bcversion" ]] && err "bash-completion not installed."
+# 	pattern='/^(2{1,}\.[1-9]{1,}|([3-9]{1,}|[1-9]{2,})\.[0-9]{1,}).*$/'
+# 	[[ ! "$(perl -ne "$pattern"' && print(1) && exit' <<< "$bcversion")" ]] \
+# 	&& err "bash-completion v2.1+ is needed."
+# fi
 
 # ----------------------------------------------------------------------- CHECKS
 
@@ -249,8 +256,9 @@ if [[ "$installer" == "binary" ]]; then
 	# Add nodecliac to rcfile.
 	if [[ -z "$(grep -F "ncliac=~/.nodecliac/src/main/init.sh" "$rcfilepath")" ]]; then
 		echo " - Adding nodecliac to $rcfilepath..."
+		perl -i -lpe 's/\x0a$//' "$rcfilepath" # Ensure newline.
 		echo 'ncliac=~/.nodecliac/src/main/init.sh; [ -f "$ncliac" ] && . "$ncliac";' >> "$rcfilepath"
-		perl -i -lpe 's/\x0a$//' "$rcfilepath"
+		perl -i -lpe 's/\x0a$//' "$rcfilepath" # Ensure newline.
 		success "Added nodecliac to $rcfilepath."
 		# [https://www.unix.com/shell-programming-and-scripting/229399-how-add-newline-character-end-file.html]
 		# [https://knowledge.ni.com/KnowledgeArticleDetails?id=kA00Z0000019KZDSA2]

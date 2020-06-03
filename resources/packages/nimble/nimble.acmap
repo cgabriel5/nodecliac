@@ -29,9 +29,9 @@ nimble.uninstall = [
 ]
 nimble.build
 nimble.run
-nimble.c
-nimble.cc
-nimble.js
+nimble.c,
+nimble.cc,
+nimble.js = filedir '@(nim)'
 nimble.test = --continue
 nimble.doc
 nimble.doc2

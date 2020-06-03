@@ -5,7 +5,7 @@ const mkdirp = require("make-dir");
 const de = require("directory-exists");
 const { paths, rmrf } = require("../utils/toolbox.js");
 
-module.exports = async args => {
+module.exports = async (args) => {
 	let { registrypath } = paths;
 	// eslint-disable-next-line no-unused-vars
 	let err, res;

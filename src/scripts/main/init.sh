@@ -76,16 +76,16 @@ function _nodecliac() {
 		xcachefile=~/.nodecliac/.cache/"x$sum"
 
 		if [[ -e "$xcachefile" ]]; then
-			m=$(date -r "$xcachefile" "+%s")
-			c=$(date +"%s")
-			if [[ $(($c-$m)) -lt 3 ]]; then
+			local m=$(date -r "$xcachefile" "+%s")
+			local c=$(date +"%s")
+			if [[ $((c-m)) -lt 3 ]]; then
 				usecache=1
-				output=$(<$xcachefile)
+				output=$(<"$xcachefile")
 			fi
 
 		elif [[ -e "$cachefile" ]]; then
 			usecache=1
-			output=$(<$cachefile)
+			output=$(<"$cachefile")
 		fi
 
 		rm -rf ~/.nodecliac/.cache/x*
@@ -108,62 +108,72 @@ function _nodecliac() {
 	# 1st line is meta info (completion type, last word, etc.).
 	# [https://stackoverflow.com/a/2440685]
 	read -r firstline <<< "$output"
-	local type="${firstline%%:*}"
-	local last="${firstline#*:}"
+	local meta="${firstline%%+*}"
+	local filedir="${firstline#*+}"
+	local type="${meta%%:*}"
+	local last="${meta#*:}"
 	local nlpos=$((${#firstline} + 1))
 	local items="${output:$nlpos:${#output}-2}"
 	local cacheopt=1; [[ "$type" == *"nocache"* ]] && cacheopt=0
-	[[ -z "$items" ]] && return
 
 	if [[ "$clevel" != 0 && "$usecache" == 0 ]]; then
 		[[ "$cacheopt" == 0 && "$clevel" == 1 ]] && sum="x$sum"
 		echo "$output" > ~/.nodecliac/.cache/"$sum"
 	fi
 
-	if [[ "$type" == "command"* ]]; then
-		# [https://stackoverflow.com/a/18551488]
-		# [https://stackoverflow.com/a/35164798]
-		# COMPREPLY=($(echo -e "$(awk 'NR>1' <<< "$items")"))
-		COMPREPLY=($(echo -e "$items"))
-		__ltrim_colon_completions "$last"
+	# If no completions default to directory folder/file names.
+	if [[ -z "$items" ]]; then
+		# If value exists reset var to it. [https://stackoverflow.com/a/20460402]
+		[[ -z "${last##*=*}" ]] && last="${last#*=}"
 
-		# When COMPREPLY is empty (no completions), the command was
-		# registered with the '-o' flag, and config setting 'filedir'
-		# is set, run bash completion's _filedir function.
-		if [[ "${#COMPREPLY[@]}" -eq 0 ]]; then
-			registry=$(LC_ALL=C grep -F "_nodecliac $command" <<< "$(complete -p)")
-			[[ "$registry" != *" -o "* ]] && return
-
-			local fdirval=$(~/.nodecliac/src/main/config.pl "filedir" "$command")
-			if [[ -n "$fdirval" && "$fdirval" != "false" ]]; then
-				[[ "$fdirval" == "true" ]] && fdirval=""
-
-				# [https://github.com/gftg85/bash-completion/blob/bb0e3a1777e387e7fd77c3abcaa379744d0d87b3/bash_completion#L549]
-				# [https://unix.stackexchange.com/a/463342]
-				# [https://unix.stackexchange.com/a/463336]
-				# [https://github.com/scop/bash-completion/blob/master/completions/java]
-				# [https://stackoverflow.com/a/23999768]
-				# [https://unix.stackexchange.com/a/190004]
-				# [https://unix.stackexchange.com/a/198025]
-				local cur="$last"
-				_filedir "$fdirval"
-			fi
+		# If filedir is empty check for the (global) setting filedir.
+		if [[ -z "$filedir" ]]; then
+			local gfdir=$(~/.nodecliac/src/main/config.pl "filedir" "$command")
+			[[ -n "$gfdir" && "$gfdir" != "false" ]] && filedir="$gfdir"
 		fi
 
-	elif [[ "$type" == "flag"* ]]; then
-		# Disable bash's default behavior of adding a trailing space to
-		# completions when hitting the [tab] key. This will be handled
-		# manually. Only leave on when completing a quoted flag value.
-		# [https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html]
-		# [https://github.com/llvm-mirror/clang/blob/master/utils/bash-autocomplete.sh#L59]
-		[[ "$type" != *"quoted"* ]] && compopt -o nospace 2> /dev/null
+		# [https://unix.stackexchange.com/a/463342]
+		# [https://unix.stackexchange.com/a/463336]
+		# [https://github.com/scop/bash-completion/blob/master/completions/java]
+		# [https://stackoverflow.com/a/23999768]
+		# [https://unix.stackexchange.com/a/190004]
+		# [https://unix.stackexchange.com/a/198025]
+		local cur="$last"
+		_filedir "$filedir"
+	else
+		if [[ "$type" == "command"* ]]; then
+			# [https://stackoverflow.com/a/18551488]
+			# [https://stackoverflow.com/a/35164798]
+			# COMPREPLY=($(echo -e "$(awk 'NR>1' <<< "$items")"))
+			COMPREPLY=($(echo -e "$items"))
+			__ltrim_colon_completions "$last"
 
-		# Use mapfile/readarray to populate COMPREPLY.
-		# [https://stackoverflow.com/a/30988704]
-		# [https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html#index-mapfile]
-		# [http://mywiki.wooledge.org/BashFAQ/001]
-		# [http://mywiki.wooledge.org/BashFAQ/005?highlight=%28readarray%29#Loading_lines_from_a_file_or_stream]
-		# mapfile -t COMPREPLY < <(awk 'NR>1' <<< "$items")
-		mapfile -t COMPREPLY < <(echo -e "$items")
+			# # __ltrim_colon_completions:
+			# # [https://github.com/scop/bash-completion/blob/master/bash_completion]
+			# if [[ "$last" == *:* && $COMP_WORDBREAKS == *:* ]]; then
+			# 	# Remove colon-word prefix from COMPREPLY items
+			# 	local colon_word=${last%"${last##*:}"}
+			# 	local i=${#COMPREPLY[*]}
+			# 	while ((i-- > 0)); do
+			# 		COMPREPLY[i]=${COMPREPLY[i]#"$colon_word"}
+			# 	done
+			# fi
+
+		elif [[ "$type" == "flag"* ]]; then
+			# Disable bash's default behavior of adding a trailing space to
+			# completions when hitting the [tab] key. This will be handled
+			# manually. Only leave on when completing a quoted flag value.
+			# [https://www.gnu.org/software/bash/manual/html_node/Programmable-Completion-Builtins.html]
+			# [https://github.com/llvm-mirror/clang/blob/master/utils/bash-autocomplete.sh#L59]
+			[[ "$type" != *"quoted"* ]] && compopt -o nospace 2> /dev/null
+
+			# Use mapfile/readarray to populate COMPREPLY.
+			# [https://stackoverflow.com/a/30988704]
+			# [https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html#index-mapfile]
+			# [http://mywiki.wooledge.org/BashFAQ/001]
+			# [http://mywiki.wooledge.org/BashFAQ/005?highlight=%28readarray%29#Loading_lines_from_a_file_or_stream]
+			# mapfile -t COMPREPLY < <(awk 'NR>1' <<< "$items")
+			mapfile -t COMPREPLY < <(echo -e "$items")
+		fi
 	fi
 }

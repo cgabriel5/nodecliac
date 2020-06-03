@@ -1,4 +1,0 @@
-# DON'T EDIT FILE —— GENERATED: Sat Feb 15 2020 23:0:41 (1581836441)
-
- --help=|--help="value"|--help=option
-.command --flag=|--flag="Will still interpolate: value"

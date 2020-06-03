@@ -69,8 +69,8 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 let endpoint = S.i + keyword_len
                 let keyword = text[S.i .. endpoint]
 
-                # If keyword isn't 'default', error.
-                if keyword != "default": error(S, currentSourcePath)
+                # Keyword must be allowed.
+                if keyword notin ["default", "filedir"]: error(S, currentSourcePath)
                 N.keyword.start = S.i
                 N.keyword.`end` = endpoint
                 N.keyword.value = keyword
@@ -97,6 +97,9 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     elif `char` == '=':
                         state = "assignment"
                         rollback(S)
+                    elif `char` == ',':
+                        state = "delimiter"
+                        rollback(S)
                     elif `char` == '?':
                         state = "boolean-indicator"
                         rollback(S)
@@ -112,6 +115,9 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 if `char` notin C_SPACES:
                     if `char` == '=':
                         state = "assignment"
+                        rollback(S)
+                    elif `char` == ',':
+                        state = "delimiter"
                         rollback(S)
                     elif `char` == '|':
                         state = "pipe-delimiter"
@@ -138,6 +144,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     state = "wsb-prevalue"
                 else:
                     if `char` == '|': state = "pipe-delimiter"
+                    elif `char` == ',': state = "delimiter"
                     else: state = "wsb-prevalue"
                     rollback(S)
 
@@ -145,9 +152,17 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 if `char` != '|': error(S, currentSourcePath)
                 stop = true
 
+            of "delimiter":
+                N.delimiter.start = S.i
+                N.delimiter.`end` = S.i
+                N.delimiter.value = $`char`
+                state = "eol-wsb"
+
             of "wsb-prevalue":
                 if `char` notin C_SPACES:
-                    if `char` == '|': state = "pipe-delimiter"
+                    let keyword = N.keyword.value != "filedir"
+                    if `char` == '|' and keyword: state = "pipe-delimiter"
+                    elif `char` == ',': state = "delimiter"
                     else: state = "value"
                     rollback(S)
 
@@ -164,7 +179,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     N.value.`end` = S.i
                     N.value.value = $`char`
                 else:
-                    if `char` == '|' and pchar != '\\':
+                    if `char` == '|' and N.keyword.value != "filedir" and pchar != '\\':
                         state = "pipe-delimiter"
                         rollback(S)
                     else:
@@ -181,6 +196,9 @@ proc p_flag*(S: State, isoneliner: string): Node =
                             if `char` == vfchar and isescaped: `end` = true
                         N.value.`end` = S.i
                         N.value.value &= $`char`
+
+            of "eol-wsb":
+                if `char` notin C_SPACES: error(S, currentSourcePath)
 
             else: discard
 

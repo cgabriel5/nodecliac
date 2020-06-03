@@ -38,7 +38,7 @@ const {
  * @param  {object} S - State object.
  * @return {object} - Node object.
  */
-module.exports = S => {
+module.exports = (S) => {
 	let { l, text } = S;
 	let state = "command";
 	let N = node(S, "COMMAND");

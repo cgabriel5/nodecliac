@@ -9,7 +9,7 @@
  *
  * @resource [https://stackoverflow.com/a/41328397]
  */
-let concat = function(set, ...iterables) {
+let concat = function (set, ...iterables) {
 	for (let iterable of iterables) {
 		for (let item of iterable) {
 			set.add(item);

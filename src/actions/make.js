@@ -9,7 +9,7 @@ const de = require("directory-exists");
 const toolbox = require("../utils/toolbox.js");
 const { fmt, exit, read, write, info, ispath_abs, hasProp } = toolbox;
 
-module.exports = async args => {
+module.exports = async (args) => {
 	// eslint-disable-next-line no-unused-vars
 	let err, res;
 
@@ -49,7 +49,7 @@ module.exports = async args => {
 	[err, res] = await flatry(read(source));
 	let parser = require(`../parser/index.js`);
 	let pres = parser(action, res, cmdname, source, fmtinfo, trace, igc, test);
-	let { acdef, config, keywords, placeholders, formatted } = pres;
+	let { acdef, config, keywords, filedirs, placeholders, formatted } = pres;
 	let savename = `${cmdname}.acdef`;
 	let saveconfigname = `.${cmdname}.config.acdef`;
 
@@ -62,7 +62,7 @@ module.exports = async args => {
 			let placeholderspaths = path.join(dirname, "placeholders");
 
 			await flatry(mkdirp(dirname));
-			await flatry(write(commandpath, acdef + keywords));
+			await flatry(write(commandpath, acdef + keywords + filedirs));
 			await flatry(write(commandconfigpath, config));
 
 			// Create placeholder files if object is populated.
@@ -87,7 +87,7 @@ module.exports = async args => {
 		if (!formatting) {
 			if (acdef) {
 				console.log(`[${chalk.bold(`${cmdname}.acdef`)}]\n`);
-				console.log(acdef + keywords);
+				console.log(acdef + keywords + filedirs);
 				if (!config) console.log();
 			}
 			if (config) {
@@ -110,7 +110,7 @@ module.exports = async args => {
 	if (test) {
 		if (!formatting) {
 			if (acdef) {
-				console.log(acdef + keywords);
+				console.log(acdef + keywords + filedirs);
 				if (!config) console.log();
 			}
 			if (config) {

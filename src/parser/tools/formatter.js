@@ -6,7 +6,7 @@
  * @param  {object} S - State object.
  * @return {string} - The prettied file contents.
  */
-module.exports = S => {
+module.exports = (S) => {
 	let { fmt, igc } = S.args;
 	let { nodes } = S.tables.tree;
 	const eN = {};
@@ -63,7 +63,7 @@ module.exports = S => {
 	 * @param  {number} l - The length of array.
 	 * @return {object} - The node object.
 	 */
-	let lastnode = (i, l) => {
+	let lastnode = (i /*, l*/) => {
 		let r = eN;
 		if (igc) r = passed[passed.length - 1];
 		else r = nodes[i - 1];
@@ -197,6 +197,7 @@ module.exports = S => {
 					let nval = N.name.value;
 					let bval = N.boolean.value;
 					let aval = N.assignment.value;
+					let dval = N.delimiter.value;
 					let mval = N.multi.value;
 					let vval = N.value.value;
 					let singleton = N.singleton;
@@ -224,10 +225,8 @@ module.exports = S => {
 									r += bval;
 								} else if (aval) {
 									r += aval;
-									if (mval) {
-										r += mval;
-									}
-
+									if (mval) r += mval;
+									if (dval) r += dval;
 									if (vval) r += vval;
 								}
 							}
@@ -301,6 +300,7 @@ module.exports = S => {
 		passed.push(N);
 	}
 
+	/*eslint no-constant-condition: ["error", { "checkLoops": false }]*/
 	let i = output.length - 1;
 	while (true) {
 		if (output[i] !== "\n") break;

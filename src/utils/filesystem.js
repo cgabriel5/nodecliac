@@ -11,7 +11,7 @@ const ext = require("file-extension");
  * @param  {string} p - The path of file to read.
  * @return {promise} - Promise is returned.
  */
-let read = p => {
+let read = (p) => {
 	return new Promise((resolve, reject) => {
 		fs.readFile(p, (err, data) => {
 			if (err) reject(err);
@@ -29,7 +29,7 @@ let read = p => {
  */
 let write = (p, data, mode) => {
 	return new Promise((resolve, reject) => {
-		fs.writeFile(p, data, err => {
+		fs.writeFile(p, data, (err) => {
 			// Apply file mode if supplied.
 			if (mode) {
 				// Using options.mode does not work as expected:
@@ -39,7 +39,7 @@ let write = (p, data, mode) => {
 				// [https://x-team.com/blog/file-system-permissions-umask-node-js/]
 
 				// Apply file mode (chmod) explicitly.
-				fs.chmod(p, mode, err => {
+				fs.chmod(p, mode, (err) => {
 					if (err) reject(err);
 					resolve(true);
 				});
@@ -60,7 +60,7 @@ let write = (p, data, mode) => {
  */
 let copy = (p, destination) => {
 	return new Promise((resolve, reject) => {
-		fs.copyFile(p, destination, err => {
+		fs.copyFile(p, destination, (err) => {
 			if (err) reject(err);
 			resolve(true);
 		});
@@ -73,9 +73,9 @@ let copy = (p, destination) => {
  * @param  {string} p - The path of file to remove.
  * @return {promise} - Promise is returned.
  */
-let remove = p => {
+let remove = (p) => {
 	return new Promise((resolve, reject) => {
-		fs.unlink(p, err => {
+		fs.unlink(p, (err) => {
 			if (err) reject(err);
 			resolve(true);
 		});
@@ -88,7 +88,7 @@ let remove = p => {
  * @param  {string} p - The complete file path.
  * @return {object} - Object containing file path components.
  */
-let info = p => {
+let info = (p) => {
 	let extension = ext(p);
 	let name = path.basename(p);
 	let dirname = path.dirname(p);
@@ -107,7 +107,7 @@ let info = p => {
  * @param  {string} p - The path of file to read.
  * @return {promise} - Promise is returned.
  */
-let readdir = p => {
+let readdir = (p) => {
 	return new Promise((resolve, reject) => {
 		fs.readdir(p, (err, list) => {
 			if (err) reject(err);
@@ -128,7 +128,7 @@ let readdir = p => {
  * @resource [http://www.linfo.org/root_directory.html]
  * @resource [https://medium.com/@colinlmcdonald/absolute-vs-relative-paths-7ffd8e31d49c]
  */
-let ispath_abs = p => {
+let ispath_abs = (p) => {
 	return (
 		path.isAbsolute(p) &&
 		path.normalize(p + "/") === path.normalize(path.resolve(p) + "/")
@@ -145,7 +145,7 @@ let ispath_abs = p => {
  * @resource [https://pubs.opengroup.org/onlinepubs/7908799/xsh/lstat.html]
  * @resource [https://www.brainbell.com/javascript/fs-stats-structure.html]
  */
-let lstats = p => {
+let lstats = (p) => {
 	return new Promise((resolve, reject) => {
 		fs.lstat(p, (err, stats) => {
 			if (err) reject(err);
@@ -176,7 +176,7 @@ let lstats = p => {
  *
  * @resource [https://nodejs.org/docs/latest/api/fs.html#fs_fs_realpath_path_options_callback]
  */
-let realpath = p => {
+let realpath = (p) => {
 	return new Promise((resolve, reject) => {
 		fs.realpath(p, (err, resolved_path) => {
 			if (err) reject(err);
@@ -191,9 +191,9 @@ let realpath = p => {
  * @param  {string} p - The path to delete.
  * @return {promise} - rimraf promise.
  */
-let rmrf = p => {
+let rmrf = (p) => {
 	return new Promise((resolve, reject) => {
-		rimraf(p, err => {
+		rimraf(p, (err) => {
 			if (err) reject(err);
 			resolve(true);
 		});

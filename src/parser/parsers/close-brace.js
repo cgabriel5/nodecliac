@@ -19,7 +19,7 @@ const { cin, cnotin, C_NL, C_SPACES } = require("../helpers/charsets.js");
  * @param  {object} S - State object.
  * @return {undefined} - Nothing is returned.
  */
-module.exports = S => {
+module.exports = (S) => {
 	let { l, text } = S;
 	let state = "brace";
 	let N = node(S, "BRACE");

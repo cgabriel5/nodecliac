@@ -13,6 +13,7 @@ module.exports = (S, cmdname) => {
 	let oSets = {};
 	let oGroups = {};
 	let oDefaults = {};
+	let oFiledirs = {};
 	let oSettings = {};
 	let settings_count = 0;
 	let oPlaceholders = {};
@@ -22,6 +23,7 @@ module.exports = (S, cmdname) => {
 	let acdef_lines = [];
 	let config = "";
 	let defaults = "";
+	let filedirs = "";
 	let has_root = false;
 
 	// Escape '+' chars in commands.
@@ -78,7 +80,7 @@ module.exports = (S, cmdname) => {
 	// 	return a.value !== b.value ? (a.value < b.value ? -1 : 1) : 0;
 	// };
 	let asort = (a, b) => (a.val !== b.val ? (a.val < b.val ? -1 : 1) : 0);
-	let aobj = s => ({ val: s.toLowerCase() });
+	let aobj = (s) => ({ val: s.toLowerCase() });
 
 	/**
 	 * compare function: Gives precedence to flags ending with '=*' else
@@ -95,7 +97,7 @@ module.exports = (S, cmdname) => {
 	 */
 	// let sort = (a, b) => ~~b.endsWith("=*") - ~~a.endsWith("=*") || asort(a, b);
 	let fsort = (a, b) => b.m - a.m || asort(a, b);
-	let fobj = s => ({ val: s.toLowerCase(), m: ~~s.endsWith("=*") });
+	let fobj = (s) => ({ val: s.toLowerCase(), m: ~~s.endsWith("=*") });
 
 	/**
 	 * Uses map sorting to reduce redundant preprocessing on array items.
@@ -128,12 +130,13 @@ module.exports = (S, cmdname) => {
 	 * @param  {string} command - The command chain.
 	 * @return {string} - Modified chain.
 	 */
-	let rm_fcmd = chain => chain.replace(r, "");
+	let rm_fcmd = (chain) => chain.replace(r, "");
 
 	// Group commands with their flags.
 
 	let last = "";
 	let rN = {}; // Reference node.
+	let dN = []; // Delimited flag nodes.
 	let xN = S.tables.tree.nodes;
 	const ftypes = new Set(["FLAG", "OPTION"]);
 	const types = new Set(["SETTING", "COMMAND", "FLAG", "OPTION"]);
@@ -155,7 +158,7 @@ module.exports = (S, cmdname) => {
 		}
 
 		switch (type) {
-			case "COMMAND":
+			case "COMMAND": {
 				// Store command in current group.
 				if (!oGroups[count]) {
 					oGroups[count] = { commands: [N], flags: [] };
@@ -179,20 +182,36 @@ module.exports = (S, cmdname) => {
 				rN = N; // Store reference to node.
 
 				break;
+			}
 
 			case "FLAG":
+				// Add values/arguments to delimited flags.
+				if (N.delimiter.value) {
+					dN.push(N);
+				} else {
+					let args = N.args;
+					let value = N.value.value;
+					for (let i = 0, l = dN.length; i < l; i++) {
+						let tN = dN[i];
+						tN.args = args;
+						tN.value.value = value;
+					}
+					dN.length = 0;
+				}
+
 				oGroups[count].flags.push(N); // Store command in current group.
 				last = type;
 
 				break;
 
-			case "OPTION":
+			case "OPTION": {
 				// Add value to last flag in group.
 				let { flags: fxN } = oGroups[count];
 				fxN[fxN.length - 1].args.push(N.value.value);
 				last = type;
 
 				break;
+			}
 
 			case "SETTING":
 				if (!hasProp(oSettings, N.name.value)) settings_count++;
@@ -208,16 +227,20 @@ module.exports = (S, cmdname) => {
 		if (!hasProp(oGroups, i)) continue;
 
 		let { commands: cxN, flags: fxN } = oGroups[i];
-		let queue_keywords = new Set();
+		let queue_defs = new Set();
+		let queue_fdir = new Set();
 		let queue_flags = new Set();
 
 		for (let i = 0, l = fxN.length; i < l; i++) {
 			let fN = fxN[i];
 			let { args } = fN;
+			let keyword = fN.keyword.value;
 
 			// If flag is a default/keyword store it.
-			if (fN.keyword.value) {
-				queue_keywords.add(fN.value.value);
+			if (keyword) {
+				let value = fN.value.value;
+				if (keyword === "default") queue_defs.add(value);
+				else if (keyword === "filedir") queue_fdir.add(value);
 				continue; // defaults don't need to be added to Sets.
 			}
 
@@ -233,7 +256,7 @@ module.exports = (S, cmdname) => {
 				queue_flags.add(`${flag}=${ismulti ? "*" : ""}`);
 				queue_flags.delete(`${flag}=${ismulti ? "" : "*"}`);
 
-				args.forEach(arg => queue_flags.add(flag + aval + arg));
+				args.forEach((arg) => queue_flags.add(flag + aval + arg));
 			} else {
 				// Boolean flag...
 				const val = bval ? "?" : aval ? "=" : "";
@@ -244,7 +267,8 @@ module.exports = (S, cmdname) => {
 		for (let i = 0, l = cxN.length; i < l; i++) {
 			let value = cxN[i].command.value;
 			for (let item of queue_flags) oSets[value].add(item);
-			for (let item of queue_keywords) oDefaults[value] = item;
+			for (let item of queue_defs) oDefaults[value] = item;
+			for (let item of queue_fdir) oFiledirs[value] = item;
 		}
 	}
 
@@ -292,6 +316,15 @@ module.exports = (S, cmdname) => {
 	});
 	if (defaults) defaults = "\n\n" + defaults;
 
+	// Build filedirs contents.
+	let fdirs = mapsort(Object.keys(oFiledirs), asort, aobj);
+	let fl = fdirs.length;
+	fdirs.forEach((c, i) => {
+		filedirs += `${rm_fcmd(c)} filedir ${oFiledirs[c]}`;
+		if (i < fl - 1) filedirs += "\n";
+	});
+	if (filedirs) filedirs = "\n\n" + filedirs;
+
 	// Build settings contents.
 	settings_count--;
 	for (let setting in oSettings) {
@@ -308,5 +341,11 @@ module.exports = (S, cmdname) => {
 	acdef = acdef_contents ? header + acdef_contents : sheader;
 	config = config ? header + config : sheader;
 
-	return { acdef, config, keywords: defaults, placeholders: oPlaceholders };
+	return {
+		acdef,
+		config,
+		keywords: defaults,
+		filedirs,
+		placeholders: oPlaceholders
+	};
 };

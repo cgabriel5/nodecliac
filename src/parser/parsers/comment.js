@@ -15,7 +15,7 @@ const { cin, C_NL } = require("../helpers/charsets.js");
  * @param  {object} S - State object.
  * @return {undefined} - Nothing is returned.
  */
-module.exports = S => {
+module.exports = (S) => {
 	let { l, text } = S;
 	let N = node(S, "COMMENT");
 	N.comment.start = S.i;

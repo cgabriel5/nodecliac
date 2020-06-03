@@ -1,4 +1,4 @@
-# DON'T EDIT FILE —— GENERATED: Thu Apr 09 2020 10:4:22 (1586451862)
+# DON'T EDIT FILE —— GENERATED: Mon May 18 2020 13:37:52 (1589834272)
 
  --help|--version
 .buildIndex --p#07d43e
@@ -21,3 +21,24 @@
 .objc --p#07d43e
 .rst2html --p#07d43e
 .rst2tex --p#07d43e
+
+.buildIndex filedir '@(nim)'
+.c filedir '@(nim)'
+.cc filedir '@(nim)'
+.check filedir '@(nim)'
+.compile filedir '@(nim)'
+.compileToC filedir '@(nim)'
+.compileToCpp filedir '@(nim)'
+.compileToOC filedir '@(nim)'
+.cpp filedir '@(nim)'
+.ctags filedir '@(nim)'
+.doc filedir '@(nim)'
+.doc2 filedir '@(nim)'
+.dump filedir '@(nim)'
+.e filedir '@(nim)'
+.genDepend filedir '@(nim)'
+.js filedir '@(nim)'
+.jsondoc filedir '@(nim)'
+.objc filedir '@(nim)'
+.rst2html filedir '@(nim)'
+.rst2tex filedir '@(nim)'

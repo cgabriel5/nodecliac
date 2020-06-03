@@ -19,6 +19,7 @@ proc acdef*(S: State, cmdname: string): tuple =
     var oSets = initTable[string, HashSet[string]]()
     var oGroups = initTable[int, Table[string, seq[Node]]]()
     var oDefaults = initTable[string, string]()
+    var oFiledirs = initTable[string, string]()
     var oSettings = initOrderedTable[string, string]()
     var settings_count = 0
     var oPlaceholders = initTable[string, string]()
@@ -28,6 +29,7 @@ proc acdef*(S: State, cmdname: string): tuple =
     var acdef_lines: seq[string] = @[]
     var config = ""
     var defaults = ""
+    var filedirs = ""
     var has_root = false
 
     # Escape '+' chars in commands.
@@ -132,6 +134,7 @@ proc acdef*(S: State, cmdname: string): tuple =
 
     var last = ""
     var rN: Node # Reference node.
+    var dN: seq[Node] = @[] # Delimited flag nodes.
     var xN = S.tables.tree["nodes"]
     const ftypes = toHashSet(["FLAG", "OPTION"])
     const types = toHashSet(["SETTING", "COMMAND", "FLAG", "OPTION"])
@@ -177,6 +180,18 @@ proc acdef*(S: State, cmdname: string): tuple =
                 rN = N # Store reference to node.
 
             of "FLAG":
+                # Add values/arguments to delimited flags.
+                if N.delimiter.value != "":
+                    dN.add(N)
+                else:
+                    let args = N.args
+                    let value = N.value.value
+                    for i, tN in dN:
+                        var tN = dN[i]
+                        tN.args = args
+                        tN.value.value = value
+                    dN.setLen(0)
+
                 oGroups[count]["flags"].add(N) # Store command in current group.
                 last = `type`
 
@@ -197,15 +212,19 @@ proc acdef*(S: State, cmdname: string): tuple =
     for i, group in oGroups.pairs:
         var cxN = group["commands"]
         var fxN = group["flags"]
-        var queue_keywords: HashSet[string]
+        var queue_defs: HashSet[string]
+        var queue_fdir: HashSet[string]
         var queue_flags: HashSet[string]
 
         for fN in fxN:
             let args = fN.args
+            let keyword = fN.keyword.value
 
             # If flag is a default/keyword store it.
-            if fN.keyword.value != "":
-                queue_keywords.incl(fN.value.value)
+            if keyword != "":
+                let value = fN.value.value
+                if keyword == "default": queue_defs.incl(value)
+                elif keyword == "filedir": queue_fdir.incl(value)
                 continue # defaults don't need to be added to Sets.
 
             let aval = fN.assignment.value
@@ -231,7 +250,8 @@ proc acdef*(S: State, cmdname: string): tuple =
         for cN in cxN:
             let value = cN.command.value;
             for item in queue_flags.items: oSets[value].incl(item)
-            for item in queue_keywords.items: oDefaults[value] = item
+            for item in queue_defs.items: oDefaults[value] = item
+            for item in queue_fdir.items: oFiledirs[value] = item
 
     # Generate acdef.
 
@@ -268,7 +288,6 @@ proc acdef*(S: State, cmdname: string): tuple =
         acdef_lines.add(row)
 
     # Build defaults contents.
-
     var deflist: seq[string] = @[]
     for default in oDefaults.keys: deflist.add(default)
     let defs = mapsort(deflist, asort, "aobj")
@@ -276,8 +295,17 @@ proc acdef*(S: State, cmdname: string): tuple =
     for i, c in defs:
         defaults &= rm_fcmd(c) & " default " & oDefaults[c]
         if i != dl: defaults &= "\n"
-
     if defaults != "": defaults = "\n\n" & defaults
+
+    # Build filedir contents.
+    var fdirlist: seq[string] = @[]
+    for filedir in oFiledirs.keys: fdirlist.add(filedir)
+    let fdirs = mapsort(fdirlist, asort, "aobj")
+    let fl = fdirs.high
+    for i, c in fdirs:
+        filedirs &= rm_fcmd(c) & " filedir " & oFiledirs[c]
+        if i != fl: filedirs &= "\n"
+    if filedirs != "": filedirs = "\n\n" & filedirs
 
     # Build settings contents.
     dec(settings_count)
@@ -296,6 +324,7 @@ proc acdef*(S: State, cmdname: string): tuple =
         acdef: string,
         config: string,
         keywords: string,
+        filedirs: string,
         formatted: string,
         placeholders: Table[string, string]
     ]
@@ -303,5 +332,6 @@ proc acdef*(S: State, cmdname: string): tuple =
     data.acdef = acdef
     data.config = config
     data.keywords = defaults
+    data.filedirs = filedirs
     data.placeholders = oPlaceholders
     result = data

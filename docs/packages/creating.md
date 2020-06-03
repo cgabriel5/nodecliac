@@ -6,13 +6,10 @@ _This guide uses [Sublime Text 3](https://www.sublimetext.com/3)'s `subl` progra
 
 The process is straightforward:
 
-1. Setup package and create `.acmap` file.
-2. Write `.acmap` file and compile to `.acdef`.
-
-- **Note**: Repeat step until `.acmap` is complete.
-
-4. Once finished, add completion package to registry.
-5. Source `.bashrc` file to apply changes and start using.
+- Setup package and create `.acmap` file.
+- Write `.acmap` file and compile to `.acdef` and repeat this until `.acmap` is complete.
+- Once finished, add completion package to registry.
+- Source `.bashrc` file to apply changes and start using.
 
 ## Steps
 
@@ -47,7 +44,29 @@ Packages of more complexity may have a `/placeholders` and or a `/hooks` directo
 
 **Tip**: _Grammar packages for [Sublime Text 3](https://www.sublimetext.com/3), [VSCode](https://code.visualstudio.com/), and [Atom](https://atom.io/) are [available](/resources/editors)._
 
-With `~/Desktop/subl/subl.acmap` created open it and add the following:
+Here is Sublime Text's CLI interface as of `v3211`:
+
+```
+Sublime Text build 3211
+
+Usage: subl [arguments] [files]         Edit the given files
+   or: subl [arguments] [directories]   Open the given directories
+
+Arguments:
+  --project <project>: Load the given project
+  --command <command>: Run the given command
+  -n or --new-window:  Open a new window
+  -a or --add:         Add folders to the current window
+  -w or --wait:        Wait for the files to be closed before returning
+  -b or --background:  Don't activate the application
+  -h or --help:        Show help (this message) and exit
+  -v or --version:     Show version and exit
+
+Filenames may be given a :line or :line:column suffix to open at a specific
+location.
+```
+
+Using [acmap](https://github.com/cgabriel5/nodecliac/new/master#syntax) syntax `~/Desktop/subl/subl.acmap` can be generated. In this case, there is only one command — the program (main/root) command `subl`. The main command has a few flags. As shown, each flag takes up its own line. Switches (flags representing either `true` or `false`) are appended a `?`.
 
 ```acmap
 subl = [
@@ -62,8 +81,6 @@ subl = [
     --version?
 ]
 ```
-
-[acmap](https://github.com/cgabriel5/nodecliac/new/master#syntax) syntax is used to map the commands with their flags. There is only one command in this case. The program command `subl`. The command's flags each take up their own line. Switches (flags representing either `true` or `false`) are appended a `?`.
 
 </details>
 

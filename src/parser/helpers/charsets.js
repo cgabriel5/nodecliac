@@ -25,10 +25,10 @@ const C_NL = new Set(["\n", "\r"]);
 const C_QUOTES = new Set(['"', "'"]);
 const C_SPACES = new Set([" ", "\t"]);
 const C_DIGITS = new Set(["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]);
-const C_LETTERS = (alphabet => {
+const C_LETTERS = (() => {
 	const list = "abcdefghijklmnopqrstuvwxyz".split("");
 	let r = new Set(list);
-	list.forEach(letter => r.add(letter.toUpperCase()));
+	list.forEach((letter) => r.add(letter.toUpperCase()));
 	return r;
 })();
 const C_SOL = create(C_LETTERS, ["-", "@", ")", "\\", "]", "$", ";", "#"]);
@@ -40,7 +40,7 @@ const C_FLG_IDENT = create(C_LETTERS, C_DIGITS, ["-", "."]);
 const C_CMD_IDENT_START = create(C_LETTERS, [":"]);
 const C_CMD_IDENT_REM = ["-", "_", ".", ":", "+", "\\"];
 const C_CMD_IDENT = create(C_LETTERS, C_DIGITS, C_CMD_IDENT_REM);
-const C_CMD_VALUE = new Set(["-", "d", "["]);
+const C_CMD_VALUE = new Set(["-", "d", "f", "["]);
 
 module.exports = {
 	cin,

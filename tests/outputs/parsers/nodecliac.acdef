@@ -13,3 +13,6 @@
 .status --disable?|--enable?
 .uninstall --rcfilepath?
 .unlink --all
+
+.format filedir '@(acmap)'
+.make filedir '@(acmap)'

@@ -1,1 +1,1 @@
- --configpath=|--dir=|--dtime=|--extensions=|--ignoredirs=|--nolog|--nonotify|--watcher=|--watcher=chokidar|--watcher=hound
+ --config|--dir|--dry?|--dtime|--ignore|--notify?|--quiet?|--setup?|--version?|--watcher=|--watcher=chokidar|--watcher=hound

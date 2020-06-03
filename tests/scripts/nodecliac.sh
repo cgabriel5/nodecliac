@@ -50,14 +50,14 @@ perlscript_path=~/.nodecliac/src/ac/ac.pl # The Perl ac script path.
 acpl_script=""
 if [[ $(isset "$OVERRIDE") ]]; then
 	if [[ "$OVERRIDE" == "nim" ]]; then
-		acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo ${e/darwin/macosx})"
+		acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo "${e/darwin/macosx}")"
 	else
 		acpl_script="$perlscript_path"
 	fi
 	
 	scripts=("$acpl_script")
 else
-	acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo ${e/darwin/macosx})"
+	acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo "${e/darwin/macosx}")"
 	# acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo $e)"
 	# acpl_script="${acpl_script/darwin/macosx}"
 	#"$(perl -ne 'print $1 if /acpl_script=.*\/(ac.*)$/' <<< "$(<~/.nodecliac/src/ac.sh)")"
@@ -116,16 +116,16 @@ function _nodecliac() {
 		xcachefile=~/.nodecliac/.cache/"x$sum"
 
 		if [[ -e "$xcachefile" ]]; then
-			m=$(date -r "$xcachefile" "+%s")
-			c=$(date +"%s")
-			if [[ $(($c-$m)) -lt 3 ]]; then
+			local m=$(date -r "$xcachefile" "+%s")
+			local c=$(date +"%s")
+			if [[ $((c-m)) -lt 3 ]]; then
 				usecache=1
-				output=$(<$xcachefile)
+				output=$(<"$xcachefile")
 			fi
 
 		elif [[ -e "$cachefile" ]]; then
 			usecache=1
-			output=$(<$cachefile)
+			output=$(<"$cachefile")
 		fi
 
 		rm -rf ~/.nodecliac/.cache/x*
@@ -141,7 +141,8 @@ function _nodecliac() {
 	# 1st line is meta info (completion type, last word, etc.).
 	# [https://stackoverflow.com/a/2440685]
 	read -r firstline <<< "$output"
-	local type="${firstline%%:*}"
+	local meta="${firstline%%+*}"
+	local type="${meta%%:*}"
 	local cacheopt=1; [[ "$type" == *"nocache"* ]] && cacheopt=0
 
 	if [[ "$clevel" != 0 && "$usecache" == 0 ]]; then
@@ -196,7 +197,7 @@ function xtest {
 	  *) t="\033[0;31m$t\033[0m" ;;
 	esac
 
-	r="$(xtest_${testname} "$n" "$answer")"
+	r="$(xtest_"${testname}" "$n" "$answer")"
 
 	((test_count++))
 	((test_id++))
@@ -266,7 +267,7 @@ for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-i
 
 	# Print header.
 	if [[ $(isset "$PRINT") ]]; then
-		echo -e "\033[1m[Testing Completion Script]\033[0m [script=\033[1;32m$(basename -- $script)\033[0m, override=$OVERRIDE]"
+		echo -e "\033[1m[Testing Completion Script]\033[0m [script=\033[1;32m$(basename -- "$script")\033[0m, override=$OVERRIDE]"
 	fi
 
 	# [test-suite: nodecliac]
@@ -285,38 +286,40 @@ for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-i
 	xtest contains "nodecliac format --source command.acmap --print --indent \"s:2\" --" "strip-comments"
 
 	# [test-suite: prettier-cli-watcher]
-	xtest matches "prettier-cli-watcher " "command:"
+	xtest matches "prettier-cli-watcher " "command:+"
 	xtest contains "prettier-cli-watcher --watcher=" "hound"
 	xtest omits "prettier-cli-watcher --watcher= --" "--watcher"
 	xtest contains "prettier-cli-watcher --watcher=hou" "hound "
 	xtest contains "prettier-cli-watcher --watcher=hound" "hound "
 	xtest omits "prettier-cli-watcher --watcher=hound --" "--watcher"
-	xtest matches "prettier-cli-watcher --watcher=hound --w" ""
+	xtest matches "prettier-cli-watcher --watcher=hound --w" "flag:--w+"
 	# xtest omits "prettier-cli-watcher --watcher=hound --watcher " "chokidar"
 	# xtest omits "prettier-cli-watcher --watcher=hound --watcher=" "chokidar"
 	xtest matches "prettier-cli-watcher --watcher=hound --" "$(cat <<-END
-	flag:--
-	--configpath=
-	--dir=
-	--dtime=
-	--extensions=
-	--ignoredirs=
-	--nolog 
-	--nonotify 
+	flag:--+
+	--config 
+	--dir 
+	--dry 
+	--dtime 
+	--ignore 
+	--notify 
+	--quiet 
+	--setup 
+	--version 
 	END
 	)"
 	xtest contains "prettier-cli-watcher --watcher hou" "hound "
 	xtest contains "prettier-cli-watcher --watcher hound" "hound "
 	xtest omits "prettier-cli-watcher --watcher hound --" "--watcher"
-	xtest matches "prettier-cli-watcher --watcher hound --w" ""
+	xtest matches "prettier-cli-watcher --watcher hound --w" "flag:--w+"
 	xtest omits "prettier-cli-watcher --watcher hound --watcher " "chokidar"
-	xtest matches "prettier-cli-watcher --watcher hound --watcher" ""
+	xtest matches "prettier-cli-watcher --watcher hound --watcher" "flag:--watcher+"
 	xtest omits "prettier-cli-watcher --watcher=hound --watcher=" "chokidar"
 	xtest omits "prettier-cli-watcher --watcher=hound --watcher" "chokidar"
 	xtest omits "prettier-cli-watcher --watcher=hound --watcher chok" "chokidar"
 
 	# [test-suite: yarn]
-	xtest matches "yarn remov " "command:" # `remov` command does not exit.
+	xtest matches "yarn remov " "command:+" # `remov` command does not exit.
 	xtest contains "yarn remove ch" "chalk"
 	xtest contains "yarn " "config"
 	xtest omits "yarn run" "nocache"
@@ -324,7 +327,7 @@ for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-i
 	xtest contains "yarn remove " "prettier"
 	xtest contains "yarn remove prettier " "-"
 	# Completing a non existing argument should not append a trailing space.
-	xtest matches "yarn remove nonexistantarg" "command;nocache:nonexistantarg"
+	xtest matches "yarn remove nonexistantarg" "command;nocache:nonexistantarg+"
 	xtest contains "yarn add prettier-cli-watcher@* --" "--dev"
 
 	# [test-suite: nim]

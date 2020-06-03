@@ -1,0 +1,6 @@
+# Tests flag delimiter and should compile successfully.
+program = [
+	--help?
+	--flag=,
+	--flag2="value"
+]

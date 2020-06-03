@@ -1,0 +1,9 @@
+ --
+.a --
+.b --
+.c --
+
+ filedir "@(ext)"
+.a filedir '@(ext|ext2)'
+.b filedir '@(ext|ext2)'
+.c filedir '@(ext|ext2)'

@@ -1,4 +1,4 @@
-# DON'T EDIT FILE —— GENERATED: Thu Apr 09 2020 10:5:48 (1586451948)
+# DON'T EDIT FILE —— GENERATED: Wed May 13 2020 23:0:39 (1589436039)
 
  --accept|--debug|--help|--nimbleDir=|--noColor|--reject|--ver|--verbose|--version
 .build --
@@ -25,3 +25,7 @@
 .install default $("nimble list \| grep -v '^ ' \| tr -d ':'")
 .path default $("nimble list -i \| cut -d' ' -f1")
 .uninstall default $("nimble list -i \| perl -pne 's/\s+\[/\@/;s/\]//'")
+
+.c filedir '@(nim)'
+.cc filedir '@(nim)'
+.js filedir '@(nim)'

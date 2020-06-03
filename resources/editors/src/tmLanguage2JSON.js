@@ -14,6 +14,7 @@ const fe = require("file-exists");
 const { read, write } = require("../../../src/utils/toolbox.js");
 
 (async () => {
+	// eslint-disable-next-line no-unused-vars
 	let err, res; // Declare empty vars to reuse for all await operations.
 
 	// Get editors resource path.
@@ -53,7 +54,7 @@ const { read, write } = require("../../../src/utils/toolbox.js");
 			.replace(/<!--[\s\S]*?-->/g, "")
 			.replace(/[ \t]*$/gm, "");
 		contents = contents
-			.replace(/<\/?(dict|array)>/g, match => {
+			.replace(/<\/?(dict|array)>/g, (match) => {
 				let res = "";
 				if (!match.includes("/")) {
 					res = match.includes("dict") ? "{" : "[";
@@ -76,11 +77,11 @@ const { read, write } = require("../../../src/utils/toolbox.js");
 			.replace(/^(\s*)}(\s*){/gm, "$1},$2{");
 
 		let r = /"(match|begin|end)": "(.*?)"(,?\s*$)/;
-		contents = contents.replace(new RegExp(r, "gm"), match => {
+		contents = contents.replace(new RegExp(r, "gm"), (match) => {
 			let [, key, value, remainder] = match.match(r);
 			// Convert any HTML entities to their proper character(s).
 			value = value
-				.replace(/\&(.*?)\;/g, match => {
+				.replace(/&(.*?);/g, (match) => {
 					return entities[match];
 				})
 				.replace(/\\/g, "\\\\")

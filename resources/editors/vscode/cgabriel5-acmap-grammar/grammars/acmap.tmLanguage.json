@@ -371,6 +371,9 @@
 					"contentName": "keyword.operator.assignment.acmap",
 					"patterns": [
 						{
+							"include": "#delimiter"
+						},
+						{
 							"include": "#command-string"
 						},
 						{
@@ -391,7 +394,7 @@
 			]
 		},
 		"flag-oneliner": {
-			"begin": "( |(=)\\s*)(?=(--?|default))",
+			"begin": "( |(=)\\s*)(?=(--?|default|filedir))",
 			"beginCaptures": {
 				"2": {
 					"name": "keyword.operator.assignment.acmap"
@@ -459,7 +462,7 @@
 		"keywords": {
 			"patterns": [
 				{
-					"match": "(default)([\\x{0020}\\t]{1,})",
+					"match": "(default|filedir)([\\x{0020}\\t]{1,})",
 					"name": "",
 					"captures": {
 						"1": {
@@ -469,6 +472,9 @@
 				},
 				{
 					"include": "#command-string"
+				},
+				{
+					"include": "#strings"
 				}
 			]
 		},
@@ -591,6 +597,15 @@
 			"captures": {
 				"1": {
 					"name": "invalid.illegal.stray-bracket.acmap"
+				}
+			}
+		},
+		"delimiter": {
+			"match": "\\s*(,)\\s*",
+			"name": "",
+			"captures": {
+				"1": {
+					"name": "punctuation.separator.comma.acmap"
 				}
 			}
 		}

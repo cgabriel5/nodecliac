@@ -24,10 +24,16 @@
 
 ## Install
 
+<!-- Shorten install script URL: -->
+<!-- [https://saraford.net/2017/02/18/how-to-use-git-io-to-shorten-github-urls-and-create-vanity-urls-049/] -->
+<!-- [https://stackoverflow.com/questions/44347129/delete-git-io-shortened-url] -->
+<!-- [https://github.blog/2011-11-10-git-io-github-url-shortener/] -->
+<!-- [https://stackoverflow.com/questions/39065921/what-do-raw-githubusercontent-com-urls-represent] -->
+
 <!-- Using `bash -s`: [https://stackoverflow.com/a/51854728] -->
 
 ```sh
-$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s && source ~/.bashrc
+$ sudo curl -Ls git.io/nodecliac | bash -s && source ~/.bashrc
 ```
 
 <!-- [https://stackoverflow.com/questions/17341122/link-and-execute-external-javascript-file-hosted-on-github] -->
@@ -39,13 +45,13 @@ $ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/ins
 **With** `curl` (_explicit defaults_):
 
 ```sh
-$ sudo curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s -- --installer= --branch=master --rcfilepath=~/.bashrc && source ~/.bashrc
+$ sudo curl -Ls git.io/nodecliac | bash -s -- --installer= --branch=master --rcfile=~/.bashrc && source ~/.bashrc
 ```
 
 **With** `wget` (_defaults_):
 
 ```sh
-$ sudo wget -qO- https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install | bash -s && source ~/.bashrc
+$ sudo wget -qO- git.io/nodecliac | bash -s && source ~/.bashrc
 ```
 
 </details>

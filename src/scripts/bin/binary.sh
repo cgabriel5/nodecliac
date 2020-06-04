@@ -18,7 +18,7 @@ function platform() {
 	esac
 }
 
-rcfilepath=""
+rcfile=""
 prcommand=""
 enablencliac=""
 disablencliac=""
@@ -65,11 +65,11 @@ while (( "$#" )); do
 			if [[ -n "$2" && "$2" != *"-" ]]; then level="$2"; fi; shift ;;
 
 		# `uninstall` command flags.
-		--rcfilepath=*)
+		--rcfile=*)
 			# Expand `~` in path: [https://stackoverflow.com/a/27485157]
-			if [[ -n "$value" ]]; then rcfilepath="${value/#\~/$HOME}"; fi; shift ;;
-		--rcfilepath)
-			if [[ -n "$2" && "$2" != *"-" ]]; then rcfilepath="$2"; fi; shift ;;
+			if [[ -n "$value" ]]; then rcfile="${value/#\~/$HOME}"; fi; shift ;;
+		--rcfile)
+			if [[ -n "$2" && "$2" != *"-" ]]; then rcfile="$2"; fi; shift ;;
 
 		# `remove|unlink|enable|disable` command flags.
 		--all) all="1"; shift ;;
@@ -282,15 +282,15 @@ case "$command" in
 		if [[ -z "$(grep -o "binary" "$HOME/.nodecliac/.setup.db.json")" ]]; then exit; fi
 
 		# Confirm bashrcfile exists else default to ~/.bashrc.
-		if [[ -z "$rcfilepath" ]] ||
-			[[ ! -e "$rcfilepath" && ! -f "$rcfilepath" ]]; then rcfilepath=~/.bashrc; fi
+		if [[ -z "$rcfile" ]] ||
+			[[ ! -e "$rcfile" && ! -f "$rcfile" ]]; then rcfile=~/.bashrc; fi
 
 		# Remove nodecliac from ~/.bashrc.
-		if [[ -n "$(grep -o "ncliac=~/.nodecliac/src/main/init.sh" "$rcfilepath")" ]]; then
+		if [[ -n "$(grep -o "ncliac=~/.nodecliac/src/main/init.sh" "$rcfile")" ]]; then
 			# [https://stackoverflow.com/a/57813295]
 			perl -0pi -e 's/([# \t]*)\bncliac.*"\$ncliac";?\n?//g;s/\n+(\n)$/\1/gs' ~/.bashrc
-			# perl -pi -e "s/ncliac=~\/.nodecliac\/src\/main\/init.sh;if \[ -f \"\\\$ncliac\" \];then source \"\\\$ncliac\";fi;// if /^ncliac/" "$rcfilepath"
-			echo -e "\033[32mSuccessfully\033[0m reverted \033[1m"$rcfilepath"\033[0m changes."
+			# perl -pi -e "s/ncliac=~\/.nodecliac\/src\/main\/init.sh;if \[ -f \"\\\$ncliac\" \];then source \"\\\$ncliac\";fi;// if /^ncliac/" "$rcfile"
+			echo -e "\033[32mSuccessfully\033[0m reverted \033[1m"$rcfile"\033[0m changes."
 		fi
 
 		# Delete main folder.

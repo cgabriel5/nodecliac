@@ -3,9 +3,9 @@ nodecliac.format = --indent|--source|--print?|--strip-comments?|filedir '@(acmap
 nodecliac.make = --source|--print?|filedir '@(acmap)'
 
 # Helper commands:
-nodecliac.setup = --force?|--rcfilepath
+nodecliac.setup = --force?|--rcfile
 nodecliac.status = --enable?|--disable?
-nodecliac.uninstall = --rcfilepath?
+nodecliac.uninstall = --rcfile
 nodecliac.registry
 # print command helps showcase command-strings.
 nodecliac.print = --command=$('for f in ~/.nodecliac/registry/*; do echo "$(basename -- $f)"; done')

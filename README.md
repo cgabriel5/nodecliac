@@ -65,7 +65,7 @@ $ sudo wget -qO- git.io/nodecliac | bash -s && source ~/.bashrc
   - `npm`: Uses [Node.js](https://nodejs.org/en/)'s [npm](https://www.npmjs.com/get-npm) to install.
   - `binary`: Uses nodecliac's [Nim](https://nim-lang.org/) Linux/macOS CLI tools.
 - `--branch`: An _existing_ nodecliac branch name to install. (default: `master`)
-- `--rcfilepath`: `bashrc` file to install nodecliac to. (default: `~/.bashrc`)
+- `--rcfile`: `bashrc` file to install nodecliac to. (default: `~/.bashrc`)
 
 </details>
 
@@ -93,7 +93,7 @@ $ nodecliac uninstall
 If a custom rcfile path was used during install provide it again during uninstall.
 
 ```sh
-$ nodecliac uninstall --rcfilepath=path/to/.bashrc
+$ nodecliac uninstall --rcfile=path/to/.bashrc
 ```
 
 </details>
@@ -267,7 +267,7 @@ $ nodecliac cache --level 1 # Set cache level to 1.
 > Setup nodecliac.
 
 - `--force`: (**required** _if nodecliac is already setup)_: Overwrites old nodecliac setup and installs anew.
-- `--rcfilepath`: By default `~/.bashrc` is used. If another rcfile should be used provide its path.
+- `--rcfile`: By default `~/.bashrc` is used. If another rcfile should be used provide its path.
 - **Note**: Setup appends `ncliac=~/.nodecliac/src/main/init.sh; [ -f "$ncliac" ] && . "$ncliac";` to rcfile.
 
 ###### Usage
@@ -303,7 +303,7 @@ $ nodecliac status --disable # Disable nodecliac.
 
 > Uninstalls nodecliac.
 
-- `--rcfilepath`: Path of rcfile used in setup to remove changes from.
+- `--rcfile`: Path of rcfile used in setup to remove changes from.
 
 ###### Usage
 

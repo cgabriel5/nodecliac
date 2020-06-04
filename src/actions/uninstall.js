@@ -9,7 +9,7 @@ const de = require("directory-exists");
 const { paths, read, write, rmrf } = require("../utils/toolbox.js");
 
 module.exports = async (args) => {
-	let { rcfilepath } = args;
+	let { rcfile } = args;
 	let { ncliacdir, bashrcpath, setupfilepath } = paths;
 	// eslint-disable-next-line no-unused-vars
 	let err, res;
@@ -21,12 +21,12 @@ module.exports = async (args) => {
 	if (res) await flatry(rmrf(ncliacdir));
 
 	// Get bashrc file contents.
-	if (rcfilepath) bashrcpath = rcfilepath;
+	if (rcfile) bashrcpath = rcfile;
 	else {
 		[err, res] = await flatry(fe(setupfilepath));
 		if (res) {
 			[err, res] = await flatry(read(setupfilepath));
-			if (res) bashrcpath = JSON.parse(res).rcfilepath || bashrcpath;
+			if (res) bashrcpath = JSON.parse(res).rcfile || bashrcpath;
 		}
 	}
 

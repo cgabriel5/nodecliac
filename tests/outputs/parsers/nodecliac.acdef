@@ -9,9 +9,9 @@
 .print --command=|--command=$('for f in ~/.nodecliac/registry/*; do echo "$(basename -- $f)"; done')
 .registry --
 .remove --all
-.setup --force?|--rcfilepath
+.setup --force?|--rcfile
 .status --disable?|--enable?
-.uninstall --rcfilepath?
+.uninstall --rcfile
 .unlink --all
 
 .format filedir '@(acmap)'

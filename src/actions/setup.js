@@ -13,7 +13,7 @@ const toolbox = require("../utils/toolbox.js");
 const { fmt, exit, paths, read, write, strip_comments } = toolbox;
 
 module.exports = async (args) => {
-	let { force, rcfilepath, commands } = args;
+	let { force, rcfile, commands } = args;
 	let err, res;
 	let tstring = "";
 
@@ -23,7 +23,7 @@ module.exports = async (args) => {
 
 	let { ncliacdir, bashrcpath, mainscriptname, registrypath } = paths;
 	let { acmapssource, resourcespath, resourcessrcs, setupfilepath } = paths;
-	if (rcfilepath) bashrcpath = rcfilepath; // Use provided path.
+	if (rcfile) bashrcpath = rcfile; // Use provided path.
 
 	[err, res] = await flatry(de(ncliacdir));
 	if (res && !force) {
@@ -48,7 +48,7 @@ module.exports = async (args) => {
 	// Create setup info file to reference on uninstall.
 	let data = {};
 	data.force = force || false;
-	data.rcfilepath = bashrcpath;
+	data.rcfile = bashrcpath;
 	data.time = Date.now();
 	data.version = require("../../package.json").version;
 	let contents = JSON.stringify(data, undefined, "\t");

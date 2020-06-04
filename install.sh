@@ -64,7 +64,7 @@ binfilepath="/usr/local/bin/nodecliac" # [https://unix.stackexchange.com/a/8664]
 CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m"
 branch_name="master"
 installer=""
-rcfilepath=""
+rcfile=""
 
 while (( "$#" )); do
 	case "$1" in
@@ -80,12 +80,12 @@ while (( "$#" )); do
 		--installer)
 			if [[ -n "$2" && "$2" != *"-" ]]; then installer="$2"; fi; shift ;;
 
-		--rcfilepath=*)
+		--rcfile=*)
 			flag="${1%%=*}"; value="${1#*=}"
 			# Expand `~` in path: [https://stackoverflow.com/a/27485157]
-			if [[ -n "$value" ]]; then rcfilepath="${value/#\~/$HOME}"; fi; shift ;;
-		--rcfilepath)
-			if [[ -n "$2" && "$2" != *"-" ]]; then rcfilepath="$2"; fi; shift ;;
+			if [[ -n "$value" ]]; then rcfile="${value/#\~/$HOME}"; fi; shift ;;
+		--rcfile)
+			if [[ -n "$2" && "$2" != *"-" ]]; then rcfile="$2"; fi; shift ;;
 
 		--) shift; break ;; # End argument parsing.
 		-*|--*=) shift ;; # Unsupported flags.
@@ -109,10 +109,10 @@ if [[ -z "$installer" ]]; then
 fi
 
 # Create default rcfile if needed.
-if [[ -n "$rcfilepath" && ! -f "$rcfilepath" || -z "$rcfilepath" ]]; then
-	rcfilepath=~/.bashrc; [[ ! -f "$rcfilepath" ]] && touch "$rcfilepath"
+if [[ -n "$rcfile" && ! -f "$rcfile" || -z "$rcfile" ]]; then
+	rcfile=~/.bashrc; [[ ! -f "$rcfile" ]] && touch "$rcfile"
 fi
-cp -a "$rcfilepath" "$HOME/.bashrc_ncliac.bk" # Backup rcfile.
+cp -a "$rcfile" "$HOME/.bashrc_ncliac.bk" # Backup rcfile.
 
 # -------------------------------------------------------- LANGUAGE-REQUIREMENTS
 
@@ -244,7 +244,7 @@ if [[ "$installer" == "binary" ]]; then
 	acbin="$binpath/ac.$os"; [[ -e "$acbin" ]] && cp -pr "$acbin" "$dest/bin"
 
 	version="$(perl -ne 'print $1 if /"version":\s*"([^"]+)/' "$outputdir/package.json")"
-	echo "{ \"force\": false, \"rcfilepath\": \"$rcfilepath\", \"time\": \"$timestamp\", \"binary\": true, \"version\": \"$version\" }" > ~/.nodecliac/.setup.db.json
+	echo "{ \"force\": false, \"rcfile\": \"$rcfile\", \"time\": \"$timestamp\", \"binary\": true, \"version\": \"$version\" }" > ~/.nodecliac/.setup.db.json
 
 	# Strip comments/empty lines.
 	# [http://isunix.github.io/blog/2014/07/24/perl-one-liner-to-remove-blank-lines/].
@@ -254,12 +254,12 @@ if [[ "$installer" == "binary" ]]; then
 	success "Setup ~/.nodecliac."
 
 	# Add nodecliac to rcfile.
-	if [[ -z "$(grep -F "ncliac=~/.nodecliac/src/main/init.sh" "$rcfilepath")" ]]; then
-		echo " - Adding nodecliac to $rcfilepath..."
-		perl -i -lpe 's/\x0a$//' "$rcfilepath" # Ensure newline.
-		echo 'ncliac=~/.nodecliac/src/main/init.sh; [ -f "$ncliac" ] && . "$ncliac";' >> "$rcfilepath"
-		perl -i -lpe 's/\x0a$//' "$rcfilepath" # Ensure newline.
-		success "Added nodecliac to $rcfilepath."
+	if [[ -z "$(grep -F "ncliac=~/.nodecliac/src/main/init.sh" "$rcfile")" ]]; then
+		echo " - Adding nodecliac to $rcfile..."
+		perl -i -lpe 's/\x0a$//' "$rcfile" # Ensure newline.
+		echo 'ncliac=~/.nodecliac/src/main/init.sh; [ -f "$ncliac" ] && . "$ncliac";' >> "$rcfile"
+		perl -i -lpe 's/\x0a$//' "$rcfile" # Ensure newline.
+		success "Added nodecliac to $rcfile."
 		# [https://www.unix.com/shell-programming-and-scripting/229399-how-add-newline-character-end-file.html]
 		# [https://knowledge.ni.com/KnowledgeArticleDetails?id=kA00Z0000019KZDSA2]
 		# [https://stackoverflow.com/a/9021745]
@@ -318,5 +318,5 @@ fi
 # Use \033 rather than \e: [https://stackoverflow.com/a/37366139]
 if [[ "$(exists nodecliac)" ]]; then
 	echo -e "\033[1;32mSuccess\033[0m: nodecliac installed."
-	echo -e "    \033[1;34mTip\033[0m: Reload rcfile before using: \033[1msource ${rcfilepath/#$HOME/\~}\033[0m"
+	echo -e "    \033[1;34mTip\033[0m: Reload rcfile before using: \033[1msource ${rcfile/#$HOME/\~}\033[0m"
 fi

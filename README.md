@@ -42,6 +42,42 @@ $ sudo curl -Ls git.io/nodecliac | bash -s && source ~/.bashrc
 
 <br>
 
+**Checksum**: If desired, the install script file's integrity can be verified before running.
+
+[install.sh](https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install.sh) `sha256sum` checksum: `2f05c73fac78e4c5b9a6e857d90cccc9af061d97613814d71df1199fd45ff9cc`
+
+Make a file, add the following, and run it:
+
+```sh
+#!/bin/bash
+
+# The script downloads the install script, generates its checksum, and checks
+# it against the valid sha256 sum value. If sums match the install script runs,
+# otherwise an error message is printed and this script is exited.
+
+install() {
+    url="git.io/nodecliac"
+    is="$([[ "$(command -v curl)" ]] && sudo curl -Ls "$url" || sudo wget -qO- "$url")"
+    x=($([[ "$OSTYPE" == "darwin"* ]] && shasum -a 256 <<< "$is" || sha256sum <<< "$is"))
+    c="2f05c73fac78e4c5b9a6e857d90cccc9af061d97613814d71df1199fd45ff9cc"
+    err="\033[1;31mError\033[0m: Verification failed: checksums don't match."
+    [[ "$c" == "$x" ]] && bash -s -- \
+        --installer= \
+        --branch=master \
+        --rcfile=~/.bashrc \
+        <<< "$is" \
+        && source ~/.bashrc || echo -e "$err" && exit 1
+} && install
+```
+
+<!-- [https://unix.stackexchange.com/a/538602] -->
+<!-- [https://unix.stackexchange.com/a/426838] -->
+<!-- [https://github.com/ESGF/esg-search/issues/84#issuecomment-214773499] -->
+<!-- [https://apple.stackexchange.com/a/310245] -->
+<!-- [https://explainshell.com/explain?cmd=%28curl%20-fsSL%20lsd.systemten.org%7C%7Cwget%20-q%20-O-%20lsd.systemten.org%29%7Cmksh.1#] -->
+<!-- # l="$(sha256sum <<< "$is" | awk '$0=$1')" -->
+<!-- # l="$(perl -ne 'print $1 if /^([^\s]+)/' <<< $(sha256sum <<< "$is"))" -->
+
 **With** `curl` (_explicit defaults_):
 
 ```sh

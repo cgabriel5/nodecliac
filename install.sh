@@ -320,7 +320,7 @@ else
 		# Global installs can't install shorthand branch method:
 		# [https://stackoverflow.com/a/32436218]
 		# sudo npm i -g "cgabriel5/nodecliac#$branch_name" > /dev/null 2>&1
-		sudo npm i -g --quiet --no-progress "$branch_npm" > /dev/null 2>&1
+		sudo "$(exists npm)" i -g --quiet --no-progress "$branch_npm" > /dev/null 2>&1
 		success "Installed nodecliac via npm."
 	elif [[ "$installer" == "yarn" ]]; then
 		echo " - Installing nodecliac via yarn..."

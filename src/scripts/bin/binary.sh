@@ -148,11 +148,20 @@ case "$command" in
 		# for f in ~/.nodecliac/registry/*/*.acdef ~/.nodecliac/registry/*/.*.acdef; do
 		# for f in ~/.nodecliac/registry/*/*.acdef; do
 
-		# Count items in directory: [https://stackoverflow.com/a/33891876]
-		count=$(ls 2>/dev/null -Ubad1 -- ~/.nodecliac/registry/* | wc -l)
-		if [[ $count -lt 0 ]]; then ((count=count-1)); fi # Account for 0 base index.
-		counter=0
+		# Trim string whitespace.
+		#
+		# @return {string} - Trimmed string.
+		#
+		# @resource [https://stackoverflow.com/a/3352015]
+		function trim() {
+			local arg="$*"
+			arg="${arg#"${arg%%[![:space:]]*}"}" # Remove leading ws.
+			arg="${arg%"${arg##*[![:space:]]}"}" # Remove trailing ws.
+			printf '%s' "$arg"
+		}
 
+		# Count items in directory: [https://stackoverflow.com/a/33891876]
+		count="$(trim "$(ls 2>/dev/null -Ubd1 -- ~/.nodecliac/registry/* | wc -l)")"
 		echo -e "\033[1m$registrypath\033[0m ($count)" # Print header.
 
 		# Exit if directory is empty.

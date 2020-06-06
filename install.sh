@@ -69,9 +69,12 @@ branch_name="master"
 installer=""
 rcfile=""
 params=""
+manual=""
 
 while (( "$#" )); do
 	case "$1" in
+		--manual) manual="1"; shift ;;
+
 		--branch=*)
 			flag="${1%%=*}"; value="${1#*=}"
 			if [[ -n "$value" ]]; then branch_name="$value"; fi; shift ;;
@@ -157,18 +160,20 @@ case "$installer" in
 	yarn|npm) [[ ! "$(exists $installer)" ]] && err "$installer not installed." ;;
 esac
 
-# Check branch exists: [https://stackoverflow.com/a/23916276]
-echo " - Verifying branch..."
-if [[ "$(exists wget)" ]]; then
-	if [[ ! $(grep -F tree <<< $(wget -qO- "$branchurl")) ]]; then
-		cline && err "Branch '$branch_name' doesn't exist."
+if [[ -z "$manual" ]]; then
+	# Check branch exists: [https://stackoverflow.com/a/23916276]
+	echo " - Verifying branch..."
+	if [[ "$(exists wget)" ]]; then
+		if [[ ! $(grep -F tree <<< $(wget -qO- "$branchurl")) ]]; then
+			cline && err "Branch '$branch_name' doesn't exist."
+		fi
+	elif [[ "$(exists curl)" ]]; then
+		if [[ ! $(grep -F tree <<< $(curl -Ls "$branchurl")) ]]; then
+			cline && err "Branch '$branch_name' doesn't exist."
+		fi
 	fi
-elif [[ "$(exists curl)" ]]; then
-	if [[ ! $(grep -F tree <<< $(curl -Ls "$branchurl")) ]]; then
-		cline && err "Branch '$branch_name' doesn't exist."
-	fi
+	success "Verified branch."
 fi
-success "Verified branch."
 
 # If ~/.nodecliac exists back it up.
 if [[ -e ~/.nodecliac ]]; then
@@ -203,29 +208,35 @@ fi
 
 # -------------------------------------------------------------- INSTALLER-LOGIC
 
-if [[ "$installer" == "binary" ]]; then
-	uhdir="${HOME/#$HOME/\~}" # Un-expand tilde:
+if [[ " binary manual " == *" $installer "* ]]; then
+	if [[ -z "$manual" ]]; then
+		uhdir="${HOME/#$HOME/\~}" # Un-expand tilde:
 
-	# Clone repo (wget > curl > git).
-	usewget="$(exists wget)"
-	usecurl="$(exists curl)"
-	if [[ -n "$usewget$usecurl" ]]; then
-		echo " - Downloading repository..."
-		tarname="$HOME/.nodecliac-src.tar.gz"
-		if [[ -n "$usewget" ]]; then wget -q -c "$repourl" -O "$tarname"
-		else curl -Ls "$repourl" -o "$tarname"; fi
-		success "Downloaded repository."
-		echo " - Extracting repository..."
-		tar -xzf "$tarname" -C ~/
-		success "Extracted repository."
-		echo " - Moving repository to '$uhdir'..."
-		rm -rf "$outputdir"/* && mv -f ~/cgabriel5-nodecliac-* "$outputdir"
-		success "Moved repository to '$uhdir'."
-	elif [[ "$(exists git)" ]]; then
-		echo " - Downloading repository..."
-		git clone -q -b "$branch_name" --single-branch "$gitbranch_https" "$outputdir"
-		# git clone -q -b "$branch_name" --single-branch "$gitbranch_ssh" "$outputdir"
-		success "Downloaded repository."
+		# Clone repo (wget > curl > git).
+		usewget="$(exists wget)"
+		usecurl="$(exists curl)"
+		if [[ -n "$usewget$usecurl" ]]; then
+			echo " - Downloading repository..."
+			tarname="$HOME/.nodecliac-src.tar.gz"
+			if [[ -n "$usewget" ]]; then wget -q -c "$repourl" -O "$tarname"
+			else curl -Ls "$repourl" -o "$tarname"; fi
+			success "Downloaded repository."
+			echo " - Extracting repository..."
+			tar -xzf "$tarname" -C ~/
+			success "Extracted repository."
+			echo " - Moving repository to '$uhdir'..."
+			rm -rf "$outputdir"/* && mv -f ~/cgabriel5-nodecliac-* "$outputdir"
+			success "Moved repository to '$uhdir'."
+		elif [[ "$(exists git)" ]]; then
+			echo " - Downloading repository..."
+			git clone -q -b "$branch_name" --single-branch "$gitbranch_https" "$outputdir"
+			# git clone -q -b "$branch_name" --single-branch "$gitbranch_ssh" "$outputdir"
+			success "Downloaded repository."
+		fi
+	else
+		# Get path of current script. [https://stackoverflow.com/a/246128]
+		__filepath="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+		outputdir="$(__filepath)"
 	fi
 
 	# Copy relevant/platform specific files.
@@ -281,9 +292,11 @@ if [[ "$installer" == "binary" ]]; then
 	sudo chmod +x "$binfilepath"
 	success "Created $binfilepath."
 
-	echo " - Cleaning up..."
-	rm -rf ~/.nodecliac-src*
-	success "Cleanup completed."
+	if [[ -z "$manual" ]]; then
+		echo " - Cleaning up..."
+		rm -rf ~/.nodecliac-src*
+		success "Cleanup completed."
+	fi
 else
 	hash -r # Rebuild $PATH: [https://unix.stackexchange.com/a/5610]
 

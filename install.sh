@@ -1,5 +1,6 @@
 #!/bin/bash
 
+_() {
 # Get platform name.
 #
 # @return {string} - User's platform.
@@ -320,3 +321,6 @@ if [[ "$(exists nodecliac)" ]]; then
 	echo -e "\033[1;32mSuccess\033[0m: nodecliac installed."
 	echo -e "    \033[1;34mTip\033[0m: Reload rcfile before using: \033[1msource ${rcfile/#$HOME/\~}\033[0m"
 fi
+}
+
+_ "$@"

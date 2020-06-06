@@ -236,7 +236,7 @@ if [[ " binary manual " == *" $installer "* ]]; then
 	else
 		# Get path of current script. [https://stackoverflow.com/a/246128]
 		__filepath="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-		outputdir="$(__filepath)"
+		outputdir="$__filepath"
 	fi
 
 	# Copy relevant/platform specific files.

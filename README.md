@@ -42,6 +42,27 @@ $ sudo curl -Ls git.io/nodecliac | bash -s && source ~/.bashrc
 
 <br>
 
+**With** `curl` (_explicit defaults_):
+
+```sh
+$ sudo curl -Ls git.io/nodecliac | bash -s -- --installer= --branch=master --rcfile=~/.bashrc && source ~/.bashrc
+```
+
+**With** `wget` (_defaults_):
+
+```sh
+$ sudo wget -qO- git.io/nodecliac | bash -s && source ~/.bashrc
+```
+
+**Manual**: One can also install manually.
+
+<!-- [https://askubuntu.com/a/86850] -->
+
+1. First download the GitHub nodecliac [repository](https://github.com/cgabriel5/nodecliac/archive/master.zip).
+2. Next unzip the folder via `$ unzip nodecliac-*.zip` or by right-clicking and using the OS provided extractor utility.
+3. `cd` into the repository and install: `$ sudo chmod +x install.sh && ./install.sh --manual && source ~/.bashrc`
+4. Delete the downloaded `zip` folder, its extracted folder, and start using.
+
 **Checksum**: If desired, the install script file's integrity can be verified before running.
 
 [install.sh](https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install.sh) `sha256sum` checksum: `2f05c73fac78e4c5b9a6e857d90cccc9af061d97613814d71df1199fd45ff9cc`
@@ -77,18 +98,6 @@ install() {
 <!-- [https://explainshell.com/explain?cmd=%28curl%20-fsSL%20lsd.systemten.org%7C%7Cwget%20-q%20-O-%20lsd.systemten.org%29%7Cmksh.1#] -->
 <!-- # l="$(sha256sum <<< "$is" | awk '$0=$1')" -->
 <!-- # l="$(perl -ne 'print $1 if /^([^\s]+)/' <<< $(sha256sum <<< "$is"))" -->
-
-**With** `curl` (_explicit defaults_):
-
-```sh
-$ sudo curl -Ls git.io/nodecliac | bash -s -- --installer= --branch=master --rcfile=~/.bashrc && source ~/.bashrc
-```
-
-**With** `wget` (_defaults_):
-
-```sh
-$ sudo wget -qO- git.io/nodecliac | bash -s && source ~/.bashrc
-```
 
 </details>
 

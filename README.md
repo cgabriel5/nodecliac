@@ -42,19 +42,19 @@ $ sudo curl -Ls git.io/nodecliac | bash -s && source ~/.bashrc
 
 <br>
 
-**With** `curl` (_explicit defaults_):
+**curl Install** (_explicit defaults_):
 
 ```sh
 $ sudo curl -Ls git.io/nodecliac | bash -s -- --installer= --branch=master --rcfile=~/.bashrc && source ~/.bashrc
 ```
 
-**With** `wget` (_defaults_):
+**wget Install** (_defaults_):
 
 ```sh
 $ sudo wget -qO- git.io/nodecliac | bash -s && source ~/.bashrc
 ```
 
-**Manual**: One can also install manually.
+**Manual Install**: One can also install manually.
 
 <!-- [https://askubuntu.com/a/86850] -->
 
@@ -63,7 +63,7 @@ $ sudo wget -qO- git.io/nodecliac | bash -s && source ~/.bashrc
 3. `cd` into the repository and install: `$ sudo chmod +x install.sh && ./install.sh --manual && source ~/.bashrc`
 4. Delete the downloaded `zip` folder, its extracted folder, and start using.
 
-**Checksum**: If desired, the install script file's integrity can be verified before running.
+**Checksum Install**: If desired, the install script file's integrity can be verified before running.
 
 [install.sh](https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install.sh) `sha256sum` checksum: `7e71651ad220d942e07e099cb4d9f6b1106da0e2b91e9f9ae50e1c89325aae4f`
 

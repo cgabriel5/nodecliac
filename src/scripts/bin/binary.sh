@@ -163,6 +163,8 @@ case "$command" in
 		# Count items in directory: [https://stackoverflow.com/a/33891876]
 		count="$(trim "$(ls 2>/dev/null -Ubd1 -- ~/.nodecliac/registry/* | wc -l)")"
 		echo -e "\033[1m$registrypath\033[0m ($count)" # Print header.
+		[[ $count -gt 0 ]] && count="$((count - 1))" # Account for 0 base index.
+		counter=0
 
 		# Exit if directory is empty.
 		if [[ "$count" == "0" ]]; then exit; fi

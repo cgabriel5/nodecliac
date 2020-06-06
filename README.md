@@ -67,7 +67,7 @@ $ sudo wget -qO- git.io/nodecliac | bash -s && source ~/.bashrc
 
 [install.sh](https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install.sh) `sha256sum` checksum: `c7361ad9b666eedcea6cacf866f342f4313c246e80642bb7e01ff27fe1f5b9cc`
 
-Make a file, add the following, and run it:
+Create an executable shell file called `install.sh`, add the following, and run it.
 
 ```sh
 #!/bin/bash

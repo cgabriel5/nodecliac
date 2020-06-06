@@ -60,9 +60,10 @@ function success() {
 }
 
 os=`platform`
-outputdir="$HOME/.nodecliac-src"
 # Unix timestamp in ms: [https://stackoverflow.com/a/21640976]
 timestamp=$(perl -MTime::HiRes=time -e 'print int(time() * 1000);')
+outputdirname=".nodecliac-src-$timestamp"
+outputdir="$HOME/$outputdirname"
 binfilepath="/usr/local/bin/nodecliac" # [https://unix.stackexchange.com/a/8664]
 CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m"
 branch_name="master"
@@ -217,7 +218,7 @@ if [[ " binary manual " == *" $installer "* ]]; then
 		usecurl="$(exists curl)"
 		if [[ -n "$usewget$usecurl" ]]; then
 			echo " - Downloading repository..."
-			tarname="$HOME/.nodecliac-src.tar.gz"
+			tarname="$HOME/$outputdirname.tar.gz"
 			if [[ -n "$usewget" ]]; then wget -q -c "$repourl" -O "$tarname"
 			else curl -Ls "$repourl" -o "$tarname"; fi
 			success "Downloaded repository."
@@ -294,7 +295,7 @@ if [[ " binary manual " == *" $installer "* ]]; then
 
 	if [[ -z "$manual" ]]; then
 		echo " - Cleaning up..."
-		rm -rf ~/.nodecliac-src*
+		rm -rf "$HOME/.nodecliac-src-"*
 		success "Cleanup completed."
 	fi
 else

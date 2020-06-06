@@ -1,6 +1,8 @@
 #!/bin/bash
 
 _() {
+set -euo pipefail # [https://sipb.mit.edu/doc/safe-shell/]
+
 # Get platform name.
 #
 # @return {string} - User's platform.
@@ -66,6 +68,7 @@ CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m"
 branch_name="master"
 installer=""
 rcfile=""
+params=""
 
 while (( "$#" )); do
 	case "$1" in
@@ -93,8 +96,8 @@ while (( "$#" )); do
 		*) shift ;; # Preserve positional arguments.
 	esac
 done
+[[ "$#" != 0 ]] && shift
 eval set -- "$params"
-shift
 
 repourl="https://api.github.com/repos/cgabriel5/nodecliac/tarball/$branch_name"
 branchurl="https://api.github.com/repos/cgabriel5/nodecliac/branches/$branch_name"

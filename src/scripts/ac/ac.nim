@@ -548,7 +548,7 @@ proc fn_lookup(): string =
 
                 if last_value.startsWith('*'):
                     # last_multif = "*"
-                    last_value = last_value[0 .. ^1]
+                    last_value = last_value[0 .. ^2]
 
                 last_eqsign = '='
 
@@ -578,7 +578,7 @@ proc fn_lookup(): string =
 
                     if flag_value.startsWith('*'):
                         flag_multif = '*'
-                        flag_value = flag_value[0 .. ^1]
+                        flag_value = flag_value[0 .. ^2]
 
                         # Track multi-starred flags.
                         usedflags_multi[flag_fkey] = 1

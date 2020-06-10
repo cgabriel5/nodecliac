@@ -16,7 +16,11 @@ if [[ "$vmajor" -ge 4 ]]; then
 	# [https://askubuntu.com/a/318211]
 	# Ignore parent dir: [https://stackoverflow.com/a/11071654]
 	registrypath=~/.nodecliac/registry
-	dirlist="$(find "$registrypath" -maxdepth 1 -mindepth 1 -type d -name "[!.]*")"
+	# [https://superuser.com/a/701822]
+	# [https://unix.stackexchange.com/a/158044]
+	# [https://unix.stackexchange.com/a/50613]
+	# [https://stackoverflow.com/q/20260247]
+	dirlist="$(find "$registrypath" -maxdepth 1 -mindepth 1 \( -type d -o -type l \) -name "[!.]*")"
 	# Registry can't be empty.
 	[[ "$registrypath" == "$dirlist" ]] && return
 

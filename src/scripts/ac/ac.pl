@@ -500,7 +500,9 @@ sub __analyze {
 		else { $usedflags{valueless}{$uflag_fkey} = undef; }
 
 		# Track times flag was used.
-		$usedflags{counts}{$uflag_fkey}++;
+		if ($uflag_fkey && ($uflag_fkey ne '--' || $uflag_fkey ne '-')) {
+			$usedflags{counts}{$uflag_fkey}++;
+		}
 
 		$i++;
 	}

@@ -506,9 +506,10 @@ proc fn_analyze() =
         else: usedflags_valueless[uflag_fkey] = 1
 
         # Track times flag was used.
-        if not usedflags_counts.hasKey(uflag_fkey):
-            usedflags_counts[uflag_fkey] = 0
-        inc(usedflags_counts[uflag_fkey])
+        if uflag_fkey != "" and (uflag_fkey != "--" or uflag_fkey != "-"):
+            if not usedflags_counts.hasKey(uflag_fkey):
+                usedflags_counts[uflag_fkey] = 0
+            inc(usedflags_counts[uflag_fkey])
 
 # Lookup acdef definitions.
 #

@@ -803,7 +803,7 @@
 			<key>flag-oneliner</key>
 			<dict>
 				<key>begin</key>
-				<string>( |(=)\s*)(?=(--?|default|filedir))</string>
+				<string>( |(=)\\s*)(?=(--?|"|'|default|filedir|context))</string>
 
 				<key>beginCaptures</key>
 				<dict>
@@ -819,6 +819,11 @@
 
 				<key>patterns</key>
 				<array>
+					<dict>
+						<key>include</key>
+						<string>#strings</string>
+					</dict>
+
 					<dict>
 						<key>include</key>
 						<string>#flags-oneliner</string>
@@ -928,7 +933,7 @@
 				<array>
 					<dict>
 						<key>match</key>
-						<string>(default|filedir)([\x{0020}\t]{1,})</string> <!-- Space char = '\x{0020}' -->
+						<string>(default|filedir|context)([\x{0020}\t]{1,})</string> <!-- Space char = '\x{0020}' -->
 
 						<key>name</key>
 						<string></string>

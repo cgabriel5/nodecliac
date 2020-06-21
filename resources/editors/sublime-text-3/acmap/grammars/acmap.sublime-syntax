@@ -221,12 +221,13 @@ contexts:
         - include: default
 
   flag-oneliner:
-    - match: "( |(=)\\s*)(?=(--?|default|filedir))"
+    - match: "( |(=)\\s*)(?=(--?|\"|'|default|filedir|context))"
       captures:
         2: keyword.operator.assignment.acmap
       push:
         - match: "$"
           pop: true
+        - include: strings
         - include: flags-oneliner
   # ➚
   flags-oneliner:
@@ -252,7 +253,7 @@ contexts:
         3: constant.numeric.acmap
 
   keywords:
-    - match: "(default|filedir)([ \t]{1,})"
+    - match: "(default|filedir|context)([ \t]{1,})"
       captures:
         1: keyword.control.default.acmap
     - include: command-string

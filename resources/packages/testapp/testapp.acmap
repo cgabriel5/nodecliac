@@ -1,0 +1,17 @@
+# The command 'testapp' does not exist. This acmap is used for
+# testing/debugging purposes.
+
+testapp = [
+	# Following flag can take input.
+	--version
+	# Following flag can't take input.
+	--help?
+
+	# Following flag is used to test context string.
+	--test
+	context "!test: #fge0"
+]
+
+testapp.make
+testapp.cache
+testapp.format

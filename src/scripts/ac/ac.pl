@@ -12,6 +12,7 @@ my $maincommand = $ARGV[3]; # Get command name from sourced passed-in argument.
 my $acdef = $ARGV[4]; # Get the acdef definitions file.
 
 my @args = ();
+my @posargs = ();
 # Arguments meta data: [eq-sign index, isBool]
 my @ameta = ();
 my $last = '';
@@ -32,6 +33,7 @@ my $filedir = '';
 my %db;
 $db{'defaults'} = {};
 $db{'filedirs'} = {};
+$db{'contexts'} = {};
 
 my %usedflags;
 $usedflags{'valueless'};
@@ -377,7 +379,6 @@ sub __analyze {
     my @chainflags = (['']);
     my @delindices = ([0]);
     my @bounds = (0);
-    my @posargs = ();
     my $cmdend = 0;
     my $aindex = 0;
     my $start = 0;
@@ -469,7 +470,7 @@ sub __analyze {
 
 	# Handle case: 'nodecliac print --command [TAB]'
 	if ($last eq '' && @cargs && rindex($cargs[-1], '-', 0) == 0 &&
-		$ameta[-1][0] == -1 && $ameta[-1][1] == 0) {
+		$cargs[-1] !~ tr/=// && $ameta[-1][0] == -1 && $ameta[-1][1] == 0) {
 		my $r = $cargs[-1] . '=';
 		my $l = length($r) - 1;
 		$lastchar = '';
@@ -520,6 +521,7 @@ sub __lookup {
 		my $letter = substr($commandchain, 1, 1) // '';
 		if ($db{dict}{$letter}{$commandchain}) {
 			my %parsedflags;
+			my %excluded;
 			my $flag_list = $db{dict}{$letter}{$commandchain}{flags};
 
 			# If a placeholder get its contents.
@@ -534,6 +536,102 @@ sub __lookup {
 			# [https://www.perlmonks.org/bare/?node_id=319761]
 			# my @flags = split(/(?:\\\\\|)|(?:(?<!\\)\|)/, $flag_list);
 			my @flags = split(/(?<!\\)\|/, $flag_list);
+
+			# Context string logic: start --------------------------------------
+
+			my $cchain = ($commandchain eq '_' ? '' : quotemeta($commandchain));
+			my $pattern = '^' . $cchain . ' context ("|\')(.+)\1$';
+			if ($acdef =~ /$pattern/m) {
+				my @ctxs = split(/;/, $2);
+				foreach my $_c (@ctxs) {
+					(my $ctx = $_c) =~ s/\s+//g;
+					if (length($ctx) == 0) { next; }
+					if (rindex($ctx, '{', 0) == 0 && substr($ctx, -1) ne '}') { # Mutual exclusion.
+						$ctx =~ s/^{|}$//g;
+						my @flags = map {
+							(length($_) == 1 ? '-' : '--') . $_;
+						} (split(/\|/, $ctx));
+						my $exclude = '';
+						foreach my $flag (@flags) {
+							if (exists($usedflags{counts}{$flag_fkey})) {
+								$exclude = $flag;
+								last;
+							}
+						}
+						if ($exclude ne '') {
+							foreach my $flag (@flags) {
+								if ($exclude ne $flag) { $excluded{$flag} = 1; }
+							}
+							delete $excluded{$exclude};
+						}
+					} else {
+						my $r = 0;
+						if ($ctx =~ tr/://) {
+							my @parts = split(/:/, $ctx);
+							my @flags = split(/,/, $parts[0]);
+							my @conditions = split(/,/, $parts[1]);
+							# Examples:
+							# flags:      !help,!version
+							# conditions: #fge1, #ale4, 1follow, 1!follow, !flag-name
+							foreach my $condition (@conditions) {
+								my $fchar = substr($condition, 0, 1);
+								if ($fchar eq '#') {
+									my $operator = substr($condition, 2, 2);
+									my $n = int(substr($condition, 4));
+									my $c = 0;
+									if (substr($condition, 1, 1) eq 'f') {
+										# [https://stackoverflow.com/a/37438262]
+										$c = keys(%{$usedflags{counts}});
+										# Account for used '--' flag.
+										if ($c == 1 && exists($usedflags{counts}{'--'})) { $c = 0; }
+									} else { $c = $#posargs + 1; }
+									if    ($operator eq "eq") { $r = ($c == n ? 1 : 0); }
+									elsif ($operator eq "ne") { $r = ($c != n ? 1 : 0); }
+									elsif ($operator eq "gt") { $r = ($c >  n ? 1 : 0); }
+									elsif ($operator eq "ge") { $r = ($c >= n ? 1 : 0); }
+									elsif ($operator eq "lt") { $r = ($c <  n ? 1 : 0); }
+									elsif ($operator eq "le") { $r = ($c <= n ? 1 : 0); }
+								# elsif ($fchar in {'1'..'9'}) { next; } # [TODO?]
+								} else { # Just a flag name.
+									if ($fchar eq '!') {
+										if (exists($usedflags{counts}{$condition})) { $r = 0; }
+									} else {
+										if (exists($usedflags{counts}{$condition})) { $r = 1; }
+									}
+								}
+								# Once any condition fails exit loop.
+								if ($r == 0) { last; }
+							}
+							if ($r == 1) {
+								foreach my $flag (@flags) {
+									# my $flag = flag;
+									my $fchar = substr($flag, 0, 1);
+									$flag =~ s/\!//g;
+									$flag = (length($flag) == 1 ? '-' : '--') . $flag;
+									if ($fchar eq '!') { $excluded{$flag} = 1; }
+									else { delete $excluded{$flag}; }
+								}
+							}
+						} else {
+							if ($fchar eq '!') {
+								if (exists($usedflags{counts}{$condition})) { $r = 0; }
+							} else {
+								if (exists($usedflags{counts}{$condition})) { $r = 1; }
+							}
+							if ($r == 1) {
+								my $flag = $ctx;
+								my $fchar = substr($flag, 0, 1);
+								$flag =~ s/\!//g;
+								$flag = (length($flag) == 1 ? '-' : '--') . $flag;
+								if ($fchar eq '!') { $excluded{$flag} = 1; }
+								else { delete $excluded{$flag}; }
+							}
+						}
+					}
+				}
+			}
+
+			# Context string logic: end ----------------------------------------
 
 			my $last_fkey = $last;
 			my $last_eqsign = '';
@@ -574,6 +672,8 @@ sub __lookup {
 					$flag_eqsign = '=';
 
 					if (rindex($flag_fkey, '?') > -1) { chop($flag_fkey); }
+					# Skip flag if it's mutually exclusivity.
+					if (exists($excluded{$flag_fkey})) { next; }
 
 					if (rindex($flag_value, '*', 0) == 0) {
 						$flag_multif = '*';
@@ -600,6 +700,9 @@ sub __lookup {
 					$parsedflags{"$flag_fkey=$flag_value"} = undef;
 				} else {
 					if (rindex($flag_fkey, '?') > -1) { chop($flag_fkey); }
+					# Skip flag if it's mutually exclusivity.
+					if (exists($excluded{$flag_fkey})) { next; }
+
 					# Create completion flag item.
 					$cflag = $flag_fkey;
 					# Store for later checks.
@@ -972,11 +1075,9 @@ sub __makedb {
 			} else { # Store keywords.
 				my $keyword = substr($line, 0, 7);
 				my $value = substr($line, 8);
-				if ($keyword eq "default") {
-					$db{defaults}{$chain} = substr($line, 8);
-				} else {
-					$db{filedirs}{$chain} = substr($line, 8);
-				}
+				if ($keyword eq "default") { $db{defaults}{$chain} = $value; }
+				elsif ($keyword eq "filedir") { $db{filedirs}{$chain} = $value; }
+				elsif ($keyword eq "context") { $db{context}{$chain} = $value; }
 			}
 		}
 

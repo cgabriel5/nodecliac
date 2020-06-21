@@ -11,7 +11,7 @@ from tables import `$`, add, del, len, keys, `[]`, `[]=`, pairs,
 from os import getEnv, putEnv, paramStr, paramCount
 from strutils import find, join, split, strip, delete, Digits, Letters,
     replace, contains, endsWith, intToStr, parseInt, splitLines, startsWith,
-    removePrefix, allCharsInSet
+    removePrefix, allCharsInSet, multiReplace
 
 import utils/lcp
 
@@ -24,6 +24,7 @@ let maincommand = os.paramStr(4) # Get command name from sourced passed-in argum
 let acdef = os.paramStr(5) # Get the acdef definitions file.
 
 var args: seq[string] = @[]
+var posargs: seq[string] = @[]
 # Arguments meta data: [eq-sign index, isBool]
 var ameta: seq[array[2, int]] = @[]
 var last = ""
@@ -45,6 +46,7 @@ var db_dict = initTable[char, Table[string, Table[string, seq[string]]]]()
 var db_levels = initTable[int, Table[string, int]]()
 var db_defaults = initTable[string, string]()
 var db_filedirs = initTable[string, string]()
+var db_contexts = initTable[string, string]()
 
 var usedflags = initTable[string, Table[string, int]]()
 var usedflags_valueless = initTable[string, int]()
@@ -398,7 +400,6 @@ proc fn_analyze() =
     var chainflags: seq[seq[string]] = @[@[""]]
     var delindices: seq[seq[int]] = @[@[0]]
     var bounds: seq[int] = @[0]
-    var posargs: seq[string] = @[]
     var cmdend = false
     var aindex = 0
 
@@ -478,8 +479,10 @@ proc fn_analyze() =
     if last.find(C_QUOTES) == 0: isquoted = true
 
     # Handle case: 'nodecliac print --command [TAB]'
+    # if last == "" and cargs.len > 0 and cargs[^1].startsWith('-') and
+    # ameta[^1][0] == -1 and ameta[^1][1] == 0:
     if last == "" and cargs.len > 0 and cargs[^1].startsWith('-') and
-    ameta[^1][0] == -1 and ameta[^1][1] == 0:
+    '=' notin cargs[^1] and ameta[^1][0] == -1 and ameta[^1][1] == 0:
         let r = cargs[^1] & "="
         lastchar = '\0'
         last = r
@@ -523,6 +526,7 @@ proc fn_lookup(): string =
         var letter = if commandchain != "": commandchain[1] else: '_'
         commandchain = if commandchain != "": commandchain else: "_"
         if db_dict.hasKey(letter) and db_dict[letter].hasKey(commandchain):
+            var excluded = initTable[string, int]()
             var parsedflags = initTable[string, int]()
             var flag_list = db_dict[letter][commandchain]["flags"][0]
 
@@ -536,6 +540,94 @@ proc fn_lookup(): string =
 
             # Split by unescaped pipe '|' characters:
             var flags = flag_list.split(re"(?<!\\)\|")
+
+            # Context string logic: start --------------------------------------
+
+            let cchain = if commandchain == "_": "" else: quotemeta(commandchain)
+            let pattern = "^" & cchain & " context (.+)$"
+            let (start, `end`) = findBounds(acdef, re(pattern, {reMultiLine}))
+            if start != -1:
+                let row = acdef[start .. `end`]
+                let kw_index = row.find("context")
+                let sp_index = row.find(' ', start=kw_index)
+                let context = row[sp_index + 2 .. row.high - 1] # Unquote.
+
+                let ctxs = context.split(';');
+                for ctx in ctxs:
+                    var ctx = ctx.multiReplace([(" ", ""), ("\t", "")])
+                    if ctx.len == 0: continue
+                    if ctx[0] == '{' and ctx[^1] == '}': # Mutual exclusion.
+                        ctx = ctx.strip(chars={'{', '}'})
+                        let flags = map(ctx.split('|'), proc (x: string): string =
+                            if x.len == 1: "-" else: "--" & x
+                        )
+                        var exclude = ""
+                        for flag in flags:
+                            if usedflags_counts.hasKey(flag):
+                                exclude = flag
+                                break
+                        if exclude != "":
+                            for flag in flags:
+                                if exclude != flag: excluded[flag] = 1
+                            excluded.del(exclude)
+                    else:
+                        var r = false
+                        if ':' in ctx:
+                            let parts = ctx.split(':')
+                            let flags = parts[0].split(',')
+                            let conditions = parts[1].split(',')
+                            # Examples:
+                            # flags:      !help,!version
+                            # conditions: #fge1, #ale4, 1follow, 1!follow, !flag-name
+                            for condition in conditions:
+                                let fchar = condition[0]
+                                if fchar == '#':
+                                    let operator = condition[2 .. 3]
+                                    let n = condition[4 .. ^1].parseInt()
+                                    var c = 0
+                                    if condition[1] == 'f':
+                                        c = usedflags_counts.len
+                                        # Account for used '--' flag.
+                                        if c == 1 and usedflags_counts.hasKey("--"): c = 0
+                                    else: c = posargs.len
+                                    case (operator):
+                                        of "eq": r = if c == n: true else: false
+                                        of "ne": r = if c != n: true else: false
+                                        of "gt": r = if c >  n: true else: false
+                                        of "ge": r = if c >= n: true else: false
+                                        of "lt": r = if c <  n: true else: false
+                                        of "le": r = if c <= n: true else: false
+                                        else: discard
+                                # elif fchar in {'1'..'9'}: continue # [TODO?]
+                                else: # Just a flag name.
+                                    if fchar == '!':
+                                        if usedflags_counts.hasKey(condition): r = false
+                                    else:
+                                        if usedflags_counts.hasKey(condition): r = true
+                                # Once any condition fails exit loop.
+                                if r == false: break
+                            if r == true:
+                                for flag in flags:
+                                    var flag = flag
+                                    let fchar = flag[0]
+                                    flag = flag.strip(chars={'!'})
+                                    flag = if flag.len == 1: "-" else: "--" & flag
+                                    if fchar == '!': excluded[flag] = 1
+                                    else: excluded.del(flag)
+                        else: # Just a flag name.
+                            if ctx[0] == '!':
+                                if usedflags_counts.hasKey(ctx): r = false
+                            else:
+                                if usedflags_counts.hasKey(ctx): r = true
+                            if r == true:
+                                var flag = ctx
+                                let fchar = flag[0]
+                                flag = flag.strip(chars={'!'})
+                                flag = if flag.len == 1: "-" else: "--" & flag
+                                if fchar == '!': excluded[flag] = 1
+                                else: excluded.del(flag)
+
+            # Context string logic: end ----------------------------------------
 
             var last_fkey = last
             var last_eqsign: char
@@ -576,6 +668,8 @@ proc fn_lookup(): string =
                     flag_eqsign = '='
 
                     if '?' in flag_fkey: flag_isbool = chop(flag_fkey)
+                    # Skip flag if it's mutually exclusivity.
+                    if excluded.hasKey(flag_fkey): inc(i); continue
 
                     if flag_value.startsWith('*'):
                         flag_multif = '*'
@@ -601,6 +695,9 @@ proc fn_lookup(): string =
                     parsedflags[fmt"{flag_fkey}={flag_value}"] = 1
                 else:
                     if '?' in flag_fkey: flag_isbool = chop(flag_fkey)
+                    # Skip flag if it's mutually exclusivity.
+                    if excluded.hasKey(flag_fkey): inc(i); continue
+
                     # Create completion flag item.
                     cflag = flag_fkey
                     # Store for later checks.
@@ -950,9 +1047,13 @@ proc fn_makedb() =
             else: # Store keywords.
                 let keyword = line[0 .. 6]
                 let value = line.substr(8)
-                if keyword == "default":
-                    if not db_defaults.hasKey(chain): db_defaults[chain] = value
-                else:
-                    if not db_filedirs.hasKey(chain): db_filedirs[chain] = value
+                case (keyword):
+                    of "default":
+                        if not db_defaults.hasKey(chain): db_defaults[chain] = value
+                    of "filedir":
+                        if not db_filedirs.hasKey(chain): db_filedirs[chain] = value
+                    of "context":
+                        if not db_contexts.hasKey(chain): db_contexts[chain] = value
+                    else: discard
 
 fn_tokenize();fn_analyze();fn_makedb();discard fn_lookup();fn_printer()

@@ -14,6 +14,7 @@ module.exports = (S, cmdname) => {
 	let oGroups = {};
 	let oDefaults = {};
 	let oFiledirs = {};
+	let oContexts = {};
 	let oSettings = {};
 	let settings_count = 0;
 	let oPlaceholders = {};
@@ -24,6 +25,7 @@ module.exports = (S, cmdname) => {
 	let config = "";
 	let defaults = "";
 	let filedirs = "";
+	let contexts = "";
 	let has_root = false;
 
 	// Escape '+' chars in commands.
@@ -229,6 +231,7 @@ module.exports = (S, cmdname) => {
 		let { commands: cxN, flags: fxN } = oGroups[i];
 		let queue_defs = new Set();
 		let queue_fdir = new Set();
+		let queue_ctxs = new Set();
 		let queue_flags = new Set();
 
 		for (let i = 0, l = fxN.length; i < l; i++) {
@@ -241,6 +244,10 @@ module.exports = (S, cmdname) => {
 				let value = fN.value.value;
 				if (keyword === "default") queue_defs.add(value);
 				else if (keyword === "filedir") queue_fdir.add(value);
+				else if (keyword == "context") {
+					// queue_ctxs.has(value.slice(1, -1));
+					queue_ctxs.add(value);
+				}
 				continue; // defaults don't need to be added to Sets.
 			}
 
@@ -269,6 +276,10 @@ module.exports = (S, cmdname) => {
 			for (let item of queue_flags) oSets[value].add(item);
 			for (let item of queue_defs) oDefaults[value] = item;
 			for (let item of queue_fdir) oFiledirs[value] = item;
+			for (let item of queue_ctxs) {
+				if (hasProp(oContexts, value)) oContexts[value] += ";" + item;
+				else oContexts[value] = item;
+			}
 		}
 	}
 
@@ -325,6 +336,17 @@ module.exports = (S, cmdname) => {
 	});
 	if (filedirs) filedirs = "\n\n" + filedirs;
 
+	// Build contexts contents.
+	var ctxlist = [];
+	for (let context in oContexts) ctxlist.push(context);
+	let ctxs = mapsort(Object.keys(oContexts), asort, aobj);
+	let cl = ctxs.length;
+	ctxs.forEach((c, i) => {
+		contexts += rm_fcmd(c) + ' context "' + oContexts[c] + '"';
+		if (i !== cl) contexts += "\n";
+	});
+	if (contexts !== "") contexts = "\n\n" + contexts;
+
 	// Build settings contents.
 	settings_count--;
 	for (let setting in oSettings) {
@@ -346,6 +368,7 @@ module.exports = (S, cmdname) => {
 		config,
 		keywords: defaults,
 		filedirs,
+		contexts,
 		placeholders: oPlaceholders
 	};
 };

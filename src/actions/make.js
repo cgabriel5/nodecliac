@@ -49,7 +49,8 @@ module.exports = async (args) => {
 	[err, res] = await flatry(read(source));
 	let parser = require(`../parser/index.js`);
 	let pres = parser(action, res, cmdname, source, fmtinfo, trace, igc, test);
-	let { acdef, config, keywords, filedirs, placeholders, formatted } = pres;
+	let { acdef, config, keywords, filedirs } = pres;
+	let { contexts, placeholders, formatted } = pres;
 	let savename = `${cmdname}.acdef`;
 	let saveconfigname = `.${cmdname}.config.acdef`;
 
@@ -62,7 +63,8 @@ module.exports = async (args) => {
 			let placeholderspaths = path.join(dirname, "placeholders");
 
 			await flatry(mkdirp(dirname));
-			await flatry(write(commandpath, acdef + keywords + filedirs));
+			let content = acdef + keywords + filedirs + contexts;
+			await flatry(write(commandpath, content));
 			await flatry(write(commandconfigpath, config));
 
 			// Create placeholder files if object is populated.
@@ -87,7 +89,7 @@ module.exports = async (args) => {
 		if (!formatting) {
 			if (acdef) {
 				console.log(`[${chalk.bold(`${cmdname}.acdef`)}]\n`);
-				console.log(acdef + keywords + filedirs);
+				console.log(acdef + keywords + filedirs + contexts);
 				if (!config) console.log();
 			}
 			if (config) {
@@ -110,7 +112,7 @@ module.exports = async (args) => {
 	if (test) {
 		if (!formatting) {
 			if (acdef) {
-				console.log(acdef + keywords + filedirs);
+				console.log(acdef + keywords + filedirs + contexts);
 				if (!config) console.log();
 			}
 			if (config) {

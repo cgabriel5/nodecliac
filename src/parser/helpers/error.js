@@ -35,8 +35,13 @@ let errors = {
 		11: "String cannot be empty",
 		12: "Undefined variable",
 		13: "Illegal command-flag syntax",
-		14: "Useless comma delimiter",
+		14: "Useless delimiter",
 		15: "Illegal list syntax"
+	},
+	vcontext: {
+		14: "Useless delimiter",
+		16: "Missing flag conditions",
+		17: "Unclosed brace"
 	}
 };
 

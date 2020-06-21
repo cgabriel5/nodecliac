@@ -5,15 +5,9 @@ const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
 const rollback = require("../helpers/rollback.js");
 const validate = require("../helpers/validate.js");
-const {
-	cin,
-	cnotin,
-	C_NL,
-	C_SPACES,
-	C_LETTERS,
-	C_QUOTES,
-	C_FLG_IDENT
-} = require("../helpers/charsets.js");
+const charsets = require("../helpers/charsets.js");
+const { cin, cnotin, C_NL, C_SPACES, C_LETTERS } = charsets;
+const { C_QUOTES, C_FLG_IDENT, C_KW_ALL, C_KD_STR } = charsets;
 
 /**
  * ----------------------------------------------------------- Parsing Breakdown
@@ -86,9 +80,7 @@ module.exports = (S, isoneliner) => {
 					let keyword = text.substr(S.i, keyword_len);
 
 					// Keyword must be allowed.
-					if (!-~["default", "filedir"].indexOf(keyword)) {
-						error(S, __filename);
-					}
+					if (!-~C_KW_ALL.indexOf(keyword)) error(S, __filename);
 					N.keyword.start = S.i;
 					N.keyword.end = S.i + endpoint;
 					N.keyword.value = keyword;
@@ -195,7 +187,7 @@ module.exports = (S, isoneliner) => {
 
 			case "wsb-prevalue":
 				if (cnotin(C_SPACES, char)) {
-					let keyword = N.keyword.value !== "filedir";
+					let keyword = !-~C_KD_STR.indexOf(N.keyword.value);
 					if (char === "|" && keyword) state = "pipe-delimiter";
 					else if (char === ",") state = "delimiter";
 					else state = "value";
@@ -219,7 +211,7 @@ module.exports = (S, isoneliner) => {
 					} else {
 						if (
 							char === "|" &&
-							N.keyword.value !== "filedir" &&
+							!-~C_KD_STR.indexOf(N.keyword.value) &&
 							pchar !== "\\"
 						) {
 							state = "pipe-delimiter";

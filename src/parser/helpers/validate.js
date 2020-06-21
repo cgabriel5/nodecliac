@@ -1,6 +1,8 @@
 "use strict";
 
 const error = require("./error.js");
+const vcontext = require("./vcontext.js");
+const { hasProp } = require("../../utils/toolbox.js");
 const { cin, cnotin, C_SPACES, C_QUOTES } = require("./charsets.js");
 const r = /(?<!\\)\$\{\s*[^}]*\s*\}/g;
 
@@ -71,7 +73,9 @@ let validate = (S, N, type) => {
 				}
 
 				// Interpolate variables.
+				let vindices = {};
 				value = value.replace(r, function (match, index) {
+					let lm = match.length - 1;
 					match = match.slice(2, -1).trim();
 
 					// Don't interpolate when formatting.
@@ -84,8 +88,19 @@ let validate = (S, N, type) => {
 						return error(S, __filename, 12);
 					}
 
+					// Calculate variable indices.
+					let sl = value.length;
+					// let vl = index + sl - index + 1;
+					let vl = index + lm - index + 1;
+					let dt = sl - vl;
+					vindices[index] = [sl > vl ? dt * -1 : Math.abs(dt), sl];
 					return value;
 				});
+
+				// Validate context string.
+				if (N.node === "FLAG" && N.keyword.value === "context") {
+					value = vcontext(S, value, vindices, resumepoint);
+				}
 
 				N.args = [value];
 				N.value.value = value;

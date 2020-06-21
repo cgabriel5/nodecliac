@@ -477,8 +477,8 @@ sub __analyze {
 		$cargs[-1] = $r;
 		$args[-1] = $r;
 		$ameta[-1][0] = $l;
-		$chainflags[-1][length($chainflags[-1]) - 1] = $r;
-		$delindices[-1][length($delindices[-1]) - 1] = $l;
+		$chainflags[-1][scalar(@{$chainflags[-1]}) - 1] = $r;
+		$delindices[-1][scalar(@{$delindices[-1]}) - 1] = $l;
 	}
 
 	# Store used flags for later lookup.

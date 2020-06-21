@@ -270,6 +270,15 @@ for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-i
 		echo -e "\033[1m[Testing Completion Script]\033[0m [script=\033[1;32m$(basename -- "$script")\033[0m, override=$OVERRIDE]"
 	fi
 
+	# [test-suite: testapp]
+	xtest contains "testapp --test=\"\" " "format"
+	xtest contains "testapp --test \"\" " "format"
+	xtest contains "testapp --test=\"\" for" "format"
+	xtest contains "testapp --test \"\" for" "format"
+	xtest contains "testapp --help \"\" for" "format"
+	xtest contains "testapp --help for" "format"
+	xtest omits "testapp --version for" "format"
+
 	# [test-suite: nodecliac]
 	xtest contains "nodecliac " "uninstall"
 	# xtest match "nodecliac --nonexistantflag " ""

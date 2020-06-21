@@ -2,7 +2,7 @@ from ../helpers/tree_add import add
 from ../helpers/types import State, Node, node
 import ../helpers/[error, validate, forward, rollback]
 from ../helpers/charsets import C_NL, C_SPACES, C_LETTERS, C_QUOTES,
-    C_FLG_IDENT
+    C_FLG_IDENT, C_KW_ALL, C_KD_STR
 
 # ------------------------------------------------------------ Parsing Breakdown
 # --flag
@@ -70,7 +70,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 let keyword = text[S.i .. endpoint]
 
                 # Keyword must be allowed.
-                if keyword notin ["default", "filedir"]: error(S, currentSourcePath)
+                if keyword notin C_KW_ALL: error(S, currentSourcePath)
                 N.keyword.start = S.i
                 N.keyword.`end` = endpoint
                 N.keyword.value = keyword
@@ -160,7 +160,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
 
             of "wsb-prevalue":
                 if `char` notin C_SPACES:
-                    let keyword = N.keyword.value != "filedir"
+                    let keyword = N.keyword.value notin C_KD_STR
                     if `char` == '|' and keyword: state = "pipe-delimiter"
                     elif `char` == ',': state = "delimiter"
                     else: state = "value"
@@ -179,7 +179,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     N.value.`end` = S.i
                     N.value.value = $`char`
                 else:
-                    if `char` == '|' and N.keyword.value != "filedir" and pchar != '\\':
+                    if `char` == '|' and N.keyword.value notin C_KD_STR and pchar != '\\':
                         state = "pipe-delimiter"
                         rollback(S)
                     else:

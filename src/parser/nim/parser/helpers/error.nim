@@ -20,7 +20,8 @@ var errors = {
     "close_brace": tb,
     "brace_checks": tb,
     "template_string": tb,
-    "validate": tb
+    "validate": tb,
+    "vcontext": tb
 }.toTable
 errors["*"][0] = "Syntax: Unexpected character"
 errors["index"][10] = "Illegal start-of-line character"
@@ -36,8 +37,11 @@ errors["validate"][10] = "Improperly quoted string"
 errors["validate"][11] = "String cannot be empty"
 errors["validate"][12] = "Undefined variable"
 errors["validate"][13] = "Illegal command-flag syntax"
-errors["validate"][14] = "Useless comma delimiter"
+errors["validate"][14] = "Useless delimiter"
 errors["validate"][15] = "Illegal list syntax"
+errors["vcontext"][14] = "Useless delimiter"
+errors["vcontext"][16] = "Missing flag conditions"
+errors["vcontext"][17] = "Unclosed brace"
 
 # Print error and kill process.
 #

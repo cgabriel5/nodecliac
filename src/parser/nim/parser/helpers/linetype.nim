@@ -1,7 +1,7 @@
 from tables import toTable, hasKey, `[]`, `$`
 
 from ../helpers/types import State
-from charsets import C_LETTERS, C_SPACES
+from charsets import C_LETTERS, C_SPACES, C_KW_ALL
 
 # Determine line's line type.
 #
@@ -30,6 +30,6 @@ proc linetype*(S: State, `char`, nchar: char): string =
         if nchar != '\0' and nchar in C_SPACES: line_type = "option"
     elif line_type == "command":
         let keyword = text[S.i .. S.i + 6]
-        if keyword in ["default", "filedir"]: line_type = "flag"
+        if keyword in C_KW_ALL: line_type = "flag"
 
     return line_type

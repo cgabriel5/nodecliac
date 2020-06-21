@@ -1,10 +1,11 @@
 from re import re
-from strutils import join, find, strip, startsWith
-from tables import toTable, hasKey, initTable, `[]=`, `[]`, `$`
+from strutils import join, strip, startsWith
+from tables import `[]=`, `[]`, hasKey, OrderedTableRef, pairs
 
-import error
+import error, vcontext
 from types import State, Node, Branch
-from charsets import C_QUOTES, C_SPACES
+from charsets import C_QUOTES, C_SPACES, C_CTX_ALL, C_CTX_MUT,
+    C_CTX_FLG, C_CTX_CON, C_LETTERS, C_CTX_CAT, C_CTX_OPS
 from ../../utils/regex import findAllBounds
 let r = re"(?<!\\)\$\{\s*[^}]*\s*\}"
 
@@ -66,6 +67,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
 
             # Interpolate variables.
             var bounds = findAllBounds(value, r)
+            var vindices = OrderedTableRef[int, tuple[ind, sl: int]]()
             if bounds.len > 0:
                 var action = S.args.action
                 let vars = S.tables.variables
@@ -82,6 +84,16 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                         sub = vars[rp]
                     else: sub = "${" & rp & "}"
                     value[bound.first .. bound.last] = sub
+
+                    # Calculate variable indices.
+                    let sl = sub.len
+                    let vl = (bound.last - bound.first) + 1
+                    let dt = sl - vl
+                    vindices[bound.first] = (ind: if sl > vl: dt * -1 else: abs(dt), sl: sl)
+
+            # Validate context string.
+            if N.node == "FLAG" and N.keyword.value == "context":
+                value = vcontext(S, value, vindices, resumepoint)
 
             N.args = @[value]
             N.value.value = value

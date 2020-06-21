@@ -3,9 +3,9 @@ from algorithm import sort
 from sequtils import insert
 from unicode import toLower
 from re import re, split, replace
-from strutils import join, endsWith
+from strutils import join, endsWith, strip
 from times import format, getTime, toUnix
-from sets import HashSet, initHashSet, incl, excl, toHashSet, contains, len, items
+from sets import HashSet, OrderedSet, initHashSet, incl, excl, toHashSet, contains, len, items
 from tables import Table, initTable, initOrderedTable, `[]=`, toTable, hasKey, len, del, `$`
 
 from ../helpers/types import State, Node
@@ -20,6 +20,7 @@ proc acdef*(S: State, cmdname: string): tuple =
     var oGroups = initTable[int, Table[string, seq[Node]]]()
     var oDefaults = initTable[string, string]()
     var oFiledirs = initTable[string, string]()
+    var oContexts = initTable[string, string]()
     var oSettings = initOrderedTable[string, string]()
     var settings_count = 0
     var oPlaceholders = initTable[string, string]()
@@ -30,6 +31,7 @@ proc acdef*(S: State, cmdname: string): tuple =
     var config = ""
     var defaults = ""
     var filedirs = ""
+    var contexts = ""
     var has_root = false
 
     # Escape '+' chars in commands.
@@ -214,6 +216,7 @@ proc acdef*(S: State, cmdname: string): tuple =
         var fxN = group["flags"]
         var queue_defs: HashSet[string]
         var queue_fdir: HashSet[string]
+        var queue_ctxs: OrderedSet[string]
         var queue_flags: HashSet[string]
 
         for fN in fxN:
@@ -225,6 +228,8 @@ proc acdef*(S: State, cmdname: string): tuple =
                 let value = fN.value.value
                 if keyword == "default": queue_defs.incl(value)
                 elif keyword == "filedir": queue_fdir.incl(value)
+                elif keyword == "context":
+                    queue_ctxs.incl(value.strip(chars={'"', '\''}))
                 continue # defaults don't need to be added to Sets.
 
             let aval = fN.assignment.value
@@ -252,6 +257,9 @@ proc acdef*(S: State, cmdname: string): tuple =
             for item in queue_flags.items: oSets[value].incl(item)
             for item in queue_defs.items: oDefaults[value] = item
             for item in queue_fdir.items: oFiledirs[value] = item
+            for item in queue_ctxs.items:
+                if oContexts.hasKey(value): oContexts[value] &= ";" & item
+                else: oContexts[value] = item
 
     # Generate acdef.
 
@@ -307,6 +315,17 @@ proc acdef*(S: State, cmdname: string): tuple =
         if i != fl: filedirs &= "\n"
     if filedirs != "": filedirs = "\n\n" & filedirs
 
+    # Build contexts contents.
+    var ctxlist: seq[string] = @[]
+    for context in oContexts.keys:
+        ctxlist.add(context)
+    let ctxs = mapsort(ctxlist, asort, "aobj")
+    let cl = ctxs.high
+    for i, c in ctxs:
+        contexts &= rm_fcmd(c) & " context \"" & oContexts[c] & "\""
+        if i != cl: contexts &= "\n"
+    if contexts != "": contexts = "\n\n" & contexts
+
     # Build settings contents.
     dec(settings_count)
     for setting in oSettings.keys:
@@ -325,6 +344,7 @@ proc acdef*(S: State, cmdname: string): tuple =
         config: string,
         keywords: string,
         filedirs: string,
+        contexts: string,
         formatted: string,
         placeholders: Table[string, string]
     ]
@@ -333,5 +353,6 @@ proc acdef*(S: State, cmdname: string): tuple =
     data.config = config
     data.keywords = defaults
     data.filedirs = filedirs
+    data.contexts = contexts
     data.placeholders = oPlaceholders
     result = data

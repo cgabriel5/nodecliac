@@ -483,7 +483,7 @@ sub __analyze {
 
 	# Store used flags for later lookup.
     @foundflags = @{$chainflags[-1]};
-    my @usedflags_meta = $delindices[-1];
+    my @usedflags_meta = @{$delindices[-1]};
     my $i = 0;
 	foreach my $uflag (@foundflags) {
 		my $uflag_fkey = $uflag;

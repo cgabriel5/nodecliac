@@ -1,0 +1,11 @@
+# This acmap multi-flags.
+
+program = [
+	--file=*
+	--file=
+
+	--flag=
+	--flag=*
+
+	--multi=*
+]

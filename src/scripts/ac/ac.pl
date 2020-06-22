@@ -373,16 +373,16 @@ sub __tokenize {
 # @return - Nothing is returned.
 sub __analyze {
 	my $l = $#args + 1;
-    my @cargs = ();
-    my @commands = ('');
-    my @chainstrings = (' ');
-    my @chainflags = (['']);
-    my @delindices = ([0]);
-    my @bounds = (0);
-    my $cmdend = 0;
-    my $aindex = 0;
-    my $start = 0;
-    my $end = 0;
+	my @cargs = ();
+	my @commands = ('');
+	my @chainstrings = (' ');
+	my @chainflags = (['']);
+	my @delindices = ([0]);
+	my @bounds = (0);
+	my $cmdend = 0;
+	my $aindex = 0;
+	my $start = 0;
+	my $end = 0;
 
 	for (my $i = 1; $i < $l; $i++) {
 		my $item = $args[$i];
@@ -392,81 +392,81 @@ sub __analyze {
 		if (substr($item, 0, 1) =~ tr/"'// || $item =~ tr/\\//) { push(@cargs, $item); next; }
 
 		if (rindex($item, '-', 0)) {
-            if (!$cmdend) {
-                my $command = __normalize_command($item);
-                my $chain = join('.', @commands) . '.' . $command;
-                if (rindex($chain, '.', 0) != 0) { $chain = '.' . $chain; }
+			if (!$cmdend) {
+				my $command = __normalize_command($item);
+				my $chain = join('.', @commands) . '.' . $command;
+				if (rindex($chain, '.', 0) != 0) { $chain = '.' . $chain; }
 
-                # [https://stackoverflow.com/a/87504]
-                my $pattern = '^' . quotemeta($chain) . '[^ ]* ';
-                $start = 0; $end = 0;
+				# [https://stackoverflow.com/a/87504]
+				my $pattern = '^' . quotemeta($chain) . '[^ ]* ';
+				$start = 0; $end = 0;
 				if ($acdef =~ /$pattern/m) {
 					$start = $-[0]; $end = $+[0]; }
-                if ($start) {
-                    push(@chainstrings, substr($acdef, $start, $end - $start));
-                    push(@chainflags, []);
-                    push(@delindices, []);
-                    push(@bounds, $start);
-                    push(@commands, $command);
-                    $aindex++;
-                } else {
-                    $cmdend = 1;
-                    push(@posargs, $item);
-                }
-            } else { push(@posargs, $item); }
+				if ($start) {
+					push(@chainstrings, substr($acdef, $start, $end - $start));
+					push(@chainflags, []);
+					push(@delindices, []);
+					push(@bounds, $start);
+					push(@commands, $command);
+					$aindex++;
+				} else {
+					$cmdend = 1;
+					push(@posargs, $item);
+				}
+			} else { push(@posargs, $item); }
 
-            push(@cargs, $item);
+			push(@cargs, $item);
 
-        } else {
-            if ($ameta[$i]->[0] > -1) {
-                push(@cargs, $item);
-                push(@{$chainflags[-1]}, $item);
-                push(@{$delindices[-1]}, $ameta[$i]->[0]);
-                next;
-	        }
+		} else {
+			if ($ameta[$i]->[0] > -1) {
+				push(@cargs, $item);
+				push(@{$chainflags[-1]}, $item);
+				push(@{$delindices[-1]}, $ameta[$i]->[0]);
+				next;
+			}
 
-            my $flag = __validate_flag($item);
-            my $pattern = '^' . quotemeta($chainstrings[-1]) . '(.+)$';
-            $start = 0; $end = 0;
-            pos($acdef) = $bounds[$aindex];
-            if ($acdef =~ /$pattern/m) { $start = $-[0]; $end = $+[0]; }
-            pos($acdef) = 0; # [https://stackoverflow.com/a/4587683]
-            my $row = substr($acdef, $start, $end - $start);
+			my $flag = __validate_flag($item);
+			my $pattern = '^' . quotemeta($chainstrings[-1]) . '(.+)$';
+			$start = 0; $end = 0;
+			pos($acdef) = $bounds[$aindex];
+			if ($acdef =~ /$pattern/m) { $start = $-[0]; $end = $+[0]; }
+			pos($acdef) = 0; # [https://stackoverflow.com/a/4587683]
+			my $row = substr($acdef, $start, $end - $start);
 
-            $pattern = $flag . '\?(\||$)';
-            if ($row =~ /$pattern/m) {
-                push(@cargs, $flag);
-                $ameta[$i]->[1] = 1;
-                push(@{$chainflags[-1]}, $flag);
-                push(@{$delindices[-1]}, $ameta[$i]->[0]);
+			$pattern = $flag . '\?(\||$)';
+			if ($row =~ /$pattern/m) {
+				push(@cargs, $flag);
+				$ameta[$i]->[1] = 1;
+				push(@{$chainflags[-1]}, $flag);
+				push(@{$delindices[-1]}, $ameta[$i]->[0]);
 
-            } else {
-                if ($nitem && rindex($nitem, '-', 0) != 0) {
-                    my $vitem = $flag . '=' . $nitem;
-                    push(@cargs, $vitem);
-                    push(@{$chainflags[-1]}, $vitem);
-                    $ameta[$i]->[0] = length($flag);
-                    push(@{$delindices[-1]}, $ameta[$i]->[0]);
-                    $i++;
-                } else {
-                    push(@cargs, $flag);
-                    push(@{$chainflags[-1]}, $flag);
-                    push(@{$delindices[-1]}, $ameta[$i]->[0]);
-                }
+			} else {
+				if ($nitem && rindex($nitem, '-', 0) != 0) {
+					my $vitem = $flag . '=' . $nitem;
+					push(@cargs, $vitem);
+					push(@{$chainflags[-1]}, $vitem);
+					$ameta[$i]->[0] = length($flag);
+					push(@{$delindices[-1]}, $ameta[$i]->[0]);
+					$i++;
+				} else {
+					push(@cargs, $flag);
+					push(@{$chainflags[-1]}, $flag);
+					push(@{$delindices[-1]}, $ameta[$i]->[0]);
+				}
 			}
 		}
 	}
 
-    # Set needed data: cc, pos args, last word, and found flags.
+	# Set needed data: cc, pos args, last word, and found flags.
 
-    $commandchain = __validate_command(join('.', @commands));
-    if (rindex($commandchain, '.', 0)) { $commandchain = '.' . $commandchain; }
-    if ($commandchain eq '.') { $commandchain = ''; }
+	$commandchain = __validate_command(join('.', @commands));
+	if (rindex($commandchain, '.', 0)) { $commandchain = '.' . $commandchain; }
+	if ($commandchain eq '.') { $commandchain = ''; }
 
-    if (@posargs) { $used_default_pa_args = join("\n", @posargs); }
+	if (@posargs) { $used_default_pa_args = join("\n", @posargs); }
 
-    $last = ($lastchar eq ' ') ? '' : $cargs[-1];
-    if (substr($last, 0, 1) =~ tr/"'//) { $isquoted = 1; }
+	$last = ($lastchar eq ' ') ? '' : $cargs[-1];
+	if (substr($last, 0, 1) =~ tr/"'//) { $isquoted = 1; }
 
 	# Handle case: 'nodecliac print --command [TAB]'
 	if ($last eq '' && @cargs && rindex($cargs[-1], '-', 0) == 0 &&
@@ -483,15 +483,15 @@ sub __analyze {
 	}
 
 	# Store used flags for later lookup.
-    @foundflags = @{$chainflags[-1]};
-    my @usedflags_meta = @{$delindices[-1]};
-    my $i = 0;
+	@foundflags = @{$chainflags[-1]};
+	my @usedflags_meta = @{$delindices[-1]};
+	my $i = 0;
 	foreach my $uflag (@foundflags) {
 		my $uflag_fkey = $uflag;
 		my $uflag_value = '';
 
 		my $eqsign_index = $usedflags_meta[$i];
-        if ($eqsign_index > -1) {
+		if ($eqsign_index > -1) {
 			my $eqsign_index = index($uflag, '=');
 			$uflag_fkey = substr($uflag, 0, $eqsign_index);
 			$uflag_value = substr($uflag, $eqsign_index + 1);

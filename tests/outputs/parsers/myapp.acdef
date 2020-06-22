@@ -1,4 +1,4 @@
- --file=|--file=index.js|--file=some-thing|--file=someother|--file=true|--file=value2|--help|--STRING|--verbose|--version|--Wno-strict-overflow=|--Wno-strict-overflow="str"|--Wno-strict-overflow="string \"string"|--Wno-strict-overflow="string"|--Wno-strict-overflow=1|--Wno-strict-overflow=2|--Wno-strict-overflow=25|--Wno-strict-overflow=5|--Wno-strict-overflow=7|--Wno-strict-overflow=false|--Wno-strict-overflow=string|-V
+ --file=*|--file=|--file=index.js|--file=some-thing|--file=someother|--file=true|--file=value2|--help|--STRING|--verbose|--version|--Wno-strict-overflow=|--Wno-strict-overflow="str"|--Wno-strict-overflow="string \"string"|--Wno-strict-overflow="string"|--Wno-strict-overflow=1|--Wno-strict-overflow=2|--Wno-strict-overflow=25|--Wno-strict-overflow=5|--Wno-strict-overflow=7|--Wno-strict-overflow=false|--Wno-strict-overflow=string|-V
 .command1 --
 .command1.command2 --
 .command1.command2.command3 --
@@ -7,7 +7,7 @@
 .command1.command2.command3.command4.command5.command6 --
 .command1.command2.command3.command4.command5.command6.command7 --
 .config --reset?
-.config.delete --center|--dir=|--file=|--file="string"|--file='string'|--file=12|--file=false|--file=index.js|--file=str|--file=string|--file=true|--file=value2|--first|--FLAG=|--FLAG=string.js|--last|--one-liner=|--one-liner="string"|--one-liner='string'|--one-liner=12|--one-liner=false|--one-liner=index.js|--one-liner=str|--one-liner=string|--one-liner=true|--one-liner=value2|--string=|--string=string|--version=|--version=12|--Wno-strict-overflow=|--Wno-strict-overflow=2|--Wno-strict-overflow=5|-v=|-v=false
+.config.delete --dir=*|--center|--dir=|--file=|--file="string"|--file='string'|--file=12|--file=false|--file=index.js|--file=str|--file=string|--file=true|--file=value2|--first|--FLAG=|--FLAG=string.js|--last|--one-liner=|--one-liner="string"|--one-liner='string'|--one-liner=12|--one-liner=false|--one-liner=index.js|--one-liner=str|--one-liner=string|--one-liner=true|--one-liner=value2|--string=|--string=string|--version=|--version=12|--Wno-strict-overflow=|--Wno-strict-overflow=2|--Wno-strict-overflow=5|-v=|-v=false
 .config.delete.setting --someflag=
 .config.dump --file|--last
 .config.noflags --

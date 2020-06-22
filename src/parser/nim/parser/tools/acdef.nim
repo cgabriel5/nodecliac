@@ -247,10 +247,18 @@ proc acdef*(S: State, cmdname: string): tuple =
                 for arg in args: queue_flags.incl(flag & aval & arg)
             else:
                 # Boolean flag...
-                var val = ""
-                if bval != "": val = "?"
-                elif aval != "": val = "="
-                queue_flags.incl(flag & val)
+                if bval != "": queue_flags.incl(flag & "?")
+                elif not ismulti:
+                    if aval != "": queue_flags.incl(flag & "=")
+                    else: queue_flags.incl(flag)
+                else:
+                    if not ismulti:
+                        if bval != "": queue_flags.incl(flag & "?")
+                        elif aval != "": queue_flags.incl(flag & "=")
+                        else: queue_flags.incl(flag)
+                    else:
+                        queue_flags.incl(flag & "=*")
+                        queue_flags.incl(flag & "=")
 
         for cN in cxN:
             let value = cN.command.value;

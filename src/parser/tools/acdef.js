@@ -265,9 +265,14 @@ module.exports = (S, cmdname) => {
 
 				args.forEach((arg) => queue_flags.add(flag + aval + arg));
 			} else {
-				// Boolean flag...
-				const val = bval ? "?" : aval ? "=" : "";
-				queue_flags.add(flag + val);
+				if (!ismulti) {
+					if (bval) queue_flags.add(flag + "?");
+					else if (aval) queue_flags.add(flag + "=");
+					else queue_flags.add(flag);
+				} else {
+					queue_flags.add(flag + "=*");
+					queue_flags.add(flag + "=");
+				}
 			}
 		}
 

@@ -328,6 +328,7 @@ case "$command" in
 			# Check if folder is a symlink.
 			type=$([ -L "$destination" ] && echo "Symlink " || echo "")
 			echo -e "$type\033[1m$dirname\033[0m/ exists. First remove and try again."
+			exit
 		fi
 
 		mkdir -p "$destination" # Create needed parent directories.
@@ -374,6 +375,7 @@ case "$command" in
 			# Check if folder is a symlink.
 			type=$([ -L "$destination" ] && echo "Symlink " || echo "")
 			echo -e "$type\033[1m$dirname\033[0m/ exists. First remove and try again."
+			exit
 		fi
 
 		ln -s "$cwd" "$destination" # Create symlink.

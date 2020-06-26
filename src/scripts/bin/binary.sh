@@ -26,6 +26,7 @@ command=""
 version=""
 ccache=""
 level=""
+force=""
 setlevel=0
 all=""
 
@@ -73,6 +74,9 @@ while (( "$#" )); do
 
 		# `remove|unlink|enable|disable` command flags.
 		--all) all="1"; shift ;;
+
+		# `add` command flags.
+		--force) force="1"; shift ;;
 
 		--) shift; break ;; # End argument parsing.
 		-*|--*=)
@@ -329,6 +333,20 @@ case "$command" in
 			type=$([ -L "$destination" ] && echo "Symlink " || echo "")
 			echo -e "$type\033[1m$dirname\033[0m/ exists. First remove and try again."
 			exit
+		fi
+
+		# Skip size check when --force is provided.
+		if [[ -z "$force" ]]; then
+			if [[ "$(platform)" == "macosx" ]]; then
+				# [https://serverfault.com/a/913506]
+				size=$(du -skL "$cwd" | grep -oE '[0-9]+' | head -n1)
+			else
+				# [https://stackoverflow.com/a/22295129]
+				size=$(du --apparent-size -skL "$cwd" | grep -oE '[0-9]+' | head -n1)
+			fi
+			# Anything larger than 10MB must be force added.
+			[[ -n "$(perl -e 'print int('"$size"') > 10000')" ]] &&
+			echo -e "\033[1m$dirname\033[0m/ exceeds 10MB. Use --force to add package anyway." && exit
 		fi
 
 		mkdir -p "$destination" # Create needed parent directories.

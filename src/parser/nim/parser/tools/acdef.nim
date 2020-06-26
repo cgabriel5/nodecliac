@@ -183,9 +183,8 @@ proc acdef*(S: State, cmdname: string): tuple =
 
             of "FLAG":
                 # Add values/arguments to delimited flags.
-                if N.delimiter.value != "":
-                    dN.add(N)
-                else:
+                if N.delimiter.value != "": dN.add(N)
+                elif N.keyword.value == "": # Skip/ignore keywords.
                     let args = N.args
                     let value = N.value.value
                     for i, tN in dN:

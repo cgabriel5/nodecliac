@@ -188,9 +188,9 @@ module.exports = (S, cmdname) => {
 
 			case "FLAG":
 				// Add values/arguments to delimited flags.
-				if (N.delimiter.value) {
-					dN.push(N);
-				} else {
+				if (N.delimiter.value) dN.push(N);
+				// Skip/ignore keywords.
+				else if (!N.keyword.value) {
 					let args = N.args;
 					let value = N.value.value;
 					for (let i = 0, l = dN.length; i < l; i++) {

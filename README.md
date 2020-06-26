@@ -793,7 +793,23 @@ program.uninstall
 <details>
   <summary>Flag variants</summary>
 
-#### Flags (user input)
+###### Types:
+
+- [Input](#flags-variant-input)
+- [Boolean](#flags-variant-boolean)
+- [Multi](#flags-variant-multi)
+- [Oneliner](#flags-variant-oneliner)
+- [Long Form](#flags-variant-long-form)
+- [Dynamic](#flags-variant-dynamic)
+
+###### Keywords:
+
+- [filedir](#flags-variant-filedir)
+- [context](#flags-variant-context)
+
+<a name="flags-variant-input"></a>
+
+#### Flags (input)
 
 - If flag requires user input append `=` to the flag.
 
@@ -802,6 +818,8 @@ program.command = [
   --flag=
 ]
 ```
+
+<a name="flags-variant-boolean"></a>
 
 #### Flags (boolean)
 
@@ -812,6 +830,8 @@ program.command = [
   --flag?
 ]
 ```
+
+<a name="flags-variant-multi"></a>
 
 #### Flags (multi-flag)
 
@@ -828,11 +848,13 @@ program.command = [
 ]
 ```
 
+<a name="flags-variant-oneliner"></a>
+
 #### Flags (one liner)
 
 - This method should be used when the flag value list can be kept to a single line.
 - **Note**: Values must be delimited with spaces.
-- **Note**: When a flag has many values a [long form list](#flags-long-form) should be used for clarities sake.
+- **Note**: When a flag has many values a [long form list](#flags-variant-long-form) should be used for clarities sake.
 
 ```acmap
 program.command = [
@@ -845,7 +867,7 @@ program.command = [
 ]
 ```
 
-<a name="flags-long-form"></a>
+<a name="flags-variant-long-form"></a>
 
 #### Flags (long form)
 
@@ -874,6 +896,8 @@ program.command = [
 ]
 program.uninstall
 ```
+
+<a name="flags-variant-dynamic"></a>
 
 #### Flags (dynamic values)
 
@@ -927,7 +951,9 @@ program.command = [
 program.uninstall
 ```
 
-#### Flags (filedir)
+<a name="flags-variant-filedir"></a>
+
+#### Keyword (filedir)
 
 When no completion items are found bash-completion's `_filedir` function is used as a fallback. `_filedir` performs file/directory completion. By default it returns both file and directory names. However, this can be controlled to only return directory names or files of certain types.
 
@@ -950,6 +976,171 @@ program.command = [
 - If a command uses `filedir` use that.
 - If not, look for `@filedir` setting.
 - If neither are provided all files/directories are returned (_no filtering_).
+
+<a name="flags-variant-context"></a>
+
+#### Keyword (context)
+
+The `context` keyword provides the ability to disable flags and deal with mutual flag exclusivity.
+
+- Start by using the keyword `context` followed by a whitespace character.
+- Follow that with a string:
+  - **Conditional Example**: `context "!help: #fge0"`
+  - **Mutual Exclusivity Example**: `context "{ json | yaml | csv }`
+
+#### Context String (conditional):
+
+Conditional context strings have their own grammar: `"<flag1, flagN> : <condition1, conditionN>"`. If each `<condition>` results in `true` the `<flags>` are enabled/disabled.
+
+##### Flag grammar
+
+- A flag is represented without the hyphens.
+  - For the flag `--help` it would just be `help`.
+- If the flag needs to be disabled, prepend a `!`.
+  - Example: `help` (If conditions are `true` flag will be _enabled_)
+  - Example: `!help` (If conditions are `true` flag will be _disabled_)
+
+##### Condition grammar
+
+- Check against flag/positional arguments:
+  - Format: `# + (f)lag|(a)rgument + operator + number`
+  - Example (flag check): `#fge0`
+  - Example (argument check): `#age0`
+- Operators:
+  - `eq`: Equal to
+  - `ne`: Not equal to
+  - `gt`: Greater than
+  - `ge`: Greater than or equal to
+  - `lt`: Less than
+  - `le`: Less than or equal to
+- Number:
+  - Must be a positive number.
+
+###### Example 1
+
+Disable `help` and `version` flags when used flag count is greater or equal to 0.
+
+```acmap
+program.command = [
+  --help?
+  --version?
+  context "!help, !version: #fge0"
+]
+```
+
+###### Example 2
+
+Disable `help` flag when the used flag count is greater or equal to 0 and version flag is used.
+
+```acmap
+program.command = [
+  --help?
+  --version?
+  context "!help: #fge0, version"
+]
+```
+
+#### Context String (mutual exclusivity):
+
+Mutual exclusivity is represented like so: `"{ flag1 | flagN }"`. Once a grouped flag is used the other(s) are disabled.
+
+###### Example 1
+
+For example, say the `--json`, `--csv`, and `--text` flags are allowed but the `--json` flag is used. The remaining flags `--text` and `--csv` won't be shown as completion items.
+
+```acmap
+program.command = [
+  --json=,
+  --csv=,
+  --text=(false true)
+  context "{ json | csv | text }"
+]
+```
+
+###### Example 2
+
+In this example, once `--follow` or `--tail` is used the other flag will be disabled.
+
+```acmap
+program.command = [
+  --follow=,
+  --tail=(false true)
+  context "{follow | tail}"
+]
+```
+
+This is equivalent to the previous example.
+
+```acmap
+program.command = [
+  --follow=,
+  --tail=(false true)
+  context "!follow: tail"
+  context "!tail: follow"
+]
+```
+
+#### Combine Context Strings
+
+Context strings can be combined but for maintainability it's better to separate them.
+
+###### Example 1: Separate Context Strings
+
+```acmap
+program.command = [
+  --help?
+  --version?
+  context "!help, !version: #fge0"
+
+  --json=,
+  --csv=,
+  --text=(false true)
+  context "{ json | csv | text }"
+
+  --follow=,
+  --tail=(false true)
+  context "{follow | tail}"
+
+  --hours=
+  --minutes=
+  --seconds=
+  --service=
+
+  --job-id=
+  --target=
+  context "{ job-id | target }"
+]
+```
+
+###### Example 1: Combined Context Strings
+
+Context strings can be combined by delimiting them with `;`.
+
+```acmap
+program.command = [
+  --help?
+  --version?
+
+  --json=,
+  --csv=,
+  --text=(false true)
+
+  --follow=,
+  --tail=(false true)
+
+  --hours=
+  --minutes=
+  --seconds=
+  --service=
+
+  --job-id=
+  --target=
+
+  context "!help, !version: #fge0; { json | csv | text }; { follow | tail }; { job-id | target }"
+]
+```
+
+**Note**: Context strings are evaluated on every completion cycle. Therefore, using too many may slow down the 'perceived completion feel' as it takes time to evaluate all provided contexts.
 
 </details>
 

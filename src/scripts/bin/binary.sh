@@ -333,7 +333,7 @@ case "$command" in
 		mkdir -p "$destination" # Create needed parent directories.
 
 		# [https://stackoverflow.com/a/14922600]
-		cp -r "$cwd" "$destination" # Copy folder to nodecliac registry.
+		cp -r "$cwd" "$registrypath" # Copy folder to nodecliac registry.
 
 		;;
 

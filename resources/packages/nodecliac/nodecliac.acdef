@@ -1,7 +1,7 @@
-# DON'T EDIT FILE —— GENERATED: Wed Jun 24 2020 11:35:42 (1593023742)
+# DON'T EDIT FILE —— GENERATED: Fri Jun 26 2020 08:41:45 (1593186105)
 
  --version?
-.add --
+.add --force?
 .cache --clear?|--level=|--level=0|--level=1|--level=2
 .disable --all
 .enable --all

@@ -14,7 +14,7 @@ nodecliac.registry
 nodecliac.print = --command=$('${commands}')
 
 # Package commands:
-nodecliac.add
+nodecliac.add = --force?
 nodecliac.link
 nodecliac.remove,
 nodecliac.unlink,

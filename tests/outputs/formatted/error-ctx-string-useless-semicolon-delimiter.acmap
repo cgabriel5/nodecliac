@@ -1,1 +1,11 @@
-[err vcontext,14] ...tests/acmaps/error-ctx-string-useless-semicolon-delimiter-t.acmap:9:11 — Useless delimiter
+# This acmap tests a context string.
+
+program = [
+	--version?
+	--help?
+
+	# The following flag is used to test the context string.
+	--test
+	context ";!flag1, flag2, flag3: #fge0, #alt100, !flag   ; flag;     { a} ;{flag1 | flag2 | flag-3};{b}       "
+	# -------^
+]

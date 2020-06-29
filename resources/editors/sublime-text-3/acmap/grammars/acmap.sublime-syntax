@@ -169,7 +169,7 @@ contexts:
         - include: strings
 
   command:
-    - match: "^\\s*(?=\\.?[a-zA-Z])"
+    - match: "^\\s*(?=(\\.?[a-zA-Z])|\\*)"
       push:
         - meta_scope: entity.other.command.acmap # **italicize
         - meta_include_prototype: false
@@ -184,6 +184,9 @@ contexts:
           captures:
             2: punctuation.accessor.dot.acmap # **purple
             3: punctuation.accessor.forward-slash.acmap # **purple
+        - match: "(\\*)\\s*(?==)"
+          captures:
+              1: entity.command.wildcard.acmap # **purple
         - match: "[^-_+:/a-zA-Z0-9]"
           scope: invalid.illegal.acmap
 
@@ -221,7 +224,7 @@ contexts:
         - include: default
 
   flag-oneliner:
-    - match: "( |(=)\\s*)(?=(--?|\"|'|default|filedir|context))"
+    - match: "( |(=)\\s*)(?=(--?|\"|'|default|filedir|context|exclude))"
       captures:
         2: keyword.operator.assignment.acmap
       push:
@@ -253,7 +256,7 @@ contexts:
         3: constant.numeric.acmap
 
   keywords:
-    - match: "(default|filedir|context)([ \t]{1,})"
+    - match: "(default|filedir|context|exclude)([ \t]{1,})"
       captures:
         1: keyword.control.default.acmap
     - include: command-string

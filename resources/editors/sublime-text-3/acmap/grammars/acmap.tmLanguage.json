@@ -289,7 +289,7 @@
 			}
 		},
 		"command": {
-			"begin": "^\\s*(?=\\.?[a-zA-Z])",
+			"begin": "^\\s*(?=(\\.?[a-zA-Z])|\\*)",
 			"contentName": "entity.other.command.acmap",
 			"patterns": [
 				{
@@ -304,6 +304,15 @@
 						},
 						"3": {
 							"name": "punctuation.accessor.forward-slash.acmap"
+						}
+					}
+				},
+				{
+					"match": "(\\*)\\s*(?==)",
+					"name": "",
+					"captures": {
+						"1": {
+							"name": "entity.command.wildcard.acmap"
 						}
 					}
 				},
@@ -394,7 +403,7 @@
 			]
 		},
 		"flag-oneliner": {
-			"begin": "( |(=)\\\\s*)(?=(--?|\"|'|default|filedir|context))",
+			"begin": "( |(=)\\s*)(?=(--?|\"|'|default|filedir|context|exclude))",
 			"beginCaptures": {
 				"2": {
 					"name": "keyword.operator.assignment.acmap"
@@ -465,7 +474,7 @@
 		"keywords": {
 			"patterns": [
 				{
-					"match": "(default|filedir|context)([\\x{0020}\\t]{1,})",
+					"match": "(default|filedir|context|exclude)([\\x{0020}\\t]{1,})",
 					"name": "",
 					"captures": {
 						"1": {

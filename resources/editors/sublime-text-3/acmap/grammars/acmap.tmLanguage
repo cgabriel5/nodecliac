@@ -609,7 +609,7 @@
 			<key>command</key>
 			<dict>
 				<key>begin</key>
-				<string>^\s*(?=\.?[a-zA-Z])</string>
+				<string>^\s*(?=(\.?[a-zA-Z])|\*)</string>
 
 				<key>contentName</key>
 				<string>entity.other.command.acmap</string> <!-- **italicize -->
@@ -639,6 +639,22 @@
 							<dict>
 								<key>name</key>
 								<string>punctuation.accessor.forward-slash.acmap</string> <!-- **purple -->
+							</dict>
+						</dict>
+					</dict>
+					<dict>
+						<key>match</key>
+						<string>(\*)\s*(?==)</string>
+
+						<key>name</key>
+						<string></string>
+
+						<key>captures</key>
+						<dict>
+							<key>1</key>
+							<dict>
+								<key>name</key>
+								<string>entity.command.wildcard.acmap</string> <!-- **purple -->
 							</dict>
 						</dict>
 					</dict>
@@ -803,7 +819,7 @@
 			<key>flag-oneliner</key>
 			<dict>
 				<key>begin</key>
-				<string>( |(=)\\s*)(?=(--?|"|'|default|filedir|context))</string>
+				<string>( |(=)\s*)(?=(--?|"|'|default|filedir|context|exclude))</string>
 
 				<key>beginCaptures</key>
 				<dict>
@@ -933,7 +949,7 @@
 				<array>
 					<dict>
 						<key>match</key>
-						<string>(default|filedir|context)([\x{0020}\t]{1,})</string> <!-- Space char = '\x{0020}' -->
+						<string>(default|filedir|context|exclude)([\x{0020}\t]{1,})</string> <!-- Space char = '\x{0020}' -->
 
 						<key>name</key>
 						<string></string>

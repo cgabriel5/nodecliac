@@ -1,0 +1,12 @@
+# This acmap tests keyword values.
+
+* = [
+	--help?
+	context "!help: #fge1"
+	default $('command')
+	default 'command'
+	default invalid
+	# ------^ Value must be quoted.
+	filedir "@(ext)"
+	exclude "program"
+]

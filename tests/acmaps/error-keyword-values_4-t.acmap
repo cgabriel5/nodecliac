@@ -1,0 +1,7 @@
+# This acmap tests invalid use of exclude keyword.
+
+program = [
+	--help?
+	exclude "program"
+#   ^ Not allowed in a non-wildcard block.
+]

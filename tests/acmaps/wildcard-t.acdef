@@ -1,3 +1,5 @@
+# DON'T EDIT FILE —— GENERATED: Sun Jun 28 2020 23:36:25 (1593412585)
+
  --email|--env?|--password|--username|--version?
 .certs --down-stream=|--lets-encrypt=|--lets-encrypt=false|--lets-encrypt=true|--resolve=|--resolve=false|--resolve=true|--self-signed=|--self-signed=false|--self-signed=true
 .certs.create --down-stream=|--help?|--lets-encrypt=|--lets-encrypt=false|--lets-encrypt=true|--resolve=|--resolve=false|--resolve=true|--self-signed=|--self-signed=false|--self-signed=true

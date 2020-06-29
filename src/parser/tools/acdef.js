@@ -266,8 +266,7 @@ module.exports = (S, cmdname) => {
 				if (keyword === "default") queue_defs.add(value);
 				else if (keyword === "filedir") queue_fdir.add(value);
 				else if (keyword == "context") {
-					// queue_ctxs.has(value.slice(1, -1));
-					queue_ctxs.add(value);
+					queue_ctxs.add(value.slice(1, -1));
 				}
 				continue; // defaults don't need to be added to Sets.
 			}

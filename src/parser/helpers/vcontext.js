@@ -97,6 +97,7 @@ module.exports = (S, value, vindices, resumepoint) => {
 
 	let argument = "";
 	let args = [];
+	let qchar = value.charAt(0);
 	let i = 1; // Account for '"'.
 	let del_semicolon = [];
 	let aindices = [];
@@ -506,5 +507,5 @@ module.exports = (S, value, vindices, resumepoint) => {
 		}
 	}
 
-	return values.join(";");
+	return qchar + values.join(";") + qchar;
 };

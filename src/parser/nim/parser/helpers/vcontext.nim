@@ -51,6 +51,7 @@ proc vcontext*(S: State, value: string = "",
 
     var argument = ""
     var args: seq[string] = @[]
+    let qchar = value[0]
     var i = 1 # Account for '"'.
     var del_semicolon: seq[int] = @[]
     var aindices: seq[int] = @[]
@@ -339,4 +340,4 @@ proc vcontext*(S: State, value: string = "",
                     val &= ":" & cconds.join(",")
                 values.add(val)
 
-    result = values.join(";")
+    result = qchar & values.join(";") & qchar

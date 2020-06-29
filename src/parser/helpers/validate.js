@@ -98,7 +98,11 @@ let validate = (S, N, type) => {
 				});
 
 				// Validate context string.
-				if (N.node === "FLAG" && N.keyword.value === "context") {
+				if (
+					S.args.action !== "format" &&
+					N.node === "FLAG" &&
+					N.keyword.value === "context"
+				) {
 					value = vcontext(S, value, vindices, resumepoint);
 				}
 

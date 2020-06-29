@@ -92,7 +92,8 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                     vindices[bound.first] = (ind: if sl > vl: dt * -1 else: abs(dt), sl: sl)
 
             # Validate context string.
-            if N.node == "FLAG" and N.keyword.value == "context":
+            if S.args.action != "format" and N.node == "FLAG" and
+                N.keyword.value == "context":
                 value = vcontext(S, value, vindices, resumepoint)
 
             N.args = @[value]

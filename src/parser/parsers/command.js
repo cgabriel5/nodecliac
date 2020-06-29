@@ -57,9 +57,7 @@ module.exports = (S) => {
 		switch (state) {
 			case "command":
 				if (!N.command.value) {
-					if (cnotin(C_CMD_IDENT_START, char)) {
-						error(S, __filename);
-					}
+					if (cnotin(C_CMD_IDENT_START, char)) error(S, __filename);
 
 					N.command.start = N.command.end = S.i;
 					N.command.value += char;

@@ -24,13 +24,21 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
 
     # If validating a keyword there must be a value.
     if N.node == "FLAG" and N.keyword.value != "":
-    # if N.keyword and N.keyword.value != "":
+        let kw = N.keyword.value
+        let ls = S.tables.linestarts[S.line]
+        # Check for misused exclude.
+        let sc = S.scopes.command
+        if sc.node != "":
+            if kw == "exclude" and sc.command.value != "*":
+                S.column = N.keyword.start - ls
+                inc(S.column) # Add 1 to account for 0 base indexing.
+                error(S, currentSourcePath, 17)
+
         if value == "":
             S.column = N.keyword.`end` - S.tables.linestarts[S.line]
             inc(S.column) # Add 1 to account for 0 base indexing.
             error(S, currentSourcePath, 16)
 
-        let kw = N.keyword.value
         let C = if kw == "default": C_QUOTES + {'$'} else: C_QUOTES
         # context, filedir, exclude must have quoted string values.
         if value[0] notin C:

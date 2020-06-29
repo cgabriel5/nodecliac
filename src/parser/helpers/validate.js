@@ -21,13 +21,24 @@ let validate = (S, N, type) => {
 
 	// If validating a keyword there must be a value.
 	if (N.node === "FLAG" && N.keyword.value) {
+		let kw = N.keyword.value;
+		let ls = S.tables.linestarts[S.line];
+		// Check for misused exclude.
+		let sc = S.scopes.command;
+		if (sc) {
+			if (kw === "exclude" && sc.command.value !== "*") {
+				S.column = N.keyword.start - ls;
+				S.column++; // Add 1 to account for 0 base indexing.
+				error(S, __filename, 17);
+			}
+		}
+
 		if (!value) {
-			S.column = N.keyword.end - S.tables.linestarts[S.line];
+			S.column = N.keyword.end - ls;
 			S.column++; // Add 1 to account for 0 base indexing.
 			error(S, __filename, 16);
 		}
 
-		let kw = N.keyword.value;
 		let C = kw === "default" ? new Set([...C_QUOTES, "$"]) : C_QUOTES;
 		// context, filedir, exclude must have quoted string values.
 		if (cnotin(C, value.charAt(0))) {

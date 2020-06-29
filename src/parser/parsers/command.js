@@ -61,6 +61,9 @@ module.exports = (S) => {
 
 					N.command.start = N.command.end = S.i;
 					N.command.value += char;
+
+					// Once a wildcard (all) char is found change state.
+					if (char === "*") state = "chain-wsb";
 				} else {
 					if (cin(C_CMD_IDENT, char)) {
 						N.command.end = S.i;

@@ -140,6 +140,9 @@ module.exports = (S, cmdname) => {
 	let rN = {}; // Reference node.
 	let dN = []; // Delimited flag nodes.
 	let xN = S.tables.tree.nodes;
+	let wildcard = false;
+	let wc_flg = [];
+	let wc_exc = new Set();
 	const ftypes = new Set(["FLAG", "OPTION"]);
 	const types = new Set(["SETTING", "COMMAND", "FLAG", "OPTION"]);
 	for (let i = 0, l = xN.length; i < l; i++) {
@@ -161,6 +164,12 @@ module.exports = (S, cmdname) => {
 
 		switch (type) {
 			case "COMMAND": {
+				// Handle wildcard node.
+				if (N.command.value === "*") {
+					wildcard = true;
+					continue;
+				} else wildcard = false;
+
 				// Store command in current group.
 				if (!oGroups[count]) {
 					oGroups[count] = { commands: [N], flags: [] };
@@ -187,10 +196,20 @@ module.exports = (S, cmdname) => {
 			}
 
 			case "FLAG":
+				let keyword = N.keyword.value;
+
+				// Handle wildcard flags.
+				if (wildcard) {
+					if (keyword === "exclude") {
+						wc_exc.add(N.value.value.slice(1, -1));
+					} else wc_flg.push(N);
+					continue;
+				}
+
 				// Add values/arguments to delimited flags.
 				if (N.delimiter.value) dN.push(N);
 				// Skip/ignore keywords.
-				else if (!N.keyword.value) {
+				else if (!keyword) {
 					let args = N.args;
 					let value = N.value.value;
 					for (let i = 0, l = dN.length; i < l; i++) {
@@ -225,15 +244,17 @@ module.exports = (S, cmdname) => {
 
 	// Populate Sets.
 
-	for (let i in oGroups) {
-		if (!hasProp(oGroups, i)) continue;
-
-		let { commands: cxN, flags: fxN } = oGroups[i];
-		let queue_defs = new Set();
-		let queue_fdir = new Set();
-		let queue_ctxs = new Set();
-		let queue_flags = new Set();
-
+	/**
+	 * Add flags, keywords to respective containers.
+	 *
+	 * @param  {array} fxN - The flag nodes.
+	 * @param  {set} queue_defs - The defaults container.
+	 * @param  {set} queue_fdir - The filedirs container.
+	 * @param  {set} queue_ctxs - The contexts container.
+	 * @param  {set} queue_flags - The flags container.
+	 * @return {undefined} - Nothing is returned.
+	 */
+	let queues = (fxN, queue_defs, queue_fdir, queue_ctxs, queue_flags) => {
 		for (let i = 0, l = fxN.length; i < l; i++) {
 			let fN = fxN[i];
 			let { args } = fN;
@@ -275,9 +296,26 @@ module.exports = (S, cmdname) => {
 				}
 			}
 		}
+	};
 
+	for (let i in oGroups) {
+		if (!hasProp(oGroups, i)) continue;
+
+		let { commands: cxN, flags: fxN } = oGroups[i];
+		let queue_defs = new Set();
+		let queue_fdir = new Set();
+		let queue_ctxs = new Set();
+		let queue_flags = new Set();
+
+		queues(fxN, queue_defs, queue_fdir, queue_ctxs, queue_flags);
+
+		let a = [wc_flg, queue_defs, queue_fdir, queue_ctxs, queue_flags];
 		for (let i = 0, l = cxN.length; i < l; i++) {
 			let value = cxN[i].command.value;
+
+			// Add wildcard flags.
+			if (wc_flg.length && !wc_exc.has(value)) queues.apply(null, a);
+
 			for (let item of queue_flags) oSets[value].add(item);
 			for (let item of queue_defs) oDefaults[value] = item;
 			for (let item of queue_fdir) oFiledirs[value] = item;

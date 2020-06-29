@@ -5,7 +5,7 @@ from unicode import toLower
 from re import re, split, replace
 from strutils import join, endsWith, strip
 from times import format, getTime, toUnix
-from sets import HashSet, OrderedSet, initHashSet, incl, excl, toHashSet, contains, len, items
+from sets import HashSet, OrderedSet, initHashSet, incl, excl, toHashSet, contains, len, items, `$`
 from tables import Table, initTable, initOrderedTable, `[]=`, toTable, hasKey, len, del, `$`
 
 from ../helpers/types import State, Node
@@ -138,6 +138,9 @@ proc acdef*(S: State, cmdname: string): tuple =
     var rN: Node # Reference node.
     var dN: seq[Node] = @[] # Delimited flag nodes.
     var xN = S.tables.tree["nodes"]
+    var wildcard = false
+    var wc_flg: seq[Node] = @[]
+    var wc_exc = initHashSet[string]()
     const ftypes = toHashSet(["FLAG", "OPTION"])
     const types = toHashSet(["SETTING", "COMMAND", "FLAG", "OPTION"])
 
@@ -158,6 +161,13 @@ proc acdef*(S: State, cmdname: string): tuple =
 
         case (`type`):
             of "COMMAND":
+
+                # Handle wildcard node.
+                if N.command.value == "*":
+                    wildcard = true
+                    inc(i); continue
+                else: wildcard = false
+
                 # Store command in current group.
                 if not oGroups.hasKey(count):
                     oGroups[count] = {"commands": @[N], "flags": @[]}.toTable
@@ -182,9 +192,17 @@ proc acdef*(S: State, cmdname: string): tuple =
                 rN = N # Store reference to node.
 
             of "FLAG":
+                let keyword = N.keyword.value
+
+                # Handle wildcard flags.
+                if wildcard:
+                    if keyword == "exclude": wc_exc.incl(N.value.value[1 .. ^2])
+                    else: wc_flg.add(N)
+                    inc(i); continue
+
                 # Add values/arguments to delimited flags.
                 if N.delimiter.value != "": dN.add(N)
-                elif N.keyword.value == "": # Skip/ignore keywords.
+                elif keyword == "": # Skip/ignore keywords.
                     let args = N.args
                     let value = N.value.value
                     for i, tN in dN:
@@ -210,14 +228,17 @@ proc acdef*(S: State, cmdname: string): tuple =
 
     # Populate Sets.
 
-    for i, group in oGroups.pairs:
-        var cxN = group["commands"]
-        var fxN = group["flags"]
-        var queue_defs: HashSet[string]
-        var queue_fdir: HashSet[string]
-        var queue_ctxs: OrderedSet[string]
-        var queue_flags: HashSet[string]
-
+    # Add flags, keywords to respective containers.
+    #
+    # @param  {array} fxN - The flag nodes.
+    # @param  {set} queue_defs - The defaults container.
+    # @param  {set} queue_fdir - The filedirs container.
+    # @param  {set} queue_ctxs - The contexts container.
+    # @param  {set} queue_flags - The flags container.
+    # @return - Nothing is returned.
+    proc queues(fxN: seq[Node], queue_defs: var HashSet[string],
+        queue_fdir: var HashSet[string], queue_ctxs: var OrderedSet[string],
+        queue_flags: var HashSet[string]) =
         for fN in fxN:
             let args = fN.args
             let keyword = fN.keyword.value
@@ -259,8 +280,23 @@ proc acdef*(S: State, cmdname: string): tuple =
                         queue_flags.incl(flag & "=*")
                         queue_flags.incl(flag & "=")
 
+    for i, group in oGroups.pairs:
+        var cxN = group["commands"]
+        var fxN = group["flags"]
+        var queue_defs: HashSet[string]
+        var queue_fdir: HashSet[string]
+        var queue_ctxs: OrderedSet[string]
+        var queue_flags: HashSet[string]
+
+        queues(fxN, queue_defs, queue_fdir, queue_ctxs, queue_flags)
+
         for cN in cxN:
             let value = cN.command.value;
+
+            # Add wildcard flags.
+            if wc_flg.len != 0 and not wc_exc.contains(value):
+                queues(wc_flg, queue_defs, queue_fdir, queue_ctxs, queue_flags)
+
             for item in queue_flags.items: oSets[value].incl(item)
             for item in queue_defs.items: oDefaults[value] = item
             for item in queue_fdir.items: oFiledirs[value] = item

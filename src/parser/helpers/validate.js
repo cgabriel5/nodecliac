@@ -3,7 +3,7 @@
 const error = require("./error.js");
 const vcontext = require("./vcontext.js");
 const { hasProp } = require("../../utils/toolbox.js");
-const { cin, cnotin, C_SPACES, C_QUOTES } = require("./charsets.js");
+const { cin, cnotin, C_SPACES, C_QUOTES, C_KD_STR } = require("./charsets.js");
 const r = /(?<!\\)\$\{\s*[^}]*\s*\}/g;
 
 /**
@@ -15,6 +15,26 @@ const r = /(?<!\\)\$\{\s*[^}]*\s*\}/g;
  */
 let validate = (S, N, type) => {
 	let { value } = N.value;
+	// Get column index to resume error checks at.
+	let resumepoint = N.value.start - S.tables.linestarts[S.line];
+	resumepoint++; // Add 1 to account for 0 base indexing.
+
+	// If validating a keyword there must be a value.
+	if (N.node === "FLAG" && N.keyword.value) {
+		if (!value) {
+			S.column = N.keyword.end - S.tables.linestarts[S.line];
+			S.column++; // Add 1 to account for 0 base indexing.
+			error(S, __filename, 16);
+		}
+
+		let kw = N.keyword.value;
+		let C = kw === "default" ? new Set([...C_QUOTES, "$"]) : C_QUOTES;
+		// context, filedir, exclude must have quoted string values.
+		if (cnotin(C, value.charAt(0))) {
+			S.column = resumepoint;
+			error(S, __filename);
+		}
+	}
 
 	// If value doesn't exist or is '(' (long-form flag list) return.
 	if (!value || value === "(") return;
@@ -27,10 +47,6 @@ let validate = (S, N, type) => {
 		else if (char === "(") type = "list";
 		else if (cin(C_QUOTES, char)) type = "quoted";
 	}
-
-	// Get column index to resume error checks at.
-	let resumepoint = N.value.start - S.tables.linestarts[S.line];
-	resumepoint++; // Add 1 to account for 0 base indexing.
 
 	/**
 	 * Create temporary Node.

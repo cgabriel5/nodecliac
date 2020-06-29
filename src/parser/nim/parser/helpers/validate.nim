@@ -5,7 +5,7 @@ from tables import `[]=`, `[]`, hasKey, OrderedTableRef, pairs
 import error, vcontext
 from types import State, Node, Branch
 from charsets import C_QUOTES, C_SPACES, C_CTX_ALL, C_CTX_MUT,
-    C_CTX_FLG, C_CTX_CON, C_LETTERS, C_CTX_CAT, C_CTX_OPS
+    C_CTX_FLG, C_CTX_CON, C_LETTERS, C_CTX_CAT, C_CTX_OPS, C_KD_STR
 from ../../utils/regex import findAllBounds
 let r = re"(?<!\\)\$\{\s*[^}]*\s*\}"
 
@@ -18,6 +18,25 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
     var value = N.value.value
     var `type` = `type`
 
+    # Get column index to resume error checks at.
+    var resumepoint = N.value.start - S.tables.linestarts[S.line]
+    inc(resumepoint) # Add 1 to account for 0 base indexing.
+
+    # If validating a keyword there must be a value.
+    if N.node == "FLAG" and N.keyword.value != "":
+    # if N.keyword and N.keyword.value != "":
+        if value == "":
+            S.column = N.keyword.`end` - S.tables.linestarts[S.line]
+            inc(S.column) # Add 1 to account for 0 base indexing.
+            error(S, currentSourcePath, 16)
+
+        let kw = N.keyword.value
+        let C = if kw == "default": C_QUOTES + {'$'} else: C_QUOTES
+        # context, filedir, exclude must have quoted string values.
+        if value[0] notin C:
+            S.column = resumepoint
+            error(S, currentSourcePath)
+
     # If value doesn't exist or is '(' (long-form flag list) return.
     if value == "" or value == "(": return
 
@@ -28,10 +47,6 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
         if `char` == '$': `type` = "command-flag"
         elif `char` == '(': `type` = "list"
         elif `char` in C_QUOTES: `type` = "quoted"
-
-    # Get column index to resume error checks at.
-    var resumepoint = N.value.start - S.tables.linestarts[S.line]
-    inc(resumepoint) # Add 1 to account for 0 base indexing.
 
     # Create temporary Node.
     #

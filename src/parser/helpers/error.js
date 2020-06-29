@@ -36,7 +36,8 @@ let errors = {
 		12: "Undefined variable",
 		13: "Illegal command-flag syntax",
 		14: "Useless delimiter",
-		15: "Illegal list syntax"
+		15: "Illegal list syntax",
+		16: "Keyword cannot be valueless"
 	},
 	vcontext: {
 		14: "Useless delimiter",

@@ -130,7 +130,8 @@ for f in "$TESTDIR"/acmaps/*.acmap; do
 	istest_file=""
 	if [[ "$f" == *"-t" ]]; then
 		istest_file="\033[1m*\033[0m"
-		f=${f/-t/} # Remove test file indicator.
+		# [https://stackoverflow.com/a/27658733]
+		f=${f::-2} # Remove test file indicator.
 	fi
 
 	# The output file path.

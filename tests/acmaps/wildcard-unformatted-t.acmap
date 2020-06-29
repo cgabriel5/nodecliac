@@ -1,0 +1,14 @@
+# This acmap tests the wildcard (universal *) command formatting.
+
+$var      = "12"
+
+*    =     			[
+	exclude 			"program"
+	exclude          "program.certs"
+
+			--help?
+		  context "!help:#fge1"
+		  context     '!help:#fge1'
+		  context   '!help:#fge1'
+			context "!help:#fge${    var}"
+													]

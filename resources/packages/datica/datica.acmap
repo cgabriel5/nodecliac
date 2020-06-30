@@ -1,0 +1,212 @@
+# Experimental datica nodecliac bash-completion.
+
+* = --help?|context "!help: #fge1"
+
+datica = [
+	--email
+	# Deprecated still add?
+	--username
+	--password
+	--env?
+	--version?
+]
+
+datica.certs,
+datica.certs.create = [
+	--down-stream=
+	--self-signed=,
+	--resolve=,
+	--lets-encrypt=(false true)
+]
+datica.certs.list,
+datica.certs.rm = --down-stream
+datica.certs.update = [
+	--down-stream
+	--self-signed=,
+	--resolve=(false true)
+]
+
+datica.clear = [
+	--private-key=,
+	--session=,
+	--environments=,
+	--pods=,
+	--all=(false true)
+]
+
+datica.console
+
+datica.db
+datica.db.backup = --skip-poll=(false true)
+datica.db.download,
+datica.db.export = --force=(false true)
+datica.db.import = [
+	--mongo-collection=
+	--mongo-database=
+	--skip-backup=(false true)
+]
+datica.db.list = [
+	--page=
+	--page-size=
+]
+datica.db.logs
+datica.db.restore = [
+	--mongo-database=
+	--yes=(false true)
+]
+
+datica.deploy
+datica.deploy-keys
+datica.deploy-keys.add
+datica.deploy-keys.list
+datica.deploy-keys.rm
+
+datica.images
+datica.images.list
+datica.images.push
+datica.images.pull
+datica.images.targets.list
+datica.images.targets.rm
+datica.images.targets.status
+datica.images.targets.reset
+datica.images.tags.list
+datica.images.tags.rm
+
+datica.domain
+
+datica.environments
+datica.environments.list
+datica.environments.rename
+
+datica.files
+datica.files.download = --showTimestamps=(false true)
+datica.files.list
+
+datica.git-remote
+datica.git-remote.add = [
+	--remote=
+	--force=(false true)
+]
+datica.git-remote.show
+
+datica.init
+
+datica.invites
+datica.invites.accept
+datica.invites.list
+datica.invites.rm
+datica.invites.send
+
+datica.jobs
+datica.jobs.list
+datica.jobs.start
+datica.jobs.stop = --force=(false true)
+
+datica.keys
+datica.keys.add
+datica.keys.list
+datica.keys.rm
+datica.keys.set
+
+datica.logout
+
+datica.logs = [
+	--follow=,
+	--tail=(false true)
+	context "{ follow | tail }"
+
+	--hours=
+	--minutes=
+	--seconds=
+	--service=
+
+	--job-id=
+	--target=
+	context "{ job-id | target }"
+]
+
+datica.maintenance
+datica.maintenance.disable
+datica.maintenance.enable
+datica.maintenance.show
+
+datica.metrics
+datica.metrics.cpu,
+datica.metrics.memory,
+datica.metrics.network-in,
+datica.metrics.network-out = [
+	--json=,
+	--csv=,
+	--text=,
+	context "{ json | csv | text }"
+	--stream=(false true)
+	--mins=
+]
+
+datica.rake
+
+datica.redeploy
+
+datica.releases
+datica.releases.list
+datica.releases.rm
+datica.releases.update = --notes=
+
+datica.rollback
+
+datica.services
+datica.services.list
+datica.services.stop
+datica.services.rename
+
+datica.sites
+datica.sites.create = [
+	--down-stream=
+	--client-max-body-size=
+	--proxy-connect-timeout=
+	--proxy-read-timeout=
+	--proxy-send-timeout=
+	--proxy-upstream-timeout=
+	--enable-cors=(false true)
+	--enable-websockets=(false true)
+	--lets-encrypt=(false true)
+]
+datica.sites.list,
+datica.sites.rm,
+datica.sites.show = --down-stream=
+
+datica.ssl
+datica.ssl.resolve = --force=(false true)
+datica.ssl.resolve = --self-signed=(false true)
+
+datica.status = --historical=(false true)
+
+datica.support-ids
+
+datica.update
+
+datica.users
+datica.users.list
+datica.users.rm
+
+datica.vars
+datica.vars.list = [
+	--json=,
+	--yaml=(false true)
+	context "{json | yaml}"
+]
+datica.vars.set = [
+	--variable=*
+	--file=
+]
+datica.vars.unset
+
+datica.version
+
+datica.whoami
+
+datica.worker
+datica.worker.deploy
+datica.worker.list
+datica.worker.rm
+datica.worker.scale

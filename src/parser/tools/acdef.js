@@ -362,19 +362,19 @@ module.exports = (S, cmdname) => {
 
 	// Build defaults contents.
 	let defs = mapsort(Object.keys(oDefaults), asort, aobj);
-	let dl = defs.length;
+	let dl = defs.length - 1;
 	defs.forEach((c, i) => {
 		defaults += `${rm_fcmd(c)} default ${oDefaults[c]}`;
-		if (i < dl - 1) defaults += "\n";
+		if (i < dl) defaults += "\n";
 	});
 	if (defaults) defaults = "\n\n" + defaults;
 
 	// Build filedirs contents.
 	let fdirs = mapsort(Object.keys(oFiledirs), asort, aobj);
-	let fl = fdirs.length;
+	let fl = fdirs.length - 1;
 	fdirs.forEach((c, i) => {
 		filedirs += `${rm_fcmd(c)} filedir ${oFiledirs[c]}`;
-		if (i < fl - 1) filedirs += "\n";
+		if (i < fl) filedirs += "\n";
 	});
 	if (filedirs) filedirs = "\n\n" + filedirs;
 
@@ -382,10 +382,10 @@ module.exports = (S, cmdname) => {
 	var ctxlist = [];
 	for (let context in oContexts) ctxlist.push(context);
 	let ctxs = mapsort(Object.keys(oContexts), asort, aobj);
-	let cl = ctxs.length;
+	let cl = ctxs.length - 1;
 	ctxs.forEach((c, i) => {
 		contexts += rm_fcmd(c) + ' context "' + oContexts[c] + '"';
-		if (i !== cl) contexts += "\n";
+		if (i < cl) contexts += "\n";
 	});
 	if (contexts !== "") contexts = "\n\n" + contexts;
 

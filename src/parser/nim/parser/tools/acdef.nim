@@ -345,7 +345,7 @@ proc acdef*(S: State, cmdname: string): tuple =
     let dl = defs.high
     for i, c in defs:
         defaults &= rm_fcmd(c) & " default " & oDefaults[c]
-        if i != dl: defaults &= "\n"
+        if i < dl: defaults &= "\n"
     if defaults != "": defaults = "\n\n" & defaults
 
     # Build filedir contents.
@@ -355,18 +355,17 @@ proc acdef*(S: State, cmdname: string): tuple =
     let fl = fdirs.high
     for i, c in fdirs:
         filedirs &= rm_fcmd(c) & " filedir " & oFiledirs[c]
-        if i != fl: filedirs &= "\n"
+        if i < fl: filedirs &= "\n"
     if filedirs != "": filedirs = "\n\n" & filedirs
 
     # Build contexts contents.
     var ctxlist: seq[string] = @[]
-    for context in oContexts.keys:
-        ctxlist.add(context)
+    for context in oContexts.keys: ctxlist.add(context)
     let ctxs = mapsort(ctxlist, asort, "aobj")
     let cl = ctxs.high
     for i, c in ctxs:
         contexts &= rm_fcmd(c) & " context \"" & oContexts[c] & "\""
-        if i != cl: contexts &= "\n"
+        if i < cl: contexts &= "\n"
     if contexts != "": contexts = "\n\n" & contexts
 
     # Build settings contents.

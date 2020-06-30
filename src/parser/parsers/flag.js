@@ -173,7 +173,13 @@ module.exports = (S, isoneliner) => {
 				break;
 
 			case "pipe-delimiter":
-				if (char !== "|") error(S, __filename);
+				// Note: If char is not a pipe or if the flag is not a oneliner
+				// flag and there are more characters after the flag error.
+				// Example:
+				// * = [
+				// 		--help?|context "!help: #fge1"
+				// ]
+				if (char !== "|" || !isoneliner) error(S, __filename);
 				stop = true;
 
 				break;

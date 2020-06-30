@@ -149,7 +149,13 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     rollback(S)
 
             of "pipe-delimiter":
-                if `char` != '|': error(S, currentSourcePath)
+                # Note: If char is not a pipe or if the flag is not a oneliner
+                # flag and there are more characters after the flag error.
+                # Example:
+                # * = [
+                #      --help?|context "!help: #fge1"
+                # ]
+                if `char` != '|' or isoneliner == "": error(S, currentSourcePath)
                 stop = true
 
             of "delimiter":

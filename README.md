@@ -806,6 +806,7 @@ program.uninstall
 
 - [filedir](#flags-variant-filedir)
 - [context](#flags-variant-context)
+- [exclude](#flags-variant-exclude)
 
 <a name="flags-variant-input"></a>
 
@@ -1141,6 +1142,75 @@ program.command = [
 ```
 
 **Note**: Context strings are evaluated on every completion cycle. Therefore, using too many may slow down the 'perceived completion feel' as it takes time to evaluate all provided contexts.
+
+<a name="flags-variant-exclude"></a>
+
+#### Keyword (exclude)
+
+The `exclude` keyword is only allowed in a _wildcard_ command block. It serves to easily give all command strings the same (universal/shared) flags. Although this can be done manually, this can help reduce the acmap and make it easier to maintain.
+
+Let's look at an example. All command strings but `program.cache` share the `--help` flag.
+
+```acmap
+program = [
+  --help?
+  --version
+]
+
+program.make = [
+  --help?
+  --extensions=*(js html css)
+]
+
+program.format = [
+  --help?
+  --extensions=*(js html css)
+  --indentation
+]
+
+program.cache = [
+  --clear?
+]
+```
+
+Now let's use a wildcard block and exclude the `program.cache` command string.
+
+```acmap
+* = [
+  exclude "program.cache"
+  --help?
+]
+
+program = [
+  --version
+]
+
+program.make = [
+  --extensions=*(js html css)
+]
+
+program.format = [
+  --extensions=*(js html css)
+  --indentation
+]
+
+program.cache = [
+  --clear?
+]
+```
+
+If desired it can even be condensed to.
+
+```acmap
+* = --help?|exclude "program.cache"
+program = --version
+program.make,
+program.format = --extensions=*(js html css)
+program.format = --indentation
+program.cache = --clear?
+```
+
+<br>
 
 </details>
 

@@ -62,7 +62,8 @@ if [[ -n "$OVERRIDE" ]]; then args+=("-o"); args+=("$OVERRIDE"); fi
 # [https://stackoverflow.com/a/42985721]
 # [https://unix.stackexchange.com/a/465024]
 # Or set arguments: [https://unix.stackexchange.com/a/284545]
+"$TESTDIR/checksum.sh" "${args[@]}" && \
+"$TESTDIR/executables.sh" "${args[@]}" && \
 "$TESTDIR/nodecliac.sh" "${args[@]}" && \
 "$TESTDIR/parser.sh" "${args[@]}" && \
-"$TESTDIR/formatter.sh" "${args[@]}" && \
-"$TESTDIR/executables.sh" "${args[@]}"
+"$TESTDIR/formatter.sh" "${args[@]}"

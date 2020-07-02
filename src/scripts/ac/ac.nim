@@ -860,7 +860,10 @@ proc fn_lookup(): string =
                 if row == "" or usedcommands.hasKey(row): continue
                 # If char before caret isn't a space, completing a command.
                 if lastchar_notspace:
-                    if row.startsWith(last): completions.add(row)
+                    if row.startsWith(last):
+                        if not commandchain.endsWith("." & row) or
+                        used_default_pa_args == "" and lastchar == '\0':
+                            completions.add(row)
                 else: completions.add(row) # Allow all.
 
                 usedcommands[row] = 1

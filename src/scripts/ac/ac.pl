@@ -876,7 +876,12 @@ sub __lookup {
 				if (!$row || exists($usedcommands{$row})) { next; }
 				# If char before caret isn't a space, completing a command.
 				if ($lastchar_notspace) {
-					if (rindex($row, $last, 0) == 0) { push(@completions, $row); }
+					if (rindex($row, $last, 0) == 0) {
+						if (!(rindex($commandchain, ".$row") + 1)
+							|| (!$used_default_pa_args && !$lastchar)) {
+							push(@completions, $row);
+						}
+					}
 				} else { push(@completions, $row); } # Allow all.
 
 				$usedcommands{$row} = undef;

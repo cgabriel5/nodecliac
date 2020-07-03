@@ -11,7 +11,7 @@ const bracechecks = require("./helpers/brace-checks.js");
 const { cin, cnotin, C_NL, C_SOL, C_SPACES } = require("./helpers/charsets.js");
 
 module.exports = (action, text, cmdname, source, fmt, trace, igc, test) => {
-	const S = state(action, text, source, fmt, trace, igc, test);
+	const S = state(action, cmdname, text, source, fmt, trace, igc, test);
 	const { linestarts } = S.tables;
 	// const stime = process.hrtime();
 	let ltype;

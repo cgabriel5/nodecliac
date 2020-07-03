@@ -8,7 +8,7 @@ import parsers/[comment, newline, setting, variable, command, flag, option, clos
 
 proc parser*(action: string, text: string, cmdname: string, source: string,
     fmt: tuple, trace: bool, igc: bool, test: bool): tuple =
-    var S = state(action, text, source, fmt, trace, igc, test)
+    var S = state(action, cmdname, text, source, fmt, trace, igc, test)
     var ltype = ""
 
     let l = S.l; var `char`, nchar: char

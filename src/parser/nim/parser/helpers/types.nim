@@ -1,4 +1,5 @@
-from tables import Table, initTable, `[]=`, `$`
+from os import getEnv
+from tables import Table, toTable, initTable, `[]=`, `$`
 
 type
 
@@ -58,12 +59,18 @@ type
 
 # Object constructors.
 
-proc state*(action: string, text: string, source: string, fmt: tuple,
-    trace: bool, igc: bool, test: bool): State =
+proc state*(action: string, cmdname: string, text: string, source: string,
+    fmt: tuple, trace: bool, igc: bool, test: bool): State =
     new(result)
 
     var linestarts = initTable[int, int]()
-    var variables = initTable[string, string]()
+    # Builtin variables.
+    var variables = {
+        "HOME": os.getEnv("HOME"),
+        "OS": hostOS,
+        "COMMAND": cmdname,
+        "PATH": "~/.nodecliac/registry/" & cmdname,
+    }.toTable
     var tree = initTable[string, seq[Node]]()
     tree["nodes"] = @[]
 

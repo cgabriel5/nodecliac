@@ -637,6 +637,21 @@ yarn.run = default $("${mainscript} run")
 
 </details>
 
+<details>
+  <summary>Variable Builtins</summary>
+
+#### Variable Builtins
+
+`acmap`s provide the following builtin variables:
+
+- `$OS`: The user's platform: `linux`, `macosx`
+- `$HOME`: The user's home directory.
+- `$COMMAND`: The command being completed.
+- `$PATH`: The command's nodecliac registry path:
+  - For example: `~/.nodecliac/registry/<COMMAND>`
+
+</details>
+
 <a name="syntax-cc"></a>
 
 #### Command Chains

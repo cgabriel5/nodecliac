@@ -39,7 +39,7 @@ proc acdef*(S: State, cmdname: string): tuple =
     var r = re("^(" & rcmdname & "|[-_a-zA-Z0-9]+)")
 
     let date = getTime()
-    let datestring = date.format("ddd MMM d yyyy HH:mm:ss")
+    let datestring = date.format("ddd MMM dd yyyy HH:mm:ss")
     let timestamp = date.toUnix()
     let ctime = datestring & " (" & $timestamp & ")"
     var header = "# DON'T EDIT FILE —— GENERATED: " & ctime & "\n\n"

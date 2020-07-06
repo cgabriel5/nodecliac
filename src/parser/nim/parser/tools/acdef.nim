@@ -8,7 +8,7 @@ from times import format, getTime, toUnix
 from sets import HashSet, OrderedSet, initHashSet, incl, excl, toHashSet, contains, len, items, `$`
 from tables import Table, initTable, initOrderedTable, `[]=`, toTable, hasKey, len, del, `$`
 
-from ../helpers/types import State, Node
+from ../helpers/types import State, Node, node
 
 # Generate .acdef, .config.acdef file contents.
 #
@@ -144,6 +144,9 @@ proc acdef*(S: State, cmdname: string): tuple =
     const ftypes = toHashSet(["FLAG", "OPTION"])
     const types = toHashSet(["SETTING", "COMMAND", "FLAG", "OPTION"])
 
+    # Contain missing parent command chains in their own group.
+    oGroups[-1] = {"commands": @[], "flags": @[], "_": @[node(S, "COMMAND")]}.toTable
+
     var i = 0; var l = xN.len; while i < l:
         let N = xN[i]
         let `type` = N.node
@@ -184,6 +187,9 @@ proc acdef*(S: State, cmdname: string): tuple =
                     while i > -1:
                         let rchain = commands.join(".") # Remainder chain.
                         if not oSets.hasKey(rchain):
+                            var mN = node(S, "COMMAND")
+                            mN.command.value = rchain
+                            oGroups[-1]["commands"].add(mN)
                             oSets[rchain] = initHashSet[string]()
                         discard commands.pop() # Remove last command.
                         dec(i)

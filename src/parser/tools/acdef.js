@@ -1,5 +1,6 @@
 "use strict";
 
+const node = require("../helpers/nodes.js");
 const { md5, hasProp } = require("../../utils/toolbox.js");
 
 /**
@@ -145,6 +146,10 @@ module.exports = (S, cmdname) => {
 	let wc_exc = new Set();
 	const ftypes = new Set(["FLAG", "OPTION"]);
 	const types = new Set(["SETTING", "COMMAND", "FLAG", "OPTION"]);
+
+	// Contain missing parent command chains in their own group.
+	oGroups[-1] = { commands: [], flags: [] };
+
 	for (let i = 0, l = xN.length; i < l; i++) {
 		let N = xN[i];
 		let type = N.node;
@@ -184,7 +189,12 @@ module.exports = (S, cmdname) => {
 					commands.pop(); // Remove last command (already made).
 					for (let i = commands.length - 1; i > -1; i--) {
 						let rchain = commands.join("."); // Remainder chain.
-						if (!hasProp(oSets, rchain)) oSets[rchain] = new Set();
+						if (!hasProp(oSets, rchain)) {
+							let tN = node(S, "COMMAND");
+							tN.command.value = rchain;
+							oGroups[-1].commands.push(tN);
+							oSets[rchain] = new Set();
+						}
 						commands.pop(); // Remove last command.
 					}
 				}

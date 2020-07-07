@@ -50,7 +50,6 @@ proc p_command*(S: State) =
                     N.command.`end` = S.i
                     N.command.value &= $`char`
 
-
                     # Once a wildcard (all) char is found change state.
                     if `char` == '*': state = "chain-wsb"
                 else:

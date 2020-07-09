@@ -12,7 +12,10 @@ let errors = {
 		12: "Check line specificity order"
 	},
 	command: {
-		10: "Illegal escape sequence"
+		10: "Illegal escape sequence",
+		11: "Empty command group",
+		12: "Useless delimiter",
+		13: "Unclosed command group"
 	},
 	comment: {},
 	flag: {

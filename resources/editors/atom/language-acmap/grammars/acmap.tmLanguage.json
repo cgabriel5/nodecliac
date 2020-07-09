@@ -82,9 +82,6 @@
 				},
 				{
 					"include": "#single-quoted-string"
-				},
-				{
-					"include": "#template-string"
 				}
 			]
 		},
@@ -248,12 +245,6 @@
 				},
 				"2": {
 					"name": "punctuation.section.parens.command-string.begin.acmap"
-				},
-				"3": {
-					"name": "entity.name.variable.acmap"
-				},
-				"4": {
-					"name": "keyword.operator.assignment.acmap"
 				}
 			},
 			"contentName": "meta.command-string.acmap",
@@ -279,6 +270,9 @@
 				},
 				{
 					"include": "#strings"
+				},
+				{
+					"include": "#unaccounted"
 				}
 			],
 			"end": "(?<!\\\\)(\\))",
@@ -288,10 +282,45 @@
 				}
 			}
 		},
+		"command-group": {
+			"begin": "\\s*(\\{)",
+			"beginCaptures": {
+				"1": {
+					"name": "punctuation.section.command-group.begin.acmap"
+				}
+			},
+			"contentName": "meta.command-group.acmap",
+			"patterns": [
+				{
+					"include": "#comment"
+				},
+				{
+					"include": "#command"
+				},
+				{
+					"include": "#delimiter"
+				},
+				{
+					"include": "#escape"
+				}
+			],
+			"end": "(\\})",
+			"endCaptures": {
+				"1": {
+					"name": "punctuation.section.command-group.end.acmap"
+				}
+			}
+		},
 		"command": {
-			"begin": "^\\s*(?=(\\.?[a-zA-Z])|\\*)",
+			"begin": "^\\s*(?=(\\.?[_a-zA-Z])|\\*)",
 			"contentName": "entity.other.command.acmap",
 			"patterns": [
+				{
+					"include": "#command-group"
+				},
+				{
+					"include": "#delimiter"
+				},
 				{
 					"include": "#escape"
 				},
@@ -364,6 +393,9 @@
 				},
 				{
 					"include": "#keywords"
+				},
+				{
+					"include": "#unaccounted"
 				}
 			]
 		},
@@ -572,6 +604,9 @@
 				},
 				{
 					"include": "#options-values"
+				},
+				{
+					"include": "#unaccounted"
 				}
 			]
 		},

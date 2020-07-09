@@ -199,10 +199,10 @@
 						<string>#single-quoted-string</string>
 					</dict>
 
-					<dict>
+					<!-- <dict>
 						<key>include</key>
 						<string>#template-string</string>
-					</dict>
+					</dict> -->
 				</array>
 			</dict>
 
@@ -525,18 +525,6 @@
 						<key>name</key>
 						<string>punctuation.section.parens.command-string.begin.acmap</string>
 					</dict>
-
-					<key>3</key>
-					<dict>
-						<key>name</key>
-						<string>entity.name.variable.acmap</string>
-					</dict>
-
-					<key>4</key>
-					<dict>
-						<key>name</key>
-						<string>keyword.operator.assignment.acmap</string>
-					</dict>
 				</dict>
 
 				<key>contentName</key>
@@ -590,6 +578,11 @@
 						<key>include</key>
 						<string>#strings</string>
 					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#unaccounted</string>
+					</dict>
 				</array>
 
 				<key>end</key>
@@ -606,16 +599,75 @@
 			</dict>
 
 
+			<key>command-group</key>
+			<dict>
+				<key>begin</key>
+				<string>\s*(\{)</string>
+
+				<key>beginCaptures</key>
+				<dict>
+					<key>1</key>
+					<dict>
+						<key>name</key>
+						<string>punctuation.section.command-group.begin.acmap</string>
+					</dict>
+				</dict>
+
+				<key>contentName</key>
+				<string>meta.command-group.acmap</string>
+
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>include</key>
+						<string>#comment</string>
+					</dict>
+					<dict>
+						<key>include</key>
+						<string>#command</string>
+					</dict>
+					<dict>
+						<key>include</key>
+						<string>#delimiter</string>
+					</dict>
+					<dict>
+						<key>include</key>
+						<string>#escape</string>
+					</dict>
+				</array>
+
+				<key>end</key>
+				<string>(\})</string>
+
+				<key>endCaptures</key>
+				<dict>
+					<key>1</key>
+					<dict>
+						<key>name</key>
+						<string>punctuation.section.command-group.end.acmap</string> <!-- **purple-brace -->
+					</dict>
+				</dict>
+			</dict>
+
+
 			<key>command</key>
 			<dict>
 				<key>begin</key>
-				<string>^\s*(?=(\.?[a-zA-Z])|\*)</string>
+				<string>^\s*(?=(\.?[_a-zA-Z])|\*)</string>
 
 				<key>contentName</key>
 				<string>entity.other.command.acmap</string> <!-- **italicize -->
 
 				<key>patterns</key>
 				<array>
+					<dict>
+						<key>include</key>
+						<string>#command-group</string>
+					</dict>
+					<dict>
+						<key>include</key>
+						<string>#delimiter</string>
+					</dict>
 					<dict>
 						<key>include</key>
 						<string>#escape</string>
@@ -750,6 +802,11 @@
 					<dict>
 						<key>include</key>
 						<string>#keywords</string>
+					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#unaccounted</string>
 					</dict>
 				</array>
 			</dict>
@@ -1134,6 +1191,10 @@
 						<string>#options-values</string>
 					</dict>
 
+					<dict>
+						<key>include</key>
+						<string>#unaccounted</string>
+					</dict>
 				</array>
 			</dict>
 

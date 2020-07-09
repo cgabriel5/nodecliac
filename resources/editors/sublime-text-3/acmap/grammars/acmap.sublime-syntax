@@ -62,7 +62,7 @@ contexts:
   strings:
     - include: double-quoted-string
     - include: single-quoted-string
-    - include: template-string
+    # - include: template-string
 
 # ---------------------------------------------------- PRIMITIVE-BUILDING-BLOCKS
 
@@ -167,15 +167,28 @@ contexts:
         - include: constants
         - include: numbers
         - include: strings
+        - include: unaccounted
+
+  command-group:
+    - match: "\\s*(\\{)"
+      captures:
+        1: punctuation.section.command-group.begin.acmap # **purple-brace
+      push:
+        - meta_scope: meta.command-group.acmap
+        - match: "(\\})"
+          scope: punctuation.section.command-group.end.acmap # **purple-brace
+          pop: true
+        - include: command
+        - include: delimiter
+        - include: escape
 
   command:
-    - match: "^\\s*(?=(\\.?[a-zA-Z])|\\*)"
+    - match: "^\\s*(?=(\\.?[_a-zA-Z])|\\*)"
       push:
         - meta_scope: entity.other.command.acmap # **italicize
         - meta_include_prototype: false
-        - match: "\\s*(,)\\s*"
-          captures:
-            1: punctuation.separator.comma.acmap # **purple
+        - include: command-group
+        - include: delimiter
           pop: true
         - match: "(?=(=|,| |\t|$))"
           pop: true
@@ -207,6 +220,7 @@ contexts:
   flag-rule-list:
     - include: flags-list
     - include: keywords
+    - include: unaccounted
   # ➚
   flags-list:
     - include: flag
@@ -300,6 +314,7 @@ contexts:
           pop: true
         - include: options-values
     - include: options-values # Non-bullet (oneliner) options.
+    - include: unaccounted
 
   options-values:
     - include: command-string

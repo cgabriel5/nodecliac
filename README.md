@@ -783,6 +783,33 @@ Letting the completion engine know an option should be ignored (not displayed) i
 
 </details>
 
+<details>
+  <summary>Command chain grouping</summary>
+
+#### Command Chain Grouping
+
+Command chains can be grouped. It is not necessary but doing may help condense acmaps.
+
+- A command group is denoted with starting `{` and closing `}`.
+- The commands are found in between the closing/starting syntax.
+- Commands are comma delimited.
+
+For example, take the following:
+
+```acmap
+program.deploy-keys.add
+program.deploy-keys.list
+program.deploy-keys.rm
+```
+
+Grouping can reduce it to:
+
+```acmap
+program.deploy-keys.{add,list,rm}
+```
+
+</details>
+
 <a name="syntax-flags"></a>
 
 #### Flags

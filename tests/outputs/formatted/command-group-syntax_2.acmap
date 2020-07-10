@@ -1,0 +1,11 @@
+# This acmap tests command group syntax.
+
+program.images.list
+program.images.push
+program.images.pull
+program.images.targets.list
+program.images.targets.rm
+program.images.targets.status
+program.images.targets.reset
+program.images.tags.list
+program.images.tags.rm

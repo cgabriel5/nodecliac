@@ -1,0 +1,4 @@
+# This acmap tests empty command group syntax.
+
+program.deploy-keys.{}
+# ------------------^

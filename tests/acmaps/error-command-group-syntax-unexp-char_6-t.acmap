@@ -1,0 +1,4 @@
+# This acmap tests unexpected command character in command group syntax.
+
+program.deploy-keys.{ add : - }
+# --------------------------^

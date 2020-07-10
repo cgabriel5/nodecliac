@@ -1,7 +1,7 @@
-# DON'T EDIT FILE —— GENERATED: Tue Jun 30 2020 09:40:31 (1593535231)
+# DON'T EDIT FILE —— GENERATED: Thu Jul 09 2020 17:27:34 (1594340854)
 
  --email|--env?|--help?|--password|--username|--version?
-.certs --down-stream=|--help?|--lets-encrypt=|--lets-encrypt=false|--lets-encrypt=true|--resolve=|--resolve=false|--resolve=true|--self-signed=|--self-signed=false|--self-signed=true
+.certs --help?
 .certs.create --down-stream=|--help?|--lets-encrypt=|--lets-encrypt=false|--lets-encrypt=true|--resolve=|--resolve=false|--resolve=true|--self-signed=|--self-signed=false|--self-signed=true
 .certs.list --down-stream|--help?
 .certs.rm --down-stream|--help?
@@ -35,10 +35,10 @@
 .images.list --help?
 .images.pull --help?
 .images.push --help?
-.images.tags --
+.images.tags --help?
 .images.tags.list --help?
 .images.tags.rm --help?
-.images.targets --
+.images.targets --help?
 .images.targets.list --help?
 .images.targets.reset --help?
 .images.targets.rm --help?
@@ -86,7 +86,8 @@
 .sites.rm --down-stream=|--help?
 .sites.show --down-stream=|--help?
 .ssl --help?
-.ssl.resolve --force=|--force=false|--force=true|--help?|--self-signed=|--self-signed=false|--self-signed=true
+.ssl.resolve --force=|--force=false|--force=true|--help?
+.ssl.verify --help?|--self-signed=|--self-signed=false|--self-signed=true
 .status --help?|--historical=|--historical=false|--historical=true
 .support-ids --help?
 .update --help?
@@ -140,8 +141,10 @@
 .images.list context "!help:#fge1"
 .images.pull context "!help:#fge1"
 .images.push context "!help:#fge1"
+.images.tags context "!help:#fge1"
 .images.tags.list context "!help:#fge1"
 .images.tags.rm context "!help:#fge1"
+.images.targets context "!help:#fge1"
 .images.targets.list context "!help:#fge1"
 .images.targets.reset context "!help:#fge1"
 .images.targets.rm context "!help:#fge1"
@@ -189,7 +192,8 @@
 .sites.rm context "!help:#fge1"
 .sites.show context "!help:#fge1"
 .ssl context "!help:#fge1"
-.ssl.resolve context "!help:#fge1;!help:#fge1"
+.ssl.resolve context "!help:#fge1"
+.ssl.verify context "!help:#fge1"
 .status context "!help:#fge1"
 .support-ids context "!help:#fge1"
 .update context "!help:#fge1"

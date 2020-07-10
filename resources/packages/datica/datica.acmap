@@ -11,15 +11,13 @@ datica = [
 	--version?
 ]
 
-datica.certs,
 datica.certs.create = [
 	--down-stream=
 	--self-signed=,
 	--resolve=,
 	--lets-encrypt=(false true)
 ]
-datica.certs.list,
-datica.certs.rm = --down-stream
+datica.certs.{list,rm} = --down-stream
 datica.certs.update = [
 	--down-stream
 	--self-signed=,
@@ -35,11 +33,8 @@ datica.clear = [
 ]
 
 datica.console
-
-datica.db
 datica.db.backup = --skip-poll=(false true)
-datica.db.download,
-datica.db.export = --force=(false true)
+datica.db.{download,export} = --force=(false true)
 datica.db.import = [
 	--mongo-collection=
 	--mongo-database=
@@ -56,33 +51,15 @@ datica.db.restore = [
 ]
 
 datica.deploy
-datica.deploy-keys
-datica.deploy-keys.add
-datica.deploy-keys.list
-datica.deploy-keys.rm
-
-datica.images
-datica.images.list
-datica.images.push
-datica.images.pull
-datica.images.targets.list
-datica.images.targets.rm
-datica.images.targets.status
-datica.images.targets.reset
-datica.images.tags.list
-datica.images.tags.rm
-
+datica.deploy-keys.{add,list,rm}
+datica.images.{list,push,pull}
+datica.images.targets.{list,rm,status,reset}
+datica.images.tags.{list,rm}
 datica.domain
-
-datica.environments
-datica.environments.list
-datica.environments.rename
-
-datica.files
+datica.environments.{list,rename}
 datica.files.download = --showTimestamps=(false true)
 datica.files.list
 
-datica.git-remote
 datica.git-remote.add = [
 	--remote=
 	--force=(false true)
@@ -90,24 +67,10 @@ datica.git-remote.add = [
 datica.git-remote.show
 
 datica.init
-
-datica.invites
-datica.invites.accept
-datica.invites.list
-datica.invites.rm
-datica.invites.send
-
-datica.jobs
-datica.jobs.list
-datica.jobs.start
+datica.invites.{accept,list,rm,send}
+datica.jobs.{list,start}
 datica.jobs.stop = --force=(false true)
-
-datica.keys
-datica.keys.add
-datica.keys.list
-datica.keys.rm
-datica.keys.set
-
+datica.keys.{add,list,rm,set}
 datica.logout
 
 datica.logs = [
@@ -125,16 +88,8 @@ datica.logs = [
 	context "{ job-id | target }"
 ]
 
-datica.maintenance
-datica.maintenance.disable
-datica.maintenance.enable
-datica.maintenance.show
-
-datica.metrics
-datica.metrics.cpu,
-datica.metrics.memory,
-datica.metrics.network-in,
-datica.metrics.network-out = [
+datica.maintenance.{disable,enable,show}
+datica.metrics.{cpu,memory,network-in,network-out} = [
 	--json=,
 	--csv=,
 	--text=,
@@ -144,22 +99,12 @@ datica.metrics.network-out = [
 ]
 
 datica.rake
-
 datica.redeploy
-
-datica.releases
-datica.releases.list
-datica.releases.rm
+datica.releases.{list,rm}
 datica.releases.update = --notes=
-
 datica.rollback
+datica.services.{list,stop,rename}
 
-datica.services
-datica.services.list
-datica.services.stop
-datica.services.rename
-
-datica.sites
 datica.sites.create = [
 	--down-stream=
 	--client-max-body-size=
@@ -171,25 +116,15 @@ datica.sites.create = [
 	--enable-websockets=(false true)
 	--lets-encrypt=(false true)
 ]
-datica.sites.list,
-datica.sites.rm,
-datica.sites.show = --down-stream=
+datica.sites.{list,rm,show} = --down-stream=
 
-datica.ssl
 datica.ssl.resolve = --force=(false true)
-datica.ssl.resolve = --self-signed=(false true)
-
+datica.ssl.verify = --self-signed=(false true)
 datica.status = --historical=(false true)
-
 datica.support-ids
-
 datica.update
+datica.users.{list,rm}
 
-datica.users
-datica.users.list
-datica.users.rm
-
-datica.vars
 datica.vars.list = [
 	--json=,
 	--yaml=(false true)
@@ -199,14 +134,8 @@ datica.vars.set = [
 	--variable=*
 	--file=
 ]
+
 datica.vars.unset
-
 datica.version
-
 datica.whoami
-
-datica.worker
-datica.worker.deploy
-datica.worker.list
-datica.worker.rm
-datica.worker.scale
+datica.worker.{deploy,list,rm,scale}

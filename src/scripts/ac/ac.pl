@@ -585,12 +585,12 @@ sub __lookup {
 										# Account for used '--' flag.
 										if ($c == 1 && exists($usedflags{counts}{'--'})) { $c = 0; }
 									} else { $c = $#posargs + 1; }
-									if    ($operator eq "eq") { $r = ($c == n ? 1 : 0); }
-									elsif ($operator eq "ne") { $r = ($c != n ? 1 : 0); }
-									elsif ($operator eq "gt") { $r = ($c >  n ? 1 : 0); }
-									elsif ($operator eq "ge") { $r = ($c >= n ? 1 : 0); }
-									elsif ($operator eq "lt") { $r = ($c <  n ? 1 : 0); }
-									elsif ($operator eq "le") { $r = ($c <= n ? 1 : 0); }
+									if    ($operator eq "eq") { $r = ($c == $n ? 1 : 0); }
+									elsif ($operator eq "ne") { $r = ($c != $n ? 1 : 0); }
+									elsif ($operator eq "gt") { $r = ($c >  $n ? 1 : 0); }
+									elsif ($operator eq "ge") { $r = ($c >= $n ? 1 : 0); }
+									elsif ($operator eq "lt") { $r = ($c <  $n ? 1 : 0); }
+									elsif ($operator eq "le") { $r = ($c <= $n ? 1 : 0); }
 								# elsif ($fchar in {'1'..'9'}) { next; } # [TODO?]
 								} else { # Just a flag name.
 									if ($fchar eq '!') {

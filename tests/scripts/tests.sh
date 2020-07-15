@@ -50,7 +50,7 @@ tests=(
 "prettier-cli-watcher --watcher=hound --watcher chok; !*chokidar*"
 
 # [test-suite: yarn]
-# "yarn remov ; command:+" # `remov` command does not exit.
+# "yarn remov ; command\:+" # `remov` command does not exit.
 "yarn remove ch; *chalk*"
 "yarn ; *config*"
 "yarn run; !*nocache*"

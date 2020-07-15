@@ -10,8 +10,14 @@ FORCE=""
 OVERRIDE=""
 TIMEFORMAT=%R # [https://stackoverflow.com/a/3795634]
 
+# Get cache level.
+CACHE=0
+cachepath="$HOME/.nodecliac/.cache-level"
+[[ -f "$cachepath" ]] && CACHE=$(<"$cachepath")
+TESTS=""
+
 OPTIND=1 # Reset variable: [https://unix.stackexchange.com/a/233737]
-while getopts 'p:f:o:' flag; do # [https://stackoverflow.com/a/18003735]
+while getopts 't:p:f:o:' flag; do # [https://stackoverflow.com/a/18003735]
 	case "$flag" in
 		p)
 			case "$OPTARG" in
@@ -28,7 +34,8 @@ while getopts 'p:f:o:' flag; do # [https://stackoverflow.com/a/18003735]
 			case "$OPTARG" in
 				nim | pl) OVERRIDE="$OPTARG" ;;
 				*) OVERRIDE="" ;;
-			esac
+			esac ;;
+		t) [[ -n "$OPTARG" ]] && TESTS="$OPTARG" ;;
 	esac
 done
 shift $((OPTIND - 1))
@@ -38,7 +45,33 @@ __filepath="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 # ---------------------------------------------------------------------- IMPORTS
 
-. "$__filepath/common.sh"
+[[ -z "$TESTS" ]] && echo -e "[\033[1;31mError\033[0m] Test file not provided." && exit 1
+[[ ! -f "$TESTS" ]] && echo -e "[\033[1;31mError\033[0m] Test file \033[1m$TESTS\033[0m not found." && exit 1
+
+. "$TESTS" # [https://stackoverflow.com/a/12694189]
+
+# Note: Because the script will be copied over to ~/.nodecliac,
+# explicitly import the necessary functions/variables.
+# . "$__filepath/common.sh"
+
+# If provided value is not empty return 1, else return "".
+# Note: o is not returned because it is considered true by Bash so 
+# "" is returned instead: [https://stackoverflow.com/a/3924230]
+# [https://stackoverflow.com/a/3601734]
+isset() {
+	echo $([[ -n "$1" ]] && echo 1 || echo "")
+}
+# If provided value is empty return 1, else return "".
+# Note: o is not returned because it is considered true by Bash so 
+# "" is returned instead: [https://stackoverflow.com/a/3924230]
+notset() {
+	echo $([[ -z "$1" ]] && echo 1 || echo "")
+}
+
+# [https://www.utf8-chartable.de/unicode-utf8-table.pl?start=9984&number=128&names=-&utf8=string-literal]
+# [https://misc.flogisoft.com/bash/tip_colors_and_formatting]
+CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m"
+X_MARK="\033[0;31m\xe2\x9c\x98\033[0m"
 
 # ------------------------------------------------------------------------- VARS
 
@@ -70,14 +103,16 @@ else
 	fi
 fi
 
+skipped=0
 test_id=0
-test_count=0
 passed_count=0
+test_count="${#tests[@]}"
+test_columns="${#test_count}"
 
 # Note: If nodecliac is not installed tests cannot run so exit with message.
 if [[ $(notset "$(command -v nodecliac)") ]]; then
 	if [[ $(isset "$PRINT") ]]; then # Print header.
-		echo -e "\033[1m[Testing Completion Script]\033[0m [script=, override=$OVERRIDE]"
+		echo -e "\033[1m[Testing Completion Script]\033[0m [script=, override=$OVERRIDE, cache=\033[1;32m$CACHE\033[0m]"
 		echo -e " $X_MARK [skipped] \033[1;36mnodecliac\033[0m is not installed.\n"
 	fi
 	exit 0
@@ -86,11 +121,11 @@ fi
 # To run tests there needs to be modified src/ files or force flag.
 if [[ "$(git diff --name-only --cached)" != *"src/"* && $(notset "$FORCE") ]]; then
 	if [[ $(isset "$PRINT") ]]; then
-		echo -e "\033[1m[Testing Completion Script]\033[0m [script=, override=$OVERRIDE]"
+		echo -e "\033[1m[Testing Completion Script]\033[0m [script=, override=$OVERRIDE, cache=\033[1;32m$CACHE\033[0m]"
 		echo -e " $CHECK_MARK [skipped] No staged \033[1;34msrc/\033[0m files.\n"
 	fi
 	
-	if [[ $(notset "$FORCE") ]]; then exit 0; fi # Exit if not forced.
+	[[ $(notset "$FORCE") ]] && exit 0 # Exit if not forced.
 fi
 
 # -------------------------------------------------------------------- FUNCTIONS
@@ -135,7 +170,7 @@ function _nodecliac() {
 		[[ -e "$prehook" ]] && . "$prehook"
 
 		local acdef=$(<"$acdefpath")
-		output=$("$acpl_script" "$2" "$cline" "$cpoint" "$command" "$acdef")
+		output=$(TESTMODE=1 "$acpl_script" "$2" "$cline" "$cpoint" "$command" "$acdef")
 	fi
 
 	# 1st line is meta info (completion type, last word, etc.).
@@ -159,8 +194,7 @@ function _nodecliac() {
 function xnodecliac {
 	local oinput="$1"
 	local cline=$([[ -n "$2" ]] && echo "$2" || echo "$1")
-	local cpoint=$([[ -n "$3" ]] && echo "$3" || echo "${#oinput}")
-	# local cpoint=${#oinput}
+	local cpoint="$3"
 	local maincommand=${1%% *}
 
 	# Run nodecliac and return output.
@@ -170,92 +204,226 @@ function xnodecliac {
 	echo "$( { time _nodecliac "$maincommand" "$cline" "$cpoint"; } 2>&1 )"
 }
 
+# Trim string whitespace.
+#
+# @return {string} - Trimmed string.
+#
+# @resource [https://stackoverflow.com/a/3352015]
+function trim() {
+	local arg="$*"
+	arg="${arg#"${arg%%[![:space:]]*}"}" # Remove leading ws.
+	arg="${arg%"${arg##*[![:space:]]}"}" # Remove trailing ws.
+	printf '%s' "$arg"
+}
+
+# Tests answer against output using provided logic type.
+#
+# @param {string} 1) - The output to test against.
+# @param {string} 2) - The answer to test output against.
+# @return {number} - 1 is test passed. Otherwise, 0.
+#
+# @resource [https://stackoverflow.com/a/3352015]
+function xlogic() {
+	local output="$(echo -e "$1")"
+	local answer="$(echo -e "$2")"
+	local type="$3"
+	case $type in
+		dmatch) [[ "$output" == *"$answer"* ]] && echo 1 || echo 0 ;;
+		lmatch) [[ "$output" == *"$answer" ]] && echo 1 || echo 0 ;;
+		rmatch) [[ "$output" == "$answer"* ]] && echo 1 || echo 0 ;;
+		*) [[ "$(trim "$output")" == "$answer" ]] && echo 1 || echo 0 ;;
+	esac
+}
+
 # Main test function.
 #
 # @param {string} 1) - The test to run.
 # @param {string} 2) - The test input.
 # @param {string} 3) - The answer's test.
 function xtest {
-	local testname="$1"
-	local teststring="$2"
-	local answer="$3"
-	local cpoint="$4" # Explicit tab point.
-	
-	n="$(xnodecliac "$teststring" "$teststring" "$cpoint")"
-	# [https://stackoverflow.com/a/43231384]
-	# timeres=$(echo "${n##*$'\n'}")
-	t=${n: -5} # [https://stackoverflow.com/a/19858692]
-	n=${n::-5} # [https://stackoverflow.com/a/27658733]
-	# [https://stackoverflow.com/a/43231038]
-	# lines=$(echo "$n" | wc -l)
-	# n="$(echo "$n" | head -n $(($lines -1)))"
+	local string="$1"
+	local del=";"
+	local tests=()
+	local results=()
+	local teststring=""
+	local teststring_og=""
+	local suite_status=""
 
-	micros="${t:3:1}"
-	case $micros in
-	  0) t="\033[0;39m$t\033[0m" ;;
-	  1) t="\033[0;33m$t\033[0m" ;;
-	  *) t="\033[0;31m$t\033[0m" ;;
-	esac
+	# [https://stackoverflow.com/a/37270949]
+	# [https://unix.stackexchange.com/a/393562]
+	# [https://stackoverflow.com/a/52445886]
+	while IFS= read -r line; do
+		item="$line"
+		local cpoint=""
 
-	r="$(xtest_"${testname}" "$n" "$answer")"
+		# Skip over empty lines.
+		[[ -z "$(trim "$item")" ]] && continue
 
-	((test_count++))
-	((test_id++))
+		if [[ -z "$teststring" ]]; then
+			teststring="$item"
+			local ts="${teststring%%|*}"
+			cpoint="${#ts}"
+			# Remove | from test string.
+			teststring_og="${teststring/\|/\\033[1;34m\|\\033[0m\\033[2m}"
+			teststring="${teststring/\|/}"
 
-	tid="$test_id"
-	tlen="${#test_id}"
-	if [[ $tlen == 1 ]]; then tid=" $tid"; fi
+			output="$(xnodecliac "$teststring" "$teststring" "$cpoint")"
+			# [https://stackoverflow.com/a/43231384]
+			# timeres=$(echo "${output##*$'\n'}")
+			t=${output: -5} # [https://stackoverflow.com/a/19858692]
+			output=${output::-5} # [https://stackoverflow.com/a/27658733]
 
-	if [[ "$r" == "1" ]]; then
-		if [[ $(isset "$PRINT") ]]; then
-			echo -e " $tid $CHECK_MARK ${t}s ${testname:0:1} '$teststring'"
+			# [https://stackoverflow.com/a/43231038]
+			# lines=$(echo "$output" | wc -l)
+			# output="$(echo "$output" | head -n $(($lines -1)))"
+
+			micros="${t:3:1}"
+			case $micros in
+			  0) t="\033[0;39m$t\033[0m" ;;
+			  1) t="\033[0;33m$t\033[0m" ;;
+			  *) t="\033[0;31m$t\033[0m" ;;
+			esac
+
+			((test_id++))
+			tid="$test_id"
+			tlen="${#test_id}"
+			[[ $tlen == 1 ]] && tid="$tid"
+
+			continue
 		fi
-		((passed_count++))
-	else
+
+		# local rtrim=0
+		# local ltrim=0
+		local cindex=""
+		local invert=0
+		local tlogic="match"
+
+		# Check if index position is provided.
+		if [[ "$item" == *([^\\])":"* ]]; then
+			meta="${item%%:*}"
+			item="${item#*:}"
+			
+			# Get index, left, right string information.
+			# [[ "$meta" == *"<"* ]] && ltrim=1
+			# [[ "$meta" == *">"* ]] && rtrim=1
+			[[ "$meta" =~ [0-9] ]] && cindex="${meta//[!0-9]/}"
+			[[ "$meta" == *"*"* ]] && cindex="*"
+		fi
+
+		local r=0
+		item="$(perl -pe 's/([\\])(;|:)/\2/g' <<< "$(trim "$item")")"
+		tests+=("$item")
+
+		# Check if result needs to be inverted.
+		[[ "$item" == "!"* ]] && invert=1 && item="${item:1}" # Remove '!'.
+
+		# Determine logic check type.
+		if [[ "$item" =~ ^\* && "$item" =~ \*$ ]]; then
+			tlogic="dmatch"
+			item=${item:1:-1}
+		elif [[ "$item" =~ ^\* ]]; then 
+			tlogic="lmatch"
+			item=${item:1}
+		elif [[ "$item" =~ \*$ ]]; then 
+			tlogic="rmatch"
+			item=${item::1}
+		fi
+
+		if [[ "$item" == "#"* ]]; then
+			op="${item:2:2}"
+			n="${item:4:${#item}}"
+			readarray -t completions <<< "$(trim "$output")"
+			c="${#completions[@]}"
+			case "$op" in
+				eq) r=$([ "$c" == "$n" ] && echo 1 || echo 0) ;;
+				ne) r=$([ "$c" != "$n" ] && echo 1 || echo 0) ;;
+				gt) r=$([ "$c" >  "$n" ] && echo 1 || echo 0) ;;
+				ge) r=$([ "$c" >= "$n" ] && echo 1 || echo 0) ;;
+				lt) r=$([ "$c" <  "$n" ] && echo 1 || echo 0) ;;
+				le) r=$([ "$c" <= "$n" ] && echo 1 || echo 0) ;;
+			esac
+		else
+			if [[ -n "$cindex" ]]; then
+				readarray -t completions <<< "$(trim "$output")"
+				if [[ "$cindex" == "*" ]]; then
+					for completion in "${completions[@]}"; do
+						r="$(xlogic "$completion" "$item" "$tlogic")"
+						[[ "$r" == 1 ]] && break
+					done
+				else
+					completion="${completions[$cindex]}"
+					if [[ -n "$completion" ]]; then
+						r="$(xlogic "$completion" "$item" "$tlogic")"
+					fi
+				fi
+			else
+				r="$(xlogic "$output" "$item" "$tlogic")"
+			fi
+		fi
+		
+		# Invert if needed.
+		[[ "$invert" == 1 ]] &&  r=$([ "$r" == 1 ] && echo 0 || echo 1)
+		# Determine overall test suite status.
+		[[ "$suite_status" != 0 && "$r" == 1 ]] && suite_status=1
+		[[ "$r" == 0 ]] && suite_status=0
+		
+		results+=("$r")
+	done < <(perl -pe 's/([^\\]);/\1\n/g' <<< "$string")
+	
+	if [[ "${#tests[@]}" == 0 ]]; then
+		((test_id--))
+		((skipped++))
 		if [[ $(isset "$PRINT") ]]; then
-			echo -e " $tid $X_MARK ${t}s ${testname:0:1} '$teststring'"
-			# exit 1
+			echo -e "(-) \033[1mIgnored (No Tests)\033[0m\n    [?] [$teststring_og\\033[0m] (${t}s)"
+			echo -e "    \033[1;35mOutput\033[0m"
+			readarray -t completions <<< "$(trim "$output")"
+			l="${#completions[@]}"
+			for ((i = 0 ; i < $l ; i++)); do
+				c="${completions[$i]}"
+				echo -e "    [$i] => [$c]"
+			done
+		fi
+	else
+		if [[ "$suite_status" == 1 ]]; then
+			if [[ $(isset "$PRINT") ]]; then
+				tidl="${#tid}"
+				diff=$(( test_columns - tidl ))
+				padding="" # [https://stackoverflow.com/a/5349842]
+				[[ "$diff" > 0 ]] && padding="$(printf ' %.0s' $(seq 1 $diff))"
+				echo -e "${tid}${padding} $CHECK_MARK ${t}s [$teststring_og\\033[0m]"
+			fi
+			((passed_count++))
+		else
+			if [[ $(isset "$PRINT") ]]; then
+				tidl="${#tid}"
+				diff=$(( test_columns - tidl ))
+				padding="" # [https://stackoverflow.com/a/5349842]
+				[[ "$diff" > 0 ]] && padding="$(printf ' %.0s' $(seq 1 $diff))"
+				echo ""
+				echo -e "${tid}${padding} \033[1;31mFailing\033[0m\n    [$X_MARK] (${t}s) TS=[$teststring_og\\033[0m]"
+
+				l="${#tests[@]}"
+				for ((i = 0 ; i < $l ; i++)); do
+					r="${results[$i]}"
+					t="$(perl -pe 's/([\\])(;|:)/\2/g' <<< "$(trim "${tests[$i]}")")"
+					if [[ "$r" == 1 ]]; then
+						echo -e "    [$CHECK_MARK] [\033[1;36m${tlogic^^}\033[0m] —> [$t]"
+					else
+						echo -e "    [$X_MARK] [\033[1;36m${tlogic^^}\033[0m] -- [$t]"
+					fi
+				done
+				
+				echo -e "    \033[1;35mOutput\033[0m"
+				readarray -t completions <<< "$(trim "$output")"
+				l="${#completions[@]}"
+				for ((i = 0 ; i < $l ; i++)); do
+					c="${completions[$i]}"
+					echo -e "    [$i] => [$c]"
+				done
+				echo ""
+			fi
 		fi
 	fi
-}
-
-# Test that provided answer is an exact match against nodecliac output.
-#
-# @param {string} 1) - The nodecliac output.
-# @param {string} 2) - The answer to test against.
-function xtest_matches {
-	# Append trailing whitespace if third argument is provided.
-	local answer="$(echo -e "$2")"
-	local output="$(echo -e "$1")"
-
-	# [https://stackoverflow.com/a/454549]
-	# diff  <(echo -e "$output" ) <(echo -e "$answer")
-
-	if [[ "$output" == "$answer" ]]; then echo 1; else echo 0; fi
-}
-
-# Test that provided answer is contains in nodecliac output.
-#
-# @param {string} 1) - The nodecliac output.
-# @param {string} 2) - The answer to test against.
-function xtest_contains {
-	# Append trailing whitespace if third argument is provided.
-	local answer="$(echo -e "$2")"
-	local output="$(echo -e "$1")"
-
-	if [[ "$output" == *"$answer"* ]]; then echo 1; else echo 0; fi
-}
-
-# Test that provided answer is not contained in nodecliac output.
-#
-# @param {string} 1) - The nodecliac output.
-# @param {string} 2) - The answer to test against.
-function xtest_omits {
-	# Append trailing whitespace if third argument is provided.
-	local answer="$(echo -e "$2")"
-	local output="$(echo -e "$1")"
-
-	if [[ "$output" == *"$answer"* ]]; then echo 0; else echo 1; fi
 }
 
 # ------------------------------------------------------------------------ TESTS
@@ -267,92 +435,11 @@ for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-i
 
 	# Print header.
 	if [[ $(isset "$PRINT") ]]; then
-		echo -e "\033[1m[Testing Completion Script]\033[0m [script=\033[1;32m$(basename -- "$script")\033[0m, override=$OVERRIDE]"
+		echo -e "\033[1m[Testing Completion Script]\033[0m [script=\033[1;32m$(basename -- "$script")\033[0m, override=$OVERRIDE, cache=\033[1;32m$CACHE\033[0m]"
 	fi
+	for test in "${tests[@]}"; do xtest "$test"; done
 
-	# [test-suite: testapp]
-	xtest contains "testapp --test=\"\" " "format"
-	xtest contains "testapp --test \"\" " "format"
-	xtest contains "testapp --test=\"\" for" "format"
-	xtest contains "testapp --test \"\" for" "format"
-	xtest contains "testapp --help \"\" for" "format"
-	xtest contains "testapp --help for" "format"
-	xtest omits "testapp --version for" "format"
-
-	# [test-suite: nodecliac]
-	xtest contains "nodecliac " "uninstall"
-	# xtest match "nodecliac --nonexistantflag " ""
-	# xtest contains "nodecliac --engine=" "1"
-	xtest contains "nodecliac --engine=2 --" "--version "
-	xtest contains "nodecliac format" "format"
-	xtest omits "nodecliac format positional_arg" "format"
-	xtest omits "nodecliac format positional_arg " "format"
-	xtest contains "nodecliac print --command=" "subl"
-	xtest contains "nodecliac print --command" "--command="
-	xtest contains "nodecliac print --command=node" "nodecliac "
-	xtest contains "nodecliac print --command node" "nodecliac "
-	xtest contains "nodecliac print --command " "nodecliac "
-	xtest contains "nodecliac print --comm" "--command"
-	xtest contains "nodecliac make --sou path/to/file" "source" "20"
-	xtest omits "nodecliac make --source install --print --so" "--source"
-	xtest contains "nodecliac format --source command.acmap --print --indent \"s:2\" --" "strip-comments"
-
-	# [test-suite: prettier-cli-watcher]
-	xtest matches "prettier-cli-watcher " "command:+"
-	xtest contains "prettier-cli-watcher --watcher=" "hound"
-	xtest omits "prettier-cli-watcher --watcher= --" "--watcher"
-	xtest contains "prettier-cli-watcher --watcher=hou" "hound "
-	xtest contains "prettier-cli-watcher --watcher=hound" "hound "
-	xtest omits "prettier-cli-watcher --watcher=hound --" "--watcher"
-	xtest matches "prettier-cli-watcher --watcher=hound --w" "flag:--w+"
-	# xtest omits "prettier-cli-watcher --watcher=hound --watcher " "chokidar"
-	# xtest omits "prettier-cli-watcher --watcher=hound --watcher=" "chokidar"
-	xtest matches "prettier-cli-watcher --watcher=hound --" "$(cat <<-END
-	flag:--+
-	--config 
-	--dir 
-	--dry 
-	--dtime 
-	--ignore 
-	--notify 
-	--quiet 
-	--setup 
-	--version 
-	END
-	)"
-	xtest contains "prettier-cli-watcher --watcher hou" "hound "
-	xtest contains "prettier-cli-watcher --watcher hound" "hound "
-	xtest omits "prettier-cli-watcher --watcher hound --" "--watcher"
-	xtest matches "prettier-cli-watcher --watcher hound --w" "flag:--w+"
-	xtest omits "prettier-cli-watcher --watcher hound --watcher " "chokidar"
-	xtest matches "prettier-cli-watcher --watcher hound --watcher" "flag:--watcher+"
-	xtest omits "prettier-cli-watcher --watcher=hound --watcher=" "chokidar"
-	xtest omits "prettier-cli-watcher --watcher=hound --watcher" "chokidar"
-	xtest omits "prettier-cli-watcher --watcher=hound --watcher chok" "chokidar"
-
-	# [test-suite: yarn]
-	xtest matches "yarn remov " "command:+" # `remov` command does not exit.
-	xtest contains "yarn remove ch" "chalk"
-	xtest contains "yarn " "config"
-	xtest omits "yarn run" "nocache"
-	xtest contains "yarn run " "pretty"
-	xtest contains "yarn remove " "prettier"
-	xtest contains "yarn remove prettier " "-"
-	# Completing a non existing argument should not append a trailing space.
-	xtest matches "yarn remove nonexistantarg" "command;nocache:nonexistantarg+"
-	xtest contains "yarn add prettier-cli-watcher@* --" "--dev"
-
-	# [test-suite: nim]
-	xtest contains "nim compile --" "--hint..." # Test flag collapsing.
-	xtest contains "nim compile --app=con" "console"
-	xtest contains "nim compile --app:con" "console"
-
-	# [test-suite: nimble]
-	xtest contains "nimble install " "a"
-	xtest contains "nimble uninstall " "@"
-	xtest contains "nimble path " "regex"
-
-	if [[ $(isset "$PRINT") ]]; then echo ""; fi # Pad output.
+	[[ $(isset "$PRINT") ]] && echo "" # Pad output.
 	test_id=0
 done
 
@@ -362,12 +449,14 @@ done
 # [https://misc.flogisoft.com/bash/tip_colors_and_formatting]
 if [[ $(isset "$PRINT") ]]; then
 	# Perl round number: [https://stackoverflow.com/a/178576]
-	percent=$(perl -e "printf \"%.2f\", $passed_count/$test_count*100")
+	test_count=$(( (2*test_count) - skipped ))
+	percent=$(perl -e "printf \"%.2f\", $passed_count/$test_count*100" 2> /dev/null)
+	[[ -z "$percent" ]] && percent=0
 	echo -e " \033[1;34mResult\033[0m: $passed_count/$test_count — (coverage: \033[1m$percent%\033[0m)"
 fi
 
-if [[ $(isset "$PRINT") ]]; then echo ""; fi # Pad output.
+[[ $(isset "$PRINT") ]] && echo "" # Pad output.
 
 # Set exist code. If all tests pass then set to 0.
 # [https://shapeshed.com/unix-exit-codes/]
-if [[ "$passed_count" == "$test_count" ]]; then exit 0; else exit 0; fi
+[[ "$passed_count" == "$test_count" ]] && exit 0 || exit 0

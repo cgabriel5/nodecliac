@@ -28,6 +28,7 @@ my $autocompletion = 1;
 my $input = substr($cline, 0, $cpoint); # CLI input from start to caret index.
 my $input_remainder = substr($cline, $cpoint, -1); # CLI input from caret index to input string end.
 my $hdir = $ENV{'HOME'};
+my $TESTMODE = $ENV{'TESTMODE'};
 my $filedir = '';
 
 my %db;
@@ -969,9 +970,9 @@ sub __printer {
 	$lines .= '+' . $filedir;
 
 	my $iscommand = rindex($type, 'c', 0) == 0;
-	if ($iscommand) { $lines .= "\n"; }
+	if (!$TESTMODE && $iscommand) { $lines .= "\n"; }
 
-	my $sep = ($iscommand) ? ' ' : "\n";
+	my $sep = (!$TESTMODE && $iscommand) ? ' ' : "\n";
 	my $isflag_type = rindex($type, 'f', 0) == 0;
 	my $skip_map = 0;
 
@@ -1037,6 +1038,11 @@ sub __printer {
 			"$sep$_$final_space";
 		} @completions;
 	}
+
+	# Note: bash-completion already sorts completions so this is not needed.
+	# However, when testing the results are never returned to bash-completion
+	# so the completions need to be sorted for testing purposes.
+	if ($TESTMODE) { @completions = sort(@completions); }
 
 	print $lines . join('', @completions);
 }

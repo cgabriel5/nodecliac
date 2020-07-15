@@ -2,6 +2,7 @@
 
 import streams
 from strformat import fmt
+from algorithm import sort
 from osproc import execProcess
 from re import re, `=~`, find, split, replace, contains,
     replacef, reMultiLine, findBounds
@@ -40,6 +41,7 @@ var autocompletion = true
 var input = cline.substr(0, cpoint - 1) # CLI input from start to caret index.
 var input_remainder = cline.substr(cpoint, -1)# CLI input from caret index to input string end.
 let hdir = os.getEnv("HOME")
+let TESTMODE = os.getEnv("TESTMODE")
 var filedir = ""
 
 var db_dict = initTable[char, Table[string, Table[string, seq[string]]]]()
@@ -938,9 +940,9 @@ proc fn_printer() =
     lines &= "+" & filedir
 
     var iscommand = `type`.startsWith('c')
-    if iscommand: lines &= "\n"
+    if TESTMODE == "" and iscommand: lines &= "\n"
 
-    var sep = if iscommand: " " else: "\n"
+    var sep = if TESTMODE == "" and iscommand: " " else: "\n"
     var isflag_type = `type`.startsWith('f')
     var skip_map = false
 
@@ -998,6 +1000,11 @@ proc fn_printer() =
 
             sep & x & final_space
         )
+
+    # Note: bash-completion already sorts completions so this is not needed.
+    # However, when testing the results are never returned to bash-completion
+    # so the completions need to be sorted for testing purposes.
+    if TESTMODE != "": completions.sort()
 
     echo lines & completions.join("")
 

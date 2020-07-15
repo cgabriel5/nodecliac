@@ -12,11 +12,12 @@
 PRINT="true"
 FORCE="false" # Forces tests to run regardless of conditions.
 OVERRIDE=""
+TESTS=""
 
 OPTIND=1 # Reset variable: [https://unix.stackexchange.com/a/233737]
 # [https://stackoverflow.com/a/18003735], [https://stackoverflow.com/a/18118360]
 # [https://sookocheff.com/post/bash/parsing-bash-script-arguments-with-shopts/]
-while getopts 'p:f:o:' flag; do
+while getopts 't:p:f:o:' flag; do
 	case "$flag" in
 		p)
 			case "$OPTARG" in
@@ -33,7 +34,8 @@ while getopts 'p:f:o:' flag; do
 			case "$OPTARG" in
 				nim | pl) OVERRIDE="$OPTARG" ;;
 				*) OVERRIDE="" ;;
-			esac
+			esac ;;
+		t) [[ -n "$OPTARG" ]] && TESTS="$OPTARG" ;;
 	esac
 done
 shift $((OPTIND - 1))
@@ -50,10 +52,11 @@ __filepath="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 ROOTDIR=$(chipdir "$__filepath" 2)
 TESTDIR="$ROOTDIR/tests/scripts"
 
-args=() # [https://stackoverflow.com/a/1951554]
-if [[ -n "$PRINT" ]]; then args+=("-p"); args+=("$PRINT"); fi
-if [[ -n "$FORCE" ]]; then args+=("-f"); args+=("$FORCE"); fi
-if [[ -n "$OVERRIDE" ]]; then args+=("-o"); args+=("$OVERRIDE"); fi
+args=(); targs=() # [https://stackoverflow.com/a/1951554]
+[[ -n "$PRINT" ]] && args+=("-p"); args+=("$PRINT"); targs+=("-p"); targs+=("$PRINT");
+[[ -n "$FORCE" ]] && args+=("-f"); args+=("$FORCE"); targs+=("-f"); targs+=("$FORCE");
+[[ -n "$OVERRIDE" ]] && args+=("-o"); args+=("$OVERRIDE"); targs+=("-o"); targs+=("$OVERRIDE");
+[[ -n "$TESTS" ]] && targs+=("-t"); targs+=("$TESTS")
 
 # ------------------------------------------------------------------------ TESTS
 
@@ -64,6 +67,6 @@ if [[ -n "$OVERRIDE" ]]; then args+=("-o"); args+=("$OVERRIDE"); fi
 # Or set arguments: [https://unix.stackexchange.com/a/284545]
 "$TESTDIR/checksum.sh" "${args[@]}" && \
 "$TESTDIR/executables.sh" "${args[@]}" && \
-"$TESTDIR/nodecliac.sh" "${args[@]}" && \
+"$TESTDIR/nodecliac.sh" "${targs[@]}" && \
 "$TESTDIR/parser.sh" "${args[@]}" && \
 "$TESTDIR/formatter.sh" "${args[@]}"

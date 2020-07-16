@@ -104,6 +104,7 @@ module.exports = async (args) => {
 	};
 
 	// Copy nodecliac command packages/files to nodecliac registry.
+	delete opts.rename;
 	[err, res] = await flatry(copydir(resourcespath, registrypath, opts));
 	if (err) exit(["Failed to copy command files."]);
 

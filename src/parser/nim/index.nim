@@ -91,7 +91,7 @@ proc main =
                 os.setFilePermissions(testpath, { # 775 permissions
                     fpUserExec, fpUserWrite, fpUserRead, fpGroupExec,
                     fpGroupWrite, fpGroupRead, fpOthersExec, fpOthersRead
-                })
+                }) # [https://stackoverflow.com/a/54638633]
 
             # Create placeholder files if object is populated.
             let placeholders = placeholders

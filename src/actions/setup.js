@@ -23,6 +23,7 @@ module.exports = async (args) => {
 
 	let { ncliacdir, bashrcpath, mainscriptname, registrypath } = paths;
 	let { acmapssource, resourcespath, resourcessrcs, setupfilepath } = paths;
+	let { testsrcpath } = paths;
 	if (rcfile) bashrcpath = rcfile; // Use provided path.
 
 	[err, res] = await flatry(de(ncliacdir));
@@ -59,7 +60,7 @@ module.exports = async (args) => {
 	opts.overwrite = true;
 	opts.dot = false;
 	opts.debug = false;
-	const files = new Set([
+	let files = new Set([
 		"ac/ac.pl",
 		"ac/utils",
 		"ac/utils/LCP.pm",
@@ -82,6 +83,14 @@ module.exports = async (args) => {
 
 	// Copy nodecliac command packages/files to nodecliac registry.
 	[err, res] = await flatry(copydir(resourcessrcs, acmapssource, opts));
+	if (err) exit(["Failed to copy source files."]);
+
+	// Copy test file over.
+	files = new Set(["nodecliac.sh"]);
+	opts.filter = (filename) => files.has(filename);
+	opts.rename = (p) => "test.sh";
+	let mainpath = path.join(acmapssource, "main");
+	[err, res] = await flatry(copydir(testsrcpath, mainpath, opts));
 	if (err) exit(["Failed to copy source files."]);
 
 	opts.dot = true;

@@ -246,6 +246,7 @@ if [[ " binary manual " == *" $installer "* ]]; then
 	acpath="$outputdir/src/scripts/ac"
 	mainpath="$outputdir/src/scripts/main"
 	binpath="$outputdir/src/scripts/bin"
+	testspath="$outputdir/tests"
 	mkdir -p ~/.nodecliac/{registry,src}
 	mkdir -p "$dest"/{bin,main}
 	mkdir -p "$dest"/ac/utils
@@ -253,6 +254,7 @@ if [[ " binary manual " == *" $installer "* ]]; then
 	cp -pr "$acpath"/utils/LCP.pm "$dest/ac/utils"
 	cp -pr "$mainpath"/init.sh "$dest/main"
 	cp -pr "$mainpath"/config.pl "$dest/main"
+	cp -pr "$testspath"/scripts/nodecliac.sh "$dest/main/test.sh"
 	cp -pr "$binpath"/binary.sh "$dest/bin"
 	cp -pr "$outputdir"/resources/packages/* ~/.nodecliac/registry
 	nimbin="$outputdir/src/parser/nim/nodecliac.$os"

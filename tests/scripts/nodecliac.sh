@@ -112,7 +112,7 @@ test_columns="${#test_count}"
 # Note: If nodecliac is not installed tests cannot run so exit with message.
 if [[ $(notset "$(command -v nodecliac)") ]]; then
 	if [[ $(isset "$PRINT") ]]; then # Print header.
-		echo -e "\033[1m[Testing Completion Script]\033[0m [script=, override=$OVERRIDE, cache=\033[1;32m$CACHE\033[0m]"
+		echo -e "\033[1m[Testing Completions]\033[0m [script=, override=$OVERRIDE, cache=\033[1;32m$CACHE\033[0m]"
 		echo -e " $X_MARK [skipped] \033[1;36mnodecliac\033[0m is not installed.\n"
 	fi
 	exit 0
@@ -121,7 +121,7 @@ fi
 # To run tests there needs to be modified src/ files or force flag.
 if [[ "$(git diff --name-only --cached)" != *"src/"* && $(notset "$FORCE") ]]; then
 	if [[ $(isset "$PRINT") ]]; then
-		echo -e "\033[1m[Testing Completion Script]\033[0m [script=, override=$OVERRIDE, cache=\033[1;32m$CACHE\033[0m]"
+		echo -e "\033[1m[Testing Completions]\033[0m [script=, override=$OVERRIDE, cache=\033[1;32m$CACHE\033[0m]"
 		echo -e " $CHECK_MARK [skipped] No staged \033[1;34msrc/\033[0m files.\n"
 	fi
 	
@@ -435,7 +435,7 @@ for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-i
 
 	# Print header.
 	if [[ $(isset "$PRINT") ]]; then
-		echo -e "\033[1m[Testing Completion Script]\033[0m [script=\033[1;32m$(basename -- "$script")\033[0m, override=$OVERRIDE, cache=\033[1;32m$CACHE\033[0m]"
+		echo -e "\033[1m[Testing Completions]\033[0m [script=\033[1;32m$(basename -- "$script")\033[0m, override=$OVERRIDE, cache=\033[1;32m$CACHE\033[0m]"
 	fi
 	for test in "${tests[@]}"; do xtest "$test"; done
 

@@ -108,7 +108,7 @@ if [[ -z "$command" && "$version" == "1" && -f "$setupfilepath" ]]; then
 fi
 
 # Allowed commands.
-commands=" make format print registry setup status uninstall add remove link unlink enable disable cache "
+commands=" make format print registry setup status uninstall add remove link unlink enable disable cache test "
 
 if [[ "$commands" != *"$command"* ]]; then exit; fi # Exit if invalid command.
 
@@ -374,6 +374,26 @@ case "$command" in
 			if [[ ! -d "$destination" ]]; then continue; fi
 
 			rm -rf "$destination" # Delete directory.
+		done
+
+		;;
+
+	test)
+
+		errscript="$HOME/.nodecliac/src/main/test.sh"
+		if [[ ! -f "$errscript" ]]; then
+			echo -e "File \033[1m${errscript}\033[0m doesn't exit."
+			exit
+		fi
+
+		# Loop over packages and remove each if its exists.
+		for pkg in "${paramsargs[@]}"; do
+			# Needed paths.
+			pkgpath="$registrypath/$pkg"
+			test="$pkgpath/$pkg.tests.sh"
+
+			[[ ! -f "$test" ]] && continue
+			"$errscript" "-p" "true" "-f" "true" "-t" "$test"
 		done
 
 		;;

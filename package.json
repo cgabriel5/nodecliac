@@ -24,8 +24,8 @@
 		"build:acbin": "bash -c \"OS=`uname`;USER_OS=\\\"\\${OS,,}\\\";USER_OS=\\\"\\${USER_OS/darwin/macosx}\\\"; src/scripts/main/compile.sh -i src/scripts/ac/ac.nim \\$0 && mv src/scripts/ac/ac.\\\"\\$USER_OS\\\" src/scripts/bin/ac.\\\"\\$USER_OS\\\"\"",
 		"build:nimbin": "bash -c \"OS=`uname`;USER_OS=\\\"\\${OS,,}\\\";USER_OS=\\\"\\${USER_OS/darwin/macosx}\\\"; src/scripts/main/compile.sh -i src/parser/nim/index.nim \\$0 && mv src/parser/nim/index.\\\"\\$USER_OS\\\" src/parser/nim/nodecliac.\\\"\\$USER_OS\\\"\"",
 		"files": "bash -c \"find . -not -path \\\"*/node_modules/*\\\" -type f -name \\\"*.\\$0\\\" -not -path '*/\\\\.*'\"",
-		"install:local": "sudo echo > /dev/null 2>&1 && bash -c \"s=\\\"\\$(<./install)\\\"; echo \\\"\\$s\\\" | bash -s -- --installer=\\$0 --branch=\\$1 && source ~/.bashrc\"",
-		"install:remote": "sudo echo > /dev/null 2>&1 && bash -c \"curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/\\$1/install | bash -s -- --installer=\\$0 --branch=\\$1 && source ~/.bashrc\"",
+		"install:local": "sudo echo > /dev/null 2>&1 && bash -c \"s=\\\"\\$(<./install.sh)\\\"; echo \\\"\\$s\\\" | bash -s -- --installer=\\$0 --branch=\\$1 && source ~/.bashrc\"",
+		"install:remote": "sudo echo > /dev/null 2>&1 && bash -c \"curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/\\$1/install.sh | bash -s -- --installer=\\$0 --branch=\\$1 && source ~/.bashrc\"",
 		"checksum": "./src/scripts/main/checksum.sh"
 	},
 	"dependencies": {

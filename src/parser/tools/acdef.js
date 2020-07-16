@@ -1,7 +1,8 @@
 "use strict";
 
+const flatry = require("flatry");
 const node = require("../helpers/nodes.js");
-const { md5, hasProp } = require("../../utils/toolbox.js");
+const { md5, hasProp, write } = require("../../utils/toolbox.js");
 
 /**
  * Generate .acdef, .config.acdef file contents.
@@ -10,7 +11,7 @@ const { md5, hasProp } = require("../../utils/toolbox.js");
  * @param  {string} cmdname - Name of <command>.acdef being parsed.
  * @return {object} - Object containing acdef, config, and keywords contents.
  */
-module.exports = (S, cmdname) => {
+module.exports = async (S, cmdname) => {
 	let oSets = {};
 	let oGroups = {};
 	let oDefaults = {};
@@ -244,11 +245,15 @@ module.exports = (S, cmdname) => {
 				break;
 			}
 
-			case "SETTING":
-				if (!hasProp(oSettings, N.name.value)) settings_count++;
-				oSettings[N.name.value] = N.value.value;
+			case "SETTING": {
+				let name = N.name.value;
+				if (name !== "test") {
+					if (!hasProp(oSettings, name)) settings_count++;
+					oSettings[name] = N.value.value;
+				}
 
 				break;
+			}
 		}
 	}
 
@@ -415,12 +420,17 @@ module.exports = (S, cmdname) => {
 	acdef = acdef_contents ? header + acdef_contents : sheader;
 	config = config ? header + config : sheader;
 
-	return {
+	let tests = S.tests.length
+		? `#!/bin/bash\n\n${header}tests=(\n${S.tests.join("\n")}\n)`
+		: "";
+
+	return Promise.resolve({
 		acdef,
 		config,
 		keywords: defaults,
 		filedirs,
 		contexts,
-		placeholders: oPlaceholders
-	};
+		placeholders: oPlaceholders,
+		tests
+	});
 };

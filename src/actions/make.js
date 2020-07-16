@@ -48,9 +48,12 @@ module.exports = async (args) => {
 
 	[err, res] = await flatry(read(source));
 	let parser = require(`../parser/index.js`);
-	let pres = parser(action, res, cmdname, source, fmtinfo, trace, igc, test);
-	let { acdef, config, keywords, filedirs } = pres;
-	let { contexts, placeholders, formatted } = pres;
+	[err, res] = await flatry(
+		parser(action, res, cmdname, source, fmtinfo, trace, igc, test)
+	);
+	let { acdef, config, keywords, filedirs } = res;
+	let { contexts, placeholders, formatted, tests } = res;
+	let testname = `${cmdname}.tests.sh`;
 	let savename = `${cmdname}.acdef`;
 	let saveconfigname = `.${cmdname}.config.acdef`;
 
@@ -58,6 +61,7 @@ module.exports = async (args) => {
 	if (!test) {
 		if (formatting) [err, res] = await flatry(write(source, formatted));
 		else {
+			let testpath = path.join(dirname, testname);
 			let commandpath = path.join(dirname, savename);
 			let commandconfigpath = path.join(dirname, saveconfigname);
 			let placeholderspaths = path.join(dirname, "placeholders");
@@ -66,6 +70,9 @@ module.exports = async (args) => {
 			let content = acdef + keywords + filedirs + contexts;
 			await flatry(write(commandpath, content));
 			await flatry(write(commandconfigpath, config));
+
+			// Save test file if tests were provided.
+			if (tests) [err, res] = await flatry(write(testpath, tests, 0o775));
 
 			// Create placeholder files if object is populated.
 			if (Object.keys(placeholders).length) {

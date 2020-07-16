@@ -1,4 +1,4 @@
-# DON'T EDIT FILE —— GENERATED: Fri Jun 26 2020 08:41:45 (1593186105)
+# DON'T EDIT FILE —— GENERATED: Wed Jul 15 2020 23:17:54 (1594880274)
 
  --version?
 .add --force?
@@ -13,12 +13,14 @@
 .remove --all
 .setup --force?|--rcfile
 .status --disable?|--enable?
+.test --
 .uninstall --rcfile
 .unlink --all
 
 .disable default $('~/.nodecliac/registry/nodecliac/scripts/names.pl')
 .enable default $('~/.nodecliac/registry/nodecliac/scripts/names.pl')
 .remove default $('~/.nodecliac/registry/nodecliac/scripts/names.pl')
+.test default $('~/.nodecliac/registry/nodecliac/scripts/names.pl')
 .unlink default $('~/.nodecliac/registry/nodecliac/scripts/names.pl')
 
 .format filedir '@(acmap)'

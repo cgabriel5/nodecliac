@@ -1,6 +1,8 @@
 from re import re, find, replace
 from strutils import split, parseInt
-from os import isAbsolute, absolutePath, existsDir, existsFile, joinPath, createDir
+from os import isAbsolute, absolutePath, existsDir, existsFile, joinPath,
+    createDir, fpUserExec, fpUserWrite, fpUserRead, fpGroupExec, fpGroupWrite,
+    fpGroupRead, fpOthersExec, fpOthersRead
 from tables import Table, `[]`, `$`, keys, pairs, len # [https://github.com/nim-lang/Nim/issues/11155]
 
 from parser/index import parser
@@ -64,7 +66,9 @@ proc main =
     let contexts = pres.contexts
     let placeholders = pres.placeholders
     let formatted = pres.formatted
+    let tests = pres.tests
 
+    let testname = cmdname &  ".tests.sh"
     let savename = cmdname & ".acdef"
     let saveconfigname = "." & cmdname & ".config.acdef"
 
@@ -72,6 +76,7 @@ proc main =
     if not test:
         if formatting: write(source, formatted)
         else:
+            let testpath = joinPath(dirname, testname)
             let commandpath = joinPath(dirname, savename)
             let commandconfigpath = joinPath(dirname, saveconfigname)
             let placeholderspaths = joinPath(dirname, "placeholders")
@@ -79,6 +84,14 @@ proc main =
             createDir(dirname)
             write(commandpath, acdef & keywords & filedirs & contexts)
             write(commandconfigpath, config)
+
+            # Save test file if tests were provided.
+            if tests != "":
+                write(testpath, tests) # [https://forum.nim-lang.org/t/5270]
+                os.setFilePermissions(testpath, { # 775 permissions
+                    fpUserExec, fpUserWrite, fpUserRead, fpGroupExec,
+                    fpGroupWrite, fpGroupRead, fpOthersExec, fpOthersRead
+                })
 
             # Create placeholder files if object is populated.
             let placeholders = placeholders

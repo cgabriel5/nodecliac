@@ -259,7 +259,8 @@ proc formatter*(S: State): tuple =
         filedirs: string,
         contexts: string,
         formatted: string,
-        placeholders: Table[string, string]
+        placeholders: Table[string, string],
+        tests: string
     ]
     data.formatted = output.join("") & "\n"
     result = data

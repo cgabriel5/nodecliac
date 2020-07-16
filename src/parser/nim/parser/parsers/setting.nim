@@ -107,3 +107,6 @@ proc p_setting*(S: State) =
 
     discard validate(S, N)
     add(S, N)
+
+    # Store test.
+    if N.name.value == "test": S.tests.add(N.value.value)

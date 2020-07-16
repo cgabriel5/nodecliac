@@ -227,8 +227,10 @@ proc acdef*(S: State, cmdname: string): tuple =
                 last = `type`
 
             of "SETTING":
-                if not oSettings.hasKey(N.name.value): inc(settings_count)
-                oSettings[N.name.value] = N.value.value
+                let name = N.name.value
+                if name != "test":
+                    if not oSettings.hasKey(name): inc(settings_count)
+                    oSettings[name] = N.value.value
 
         inc(i)
 
@@ -387,6 +389,10 @@ proc acdef*(S: State, cmdname: string): tuple =
     acdef = if acdef_contents != "": header & acdef_contents else: sheader
     config = if config != "": header & config else: sheader
 
+    let tests = if S.tests.len != 0:
+        "#!/bin/bash\n\n" & header & "tests=(\n" & S.tests.join("\n") & "\n)"
+        else: ""
+
     var data: tuple[
         acdef: string,
         config: string,
@@ -394,7 +400,8 @@ proc acdef*(S: State, cmdname: string): tuple =
         filedirs: string,
         contexts: string,
         formatted: string,
-        placeholders: Table[string, string]
+        placeholders: Table[string, string],
+        tests: string
     ]
 
     data.acdef = acdef
@@ -403,4 +410,5 @@ proc acdef*(S: State, cmdname: string): tuple =
     data.filedirs = filedirs
     data.contexts = contexts
     data.placeholders = oPlaceholders
+    data.tests = tests
     result = data

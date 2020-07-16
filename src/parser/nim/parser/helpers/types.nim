@@ -11,6 +11,7 @@ type
         text*: string
         scopes*: Scopes
         tables*: Tables
+        tests*: seq[string]
         args*: Args
     Scopes* = ref object
         command*, flag*: Node # Track command/flag scopes.
@@ -63,6 +64,7 @@ proc state*(action: string, cmdname: string, text: string, source: string,
     fmt: tuple, trace: bool, igc: bool, test: bool): State =
     new(result)
 
+    var tests: seq[string] = @[]
     var linestarts = initTable[int, int]()
     # Builtin variables.
     var variables = {
@@ -83,6 +85,7 @@ proc state*(action: string, cmdname: string, text: string, source: string,
     result.specf = 0 # Default to allow anything initially.
     result.scopes = Scopes(command: Node(), flag: Node()) #Scopes(command: Node, flag: Node),
     result.tables = Tables(variables: variables, linestarts: linestarts, tree: tree) # Parsing lookup tables.
+    result.tests = tests
     # Arguments/parameters for quick access across parsers.
     result.args = Args(action: action, source: source, fmt: fmt, trace: trace, igc: igc, test: test)
 

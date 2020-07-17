@@ -44,7 +44,7 @@
 		"rimraf": "^3.0.2",
 		"shelljs": "^0.8.4",
 		"strip-ansi": "^6.0.0",
-		"symlink-dir": "^4.0.3",
+		"symlink-dir": "^4.1.0",
 		"through2": "^4.0.2"
 	},
 	"author": "Carlos Gabriel",

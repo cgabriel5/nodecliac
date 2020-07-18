@@ -3,7 +3,6 @@
 const os = require("os");
 const path = require("path");
 const chalk = require("chalk");
-const flatry = require("flatry");
 const log = require("fancy-log");
 const de = require("directory-exists");
 const fe = require("file-exists");
@@ -13,15 +12,12 @@ const { paths, readdir, lstats, realpath } = toolbox;
 module.exports = async () => {
 	let { registrypath } = paths;
 	let files = [];
-	// eslint-disable-next-line no-unused-vars
-	let err, res, commands;
 
 	// Maps path needs to exist to list acdef files.
-	[err, res] = await flatry(de(registrypath));
-	if (!res) process.exit();
+	if (!(await de(registrypath))) process.exit();
 
 	// Get list of directory command folders.
-	[err, commands] = await flatry(readdir(registrypath));
+	let commands = await readdir(registrypath);
 	let count = commands.length;
 
 	console.log(`${chalk.bold(registrypath)} (${count})`); // Print header.
@@ -49,23 +45,19 @@ module.exports = async () => {
 		let check;
 
 		check = false;
-		[err, res] = await flatry(fe(acdefpath));
-		if (res) check = true;
-		[err, res] = await flatry(fe(configpath));
-		if (res && check) data.hasacdefs = true;
+		if (await fe(acdefpath)) check = true;
+		if ((await fe(configpath)) && check) data.hasacdefs = true;
 
 		// Check whether it's a symlink.
 		let pkgpath = `${registrypath}/${command}`;
-		[err, res] = await flatry(lstats(pkgpath));
+		let res = await lstats(pkgpath);
 		data.isdir = res.is.directory;
-
 		if (res.is.symlink) {
 			data.issymlink = true;
-			[err, res] = await flatry(realpath(pkgpath));
-			let resolved_path = res;
+			let resolved_path = await realpath(pkgpath);
 			data.realpath = resolved_path;
 
-			[err, res] = await flatry(lstats(resolved_path));
+			let res = await lstats(resolved_path);
 			data.issymlinkdir = res.is.directory;
 			if (res.is.directory) data.isdir = true;
 
@@ -74,10 +66,8 @@ module.exports = async () => {
 			let sympathconf = path.join(resolved_path, command, configfilename);
 
 			check = false;
-			[err, res] = await flatry(fe(sympath));
-			if (res) check = true;
-			[err, res] = await flatry(fe(sympathconf));
-			if (res && check) data.issymlink_valid = true;
+			if (await fe(sympath)) check = true;
+			if ((await fe(sympathconf)) && check) data.issymlink_valid = true;
 		}
 
 		files.push(data);

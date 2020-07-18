@@ -1,7 +1,6 @@
 "use strict";
 
 const chalk = require("chalk");
-const flatry = require("flatry");
 const fe = require("file-exists");
 const { exit, paths, read, fmt } = require("../utils/toolbox.js");
 
@@ -60,27 +59,18 @@ module.exports = async (args) => {
 		let filepath = `${pathstart}/${cmdname}${ext}`;
 		let filepathconfig = `${pathstart}/.${cmdname}.config${ext}`;
 
-		// Check if acdef file exists.
-		[err, res] = await flatry(fe(filepath));
-
-		// Print file contents.
-		if (res) {
-			[err, res] = await flatry(read(filepath));
-
+		// Check if acdef file exists. Print file contents.
+		if (await fe(filepath)) {
 			// Log file contents.
 			console.log(`\n[${chalk.bold(`${cmdname}${ext}`)}]\n`);
-			console.log(res);
+			console.log(await read(filepath));
 
-			// Check if config file exists.
-			[err, res] = await flatry(fe(filepathconfig));
-			// Print file contents.
-			if (res) {
-				[err, res] = await flatry(read(filepathconfig));
-
+			// Check if config file exists. Print file contents.
+			if (await fe(filepathconfig)) {
 				// Log file contents.
 				let header = chalk.bold(`.${cmdname}.config${ext}`);
 				console.log(`[${header}]\n`);
-				console.log(res);
+				console.log(await read(filepathconfig));
 			}
 		} else {
 			// If acdef file does not exist log a message and exit script.

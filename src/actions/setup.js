@@ -26,19 +26,19 @@ module.exports = async (args) => {
 	let { testsrcpath } = paths;
 	if (rcfile) bashrcpath = rcfile; // Use provided path.
 
-	[err, res] = await flatry(de(ncliacdir));
-	if (res && !force) {
+	if ((await de(ncliacdir)) && !force) {
 		tstring = "? exists. Setup with ? to overwrite directory.";
 		exit([fmt(tstring, chalk.bold(ncliacdir), chalk.bold("--force"))]);
 	}
 
-	[err, res] = await flatry(fe(bashrcpath));
-	if (!res) exit([`${chalk.bold(bashrcpath)} file doesn't exist.`]);
+	if (!(await fe(bashrcpath))) {
+		exit([`${chalk.bold(bashrcpath)} file doesn't exist.`]);
+	}
 
 	// [https://github.com/scopsy/await-to-js/issues/12#issuecomment-386147783]
-	await flatry(Promise.all([mkdirp(registrypath), mkdirp(acmapssource)]));
+	await Promise.all([mkdirp(registrypath), mkdirp(acmapssource)]);
 
-	[err, res] = await flatry(read(bashrcpath));
+	res = await read(bashrcpath);
 	if (!/^ncliac=~/m.test(res)) {
 		res = res.replace(/\n*$/g, ""); // Remove trailing newlines.
 		tstring =
@@ -53,7 +53,7 @@ module.exports = async (args) => {
 	data.time = Date.now();
 	data.version = require("../../package.json").version;
 	let contents = JSON.stringify(data, undefined, "\t");
-	[err, res] = await flatry(write(setupfilepath, contents));
+	await write(setupfilepath, contents);
 
 	// Copy directory module options.
 	let opts = {};

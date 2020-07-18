@@ -1,6 +1,5 @@
 "use strict";
 
-const flatry = require("flatry");
 const node = require("../helpers/nodes.js");
 const { md5, hasProp, write } = require("../../utils/toolbox.js");
 

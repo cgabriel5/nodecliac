@@ -8,16 +8,13 @@ const { paths, rmrf, read, write, hasProp } = require("../utils/toolbox.js");
 
 module.exports = async (args) => {
 	let { cachepath, cachelevel } = paths;
-	// eslint-disable-next-line no-unused-vars
-	let err, res;
-
 	let { clear, level } = args;
 
 	if (clear) {
-		[err, res] = await flatry(de(cachepath));
+		let [err] = await flatry(de(cachepath));
 		if (!err) {
-			await flatry(rmrf(cachepath));
-			await flatry(mkdirp(cachepath));
+			await rmrf(cachepath);
+			await mkdirp(cachepath);
 			console.log(chalk.green("Successfully"), "cleared cache.");
 		}
 	}
@@ -25,11 +22,9 @@ module.exports = async (args) => {
 	if (hasProp(args, "level")) {
 		if (Number.isInteger(level)) {
 			const levels = [0, 1, 2]; // Cache levels.
-			await flatry(
-				write(cachelevel, -~levels.indexOf(level) ? level : 1)
-			);
+			await write(cachelevel, -~levels.indexOf(level) ? level : 1);
 		} else {
-			[err, res] = await flatry(read(cachelevel));
+			let [err, res] = await flatry(read(cachelevel));
 			if (!err) console.log(res.trim());
 		}
 	}

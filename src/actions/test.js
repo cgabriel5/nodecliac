@@ -10,9 +10,6 @@ const { paths, exit } = require("../utils/toolbox.js");
 
 module.exports = async (args) => {
 	let { registrypath } = paths;
-	// eslint-disable-next-line no-unused-vars
-	let err, res;
-
 	let packages = args._;
 	packages.shift();
 
@@ -36,7 +33,7 @@ module.exports = async (args) => {
 	}
 
 	let errscript = os.homedir() + "/.nodecliac/src/main/test.sh";
-	[err, res] = await flatry(fe(errscript));
+	let [err, res] = await flatry(fe(errscript));
 	if (err || !res) exit([`File ${chalk.bold(errscript)} doesn't exit.`]);
 
 	// Remove provided packages.
@@ -44,7 +41,7 @@ module.exports = async (args) => {
 		let pkg = packages[i];
 		let pkgpath = `${registrypath}/${pkg}`;
 
-		[err, res] = await flatry(de(pkgpath));
+		let [err, res] = await flatry(de(pkgpath));
 		if (err || !res) continue;
 		let test = `${pkgpath}/${pkg}.tests.sh`;
 		[err, res] = await flatry(fe(test));
@@ -53,6 +50,6 @@ module.exports = async (args) => {
 		let cmd = `${errscript} -p true -f true -t ${test}`;
 		let opts = { silent: false, async: true };
 		let callback = (code, stdout, stderr) => {};
-		[err, res] = await flatry(aexec(cmd, opts, callback));
+		await aexec(cmd, opts, callback);
 	}
 };

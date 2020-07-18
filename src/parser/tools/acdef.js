@@ -205,7 +205,7 @@ module.exports = async (S, cmdname) => {
 				break;
 			}
 
-			case "FLAG":
+			case "FLAG": {
 				let keyword = N.keyword.value;
 
 				// Handle wildcard flags.
@@ -234,6 +234,7 @@ module.exports = async (S, cmdname) => {
 				last = type;
 
 				break;
+			}
 
 			case "OPTION": {
 				// Add value to last flag in group.

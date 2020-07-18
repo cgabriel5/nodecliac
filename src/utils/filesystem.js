@@ -283,5 +283,5 @@ module.exports = {
 	fexists,
 	dexists,
 	lexists,
-	faccess
+	access
 };

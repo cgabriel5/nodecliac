@@ -102,7 +102,7 @@ let info = (p) => {
 };
 
 /**
- * Wrapper for readFile method. Returns a Promise.
+ * Wrapper for readdir method. Returns a Promise.
  *
  * @param  {string} p - The path of file to read.
  * @return {promise} - Promise is returned.

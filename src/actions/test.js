@@ -23,7 +23,7 @@ module.exports = async (args) => {
 	 *
 	 * @resource [https://gist.github.com/davidrleonard/2962a3c40497d93c422d1269bcd38c8f]
 	 */
-	function aexec(cmd, opts = {}, callback) {
+	function aexec(cmd, opts = {} /*, callback*/) {
 		return new Promise((resolve, reject) => {
 			shell.exec(cmd, opts, (code, stdout, stderr) => {
 				if (code != 0 || stderr) return reject(stderr);
@@ -49,7 +49,7 @@ module.exports = async (args) => {
 
 		let cmd = `${errscript} -p true -f true -t ${test}`;
 		let opts = { silent: false, async: true };
-		let callback = (code, stdout, stderr) => {};
+		let callback = (/*code, stdout, stderr*/) => {};
 		await aexec(cmd, opts, callback);
 	}
 };

@@ -88,7 +88,7 @@ module.exports = async (args) => {
 	// Copy test file over.
 	files = new Set(["nodecliac.sh"]);
 	opts.filter = (filename) => files.has(filename);
-	opts.rename = (p) => "test.sh";
+	opts.rename = (/*p*/) => "test.sh";
 	let mainpath = path.join(acmapssource, "main");
 	[err, res] = await flatry(copydir(testsrcpath, mainpath, opts));
 	if (err) exit(["Failed to copy source files."]);

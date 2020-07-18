@@ -169,6 +169,66 @@ let lstats = (p) => {
 };
 
 /**
+ * Checks if path exists.
+ *
+ * @param  {string} p - The path to use.
+ * @return {boolean} - True if exists, else false.
+ */
+let exists = (p) => {
+	return new Promise((resolve /*, reject*/) => {
+		fs.lstat(p, (err /*, stats*/) => resolve(!err));
+	});
+};
+/**
+ * Checks if file path exists.
+ *
+ * @param  {string} p - The path to use.
+ * @return {boolean} - True if exists, else false.
+ */
+let fexists = (p) => {
+	return new Promise((resolve /*, reject*/) => {
+		fs.lstat(p, (err, stats) => resolve(!err && stats.isFile()));
+	});
+};
+/**
+ * Checks if directory path exists.
+ *
+ * @param  {string} p - The path to use.
+ * @return {boolean} - True if exists, else false.
+ */
+let dexists = (p) => {
+	return new Promise((resolve /*, reject*/) => {
+		fs.lstat(p, (err, stats) => resolve(!err && stats.isDirectory()));
+	});
+};
+/**
+ * Checks if symlink path exists.
+ *
+ * @param  {string} p - The path to use.
+ * @return {boolean} - True if exists, else false.
+ */
+let lexists = (p) => {
+	return new Promise((resolve /*, reject*/) => {
+		fs.lstat(p, (err, stats) => resolve(!err && stats.isSymbolicLink()));
+	});
+};
+
+/**
+ * Checks if user has access (permission) to access path.
+ *
+ * @param  {string} p - The path to use.
+ * @return {boolean} - True if yes, else false.
+ */
+let access = (p) => {
+	return new Promise((resolve, reject) => {
+		fs.access(p, fs.constants.F_OK, (err) => {
+			if (err) reject(err);
+			resolve(true);
+		});
+	});
+};
+
+/**
  * Resolve paths `real` path. This means solving symlinks.
  *
  * @param  {string} p - The file path to use.
@@ -218,5 +278,10 @@ module.exports = {
 	info,
 	read,
 	rmrf,
-	copy
+	copy,
+	exists,
+	fexists,
+	dexists,
+	lexists,
+	faccess
 };

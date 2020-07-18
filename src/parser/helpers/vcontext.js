@@ -167,6 +167,9 @@ module.exports = (S, value, vindices, resumepoint) => {
 					S.column = tindex(i);
 					error(S, __filename);
 				}
+
+				break;
+
 			case "carg":
 				if (value[0] === "!") {
 					if (l < 2) {

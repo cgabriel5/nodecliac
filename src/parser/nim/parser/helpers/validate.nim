@@ -5,7 +5,7 @@ from tables import `[]=`, `[]`, hasKey, OrderedTableRef, pairs
 import error, vcontext
 from types import State, Node, Branch
 from charsets import C_QUOTES, C_SPACES, C_CTX_ALL, C_CTX_MUT,
-    C_CTX_FLG, C_CTX_CON, C_LETTERS, C_CTX_CAT, C_CTX_OPS, C_KD_STR
+    C_CTX_FLG, C_CTX_CON, C_LETTERS, C_CTX_CAT, C_CTX_OPS
 from ../../utils/regex import findAllBounds
 let r = re"(?<!\\)\$\{\s*[^}]*\s*\}"
 

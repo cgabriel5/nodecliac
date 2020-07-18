@@ -2,8 +2,7 @@
 
 const error = require("./error.js");
 const vcontext = require("./vcontext.js");
-const { hasProp } = require("../../utils/toolbox.js");
-const { cin, cnotin, C_SPACES, C_QUOTES, C_KD_STR } = require("./charsets.js");
+const { cin, cnotin, C_SPACES, C_QUOTES } = require("./charsets.js");
 const r = /(?<!\\)\$\{\s*[^}]*\s*\}/g;
 
 /**

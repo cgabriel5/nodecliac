@@ -1,7 +1,7 @@
 "use strict";
 
 const node = require("../helpers/nodes.js");
-const { md5, hasProp, write } = require("../../utils/toolbox.js");
+const { md5, hasProp } = require("../../utils/toolbox.js");
 
 /**
  * Generate .acdef, .config.acdef file contents.

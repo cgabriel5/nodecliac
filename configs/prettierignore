@@ -1,9 +1,22 @@
 # [https://eslint.org/docs/user-guide/command-line-interface#ignoring-files-from-linting]
+# [https://github.com/prettier/prettier/blob/master/.prettierignore]
+# [https://github.com/prettier/prettier/issues/8157]
 
-node_modules/*
-bower_components/*
-.git/*
-dist/*
+node_modules
+bower_components
+prettierignore
+dist
+.git*
 *.test.js
 *.linux
 *.macos
+*.mp4
+*.png
+*.mov
+*.sh
+*.acmap
+*.acdef
+*.nim
+*.lock
+*.text
+*.txt

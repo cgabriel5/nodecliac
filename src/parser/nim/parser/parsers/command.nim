@@ -234,7 +234,6 @@ proc p_command*(S: State) =
 
                 let ll = G.tokens.len
                 if ll == 0 or (ll != 0 and G.tokens[^1][0] == "delimiter"):
-                    S.column = S.column
                     error(S, currentSourcePath, 12)
 
                 if G.command != "": G.commands[^1].add(G.command)

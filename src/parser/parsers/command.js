@@ -280,7 +280,6 @@ module.exports = (S) => {
 
 				let l = G.tokens.length;
 				if (!l || (l && G.tokens[l - 1][0] === "delimiter")) {
-					S.column = S.column;
 					error(S, __filename, 12);
 				}
 

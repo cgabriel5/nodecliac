@@ -26,7 +26,7 @@ module.exports = async (args) => {
 	function aexec(cmd, opts = {} /*, callback*/) {
 		return new Promise((resolve, reject) => {
 			shell.exec(cmd, opts, (code, stdout, stderr) => {
-				if (code != 0 || stderr) return reject(stderr);
+				if (code !== 0 || stderr) return reject(stderr);
 				return resolve(stdout);
 			});
 		});

@@ -279,7 +279,7 @@ module.exports = async (S, cmdname) => {
 				let value = fN.value.value;
 				if (keyword === "default") queue_defs.add(value);
 				else if (keyword === "filedir") queue_fdir.add(value);
-				else if (keyword == "context") {
+				else if (keyword === "context") {
 					queue_ctxs.add(value.slice(1, -1));
 				}
 				continue; // defaults don't need to be added to Sets.

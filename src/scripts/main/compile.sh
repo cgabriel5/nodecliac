@@ -20,7 +20,7 @@
 # Nim has to be intalled to proceed.
 if [[ -z "$(command -v nim)" ]]; then
 	echo "[ABORTED] Nim is not installed."
-	exit
+	exit 1
 fi
 
 # Get OS name.
@@ -67,17 +67,17 @@ shift $((OPTIND -1))
 # If input is not provided exit.
 if [[ -z "$INPUT_PATH" ]]; then
 	echo "[ABORTED] Provide project input file."
-	exit
+	exit 1
 fi
 
 if [[ ! -e "$INPUT_PATH" ]]; then
-	echo "[ABORTED] Path doesn't exist."
-	exit
+	echo -e "[ABORTED] Path \033[1m$INPUT_PATH\033[0m doesn't exist."
+	exit 1
 fi
 
 if [[ ! -f "$INPUT_PATH" ]]; then
-	echo "[ABORTED] Path doesn't lead to a file."
-	exit
+	echo -e "[ABORTED] Path \033[1m$INPUT_PATH\033[0m doesn't lead to a file."
+	exit 1
 fi
 
 # If output path isn't given, save to dir of source file.
@@ -94,7 +94,7 @@ OUTPUT_PATH+="/$oname" # Append output file name.
 
 if [[ "$ext" != "nim" ]]; then
 	echo "[ABORTED] Please provide a '.nim' file."
-	exit
+	exit 1
 fi
 
 CPU_ARCHITECTURE="i386" # Default to 32 bit. [https://askubuntu.com/a/93196]

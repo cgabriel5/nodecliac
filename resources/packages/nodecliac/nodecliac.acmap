@@ -7,7 +7,7 @@ nodecliac.make = --source|--print?|filedir '@(acmap)'
 
 # Helper commands:
 nodecliac.setup = --force?|--rcfile
-nodecliac.status = --enable?|--disable?
+nodecliac.status = --enable?|--disable?|context "{enable | disable}"
 nodecliac.uninstall = --rcfile
 nodecliac.registry
 # print command helps showcase command-strings.
@@ -18,6 +18,12 @@ nodecliac.add = --force?
 nodecliac.link
 nodecliac.{remove,unlink,enable,disable} = --all|default $('${names}')
 nodecliac.test = default $('${names}')
+nodecliac.debug = [
+	--enable?
+	--disable?
+	context "{enable | disable}"
+	--script=(nim pl)
+]
 
 # Other commands:
 nodecliac = --version?

@@ -1,8 +1,9 @@
-# DON'T EDIT FILE —— GENERATED: Wed Jul 15 2020 23:17:54 (1594880274)
+# DON'T EDIT FILE —— GENERATED: Sat Jul 18 2020 20:19:34 (1595128774)
 
  --version?
 .add --force?
 .cache --clear?|--level=|--level=0|--level=1|--level=2
+.debug --disable?|--enable?|--script=|--script=nim|--script=pl
 .disable --all
 .enable --all
 .format --indent|--print?|--source|--strip-comments?
@@ -25,3 +26,6 @@
 
 .format filedir '@(acmap)'
 .make filedir '@(acmap)'
+
+.debug context "{enable|disable}"
+.status context "{enable|disable}"

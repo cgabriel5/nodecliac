@@ -6,7 +6,9 @@ if [[ "$vmajor" -ge 4 ]]; then
 	[[ "$vmajor" -eq 4 && "$vminor" -le 2 ]] && return
 	mkdir -p ~/.nodecliac/.cache
 	cachefile=~/.nodecliac/.cache-level
-	[[ ! -e "$cachefile" ]] && echo "1" > "$cachefile"
+	debugfile=~/.nodecliac/.debugmode
+	[[ ! -e "$cachefile" ]] && echo 1 > "$cachefile"
+	[[ ! -e "$debugfile" ]] && echo 0 > "$debugfile"
 	# [https://superuser.com/a/352387]
 	# [https://askubuntu.com/a/427290]
 	# [https://askubuntu.com/a/1137769]
@@ -68,6 +70,7 @@ function _nodecliac() {
 	local acdefpath=~/.nodecliac/registry/"$command/$command.acdef"
 	local prehook=~/.nodecliac/registry/"$command"/hooks/pre-parse.sh
 	read -r -n 1 clevel < ~/.nodecliac/.cache-level
+	read -r -n 1 DEBUGMODE < ~/.nodecliac/.debugmode
 	local cachefile=""
 	local xcachefile=""
 	local usecache=0
@@ -98,16 +101,22 @@ function _nodecliac() {
 	if [[ "$usecache" == 0 ]]; then
 		local acdef=$(<"$acdefpath")
 		local os=$(uname); os=${os,,}
-		local ac=~/.nodecliac/src/ac/ac.pl
-		if [[ " linux darwin " == *" $os "* ]]; then
-			ac=~/.nodecliac/src/bin/ac."${os/darwin/macosx}"
-		fi
+		local pac=~/.nodecliac/src/ac/ac.pl
+		local nac=~/.nodecliac/src/bin/ac."${os/darwin/macosx}"
+		local ac="$pac"
+		[[ " linux darwin " == *" $os "* ]] && ac="$nac"
+		case "$DEBUGMODE" in
+			2) ac="${pac/ac./ac.debug.}" ;;
+			3) ac="${nac/ac./ac.debug.}" ;;
+		esac
 
 		[[ -e "$prehook" ]] && . "$prehook"
 
 		output=$("$ac" "$COMP_LINE" "$cline" "$cpoint" "$command" "$acdef")
 		# "$ac" "$COMP_LINE" "$cline" "$cpoint" "$command" "$acdef"
 	fi
+
+	[[ "$DEBUGMODE" != "0" ]] && echo -e "$output" && return
 
 	# 1st line is meta info (completion type, last word, etc.).
 	# [https://stackoverflow.com/a/2440685]

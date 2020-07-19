@@ -22,6 +22,9 @@ rcfile=""
 prcommand=""
 enablencliac=""
 disablencliac=""
+debug_enable=""
+debug_disable=""
+debug_script=""
 command=""
 version=""
 ccache=""
@@ -54,6 +57,27 @@ while (( "$#" )); do
 		# `status` command flags.
 		--enable) enablencliac="1"; shift ;;
 		--disable) disablencliac="1"; shift ;;
+
+		# `status|debug` command flags.
+		--enable)
+				if [[ "$command" == "status" ]]; then
+					enablencliac="1"; shift
+				elif
+					debug_enable="1"; shift
+				fi ;;
+		--disable)
+				if [[ "$command" == "status" ]]; then
+					disablencliac="1"; shift
+				elif
+					debug_disable="1"; shift
+				fi ;;
+
+		# `debug` command flag.
+		--script=*)
+			flag="${1%%=*}"; value="${1#*=}"
+			[[ -n "$value" ]] && debug_script="$value" && shift ;;
+		--script)
+			[[ -n "$2" && "$2" != *"-" ]] && debug_script="$2" && shift ;;
 
 		# `cache` command flags.
 		--clear) ccache="1"; shift ;;
@@ -108,7 +132,7 @@ if [[ -z "$command" && "$version" == "1" && -f "$setupfilepath" ]]; then
 fi
 
 # Allowed commands.
-commands=" make format print registry setup status uninstall add remove link unlink enable disable cache test "
+commands=" make format print registry setup status uninstall add remove link unlink enable disable cache test debug "
 
 if [[ "$commands" != *"$command"* ]]; then exit; fi # Exit if invalid command.
 
@@ -284,6 +308,33 @@ case "$command" in
 			else
 				echo -e "nodecliac: \033[0;31mdisabled\033[0m"
 			fi
+		fi
+
+		;;
+
+	debug)
+
+		dotfile=~/.nodecliac/.debugmode
+
+		if [[ -n "$enablencliac" && -n "$disablencliac" ]]; then
+			varg1="\033[1m--enable\033[0m"
+			varg2="\033[1m--disable\033[0m"
+			echo -e "$varg1 and $varg2 given when only one can be provided."
+		fi
+
+		# 0=off , 1=debug , 2=debug + ac.pl , 3=debug + ac.nim
+		if [[ -n "$debug_enable" ]]; then
+			value=1
+			if [[ "$debug_script" == "nim" ]]; then value=3
+			elif [[ "$debug_script" == "pl" ]]; then value=2; fi
+			echo "$value" > "$dotfile"
+			echo -e "\033[0;32mEnabled.\033[0m"
+		elif [[ -n "$debug_disable" ]]; then
+			echo "0" > "$dotfile"
+			echo -e "\033[0;31mDisabled.\033[0m"
+		else
+			if [[ ! -f "$dotfile" ]]; then echo "0" > "$dotfile"; fi
+			echo "$(<"$dotfile")"
 		fi
 
 		;;

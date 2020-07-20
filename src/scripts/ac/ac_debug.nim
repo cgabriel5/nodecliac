@@ -554,7 +554,7 @@ proc fn_lookup(): string =
                 let sp_index = row.find(' ', start=kw_index)
                 let context = row[sp_index + 2 .. row.high - 1] # Unquote.
 
-                let ctxs = context.split(';');
+                let ctxs = context.split(';')
                 for ctx in ctxs:
                     var ctx = ctx.multiReplace([(" ", ""), ("\t", "")])
                     if ctx.len == 0: continue

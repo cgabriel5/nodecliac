@@ -106,8 +106,9 @@ function _nodecliac() {
 		local ac="$pac"
 		[[ " linux darwin " == *" $os "* ]] && ac="$nac"
 		case "$DEBUGMODE" in
-			2) ac="${pac/ac./ac.debug.}" ;;
-			3) ac="${nac/ac./ac.debug.}" ;;
+			1) ac="${ac/ac./ac_debug.}" ;;
+			2) ac="${pac/ac./ac_debug.}" ;;
+			3) ac="${nac/ac./ac_debug.}" ;;
 		esac
 
 		[[ -e "$prehook" ]] && . "$prehook"

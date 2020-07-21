@@ -62,15 +62,18 @@ module.exports = async (args) => {
 	opts.debug = false;
 	let files = new Set([
 		"ac/ac.pl",
+		"ac/ac_debug.pl",
 		"ac/utils",
 		"ac/utils/LCP.pm",
 		"bin/ac.linux",
+		"bin/ac_debug.linux",
 		"main/config.pl",
 		"main/init.sh"
 	]);
 	if (process.platform === "darwin") {
-		files.delete("bin/ac.linux");
-		files.add("bin/ac.macosx");
+		let list = ["ac", "ac_debug"];
+		list.forEach((name) => files.delete(`bin/${name}.linux`));
+		list.forEach((name) => files.add(`bin/${name}.macosx`));
 	}
 	opts.filter = (filename) => files.has(filename);
 	opts.transform = (src /*dest, stats*/) => {

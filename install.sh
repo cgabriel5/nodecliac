@@ -260,6 +260,7 @@ if [[ " binary manual " == *" $installer "* ]]; then
 	nimbin="$outputdir/src/parser/nim/nodecliac.$os"
 	[[ -e "$nimbin" ]] && cp -pr "$nimbin" "$dest/bin"
 	acbin="$binpath/ac.$os"; [[ -e "$acbin" ]] && cp -pr "$acbin" "$dest/bin"
+	dacbin="$binpath/ac_debug.$os"; [[ -e "$dacbin" ]] && cp -pr "$dacbin" "$dest/bin"
 
 	version="$(perl -ne 'print $1 if /"version":\s*"([^"]+)/' "$outputdir/package.json")"
 	echo "{ \"force\": false, \"rcfile\": \"$rcfile\", \"time\": \"$timestamp\", \"binary\": true, \"version\": \"$version\" }" > ~/.nodecliac/.setup.db.json

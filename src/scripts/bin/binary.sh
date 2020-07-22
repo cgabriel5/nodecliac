@@ -291,22 +291,32 @@ case "$command" in
 
 		dotfile=~/.nodecliac/.disable # Path to disabled dot file.
 
-		if [[ "$enablencliac" || "$disablencliac" ]]; then
-			# If --enable flag is used remove dot file.
-			if [[ -n "$enablencliac" ]]; then
-				if [[ -e "$dotfile" ]]; then rm "$dotfile"; fi
-				echo -e "\033[0;32mEnabled.\033[0m"
-			fi
-			# If --disable flag ensure dot file exist.
-			if [[ -n "$disablencliac" ]]; then
-				touch "$dotfile"
-				echo -e "\033[0;31mDisabled.\033[0m"
-			fi
+		# If no flag is supplied then only print the status.
+		if [[ -z "$enable" && -z "$disable" ]]; then
+			[[ -f "$dotfile" ]] && echo -e "nodecliac: \033[0;31mdisabled\033[0m" \
+				|| echo -e "nodecliac: \033[0;32menabled\033[0m"
 		else
-			if [[ ! -e "$dotfile" ]]; then
-				echo -e "nodecliac: \033[0;32menabled\033[0m"
-			else
-				echo -e "nodecliac: \033[0;31mdisabled\033[0m"
+			if [[ -n "$enable" && -n "$disable" ]]; then
+				varg1="\033[1m--enable\033[0m"
+				varg2="\033[1m--disable\033[0m"
+				echo -e "$varg1 and $varg2 given when only one can be provided." && exit 1
+			fi
+
+			if [[ -n "$enable" ]]; then
+				if [[ -f "$dotfile" ]]; then
+					rm -f "$dotfile"
+					echo -e "\033[0;32mEnabled.\033[0m"
+				else
+					echo -e "\033[0;32mEnabled.\033[0m"
+				fi
+			elif [[ -n "$disable" ]]; then
+				# Create blocking dot file.
+				timestamp="$(perl -MTime::HiRes=time -e 'print int(time() * 1000);')"
+				# [https://www.tutorialspoint.com/perl/perl_date_time.htm]
+				date="$(perl -e 'use POSIX qw(strftime); $datestring = strftime "%a %b %d %Y %H:%M:%S %z (%Z)", localtime; print "$datestring"')"
+				contents="Disabled: $date;$timestamp"
+				echo "$contents" > "$dotfile"
+				echo -e "\033[0;31mDisabled.\033[0m"
 			fi
 		fi
 

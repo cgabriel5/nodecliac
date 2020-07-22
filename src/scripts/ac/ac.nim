@@ -64,18 +64,6 @@ const C_QUOTEMETA = Letters + Digits + {'_'}
 const C_VALID_CMD = Letters + Digits + {'-', '.', '_', ':', '\\'}
 const C_VALID_FLG = Letters + Digits + {'-', '_', }
 
-# # Log local variables and their values.
-# proc fn_debug() =
-#     echo "\n  commandchain: '" & $(commandchain) & "'"
-#     echo "          last: '" & $(last) & "'"
-#     echo "         input: '" & $(input) & "'"
-#     echo "  input length: '" & $(cline_length) & "'"
-#     echo "   caret index: '" & $(cpoint) & "'"
-#     echo "      lastchar: '" & $(lastchar) & "'"
-#     echo "      nextchar: '" & $(nextchar) & "'"
-#     echo "      isquoted: '" & $(isquoted) & "'"
-#     echo "autocompletion: '" & $(autocompletion) & "'"
-
 # --------------------------------------------------------- VALIDATION-FUNCTIONS
 
 # Peek string for '/','~'. If contained assume it's a file/dir.

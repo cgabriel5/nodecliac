@@ -44,20 +44,6 @@ $usedflags{'counts'};
 my $used_default_pa_args = '';
 my $prefix = 'NODECLIAC_';
 
-# # Log local variables and their values.
-# sub __debug {
-# 	print "\n";
-# 	print "  commandchain: '$commandchain'\n";
-# 	print "          last: '$last'\n";
-# 	print "         input: '$input'\n";
-# 	print "  input length: '$cline_length'\n";
-# 	print "   caret index: '$cpoint'\n";
-# 	print "      lastchar: '$lastchar'\n";
-# 	print "      nextchar: '$nextchar'\n";
-# 	print "      isquoted: '$isquoted'\n";
-# 	print "autocompletion: '$autocompletion'\n";
-# }
-
 # --------------------------------------------------------- VALIDATION-FUNCTIONS
 
 # Peek string for '/'/'~'. If contained assume it's a file/dir.

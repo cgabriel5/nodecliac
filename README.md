@@ -1601,6 +1601,41 @@ program.format = --source
 Running tests is done by running a built in command: `$ nodecliac test <command-name>`. As an example, try running nodecliac's tests. With nodecliac installed, enter `nodecliac test nodecliac` into a Terminal and press <kbd>Enter</kbd>. Note, for tests to run the program's completion package _must_ exist in the [registry](#registry) to be able to run tests. Running `$ nodecliac registry` will list installed completion packages.
 
 </details>
+
+<a name="debugging"></a>
+
+## Debugging
+
+Like with testing completion strings, nodecliac also provides a way to debug completions. This is useful when creating a completion package. To start debugging simply enable it. When enabled pressing the <kbd>Tab</kbd> key will output debugging information instead of providing bash completions.
+
+<details><summary>Expand debugging section</summary>
+
+#### Enabling debugging:
+
+Run: `$ nodecliac debug --enable`
+
+#### Disabling debugging:
+
+Run: `$ nodecliac debug --disable`
+
+#### Picking Debug Script
+
+nodecliac's auto-completion script is written in `Nim` and `Perl`. The Nim version supports Linux/macOS while Perl is used as a fallback. When both versions are installed it's possible to use one over the other to debug. This is done with the `--script` flag like so:
+
+- Explicitly use Nim script: `$ nodecliac debug --enable --script nim`
+- Explicitly use Perl script: `$ nodecliac debug --enable --script perl`
+
+#### Debug mode
+
+To get the debug mode: `$ nodecliac debug`
+
+- `0`: Disabled
+- `1`: Enabled
+- `2`: Enabled + use Perl script
+- `3`: Enabled + use Nim script
+
+</details>
+
 <a name="support"></a>
 
 ## Support

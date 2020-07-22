@@ -1536,6 +1536,71 @@ $ nodecliac cache --level 0 # Turn cache off.
 
 </details>
 
+<a name="testing"></a>
+
+## Testing
+
+nodecliac provides a way to test completions for your program.
+
+<details><summary>Expand testing section</summary>
+
+#### Creating tests:
+
+Creating tests is done directly from the program's acmap via `@test`. Start with `@test =` followed by the test string `"<completion string> ; <test1 ; testN>"`.
+
+- Test entire completion output (including meta data):
+  - **Does the output contain 'format'?**: `@test = "program --; *format*`
+  - **Does the output omit 'format'?**: `@test = "program --; !*format*`
+- Test individual completion items:
+  - **Do any completion items contain 'format'?**: `@test = "program --; *:*format*`
+  - **Does the first completion item contain 'format'?**: `@test = "program --; 1:*format*`
+  - **Does the first completion item start with '--for'?**: `@test = "program --; 1:--for*`
+  - **Does the first completion item end with '--for'?**: `@test = "program --; 1:*format`
+  - **Does the first completion item equal '--format'?**: `@test = "program --; 1:--format`
+- Test completion items count:
+  - **Is there at least 1 completion item?**: `@test = "program --; #cgt0`
+  - **Are there 3 completion items?**: `@test = "program --; #ceq3`
+    - Format: `# + (c)ount + operator + number`
+    - Operators:
+      - `eq`: Equal to
+      - `ne`: Not equal to
+      - `gt`: Greater than
+      - `ge`: Greater than or equal to
+      - `lt`: Less than
+      - `le`: Less than or equal to
+    - Number:
+      - Must be a positive number.
+- Inversion: Any test can be _inverted_ by preceding the test with a `!`.
+
+###### Example 1
+
+Take the following example acmap. It contains a couple commands and their respective flags.
+
+```acmap
+program.make = --source
+program.format = --source
+
+@test = "program make --; *source*"
+@test = "program format --for; *format*"
+```
+
+###### Example 2
+
+Multiple tests can be provided to test a single completion string. Simply delimit them with `;`.
+
+```acmap
+program.make = --source
+program.format = --source
+
+@test = "program make --; *source* ; #ceq1"
+@test = "program format --for; *format* ; #ceq1"
+```
+
+#### Running tests:
+
+Running tests is done by running a built in command: `$ nodecliac test <command-name>`. As an example, try running nodecliac's tests. With nodecliac installed, enter `nodecliac test nodecliac` into a Terminal and press <kbd>Enter</kbd>. Note, for tests to run the program's completion package _must_ exist in the [registry](#registry) to be able to run tests. Running `$ nodecliac registry` will list installed completion packages.
+
+</details>
 <a name="support"></a>
 
 ## Support

@@ -99,40 +99,43 @@ proc vcontext*(S: State, value: string = "",
     # @param  {number} i - The string's index.
     # @return {string} - Error, else return value if valid.
     proc verify(value, `type`: string, i: int): string =
+        var v = value
         let l = value.len
         case (`type`):
             of "marg":
-                if value[0] == '-':
+                if v[0] == '-':
                     S.column = tindex(i)
                     error(S, currentSourcePath)
             of "carg":
-                    if value[0] == '!':
+                    if v[0] == '!':
                         if l < 2:
                             S.column = tindex(i)
                             error(S, currentSourcePath)
-                        if value[1] notin C_LETTERS:
+                        if v[1] notin C_LETTERS:
                             S.column = tindex(i + 1)
                             error(S, currentSourcePath)
                     else:
                         if l < 1:
                             S.column = tindex(i)
                             error(S, currentSourcePath)
-                        if value[0] notin C_LETTERS:
+                        if v[0] notin C_LETTERS:
                             S.column = tindex(i + 1)
                             error(S, currentSourcePath)
             of "ccond":
-                if value[0] == '#':
+                # Inversion: Remove '!' for next checks.
+                if v[0] == '!': v = v[1 .. ^1]
+                if v[0] == '#':
                     # Must be at least 5 chars in length.
                     if l < 5:
                         S.column = tindex(i)
                         error(S, currentSourcePath)
-                    if value[1] notin C_CTX_CAT:
+                    if v[1] notin C_CTX_CAT:
                         S.column = tindex(i + 1)
                         error(S, currentSourcePath)
-                    if value[2 .. 3] notin C_CTX_OPS:
+                    if v[2 .. 3] notin C_CTX_OPS:
                         S.column = tindex(i + 2)
                         error(S, currentSourcePath)
-                    let nval = value[4 .. ^1]
+                    let nval = v[4 .. ^1]
                     try:
                         # Characters at these indices must be
                         # numbers if not, error.
@@ -142,24 +145,16 @@ proc vcontext*(S: State, value: string = "",
                         error(S, currentSourcePath)
                     # Error if number starts with 0 and is
                     # more than 2 numbers.
-                    if value[4] == '0' and nval.len != 1:
+                    if v[4] == '0' and nval.len != 1:
                         S.column = tindex(i + 4)
                         error(S, currentSourcePath)
                 else:
-                    if value[0] == '!':
-                        if l < 2:
-                            S.column = tindex(i)
-                            error(S, currentSourcePath)
-                        if value[1] notin C_LETTERS:
-                            S.column = tindex(i + 1)
-                            error(S, currentSourcePath)
-                    else:
-                        if l < 1:
-                            S.column = tindex(i)
-                            error(S, currentSourcePath)
-                        if value[0] notin C_LETTERS:
-                            S.column = tindex(i + 1)
-                            error(S, currentSourcePath)
+                    if l < 1:
+                        S.column = tindex(i)
+                        error(S, currentSourcePath)
+                    if v[0] notin C_LETTERS:
+                        S.column = tindex(i + 1)
+                        error(S, currentSourcePath)
             else: discard
         return value
 
@@ -258,13 +253,15 @@ proc vcontext*(S: State, value: string = "",
                     if `char` notin C_CTX_CON:
                         S.column = tindex(resume_index)
                         error(S, currentSourcePath)
-
-                    # If it's not the first character, error.
-                    if `char` in {'!', '#'} and ccond != "":
-                        S.column = tindex(resume_index)
-                        error(S, currentSourcePath)
-
-                    elif `char` == ',':
+                    if `char` == '!':
+                        if ccond != "":
+                            S.column = tindex(resume_index)
+                            error(S, currentSourcePath)
+                    elif `char` == '#':
+                        if ccond != "" and ccond[0] != '!':
+                            S.column = tindex(resume_index)
+                            error(S, currentSourcePath)
+                    if `char` == ',':
                         if isEmptyOrWhitespace(ccond):
                             S.column = tindex(resume_index)
                             error(S, currentSourcePath, 14)

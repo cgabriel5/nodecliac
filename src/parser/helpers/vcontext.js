@@ -160,10 +160,11 @@ module.exports = (S, value, vindices, resumepoint) => {
 	 * @return {string} - Error, else return value if valid.
 	 */
 	function verify(value, type, i) {
+		let v = value;
 		let l = value.length;
 		switch (type) {
 			case "marg":
-				if (value[0] === "-") {
+				if (v[0] === "-") {
 					S.column = tindex(i);
 					error(S, __filename);
 				}
@@ -171,12 +172,12 @@ module.exports = (S, value, vindices, resumepoint) => {
 				break;
 
 			case "carg":
-				if (value[0] === "!") {
+				if (v[0] === "!") {
 					if (l < 2) {
 						S.column = tindex(i);
 						error(S, __filename);
 					}
-					if (cnotin(C_LETTERS, value[1])) {
+					if (cnotin(C_LETTERS, v[1])) {
 						S.column = tindex(i + 1);
 						error(S, __filename);
 					}
@@ -185,7 +186,7 @@ module.exports = (S, value, vindices, resumepoint) => {
 						S.column = tindex(i);
 						error(S, __filename);
 					}
-					if (cnotin(C_LETTERS, value[0])) {
+					if (cnotin(C_LETTERS, v[0])) {
 						S.column = tindex(i + 1);
 						error(S, __filename);
 					}
@@ -194,51 +195,42 @@ module.exports = (S, value, vindices, resumepoint) => {
 				break;
 
 			case "ccond":
-				if (value[0] === "#") {
+				// Inversion: Remove '!' for next checks.
+				if (v[0] === "!") v = v.slice(1);
+				if (v[0] === "#") {
 					// Must be at least 5 chars in length.
 					if (l < 5) {
 						S.column = tindex(i);
 						error(S, __filename);
 					}
-					if (cnotin(C_CTX_CAT, value[1])) {
+					if (cnotin(C_CTX_CAT, v[1])) {
 						S.column = tindex(i + 1);
 						error(S, __filename);
 					}
-					if (cnotin(C_CTX_OPS, value.substr(2, 2))) {
+					if (cnotin(C_CTX_OPS, v.substr(2, 2))) {
 						S.column = tindex(i + 2);
 						error(S, __filename);
 					}
 					// Characters at these indices must be
 					// numbers if not, error.
-					let nval = value.substr(4);
+					let nval = v.substr(4);
 					if (!is_str_num(nval)) {
 						S.column = tindex(i + 4);
 						error(S, __filename);
 					}
 					// Error if number starts with 0.
-					if (value[4] === "0" && nval.length !== 1) {
+					if (v[4] === "0" && nval.length !== 1) {
 						S.column = tindex(i + 4);
 						error(S, __filename);
 					}
 				} else {
-					if (value[0] === "!") {
-						if (l < 2) {
-							S.column = tindex(i);
-							error(S, __filename);
-						}
-						if (cnotin(C_LETTERS, value[1])) {
-							S.column = tindex(i + 1);
-							error(S, __filename);
-						}
-					} else {
-						if (l < 1) {
-							S.column = tindex(i);
-							error(S, __filename);
-						}
-						if (cnotin(C_LETTERS, value[0])) {
-							S.column = tindex(i + 1);
-							error(S, __filename);
-						}
+					if (l < 1) {
+						S.column = tindex(i);
+						error(S, __filename);
+					}
+					if (cnotin(C_LETTERS, v[0])) {
+						S.column = tindex(i + 1);
+						error(S, __filename);
 					}
 				}
 
@@ -384,10 +376,16 @@ module.exports = (S, value, vindices, resumepoint) => {
 						S.column = tindex(resume_index);
 						error(S, __filename);
 					}
-					// If it's not the first character, error.
-					if (-~["!", "#"].indexOf(char) && ccond) {
-						S.column = tindex(resume_index);
-						error(S, __filename);
+					if (char === "!") {
+						if (ccond) {
+							S.column = tindex(resume_index);
+							error(S, __filename);
+						}
+					} else if (char === "#") {
+						if (ccond && ccond.charAt(0) !== "!") {
+							S.column = tindex(resume_index);
+							error(S, __filename);
+						}
 					} else if (char === ",") {
 						if (is_empty_or_ws(ccond)) {
 							S.column = tindex(resume_index);

@@ -2,7 +2,6 @@
 
 const path = require("path");
 const chalk = require("chalk");
-const flatry = require("flatry");
 const log = require("fancy-log");
 const mkdirp = require("make-dir");
 const fe = require("file-exists");
@@ -55,11 +54,6 @@ module.exports = async (args) => {
 	let contents = JSON.stringify(data, undefined, "\t");
 	await write(setupfilepath, contents);
 
-	// Copy directory module options.
-	let opts = {};
-	opts.overwrite = true;
-	opts.dot = false;
-	opts.debug = false;
 	let files = new Set([
 		"ac/ac.pl",
 		"ac/ac_debug.pl",
@@ -75,41 +69,47 @@ module.exports = async (args) => {
 		list.forEach((name) => files.delete(`bin/${name}.linux`));
 		list.forEach((name) => files.add(`bin/${name}.macosx`));
 	}
-	opts.filter = (filename) => files.has(filename);
-	opts.transform = (src /*dest, stats*/) => {
-		if (!/\.(sh|pl|nim)$/.test(path.extname(src))) return null;
-		// Remove comments from files and return.
-		return through((chunk, enc, done) => {
-			done(null, strip_comments(chunk.toString()));
-		});
-	};
-
-	// Copy nodecliac command packages/files to nodecliac registry.
-	[err, res] = await flatry(copydir(resourcessrcs, acmapssource, opts));
-	if (err) exit(["Failed to copy source files."]);
-
-	// Copy test file over.
-	files = new Set(["nodecliac.sh"]);
-	opts.filter = (filename) => files.has(filename);
-	opts.rename = (/*p*/) => "test.sh";
 	let mainpath = path.join(acmapssource, "main");
-	[err, res] = await flatry(copydir(testsrcpath, mainpath, opts));
-	if (err) exit(["Failed to copy source files."]);
 
-	opts.dot = true;
-	delete opts.filter;
-	opts.transform = (src /*dest, stats*/) => {
-		if (!/\.(sh|pl)$/.test(path.extname(src))) return null;
-		// Remove comments from files and return.
+	// Remove comments from '#' comments from files.
+	let transform = function (chunk, enc, done) {
 		return through((chunk, enc, done) => {
 			done(null, strip_comments(chunk.toString()));
 		});
 	};
 
-	// Copy nodecliac command packages/files to nodecliac registry.
-	delete opts.rename;
-	[err, res] = await flatry(copydir(resourcespath, registrypath, opts));
-	if (err) exit(["Failed to copy command files."]);
+	await Promise.all([
+		// Copy completion packages.
+		copydir(resourcessrcs, acmapssource, {
+			overwrite: true,
+			dot: false,
+			filter: (filename) => files.has(filename),
+			transform: (src /*dest, stats*/) => {
+				if (!/\.(sh|pl|nim)$/.test(path.extname(src))) return null;
+				return transform();
+			}
+		}),
+		// Copy nodecliac.sh test file.
+		copydir(testsrcpath, mainpath, {
+			overwrite: true,
+			dot: false,
+			filter: ["nodecliac.sh"],
+			rename: (/*p*/) => "test.sh",
+			transform: (src /*dest, stats*/) => {
+				if (!/\.(sh)$/.test(path.extname(src))) return null;
+				return transform(src);
+			}
+		}),
+		// Copy nodecliac command packages/files to nodecliac registry.
+		copydir(resourcespath, registrypath, {
+			overwrite: true,
+			dot: true,
+			transform: (src /*dest, stats*/) => {
+				if (!/\.(sh|pl)$/.test(path.extname(src))) return null;
+				return transform();
+			}
+		})
+	]);
 
 	log(chalk.green("Setup successful."));
 };

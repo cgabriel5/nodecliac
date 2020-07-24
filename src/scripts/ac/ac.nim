@@ -568,8 +568,16 @@ proc fn_lookup(): string =
                             let conditions = parts[1].split(',')
                             # Examples:
                             # flags:      !help,!version
-                            # conditions: #fge1, #ale4, 1follow, 1!follow, !flag-name
+                            # conditions: #fge1, #ale4, !#fge0, !flag-name
+                            # [TODO?] index-conditions: 1follow, 1!follow
                             for condition in conditions:
+                                var invert = false
+                                var condition = condition
+                                # Check for inversion.
+                                if condition[0] == '!':
+                                    discard shift(condition)
+                                    invert = true
+
                                 let fchar = condition[0]
                                 if fchar == '#':
                                     let operator = condition[2 .. 3]
@@ -588,6 +596,7 @@ proc fn_lookup(): string =
                                         of "lt": r = if c <  n: true else: false
                                         of "le": r = if c <= n: true else: false
                                         else: discard
+                                    if invert: r = not r
                                 # elif fchar in {'1'..'9'}: continue # [TODO?]
                                 else: # Just a flag name.
                                     if fchar == '!':

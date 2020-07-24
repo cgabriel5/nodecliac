@@ -715,8 +715,17 @@ sub __lookup {
 							my @conditions = split(/,/, $parts[1]);
 							# Examples:
 							# flags:      !help,!version
-							# conditions: #fge1, #ale4, 1follow, 1!follow, !flag-name
+							# conditions: #fge1, #ale4, !#fge0, !flag-name
+							# [TODO?] index-conditions: 1follow, 1!follow
 							foreach my $condition (@conditions) {
+								my $invert = 0;
+								my $condition = $condition;
+								# Check for inversion.
+								if (rindex($condition, '!', 0) == 0) {
+									substr($condition, 0, 1, '');
+									$invert = 0;
+								}
+
 								my $fchar = substr($condition, 0, 1);
 								if ($fchar eq '#') {
 									my $operator = substr($condition, 2, 2);
@@ -734,6 +743,7 @@ sub __lookup {
 									elsif ($operator eq "ge") { $r = ($c >= $n ? 1 : 0); }
 									elsif ($operator eq "lt") { $r = ($c <  $n ? 1 : 0); }
 									elsif ($operator eq "le") { $r = ($c <= $n ? 1 : 0); }
+									if ($invert) { $r = ($r == 1) ? 0 : 1; }
 								# elsif ($fchar in {'1'..'9'}) { next; } # [TODO?]
 								} else { # Just a flag name.
 									if ($fchar eq '!') {

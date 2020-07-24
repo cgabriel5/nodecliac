@@ -329,9 +329,7 @@ module.exports = (S, value, vindices, resumepoint) => {
 					continue;
 				}
 
-				if (marg === "") {
-					mindices.push(resume_index);
-				}
+				if (marg === "") mindices.push(resume_index);
 				marg += char;
 			} else {
 				// Conditionals.
@@ -379,9 +377,7 @@ module.exports = (S, value, vindices, resumepoint) => {
 						continue;
 					}
 
-					if (carg === "") {
-						cfindices.push(resume_index);
-					}
+					if (carg === "") cfindices.push(resume_index);
 					carg += char;
 				} else {
 					if (cnotin(C_CTX_CON, char)) {
@@ -411,9 +407,7 @@ module.exports = (S, value, vindices, resumepoint) => {
 						continue;
 					}
 
-					if (ccond === "") {
-						ccindices.push(resume_index);
-					}
+					if (ccond === "") ccindices.push(resume_index);
 					ccond += char;
 				}
 			}

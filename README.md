@@ -65,7 +65,7 @@ $ sudo wget -qO- git.io/nodecliac | bash -s && source ~/.bashrc
 
 **Checksum Install**: If desired, the install script file's integrity can be verified before running.
 
-[install.sh](https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install.sh) `sha256sum` checksum: `96a53d243a0df0bd743e08cb1e0323b863fd136b32aa9fc5162a022b91fd7880`
+[install.sh](https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install.sh) `sha256sum` checksum: `dc5f501d41b730e889a88d5d220a6585b7d9d94dfb429cb96d255f5245d1b1a6`
 
 Create an executable shell file called `install.sh`, add the following, and run it.
 
@@ -80,7 +80,7 @@ install() {
     url="git.io/nodecliac"
     is="$([[ "$(command -v curl)" ]] && sudo curl -Ls "$url" || sudo wget -qO- "$url")"
     x=($([[ "$OSTYPE" == "darwin"* ]] && shasum -a 256 <<< "$is" || sha256sum <<< "$is"))
-    c="96a53d243a0df0bd743e08cb1e0323b863fd136b32aa9fc5162a022b91fd7880"
+    c="dc5f501d41b730e889a88d5d220a6585b7d9d94dfb429cb96d255f5245d1b1a6"
     err="\033[1;31mError\033[0m: Verification failed: checksums don't match."
     [[ "$c" == "$x" ]] && bash -s -- \
         --installer= \
@@ -1038,7 +1038,7 @@ Conditional context strings have their own grammar: `"<flag1, flagN> : <conditio
 ##### Flag grammar
 
 - A flag is represented without the hyphens.
-  - For the flag `--help` it would just be `help`.
+  - Example: For the flag `--help` it would just be `help`.
 - If the flag needs to be disabled, prepend a `!`.
   - Example: `help` (If conditions are `true` flag will be _enabled_)
   - Example: `!help` (If conditions are `true` flag will be _disabled_)
@@ -1058,6 +1058,7 @@ Conditional context strings have their own grammar: `"<flag1, flagN> : <conditio
   - `le`: Less than or equal to
 - Number:
   - Must be a positive number.
+- Inversion: Tests can be _inverted_ by prepending a `!`.
 
 ###### Example 1
 

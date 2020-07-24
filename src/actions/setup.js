@@ -43,7 +43,7 @@ module.exports = async (args) => {
 		res = res.replace(/\n*$/g, ""); // Remove trailing newlines.
 		tstring =
 			'?\nncliac=~/.nodecliac/src/main/?; [ -f "$ncliac" ] && . "$ncliac";';
-		await flatry(write(bashrcpath, fmt(tstring, res, mainscriptname)));
+		await write(bashrcpath, fmt(tstring, res, mainscriptname));
 	}
 
 	// Create setup info file to reference on uninstall.

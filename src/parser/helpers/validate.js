@@ -86,15 +86,17 @@ let validate = (S, N, type) => {
 			{
 				let fchar = value.charAt(~~(value.charAt(0) === "$"));
 				let isquoted = cin(C_QUOTES, fchar);
-				let lchar = value.charAt(value.length - 1);
+				let l = value.length;
+				let lchar = value.charAt(l - 1);
+				let schar = value.charAt(l - 2);
 				if (isquoted) {
-					// Error if improperly quoted.
-					if (lchar !== fchar) {
+					// Error if improperly quoted/end quote is escaped.
+					if (lchar !== fchar || schar === "\\") {
 						S.column = resumepoint;
 						error(S, __filename, 10);
 					}
 					// Error it string is empty.
-					if (lchar === fchar && value.length === 2) {
+					if (lchar === fchar && l === 2) {
 						S.column = resumepoint;
 						error(S, __filename, 11);
 					}

@@ -80,9 +80,10 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
             let fchar = if value[0] == '$': value[1] else: value[0]
             let isquoted = fchar in C_QUOTES
             let lchar = value[^1]
+            let schar = value[^2]
             if isquoted:
-                # Error if improperly quoted.
-                if lchar != fchar:
+                # Error if improperly quoted/end quote is escaped.
+                if lchar != fchar or schar == '\\':
                     S.column = resumepoint
                     error(S, currentSourcePath, 10)
                 # Error it string is empty.

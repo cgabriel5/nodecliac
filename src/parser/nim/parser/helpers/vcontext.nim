@@ -5,7 +5,7 @@ from tables import `[]=`, `[]`, OrderedTableRef, sort, pairs
 
 import error
 from types import State
-from charsets import C_QUOTES, C_SPACES, C_CTX_ALL, C_CTX_MUT,
+from charsets import C_SPACES, C_CTX_ALL, C_CTX_MUT,
     C_CTX_FLG, C_CTX_CON, C_LETTERS, C_CTX_CAT, C_CTX_OPS
 
 # Validate the provided context string.

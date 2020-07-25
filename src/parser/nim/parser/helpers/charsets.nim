@@ -22,3 +22,4 @@ const C_CTX_ALL* = Letters + Digits + {'#', '-','{', '}', '|', '!', ':', ';', ',
 const C_CTX_FLG* = Letters + Digits + {'-', '!', ',', ':'}
 const C_CTX_OPS* = toHashSet(["eq", "ne", "gt", "ge", "lt", "le"])
 const C_CTX_CAT* = {'a', 'A', 'f', 'F'} # Conditional argument-count type.
+const C_CTX_CTT* = {'c', 'C'} # Conditional test-count type.

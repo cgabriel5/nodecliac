@@ -21,7 +21,8 @@ var errors = {
     "brace_checks": tb,
     "template_string": tb,
     "validate": tb,
-    "vcontext": tb
+    "vcontext": tb,
+    "vtest": tb
 }.toTable
 errors["*"][0] = "Syntax: Unexpected character"
 errors["index"][10] = "Illegal start-of-line character"
@@ -47,6 +48,8 @@ errors["validate"][17] = "Illegal exclude"
 errors["vcontext"][14] = "Useless delimiter"
 errors["vcontext"][16] = "Missing flag conditions"
 errors["vcontext"][17] = "Unclosed brace"
+errors["vtest"][14] = "Useless delimiter"
+errors["vtest"][15] = "Malformed test string"
 
 # Print error and kill process.
 #

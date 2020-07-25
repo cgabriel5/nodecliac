@@ -2,7 +2,7 @@ from re import re
 from strutils import join, strip, startsWith
 from tables import `[]=`, `[]`, hasKey, OrderedTableRef, pairs
 
-import error, vcontext
+import error, vcontext, vtest
 from types import State, Node, Branch
 from charsets import C_QUOTES, C_SPACES, C_CTX_ALL, C_CTX_MUT,
     C_CTX_FLG, C_CTX_CON, C_LETTERS, C_CTX_CAT, C_CTX_OPS
@@ -16,6 +16,8 @@ let r = re"(?<!\\)\$\{\s*[^}]*\s*\}"
 # @return {object} - Object containing parsed information.
 proc validate*(S: State, N: Node, `type`: string = ""): string =
     var value = N.value.value
+    let action = S.args.action
+    let formatting = S.args.action == "format"
     var `type` = `type`
 
     # Get column index to resume error checks at.
@@ -92,7 +94,6 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
             var bounds = findAllBounds(value, r)
             var vindices = OrderedTableRef[int, tuple[ind, sl: int]]()
             if bounds.len > 0:
-                var action = S.args.action
                 let vars = S.tables.variables
                 for i in countdown(bounds.high, 0):
                     let bound = bounds[i]
@@ -115,9 +116,13 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                     vindices[bound.first] = (ind: if sl > vl: dt * -1 else: abs(dt), sl: sl)
 
             # Validate context string.
-            if S.args.action != "format" and N.node == "FLAG" and
+            if not formatting and N.node == "FLAG" and
                 N.keyword.value == "context":
                 value = vcontext(S, value, vindices, resumepoint)
+            # Validate test string.
+            if not formatting and N.node == "SETTING" and
+                N.name.value == "test":
+                value = vtest(S, value, vindices, resumepoint);
 
             N.args = @[value]
             N.value.value = value

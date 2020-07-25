@@ -165,7 +165,7 @@ proc vtest*(S: State, value: string = "",
             inc(i); inc(resume_index)
             if fchar == '#':
                 discard verify(arg.strip(trailing=true), resume_index)
-                continue
+                break
 
         values.add(arg.strip(trailing=true))
 

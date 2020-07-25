@@ -238,7 +238,7 @@ module.exports = (S, value, vindices, resumepoint) => {
 			resume_index++;
 			if (fchar === "#") {
 				arg = verify(arg.trim(), resume_index);
-				continue;
+				break;
 			}
 		}
 

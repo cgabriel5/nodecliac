@@ -47,6 +47,10 @@ let errors = {
 		14: "Useless delimiter",
 		16: "Missing flag conditions",
 		17: "Unclosed brace"
+	},
+	vtest: {
+		14: "Useless delimiter",
+		15: "Malformed test string"
 	}
 };
 

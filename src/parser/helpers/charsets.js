@@ -50,6 +50,7 @@ const C_CTX_ALL = create(C_LETTERS, C_DIGITS, C_CTX_ALL_CHARS);
 const C_CTX_FLG = create(C_LETTERS, C_DIGITS, ["-", "!", ",", ":"]);
 const C_CTX_OPS = new Set(["eq", "ne", "gt", "ge", "lt", "le"]);
 const C_CTX_CAT = new Set(["a", "A", "f", "F"]); // Conditional argument-count type.
+const C_CTX_CTT = new Set(["c", "C"]); // Conditional test-count type.
 
 module.exports = {
 	cin,
@@ -74,5 +75,6 @@ module.exports = {
 	C_CTX_ALL,
 	C_CTX_FLG,
 	C_CTX_OPS,
-	C_CTX_CAT
+	C_CTX_CAT,
+	C_CTX_CTT
 };

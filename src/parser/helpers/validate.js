@@ -1,6 +1,7 @@
 "use strict";
 
 const error = require("./error.js");
+const vtest = require("./vtest.js");
 const vcontext = require("./vcontext.js");
 const { cin, cnotin, C_SPACES, C_QUOTES } = require("./charsets.js");
 const r = /(?<!\\)\$\{\s*[^}]*\s*\}/g;
@@ -14,6 +15,7 @@ const r = /(?<!\\)\$\{\s*[^}]*\s*\}/g;
  */
 let validate = (S, N, type) => {
 	let { value } = N.value;
+	let formatting = S.args.action === "format";
 	// Get column index to resume error checks at.
 	let resumepoint = N.value.start - S.tables.linestarts[S.line];
 	resumepoint++; // Add 1 to account for 0 base indexing.
@@ -105,7 +107,7 @@ let validate = (S, N, type) => {
 					match = match.slice(2, -1).trim();
 
 					// Don't interpolate when formatting.
-					if (S.args.action === "format") return `\${${match}}`;
+					if (formatting) return `\${${match}}`;
 
 					let value = S.tables.variables[match];
 					// Error if var is being used before declared.
@@ -125,11 +127,19 @@ let validate = (S, N, type) => {
 
 				// Validate context string.
 				if (
-					S.args.action !== "format" &&
+					!formatting &&
 					N.node === "FLAG" &&
 					N.keyword.value === "context"
 				) {
 					value = vcontext(S, value, vindices, resumepoint);
+				}
+				// Validate test string.
+				if (
+					!formatting &&
+					N.node === "SETTING" &&
+					N.name.value === "test"
+				) {
+					value = vtest(S, value, vindices, resumepoint);
 				}
 
 				N.args = [value];

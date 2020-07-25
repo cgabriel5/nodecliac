@@ -155,15 +155,23 @@ proc vtest*(S: State, value: string = "",
         var i = 0
         let l = arg.len
         var fchar = '\0'
+        var findex = 0
 
         while i < l:
             let `char` = arg[i]
             if `char` in C_SPACES:
                 inc(i); inc(resume_index); continue
 
-            if fchar == '\0': fchar = `char`
+            if fchar == '\0':
+                fchar = `char`
+                findex = i
+
             inc(i); inc(resume_index)
-            if fchar == '#':
+
+            # Only #ceq3 and its inversion (!#ceq3) are validated.
+            if fchar == '#' or fchar == '!':
+                if fchar == '!' and not (l > 2 and arg[findex + 1] == '#'):
+                    continue
                 discard verify(arg.strip(trailing=true), resume_index)
                 break
 

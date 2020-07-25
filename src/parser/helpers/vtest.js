@@ -224,6 +224,7 @@ module.exports = (S, value, vindices, resumepoint) => {
 		let i = 0;
 		let l = arg.length;
 		let fchar = "";
+		let findex = 0;
 
 		while (i < l) {
 			let char = arg[i];
@@ -233,10 +234,19 @@ module.exports = (S, value, vindices, resumepoint) => {
 				continue;
 			}
 
-			if (fchar === "") fchar = char;
+			if (fchar === "") {
+				fchar = char;
+				findex = i;
+			}
+
 			i++;
 			resume_index++;
-			if (fchar === "#") {
+
+			// Only #ceq3 and its inversion (!#ceq3) are validated.
+			if (fchar === "#" || fchar === "!") {
+				if (fchar === "!" && !(l > 2 && arg[findex + 1] === "#")) {
+					continue;
+				}
 				arg = verify(arg.trim(), resume_index);
 				break;
 			}

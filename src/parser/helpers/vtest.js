@@ -219,7 +219,7 @@ module.exports = (S, value, vindices, resumepoint) => {
 	let values = [args[0].trimStart()]; // Store before shifting.
 	args.shift(); // Remove test string.
 	// Validate parsed arguments.
-	for (let c = 0, x = 0, l = args.length; x < l; x++, c++) {
+	for (let x = 0, l = args.length; x < l; x++) {
 		let arg = args[x];
 		let i = 0;
 		let l = arg.length;

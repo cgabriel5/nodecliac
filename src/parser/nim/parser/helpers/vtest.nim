@@ -151,7 +151,7 @@ proc vtest*(S: State, value: string = "",
     var values = @[args[0].strip(trailing=false)] # Store before shifting.
     args.delete(0, 0); # Remove test string.
     # Validate parsed arguments.
-    for c, arg in args: # Validate parsed arguments.
+    for arg in args: # Validate parsed arguments.
         var i = 0
         let l = arg.len
         var fchar = '\0'

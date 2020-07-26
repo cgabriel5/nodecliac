@@ -1,0 +1,4 @@
+# This acmap tests a completion test string.
+
+@test = "  program ; *uni\;nstall* ; #Peq1 "
+# ------------------------------------^ Must be c or C.

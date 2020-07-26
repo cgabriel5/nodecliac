@@ -44,3 +44,4 @@ nodecliac.cache = --clear?|--level=(0 1 2)
 @test = "nodecliac make --sou| path/to/file; *source*"
 @test = "nodecliac make --source install --print --so; !*--source*"
 @test = 'nodecliac format --source command.acmap --print --indent "s:2" --; *strip-comments*'
+@test = 'nodecliac NONEXISTANTCOMMAND ; !*format*'

@@ -228,9 +228,9 @@ function xlogic() {
 	local answer="$(echo -e "$2")"
 	local type="$3"
 	case $type in
-		dmatch) [[ "$output" == *"$answer"* ]] && echo 1 || echo 0 ;;
-		lmatch) [[ "$output" == *"$answer" ]] && echo 1 || echo 0 ;;
-		rmatch) [[ "$output" == "$answer"* ]] && echo 1 || echo 0 ;;
+		contains) [[ "$output" == *"$answer"* ]] && echo 1 || echo 0 ;;
+		endsWith) [[ "$output" == *"$answer" ]] && echo 1 || echo 0 ;;
+		startsWith) [[ "$output" == "$answer"* ]] && echo 1 || echo 0 ;;
 		*) [[ "$(trim "$output")" == "$answer" ]] && echo 1 || echo 0 ;;
 	esac
 }
@@ -319,13 +319,13 @@ function xtest {
 
 		# Determine logic check type.
 		if [[ "$item" =~ ^\* && "$item" =~ \*$ ]]; then
-			tlogic="dmatch"
+			tlogic="contains"
 			item=${item:1:-1}
 		elif [[ "$item" =~ ^\* ]]; then 
-			tlogic="lmatch"
+			tlogic="endsWith"
 			item=${item:1}
 		elif [[ "$item" =~ \*$ ]]; then 
-			tlogic="rmatch"
+			tlogic="startsWith"
 			item=${item::1}
 		fi
 

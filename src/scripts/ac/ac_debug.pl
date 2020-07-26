@@ -566,6 +566,13 @@ sub __analyze {
 		}
 	}
 
+	# Handle case: '$ nodecliac NONEXISTANTCOMMAND [TAB]'. This case will
+	# sill give completions but it should't. Without changing much
+	# code use this as a temporary solution.
+	if (@commands == 1 && @posargs) {
+		foreach my $x (@posargs) { push(@commands, $x); }
+	}
+
 	# Set needed data: cc, pos args, last word, and found flags.
 
 	$commandchain = __validate_command(join('.', @commands));

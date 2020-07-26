@@ -557,6 +557,12 @@ proc fn_analyze() =
 
         inc(i)
 
+    # Handle case: '$ nodecliac NONEXISTANTCOMMAND [TAB]'. This case will
+    # sill give completions but it should't. Without changing much
+    # code use this as a temporary solution.
+    if commands.len == 1 and posargs.len != 0:
+        for x in posargs: commands.add(x)
+
     # Set needed data: cc, pos args, last word, and found flags.
 
     commandchain = fn_validate_command(commands.join("."))

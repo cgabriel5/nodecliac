@@ -1550,17 +1550,17 @@ nodecliac provides a way to test completions for your program.
 Creating tests is done directly from the program's acmap via `@test`. Start with `@test =` followed by the test string `"<completion string> ; <test1 ; testN>"`.
 
 - Test entire completion output (including meta data):
-  - **Does the output contain 'format'?**: `@test = "program --; *format*`
-  - **Does the output omit 'format'?**: `@test = "program --; !*format*`
+  - _Does the output contain_ `format`_?_: `@test = "program --; *format*`
+  - _Does the output omit_ `format`_?_: `@test = "program --; !*format*`
 - Test individual completion items:
-  - **Do any completion items contain 'format'?**: `@test = "program --; *:*format*`
-  - **Does the first completion item contain 'format'?**: `@test = "program --; 1:*format*`
-  - **Does the first completion item start with '--for'?**: `@test = "program --; 1:--for*`
-  - **Does the first completion item end with '--for'?**: `@test = "program --; 1:*format`
-  - **Does the first completion item equal '--format'?**: `@test = "program --; 1:--format`
+  - _Do any completion items contain_ `format`_?_: `@test = "program --; *:*format*`
+  - _Does the first completion item contain_ `format`_?_: `@test = "program --; 1:*format*`
+  - _Does the first completion item start with_ `--for`_?_: `@test = "program --; 1:--for*`
+  - _Does the first completion item end with_ `format`_?_: `@test = "program --; 1:*format`
+  - _Does the first completion item equal_ `--format`_?_: `@test = "program --; 1:--format`
 - Test completion items count:
-  - **Is there at least 1 completion item?**: `@test = "program --; #cgt0`
-  - **Are there 3 completion items?**: `@test = "program --; #ceq3`
+  - _Is there at least 1 completion item?_: `@test = "program --; #cgt0`
+  - _Are there 3 completion items?_: `@test = "program --; #ceq3`
     - Format: `# + (c)ount + operator + number`
     - Operators:
       - `eq`: Equal to

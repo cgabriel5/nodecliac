@@ -33,11 +33,11 @@ module.exports = async (S, cmdname) => {
 	const rcmdname = cmdname.replace(/\+/g, "\\+");
 	const r = new RegExp(`^(${rcmdname}|[-_a-zA-Z0-9]+)`);
 
-	const date = new Date();
-	const hours = date.getHours();
-	const minutes = date.getMinutes();
-	const seconds = date.getSeconds();
-	const datestring = date.toDateString();
+	const date = new Date(); // [https://stackoverflow.com/a/3313887]
+	const hours = `${date.getHours()}`.padStart(2, "0");
+	const minutes = `${date.getMinutes()}`.padStart(2, "0");
+	const seconds = `${date.getSeconds()}`.padStart(2, "0");
+	const datestring = `${date.toDateString()}`.padStart(2, "0");
 	const timestamp = Math.floor(date.getTime() / 1000); // Date.now();
 	const ctime = `${datestring} ${hours}:${minutes}:${seconds} (${timestamp})`;
 	let header = `# DON'T EDIT FILE —— GENERATED: ${ctime}\n\n`;

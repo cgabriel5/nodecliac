@@ -1,0 +1,3 @@
+ --help?|--test|--version?
+
+ context "!flag1,flag2,flag3:!#fge0,!#alt100,!flag;flag;{a};{flag1|flag2|flag-3};{b}"

@@ -391,7 +391,6 @@ proc fn_analyze() =
     var chainflags: seq[seq[string]] = @[@[""]]
     var delindices: seq[seq[int]] = @[@[0]]
     var bounds: seq[int] = @[0]
-    var cmdend = false
     var aindex = 0
 
     var i = 1; while i < l:
@@ -402,23 +401,19 @@ proc fn_analyze() =
         if item[0] in C_QUOTES or '\\' in item: cargs.add(item); inc(i); continue
 
         if not item.startsWith('-'):
-            if not cmdend:
-                let command = fn_normalize_command(item)
-                var chain = commands.join(".") & "." & command
-                if not chain.startsWith('.'): chain = "." & chain
+            let command = fn_normalize_command(item)
+            var chain = commands.join(".") & "." & command
+            if not chain.startsWith('.'): chain = "." & chain
 
-                let pattern = "^" & quotemeta(chain) & "[^ ]* "
-                let (start, `end`) = findBounds(acdef, re(pattern, {reMultiLine}))
-                if start != -1:
-                    chainstrings.add(acdef[start .. `end`])
-                    chainflags.add(@[])
-                    delindices.add(@[])
-                    bounds.add(start)
-                    commands.add(command)
-                    inc(aindex)
-                else:
-                    cmdend = true
-                    posargs.add(item)
+            let pattern = "^" & quotemeta(chain) & "[^ ]* "
+            let (start, `end`) = findBounds(acdef, re(pattern, {reMultiLine}))
+            if start != -1:
+                chainstrings.add(acdef[start .. `end`])
+                chainflags.add(@[])
+                delindices.add(@[])
+                bounds.add(start)
+                commands.add(command)
+                inc(aindex)
             else: posargs.add(item)
 
             cargs.add(item)
@@ -457,12 +452,6 @@ proc fn_analyze() =
                     delindices[^1].add(ameta[i][0])
 
         inc(i)
-
-    # Handle case: '$ nodecliac NONEXISTANTCOMMAND [TAB]'. This case will
-    # sill give completions but it should't. Without changing much
-    # code use this as a temporary solution.
-    if commands.len == 1 and posargs.len != 0:
-        for x in posargs: commands.add(x)
 
     # Set needed data: cc, pos args, last word, and found flags.
 

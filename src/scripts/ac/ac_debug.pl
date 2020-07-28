@@ -488,7 +488,6 @@ sub __analyze {
 	my @chainflags = (['']);
 	my @delindices = ([0]);
 	my @bounds = (0);
-	my $cmdend = 0;
 	my $aindex = 0;
 	my $start = 0;
 	my $end = 0;
@@ -501,27 +500,22 @@ sub __analyze {
 		if (substr($item, 0, 1) =~ tr/"'// || $item =~ tr/\\//) { push(@cargs, $item); next; }
 
 		if (rindex($item, '-', 0)) {
-			if (!$cmdend) {
-				my $command = __normalize_command($item);
-				my $chain = join('.', @commands) . '.' . $command;
-				if (rindex($chain, '.', 0) != 0) { $chain = '.' . $chain; }
+			my $command = __normalize_command($item);
+			my $chain = join('.', @commands) . '.' . $command;
+			if (rindex($chain, '.', 0) != 0) { $chain = '.' . $chain; }
 
-				# [https://stackoverflow.com/a/87504]
-				my $pattern = '^' . quotemeta($chain) . '[^ ]* ';
-				$start = 0; $end = 0;
-				if ($acdef =~ /$pattern/m) {
-					$start = $-[0]; $end = $+[0]; }
-				if ($start) {
-					push(@chainstrings, substr($acdef, $start, $end - $start));
-					push(@chainflags, []);
-					push(@delindices, []);
-					push(@bounds, $start);
-					push(@commands, $command);
-					$aindex++;
-				} else {
-					$cmdend = 1;
-					push(@posargs, $item);
-				}
+			# [https://stackoverflow.com/a/87504]
+			my $pattern = '^' . quotemeta($chain) . '[^ ]* ';
+			$start = 0; $end = 0;
+			if ($acdef =~ /$pattern/m) {
+				$start = $-[0]; $end = $+[0]; }
+			if ($start) {
+				push(@chainstrings, substr($acdef, $start, $end - $start));
+				push(@chainflags, []);
+				push(@delindices, []);
+				push(@bounds, $start);
+				push(@commands, $command);
+				$aindex++;
 			} else { push(@posargs, $item); }
 
 			push(@cargs, $item);
@@ -564,13 +558,6 @@ sub __analyze {
 				}
 			}
 		}
-	}
-
-	# Handle case: '$ nodecliac NONEXISTANTCOMMAND [TAB]'. This case will
-	# sill give completions but it should't. Without changing much
-	# code use this as a temporary solution.
-	if (@commands == 1 && @posargs) {
-		foreach my $x (@posargs) { push(@commands, $x); }
 	}
 
 	# Set needed data: cc, pos args, last word, and found flags.

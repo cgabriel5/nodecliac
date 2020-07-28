@@ -129,8 +129,11 @@ elif [[ -n "$COMPILE_PROD" ]]; then
 	--deadCodeElim:on \
 	--out:"$OUTPUT_PATH" \
 	"$INPUT_PATH"
-	if [[ "$USER_OS" == "linux" ]]; then strip -s "$OUTPUT_PATH"; fi
-	if [[ -n "$(command -v upx)" ]]; then upx --best "$OUTPUT_PATH"; fi
+
+	# Packing greatly reduces binary size, but also adds a little overhead
+	# at the cost of execution speed. Therefore, disable packing for now.
+	# if [[ "$USER_OS" == "linux" ]]; then strip -s "$OUTPUT_PATH"; fi
+	# if [[ -n "$(command -v upx)" ]]; then upx --best "$OUTPUT_PATH"; fi
 fi
 
 chmod +x "$OUTPUT_PATH"

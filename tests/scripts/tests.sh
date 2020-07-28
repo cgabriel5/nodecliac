@@ -27,7 +27,10 @@ tests=(
 "nodecliac make --sou| path/to/file; *source*"
 "nodecliac make --source install --print --so; !*--source*"
 'nodecliac format --source command.acmap --print --indent "s:2" --; *strip-comments*'
-'nodecliac NONEXISTANTCOMMAND ; !*format*'
+'nodecliac NONEXISTANTCOMMAND ; *format*'
+'nodecliac NONEXISTANTCOMMAND for; *format*'
+'nodecliac . ; *format*'
+'nodecliac . -; 1:*--version*'
 
 # [test-suite: prettier-cli-watcher]
 "prettier-cli-watcher ; command\:+"

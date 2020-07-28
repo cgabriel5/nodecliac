@@ -345,7 +345,8 @@ tojson format --source=&lt;file&gt;</code></pre>
 				</div>
 
 				<p class="section-paragraph">
-					Slightly more compact.
+					<code>make</code> and <code>format</code> result in the same
+					so delimiting them can reduce things.
 				</p>
 
 				<div class="section-list">
@@ -357,7 +358,19 @@ tojson format --source=&lt;file&gt;</code></pre>
 				</div>
 
 				<p class="section-paragraph">
-					Either work and leave <code>tojson.acmap</code> compact yet
+					Going a step further, commands can be grouped for even more
+					terseness.
+				</p>
+
+				<div class="section-list">
+					<pre
+						class="code-block-cont"
+					><code class="code-block"><span class="italic">tojson</span> = -<span class="flag-name">h</span>|--<span class="flag-name">help</span>|--<span class="flag-name">version</span>
+<span class="italic">tojson<span class="operator">.</span></span>{<span class="italic">make</span><span class="flag-name">,</span><span class="italic">format</span>} = --<span class="flag-name">source</span>=</code></pre>
+				</div>
+
+				<p class="section-paragraph">
+					All work and leave <code>tojson.acmap</code> compact yet
 					still readable.
 				</p>
 

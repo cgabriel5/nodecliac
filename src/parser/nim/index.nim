@@ -4,6 +4,7 @@ from os import isAbsolute, absolutePath, existsDir, existsFile, joinPath,
     createDir, fpUserExec, fpUserWrite, fpUserRead, fpGroupExec, fpGroupWrite,
     fpGroupRead, fpOthersExec, fpOthersRead
 from tables import Table, `[]`, `$`, keys, pairs, len # [https://github.com/nim-lang/Nim/issues/11155]
+from strtabs import StringTableRef, len, `[]`, keys
 
 from parser/index import parser
 import utils/[chalk, argvparse, exit]

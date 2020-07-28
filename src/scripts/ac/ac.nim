@@ -10,6 +10,7 @@ from sequtils import map, mapIt, toSeq, concat, filter
 from tables import `$`, add, del, len, keys, `[]`, `[]=`, pairs,
     Table, hasKey, values, toTable, initTable, initOrderedTable
 from os import getEnv, putEnv, paramStr, paramCount
+from strtabs import `[]`, `[]=`, hasKey, newStringTable, getOrDefault
 from strutils import find, join, split, strip, delete, Digits, Letters,
     replace, contains, endsWith, intToStr, parseInt, splitLines, startsWith,
     removePrefix, allCharsInSet, multiReplace
@@ -46,9 +47,9 @@ var filedir = ""
 
 var db_dict = initTable[char, Table[string, Table[string, seq[string]]]]()
 var db_levels = initTable[int, Table[string, int]]()
-var db_defaults = initTable[string, string]()
-var db_filedirs = initTable[string, string]()
-var db_contexts = initTable[string, string]()
+var db_defaults = newStringTable()
+var db_filedirs = newStringTable()
+var db_contexts = newStringTable()
 
 var usedflags = initTable[string, Table[string, int]]()
 var usedflags_valueless = initTable[string, int]()
@@ -887,7 +888,7 @@ proc fn_lookup(): string =
             # Loop over command chains to build individual chain levels.
             while copy_commandchain != "":
                 # Get command-string, parse and run it.
-                var command_str = if db_defaults.hasKey(copy_commandchain): db_defaults[copy_commandchain] else: ""
+                var command_str = db_defaults.getOrDefault(copy_commandchain, "")
                 if command_str != "":
                     var lchar = chop(command_str)
 

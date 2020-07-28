@@ -5,8 +5,9 @@ from unicode import toLower
 from re import re, split, replace
 from strutils import join, endsWith, strip
 from times import format, getTime, toUnix
+from strtabs import `[]`, `[]=`, hasKey, keys, newStringTable, `$`
 from sets import HashSet, OrderedSet, initHashSet, incl, excl, toHashSet, contains, len, items, `$`
-from tables import Table, initTable, initOrderedTable, `[]=`, toTable, hasKey, len, del, `$`
+from tables import Table, initTable, initOrderedTable, `[]=`, toTable, hasKey, keys, len, del, `$`
 
 from ../helpers/types import State, Node, node
 
@@ -18,13 +19,13 @@ from ../helpers/types import State, Node, node
 proc acdef*(S: State, cmdname: string): tuple =
     var oSets = initTable[string, HashSet[string]]()
     var oGroups = initTable[int, Table[string, seq[Node]]]()
-    var oDefaults = initTable[string, string]()
-    var oFiledirs = initTable[string, string]()
-    var oContexts = initTable[string, string]()
+    var oDefaults = newStringTable()
+    var oFiledirs = newStringTable()
+    var oContexts = newStringTable()
     var oSettings = initOrderedTable[string, string]()
     var settings_count = 0
-    var oPlaceholders = initTable[string, string]()
-    var omd5Hashes = initTable[string, string]()
+    var oPlaceholders = newStringTable()
+    var omd5Hashes = newStringTable()
     var count = 0
     var acdef = ""
     var acdef_lines: seq[string] = @[]
@@ -400,7 +401,7 @@ proc acdef*(S: State, cmdname: string): tuple =
         filedirs: string,
         contexts: string,
         formatted: string,
-        placeholders: Table[string, string],
+        placeholders: StringTableRef,
         tests: string
     ]
 

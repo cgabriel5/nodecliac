@@ -1,4 +1,4 @@
-from tables import toTable, hasKey, `[]`, `$`
+from tables import toTable, hasKey, getOrDefault, `[]`, `$`
 
 from ../helpers/types import State
 from charsets import C_SPACES, C_KW_ALL, C_CMD_IDENT_START
@@ -22,7 +22,7 @@ proc linetype*(S: State, `char`, nchar: char): string =
         ']': "close-brace"
     }.toTable
 
-    var line_type = if types.hasKey(`char`): types[`char`] else: ""
+    var line_type = types.getOrDefault(`char`, "")
 
     # Line type overrides for: command, option, default.
     if line_type == "" and `char` in C_CMD_IDENT_START: line_type = "command"

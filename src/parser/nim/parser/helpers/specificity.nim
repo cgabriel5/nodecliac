@@ -1,4 +1,4 @@
-from tables import toTable, hasKey, `[]=`, `[]`, `$`
+from tables import toTable, hasKey, getOrDefault, `[]=`, `[]`, `$`
 
 import error
 from ../helpers/types import State
@@ -23,7 +23,7 @@ proc specificity*(S: State, line_type: string, parserfile: string) =
         "comment": 0
     }.toTable
 
-    let line_specf = if SPECF.hasKey(line_type): SPECF[line_type] else: 0
+    let line_specf = SPECF.getOrDefault(line_type, 0)
     let flag_scope = S.scopes.flag.node
     let command_scope = S.scopes.command.node
 

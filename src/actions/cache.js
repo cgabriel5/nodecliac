@@ -1,10 +1,11 @@
 "use strict";
 
+const path = require("path");
 const chalk = require("chalk");
 const flatry = require("flatry");
-const mkdirp = require("make-dir");
 const de = require("directory-exists");
-const { paths, rmrf, read, write, hasProp } = require("../utils/toolbox.js");
+const { paths, read, write } = require("../utils/toolbox.js");
+const { readdir, remove, hasProp } = require("../utils/toolbox.js");
 
 module.exports = async (args) => {
 	let { cachepath, cachelevel } = paths;
@@ -13,8 +14,10 @@ module.exports = async (args) => {
 	if (clear) {
 		let [err] = await flatry(de(cachepath));
 		if (!err) {
-			await rmrf(cachepath);
-			await mkdirp(cachepath);
+			let files = await readdir(cachepath);
+			for (let i = 0, l = files.length; i < l; i++) {
+				await remove(path.join(cachepath, files[i]));
+			}
 			console.log(chalk.green("Successfully"), "cleared cache.");
 		}
 	}

@@ -932,12 +932,10 @@ proc fn_printer() =
     var lines = fmt"{`type`}:{last}"
     lines &= "+" & filedir
 
-    var iscommand = `type`.startsWith('c')
-    if not TESTMODE and iscommand: lines &= "\n"
-
-    var sep = if not TESTMODE and iscommand: " " else: "\n"
-    var isflag_type = `type`.startsWith('f')
+    const sep = "\n"
     var skip_map = false
+    var iscommand = `type`.startsWith('c')
+    var isflag_type = `type`.startsWith('f')
 
     # Note: When providing flag completions and only "--" is provided,
     # collapse (don't show) flags with the same prefix. This aims to

@@ -1128,12 +1128,10 @@ sub __printer {
 	my $lines = "$type:$last";
 	$lines .= '+' . $filedir;
 
-	my $iscommand = rindex($type, 'c', 0) == 0;
-	if (!$TESTMODE && $iscommand) { $lines .= "\n"; }
-
-	my $sep = (!$TESTMODE && $iscommand) ? ' ' : "\n";
-	my $isflag_type = rindex($type, 'f', 0) == 0;
+	my $sep = "\n";
 	my $skip_map = 0;
+	my $iscommand = rindex($type, 'c', 0) == 0;
+	my $isflag_type = rindex($type, 'f', 0) == 0;
 
 	# Note: When providing flag completions and only "--" is provided,
 	# collapse (don't show) flags with the same prefix. This aims to

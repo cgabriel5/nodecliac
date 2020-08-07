@@ -142,17 +142,17 @@ function _nodecliac() {
 	local cachefile=""
 	local xcachefile=""
 	local usecache=0
+	local m c
 
 	if [[ "$clevel" != 0 ]]; then
 		# [https://stackoverflow.com/a/28844659]
-		sum="$(cksum <<< "$cline$PWD")"
-		sum="${sum:0:7}"
+		read -n 7 sum < <(cksum <<< "$cline$PWD")
 		cachefile=~/.nodecliac/.cache/"$sum"
 		xcachefile=~/.nodecliac/.cache/"x$sum"
 
 		if [[ -e "$xcachefile" ]]; then
-			local m=$(date -r "$xcachefile" "+%s")
-			local c=$(date +"%s")
+			read m < <(date -r "$xcachefile" "+%s")
+			read c < <(date +"%s")
 			if [[ $((c-m)) -lt 3 ]]; then
 				usecache=1
 				output=$(<"$xcachefile")
@@ -163,7 +163,7 @@ function _nodecliac() {
 			output=$(<"$cachefile")
 		fi
 
-		rm -rf ~/.nodecliac/.cache/x*
+		rm -f ~/.nodecliac/.cache/x*
 	fi
 
 	if [[ "$usecache" == 0 ]]; then

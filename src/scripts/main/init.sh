@@ -71,17 +71,17 @@ function _nodecliac() {
 	local cachefile=""
 	local xcachefile=""
 	local usecache=0
+	local m c
 
 	if [[ "$clevel" != 0 ]]; then
 		# [https://stackoverflow.com/a/28844659]
-		sum="$(cksum <<< "$cline$PWD")"
-		sum="${sum:0:7}"
+		read -n 7 sum < <(cksum <<< "$cline$PWD")
 		cachefile=~/.nodecliac/.cache/"$sum"
 		xcachefile=~/.nodecliac/.cache/"x$sum"
 
 		if [[ -e "$xcachefile" ]]; then
-			local m=$(date -r "$xcachefile" "+%s")
-			local c=$(date +"%s")
+			read m < <(date -r "$xcachefile" "+%s")
+			read c < <(date +"%s")
 			if [[ $((c-m)) -lt 3 ]]; then
 				usecache=1
 				output=$(<"$xcachefile")
@@ -92,7 +92,7 @@ function _nodecliac() {
 			output=$(<"$cachefile")
 		fi
 
-		rm -rf ~/.nodecliac/.cache/x*
+		rm -f ~/.nodecliac/.cache/x*
 	fi
 
 	if [[ "$usecache" == 0 ]]; then
@@ -123,9 +123,9 @@ function _nodecliac() {
 	local filedir="${firstline#*+}"
 	local type="${meta%%:*}"
 	local last="${meta#*:}"
-	local nlpos=$((${#firstline} + 1))
-	local items="${output:$nlpos:${#output}-2}"
+	mapfile -ts1 COMPREPLY < <(echo -e "$output")
 	local cacheopt=1; [[ "$type" == *"nocache"* ]] && cacheopt=0
+	local gfdir
 
 	if [[ "$clevel" != 0 && "$usecache" == 0 ]]; then
 		[[ "$cacheopt" == 0 && "$clevel" == 1 ]] && sum="x$sum"
@@ -133,13 +133,13 @@ function _nodecliac() {
 	fi
 
 	# If no completions default to directory folder/file names.
-	if [[ -z "$items" ]]; then
+	if [[ "${#COMPREPLY}" -eq 0 ]]; then
 		# If value exists reset var to it. [https://stackoverflow.com/a/20460402]
 		[[ -z "${last##*=*}" ]] && last="${last#*=}"
 
 		# If filedir is empty check for the (global) setting filedir.
 		if [[ -z "$filedir" ]]; then
-			local gfdir=$(~/.nodecliac/src/main/config.pl "filedir" "$command")
+			read gfdir < <(~/.nodecliac/src/main/config.pl "filedir" "$command")
 			[[ -n "$gfdir" && "$gfdir" != "false" ]] && filedir="$gfdir"
 		fi
 
@@ -156,7 +156,7 @@ function _nodecliac() {
 			# [https://stackoverflow.com/a/18551488]
 			# [https://stackoverflow.com/a/35164798]
 			# COMPREPLY=($(echo -e "$(awk 'NR>1' <<< "$items")"))
-			COMPREPLY=($(echo -e "$items"))
+			# COMPREPLY=($(echo -e "$items"))
 			__ltrim_colon_completions "$last"
 
 			# # __ltrim_colon_completions:
@@ -184,7 +184,7 @@ function _nodecliac() {
 			# [http://mywiki.wooledge.org/BashFAQ/001]
 			# [http://mywiki.wooledge.org/BashFAQ/005?highlight=%28readarray%29#Loading_lines_from_a_file_or_stream]
 			# mapfile -t COMPREPLY < <(awk 'NR>1' <<< "$items")
-			mapfile -t COMPREPLY < <(echo -e "$items")
+			# mapfile -t COMPREPLY < <(echo -e "$items")
 		fi
 	fi
 }

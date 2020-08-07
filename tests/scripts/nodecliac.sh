@@ -459,4 +459,4 @@ fi
 
 # Set exit code. If all tests pass then set to 0.
 # [https://shapeshed.com/unix-exit-codes/]
-[[ "$passed_count" == "$test_count" ]] && exit 0 || exit 0
+[[ "$passed_count" == "$test_count" ]] && exit 0 || exit 1

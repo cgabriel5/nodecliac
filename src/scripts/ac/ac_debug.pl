@@ -16,6 +16,7 @@ my $cline = $ARGV[1]; # CLI input (could be modified via pre-parse).
 my $cpoint = int($ARGV[2]); # Caret index when [tab] key was pressed.
 my $maincommand = $ARGV[3]; # Get command name from sourced passed-in argument.
 my $acdef = $ARGV[4]; # Get the acdef definitions file.
+my $posthook = $ARGV[5]; # Get the posthook file path.
 
 my @args = ();
 my @posargs = ();
@@ -271,7 +272,10 @@ sub __parse_cmdstr {
 # @param  {string} arguments - N amount of env names to set.
 # @return - Nothing is returned.
 sub __set_envs {
+	my ($params) = @_;
 	my $l = $#args + 1;
+	my $post = $params->{post}; # [https://stackoverflow.com/a/8124745]
+	my @arguments = @{ $params->{arguments} };
 
 	my %envs = (
 		# nodecliac exposed Bash env vars.
@@ -327,6 +331,7 @@ sub __set_envs {
 	if ($DEBUGMODE) {
 		print "\n";
 		print __dfn("setEnvs") . "\n";
+		print __dvar("${prefix}COMP_INDEX") . "$pstart$comp_index$pend\n";
 		print __dvar("${prefix}COMP_LINE") . "$pstart$cline$pend\n";
 		print __dvar("${prefix}COMP_POINT") . "$pstart$cpoint$pend\n";
 		print __dvar("${prefix}MAIN_COMMAND") . "$pstart$maincommand$pend\n";
@@ -351,9 +356,9 @@ sub __set_envs {
 	}
 
 	# Set all env variables.
-	if (@_ == 0) { foreach my $key (keys %envs) { $ENV{$key} = $envs{$key}; }
+	if (@arguments == 0) { foreach my $key (keys %envs) { $ENV{$key} = $envs{$key}; }
 	} else { # Set requested ones only.
-		foreach my $env_name (@_) {
+		foreach my $env_name (@arguments) {
 			my $key = "${prefix}$env_name";
 			if (exists($envs{$key})) { $ENV{$key} = $envs{$key}; }
 		}
@@ -1130,6 +1135,32 @@ sub __lookup {
 	if ($DEBUGMODE) {
 		print __dvar("filedir") . "$pstart$filedir$pend\n";
 		print "\n";
+	}
+
+	# Run posthook if it exists.
+	if ($posthook) {
+		my $delimiter = "\$\\r\?\\n";
+		my @r = ();
+		__set_envs({post => 1});
+		# [https://stackoverflow.com/a/3871265]
+		substr($posthook, 0, 1, $hdir) if rindex($posthook, '~', 0) == 0;
+		my $res = do { open(EPIPE, '-|', $posthook); local $/; <EPIPE>; };
+		$res =~ s/^\s+|\s+$//g;
+		@r = split(/$delimiter/m, $res);
+		if ($res) { @r = split(/$delimiter/m, $res); }
+
+		if ($DEBUGMODE && $res) {
+			print "\n";
+			print __dfn("posthook") . "\n";
+			print __dvar("command") . "$pstart$posthook$pend\n";
+			print __dvar("res") . "$pstart$res$pend\n";
+			print "\n";
+		}
+
+		if (@r) {
+			my $pattern = '^' . quotemeta($last);
+			@completions = grep { /$pattern/ } @r;
+		}
 	}
 }
 

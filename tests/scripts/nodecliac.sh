@@ -170,7 +170,15 @@ function _nodecliac() {
 		[[ -e "$prehook" ]] && . "$prehook"
 
 		local acdef=$(<"$acdefpath")
-		output=$(TESTMODE=1 "$acpl_script" "$2" "$cline" "$cpoint" "$command" "$acdef")
+		# shopt -s nullglob # [https://stackoverflow.com/a/7702334]
+		local posthook="" # [https://stackoverflow.com/a/23423835]
+		posthooks=("$HOME/.nodecliac/registry/$command/hooks/post-hook."*)
+		phscript="${posthooks[0]}"
+		[[ -n "$phscript" && -x "$phscript" ]] && posthook="$phscript"
+		# Unset to allow bash-completion to continue to work properly.
+		# shopt -u nullglob # [https://unix.stackexchange.com/a/434213]
+
+		output=$(TESTMODE=1 "$acpl_script" "$2" "$cline" "$cpoint" "$command" "$acdef" "$posthook")
 	fi
 
 	# 1st line is meta info (completion type, last word, etc.).

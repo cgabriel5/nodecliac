@@ -24,6 +24,7 @@ let cline = os.paramStr(2) # CLI input (could be modified via pre-parse).
 let cpoint = os.paramStr(3).parseInt(); # Caret index when [tab] key was pressed.
 let maincommand = os.paramStr(4) # Get command name from sourced passed-in argument.
 let acdef = os.paramStr(5) # Get the acdef definitions file.
+let posthook = os.paramStr(6) # Get the posthook file path.
 
 var args: seq[string] = @[]
 var posargs: seq[string] = @[]
@@ -145,7 +146,7 @@ proc quotemeta(s: string): string =
 
 # Predefine procs to maintain proc order with ac.pl.
 proc parseCmdStr(input: var string): seq[string]
-proc setEnvs(arguments: varargs[string])
+proc setEnvs(arguments: varargs[string], post=false)
 
 # Parse and run command-flag (flag) or default command chain.
 #
@@ -224,7 +225,7 @@ proc parseCmdStr(input: var string): seq[string] =
 #
 # @param  {string} arguments - N amount of env names to set.
 # @return - Nothing is returned.
-proc setEnvs(arguments: varargs[string]) =
+proc setEnvs(arguments: varargs[string], post=false) =
     let l = args.len
 
     var envs = {
@@ -935,6 +936,21 @@ proc fn_lookup(): string =
             let kw_index = row.find("filedir")
             let sp_index = row.find(' ', start=kw_index)
             filedir = row[sp_index + 2 .. row.high - 1] # Unquote.
+
+    # Run posthook if it exists.
+    if posthook != "":
+        const delimiter = "\\r?\\n"
+        var r: seq[string] = @[]
+        setEnvs(post=true)
+        var res = ""
+        try: res = execProcess(posthook)
+        except: discard
+        res = res.strip(trailing=true)
+        if res != "": r= split(res, re(delimiter))
+        if r.len != 0:
+            completions = filter(r, proc (x: string): bool =
+                x.startsWith(last)
+            )
 
 # Send all possible completions to bash.
 proc fn_printer() =

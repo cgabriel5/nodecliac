@@ -10,6 +10,7 @@ my $cline = $ARGV[1]; # CLI input (could be modified via pre-parse).
 my $cpoint = int($ARGV[2]); # Caret index when [tab] key was pressed.
 my $maincommand = $ARGV[3]; # Get command name from sourced passed-in argument.
 my $acdef = $ARGV[4]; # Get the acdef definitions file.
+my $posthook = $ARGV[5]; # Get the posthook file path.
 
 my @args = ();
 my @posargs = ();
@@ -186,7 +187,10 @@ sub __parse_cmdstr {
 # @param  {string} arguments - N amount of env names to set.
 # @return - Nothing is returned.
 sub __set_envs {
+	my ($params) = @_;
 	my $l = $#args + 1;
+	my $post = $params->{post}; # [https://stackoverflow.com/a/8124745]
+	my @arguments = @{ $params->{arguments} };
 
 	my %envs = (
 		# nodecliac exposed Bash env vars.
@@ -242,9 +246,9 @@ sub __set_envs {
 	my $i = 0; foreach my $arg (@args) { $envs{"${prefix}ARG_${i}"} = $arg; $i++; }
 
 	# Set all env variables.
-	if (@_ == 0) { foreach my $key (keys %envs) { $ENV{$key} = $envs{$key}; }
+	if (@arguments == 0) { foreach my $key (keys %envs) { $ENV{$key} = $envs{$key}; }
 	} else { # Set requested ones only.
-		foreach my $env_name (@_) {
+		foreach my $env_name (@arguments) {
 			my $key = "${prefix}$env_name";
 			if (exists($envs{$key})) { $ENV{$key} = $envs{$key}; }
 		}
@@ -960,6 +964,23 @@ sub __lookup {
 	if (!@completions) {
 		my $pattern = '^' . quotemeta($commandchain) . ' filedir ("|\')(.+)\1$';
 		if ($acdef =~ /$pattern/m) { $filedir = $2; }
+	}
+
+	# Run posthook if it exists.
+	if ($posthook) {
+		my $delimiter = "\$\\r\?\\n";
+		my @r = ();
+		__set_envs({post => 1});
+		# [https://stackoverflow.com/a/3871265]
+		substr($posthook, 0, 1, $hdir) if rindex($posthook, '~', 0) == 0;
+		my $res = do { open(EPIPE, '-|', $posthook); local $/; <EPIPE>; };
+		$res =~ s/^\s+|\s+$//g;
+		@r = split(/$delimiter/m, $res);
+		if ($res) { @r = split(/$delimiter/m, $res); }
+		if (@r) {
+			my $pattern = '^' . quotemeta($last);
+			@completions = grep { /$pattern/ } @r;
+		}
 	}
 }
 

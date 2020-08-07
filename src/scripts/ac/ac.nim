@@ -248,7 +248,8 @@ proc setEnvs(arguments: varargs[string]) =
         # text is 'and'. This will result in using 'comm' to determine
         # possible auto completion word possibilities.).
         fmt"{prefix}LAST": last,
-        fmt"{prefix}PREV": args[^2], # The word item preceding last word item.
+        # The word item preceding last word item.
+        fmt"{prefix}PREV": args[^(if not post: 2 else: 1)],
         fmt"{prefix}INPUT": input, # CLI input from start to caret index.
         fmt"{prefix}INPUT_ORIGINAL": oinput, # Original unmodified CLI input.
         # CLI input from start to caret index.
@@ -267,6 +268,14 @@ proc setEnvs(arguments: varargs[string]) =
         # command-chain to access in plugin auto-completion scripts.
         fmt"{prefix}USED_DEFAULT_POSITIONAL_ARGS": used_default_pa_args
     }.toTable
+
+    # Set completion index (index where completion is being attempted) to
+    # better mimic bash's $COMP_CWORD builtin variable.
+    envs[fmt"{prefix}COMP_INDEX"] = if lastchar == '\0': $(l - 1) else: $l
+    # Also, ensure NODECLIAC_PREV is reset to the second last argument
+    # if it exists only when the lastchar is empty to To better mimic
+    # prev=${COMP_WORDS[COMP_CWORD-1]}.
+    if lastchar == '\0' and l > l - 2: envs[fmt"{prefix}PREV"] = args[l - 2]
 
     # Add parsed arguments as individual env variables.
     for i, arg in args: envs[fmt"{prefix}ARG_{i}"] = arg

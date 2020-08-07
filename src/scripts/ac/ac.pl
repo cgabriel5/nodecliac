@@ -209,7 +209,8 @@ sub __set_envs {
 		# text is 'and'. This will result in using 'comm' to determine
 		# possible auto completion word possibilities.).
 		"${prefix}LAST" => $last,
-		"${prefix}PREV" => $args[-2], # The word item preceding last word item.
+		# The word item preceding last word item.
+		"${prefix}PREV" => $args[(!$post ? -2 : -1)],
 		"${prefix}INPUT" => $input, # CLI input from start to caret index.
 		"${prefix}INPUT_ORIGINAL" => $oinput, # Original unmodified CLI input.
 		# CLI input from start to caret index.
@@ -228,6 +229,14 @@ sub __set_envs {
 		# command-chain to access in plugin auto-completion scripts.
 		"${prefix}USED_DEFAULT_POSITIONAL_ARGS" => $used_default_pa_args
 	);
+
+	# Set completion index (index where completion is being attempted) to
+	# better mimic bash's $COMP_CWORD builtin variable.
+	$envs{"${prefix}COMP_INDEX"} = ($lastchar eq '' ? $l - 1 : $l);
+	# Also, ensure NODECLIAC_PREV is reset to the second last argument
+	# if it exists only when the lastchar is empty to To better mimic
+	# prev=${COMP_WORDS[COMP_CWORD-1]}.
+	if ($lastchar eq '' && $l > $l - 2) { $envs{"${prefix}PREV"} = $args[$l - 2]; }
 
 	# Add parsed arguments as individual env variables.
 	my $i = 0; foreach my $arg (@args) { $envs{"${prefix}ARG_${i}"} = $arg; $i++; }

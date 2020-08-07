@@ -9,6 +9,32 @@ if [[ "$vmajor" -ge 4 ]]; then
 	debugfile=~/.nodecliac/.debugmode
 	[[ ! -e "$cachefile" ]] && echo 1 > "$cachefile"
 	[[ ! -e "$debugfile" ]] && echo 0 > "$debugfile"
+
+	# shopt -s nullglob # [https://stackoverflow.com/a/7702334]
+	config_script=~/.nodecliac/src/main/config.pl
+	while read -r cpkgpath; do # [https://stackoverflow.com/a/28927847]
+		# dir=${cpkgpath%/*}
+		filename="${cpkgpath##*/}"
+		command="${filename%%.*}"
+
+		[[ -z "$command" || ! -e "$cpkgpath/$command.acdef" ]] && continue
+
+		command="${command##*/}" # Skip if command has invalid chars.
+		[[ "$filename" != "$command" ]] && continue
+
+		read settings < <($config_script "compopt;disable" "$command")
+		config_compopt="${settings%%:*}" # Defaults to 'default'.
+		config_disable="${settings#*:}"
+
+		# Don't register if command is disable.
+		[[ "$config_disable" == "true" ]] && return
+
+		# Register completion function with command.
+		# [https://www.linuxjournal.com/content/more-using-bash-complete-command]
+		# complete -d -X '.[^./]*' -F _nodecliac "$command" # Ignore hidden.
+		params=(-X '.[^./]*' -F _nodecliac "$command")
+		[[ "$config_compopt" != "false" ]] && params+=(-o "$config_compopt")
+		complete "${params[@]}"
 	# [https://superuser.com/a/352387]
 	# [https://askubuntu.com/a/427290]
 	# [https://askubuntu.com/a/1137769]
@@ -17,43 +43,14 @@ if [[ "$vmajor" -ge 4 ]]; then
 	# [https://stackoverflow.com/a/9612232]
 	# [https://askubuntu.com/a/318211]
 	# Ignore parent dir: [https://stackoverflow.com/a/11071654]
-	registrypath=~/.nodecliac/registry
 	# [https://superuser.com/a/701822]
 	# [https://unix.stackexchange.com/a/158044]
 	# [https://unix.stackexchange.com/a/50613]
 	# [https://stackoverflow.com/q/20260247]
-	dirlist="$(find "$registrypath" -maxdepth 1 -mindepth 1 \( -type d -o -type l \) -name "[!.]*")"
-	# Registry can't be empty.
-	[[ "$registrypath" == "$dirlist" ]] && return
+	done < <(find ~/.nodecliac/registry -maxdepth 1 -mindepth 1 \( -type d -o -type l \) -name "[!.]*")
 
-	for filepath in $dirlist; do
-		# dir=${filepath%/*}
-		filename="${filepath##*/}"
-		command="${filename%%.*}"
-
-		[[ -z "$command" || ! -e "$filepath/$command.acdef" ]] && continue
-
-		command="${command##*/}"
-		# Skip if command has invalid chars.
-		[[ "$filename" != "$command" ]] && continue
-
-		settings=$(~/.nodecliac/src/main/config.pl "compopt;disable" "$command")
-		config_compopt="${settings%%:*}" # Defaults to 'default'.
-		config_disable="${settings#*:}"
-
-		# Don't register if command is disable.
-		[[ "$config_disable" == "true" ]] && return
-
-		# Register completion function with command.
-		if [[ "$config_compopt" == "false" ]]; then
-			complete -F _nodecliac "$command" # No bash defaults.
-		else
-			complete -o "$config_compopt" -F _nodecliac "$command"
-
-			# [https://www.linuxjournal.com/content/more-using-bash-complete-command]
-			# complete -d -X '.[^./]*' -F _nodecliac "$command"
-		fi
-	done
+	# Unset to allow bash-completion to continue to work properly.
+	# shopt -u nullglob # [https://unix.stackexchange.com/a/434213]
 fi
 
 function _nodecliac() {

@@ -3,9 +3,11 @@
 # Runs project test scripts.
 
 # Available flags:
-# --force    [-f]: Force tests: true|false
-# --print    [-p]: Log output: true|false
-# --override [-o]: Override used complete script with: nim|pl
+# force    [-f]: Force tests: true|false
+# print    [-p]: Log output: true|false
+# override [-o]: Override used complete script with: nim|pl
+# names    [-n]: Names of tests to run: c|x|a|p|f: example: acx
+# tests    [-t]: Test file path to pass to nodecliac.sh (ac tests).
 
 # ---------------------------------------------------------------- CLI-ARGUMENTS
 

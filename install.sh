@@ -269,6 +269,7 @@ if [[ " binary manual " == *" $installer "* ]]; then
 	# [http://isunix.github.io/blog/2014/07/24/perl-one-liner-to-remove-blank-lines/].
 	# [https://stackoverflow.com/a/6995010], [https://unix.stackexchange.com/a/179449]
 	perl -pi -e 's/^\s*#(?!!).*?$//g;s/\s{1,}#\s{1,}.+$//g;s!^\s+?$!!' ~/.nodecliac/src/**/*.{sh,pl}
+	sudo chmod +x ~/.nodecliac/src/**/*.{sh,pl}
 
 	success "Setup ~/.nodecliac."
 

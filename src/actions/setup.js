@@ -9,7 +9,7 @@ const copydir = require("recursive-copy");
 const de = require("directory-exists");
 const through = require("through2");
 const toolbox = require("../utils/toolbox.js");
-const { fmt, exit, paths, read, write, strip_comments } = toolbox;
+const { fmt, exit, paths, read, write, strip_comments, chmod } = toolbox;
 
 module.exports = async (args) => {
 	let { force, rcfile, commands } = args;
@@ -78,6 +78,17 @@ module.exports = async (args) => {
 		});
 	};
 
+	/**
+	 * Ensure script files are executable.
+	 *
+	 * @param  {object} op - The files CopyOperation object.
+	 * @return {undefined} - Nothing is returned.
+	 */
+	let cmode = async (operation) => {
+		let p = operation.dest;
+		if (/\.(sh|pl|nim)$/.test(p)) await chmod(p, 0o775);
+	};
+
 	await Promise.all([
 		// Copy completion packages.
 		copydir(resourcessrcs, acmapssource, {
@@ -88,7 +99,7 @@ module.exports = async (args) => {
 				if (!/\.(sh|pl|nim)$/.test(path.extname(src))) return null;
 				return transform();
 			}
-		}),
+		}).on(copydir.events.COPY_FILE_COMPLETE, cmode),
 		// Copy nodecliac.sh test file.
 		copydir(testsrcpath, mainpath, {
 			overwrite: true,
@@ -99,7 +110,7 @@ module.exports = async (args) => {
 				if (!/\.(sh)$/.test(path.extname(src))) return null;
 				return transform(src);
 			}
-		}),
+		}).on(copydir.events.COPY_FILE_COMPLETE, cmode),
 		// Copy nodecliac command packages/files to nodecliac registry.
 		copydir(resourcespath, registrypath, {
 			overwrite: true,
@@ -108,7 +119,7 @@ module.exports = async (args) => {
 				if (!/\.(sh|pl)$/.test(path.extname(src))) return null;
 				return transform();
 			}
-		})
+		}).on(copydir.events.COPY_FILE_COMPLETE, cmode)
 	]);
 
 	log(chalk.green("Setup successful."));

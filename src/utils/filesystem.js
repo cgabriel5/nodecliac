@@ -83,6 +83,22 @@ let remove = (p) => {
 };
 
 /**
+ * Wrapper chmod method. Returns a Promise.
+ *
+ * @param  {string} p - The path of file to change mode.
+ * @param  {number} mode - The files mode.
+ * @return {promise} - Promise is returned.
+ */
+let chmod = (p, mode) => {
+	return new Promise((resolve, reject) => {
+		fs.chmod(p, mode, (err) => {
+			if (err) reject(err);
+			resolve(true);
+		});
+	});
+};
+
+/**
  * Get file path information (i.e. file name and directory path).
  *
  * @param  {string} p - The complete file path.
@@ -283,5 +299,6 @@ module.exports = {
 	fexists,
 	dexists,
 	lexists,
-	access
+	access,
+	chmod
 };

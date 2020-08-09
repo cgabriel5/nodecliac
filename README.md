@@ -1426,6 +1426,7 @@ Hooks are _just regular executable shell scripts_ that run at specific points al
 #### Available Hooks
 
 1. `hooks/pre-parse.sh`: Modifies select initialization variables before running [completion script](/src/scripts/ac).
+1. `hooks/post-parse.sh`: Modifies final completions before terminating the completion cycle and printing suggestions.
 
 #### `hooks/` Directory
 
@@ -1458,6 +1459,7 @@ Hook scripts are provided parsing information via environment variables.
 
 - `NODECLIAC_MAIN_COMMAND`: The command auto completion is being performed for.
 - `NODECLIAC_COMMAND_CHAIN`: The parsed command chain.
+- `NODECLIAC_COMP_INDEX`: The index where completion is being attempted.
 - `NODECLIAC_LAST`: The last parsed word item.
   - **Note**: Last word item could be a _partial_ word item.
     - This happens when the <kbd>Tab</kbd> key gets pressed _within_ a word item. For example, take the following input:`$ program command`. If the<kbd>Tab</kbd> key was pressed like so: <code>\$ program comm<kbd>Tab</kbd>and</code>, the last word item is `comm`. Thus a _partial_ word with a remainder string of `and`. Resulting in finding completions for `comm`.
@@ -1485,7 +1487,7 @@ Hook scripts are provided parsing information via environment variables.
 
 </details>
 
-#### Writing Hook Script
+#### Writing Pre Hook Script
 
 Take yarn's [`pre-parse.sh`](/resources/packages/yarn/hooks/pre-parse.sh) script as an example:
 
@@ -1501,18 +1503,69 @@ Take yarn's [`pre-parse.sh`](/resources/packages/yarn/hooks/pre-parse.sh) script
 
 output="$("$HOME/.nodecliac/registry/$command/hooks/pre-parse.pl" "$cline")"
 
-# 1st line is the modified CLI (workspace) input.
-read -r firstline <<< "$output"
-[[ -n "$firstline" ]] && cline="$firstline"
-
 # Remaining lines are package.json's script entries.
-len="${#firstline}"; [[ ! "$len" ]] || len=1
-addon="${output:$len}"; [[ -n "$addon" ]] && acdef+=$'\n'"$addon"
+mapfile -ts1 lines < <(echo -e "$output")
+printf -v output '%s\n' "${lines[@]}" && acdef+=$'\n'"$output"
 ```
 
 - The Bash script is [glue code](https://en.wikipedia.org/wiki/Scripting_language#Glue_languages). It runs the Perl script [`pre-parse.pl`](/resources/packages/yarn/hooks/pre-parse.pl) to retrieve the cwd `package.json` `scripts` and determine whether yarn is being used in a workspace.
 - Using the Perl script's output the Bash script overwrites the `cline` variable and appends the `package.json` `scripts` to the `acdef` variable. Adding them as their [own commands](https://yarnpkg.com/en/docs/cli/run#toc-yarn-run).
 - nodecliac uses the new values to determine completions.
+
+#### Writing Post Hook Script
+
+Take m-cli's [`post-parse.sh`](/resources/packages/m-cli/hooks/post-parse.sh) script as an example:
+
+```sh
+#!/bin/bash
+
+function completion_logic() {
+  COMP_CWORD="$NODECLIAC_COMP_INDEX"
+  prev="$NODECLIAC_PREV"
+  cmd="$NODECLIAC_ARG_1"
+  sub="$NODECLIAC_ARG_2"
+  case "$cmd" in
+    dir)
+      case "$prev" in
+        delete) echo -e "empty\ndsfiles"; return ;;
+        dsfiles) echo -e "on\noff"; return ;;
+      esac
+      ;;
+    disk)
+      case "$sub" in
+        # _m_disk
+        verify|repair) [[ $COMP_CWORD == 3 ]] && echo -e "disk\nvolume"; return ;;
+        format)
+          case $COMP_CWORD in
+            3) echo -e "ExFAT\nJHFS+\nMS-DOS\nvolume" ;;
+            4) [[ "$NODECLIAC_ARG_3" == "volume" ]] && echo -e "ExFAT\nJHFS+\nMS-DOS" ;;
+          esac
+          return
+        ;;
+        rename) [[ $COMP_CWORD == 3 ]] && \
+        echo -e "$(grep -oE '(disk[0-9s]+)' <<< "$(diskutil list)")"; return ;;
+
+        # _m_dock
+        autohide) [[ $COMP_CWORD == 3 ]] && echo -e "YES\nNO"; return ;;
+        magnification) [[ $COMP_CWORD == 3 ]] && echo -e "YES\nNO"; return ;;
+        position) [[ $COMP_CWORD == 3 ]] && echo -e "BOTTOM\nLEFT\nRIGHT"; return ;;
+      esac
+      ;;
+    dock)
+      case "$sub" in
+        autohide) [[ $COMP_CWORD == 3 ]] && echo -e "YES\nNO"; return ;;
+        magnification) [[ $COMP_CWORD == 3 ]] && echo -e "YES\nNO"; return ;;
+        position) [[ $COMP_CWORD == 3 ]] && echo -e "BOTTOM\nLEFT\nRIGHT"; return ;;
+      esac
+      ;;
+    finder) [[ $COMP_CWORD == 3 ]] && echo -e "YES\nNO"; return ;;
+    screensaver) [[ $sub == "askforpassword" && $COMP_CWORD == 3 ]] && echo -e "YES\nNO"; return ;;
+  esac
+}
+completion_logic
+```
+
+- The post hook script is written in Bash but any language may be used. As shown, the script makes use of the provided `NODECLIAC_*` environment variables to determine what completion items to add. Each completion item must be returned on its own line.
 
 </details>
 

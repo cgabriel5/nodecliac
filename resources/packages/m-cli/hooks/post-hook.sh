@@ -23,8 +23,9 @@ function completion_logic() {
 					esac
 					return
 				;;
-				# [TODO] Need to install 'm' to test this one out.
-				# rename) [[ $COMP_CWORD == 3 ]] && choices=($(m disk ls | grep -E '^ +[0-9]:' | sed -E 's/^.+[0-9] (B|.B) +//')); return ;;
+				rename) [[ $COMP_CWORD == 3 ]] && \
+				echo -e "$(grep -oE '(disk[0-9s]+)' <<< "$(diskutil list)")"; return ;;
+				# echo -e "$(perl -lne 'print $1 if /(disk[0-9s]+)/' <<< "$(diskutil list)")"; return ;;
 
 				# _m_dock
 				autohide) [[ $COMP_CWORD == 3 ]] && echo -e "YES\nNO"; return ;;

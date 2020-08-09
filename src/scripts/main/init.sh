@@ -140,6 +140,67 @@ function _nodecliac() {
 		echo "$output" > ~/.nodecliac/.cache/"$sum"
 	fi
 
+	# If the word-to-complete contains a colon (:), left-trim COMPREPLY items with
+	# word-to-complete.
+	# With a colon in COMP_WORDBREAKS, words containing
+	# colons are always completed as entire words if the word to complete contains
+	# a colon.  This function fixes this, by removing the colon-containing-prefix
+	# from COMPREPLY items.
+	# The preferred solution is to remove the colon (:) from COMP_WORDBREAKS in
+	# your .bashrc:
+	#
+	#    # Remove colon (:) from list of word completion separators
+	#    COMP_WORDBREAKS=${COMP_WORDBREAKS//:}
+	#
+	# See also: Bash FAQ - E13) Why does filename completion misbehave if a colon
+	# appears in the filename? - https://tiswww.case.edu/php/chet/bash/FAQ
+	# @param $1 current word to complete (cur)
+	# @modifies global array $COMPREPLY
+	#
+	# [https://github.com/scop/bash-completion/blob/master/bash_completion]
+	nltrim_colon_completions() {
+		if [[ "$last" == *:* && $COMP_WORDBREAKS == *:* ]]; then
+			# Remove colon-word prefix from COMPREPLY items
+			local colon_word=${last%"${last##*:}"}
+			local i=${#COMPREPLY[*]}
+			while ((i-- > 0)); do
+				COMPREPLY[i]=${COMPREPLY[i]#"$colon_word"}
+			done
+		fi
+	}
+
+	# Modified version of bash-completion's _filedir helper function.
+	#
+	# This function performs file and directory completion. It's better than
+	# simply using 'compgen -f', because it honours spaces in filenames.
+	# @param $1  If `-d', complete only on directories.  Otherwise filter/pick only
+	#            completions with `.$1' and the uppercase version of it as file
+	#            extension.
+	# [https://github.com/scop/bash-completion/blob/master/bash_completion]
+	nfiledir() {
+		local quoted
+		local IFS=$'\n'
+		local -a items
+		local reset arg=${1-}
+
+		reset=$(shopt -po noglob)
+		set -o noglob
+		if [[ $arg == -d ]]; then
+			items=($(compgen -d -- "${last-}"));
+		else
+			_quote_readline_by_ref "${last-}" quoted
+			items=($(compgen -f -X "${arg:+"!*.@($arg|${arg^^})"}" -- "$quoted"))
+			# Try without filter if no completions were generated.
+			[[ "${#items[@]}" == 0 ]] && items=($(compgen -f -o plusdirs -- "$quoted"))
+		fi
+		IFS=' '
+		$reset
+		IFS=$'\n'
+
+		[[ "${#items[@]}" != 0 ]] && \
+		compopt -o filenames 2>/dev/null && COMPREPLY=("${items[@]}")
+	}
+
 	# If no completions default to directory folder/file names.
 	if [[ "${#COMPREPLY}" -eq 0 ]]; then
 		# If value exists reset var to it. [https://stackoverflow.com/a/20460402]
@@ -157,27 +218,14 @@ function _nodecliac() {
 		# [https://stackoverflow.com/a/23999768]
 		# [https://unix.stackexchange.com/a/190004]
 		# [https://unix.stackexchange.com/a/198025]
-		local cur="$last"
-		_filedir "$filedir"
+		nfiledir "$filedir"
 	else
 		if [[ "$type" == "command"* ]]; then
 			# [https://stackoverflow.com/a/18551488]
 			# [https://stackoverflow.com/a/35164798]
 			# COMPREPLY=($(echo -e "$(awk 'NR>1' <<< "$items")"))
 			# COMPREPLY=($(echo -e "$items"))
-			__ltrim_colon_completions "$last"
-
-			# # __ltrim_colon_completions:
-			# # [https://github.com/scop/bash-completion/blob/master/bash_completion]
-			# if [[ "$last" == *:* && $COMP_WORDBREAKS == *:* ]]; then
-			# 	# Remove colon-word prefix from COMPREPLY items
-			# 	local colon_word=${last%"${last##*:}"}
-			# 	local i=${#COMPREPLY[*]}
-			# 	while ((i-- > 0)); do
-			# 		COMPREPLY[i]=${COMPREPLY[i]#"$colon_word"}
-			# 	done
-			# fi
-
+			nltrim_colon_completions
 		elif [[ "$type" == "flag"* ]]; then
 			# Disable bash's default behavior of adding a trailing space to
 			# completions when hitting the [tab] key. This will be handled

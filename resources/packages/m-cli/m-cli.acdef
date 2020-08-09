@@ -1,4 +1,4 @@
-# DON'T EDIT FILE —— GENERATED: Fri Aug 07 2020 14:39:53 (1596836393)
+# DON'T EDIT FILE —— GENERATED: Sat Aug 08 2020 22:51:00 (1596952260)
 
  --
 .airdrop --
@@ -152,7 +152,7 @@
 .printer.queue --
 .printer.settings --
 .printer.web --
-.restart --
+.restart -f
 .restart.help --
 .safeboot --
 .safeboot.disable --
@@ -163,13 +163,13 @@
 .screensaver.askforpassword --
 .screensaver.help --
 .screensaver.status --
-.service --
+.service --list|--ls|--status-all
 .service.help --
 .service.load --
 .service.start --
 .service.stop --
 .service.unload --
-.shutdown --
+.shutdown -f
 .shutdown.help --
 .sleep --
 .sleep.help --

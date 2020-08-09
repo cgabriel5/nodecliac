@@ -31,10 +31,13 @@ m-cli.nosleep.{until,help}
 m-cli.notification.{showcenter,help}
 m-cli.ntp.{status,enable,disable,set,help}
 m-cli.printer.{settings,name,queue,drivers,web,help}
+m-cli.restart = -f
 m-cli.restart.{help}
 m-cli.safeboot.{status,enable,disable,help}
 m-cli.screensaver.{status,askforpassword,help}
+m-cli.service = --list|--ls|--status-all
 m-cli.service.{start,stop,load,unload,help}
+m-cli.shutdown = -f
 m-cli.shutdown.{help}
 m-cli.sleep.{help}
 m-cli.timezone.{ls,set,help}

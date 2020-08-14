@@ -4,14 +4,15 @@ vmajor=${BASH_VERSINFO[0]}
 vminor=${BASH_VERSINFO[1]}
 if [[ "$vmajor" -ge 4 ]]; then
 	[[ "$vmajor" -eq 4 && "$vminor" -le 2 ]] && return
-	mkdir -p ~/.nodecliac/.cache
-	cachefile=~/.nodecliac/.cache-level
-	debugfile=~/.nodecliac/.debugmode
+	root=~/.nodecliac
+	mkdir -p "$root"/.cache
+	cachefile="$root"/.cache-level
+	debugfile="$root"/.debugmode
 	[[ ! -e "$cachefile" ]] && echo 1 > "$cachefile"
 	[[ ! -e "$debugfile" ]] && echo 0 > "$debugfile"
 
 	# shopt -s nullglob # [https://stackoverflow.com/a/7702334]
-	config_script=~/.nodecliac/src/main/config.pl
+	config_script="$root"/src/main/config.pl
 	while read -r cpkgpath; do # [https://stackoverflow.com/a/28927847]
 		# dir=${cpkgpath%/*}
 		filename="${cpkgpath##*/}"
@@ -47,7 +48,7 @@ if [[ "$vmajor" -ge 4 ]]; then
 	# [https://unix.stackexchange.com/a/158044]
 	# [https://unix.stackexchange.com/a/50613]
 	# [https://stackoverflow.com/q/20260247]
-	done < <(find ~/.nodecliac/registry -maxdepth 1 -mindepth 1 \( -type d -o -type l \) -name "[!.]*")
+	done < <(find "$root"/registry -maxdepth 1 -mindepth 1 \( -type d -o -type l \) -name "[!.]*")
 
 	# Unset to allow bash-completion to continue to work properly.
 	# shopt -u nullglob # [https://unix.stackexchange.com/a/434213]
@@ -55,19 +56,21 @@ fi
 
 function _nodecliac() {
 	local command="$1"
+	local name="nodecliac"
+	local root=~/.nodecliac
 
-	[[ ! "$(command -v nodecliac)" || ! -e ~/.nodecliac ]] && return
+	if ! command -v "$name" > /dev/null || [ ! -e "$root" ]; then return; fi
 	# If disabled, only allow nodecliac completion.
-	[[ -e ~/.nodecliac/.disable && "$command" != "nodecliac" ]] && return
+	[[ -e "$root"/.disable && "$command" != "$name" ]] && return
 
 	local sum=""
 	local output=""
 	local cline="$COMP_LINE"
 	local cpoint="$COMP_POINT"
-	local acdefpath=~/.nodecliac/registry/"$command/$command.acdef"
-	local prehook=~/.nodecliac/registry/"$command"/hooks/pre-parse.sh
-	read -r -n 1 clevel < ~/.nodecliac/.cache-level
-	read -r -n 1 DEBUGMODE < ~/.nodecliac/.debugmode
+	local acdefpath="$root"/registry/"$command/$command.acdef"
+	local prehook="$root"/registry/"$command"/hooks/pre-parse.sh
+	read -r -n 1 clevel < "$root"/.cache-level
+	read -r -n 1 DEBUGMODE < "$root"/.debugmode
 	local cachefile=""
 	local xcachefile=""
 	local usecache=0
@@ -76,8 +79,8 @@ function _nodecliac() {
 	if [[ "$clevel" != 0 ]]; then
 		# [https://stackoverflow.com/a/28844659]
 		read -n 7 sum < <(cksum <<< "$cline$PWD")
-		cachefile=~/.nodecliac/.cache/"$sum"
-		xcachefile=~/.nodecliac/.cache/"x$sum"
+		cachefile="$root"/.cache/"$sum"
+		xcachefile="$root"/.cache/"x$sum"
 
 		if [[ -e "$xcachefile" ]]; then
 			read m < <(date -r "$xcachefile" "+%s")
@@ -92,14 +95,14 @@ function _nodecliac() {
 			output=$(<"$cachefile")
 		fi
 
-		rm -f ~/.nodecliac/.cache/x*
+		rm -f "$root"/.cache/x*
 	fi
 
 	if [[ "$usecache" == 0 ]]; then
 		local acdef=$(<"$acdefpath")
 		local os=$(uname); os=${os,,}
-		local pac=~/.nodecliac/src/ac/ac.pl
-		local nac=~/.nodecliac/src/bin/ac."${os/darwin/macosx}"
+		local pac="$root"/src/ac/ac.pl
+		local nac="$root"/src/bin/ac."${os/darwin/macosx}"
 		local ac="$pac"
 		[[ " linux darwin " == *" $os "* ]] && ac="$nac"
 		case "$DEBUGMODE" in
@@ -112,7 +115,7 @@ function _nodecliac() {
 
 		# shopt -s nullglob # [https://stackoverflow.com/a/7702334]
 		local posthook="" # [https://stackoverflow.com/a/23423835]
-		posthooks=("$HOME/.nodecliac/registry/$command/hooks/post-hook."*)
+		posthooks=("$root/registry/$command/hooks/post-hook."*)
 		phscript="${posthooks[0]}"
 		[[ -n "$phscript" && -x "$phscript" ]] && posthook="$phscript"
 		# Unset to allow bash-completion to continue to work properly.
@@ -137,7 +140,7 @@ function _nodecliac() {
 
 	if [[ "$clevel" != 0 && "$usecache" == 0 ]]; then
 		[[ "$cacheopt" == 0 && "$clevel" == 1 ]] && sum="x$sum"
-		echo "$output" > ~/.nodecliac/.cache/"$sum"
+		echo "$output" > "$root"/.cache/"$sum"
 	fi
 
 	# If the word-to-complete contains a colon (:), left-trim COMPREPLY items with
@@ -208,7 +211,7 @@ function _nodecliac() {
 
 		# If filedir is empty check for the (global) setting filedir.
 		if [[ -z "$filedir" ]]; then
-			read gfdir < <(~/.nodecliac/src/main/config.pl "filedir" "$command")
+			read gfdir < <("$root"/src/main/config.pl "filedir" "$command")
 			[[ -n "$gfdir" && "$gfdir" != "false" ]] && filedir="$gfdir"
 		fi
 

@@ -132,13 +132,14 @@ fi
 
 function _nodecliac() {
 	local command="$1"
+	local root=~/.nodecliac
 	local sum=""
 	local output=""
 	local cline="$2"
 	local cpoint="$3"
-	local acdefpath=~/.nodecliac/registry/"$command/$command.acdef"
-	local prehook=~/.nodecliac/registry/"$command"/hooks/pre-parse.sh
-	read -r -n 1 clevel < ~/.nodecliac/.cache-level
+	local acdefpath="$root"/registry/"$command/$command.acdef"
+	local prehook="$root"/registry/"$command"/hooks/pre-parse.sh
+	read -r -n 1 clevel < "$root"/.cache-level
 	local cachefile=""
 	local xcachefile=""
 	local usecache=0
@@ -147,8 +148,8 @@ function _nodecliac() {
 	if [[ "$clevel" != 0 ]]; then
 		# [https://stackoverflow.com/a/28844659]
 		read -n 7 sum < <(cksum <<< "$cline$PWD")
-		cachefile=~/.nodecliac/.cache/"$sum"
-		xcachefile=~/.nodecliac/.cache/"x$sum"
+		cachefile="$root"/.cache/"$sum"
+		xcachefile="$root"/.cache/"x$sum"
 
 		if [[ -e "$xcachefile" ]]; then
 			read m < <(date -r "$xcachefile" "+%s")
@@ -163,7 +164,7 @@ function _nodecliac() {
 			output=$(<"$cachefile")
 		fi
 
-		rm -f ~/.nodecliac/.cache/x*
+		rm -f "$root"/.cache/x*
 	fi
 
 	if [[ "$usecache" == 0 ]]; then
@@ -172,7 +173,7 @@ function _nodecliac() {
 		local acdef=$(<"$acdefpath")
 		# shopt -s nullglob # [https://stackoverflow.com/a/7702334]
 		local posthook="" # [https://stackoverflow.com/a/23423835]
-		posthooks=("$HOME/.nodecliac/registry/$command/hooks/post-hook."*)
+		posthooks=("$root/registry/$command/hooks/post-hook."*)
 		phscript="${posthooks[0]}"
 		[[ -n "$phscript" && -x "$phscript" ]] && posthook="$phscript"
 		# Unset to allow bash-completion to continue to work properly.
@@ -190,7 +191,7 @@ function _nodecliac() {
 
 	if [[ "$clevel" != 0 && "$usecache" == 0 ]]; then
 		[[ "$cacheopt" == 0 && "$clevel" == 1 ]] && sum="x$sum"
-		echo "$output" > ~/.nodecliac/.cache/"$sum"
+		echo "$output" > "$root"/.cache/"$sum"
 	fi
 
 	echo "$output"

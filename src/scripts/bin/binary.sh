@@ -412,7 +412,7 @@ case "$command" in
 			# [https://stackoverflow.com/a/57813295]
 			perl -0pi -e 's/([# \t]*)\bncliac.*"\$ncliac";?\n?//g;s/\n+(\n)$/\1/gs' ~/.bashrc
 			# perl -pi -e "s/ncliac=~\/.nodecliac\/src\/main\/init.sh;if \[ -f \"\\\$ncliac\" \];then source \"\\\$ncliac\";fi;// if /^ncliac/" "$rcfile"
-			echo -e "\033[32mSuccessfully\033[0m reverted \033[1m"$rcfile"\033[0m changes."
+			echo -e "\033[32msuccess\033[0m reverted \033[1m"$rcfile"\033[0m changes."
 		fi
 
 		# Delete main folder.
@@ -422,7 +422,7 @@ case "$command" in
 		binfilepath=/usr/local/bin/nodecliac
 		if [[ -f "$binfilepath" && -n "$(grep -o "\#\!/bin/bash" "$binfilepath")" ]]; then
 			sudo rm -f "$binfilepath"
-			echo -e "\033[32mSuccessfully\033[0m removed nodecliac bin file."
+			echo -e "\033[32msuccess\033[0m removed nodecliac bin file."
 		fi
 
 		;;

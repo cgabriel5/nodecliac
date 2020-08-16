@@ -1,33 +1,15 @@
 "use strict";
 
-const log = require("fancy-log");
-
 /**
- * Logs messages and exit if needed.
+ * Logs messages and exits if needed.
  *
- * @param  {array} message - List of messages to log.
+ * @param  {array} list - List of messages to log.
+ * @param  {boolean} stop - exit after printing?
  * @return {undefined} - Nothing is returned.
  */
-let exit = (messages, stop, normal_log) => {
-	for (let i = 0, l = messages.length; i < l; i++) {
-		let message = messages[i];
-		if (normal_log) console.log(message);
-		else log(message);
-	}
-
+let exit = (list, stop) => {
+	for (let i = 0, l = list.length; i < l; i++) console.log(list[i]);
 	if (stop === undefined) process.exit();
 };
 
-/**
- * Use regular console.log over fancy-log to print messages.
- *
- * @param  {array} message - List of messages to log.
- * @return {undefined} - Nothing is returned.
- */
-exit.normal = (messages, stop) => {
-	exit(messages, stop, true);
-};
-
-module.exports = {
-	exit
-};
+module.exports = { exit };

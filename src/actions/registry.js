@@ -3,9 +3,8 @@
 const os = require("os");
 const path = require("path");
 const chalk = require("chalk");
-const log = require("fancy-log");
-const de = require("directory-exists");
 const fe = require("file-exists");
+const de = require("directory-exists");
 const toolbox = require("../utils/toolbox.js");
 const { paths, readdir, lstats, realpath } = toolbox;
 
@@ -97,17 +96,17 @@ module.exports = async () => {
 				if (!issymlink) {
 					if (isdir) {
 						let dcommand = hasacdefs ? bcommand : rcommand;
-						log(`${decor}${dcommand}/`);
+						console.log(`${decor}${dcommand}/`);
 					} else {
-						log(`${decor}${rcommand}`);
+						console.log(`${decor}${rcommand}`);
 					}
 				} else {
 					if (issymlinkdir) {
 						let color = issymlink_valid ? "blue" : "red";
 						let linkdir = `${chalk.bold[color](realpath)}`;
-						log(`${decor}${ccommand} -> ${linkdir}/`);
+						console.log(`${decor}${ccommand} -> ${linkdir}/`);
 					} else {
-						log(`${decor}${ccommand} -> ${realpath}`);
+						console.log(`${decor}${ccommand} -> ${realpath}`);
 					}
 				}
 			});

@@ -2,9 +2,8 @@
 
 const path = require("path");
 const chalk = require("chalk");
-const log = require("fancy-log");
-const mkdirp = require("make-dir");
 const fe = require("file-exists");
+const mkdirp = require("make-dir");
 const copydir = require("recursive-copy");
 const de = require("directory-exists");
 const through = require("through2");
@@ -122,5 +121,5 @@ module.exports = async (args) => {
 		}).on(copydir.events.COPY_FILE_COMPLETE, cmode)
 	]);
 
-	log(chalk.green("Setup successful."));
+	console.log(chalk.green("Setup successful."));
 };

@@ -1,7 +1,6 @@
 "use strict";
 
 const chalk = require("chalk");
-const log = require("fancy-log");
 const shell = require("shelljs");
 const fe = require("file-exists");
 const de = require("directory-exists");
@@ -35,9 +34,9 @@ module.exports = async (args) => {
 				res = res.replace(/([# \t]*)\bncliac.*"\$ncliac";?\n?/g, "");
 				await write(bashrcpath, res);
 
-				let varg1 = chalk.green("Successfully");
+				let varg1 = chalk.green("success");
 				let varg2 = chalk.bold(bashrcpath);
-				log(`${varg1} reverted ${varg2} changes.`);
+				console.log(`${varg1} reverted ${varg2} changes.`);
 			}
 		}
 	}
@@ -49,8 +48,8 @@ module.exports = async (args) => {
 			'[ -n "$(command -v npm)" ] && sudo "$(command -v npm)" uninstall -g nodecliac > /dev/null 2>&1',
 		{ silent: true },
 		(/*code, stdout, stderr*/) => {
-			let varg1 = chalk.green("Successfully");
-			log(`${varg1} removed nodecliac global module.`);
+			let varg1 = chalk.green("success");
+			console.log(`${varg1} removed nodecliac global module.`);
 		}
 	);
 };

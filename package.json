@@ -30,7 +30,7 @@
 	},
 	"dependencies": {
 		"chalk": "^4.1.0",
-		"deepcopy": "^2.0.0",
+		"deepcopy": "^2.1.0",
 		"directory-exists": "^2.0.1",
 		"du": "^1.0.0",
 		"file-exists": "^5.0.1",
@@ -60,7 +60,7 @@
 	},
 	"devDependencies": {
 		"cross-env": "^7.0.2",
-		"eslint": "^7.5.0",
+		"eslint": "^7.7.0",
 		"eslint-config-simple": "*",
 		"eslint-formatter-simple": "*",
 		"prettier": "^2.0.5",

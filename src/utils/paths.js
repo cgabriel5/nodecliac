@@ -18,7 +18,6 @@ let resourcespath = path.join(cwd, "resources", "packages");
 let resourcessrcs = path.join(cwd, "src", "scripts");
 let testsrcpath = path.join(cwd, "tests", "scripts");
 let cachepath = path.join(homedir, `.${projectname}`, ".cache");
-let cachelevel = path.join(homedir, `.${projectname}`, ".cache-level");
 
 module.exports = {
 	paths: {
@@ -33,7 +32,6 @@ module.exports = {
 		resourcespath,
 		resourcessrcs,
 		testsrcpath,
-		cachepath,
-		cachelevel
+		cachepath
 	}
 };

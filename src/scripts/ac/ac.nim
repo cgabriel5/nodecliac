@@ -13,7 +13,7 @@ from os import getEnv, putEnv, paramStr, paramCount
 from strtabs import `[]`, `[]=`, hasKey, newStringTable, getOrDefault
 from strutils import find, join, split, strip, delete, Digits, Letters,
     replace, contains, endsWith, intToStr, parseInt, splitLines, startsWith,
-    removePrefix, allCharsInSet, multiReplace
+    removePrefix, allCharsInSet, multiReplace, parseBool
 
 import utils/lcp
 
@@ -25,6 +25,7 @@ let cpoint = os.paramStr(3).parseInt(); # Caret index when [tab] key was pressed
 let maincommand = os.paramStr(4) # Get command name from sourced passed-in argument.
 let acdef = os.paramStr(5) # Get the acdef definitions file.
 let posthook = os.paramStr(6) # Get the posthook file path.
+let singletons = parseBool(os.paramStr(7)) # Show singleton flags?
 
 var args: seq[string] = @[]
 var posargs: seq[string] = @[]
@@ -772,7 +773,9 @@ proc fn_lookup(): string =
                 # Note: Don't list single letter flags. Listing them along
                 # with double hyphen flags is awkward. Therefore, only list
                 # them when completing or showing its value(s).
-                if flag_fkey.len == 2 and flag_value == "": inc(i); continue
+                # [https://scripter.co/notes/nim/#from-string]
+                if not singletons and flag_fkey.len == 2 and flag_value == "":
+                    inc(i); continue
 
                 # If last word is in the form '--flag=', remove the last
                 # word from the flag to only return its option/value.

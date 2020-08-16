@@ -17,6 +17,7 @@ my $cpoint = int($ARGV[2]); # Caret index when [tab] key was pressed.
 my $maincommand = $ARGV[3]; # Get command name from sourced passed-in argument.
 my $acdef = $ARGV[4]; # Get the acdef definitions file.
 my $posthook = $ARGV[5]; # Get the posthook file path.
+my $singletons = int($ARGV[6]); # Show singleton flags?
 
 my @args = ();
 my @posargs = ();
@@ -944,7 +945,7 @@ sub __lookup {
 				# Note: Don't list single letter flags. Listing them along
 				# with double hyphen flags is awkward. Therefore, only list
 				# them when completing or showing its value(s).
-				if (length($flag_fkey) == 2 && !$flag_value) { next; }
+				if (!$singletons && length($flag_fkey) == 2 && !$flag_value) { next; }
 
 				# If last word is in the form '--flag=', remove the last
 				# word from the flag to only return its option/value.

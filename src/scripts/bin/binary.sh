@@ -18,6 +18,58 @@ function platform() {
 	esac
 }
 
+# Create config file if it's empty or does not exist yet.
+#
+# @return {undefined} - Nothing is returned.
+function initconfig() {
+	# Config settings:
+	# [1] status (disabled)
+	# [2] cache
+	# [3] debug
+	# [4] singletons
+	local root=~/.nodecliac
+	local config="$root/.config"
+	[[ ! -e "$config" || ! -s "$config" ]] && echo "1101" > "$config"
+}
+
+# Returns config setting.
+#
+# @param  {string} setting - The setting name.
+# @return {undefined} - Nothing is returned.
+function getsetting() {
+	local root=~/.nodecliac
+	local config="$root/.config"
+	local cstring=$(<"$config")
+	# [https://stackoverflow.com/a/3352015]
+	cstring="${cstring%"${cstring##*[![:space:]]}"}"
+	case "$1" in
+		status) echo "${cstring:0:1}" ;;
+		cache) echo "${cstring:1:1}" ;;
+		debug) echo "${cstring:2:1}" ;;
+		singletons) echo "${cstring:3:1}" ;;
+	esac
+}
+
+# Sets the config setting.
+#
+# @param  {string} setting - The setting name.
+# @param  {string} value - The setting's value.
+# @return {undefined} - Nothing is returned.
+function setsetting() {
+	local root=~/.nodecliac
+	local config="$root/.config"
+	local cstring=$(<"$config")
+	# [https://stackoverflow.com/a/3352015]
+	cstring="${cstring%"${cstring##*[![:space:]]}"}"
+	case "$1" in
+		status) cstring="$2${v:1}" ;;
+		cache) cstring="${cstring:0:1}$2${cstring:2}" ;;
+		debug) cstring="${cstring:0:2}$2${cstring:3}" ;;
+		singletons) cstring="${cstring:0:3}$2${cstring:4}" ;;
+	esac
+	echo "$cstring" > "$config"
+}
+
 rcfile=""
 prcommand=""
 enablencliac=""
@@ -288,13 +340,14 @@ case "$command" in
 	setup) ;; # No-operation.
 
 	status)
-
-		dotfile=~/.nodecliac/.disable # Path to disabled dot file.
+		initconfig
 
 		# If no flag is supplied then only print the status.
 		if [[ -z "$enable" && -z "$disable" ]]; then
-			[[ -f "$dotfile" ]] && echo -e "nodecliac: \033[0;31mdisabled\033[0m" \
-				|| echo -e "nodecliac: \033[0;32menabled\033[0m"
+			status="$(getsetting status)"
+			message="nodecliac: \033[0;31moff\033[0m"
+			[[ "$status" == 1 ]] && message="nodecliac: \033[0;32mon\033[0m"
+			echo -e "$message"
 		else
 			if [[ -n "$enable" && -n "$disable" ]]; then
 				varg1="\033[1m--enable\033[0m"
@@ -303,28 +356,22 @@ case "$command" in
 			fi
 
 			if [[ -n "$enable" ]]; then
-				if [[ -f "$dotfile" ]]; then
-					rm -f "$dotfile"
-					echo -e "\033[0;32mEnabled.\033[0m"
-				else
-					echo -e "\033[0;32mEnabled.\033[0m"
-				fi
+				setsetting status 1 # perl -pi -e 's/^./1/' "$config"
+				echo -e "\033[0;32moff\033[0m"
 			elif [[ -n "$disable" ]]; then
-				# Create blocking dot file.
-				timestamp="$(perl -MTime::HiRes=time -e 'print int(time() * 1000);')"
+				# timestamp="$(perl -MTime::HiRes=time -e 'print int(time() * 1000);')"
 				# [https://www.tutorialspoint.com/perl/perl_date_time.htm]
-				date="$(perl -e 'use POSIX qw(strftime); $datestring = strftime "%a %b %d %Y %H:%M:%S %z (%Z)", localtime; print "$datestring"')"
-				contents="Disabled: $date;$timestamp"
-				echo "$contents" > "$dotfile"
-				echo -e "\033[0;31mDisabled.\033[0m"
+				# date="$(perl -e 'use POSIX qw(strftime); $datestring = strftime "%a %b %d %Y %H:%M:%S %z (%Z)", localtime; print "$datestring"')"
+				# contents="Disabled: $date;$timestamp"
+				setsetting status 0 # perl -pi -e 's/^./0/' "$config"
+				echo -e "\033[0;31moff\033[0m"
 			fi
 		fi
 
 		;;
 
 	debug)
-
-		dotfile=~/.nodecliac/.debugmode
+		initconfig
 
 		if [[ -n "$enablencliac" && -n "$disablencliac" ]]; then
 			varg1="\033[1m--enable\033[0m"
@@ -337,14 +384,13 @@ case "$command" in
 			value=1
 			if [[ "$debug_script" == "nim" ]]; then value=3
 			elif [[ "$debug_script" == "pl" ]]; then value=2; fi
-			echo "$value" > "$dotfile"
-			echo -e "\033[0;32mEnabled.\033[0m"
+			setsetting debug "$value"
+			echo -e "\033[0;32mon\033[0m"
 		elif [[ -n "$debug_disable" ]]; then
-			echo "0" > "$dotfile"
-			echo -e "\033[0;31mDisabled.\033[0m"
+			setsetting debug 0
+			echo -e "\033[0;31moff\033[0m"
 		else
-			if [[ ! -f "$dotfile" ]]; then echo "0" > "$dotfile"; fi
-			echo "$(<"$dotfile")"
+			getsetting debug
 		fi
 
 		;;
@@ -531,17 +577,19 @@ case "$command" in
 
 		cachepath=~/.nodecliac/.cache
 
+		initconfig
+
 		if [[ -d "$cachepath" && "$ccache" == "1" ]]; then
 			rm -rf "$cachepath"/*
-			echo -e "\033[0;32mSuccessfully\033[0m cleared cache."
+			echo -e "\033[0;32msuccess\033[0m Cleared cache."
 		fi
 
 		if [[ "$setlevel" == 1 ]]; then
 			if [[ ! -z "${level##*[!0-9]*}" ]]; then
-				if [[ " 0 1 2 " != *" $level "* ]]; then level=1; fi
-				echo "$level" > ~/.nodecliac/.cache-level
+				[[ " 0 1 2 " != *" $level "* ]] && level=1
+				setsetting cache "$level"
 			else
-				echo "$(<~/.nodecliac/.cache-level)"
+				getsetting cache
 			fi
 		fi
 

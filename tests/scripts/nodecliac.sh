@@ -133,19 +133,24 @@ fi
 function _nodecliac() {
 	local command="$1"
 	local root=~/.nodecliac
+	local cstring
+	local config="$root/.config"
+	read -n 4 cstring < "$config"
+
 	local sum=""
 	local output=""
 	local cline="$2"
 	local cpoint="$3"
 	local acdefpath="$root"/registry/"$command/$command.acdef"
 	local prehook="$root"/registry/"$command"/hooks/pre-parse.sh
-	read -r -n 1 clevel < "$root"/.cache-level
+	local cache="${cstring:1:1}"
+	local singletons="${cstring:3:1}"
 	local cachefile=""
 	local xcachefile=""
 	local usecache=0
 	local m c
 
-	if [[ "$clevel" != 0 ]]; then
+	if [[ "$cache" != 0 ]]; then
 		# [https://stackoverflow.com/a/28844659]
 		read -n 7 sum < <(cksum <<< "$cline$PWD")
 		cachefile="$root"/.cache/"$sum"
@@ -179,7 +184,7 @@ function _nodecliac() {
 		# Unset to allow bash-completion to continue to work properly.
 		# shopt -u nullglob # [https://unix.stackexchange.com/a/434213]
 
-		output=$(TESTMODE=1 "$acpl_script" "$2" "$cline" "$cpoint" "$command" "$acdef" "$posthook")
+		output=$(TESTMODE=1 "$acpl_script" "$2" "$cline" "$cpoint" "$command" "$acdef" "$posthook" "$singletons")
 	fi
 
 	# 1st line is meta info (completion type, last word, etc.).
@@ -189,8 +194,8 @@ function _nodecliac() {
 	local type="${meta%%:*}"
 	local cacheopt=1; [[ "$type" == *"nocache"* ]] && cacheopt=0
 
-	if [[ "$clevel" != 0 && "$usecache" == 0 ]]; then
-		[[ "$cacheopt" == 0 && "$clevel" == 1 ]] && sum="x$sum"
+	if [[ "$cache" != 0 && "$usecache" == 0 ]]; then
+		[[ "$cacheopt" == 0 && "$cache" == 1 ]] && sum="x$sum"
 		echo "$output" > "$root"/.cache/"$sum"
 	fi
 

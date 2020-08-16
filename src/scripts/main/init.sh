@@ -5,11 +5,9 @@ vminor=${BASH_VERSINFO[1]}
 if [[ "$vmajor" -ge 4 ]]; then
 	[[ "$vmajor" -eq 4 && "$vminor" -le 2 ]] && return
 	root=~/.nodecliac
-	mkdir -p "$root"/.cache
-	cachefile="$root"/.cache-level
-	debugfile="$root"/.debugmode
-	[[ ! -e "$cachefile" ]] && echo 1 > "$cachefile"
-	[[ ! -e "$debugfile" ]] && echo 0 > "$debugfile"
+	mkdir -p "$root/.cache"
+	config="$root/.config"
+	[[ ! -e "$config" || ! -s "$config" ]] && echo "1101" > "$config"
 
 	# shopt -s nullglob # [https://stackoverflow.com/a/7702334]
 	config_script="$root"/src/main/config.pl
@@ -59,9 +57,12 @@ function _nodecliac() {
 	local name="nodecliac"
 	local root=~/.nodecliac
 
-	if ! command -v "$name" > /dev/null || [ ! -e "$root" ]; then return; fi
-	# If disabled, only allow nodecliac completion.
-	[[ -e "$root"/.disable && "$command" != "$name" ]] && return
+	local config="$root/.config"
+	if ! command -v "$name" > /dev/null || [ ! -e "$config" ]; then return; fi
+	local cstring
+	read -n 4 cstring < "$config"
+	local status="${cstring:0:1}"
+	[[ "$status" == 0 && "$command" != "$name" ]] && return
 
 	local sum=""
 	local output=""
@@ -69,14 +70,15 @@ function _nodecliac() {
 	local cpoint="$COMP_POINT"
 	local acdefpath="$root"/registry/"$command/$command.acdef"
 	local prehook="$root"/registry/"$command"/hooks/pre-parse.sh
-	read -r -n 1 clevel < "$root"/.cache-level
-	read -r -n 1 DEBUGMODE < "$root"/.debugmode
+	local cache="${cstring:1:1}"
+	local debug="${cstring:2:1}"
+	local singletons="${cstring:3:1}"
 	local cachefile=""
 	local xcachefile=""
 	local usecache=0
 	local m c
 
-	if [[ "$clevel" != 0 ]]; then
+	if [[ "$cache" != 0 ]]; then
 		# [https://stackoverflow.com/a/28844659]
 		read -n 7 sum < <(cksum <<< "$cline$PWD")
 		cachefile="$root"/.cache/"$sum"
@@ -105,7 +107,7 @@ function _nodecliac() {
 		local nac="$root"/src/bin/ac."${os/darwin/macosx}"
 		local ac="$pac"
 		[[ " linux darwin " == *" $os "* ]] && ac="$nac"
-		case "$DEBUGMODE" in
+		case "$debug" in
 			1) ac="${ac/ac./ac_debug.}" ;;
 			2) ac="${pac/ac./ac_debug.}" ;;
 			3) ac="${nac/ac./ac_debug.}" ;;
@@ -121,11 +123,11 @@ function _nodecliac() {
 		# Unset to allow bash-completion to continue to work properly.
 		# shopt -u nullglob # [https://unix.stackexchange.com/a/434213]
 
-		output=$("$ac" "$COMP_LINE" "$cline" "$cpoint" "$command" "$acdef" "$posthook")
-		# "$ac" "$COMP_LINE" "$cline" "$cpoint" "$command" "$acdef" "$posthook"
+		output=$("$ac" "$COMP_LINE" "$cline" "$cpoint" "$command" "$acdef" "$posthook" "$singletons")
+		# "$ac" "$COMP_LINE" "$cline" "$cpoint" "$command" "$acdef" "$posthook" "$singletons"
 	fi
 
-	[[ "$DEBUGMODE" != "0" ]] && echo -e "$output" && return
+	[[ "$debug" != "0" ]] && echo -e "$output" && return
 
 	# 1st line is meta info (completion type, last word, etc.).
 	# [https://stackoverflow.com/a/2440685]
@@ -138,8 +140,8 @@ function _nodecliac() {
 	local cacheopt=1; [[ "$type" == *"nocache"* ]] && cacheopt=0
 	local gfdir
 
-	if [[ "$clevel" != 0 && "$usecache" == 0 ]]; then
-		[[ "$cacheopt" == 0 && "$clevel" == 1 ]] && sum="x$sum"
+	if [[ "$cache" != 0 && "$usecache" == 0 ]]; then
+		[[ "$cacheopt" == 0 && "$cache" == 1 ]] && sum="x$sum"
 		echo "$output" > "$root"/.cache/"$sum"
 	fi
 
@@ -247,3 +249,10 @@ function _nodecliac() {
 		fi
 	fi
 }
+
+# # If on Linux, create a ramdisk for caching:
+# # [https://www.techrepublic.com/article/how-to-use-a-ramdisk-on-linux/]
+# if [[ ! $(grep -F "/.nodecliac/.cache" <<< $(df -lht tmpfs)) ]]; then
+# 	sudo mount -t tmpfs -o rw,size=20M tmpfs ~/.nodecliac/.cache
+# 	# sudo umount ~/.nodecliac/.cache # Remove ramdisk.
+# fi

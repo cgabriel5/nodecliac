@@ -38,6 +38,7 @@ const C_VAR_IDENT = C_SET_IDENT;
 const C_VAR_VALUE = C_SET_VALUE;
 const C_FLG_IDENT = create(C_LETTERS, C_DIGITS, ["-", "."]);
 const C_CMD_IDENT_START = create(C_LETTERS, [":", "*"]);
+const C_CMD_GRP_IDENT_START = create(C_CMD_IDENT_START, C_DIGITS);
 const C_CMD_IDENT_REM = ["-", "_", ".", ":", "+", "\\"];
 const C_CMD_IDENT = create(C_LETTERS, C_DIGITS, C_CMD_IDENT_REM);
 const C_CMD_VALUE = new Set(["-", "c", "d", "f", "["]);
@@ -66,6 +67,7 @@ module.exports = {
 	C_VAR_VALUE,
 	C_FLG_IDENT,
 	C_CMD_IDENT_START,
+	C_CMD_GRP_IDENT_START,
 	C_CMD_IDENT,
 	C_CMD_VALUE,
 	C_KW_ALL,

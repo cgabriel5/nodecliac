@@ -14,6 +14,7 @@ const {
 	C_NL,
 	C_SPACES,
 	C_CMD_IDENT_START,
+	C_CMD_GRP_IDENT_START,
 	C_CMD_IDENT,
 	C_CMD_VALUE
 } = require("../helpers/charsets.js");
@@ -231,7 +232,7 @@ module.exports = (S) => {
 				G.command = "";
 
 				if (cnotin(C_SPACES, char)) {
-					if (cin(C_CMD_IDENT_START, char)) {
+					if (cin(C_CMD_GRP_IDENT_START, char)) {
 						state = "group-command";
 						rollback(S);
 					} else if (char === ",") {
@@ -248,7 +249,7 @@ module.exports = (S) => {
 
 			case "group-command":
 				if (!G.command) {
-					if (cnotin(C_CMD_IDENT_START, char)) error(S, __filename);
+					if (cnotin(C_CMD_GRP_IDENT_START, char)) error(S, __filename);
 
 					G.tokens.push(["command", S.column]);
 					N.command.end = S.i;

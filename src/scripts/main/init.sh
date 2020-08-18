@@ -86,7 +86,8 @@ function _nodecliac() {
 
 		if [[ -e "$xcachefile" ]]; then
 			read m < <(date -r "$xcachefile" "+%s")
-			read c < <(date +"%s")
+			# [https://stackoverflow.com/a/54054553]
+			printf -v c '%(%s)T' # [https://stackoverflow.com/a/14802843]
 			if [[ $((c-m)) -lt 3 ]]; then
 				usecache=1
 				output=$(<"$xcachefile")

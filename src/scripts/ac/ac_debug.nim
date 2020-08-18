@@ -335,7 +335,9 @@ proc setEnvs(arguments: varargs[string], post=false) =
         fmt"{prefix}ARG_COUNT": intToStr(l),
         # Store collected positional arguments after validating the
         # command-chain to access in plugin auto-completion scripts.
-        fmt"{prefix}USED_DEFAULT_POSITIONAL_ARGS": used_default_pa_args
+        fmt"{prefix}USED_DEFAULT_POSITIONAL_ARGS": used_default_pa_args,
+        # Whether completion is being done for a command or a flag.
+        fmt"{prefix}_COMP_TYPE": (if `type`[0] == 'c': "command" else: "flag")
     }.toTable
 
     # Set completion index (index where completion is being attempted) to

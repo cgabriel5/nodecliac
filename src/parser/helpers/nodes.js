@@ -65,6 +65,7 @@ module.exports = (S, type) => {
 			N.hyphens = o();
 			N.variable = o();
 			N.name = o();
+			N.alias = o();
 			N.boolean = o();
 			N.assignment = o();
 			N.delimiter = o();

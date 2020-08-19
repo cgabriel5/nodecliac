@@ -36,6 +36,7 @@ module.exports = (S, isoneliner) => {
 	let end; // Flag: true - ends consuming chars.
 	let type = "escaped";
 	let N = node(S, "FLAG");
+	let alias = false;
 
 	// If not a oneliner or no command scope, flag is being declared out of scope.
 	if (!(isoneliner || S.scopes.command)) error(S, __filename, 10);
@@ -108,6 +109,9 @@ module.exports = (S, isoneliner) => {
 					if (cin(C_FLG_IDENT, char)) {
 						N.name.end = S.i;
 						N.name.value += char;
+					} else if (char === ":" && !alias) {
+						state = "alias";
+						rollback(S);
 					} else if (char === "=") {
 						state = "assignment";
 						rollback(S);
@@ -148,6 +152,30 @@ module.exports = (S, isoneliner) => {
 				N.boolean.start = N.boolean.end = S.i;
 				N.boolean.value = char;
 				state = "pipe-delimiter";
+
+				break;
+
+			case "alias":
+				alias = true;
+				// Next char must also be a colon.
+				let nchar = text.charAt(S.i + 1);
+				if (nchar !== ":") error(S, __filename);
+				N.alias.start = S.i;
+				N.alias.end = S.i + 2;
+
+				let letter = text.charAt(S.i + 2);
+				if (cnotin(C_LETTERS, letter)) {
+					S.i += 1;
+					S.column += 1;
+					error(S, __filename);
+				}
+
+				N.alias.value = letter;
+				state = "name";
+
+				// Note: Forward indices to skip alias chars.
+				S.i += 2;
+				S.column += 2;
 
 				break;
 
@@ -262,6 +290,17 @@ module.exports = (S, isoneliner) => {
 
 	if (!isoneliner) {
 		N.singleton = true;
+
+		// Add alias node if it exists.
+		if (N.alias.value) {
+			let cN = node(S, "FLAG");
+			cN.hyphens.value = "-";
+			cN.delimiter.value = ",";
+			cN.name.value = N.alias.value;
+			cN.singleton = true;
+			cN.boolean.value = N.boolean.value;
+			add(S, cN);
+		}
 		add(S, N);
 	}
 

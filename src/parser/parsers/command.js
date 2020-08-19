@@ -203,7 +203,19 @@ module.exports = (S) => {
 
 			case "oneliner":
 				tracer(S, "flag"); // Trace parser.
-				N.flags.push(p_flag(S, "oneliner"));
+
+				let fN = p_flag(S, "oneliner");
+				// Add alias node if it exists.
+				if (fN.alias.value) {
+					let cN = node(S, "FLAG");
+					cN.hyphens.value = "-";
+					cN.delimiter.value = ",";
+					cN.name.value = fN.alias.value;
+					cN.singleton = true;
+					cN.boolean.value = fN.boolean.value;
+					N.flags.push(cN);
+				}
+				N.flags.push(fN);
 
 				break;
 
@@ -249,7 +261,9 @@ module.exports = (S) => {
 
 			case "group-command":
 				if (!G.command) {
-					if (cnotin(C_CMD_GRP_IDENT_START, char)) error(S, __filename);
+					if (cnotin(C_CMD_GRP_IDENT_START, char)) {
+						error(S, __filename);
+					}
 
 					G.tokens.push(["command", S.column]);
 					N.command.end = S.i;

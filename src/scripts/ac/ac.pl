@@ -14,7 +14,9 @@ my $posthook = $ARGV[5]; # Get the posthook file path.
 my $singletons = int($ARGV[6]); # Show singleton flags?
 
 my @args = ();
+my @cargs = ();
 my @posargs = ();
+my $afcount = 0;
 # Arguments meta data: [eq-sign index, isBool]
 my @ameta = ();
 my $last = '';
@@ -374,7 +376,6 @@ sub __tokenize {
 # @return - Nothing is returned.
 sub __analyze {
 	my $l = $#args + 1;
-	my @cargs = ();
 	my @commands = ('');
 	my @chainstrings = (' ');
 	my @chainflags = (['']);
@@ -389,7 +390,11 @@ sub __analyze {
 		my $nitem = $args[$i + 1];
 
 		# Skip quoted or escaped items.
-		if (substr($item, 0, 1) =~ tr/"'// || $item =~ tr/\\//) { push(@cargs, $item); next; }
+		if (substr($item, 0, 1) =~ tr/"'// || $item =~ tr/\\//) {
+			push(@posargs, $item);
+			push(@cargs, $item);
+			next;
+		}
 
 		if (rindex($item, '-', 0)) {
 			my $command = __normalize_command($item);
@@ -413,6 +418,8 @@ sub __analyze {
 			push(@cargs, $item);
 
 		} else {
+			$afcount++; # Increment flag counter.
+
 			if ($ameta[$i]->[0] > -1) {
 				push(@cargs, $item);
 				push(@{$chainflags[-1]}, $item);
@@ -849,7 +856,7 @@ sub __lookup {
 
 		# If no cc get first level commands.
 		if (!$commandchain && !$last) {
-			@completions = keys %{ $db{levels}{1} };
+			if (!@posargs) { @completions = keys %{ $db{levels}{1} }; }
 		} else {
 			my $letter = substr($commandchain, 1, 1);
 			my @rows = (keys %{ $db{dict}{$letter} });
@@ -870,26 +877,35 @@ sub __lookup {
 			# Increment level if completing a new command level.
 			if ($lastchar eq ' ') { $level++; }
 
-			# Get commandchains for specific letter outside of loop.
-			my %h = %{ $db{dict}{$letter} };
+			# If level does not match argument length, return. As the
+			# parsed arguments do not match that of a valid commandchain.
+			my $la = (scalar(@cargs) + 1) - $afcount;
+			my $lvl = scalar(@commands);
+			if (!(($la == $lvl + 1 && $lastchar) ||
+				($la > $lvl && $lastchar) || ($la - $lvl > 1))) {
 
-			foreach my $row (@rows) {
-				my @cmds = @{ $h{$row}{commands} };
-				$row = $cmds[$level] // undef;
+				# Get commandchains for specific letter outside of loop.
+				my %h = %{ $db{dict}{$letter} };
 
-				# Add last command it not yet already added.
-				if (!$row || exists($usedcommands{$row})) { next; }
-				# If char before caret isn't a space, completing a command.
-				if ($lastchar_notspace) {
-					if (rindex($row, $last, 0) == 0) {
-						if (!(rindex($commandchain, ".$row") + 1)
-							|| (!$used_default_pa_args && !$lastchar)) {
-							push(@completions, $row);
+				foreach my $row (@rows) {
+					my @cmds = @{ $h{$row}{commands} };
+					$row = $cmds[$level] // undef;
+
+					# Add last command if not yet already added.
+					if (!$row || exists($usedcommands{$row})) { next; }
+					# If char before caret isn't a space, completing a command.
+					if ($lastchar_notspace) {
+						if (rindex($row, $last, 0) == 0) {
+							my $c = rindex($commandchain, ".$row") + 1;
+							if ((!$c || ($c && !$lastchar)) ||
+								(!$used_default_pa_args && !$lastchar)) {
+								push(@completions, $row);
+							}
 						}
-					}
-				} else { push(@completions, $row); } # Allow all.
+					} else { push(@completions, $row); } # Allow all.
 
-				$usedcommands{$row} = undef;
+					$usedcommands{$row} = undef;
+				}
 			}
 		}
 

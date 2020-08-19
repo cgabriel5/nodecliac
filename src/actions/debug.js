@@ -18,7 +18,7 @@ module.exports = async (args) => {
 
 	// 0=off , 1=debug , 2=debug + ac.pl , 3=debug + ac.nim
 	if (enable) {
-		let dl = script === "nim" ? 3 : script === "pl" ? 2 : 1;
+		let dl = script === "nim" ? 3 : script === "perl" ? 2 : 1;
 		await setsetting("debug", dl);
 		console.log(chalk.green("on"));
 	} else if (disable) {

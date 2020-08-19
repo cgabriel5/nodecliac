@@ -383,7 +383,7 @@ case "$command" in
 		if [[ -n "$debug_enable" ]]; then
 			value=1
 			if [[ "$debug_script" == "nim" ]]; then value=3
-			elif [[ "$debug_script" == "pl" ]]; then value=2; fi
+			elif [[ "$debug_script" == "perl" ]]; then value=2; fi
 			setsetting debug "$value"
 			echo -e "\033[0;32mon\033[0m"
 		elif [[ -n "$debug_disable" ]]; then

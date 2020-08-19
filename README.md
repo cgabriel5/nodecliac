@@ -832,6 +832,16 @@ program.install = [
 program.uninstall
 ```
 
+However, it can be cleaned up a bit by using the flag `alias` syntax:
+
+```acmap
+program.install = [
+  --destination::d
+  --force::f
+]
+program.uninstall
+```
+
 <details>
   <summary>Flag variants</summary>
 

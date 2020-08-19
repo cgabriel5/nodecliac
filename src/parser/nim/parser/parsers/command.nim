@@ -169,7 +169,18 @@ proc p_command*(S: State) =
 
             of "oneliner":
                 tracer.trace(S, "flag") # Trace parser.
-                N.flags.add(p_flag(S, "oneliner"))
+
+                let fN = p_flag(S, "oneliner")
+                # Add alias node if it exists.
+                if fN.alias.value != "":
+                    let cN = node(S, "FLAG")
+                    cN.hyphens.value = "-"
+                    cN.delimiter.value = ","
+                    cN.name.value = fN.alias.value
+                    cN.singleton = true
+                    cN.boolean.value = fN.boolean.value
+                    N.flags.add(cN)
+                N.flags.add(fN)
 
             of "eol-wsb":
                 if `char` notin C_SPACES: error(S, currentSourcePath)

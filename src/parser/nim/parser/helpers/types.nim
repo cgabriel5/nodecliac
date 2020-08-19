@@ -50,7 +50,7 @@ type
             command*: Branch
             flags*: seq[Node]
         of flag:
-            hyphens*, variable*, boolean*, multi*, keyword*: Branch
+            hyphens*, variable*, alias*, boolean*, multi*, keyword*: Branch
             singleton*: bool
         of option: bullet*: Branch
         of brace: brace*: Branch
@@ -136,6 +136,7 @@ proc node*(S: State, node: string): Node =
         result.hyphens = Branch()
         result.variable = Branch()
         result.name = Branch()
+        result.alias = Branch()
         result.boolean = Branch()
         result.assignment = Branch()
         result.delimiter = Branch()

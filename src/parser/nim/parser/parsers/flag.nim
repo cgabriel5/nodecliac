@@ -29,6 +29,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
     var `end` = false # Flag: true - ends consuming chars.
     var `type` = "escaped"
     var N = node(S, "FLAG")
+    var alias = false
 
     # If not a oneliner or no command scope, flag is being declared out of scope.
     if not (isoneliner != "" or S.scopes.command.node != ""): error(S, currentSourcePath, 10)
@@ -94,6 +95,9 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     if `char` in C_FLG_IDENT:
                         N.name.`end` = S.i
                         N.name.value &= $`char`
+                    elif `char` == ':' and not alias:
+                        state = "alias"
+                        rollback(S)
                     elif `char` == '=':
                         state = "assignment"
                         rollback(S)
@@ -129,6 +133,27 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 N.boolean.`end` = S.i
                 N.boolean.value = $`char`
                 state = "pipe-delimiter"
+
+            of "alias":
+                alias = true
+                # Next char must also be a colon.
+                let nchar = if S.i + 1 < l: text[S.i + 1] else: '\0'
+                if nchar != ':': error(S, currentSourcePath)
+                N.alias.start = S.i
+                N.alias.`end` = S.i + 2
+
+                let letter = if S.i + 2 < l: text[S.i + 2] else: '\0'
+                if letter notin C_LETTERS:
+                    S.i += 1
+                    S.column += 1
+                    error(S, currentSourcePath)
+
+                N.alias.value = $letter
+                state = "name"
+
+                # Note: Forward indices to skip alias chars.
+                S.i += 2
+                S.column += 2
 
             of "assignment":
                 N.assignment.start = S.i
@@ -221,6 +246,16 @@ proc p_flag*(S: State, isoneliner: string): Node =
 
     if isoneliner == "":
         N.singleton = true
+
+        # Add alias node if it exists.
+        if N.alias.value != "":
+            var cN = node(S, "FLAG")
+            cN.hyphens.value = "-"
+            cN.delimiter.value = ","
+            cN.name.value = N.alias.value
+            cN.singleton = true
+            cN.boolean.value = N.boolean.value
+            add(S, cN)
         add(S, N)
 
     return N

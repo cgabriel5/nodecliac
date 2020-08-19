@@ -1,9 +1,9 @@
-# DON'T EDIT FILE —— GENERATED: Tue Jul 28 2020 13:52:30 (1595969550)
+# DON'T EDIT FILE —— GENERATED: Tue Aug 18 2020 18:30:28 (1597800628)
 
  --version?
 .add --force?
 .cache --clear?|--level=|--level=0|--level=1|--level=2
-.debug --disable?|--enable?|--script=|--script=nim|--script=pl
+.debug --disable?|--enable?|--script=|--script=nim|--script=perl
 .disable --all
 .enable --all
 .format --indent|--print?|--source|--strip-comments?

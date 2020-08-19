@@ -22,7 +22,7 @@ nodecliac.debug = [
 	--enable?
 	--disable?
 	context "{enable | disable}"
-	--script=(nim pl)
+	--script=(nim perl)
 ]
 
 # Other commands:

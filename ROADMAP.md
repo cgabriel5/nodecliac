@@ -20,4 +20,4 @@ _Document serves to give insight into project plans (i.e. possible features, imp
 ### Improvements
 
 - [x] Look into porting `.acmap` JavaScript CLI tools (parser/formatter) to Nim to remove Node.js requirement when building completion packages.
-- [ ] Improve short flag support.
+- [x] Improve short flag support (alias syntax).

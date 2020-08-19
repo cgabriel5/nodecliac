@@ -1,0 +1,3 @@
+# This acmap tests alias syntax.
+
+npm = 	-v?--version?|	-h?--help?|	-r--registry=(1 2 3 4)|	-s--socket=*(start end)

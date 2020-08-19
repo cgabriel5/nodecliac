@@ -28,7 +28,9 @@ let posthook = os.paramStr(6) # Get the posthook file path.
 let singletons = parseBool(os.paramStr(7)) # Show singleton flags?
 
 var args: seq[string] = @[]
+var cargs: seq[string] = @[]
 var posargs: seq[string] = @[]
+var afcount = 0
 # Arguments meta data: [eq-sign index, isBool]
 var ameta: seq[array[2, int]] = @[]
 var last = ""
@@ -398,7 +400,6 @@ proc fn_tokenize() =
 # @return - Nothing is returned.
 proc fn_analyze() =
     let l = args.len
-    var cargs: seq[string] = @[]
     var commands: seq[string] = @[""]
     var chainstrings: seq[string] = @[" "]
     var chainflags: seq[seq[string]] = @[@[""]]
@@ -411,7 +412,11 @@ proc fn_analyze() =
         let nitem = if i + 1 < l: args[i + 1] else: ""
 
         # Skip quoted or escaped items.
-        if item[0] in C_QUOTES or '\\' in item: cargs.add(item); inc(i); continue
+        if item[0] in C_QUOTES or '\\' in item:
+            posargs.add(item)
+            cargs.add(item)
+            inc(i)
+            continue
 
         if not item.startsWith('-'):
             let command = fn_normalize_command(item)
@@ -432,6 +437,8 @@ proc fn_analyze() =
             cargs.add(item)
 
         else:
+            inc(afcount) # Increment flag counter.
+
             if ameta[i][0] > -1:
                 cargs.add(item)
                 chainflags[^1].add(item)
@@ -834,7 +841,8 @@ proc fn_lookup(): string =
 
         # If no cc get first level commands.
         if commandchain == "" and last == "":
-            if db_levels.hasKey(1): completions = toSeq(db_levels[1].keys)
+            if posargs.len == 0:
+                if db_levels.hasKey(1): completions = toSeq(db_levels[1].keys)
         else:
             let letter = if commandchain != "": commandchain[1] else: '_'
             # Letter must exist in dictionary.
@@ -855,28 +863,35 @@ proc fn_lookup(): string =
             # Increment level if completing a new command level.
             if lastchar == ' ': inc(level)
 
-            # Get commandchains for specific letter outside of loop.
-            var h = db_dict[letter]
+            # If level does not match argument length, return. As the
+            # parsed arguments do not match that of a valid commandchain.
+            let la = (cargs.len + 1) - afcount
+            if not ((la == level + 1 and lastchar != '\0') or
+                (la > level and lastchar != '\0') or (la - level > 1)):
 
-            for row in rows:
-                var row = row
-                # Command must exist.
-                if not h[row].hasKey("commands"): continue
+                # Get commandchains for specific letter outside of loop.
+                var h = db_dict[letter]
 
-                var cmds = h[row]["commands"]
-                row = if level < cmds.len: cmds[level] else: ""
+                for row in rows:
+                    var row = row
+                    # Command must exist.
+                    if not h[row].hasKey("commands"): continue
 
-                # Add last command it not yet already added.
-                if row == "" or usedcommands.hasKey(row): continue
-                # If char before caret isn't a space, completing a command.
-                if lastchar_notspace:
-                    if row.startsWith(last):
-                        if not commandchain.endsWith("." & row) or
-                        used_default_pa_args == "" and lastchar == '\0':
-                            completions.add(row)
-                else: completions.add(row) # Allow all.
+                    var cmds = h[row]["commands"]
+                    row = if level < cmds.len: cmds[level] else: ""
 
-                usedcommands[row] = 1
+                    # Add last command if not yet already added.
+                    if row == "" or usedcommands.hasKey(row): continue
+                    # If char before caret isn't a space, completing a command.
+                    if lastchar_notspace:
+                        if row.startsWith(last):
+                            let c = commandchain.endsWith("." & row)
+                            if (not c or (c and lastchar == '\0')) or
+                            used_default_pa_args == "" and lastchar == '\0':
+                                completions.add(row)
+                    else: completions.add(row) # Allow all.
+
+                    usedcommands[row] = 1
 
         # Note: If only 1 completion exists, check if command exists in
         # commandchain. If so, it's already used so clear completions.

@@ -1,0 +1,8 @@
+# This acmap tests command group syntax.
+
+npm.access.{public,restricted}
+npm.access.grant.{read-only,read-write}
+npm.access.revoke
+npm.access.{2fa-required,2fa-not-required}
+npm.access.{ls-packages,ls-collaborators}
+npm.access.edit

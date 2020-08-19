@@ -1,0 +1,135 @@
+# ACMAP for npm@6.14.4.
+# Resources:
+# [https://docs.npmjs.com/cli/completion]
+# [https://docs.npmjs.com/cli-documentation/cli]
+# [https://github.com/npm/cli/blob/latest/lib/utils/completion.sh]
+# [https://github.com/Jephuff/npm-completion/blob/master/completions/npm.sh]
+# [https://github.com/npm/npm/issues/8030#issuecomment-155347700]
+
+npm = --version::v|--help::h
+
+npm.access.{public,restricted}
+npm.access.grant.{read-only,read-write}
+npm.access.revoke
+npm.access.{2fa-required,2fa-not-required}
+npm.access.{ls-packages,ls-collaborators}
+npm.access.edit
+
+npm.{adduser,add-user,login} = [
+	--registry=
+	--scope=
+	--always-auth?
+	--auth-type=(legacy sso saml oauth)
+]
+
+npm.audit = --json?|--parseable?|--audit-level=(low moderate high critical)
+npm.audit.fix = --force?|--package-lock-only?|--dry-run?
+npm.audit,
+npm.audit.fix = --production?|--only=(dev prod)
+
+npm.bin = --global::g
+npm.{bugs,issues}
+npm.build
+
+# Removed: [https://docs.npmjs.com/cli-commands/bundle.html]
+# npm.bundle
+
+npm.cache.add
+npm.cache.clean = --force?
+# aliases: npm cache clear, npm cache rm
+npm.cache.verify
+
+npm.ci
+npm.completion
+
+npm.{config,c}.set = --global::g
+npm.{config,c}.get
+npm.{config,c}.delete
+npm.{config,c}.list = -l|--json
+npm.{config,c}.edit
+npm.get
+npm.set= --global::g
+
+npm.{dedupe,ddp,find-dupes}
+npm.deprecate
+npm.{dist-tag,dist-tags}.{add,rm,ls}
+npm.{docs,home}
+npm.doctor
+npm.edit
+npm.explore
+npm.help
+npm.hook.{ls,add,update,rm}
+
+npm.init = --force::f?|--yes::y?|--scope
+
+npm.{install,i,add} = [
+	--save-prod::P
+	--save-dev::D
+	--save-optional::O
+	--save-exact::E
+	--save-bundle::B
+	--no-save
+	--dry-run
+]
+
+npm.{link,ln}
+
+npm.logout = --registry=|--scope=
+
+npm.{ls,list,la,ll}
+
+npm.org.set.{developer,admin,owner}
+npm.org.rm
+npm.org.ls
+
+npm.outdated
+npm.{owner,author}.{add,rm,ls}
+npm.pack = --dry-run?
+npm.ping = --registry=
+npm.prefix = -g
+
+npm.profile.get = --json|--parseable
+npm.profile.set = --json|--parseable
+npm.profile.set.password
+npm.profile.enable-2fa.{auth-and-writes,auth-only}
+npm.profile.disable-2fa
+
+npm.prune = --production|--dry-run|--json
+
+npm.publish = --tag=|--access=(public restricted)|--otp=|--dry-run?
+
+npm.{rebuild,rb}
+npm.repo
+npm.restart
+npm.root = -g
+
+npm.{run-script,run} = --silent
+npm.{search,s,se,find} = --long::l|--json|--parseable|--no-description
+npm.shrinkwrap
+npm.{star,unstar}
+npm.stars
+npm.start
+npm.stop
+
+npm.team.{create,destroyadd,rm,ls,edit}
+
+npm.{test,t,tst}
+
+npm.token
+
+npm.token.list = --json|--parseable
+npm.token.create = --read-only|--cidr=
+npm.token.revoke
+
+npm.{uninstall,remove,rm,r,un,unlink} = --save::S|--save-dev::D|--save-optional::O|--no-save
+
+npm.unpublish = --force?
+
+npm.{update,up,upgrade} = -g
+
+npm.version.{major,minor,patch,premajor,preminor,prepatch,from-git}
+npm.version.prerelease = --preid=
+
+npm.{view,info,show,v}
+
+npm.whoami = --registry

@@ -277,12 +277,15 @@ contexts:
     - include: strings
 
   flag:
-    - match: "(--?)(([a-zA-Z][-_.:a-zA-Z0-9]*)(\\?)?)?" # Handle: '--flag'
+    - match: "(--?)(([a-zA-Z][-_.a-zA-Z0-9]*)((::)([a-zA-Z]))?(\\?)?)?" # Handle: '--flag'
       scope: meta.flag-name.acmap
       captures:
         1: punctuation.definition.flag.acmap
         3: support.type.flag-name.acmap # **purple
-        4: keyword.operator.assignment.boolean.acmap # **purple
+        5: punctuation.punctuation.flag-alias.acmap
+        # 6: entity.name.flag-alias.acmap
+        6: support.type.flag-alias.acmap
+        7: keyword.operator.assignment.boolean.acmap # **purple
 
   options-list:
     - match: "(=)(\\*)?\\s*(\\()"

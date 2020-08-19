@@ -523,7 +523,7 @@
 			]
 		},
 		"flag": {
-			"match": "(--?)(([a-zA-Z][-_.:a-zA-Z0-9]*)(\\?)?)?",
+			"match": "(--?)(([a-zA-Z][-_.a-zA-Z0-9]*)((::)([a-zA-Z]))?(\\?)?)?",
 			"name": "meta.flag-name.acmap",
 			"captures": {
 				"1": {
@@ -532,7 +532,13 @@
 				"3": {
 					"name": "support.type.flag-name.acmap"
 				},
-				"4": {
+				"5": {
+					"name": "punctuation.punctuation.flag-alias.acmap"
+				},
+				"6": {
+					"name": "support.type.flag-alias.acmap"
+				},
+				"7": {
 					"name": "keyword.operator.assignment.boolean.acmap"
 				}
 			}

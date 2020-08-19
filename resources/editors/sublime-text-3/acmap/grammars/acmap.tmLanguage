@@ -1035,7 +1035,7 @@
 			<key>flag</key>
 			<dict>
 				<key>match</key>
-				<string>(--?)(([a-zA-Z][-_.:a-zA-Z0-9]*)(\?)?)?</string> <!-- Handle: '\-\-flag' -->
+				<string>(--?)(([a-zA-Z][-_.a-zA-Z0-9]*)((::)([a-zA-Z]))?(\?)?)?</string> <!-- Handle: '\-\-flag' -->
 
 				<key>name</key>
 				<string>meta.flag-name.acmap</string>
@@ -1054,7 +1054,20 @@
 						<string>support.type.flag-name.acmap</string> <!-- # **purple -->
 					</dict>
 
-					<key>4</key>
+					<key>5</key>
+					<dict>
+						<key>name</key>
+						<string>punctuation.punctuation.flag-alias.acmap</string>
+					</dict>
+
+					<key>6</key>
+					<dict>
+						<key>name</key>
+						<!-- entity.name.flag-alias.acmap -->
+						<string>support.type.flag-alias.acmap</string>
+					</dict>
+
+					<key>7</key>
 					<dict>
 						<key>name</key>
 						<string>keyword.operator.assignment.boolean.acmap</string> <!-- **purple -->

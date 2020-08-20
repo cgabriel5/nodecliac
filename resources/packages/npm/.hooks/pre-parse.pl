@@ -8,15 +8,10 @@
 
 my $input = $ARGV[0];
 my $output = "\n";
-my ($workspace_name, $cli_remainder) = $input =~ /^[ \t]*?yarn[ \t]+?workspace[ \t]+?([^ \t]+?)[ \t]+?(.*)/;
-
-# ----- Input logic -----
-
-if ($cli_remainder) { $output = "yarn $cli_remainder"; }
 
 # ----- ACDEF logic -----
 
-if ($input =~ /^[ \t]*?yarn[ \t]+?([^ \t]*?)$/) {
+if ($input =~ /^[ \t]*?npm[ \t]+?([^ \t]*?)$/) {
 	my $cwd = $ENV{'PWD'};
 	my $pkg = '';
 

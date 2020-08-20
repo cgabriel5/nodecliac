@@ -6,6 +6,9 @@
 # [https://github.com/Jephuff/npm-completion/blob/master/completions/npm.sh]
 # [https://github.com/npm/npm/issues/8030#issuecomment-155347700]
 
+# Variables - paths.
+$mainscript = "${PATH}/scripts/main.pl"
+
 npm = --version::v|--help::h
 
 npm.access.{public,restricted}
@@ -76,7 +79,7 @@ npm.{link,ln}
 
 npm.logout = --registry=|--scope=
 
-npm.{ls,list,la,ll}
+npm.{ls,list,la,ll} = -g|--depth=
 
 npm.org.set.{developer,admin,owner}
 npm.org.rm
@@ -88,8 +91,7 @@ npm.pack = --dry-run?
 npm.ping = --registry=
 npm.prefix = -g
 
-npm.profile.get = --json|--parseable
-npm.profile.set = --json|--parseable
+npm.profile.{get,set} = --json|--parseable
 npm.profile.set.password
 npm.profile.enable-2fa.{auth-and-writes,auth-only}
 npm.profile.disable-2fa
@@ -103,7 +105,7 @@ npm.repo
 npm.restart
 npm.root = -g
 
-npm.{run-script,run} = --silent
+npm.{run-script,run} = --silent|default $("${mainscript}", "run")
 npm.{search,s,se,find} = --long::l|--json|--parseable|--no-description
 npm.shrinkwrap
 npm.{star,unstar}
@@ -121,11 +123,18 @@ npm.token.list = --json|--parseable
 npm.token.create = --read-only|--cidr=
 npm.token.revoke
 
-npm.{uninstall,remove,rm,r,un,unlink} = --save::S|--save-dev::D|--save-optional::O|--no-save
+npm.{uninstall,remove,rm,r,un,unlink} = [
+	--global::g?
+	--save::S?
+	--save-dev::D?
+	--save-optional::O?
+	--no-save?
+	default $("${mainscript}", "remove")
+]
 
 npm.unpublish = --force?
 
-npm.{update,up,upgrade} = -g
+npm.{update,up,upgrade} = --global::g?|default $("${mainscript}", "update")
 
 npm.version.{major,minor,patch,premajor,preminor,prepatch,from-git}
 npm.version.prerelease = --preid=

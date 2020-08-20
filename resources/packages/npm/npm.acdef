@@ -1,4 +1,4 @@
-# DON'T EDIT FILE —— GENERATED: Wed Aug 19 2020 10:24:49 (1597857889)
+# DON'T EDIT FILE —— GENERATED: Thu Aug 20 2020 00:22:27 (1597908147)
 
  --help|--version|-h|-v
 .access --
@@ -73,14 +73,14 @@
 .init --force?|--scope|--yes?|-f?|-y?
 .install --dry-run|--no-save|--save-bundle|--save-dev|--save-exact|--save-optional|--save-prod|-B|-D|-E|-O|-P
 .issues --
-.la --
+.la --depth=|-g
 .link --
-.list --
-.ll --
+.list --depth=|-g
+.ll --depth=|-g
 .ln --
 .login --always-auth?|--auth-type=|--auth-type=legacy|--auth-type=oauth|--auth-type=saml|--auth-type=sso|--registry=|--scope=
 .logout --registry=|--scope=
-.ls --
+.ls --depth=|-g
 .org --
 .org.ls --
 .org.rm --
@@ -106,13 +106,13 @@
 .profile.set.password --
 .prune --dry-run|--json|--production
 .publish --access=|--access=public|--access=restricted|--dry-run?|--otp=|--tag=
-.r --no-save|--save|--save-dev|--save-optional|-D|-O|-S
+.r --global?|--no-save?|--save-dev?|--save-optional?|--save?|-D?|-g?|-O?|-S?
 .rb --
 .rebuild --
-.remove --no-save|--save|--save-dev|--save-optional|-D|-O|-S
+.remove --global?|--no-save?|--save-dev?|--save-optional?|--save?|-D?|-g?|-O?|-S?
 .repo --
 .restart --
-.rm --no-save|--save|--save-dev|--save-optional|-D|-O|-S
+.rm --global?|--no-save?|--save-dev?|--save-optional?|--save?|-D?|-g?|-O?|-S?
 .root -g
 .run --silent
 .run-script --silent
@@ -139,14 +139,14 @@
 .token.list --json|--parseable
 .token.revoke --
 .tst --
-.un --no-save|--save|--save-dev|--save-optional|-D|-O|-S
-.uninstall --no-save|--save|--save-dev|--save-optional|-D|-O|-S
-.unlink --no-save|--save|--save-dev|--save-optional|-D|-O|-S
+.un --global?|--no-save?|--save-dev?|--save-optional?|--save?|-D?|-g?|-O?|-S?
+.uninstall --global?|--no-save?|--save-dev?|--save-optional?|--save?|-D?|-g?|-O?|-S?
+.unlink --global?|--no-save?|--save-dev?|--save-optional?|--save?|-D?|-g?|-O?|-S?
 .unpublish --force?
 .unstar --
-.up -g
-.update -g
-.upgrade -g
+.up --global?|-g?
+.update --global?|-g?
+.upgrade --global?|-g?
 .v --
 .version --
 .version.from-git --
@@ -159,3 +159,15 @@
 .version.prerelease --preid=
 .view --
 .whoami --registry
+
+.r default $("~/.nodecliac/registry/npm/scripts/main.pl","remove")
+.remove default $("~/.nodecliac/registry/npm/scripts/main.pl","remove")
+.rm default $("~/.nodecliac/registry/npm/scripts/main.pl","remove")
+.run default $("~/.nodecliac/registry/npm/scripts/main.pl","run")
+.run-script default $("~/.nodecliac/registry/npm/scripts/main.pl","run")
+.un default $("~/.nodecliac/registry/npm/scripts/main.pl","remove")
+.uninstall default $("~/.nodecliac/registry/npm/scripts/main.pl","remove")
+.unlink default $("~/.nodecliac/registry/npm/scripts/main.pl","remove")
+.up default $("~/.nodecliac/registry/npm/scripts/main.pl","update")
+.update default $("~/.nodecliac/registry/npm/scripts/main.pl","update")
+.upgrade default $("~/.nodecliac/registry/npm/scripts/main.pl","update")

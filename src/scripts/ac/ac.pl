@@ -195,6 +195,9 @@ sub __set_envs {
 	my $post = $params->{post}; # [https://stackoverflow.com/a/8124745]
 	my @arguments = @{ $params->{arguments} };
 
+    # Get any used flags to pass along. [https://stackoverflow.com/a/30094856]
+	my @usedflags = (keys %usedflags);
+
 	my %envs = (
 		# nodecliac exposed Bash env vars.
 
@@ -207,7 +210,7 @@ sub __set_envs {
 		# The command auto completion is being performed for.
 		"${prefix}MAIN_COMMAND" => $maincommand,
 		"${prefix}COMMAND_CHAIN" => $commandchain, # The parsed command chain.
-		# "${prefix}USED_FLAGS" => $usedflags, # The parsed used flags.
+		"${prefix}USED_FLAGS" => join("\n", @usedflags), # The parsed used flags.
 		# The last parsed word item (note: could be a partial word item.
 		# This happens when the [tab] key gets pressed within a word item.
 		# For example, take the input 'maincommand command'. If

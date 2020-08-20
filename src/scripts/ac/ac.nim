@@ -231,6 +231,10 @@ proc parseCmdStr(input: var string): seq[string] =
 proc setEnvs(arguments: varargs[string], post=false) =
     let l = args.len
 
+    # Get any used flags to pass along.
+    var usedflags: seq[string] = @[]
+    for k in usedflags_counts.keys: usedflags.add(k)
+
     var envs = {
         # nodecliac exposed Bash env vars.
 
@@ -243,7 +247,7 @@ proc setEnvs(arguments: varargs[string], post=false) =
         # The command auto completion is being performed for.
         fmt"{prefix}MAIN_COMMAND": maincommand,
         fmt"{prefix}COMMAND_CHAIN": commandchain, # The parsed command chain.
-        # fmt"{prefix}USED_FLAGS": usedflags, # The parsed used flags.
+        fmt"{prefix}USED_FLAGS": usedflags.join("\n"), # The parsed used flags.
         # The last parsed word item (note: could be a partial word item.
         # This happens when the [tab] key gets pressed within a word item.
         # For example, take the input 'maincommand command'. If

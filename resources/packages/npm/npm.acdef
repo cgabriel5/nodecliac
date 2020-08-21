@@ -1,4 +1,4 @@
-# DON'T EDIT FILE —— GENERATED: Thu Aug 20 2020 18:17:29 (1597972649)
+# DON'T EDIT FILE —— GENERATED: Thu Aug 20 2020 20:32:24 (1597980744)
 
  --help|--version|-h|-v
 .access --
@@ -160,9 +160,9 @@
 .view --
 .whoami --registry
 
-.add default $("~/.nodecliac/registry/npm/scripts/names.sh")
-.i default $("~/.nodecliac/registry/npm/scripts/names.sh")
-.install default $("~/.nodecliac/registry/npm/scripts/names.sh")
+.add default $('last="$NODECLIAC_LAST";[ "${#last}" -ge 3 ] && echo "`LC_ALL=C grep "^$last" ~/.nodecliac/registry/npm/db/pkgs`"')
+.i default $('last="$NODECLIAC_LAST";[ "${#last}" -ge 3 ] && echo "`LC_ALL=C grep "^$last" ~/.nodecliac/registry/npm/db/pkgs`"')
+.install default $('last="$NODECLIAC_LAST";[ "${#last}" -ge 3 ] && echo "`LC_ALL=C grep "^$last" ~/.nodecliac/registry/npm/db/pkgs`"')
 .r default $("~/.nodecliac/registry/npm/scripts/main.pl","remove")
 .remove default $("~/.nodecliac/registry/npm/scripts/main.pl","remove")
 .rm default $("~/.nodecliac/registry/npm/scripts/main.pl","remove")

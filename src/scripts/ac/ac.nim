@@ -214,7 +214,8 @@ proc parseCmdStr(input: var string): seq[string] =
             if c in C_QUOTES and p != '\\':
                 qchar = c
                 argument &= $c
-            elif c == '$': argument &= $c
+            elif args.len > 1 and c == '$' and argument == "":
+                argument &= $c
         else:
             if c == '|' and p == '\\': discard chop(argument)
             argument &= $c

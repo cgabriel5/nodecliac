@@ -255,7 +255,7 @@ sub __parse_cmdstr {
 			if ($c =~ tr/"'// && $p ne '\\') {
 				$qchar = $c;
 				$argument .= $c;
-			} elsif ($c eq '$') { $argument .= $c; }
+			} elsif (@arguments && $c eq '$' && !$argument) { $argument .= $c; }
 		} else {
 			if ($c eq '|' && $p eq '\\') { chop($argument); }
 			$argument .= $c;

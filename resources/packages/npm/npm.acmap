@@ -6,8 +6,9 @@
 # [https://github.com/Jephuff/npm-completion/blob/master/completions/npm.sh]
 # [https://github.com/npm/npm/issues/8030#issuecomment-155347700]
 
-# Variables - paths.
 $mainscript = "${PATH}/scripts/main.pl"
+# $cmd_add = 'grep "^\$NODECLIAC_LAST" ${PATH}/db/pkgs'
+$pkgnames = "${PATH}/scripts/names.sh"
 
 npm = --version::v|--help::h
 
@@ -74,6 +75,7 @@ npm.{install,i,add} = [
 	--save-bundle::B?
 	--no-save?
 	--dry-run?
+	default $("${pkgnames}")
 ]
 
 npm.{link,ln}

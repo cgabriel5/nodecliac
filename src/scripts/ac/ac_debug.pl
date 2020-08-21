@@ -218,7 +218,7 @@ sub __exec_command {
 	my $res = do { open(EPIPE, '-|', $command); local $/; <EPIPE>; };
 	if ($res) { @r = split(/$delimiter/m, $res); }
 
-	if ($DEBUGMODE && $res) {
+	if ($DEBUGMODE) {
 		print "\n";
 		print __dfn("execCommand") . "\n";
 		print __dvar("command") . "$pstart$command$pend\n";
@@ -1172,7 +1172,7 @@ sub __lookup {
 		@r = split(/$delimiter/m, $res);
 		if ($res) { @r = split(/$delimiter/m, $res); }
 
-		if ($DEBUGMODE && $res) {
+		if ($DEBUGMODE) {
 			print "\n";
 			print __dfn("posthook") . "\n";
 			print __dvar("command") . "$pstart$posthook$pend\n";

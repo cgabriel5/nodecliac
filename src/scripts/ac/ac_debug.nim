@@ -249,7 +249,7 @@ proc execCommand(command_str: var string): seq[string] =
     try: res = execProcess(command)
     except: discard
 
-    if DEBUGMODE and res != "":
+    if DEBUGMODE:
         echo ""
         echo dfn("execCommand")
         echo dvar("command") & fmt"{start}{command}{`end`}"
@@ -1123,7 +1123,7 @@ proc fn_lookup(): string =
         res = res.strip(trailing=true)
         if res != "": r= split(res, re(delimiter))
 
-        if DEBUGMODE and res != "":
+        if DEBUGMODE:
             echo ""
             echo dfn("posthook")
             echo dvar("command") & fmt"{start}{posthook}{`end`}"

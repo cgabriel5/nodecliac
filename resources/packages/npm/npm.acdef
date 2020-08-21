@@ -1,4 +1,4 @@
-# DON'T EDIT FILE —— GENERATED: Thu Aug 20 2020 00:22:27 (1597908147)
+# DON'T EDIT FILE —— GENERATED: Thu Aug 20 2020 16:05:34 (1597964734)
 
  --help|--version|-h|-v
 .access --
@@ -13,7 +13,7 @@
 .access.public --
 .access.restricted --
 .access.revoke --
-.add --dry-run|--no-save|--save-bundle|--save-dev|--save-exact|--save-optional|--save-prod|-B|-D|-E|-O|-P
+.add --dry-run?|--global?|--no-save?|--save-bundle?|--save-dev?|--save-exact?|--save-optional?|--save-prod?|-B?|-D?|-E?|-g?|-O?|-P?
 .add-user --always-auth?|--auth-type=|--auth-type=legacy|--auth-type=oauth|--auth-type=saml|--auth-type=sso|--registry=|--scope=
 .adduser --always-auth?|--auth-type=|--auth-type=legacy|--auth-type=oauth|--auth-type=saml|--auth-type=sso|--registry=|--scope=
 .audit --audit-level=|--audit-level=critical|--audit-level=high|--audit-level=low|--audit-level=moderate|--json?|--only=|--only=dev|--only=prod|--parseable?|--production?
@@ -68,10 +68,10 @@
 .hook.ls --
 .hook.rm --
 .hook.update --
-.i --dry-run|--no-save|--save-bundle|--save-dev|--save-exact|--save-optional|--save-prod|-B|-D|-E|-O|-P
+.i --dry-run?|--global?|--no-save?|--save-bundle?|--save-dev?|--save-exact?|--save-optional?|--save-prod?|-B?|-D?|-E?|-g?|-O?|-P?
 .info --
 .init --force?|--scope|--yes?|-f?|-y?
-.install --dry-run|--no-save|--save-bundle|--save-dev|--save-exact|--save-optional|--save-prod|-B|-D|-E|-O|-P
+.install --dry-run?|--global?|--no-save?|--save-bundle?|--save-dev?|--save-exact?|--save-optional?|--save-prod?|-B?|-D?|-E?|-g?|-O?|-P?
 .issues --
 .la --depth=|-g
 .link --

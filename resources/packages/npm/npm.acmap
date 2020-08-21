@@ -66,13 +66,14 @@ npm.hook.{ls,add,update,rm}
 npm.init = --force::f?|--yes::y?|--scope
 
 npm.{install,i,add} = [
-	--save-prod::P
-	--save-dev::D
-	--save-optional::O
-	--save-exact::E
-	--save-bundle::B
-	--no-save
-	--dry-run
+	--global::g?
+	--save-prod::P?
+	--save-dev::D?
+	--save-optional::O?
+	--save-exact::E?
+	--save-bundle::B?
+	--no-save?
+	--dry-run?
 ]
 
 npm.{link,ln}

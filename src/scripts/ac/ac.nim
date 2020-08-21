@@ -180,7 +180,9 @@ proc execCommand(command_str: var string): seq[string] =
                 discard shift(arg)
                 let qchar = arg[0]
                 unquote(arg)
-                command &= " \"$(" & qchar & arg & qchar & ")\""
+                # command &= " \"$(" & qchar & arg & qchar & ")\""
+                # Wrap command with ticks to target the common shell 'sh'.
+                command &= " " & qchar & "`" & arg & "`" & qchar
             else: command &= " " & arg
 
     setEnvs()

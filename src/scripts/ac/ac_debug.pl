@@ -204,7 +204,9 @@ sub __exec_command {
 				$arg = substr($arg, 1);
 				my $qchar = substr($arg, 0, 1);
 				$arg = substr($arg, 1, -1); # Unquote.
-				$command .= " \"$($qchar" . $arg . "$qchar)\"";
+				# $command .= " \"$($qchar" . $arg . "$qchar)\"";
+                # Wrap command with ticks to target the common shell 'sh'.
+                $command .= " $qchar`" . $arg . "`$qchar";
 			} else {
 				$arg = substr($arg, 1, -1); # Unquote.
 				$command .= " $arg";

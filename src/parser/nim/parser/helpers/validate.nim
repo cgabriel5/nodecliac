@@ -1,4 +1,4 @@
-from re import re
+from re import re, replacef
 from strutils import join, strip, startsWith
 from tables import `[]=`, `[]`, hasKey, OrderedTableRef, pairs
 
@@ -337,4 +337,6 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
             N.value.value = cargs
             value = cargs
 
-    return value
+    # Remove backslash escapes, but keep escaped backslashes:
+    # [https://stackoverflow.com/a/57430306]
+    return value.replacef(re"(?:\\(.))", "$1")

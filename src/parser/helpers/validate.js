@@ -375,9 +375,9 @@ let validate = (S, N, type) => {
 			break;
 	}
 
-	return value;
+	// Remove backslash escapes, but keep escaped backslashes:
+	// [https://stackoverflow.com/a/57430306]
+	return value.replace(/(?:\\(.))/g, "$1");
 };
 
-module.exports = (...args) => {
-	return validate(...args);
-};
+module.exports = (...args) => validate(...args);

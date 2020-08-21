@@ -1052,6 +1052,8 @@ sub __lookup {
 			# parsed arguments do not match that of a valid commandchain.
 			my $la = (scalar(@cargs) + 1) - $afcount;
 			my $lvl = scalar(@commands);
+			if ($DEBUGMODE) { print __dvar("level") . $pstart . $lvl . "$pend\n"; }
+
 			if (!(($la == $lvl + 1 && $lastchar) ||
 				($la > $lvl && $lastchar) || ($la - $lvl > 1))) {
 

@@ -1015,6 +1015,8 @@ proc fn_lookup(): string =
             # If level does not match argument length, return. As the
             # parsed arguments do not match that of a valid commandchain.
             let la = (cargs.len + 1) - afcount
+            if DEBUGMODE: echo dvar("level") & fmt"{start}{level}{`end`}"
+
             if not ((la == level + 1 and lastchar != '\0') or
                 (la > level and lastchar != '\0') or (la - level > 1)):
 

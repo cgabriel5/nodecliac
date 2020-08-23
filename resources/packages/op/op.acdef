@@ -1,0 +1,111 @@
+# DON'T EDIT FILE —— GENERATED: Sat Aug 22 2020 23:08:04 (1598162884)
+
+ --account=|--help?|--session=
+.add --account=|--help?|--session=
+.add.group --account=|--help?|--session=
+.add.user --account=|--help?|--role=|--session=
+.completion --account=|--help?|--session=
+.completion.bash --account=|--help?|--session=
+.completion.zsh --account=|--help?|--session=
+.confirm --account=|--all|--help?|--session=
+.create --account=|--help?|--session=
+.create.document --account=|--file-name=|--help?|--session=|--tags=|--title=|--vault=
+.create.group --account=|--description=|--help?|--session=
+.create.item --account=|--generate-password|--help?|--session=|--tags=|--title=|--url=|--vault=
+.create.user --account=|--help?|--language=|--session=
+.create.vault --account=|--allow-admins-to-manage=|--allow-admins-to-manage=false|--allow-admins-to-manage=true|--description|--help?|--session=
+.delete --account=|--help?|--session=
+.delete.document --account=|--help?|--session=|--vault=
+.delete.group --account=|--help?|--session=
+.delete.item --account=|--help?|--session=|--vault=
+.delete.trash --account=|--help?|--session=
+.delete.user --account=|--help?|--session=
+.delete.vault --account=|--help?|--session=
+.edit --account=|--help?|--session=
+.edit.group --account=|--description=|--help?|--name=|--session=
+.edit.item --account=|--generate-password|--help?|--session=|--vault=
+.edit.user --account=|--help?|--name|--session=|--travelmode=|--travelmode=off|--travelmode=on
+.edit.vault --account=|--help?|--name=|--session=
+.encode --account=|--help?|--session=
+.forget --account=|--help?|--session=
+.get --account=|--help?|--session=
+.get.account --account=|--help?|--session=
+.get.document --account=|--help?|--include-trash?|--output=|--session=|--vault=
+.get.group --account=|--help?|--session=
+.get.item --account=|--fields=|--format=|--help?|--include-trash?|--session=|--share-link?|--vault=
+.get.template --account=|--help?|--session=
+.get.totp --account=|--help?|--session=|--vault
+.get.user --account=|--fingerprint?|--help?|--publickey?|--session=
+.get.vault --account=|--help?|--session=
+.help --account=|--help?|--session=
+.list --account=|--help?|--session=
+.list.documents --account=|--help?|--include-trash?|--session=|--vault=
+.list.events --account=|--eventid=|--help?|--older|--session=
+.list.groups --account=|--help?|--session=|--user=|--vault=
+.list.items --account=|--categories=|--help?|--include-trash?|--session=|--tags=|--vault=
+.list.templates --account=|--help?|--session=
+.list.users --account=|--group=|--help?|--session=|--vault=
+.list.vaults --account=|--group=|--help?|--session=|--user=
+.reactivate --account=|--help?|--session=
+.remove --account=|--help?|--session=
+.remove.group --account=|--help?|--session=
+.remove.user --account=|--help?|--session=
+.signin --account=|--help?|--raw|--session=|--shorthand=
+.signout --account=|--forget?|--help?|--session=
+.suspend --account=|--help?|--session=
+.update --account=|--directory=|--help?|--session=
+
+ context "!help:#fge1"
+.add context "!help:#fge1"
+.add.group context "!help:#fge1"
+.add.user context "!help:#fge1"
+.completion context "!help:#fge1"
+.completion.bash context "!help:#fge1"
+.completion.zsh context "!help:#fge1"
+.confirm context "!help:#fge1"
+.create context "!help:#fge1"
+.create.document context "!help:#fge1"
+.create.group context "!help:#fge1"
+.create.item context "!help:#fge1"
+.create.user context "!help:#fge1"
+.create.vault context "!help:#fge1"
+.delete context "!help:#fge1"
+.delete.document context "!help:#fge1"
+.delete.group context "!help:#fge1"
+.delete.item context "!help:#fge1"
+.delete.trash context "!help:#fge1"
+.delete.user context "!help:#fge1"
+.delete.vault context "!help:#fge1"
+.edit context "!help:#fge1"
+.edit.group context "!help:#fge1"
+.edit.item context "!help:#fge1"
+.edit.user context "!help:#fge1"
+.edit.vault context "!help:#fge1"
+.encode context "!help:#fge1"
+.forget context "!help:#fge1"
+.get context "!help:#fge1"
+.get.account context "!help:#fge1"
+.get.document context "!help:#fge1"
+.get.group context "!help:#fge1"
+.get.item context "!help:#fge1"
+.get.template context "!help:#fge1"
+.get.totp context "!help:#fge1"
+.get.user context "!help:#fge1"
+.get.vault context "!help:#fge1"
+.help context "!help:#fge1"
+.list context "!help:#fge1"
+.list.documents context "!help:#fge1"
+.list.events context "!help:#fge1"
+.list.groups context "!help:#fge1"
+.list.items context "!help:#fge1"
+.list.templates context "!help:#fge1"
+.list.users context "!help:#fge1"
+.list.vaults context "!help:#fge1"
+.reactivate context "!help:#fge1"
+.remove context "!help:#fge1"
+.remove.group context "!help:#fge1"
+.remove.user context "!help:#fge1"
+.signin context "!help:#fge1"
+.signout context "!help:#fge1"
+.suspend context "!help:#fge1"
+.update context "!help:#fge1"

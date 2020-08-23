@@ -634,7 +634,7 @@ proc fn_lookup(): string =
                                     var flag = flag
                                     let fchar = flag[0]
                                     flag = flag.strip(chars={'!'})
-                                    flag = if flag.len == 1: "-" else: "--" & flag
+                                    flag = (if flag.len == 1: "-" else: "--") & flag
                                     if fchar == '!': excluded[flag] = 1
                                     else: excluded.del(flag)
                         else: # Just a flag name.
@@ -646,7 +646,7 @@ proc fn_lookup(): string =
                                 var flag = ctx
                                 let fchar = flag[0]
                                 flag = flag.strip(chars={'!'})
-                                flag = if flag.len == 1: "-" else: "--" & flag
+                                flag = (if flag.len == 1: "-" else: "--") & flag
                                 if fchar == '!': excluded[flag] = 1
                                 else: excluded.del(flag)
 

@@ -785,6 +785,8 @@ proc fn_lookup(): string =
                                 if fchar == '!': excluded[flag] = 1
                                 else: excluded.del(flag)
 
+            if DEBUGMODE: echo dvar("excluded") & fmt"{pstart}{excluded}{pend}"
+
             # Context string logic: end ----------------------------------------
 
             var last_fkey = last

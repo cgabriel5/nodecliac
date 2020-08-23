@@ -807,6 +807,8 @@ sub __lookup {
 				}
 			}
 
+			if ($DEBUGMODE) { print __dvar("excluded") . $pstart . Dumper(\%db{excluded}) . "$pend\n"; }
+
 			# Context string logic: end ----------------------------------------
 
 			my $last_fkey = $last;

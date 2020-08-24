@@ -5,7 +5,7 @@
 # [https://support.1password.com/command-line/]
 
 * = [
-	--help?
+	--help::h?
 	context "!help: #fge1"
 	--account=
 	--session=
@@ -33,14 +33,14 @@ op.create.item = [
 	--vault=
 ]
 op.create.user = --language=
-op.create.vault = --allow-admins-to-manage=(true false)|--description
+op.create.vault = --allow-admins-to-manage=(true false)|--description=
 
 op.delete.{document,item} = --vault=
 op.delete.{group,trash,user,vault}
 
 op.edit.group = --description=|--name=
 op.edit.item = --generate-password|--vault=
-op.edit.user = --name|--travelmode=(on off)
+op.edit.user = --name=|--travelmode=(on off)
 op.edit.vault = --name=
 
 op.encode
@@ -62,14 +62,14 @@ op.get.item = [
 ]
 # Add categories with script?
 op.get.template
-op.get.totp = --vault
+op.get.totp = --vault=
 op.get.user = --fingerprint?|--publickey?
 op.get.vault
 
 op.help
 
 op.list.documents = --include-trash?|--vault=
-op.list.events = --eventid=|--older
+op.list.events = --eventid=|--older?
 op.list.groups = --user=|--vault=
 op.list.items = [
 	# Add categories with script?
@@ -87,7 +87,7 @@ op.reactivate
 op.remove.group
 op.remove.user
 
-op.signin = --raw|--shorthand=
+op.signin = --raw::r?|--shorthand=
 op.signout = --forget?
 op.suspend
 op.update = --directory=

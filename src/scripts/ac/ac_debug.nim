@@ -1142,13 +1142,11 @@ proc fn_lookup(): string =
 
 # Send all possible completions to bash.
 proc fn_printer() =
-    var lines = fmt"{`type`}:{last}"
-    lines &= "+" & filedir
-
     const sep = "\n"
     var skip_map = false
-    var iscommand = `type`.startsWith('c')
-    var isflag_type = `type`.startsWith('f')
+    let isflag = `type`.startsWith('f')
+    let iscommand = not isflag
+    let lines = fmt"{`type`}:{last}+{filedir}"
 
     # Note: When providing flag completions and only "--" is provided,
     # collapse (don't show) flags with the same prefix. This aims to
@@ -1200,7 +1198,7 @@ proc fn_printer() =
             # that have trailing characters (commands that are being
             # completed in the middle), and flag string completions
             # (i.e. --flag="some-word...).
-            let final_space = if isflag_type and not x.endsWith('=') and x.find({'"', '\''}) != 0 and nextchar == "": " " else: ""
+            let final_space = if isflag and not x.endsWith('=') and x.find({'"', '\''}) != 0 and nextchar == "": " " else: ""
 
             sep & x & final_space
         )

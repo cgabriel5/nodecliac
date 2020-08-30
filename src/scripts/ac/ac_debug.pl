@@ -1195,13 +1195,11 @@ sub __lookup {
 
 # Send all possible completions to bash.
 sub __printer {
-	my $lines = "$type:$last";
-	$lines .= '+' . $filedir;
-
 	my $sep = "\n";
 	my $skip_map = 0;
-	my $iscommand = rindex($type, 'c', 0) == 0;
-	my $isflag_type = rindex($type, 'f', 0) == 0;
+	my $isflag = rindex($type, 'f', 0) == 0;
+	my $iscommand = !$isflag;
+	my $lines = "$type:$last+$filedir";
 
 	# Note: When providing flag completions and only "--" is provided,
 	# collapse (don't show) flags with the same prefix. This aims to
@@ -1463,7 +1461,7 @@ sub __printer {
 			# completed in the middle), and flag string completions
 			# (i.e. --flag="some-word...).
 			my $final_space = (
-				$isflag_type
+				$isflag
 				&& !(rindex($_, '=') + 1)
 				# Item cannot be quoted.
 				&& ((rindex $_, '"', 0) == -1 || (rindex $_, '\'', 0) == -1)

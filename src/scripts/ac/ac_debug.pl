@@ -1224,7 +1224,6 @@ sub __lookup {
 			print __dfn("posthook") . "\n";
 			print __dvar("command") . "$pstart$posthook$pend\n";
 			print __dvar("res") . "$pstart$res$pend\n";
-			print "\n";
 		}
 
 		if (@r) {
@@ -1251,6 +1250,11 @@ sub __lookup {
 			}
 			@completions = @filtered;
 
+			if ($DEBUGMODE) {
+				print __dvar("__DSL__") . "$pstart$dsl$pend\n";
+				print "\n";
+			}
+
 			if (scalar(@completions) == 0 && $dsl) {
 				for my $i (0 .. $#useditems) {
 					my $c = $useditems[$i];
@@ -1258,6 +1262,11 @@ sub __lookup {
 					if ($dsl && length($c) >= $l) { $c = substr($c, $eqsign_index + 1); }
 					push(@completions, $c);
 				}
+			}
+		} else {
+			if ($DEBUGMODE) {
+				print __dvar("__DSL__") . "$pstart$dsl$pend\n";
+				print "\n";
 			}
 		}
 	}

@@ -1168,7 +1168,6 @@ proc fn_lookup(): string =
             echo dfn("posthook")
             echo dvar("command") & fmt"{pstart}{posthook}{pend}"
             echo dvar("res") & fmt"{pstart}{res}{pend}"
-            echo ""
 
         if r.len != 0:
             let l = last.len
@@ -1190,12 +1189,21 @@ proc fn_lookup(): string =
                 filtered.add(c)
             completions = filtered
 
+            if DEBUGMODE:
+                echo dvar("__DSL__") & fmt"{pstart}{dsl}{pend}"
+                echo ""
+
             if completions.len == 0 and dsl:
                 for c in useditems:
                     var c = c
                     if not c.startsWith(last): continue
                     if dsl and c.len >= l: c.delete(0, eqsign_index)
                     completions.add(c)
+
+        else:
+            if DEBUGMODE:
+                echo dvar("__DSL__") & fmt"{pstart}{dsl}{pend}"
+                echo ""
 
 # Send all possible completions to bash.
 proc fn_printer() =

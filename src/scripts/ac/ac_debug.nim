@@ -1010,7 +1010,7 @@ proc fn_lookup(): string =
             # if (rows.len == 1 and commandchain.endsWith(rows[0])): rows.setLen(0)
 
             var usedcommands = initTable[string, int]()
-            var commands = (commandchain[0 .. ^1]).split(re"(?<!\\)\.")
+            var commands = (commandchain).split(re"(?<!\\)\.")
             var level = commands.len - 1
             # Increment level if completing a new command level.
             if lastchar == ' ': inc(level)
@@ -1267,7 +1267,8 @@ proc fn_makedb() =
             # not equal the chain of the line, skip the line.
             if lastchar == ' ' and not (chain & ".").startsWith(commandchain & "."): continue
 
-            let commands = (chain[0 .. ^1]).split(re"(?<!\\)\.")
+            # Remove starting '.'?
+            let commands = (chain).split(re"(?<!\\)\.")
 
             # Cleanup remainder (flag/command-string).
             if ord(line[0]) == 45:

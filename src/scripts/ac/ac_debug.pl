@@ -285,6 +285,7 @@ sub __set_envs {
 	my $post = $params->{post}; # [https://stackoverflow.com/a/8124745]
 	my @arguments = @{ $params->{arguments} };
 	my $ctype = (rindex($type, 'c', 0) == 0 ? "command" : "flag");
+	my $prev = $args[(!$post ? -2 : -1)];
 
 	# Get any used flags to pass along. [https://stackoverflow.com/a/30094856]
 	my @usedflags = (keys %usedflags);
@@ -311,7 +312,7 @@ sub __set_envs {
 		# possible auto completion word possibilities.).
 		"${prefix}LAST" => $last,
 		# The word item preceding last word item.
-		"${prefix}PREV" => $args[(!$post ? -2 : -1)],
+		"${prefix}PREV" => $prev,
 		"${prefix}INPUT" => $input, # CLI input from start to caret index.
 		"${prefix}INPUT_ORIGINAL" => $oinput, # Original unmodified CLI input.
 		# CLI input from start to caret index.
@@ -365,7 +366,7 @@ sub __set_envs {
 		print __dvar("${prefix}COMMAND_CHAIN") . "$pstart$commandchain$pend\n";
 		print __dvar("${prefix}USED_FLAGS") . "$pstart" . Dumper(\@usedflags) . "$pend\n";
 		print __dvar("${prefix}LAST") . "$pstart$last$pend\n";
-		print __dvar("${prefix}PREV") . $pstart . $args[-2] . "$pend\n";
+		print __dvar("${prefix}PREV") . "$pstart$prev$pend\n";
 		print __dvar("${prefix}INPUT") . "$pstart$input$pend\n";
 		print __dvar("${prefix}INPUT_ORIGINAL") . "$pstart$oinput$pend\n";
 		print __dvar("${prefix}INPUT_REMAINDER") . "$pstart$input_remainder$pend\n";

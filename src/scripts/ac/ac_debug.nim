@@ -305,6 +305,7 @@ proc parseCmdStr(input: var string): seq[string] =
 proc setEnvs(arguments: varargs[string], post=false) =
     let l = args.len
     let ctype = (if `type`[0] == 'c': "command" else: "flag")
+    let prev = args[^(if not post: 2 else: 1)]
 
     # Get any used flags to pass along.
     var usedflags: seq[string] = @[]
@@ -332,7 +333,7 @@ proc setEnvs(arguments: varargs[string], post=false) =
         # possible auto completion word possibilities.).
         fmt"{prefix}LAST": last,
         # The word item preceding last word item.
-        fmt"{prefix}PREV": args[^(if not post: 2 else: 1)],
+        fmt"{prefix}PREV": prev,
         fmt"{prefix}INPUT": input, # CLI input from start to caret index.
         fmt"{prefix}INPUT_ORIGINAL": oinput, # Original unmodified CLI input.
         # CLI input from start to caret index.
@@ -384,7 +385,7 @@ proc setEnvs(arguments: varargs[string], post=false) =
         echo dvar(fmt"{prefix}COMMAND_CHAIN") & fmt"{pstart}{commandchain}{pend}"
         echo dvar(fmt"{prefix}USED_FLAGS") & fmt"{pstart}" & usedflags.join("\n") & pend
         echo dvar(fmt"{prefix}LAST") & fmt"{pstart}{last}{pend}"
-        echo dvar(fmt"{prefix}PREV") & fmt"{pstart}" & args[^2] & pend
+        echo dvar(fmt"{prefix}PREV") & fmt"{pstart}{prev}{pend}"
         echo dvar(fmt"{prefix}INPUT") & fmt"{pstart}{input}{pend}"
         echo dvar(fmt"{prefix}INPUT_ORIGINAL") & fmt"{pstart}{oinput}{pend}"
         echo dvar(fmt"{prefix}INPUT_REMAINDER") & fmt"{pstart}{input_remainder}{pend}"

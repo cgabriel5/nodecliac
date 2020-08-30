@@ -1191,8 +1191,8 @@ sub __lookup {
 				# Remove last command chain from overall command chain.
 				$copy_commandchain =~ s/$pattern//;
 			}
-		if ($DEBUGMODE) { print __dvar("completions") . $pstart . Dumper(\@completions) . "$pend\n"; }
 		}
+		if ($DEBUGMODE) { print __dvar("completions") . $pstart . Dumper(\@completions) . "$pend\n"; }
 	}
 
 	# Get filedir of command chain.

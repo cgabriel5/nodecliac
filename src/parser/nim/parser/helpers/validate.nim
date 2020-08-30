@@ -8,6 +8,7 @@ from charsets import C_QUOTES, C_SPACES, C_CTX_ALL, C_CTX_MUT,
     C_CTX_FLG, C_CTX_CON, C_LETTERS, C_CTX_CAT, C_CTX_OPS
 from ../../utils/regex import findAllBounds
 let r = re"(?<!\\)\$\{\s*[^}]*\s*\}"
+let r_unescap = re"(?:\\(.))"
 
 # Validates string and interpolates its variables.
 #
@@ -218,7 +219,9 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                 argument = validate(S, tN, "quoted")
                 args.add(argument)
 
-            let cvalue = "$(" & args.join(",") & ")" # Build clean cmd-flag.
+            # Build clean cmd-flag and remove backslash escapes, but keep
+            # escaped backslashes: [https://stackoverflow.com/a/57430306]
+            let cvalue = ("$(" & args.join(",") & ")").replacef(r_unescap, "$1")
             N.args = @[cvalue]
             N.value.value = cvalue
             value = cvalue
@@ -337,6 +340,4 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
             N.value.value = cargs
             value = cargs
 
-    # Remove backslash escapes, but keep escaped backslashes:
-    # [https://stackoverflow.com/a/57430306]
-    return value.replacef(re"(?:\\(.))", "$1")
+    return value

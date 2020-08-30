@@ -5,6 +5,7 @@ const vtest = require("./vtest.js");
 const vcontext = require("./vcontext.js");
 const { cin, cnotin, C_SPACES, C_QUOTES } = require("./charsets.js");
 const r = /(?<!\\)\$\{\s*[^}]*\s*\}/g;
+const r_unescap = /(?:\\(.))/g;
 
 /**
  * Validates string and interpolates its variables.
@@ -250,7 +251,9 @@ let validate = (S, N, type) => {
 					args.push(argument);
 				}
 
-				let cvalue = `$(${args.join(",")})`; // Build clean cmd-flag.
+				// Build clean cmd-flag and remove backslash escapes, but keep
+				// escaped backslashes: [https://stackoverflow.com/a/57430306]
+				let cvalue = `$(${args.join(",")})`.replace(r_unescap, "$1");
 				N.args = [cvalue];
 				N.value.value = value = cvalue;
 			}
@@ -375,9 +378,7 @@ let validate = (S, N, type) => {
 			break;
 	}
 
-	// Remove backslash escapes, but keep escaped backslashes:
-	// [https://stackoverflow.com/a/57430306]
-	return value.replace(/(?:\\(.))/g, "$1");
+	return value;
 };
 
 module.exports = (...args) => validate(...args);

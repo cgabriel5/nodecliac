@@ -389,7 +389,7 @@ function xtest {
 		((test_id--))
 		((skipped++))
 		if [[ $(isset "$PRINT") ]]; then
-			echo -e "(-) \033[1mIgnored (No Tests)\033[0m\n    [?] [$teststring_og\\033[0m] (${t}s)"
+			echo -e "(-) \033[1mIgnored (No Tests)\033[0m\n    [?] [$teststring_og]\\033[0m (${t}s)"
 			echo -e "    \033[1;35mOutput\033[0m"
 			readarray -t completions <<< "$(trim "$output")"
 			l="${#completions[@]}"
@@ -405,7 +405,7 @@ function xtest {
 				diff=$(( test_columns - tidl ))
 				padding="" # [https://stackoverflow.com/a/5349842]
 				[[ "$diff" > 0 ]] && padding="$(printf ' %.0s' $(seq 1 $diff))"
-				echo -e "${tid}${padding} $CHECK_MARK ${t}s [$teststring_og\\033[0m]"
+				echo -e "${tid}${padding} $CHECK_MARK ${t}s [$teststring_og]\\033[0m"
 			fi
 			((passed_count++))
 		else
@@ -415,7 +415,7 @@ function xtest {
 				padding="" # [https://stackoverflow.com/a/5349842]
 				[[ "$diff" > 0 ]] && padding="$(printf ' %.0s' $(seq 1 $diff))"
 				echo ""
-				echo -e "${tid}${padding} \033[1;31mFailing\033[0m\n    [$X_MARK] (${t}s) TS=[$teststring_og\\033[0m]"
+				echo -e "${tid}${padding} \033[1;31mFailing\033[0m\n    [$X_MARK] (${t}s) TS=[$teststring_og]\\033[0m"
 
 				l="${#tests[@]}"
 				for ((i = 0 ; i < $l ; i++)); do

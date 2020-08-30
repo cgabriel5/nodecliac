@@ -633,6 +633,7 @@ sub __lookup {
 										$c = keys(%{$usedflags{counts}});
 										# Account for used '--' flag.
 										if ($c == 1 && exists($usedflags{counts}{'--'})) { $c = 0; }
+										if (!$lastchar) { $c--; }
 									} else { $c = $#posargs + 1; }
 									if    ($operator eq "eq") { $r = ($c == $n ? 1 : 0); }
 									elsif ($operator eq "ne") { $r = ($c != $n ? 1 : 0); }

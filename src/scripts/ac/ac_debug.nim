@@ -775,6 +775,7 @@ proc fn_lookup(): string =
                                         c = usedflags_counts.len
                                         # Account for used '--' flag.
                                         if c == 1 and usedflags_counts.hasKey("--"): c = 0
+                                        if lastchar == '\0': dec(c)
                                     else: c = posargs.len
                                     case (operator):
                                         of "eq": r = if c == n: true else: false

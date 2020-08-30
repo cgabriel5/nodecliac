@@ -26,6 +26,9 @@ my $afcount = 0;
 # Arguments meta data: [eq-sign index, isBool]
 my @ameta = ();
 my $last = '';
+my $quote_open = 0;
+# Parsed last (flag) data.
+my $dflag = (); # [flag, eq, value]
 my $type = '';
 my @foundflags = ();
 my @completions = ();
@@ -34,7 +37,7 @@ my $lastchar; # Character before caret.
 my $nextchar = substr($cline, $cpoint, 1); # Character after caret.
 my $cline_length = length($cline); # Original input's length.
 my $isquoted = 0;
-my $autocompletion = 1;
+# my $autocompletion = 1;
 my $input = substr($cline, 0, $cpoint); # CLI input from start to caret index.
 my $input_remainder = substr($cline, $cpoint, -1); # CLI input from caret index to input string end.
 my $hdir = $ENV{'HOME'};
@@ -330,10 +333,23 @@ sub __set_envs {
 		"${prefix}COMP_TYPE" => $ctype
 	);
 
+# If completion is for a flag, set flag data for quick access in script.
+	if ($ctype eq "flag") {
+		$envs{"${prefix}FLAG_NAME"} = $dflag[0];
+		$envs{"${prefix}FLAG_EQSIGN"} = $dflag[1];
+		$envs{"${prefix}FLAG_VALUE"} = $dflag[2];
+		# Indicates if last word is an open quoted value.
+		$envs{"${prefix}QUOTE_OPEN"} = $quote_open;
+	}
+
 	# Set completion index (index where completion is being attempted) to
 	# better mimic bash's $COMP_CWORD builtin variable.
-	my $comp_index = $lastchar eq '' ? $l - 1 : $l;
-	$envs{"${prefix}COMP_INDEX"} = comp_index;
+	my $comp_index = !$lastchar ||
+		(length($last) > 0 && (
+			substr($last, 0, 1) =~ tr/"'// || $quote_open ||
+			substr($last, -2, 1) eq '\\'
+		)) ? $l - 1 : $l;
+	$envs{"${prefix}COMP_INDEX"} = $comp_index;
 	# Also, ensure NODECLIAC_PREV is reset to the second last argument
 	# if it exists only when the lastchar is empty to To better mimic
 	# prev=${COMP_WORDS[COMP_CWORD-1]}.
@@ -359,6 +375,11 @@ sub __set_envs {
 		print __dvar("${prefix}INPUT_LINE_LENGTH") . $pstart . length($input) . "$pend\n";
 		print __dvar("${prefix}ARG_COUNT") . "$pstart$l$pend\n";
 		print __dvar("${prefix}USED_DEFAULT_POSITIONAL_ARGS") . "$pstart$used_default_pa_args$pend\n";
+		print __dvar("${prefix}COMP_TYPE") . "$pstart$ctype$pend\n";
+		print __dvar("${prefix}FLAG_NAME") . "$pstart" . $dflag[0] . "$pend\n";
+		print __dvar("${prefix}FLAG_EQSIGN") . "$pstart" . $dflag[1] . "$pend\n";
+		print __dvar("${prefix}FLAG_VALUE") . "$pstart" . $dflag[2] . "$pend\n";
+		print __dvar("${prefix}QUOTE_OPEN") . "$pstart$quote_open$pend\n";
 	}
 
 	# Add parsed arguments as individual env variables.
@@ -486,6 +507,10 @@ sub __tokenize {
 		}
 	}
 
+	# If the qchar is set, there was an unclosed string like:
+	# '$ op list itema --categories="Outdoor '
+	if ($qchar) { $quote_open = 1; }
+
 	# Get last argument.
 	if ($argument) {
 		push(@ameta, [$delindex, 0]); $delindex = -1;
@@ -522,12 +547,12 @@ sub __analyze {
 		my $item = $args[$i];
 		my $nitem = $args[$i + 1];
 
-		# Skip quoted or escaped items.
-		if (substr($item, 0, 1) =~ tr/"'// || $item =~ tr/\\//) {
-			push(@posargs, $item);
-			push(@cargs, $item);
-			next;
-		}
+		# # Skip quoted or escaped items.
+		# if (substr($item, 0, 1) =~ tr/"'// || $item =~ tr/\\//) {
+		# 	push(@posargs, $item);
+		# 	push(@cargs, $item);
+		# 	next;
+		# }
 
 		if (rindex($item, '-', 0)) {
 			my $command = __normalize_command($item);
@@ -601,6 +626,15 @@ sub __analyze {
 	if (@posargs) { $used_default_pa_args = join("\n", @posargs); }
 
 	$last = ($lastchar eq ' ') ? '' : $cargs[-1];
+	# Reset if completion is being attempted for a quoted/escaped string.
+	if ($lastchar eq ' ' && scalar(@cargs) > 0) {
+		my $litem = $cargs[-1];
+		my $lchar = substr($litem, 0, 1);
+		$quote_open = ($quote_open && $lchar eq '-');
+		if ($lchar =~ tr/"'// || $quote_open || substr($litem, -2, 1) eq '\\') {
+			$last = $litem;
+		}
+	}
 	if (substr($last, 0, 1) =~ tr/"'//) { $isquoted = 1; }
 
 	# Handle case: 'nodecliac print --command [TAB]'
@@ -671,7 +705,7 @@ sub __analyze {
 #
 # @return - Nothing is returned.
 sub __lookup {
-	if ($isquoted || !$autocompletion) { return; }
+	# if ($isquoted || !$autocompletion) { return; }
 
 	if (rindex($last, '-', 0) == 0) {
 		if ($DEBUGMODE) { print __dfn("lookup", "(flag)") . "\n"; }
@@ -833,6 +867,9 @@ sub __lookup {
 			}
 
 			my $last_val_quoted = (substr($last_value, 0, 1) =~ tr/"'//);
+
+			# Store data for env variables.
+			push(@dflag, $last_fkey, $last_eqsign, $last_value);
 
 			# Process flags.
 			foreach my $flag (@flags) {
@@ -1177,6 +1214,7 @@ sub __lookup {
 		$res =~ s/^\s+|\s+$//g;
 		@r = split(/$delimiter/m, $res);
 		if ($res) { @r = split(/$delimiter/m, $res); }
+		my $dsl = 0; # Delimiter Separated List.
 
 		if ($DEBUGMODE) {
 			print "\n";
@@ -1187,8 +1225,37 @@ sub __lookup {
 		}
 
 		if (@r) {
-			my $pattern = '^' . quotemeta($last);
-			@completions = grep { /$pattern/ } @r;
+			my $l = length($last);
+			my @filtered = ();
+			my @useditems = ();
+			my $eqsign_index = index($last, '=');
+			for my $i (0 .. $#r) {
+				my $c = $r[$i];
+				if ($c eq '__DSL__') { $dsl = 1; }
+				if (rindex($c, '!', 0) == 0) {
+					push(@useditems, substr($c, 1));
+					next;
+				}
+				if (rindex($c, $last, 0) != 0) { next; }
+				# When completing a delimited separated list, ensure to remove
+				# the flag from every completion item to leave the values only.
+				# [https://unix.stackexchange.com/q/124539]
+				# [https://github.com/scop/bash-completion/issues/240]
+				# [https://github.com/scop/bash-completion/blob/master/completions/usermod]
+				# [https://github.com/scop/bash-completion/commit/021058b38ad7279c33ffbaa36d73041d607385ba]
+				if ($dsl && length($c) >= $l) { $c = substr($c, $eqsign_index + 1); }
+				push(@filtered, $c);
+			}
+			@completions = @filtered;
+
+			if (scalar(@completions) == 0 && $dsl) {
+				for my $i (0 .. $#useditems) {
+					my $c = $useditems[$i];
+					if (rindex($c, $last, 0) != 0) { next; }
+					if ($dsl && length($c) >= $l) { $c = substr($c, $eqsign_index + 1); }
+					push(@completions, $c);
+				}
+			}
 		}
 	}
 }

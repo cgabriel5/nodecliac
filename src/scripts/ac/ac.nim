@@ -34,6 +34,9 @@ var afcount = 0
 # Arguments meta data: [eq-sign index, isBool]
 var ameta: seq[array[2, int]] = @[]
 var last = ""
+var quote_open = false
+# Parsed last (flag) data.
+var dflag: tuple[flag: string, eq: char, value: string]
 var `type` = ""
 var foundflags: seq[string] = @[]
 var completions: seq[string] = @[]
@@ -42,7 +45,7 @@ var lastchar: char # Character before caret.
 let nextchar = cline.substr(cpoint, cpoint) # Character after caret.
 var cline_length = cline.len # Original input's length.
 var isquoted = false
-var autocompletion = true
+# var autocompletion = true
 var input = cline.substr(0, cpoint - 1) # CLI input from start to caret index.
 var input_remainder = cline.substr(cpoint, -1)# CLI input from caret index to input string end.
 let hdir = os.getEnv("HOME")
@@ -284,9 +287,21 @@ proc setEnvs(arguments: varargs[string], post=false) =
         fmt"{prefix}COMP_TYPE": ctype
     }.toTable
 
+    # If completion is for a flag, set flag data for quick access in script.
+    if ctype == "flag":
+        envs[fmt"{prefix}FLAG_NAME"] = dflag.flag
+        envs[fmt"{prefix}FLAG_EQSIGN"] = $dflag.eq
+        envs[fmt"{prefix}FLAG_VALUE"] = dflag.value
+        # Indicates if last word is an open quoted value.
+        envs[fmt"{prefix}QUOTE_OPEN"] = if quote_open: "1" else: "0"
+
     # Set completion index (index where completion is being attempted) to
     # better mimic bash's $COMP_CWORD builtin variable.
-    envs[fmt"{prefix}COMP_INDEX"] = if lastchar == '\0': $(l - 1) else: $l
+    let comp_index = if lastchar == '\0' or
+        (last.len > 0 and (
+            last[0] in C_QUOTES or quote_open or last[^2] == '\\'
+        )): $(l - 1) else: $l
+    envs[fmt"{prefix}COMP_INDEX"] = comp_index
     # Also, ensure NODECLIAC_PREV is reset to the second last argument
     # if it exists only when the lastchar is empty to To better mimic
     # prev=${COMP_WORDS[COMP_CWORD-1]}.
@@ -396,6 +411,10 @@ proc fn_tokenize() =
                     c = '=' # Normalize ':' to '='.
                 argument &= $c
 
+    # If the qchar is set, there was an unclosed string like:
+    # '$ op list itema --categories="Outdoor '
+    if qchar != '\0': quote_open = true
+
     # Get last argument.
     if argument != "":
         ameta.add([delindex, 0]); delindex = -1
@@ -420,12 +439,12 @@ proc fn_analyze() =
         var item = args[i]
         let nitem = if i + 1 < l: args[i + 1] else: ""
 
-        # Skip quoted or escaped items.
-        if item[0] in C_QUOTES or '\\' in item:
-            posargs.add(item)
-            cargs.add(item)
-            inc(i)
-            continue
+        # # Skip quoted or escaped items.
+        # if item[0] in C_QUOTES or '\\' in item:
+        #     posargs.add(item)
+        #     cargs.add(item)
+        #     inc(i)
+        #     continue
 
         if not item.startsWith('-'):
             let command = fn_normalize_command(item)
@@ -491,6 +510,11 @@ proc fn_analyze() =
     if posargs.len > 0: used_default_pa_args = posargs.join("\n")
 
     last = if lastchar == ' ': "" else: cargs[^1]
+    # Reset if completion is being attempted for a quoted/escaped string.
+    if lastchar == ' ' and cargs.len > 0:
+        let litem = cargs[^1]
+        quote_open = quote_open and litem[0] == '-'
+        if (litem[0] in C_QUOTES or quote_open or litem[^2] == '\\'): last = litem
     if last.find(C_QUOTES) == 0: isquoted = true
 
     # Handle case: 'nodecliac print --command [TAB]'
@@ -533,7 +557,7 @@ proc fn_analyze() =
 #
 # @return - Nothing is returned.
 proc fn_lookup(): string =
-    if isquoted or not autocompletion: return ""
+    # if isquoted or not autocompletion: return ""
 
     if last.startsWith('-'):
         `type` = "flag"
@@ -670,6 +694,9 @@ proc fn_lookup(): string =
                 last_eqsign = '='
 
             let last_val_quoted = last_value.find(C_QUOTES) == 0
+
+            # Store data for env variables.
+            dflag = (flag: last_fkey, eq: last_eqsign, value: last_value)
 
             # Process flags.
             var i = 0; while i < flags.len:
@@ -976,10 +1003,33 @@ proc fn_lookup(): string =
         except: discard
         res = res.strip(trailing=true)
         if res != "": r= split(res, re(delimiter))
+        var dsl = false # Delimiter Separated List.
         if r.len != 0:
-            completions = filter(r, proc (x: string): bool =
-                x.startsWith(last)
-            )
+            let l = last.len
+            var filtered: seq[string] = @[]
+            var useditems: seq[string] = @[]
+            let eqsign_index = last.find('=')
+            for c in r:
+                var c = c
+                if c == "__DSL__": dsl = true
+                if c[0] == '!': useditems.add(c[1 .. ^1]); continue
+                if not c.startsWith(last): continue
+                # When completing a delimited separated list, ensure to remove
+                # the flag from every completion item to leave the values only.
+                # [https://unix.stackexchange.com/q/124539]
+                # [https://github.com/scop/bash-completion/issues/240]
+                # [https://github.com/scop/bash-completion/blob/master/completions/usermod]
+                # [https://github.com/scop/bash-completion/commit/021058b38ad7279c33ffbaa36d73041d607385ba]
+                if dsl and c.len >= l: c.delete(0, eqsign_index)
+                filtered.add(c)
+            completions = filtered
+
+            if completions.len == 0 and dsl:
+                for c in useditems:
+                    var c = c
+                    if not c.startsWith(last): continue
+                    if dsl and c.len >= l: c.delete(0, eqsign_index)
+                    completions.add(c)
 
 # Send all possible completions to bash.
 proc fn_printer() =

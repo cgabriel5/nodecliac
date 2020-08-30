@@ -234,6 +234,7 @@ proc parseCmdStr(input: var string): seq[string] =
 # @return - Nothing is returned.
 proc setEnvs(arguments: varargs[string], post=false) =
     let l = args.len
+    let ctype = (if `type`[0] == 'c': "command" else: "flag")
 
     # Get any used flags to pass along.
     var usedflags: seq[string] = @[]
@@ -280,7 +281,7 @@ proc setEnvs(arguments: varargs[string], post=false) =
         # command-chain to access in plugin auto-completion scripts.
         fmt"{prefix}USED_DEFAULT_POSITIONAL_ARGS": used_default_pa_args,
         # Whether completion is being done for a command or a flag.
-        fmt"{prefix}_COMP_TYPE": (if `type`[0] == 'c': "command" else: "flag")
+        fmt"{prefix}COMP_TYPE": ctype
     }.toTable
 
     # Set completion index (index where completion is being attempted) to

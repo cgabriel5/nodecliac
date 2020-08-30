@@ -281,6 +281,7 @@ sub __set_envs {
 	my $l = $#args + 1;
 	my $post = $params->{post}; # [https://stackoverflow.com/a/8124745]
 	my @arguments = @{ $params->{arguments} };
+	my $ctype = (rindex($type, 'c', 0) == 0 ? "command" : "flag");
 
     # Get any used flags to pass along. [https://stackoverflow.com/a/30094856]
 	my @usedflags = (keys %usedflags);
@@ -324,7 +325,9 @@ sub __set_envs {
 		"${prefix}ARG_COUNT" => $l,
 		# Store collected positional arguments after validating the
 		# command-chain to access in plugin auto-completion scripts.
-		"${prefix}USED_DEFAULT_POSITIONAL_ARGS" => $used_default_pa_args
+		"${prefix}USED_DEFAULT_POSITIONAL_ARGS" => $used_default_pa_args,
+		# Whether completion is being done for a command or a flag.
+		"${prefix}COMP_TYPE" => $ctype
 	);
 
 	# Set completion index (index where completion is being attempted) to

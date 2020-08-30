@@ -684,14 +684,14 @@ sub __analyze {
 		print __dvar("args") . $pstart . Dumper(\@args) . "$pend\n";
 		print __dvar("cargs") . $pstart . Dumper(\@cargs) . "$pend\n";
 		print __dvar("commands") . $pstart . Dumper(\@commands) . "$pend\n";
+		print __dvar("lastchar") . $pstart . $lastchar . "$pend\n";
+		print __dvar("last") . $pstart . $last . "$pend\n";
 		print __dvar("chainstrings") . $pstart . Dumper(\@chainstrings) . "$pend\n";
 		print __dvar("chainflags") . $pstart . Dumper(\@chainflags) . "$pend\n";
 		print __dvar("foundflags") . $pstart . Dumper(\@foundflags) . "$pend\n";
 		print __dvar("delindices") . $pstart . Dumper(\@delindices) . "$pend\n";
 		print __dvar("posargs") . $pstart . Dumper(\@posargs) . "$pend\n";
 		print __dvar("used_default_pa_args") . $pstart . $used_default_pa_args . "$pend\n";
-		print __dvar("lastchar") . $pstart . $lastchar . "$pend\n";
-		print __dvar("last") . $pstart . $last . "$pend\n";
 		print __dvar("isquoted") . $pstart . $isquoted . "$pend\n";
 		print __dvar("usedflags") . $pstart . Dumper(\%usedflags) . "$pend\n";
 		print __dvar("usedflags_valueless") . $pstart . Dumper(\%usedflags{'valueless'}) . "$pend\n";

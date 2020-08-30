@@ -116,7 +116,8 @@ if DEBUGMODE:
     echo dvar("cline.len") & fmt"{pstart}{cline.len}{pend}"
     echo dvar("cpoint") & fmt"{pstart}{cpoint}{pend}"
     echo dvar("maincommand") & fmt"{pstart}{maincommand}{pend}"
-    echo dvar("acdef") & fmt"{pstart}{acdef}{pend}"
+    let p = fmt"~/.nodecliac/registry/{maincommand}/{maincommand}.acdef"
+    echo dvar("acdef") & fmt"{pstart}{p}{pend}"
     echo ""
 
 # # Log local variables and their values.

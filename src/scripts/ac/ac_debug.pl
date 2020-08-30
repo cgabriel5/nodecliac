@@ -109,7 +109,8 @@ if ($DEBUGMODE) {
 	print __dvar("cline.len") . $pstart . length($cline) . "$pend\n";
 	print __dvar("cpoint") . "$pstart$cpoint$pend\n";
 	print __dvar("maincommand") . "$pstart$maincommand$pend\n";
-	print __dvar("acdef") . "$pstart$acdef$pend\n";
+	my $p = "~/.nodecliac/registry/$maincommand/$maincommand.acdef";
+	print __dvar("acdef") . "$pstart$p$pend\n";
 	print "\n";
 }
 

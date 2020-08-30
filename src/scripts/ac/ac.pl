@@ -129,8 +129,8 @@ sub __exec_command {
 				my $qchar = substr($arg, 0, 1);
 				$arg = substr($arg, 1, -1); # Unquote.
 				# $command .= " \"$($qchar" . $arg . "$qchar)\"";
-                # Wrap command with ticks to target the common shell 'sh'.
-                $command .= " $qchar`" . $arg . "`$qchar";
+				# Wrap command with ticks to target the common shell 'sh'.
+				$command .= " $qchar`" . $arg . "`$qchar";
 			} else {
 				$arg = substr($arg, 1, -1); # Unquote.
 				$command .= " $arg";
@@ -198,7 +198,7 @@ sub __set_envs {
 	my @arguments = @{ $params->{arguments} };
 	my $ctype = (rindex($type, 'c', 0) == 0 ? "command" : "flag");
 
-    # Get any used flags to pass along. [https://stackoverflow.com/a/30094856]
+	# Get any used flags to pass along. [https://stackoverflow.com/a/30094856]
 	my @usedflags = (keys %usedflags);
 
 	my %envs = (

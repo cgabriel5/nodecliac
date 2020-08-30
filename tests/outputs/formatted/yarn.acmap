@@ -298,7 +298,7 @@ yarn.why = [
 	# [https://dzone.com/articles/perl-as-a-better-grep]
 	# [https://serverfault.com/questions/208265/what-is-bash-event-not-found/631101#631101]
 	# [https://stackoverflow.com/questions/53886144/how-to-fix-possible-unintended-interpolation-of-in-regex/53886274#53886274]
-	default $('yarn list --depth=0 \| perl -wln -e "/(?! ─ )([-\\/_.@(?)a-zA-Z0-9]*)(?=\\@)/ and print $&;"')
+	default $('yarn list --depth=0 | perl -wln -e "/(?! ─ )([-\/_.@(?)a-zA-Z0-9]*)(?=\@)/ and print $&;"')
 	# Above command is slow due to running yarn (node.js CLI tool) - not a native shell CLI tool (i.e. bash based).
 
 	# Non-portable GNU grep only solution.

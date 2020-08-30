@@ -60,7 +60,7 @@ op.get.item = [
 	--share-link?
 	--vault=
 ]
-# Add categories with script?
+# Post-hook script provides category completions.
 op.get.template
 op.get.totp = --vault=
 op.get.user = --fingerprint?|--publickey?
@@ -72,8 +72,9 @@ op.list.documents = --include-trash?|--vault=
 op.list.events = --eventid=|--older?
 op.list.groups = --user=|--vault=
 op.list.items = [
-	# Add categories with script?
+	# Post-hook script provides category completions.
 	--categories=
+	--category=$("${PATH}/scripts/categories.pl")
 	--include-trash?
 	--tags=
 	--vault=

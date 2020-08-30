@@ -1,4 +1,4 @@
-# DON'T EDIT FILE —— GENERATED: Mon Aug 24 2020 00:16:45 (1598253405)
+# DON'T EDIT FILE —— GENERATED: Sun Aug 30 2020 00:21:14 (1598772074)
 
  --account=|--help?|--session=|-h?
 .add --account=|--help?|--session=|-h?
@@ -42,7 +42,7 @@
 .list.documents --account=|--help?|--include-trash?|--session=|--vault=|-h?
 .list.events --account=|--eventid=|--help?|--older?|--session=|-h?
 .list.groups --account=|--help?|--session=|--user=|--vault=|-h?
-.list.items --account=|--categories=|--help?|--include-trash?|--session=|--tags=|--vault=|-h?
+.list.items --account=|--categories=|--category=|--category=$("~/.nodecliac/registry/op/scripts/categories.pl")|--help?|--include-trash?|--session=|--tags=|--vault=|-h?
 .list.templates --account=|--help?|--session=|-h?
 .list.users --account=|--group=|--help?|--session=|--vault=|-h?
 .list.vaults --account=|--group=|--help?|--session=|--user=|-h?

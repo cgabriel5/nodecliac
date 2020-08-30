@@ -326,7 +326,9 @@ function xtest {
 		fi
 
 		local r=0
-		item="$(perl -pe 's/([\\])(;|:)/\2/g' <<< "$(trim "$item")")"
+		# Unescape escaped ';' and ':'.
+		item="$(perl -pe 's/\\(\\)?(;|:)/\2/g' <<< "$(trim "$item")")"
+		# item="$(perl -pe 's/([\\])(;|:)/\2/g' <<< "$(trim "$item")")"
 		tests+=("$item")
 
 		# Check if result needs to be inverted.
@@ -383,7 +385,8 @@ function xtest {
 		[[ "$r" == 0 ]] && suite_status=0
 		
 		results+=("$r")
-	done < <(perl -pe 's/([^\\]);/\1\n/g' <<< "$string")
+	# done < <(perl -pe 's/([^\\]);/\1\n/g' <<< "$string")
+	done < <(perl -pe 's/((?<!\\\\));/\1\n/g' <<< "$string")
 	
 	if [[ "${#tests[@]}" == 0 ]]; then
 		((test_id--))

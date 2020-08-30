@@ -33,28 +33,28 @@ tests=(
 'nodecliac . -; 1:*--version*'
 
 # [test-suite: prettier-cli-watcher]
-"prettier-cli-watcher ; command\:+"
+"prettier-cli-watcher ; command\\:+"
 "prettier-cli-watcher --watcher=; *hound*"
 "prettier-cli-watcher --watcher= --; !*--watcher*"
 "prettier-cli-watcher --watcher=hou; *hound *"
 "prettier-cli-watcher --watcher=hound; *hound *"
 "prettier-cli-watcher --watcher=hound --; !*--watcher*"
-"prettier-cli-watcher --watcher=hound --w; flag\:--w+"
+"prettier-cli-watcher --watcher=hound --w; flag\\:--w+"
 "prettier-cli-watcher --watcher=hound --watcher ; !*chokidar*"
 "prettier-cli-watcher --watcher=hound --watcher=; !*chokidar*"
-"prettier-cli-watcher --watcher=hound --; flag\:--+\n--config \n--dir \n--dry \n--dtime \n--ignore \n--notify \n--quiet \n--setup \n--version\n"
+"prettier-cli-watcher --watcher=hound --; flag\\:--+\n--config \n--dir \n--dry \n--dtime \n--ignore \n--notify \n--quiet \n--setup \n--version\n"
 "prettier-cli-watcher --watcher hou; *hound *"
 "prettier-cli-watcher --watcher hound; *hound *"
 "prettier-cli-watcher --watcher hound --; !*--watcher*"
-"prettier-cli-watcher --watcher hound --w; flag\:--w+"
+"prettier-cli-watcher --watcher hound --w; flag\\:--w+"
 "prettier-cli-watcher --watcher hound --watcher ; !*chokidar*"
-"prettier-cli-watcher --watcher hound --watcher; flag\:--watcher+"
+"prettier-cli-watcher --watcher hound --watcher; flag\\:--watcher+"
 "prettier-cli-watcher --watcher=hound --watcher=; !*chokidar*"
 "prettier-cli-watcher --watcher=hound --watcher; !*chokidar*"
 "prettier-cli-watcher --watcher=hound --watcher chok; !*chokidar*"
 
 # [test-suite: yarn]
-# "yarn remov ; command\:+" # `remov` command does not exit.
+# "yarn remov ; command\\:+" # `remov` command does not exit.
 "yarn remove ch; *chalk*"
 "yarn ; *config*"
 "yarn run; !*nocache*"
@@ -62,7 +62,7 @@ tests=(
 "yarn remove ; *prettier*"
 "yarn remove prettier ; *-*"
 # Completing a non existing argument should not append a trailing space.
-"yarn remove nonexistantarg; command\;nocache\:nonexistantarg+"
+"yarn remove nonexistantarg; command\\\\;nocache\\\\:nonexistantarg+"
 "yarn add prettier-cli-watcher@* --; *--dev*"
 
 # [test-suite: nim]

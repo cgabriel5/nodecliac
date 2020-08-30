@@ -52,6 +52,7 @@ var input_remainder = cline.substr(cpoint, -1)# CLI input from caret index to in
 let hdir = os.getEnv("HOME")
 let TESTMODE = os.getEnv("TESTMODE") == "1"
 let DEBUGMODE = true
+var debuglines: seq[string] = @[]
 var filedir = ""
 
 var db_dict = initTable[char, Table[string, Table[string, seq[string]]]]()
@@ -81,6 +82,16 @@ let header = "DEBUGMODE".chalk("bold", "magenta")
 let script = "Nim".chalk("bold")
 let dheader = fmt"\n{decor} [{header} {script}] {decor}"
 
+# Adds line to debug line array.
+#
+# @param  {string} line - The line to add.
+# @param  {bool} skip - Whether to skip line.
+# @return {string} - The header string.
+proc dline(line: string, skip = false) =
+    if not skip: debuglines.add(line)
+    else: # If last entry is a "newline" (empty) skip it.
+        if debuglines[^1] != "": debuglines.add(line)
+
 # Prints a debug header.
 #
 # @param  {string} name - Header name.
@@ -109,16 +120,16 @@ proc dvar(name: string): string =
     result = "  - " & name.chalk("cyan") & ": "
 
 if DEBUGMODE:
-    echo fmt"{dheader} (" & "exit".chalk("bold") & ": nodecliac debug --disable)\n"
-    echo dhd("Arguments")
-    echo dvar("oinput") & fmt"{pstart}{oinput}{pend}"
-    echo dvar("cline") & fmt"{pstart}{cline}{pend}"
-    echo dvar("cline.len") & fmt"{pstart}{cline.len}{pend}"
-    echo dvar("cpoint") & fmt"{pstart}{cpoint}{pend}"
-    echo dvar("maincommand") & fmt"{pstart}{maincommand}{pend}"
+    dline(fmt"{dheader} (" & "exit".chalk("bold") & ": nodecliac debug --disable)\n")
+    dline(dhd("Arguments"))
+    dline(dvar("oinput") & fmt"{pstart}{oinput}{pend}")
+    dline(dvar("cline") & fmt"{pstart}{cline}{pend}")
+    dline(dvar("cline.len") & fmt"{pstart}{cline.len}{pend}")
+    dline(dvar("cpoint") & fmt"{pstart}{cpoint}{pend}")
+    dline(dvar("maincommand") & fmt"{pstart}{maincommand}{pend}")
     let p = fmt"~/.nodecliac/registry/{maincommand}/{maincommand}.acdef"
-    echo dvar("acdef") & fmt"{pstart}{p}{pend}"
-    echo ""
+    dline(dvar("acdef") & fmt"{pstart}{p}{pend}")
+    dline("")
 
 # # Log local variables and their values.
 # proc fn_debug() =
@@ -254,11 +265,11 @@ proc execCommand(command_str: var string): seq[string] =
     except: discard
 
     if DEBUGMODE:
-        echo ""
-        echo dfn("execCommand")
-        echo dvar("command") & fmt"{pstart}{command}{pend}"
-        echo dvar("res") & fmt"{pstart}{res}{pend}"
-        echo ""
+        dline("")
+        dline(dfn("execCommand"))
+        dline(dvar("command") & fmt"{pstart}{command}{pend}")
+        dline(dvar("res") & fmt"{pstart}{res}{pend}")
+        dline("")
 
     result = if res != "": split(res, re(delimiter)) else: r
 
@@ -377,34 +388,34 @@ proc setEnvs(arguments: varargs[string], post=false) =
     if lastchar == '\0' and l > l - 2: envs[fmt"{prefix}PREV"] = args[l - 2]
 
     if DEBUGMODE:
-        echo ""
-        echo dfn("setEnvs")
-        echo dvar(fmt"{prefix}COMP_INDEX") & fmt"{pstart}{comp_index}{pend}"
-        echo dvar(fmt"{prefix}COMP_LINE") & fmt"{pstart}{cline}{pend}"
-        echo dvar(fmt"{prefix}COMP_POINT") & fmt"{pstart}" & intToStr(cpoint) & pend
-        echo dvar(fmt"{prefix}MAIN_COMMAND") & fmt"{pstart}{maincommand}{pend}"
-        echo dvar(fmt"{prefix}COMMAND_CHAIN") & fmt"{pstart}{commandchain}{pend}"
-        echo dvar(fmt"{prefix}USED_FLAGS") & fmt"{pstart}" & usedflags.join("\n") & pend
-        echo dvar(fmt"{prefix}LAST") & fmt"{pstart}{last}{pend}"
-        echo dvar(fmt"{prefix}PREV") & fmt"{pstart}{prev}{pend}"
-        echo dvar(fmt"{prefix}INPUT") & fmt"{pstart}{input}{pend}"
-        echo dvar(fmt"{prefix}INPUT_ORIGINAL") & fmt"{pstart}{oinput}{pend}"
-        echo dvar(fmt"{prefix}INPUT_REMAINDER") & fmt"{pstart}{input_remainder}{pend}"
-        echo dvar(fmt"{prefix}LAST_CHAR") & fmt"{pstart}" & $lastchar & pend
-        echo dvar(fmt"{prefix}NEXT_CHAR") & fmt"{pstart}{nextchar}{pend}"
-        echo dvar(fmt"{prefix}COMP_LINE_LENGTH") & fmt"{pstart}" & intToStr(cline_length) & pend
-        echo dvar(fmt"{prefix}INPUT_LINE_LENGTH") & fmt"{pstart}" & intToStr(input.len) & pend
-        echo dvar(fmt"{prefix}ARG_COUNT") & fmt"{pstart}" & intToStr(l) & pend
-        echo dvar(fmt"{prefix}USED_DEFAULT_POSITIONAL_ARGS") & fmt"{pstart}{used_default_pa_args}{pend}"
-        echo dvar(fmt"{prefix}COMP_TYPE") & fmt"{pstart}{ctype}{pend}"
-        echo dvar(fmt"{prefix}FLAG_NAME") & fmt"{pstart}{dflag.flag}{pend}"
-        echo dvar(fmt"{prefix}FLAG_EQSIGN") & fmt"{pstart}{dflag.eq}{pend}"
-        echo dvar(fmt"{prefix}FLAG_VALUE") & fmt"{pstart}{dflag.value}{pend}"
-        echo dvar(fmt"{prefix}QUOTE_OPEN") & fmt"{pstart}{quote_open}{pend}"
+        dline("", true)
+        dline(dfn("setEnvs"))
+        dline(dvar(fmt"{prefix}COMP_INDEX") & fmt"{pstart}{comp_index}{pend}")
+        dline(dvar(fmt"{prefix}COMP_LINE") & fmt"{pstart}{cline}{pend}")
+        dline(dvar(fmt"{prefix}COMP_POINT") & fmt"{pstart}" & intToStr(cpoint) & pend)
+        dline(dvar(fmt"{prefix}MAIN_COMMAND") & fmt"{pstart}{maincommand}{pend}")
+        dline(dvar(fmt"{prefix}COMMAND_CHAIN") & fmt"{pstart}{commandchain}{pend}")
+        dline(dvar(fmt"{prefix}USED_FLAGS") & fmt"{pstart}" & usedflags.join("\n") & pend)
+        dline(dvar(fmt"{prefix}LAST") & fmt"{pstart}{last}{pend}")
+        dline(dvar(fmt"{prefix}PREV") & fmt"{pstart}{prev}{pend}")
+        dline(dvar(fmt"{prefix}INPUT") & fmt"{pstart}{input}{pend}")
+        dline(dvar(fmt"{prefix}INPUT_ORIGINAL") & fmt"{pstart}{oinput}{pend}")
+        dline(dvar(fmt"{prefix}INPUT_REMAINDER") & fmt"{pstart}{input_remainder}{pend}")
+        dline(dvar(fmt"{prefix}LAST_CHAR") & fmt"{pstart}" & $lastchar & pend)
+        dline(dvar(fmt"{prefix}NEXT_CHAR") & fmt"{pstart}{nextchar}{pend}")
+        dline(dvar(fmt"{prefix}COMP_LINE_LENGTH") & fmt"{pstart}" & intToStr(cline_length) & pend)
+        dline(dvar(fmt"{prefix}INPUT_LINE_LENGTH") & fmt"{pstart}" & intToStr(input.len) & pend)
+        dline(dvar(fmt"{prefix}ARG_COUNT") & fmt"{pstart}" & intToStr(l) & pend)
+        dline(dvar(fmt"{prefix}USED_DEFAULT_POSITIONAL_ARGS") & fmt"{pstart}{used_default_pa_args}{pend}")
+        dline(dvar(fmt"{prefix}COMP_TYPE") & fmt"{pstart}{ctype}{pend}")
+        dline(dvar(fmt"{prefix}FLAG_NAME") & fmt"{pstart}{dflag.flag}{pend}")
+        dline(dvar(fmt"{prefix}FLAG_EQSIGN") & fmt"{pstart}{dflag.eq}{pend}")
+        dline(dvar(fmt"{prefix}FLAG_VALUE") & fmt"{pstart}{dflag.value}{pend}")
+        dline(dvar(fmt"{prefix}QUOTE_OPEN") & fmt"{pstart}{quote_open}{pend}")
 
     # Add parsed arguments as individual env variables.
     for i, arg in args:
-        if DEBUGMODE: echo dvar(fmt"{prefix}ARG_{i}") & fmt"{pstart}{arg}{pend}"
+        if DEBUGMODE: dline(dvar(fmt"{prefix}ARG_{i}") & fmt"{pstart}{arg}{pend}")
         envs[fmt"{prefix}ARG_{i}"] = arg
 
     # Set all env variables.
@@ -416,9 +427,9 @@ proc setEnvs(arguments: varargs[string], post=false) =
             if envs.hasKey(key): os.putEnv(key, envs[key])
 
     # if DEBUGMODE:
-    #     echo ""
-    #     echo dfn("setEnvs")
-    #     echo dvar("envs") & fmt"{pstart}{envs}{pend}"
+    #     dline("")
+    #     dline(dfn("setEnvs"))
+    #     dline(dvar("envs") & fmt"{pstart}{envs}{pend}")
 
 # --------------------------------------------------------------- MAIN-FUNCTIONS
 
@@ -526,11 +537,11 @@ proc fn_tokenize() =
     lastchar = if not (c != ' ' and p != '\\'): c else: '\0'
 
     if DEBUGMODE:
-        echo dfn("tokenize")
-        echo dvar("ameta") & fmt"{pstart}{ameta}{pend}"
-        echo dvar("args") & fmt"{pstart}{args}{pend}"
-        echo dvar("lastchar") & fmt"{pstart}{lastchar}{pend}"
-        echo ""
+        dline(dfn("tokenize"))
+        dline(dvar("ameta") & fmt"{pstart}{ameta}{pend}")
+        dline(dvar("args") & fmt"{pstart}{args}{pend}")
+        dline(dvar("lastchar") & fmt"{pstart}{lastchar}{pend}")
+        dline("")
 
 # Determine command chain, used flags, and set needed variables.
 #
@@ -663,26 +674,26 @@ proc fn_analyze() =
             inc(usedflags_counts[uflag_fkey])
 
     if DEBUGMODE:
-        echo dfn("analyze")
-        echo dvar("commandchain") & fmt"{pstart}{commandchain}{pend}"
-        echo dvar("ameta") & fmt"{pstart}{ameta}{pend}"
-        echo dvar("args") & fmt"{pstart}{args}{pend}"
-        echo dvar("cargs") & fmt"{pstart}{cargs}{pend}"
-        echo dvar("commands") & fmt"{pstart}{commands}{pend}"
-        echo dvar("lastchar") & fmt"{pstart}{lastchar}{pend}"
-        echo dvar("last") & fmt"{pstart}{last}{pend}"
-        echo dvar("chainstrings") & fmt"{pstart}{chainstrings}{pend}"
-        echo dvar("chainflags") & fmt"{pstart}{chainflags}{pend}"
-        echo dvar("foundflags") & fmt"{pstart}{foundflags}{pend}"
-        echo dvar("delindices") & fmt"{pstart}{delindices}{pend}"
-        echo dvar("posargs") & fmt"{pstart}{posargs}{pend}"
-        echo dvar("used_default_pa_args") & fmt"{pstart}{used_default_pa_args}{pend}"
-        echo dvar("isquoted") & fmt"{pstart}{isquoted}{pend}"
-        echo dvar("usedflags") & fmt"{pstart}{usedflags}{pend}"
-        echo dvar("usedflags_valueless") & fmt"{pstart}{usedflags_valueless}{pend}"
-        echo dvar("usedflags_multi") & fmt"{pstart}{usedflags_multi}{pend}"
-        echo dvar("usedflags_counts") & fmt"{pstart}{usedflags_counts}{pend}"
-        echo ""
+        dline(dfn("analyze"))
+        dline(dvar("commandchain") & fmt"{pstart}{commandchain}{pend}")
+        dline(dvar("ameta") & fmt"{pstart}{ameta}{pend}")
+        dline(dvar("args") & fmt"{pstart}{args}{pend}")
+        dline(dvar("cargs") & fmt"{pstart}{cargs}{pend}")
+        dline(dvar("commands") & fmt"{pstart}{commands}{pend}")
+        dline(dvar("lastchar") & fmt"{pstart}{lastchar}{pend}")
+        dline(dvar("last") & fmt"{pstart}{last}{pend}")
+        dline(dvar("chainstrings") & fmt"{pstart}{chainstrings}{pend}")
+        dline(dvar("chainflags") & fmt"{pstart}{chainflags}{pend}")
+        dline(dvar("foundflags") & fmt"{pstart}{foundflags}{pend}")
+        dline(dvar("delindices") & fmt"{pstart}{delindices}{pend}")
+        dline(dvar("posargs") & fmt"{pstart}{posargs}{pend}")
+        dline(dvar("used_default_pa_args") & fmt"{pstart}{used_default_pa_args}{pend}")
+        dline(dvar("isquoted") & fmt"{pstart}{isquoted}{pend}")
+        dline(dvar("usedflags") & fmt"{pstart}{usedflags}{pend}")
+        dline(dvar("usedflags_valueless") & fmt"{pstart}{usedflags_valueless}{pend}")
+        dline(dvar("usedflags_multi") & fmt"{pstart}{usedflags_multi}{pend}")
+        dline(dvar("usedflags_counts") & fmt"{pstart}{usedflags_counts}{pend}")
+        dline("")
 
 # Lookup acdef definitions.
 #
@@ -691,7 +702,7 @@ proc fn_lookup(): string =
     # if isquoted or not autocompletion: return ""
 
     if last.startsWith('-'):
-        if DEBUGMODE: echo dfn("lookup", "(flag)")
+        if DEBUGMODE: dline(dfn("lookup", "(flag)"))
 
         `type` = "flag"
 
@@ -699,8 +710,8 @@ proc fn_lookup(): string =
         commandchain = if commandchain != "": commandchain else: "_"
 
         if DEBUGMODE:
-            echo dvar("letter") & fmt"{pstart}{letter}{pend}"
-            echo dvar("commandchain") & fmt"{pstart}{commandchain}{pend}"
+            dline(dvar("letter") & fmt"{pstart}{letter}{pend}")
+            dline(dvar("commandchain") & fmt"{pstart}{commandchain}{pend}")
 
         if db_dict.hasKey(letter) and db_dict[letter].hasKey(commandchain):
             var excluded = initTable[string, int]()
@@ -718,12 +729,12 @@ proc fn_lookup(): string =
             # Split by unescaped pipe '|' characters:
             var flags = flag_list.split(re"(?<!\\)\|")
 
-            if DEBUGMODE: echo dvar("flags") & fmt"{pstart}{flags}{pend}"
+            if DEBUGMODE: dline(dvar("flags") & fmt"{pstart}{flags}{pend}")
 
             # Context string logic: start --------------------------------------
 
             let cchain = if commandchain == "_": "" else: quotemeta(commandchain)
-            if DEBUGMODE: echo dvar("cchain") & fmt"{pstart}{cchain}{pend}"
+            if DEBUGMODE: dline(dvar("cchain") & fmt"{pstart}{cchain}{pend}")
             let pattern = "^" & cchain & " context (.+)$"
             let (start, `end`) = findBounds(acdef, re(pattern, {reMultiLine}))
             if start != -1:
@@ -817,7 +828,7 @@ proc fn_lookup(): string =
                                 if fchar == '!': excluded[flag] = 1
                                 else: excluded.del(flag)
 
-            if DEBUGMODE: echo dvar("excluded") & fmt"{pstart}{excluded}{pend}"
+            if DEBUGMODE: dline(dvar("excluded") & fmt"{pstart}{excluded}{pend}")
 
             # Context string logic: end ----------------------------------------
 
@@ -1014,8 +1025,8 @@ proc fn_lookup(): string =
     else:
 
         if DEBUGMODE:
-            echo dfn("lookup", "(command)")
-            echo dvar("commandchain") & fmt"{pstart}{commandchain}{pend}"
+            dline(dfn("lookup", "(command)"))
+            dline(dvar("commandchain") & fmt"{pstart}{commandchain}{pend}")
 
         `type` = "command"
 
@@ -1029,11 +1040,11 @@ proc fn_lookup(): string =
                 if db_levels.hasKey(1): completions = toSeq(db_levels[1].keys)
         else:
             let letter = if commandchain != "": commandchain[1] else: '_'
-            if DEBUGMODE: echo dvar("letter") & fmt"{pstart}{letter}{pend}"
+            if DEBUGMODE: dline(dvar("letter") & fmt"{pstart}{letter}{pend}")
             # Letter must exist in dictionary.
             if not db_dict.hasKey(letter): return ""
             var rows = toSeq(db_dict[letter].keys)
-            if DEBUGMODE: echo dvar("rows") & fmt"{pstart}{rows}{pend}"
+            if DEBUGMODE: dline(dvar("rows") & fmt"{pstart}{rows}{pend}")
             let lastchar_notspace = lastchar != ' '
 
             if rows.len == 0: return ""
@@ -1052,7 +1063,7 @@ proc fn_lookup(): string =
             # If level does not match argument length, return. As the
             # parsed arguments do not match that of a valid commandchain.
             let la = (cargs.len + 1) - afcount
-            if DEBUGMODE: echo dvar("level") & fmt"{pstart}{level}{pend}"
+            if DEBUGMODE: dline(dvar("level") & fmt"{pstart}{level}{pend}")
 
             if not ((la == level + 1 and lastchar != '\0') or
                 (la > level and lastchar != '\0') or (la - level > 1)):
@@ -1135,7 +1146,7 @@ proc fn_lookup(): string =
                 # Remove last command chain from overall command chain.
                 copy_commandchain = copy_commandchain.replace(pattern)
 
-        if DEBUGMODE: echo dvar("completions") & fmt"{pstart}{completions}{pend}"
+        if DEBUGMODE: dline(dvar("completions") & fmt"{pstart}{completions}{pend}")
 
     # Get filedir of command chain.
     if completions.len == 0:
@@ -1148,8 +1159,8 @@ proc fn_lookup(): string =
             filedir = row[sp_index + 2 .. row.high - 1] # Unquote.
 
     if DEBUGMODE:
-        echo dvar("filedir") & fmt"{pstart}{filedir}{pend}"
-        echo ""
+        dline(dvar("filedir") & fmt"{pstart}{filedir}{pend}")
+        dline("")
 
     # Run posthook if it exists.
     if posthook != "":
@@ -1164,10 +1175,10 @@ proc fn_lookup(): string =
         var dsl = false # Delimiter Separated List.
 
         if DEBUGMODE:
-            echo ""
-            echo dfn("posthook")
-            echo dvar("command") & fmt"{pstart}{posthook}{pend}"
-            echo dvar("res") & fmt"{pstart}{res}{pend}"
+            dline("")
+            dline(dfn("posthook"))
+            dline(dvar("command") & fmt"{pstart}{posthook}{pend}")
+            dline(dvar("res") & fmt"{pstart}{res}{pend}")
 
         if r.len != 0:
             let l = last.len
@@ -1190,8 +1201,8 @@ proc fn_lookup(): string =
             completions = filtered
 
             if DEBUGMODE:
-                echo dvar("__DSL__") & fmt"{pstart}{dsl}{pend}"
-                echo ""
+                dline(dvar("__DSL__") & fmt"{pstart}{dsl}{pend}")
+                dline("")
 
             if completions.len == 0 and dsl:
                 for c in useditems:
@@ -1202,8 +1213,8 @@ proc fn_lookup(): string =
 
         else:
             if DEBUGMODE:
-                echo dvar("__DSL__") & fmt"{pstart}{dsl}{pend}"
-                echo ""
+                dline(dvar("__DSL__") & fmt"{pstart}{dsl}{pend}")
+                dline("")
 
 # Send all possible completions to bash.
 proc fn_printer() =
@@ -1276,9 +1287,12 @@ proc fn_printer() =
     if DEBUGMODE:
         completions.sort()
         let output = lines & completions.join("")
-        echo dfn("printer")
-        echo dvar("output") & fmt"{pstart}{output}{pend}"
-        echo dheader
+        dline(dfn("printer"))
+        dline(dvar("output") & fmt"{pstart}{output}{pend}")
+        dline(dheader)
+
+        for x in debuglines: echo x
+
     else: echo lines & completions.join("")
 
 proc fn_makedb() =
@@ -1297,10 +1311,10 @@ proc fn_makedb() =
                 db_levels[1][command] = 1
 
         if DEBUGMODE:
-            echo dfn("makedb", "(first level commands only)")
-            echo dvar("commandchain") & fmt"{pstart}{commandchain}{pend}"
-            echo dvar("db_levels") & fmt"{pstart}{db_levels}{pend}"
-            echo ""
+            dline(dfn("makedb", "(first level commands only)"))
+            dline(dvar("commandchain") & fmt"{pstart}{commandchain}{pend}")
+            dline(dvar("db_levels") & fmt"{pstart}{db_levels}{pend}")
+            dline("")
 
         else: # First level flags.
             let (start, `end`) = findBounds(acdef, re("^ ([^\n]+)", {reMultiLine}))
@@ -1311,10 +1325,10 @@ proc fn_makedb() =
                 db_dict['_']["_"] = {"flags": @[acdef[start + 1 .. `end`]]}.toTable
 
             if DEBUGMODE:
-                echo dfn("makedb", "(first level flags only)")
-                echo dvar("commandchain") & fmt"{pstart}{commandchain}{pend}"
-                echo dvar("db_dict") & fmt"{pstart}{db_dict}{pend}"
-                echo ""
+                dline(dfn("makedb", "(first level flags only)"))
+                dline(dvar("commandchain") & fmt"{pstart}{commandchain}{pend}")
+                dline(dvar("db_dict") & fmt"{pstart}{db_dict}{pend}")
+                dline("")
 
     else: # Go through entire .acdef file contents.
 
@@ -1353,12 +1367,12 @@ proc fn_makedb() =
                     else: discard
 
         if DEBUGMODE:
-            echo dfn("makedb", "(first level flags only)")
-            echo dvar("commandchain") & fmt"{pstart}{commandchain}{pend}"
-            echo dvar("db_defaults") & fmt"{pstart}{db_defaults}{pend}"
-            echo dvar("db_filedirs") & fmt"{pstart}{db_filedirs}{pend}"
-            echo dvar("db_contexts") & fmt"{pstart}{db_contexts}{pend}"
-            echo dvar("db_dict") & fmt"{pstart}{db_dict}{pend}"
-            echo ""
+            dline(dfn("makedb", "(first level flags only)"))
+            dline(dvar("commandchain") & fmt"{pstart}{commandchain}{pend}")
+            dline(dvar("db_defaults") & fmt"{pstart}{db_defaults}{pend}")
+            dline(dvar("db_filedirs") & fmt"{pstart}{db_filedirs}{pend}")
+            dline(dvar("db_contexts") & fmt"{pstart}{db_contexts}{pend}")
+            dline(dvar("db_dict") & fmt"{pstart}{db_dict}{pend}")
+            dline("")
 
 fn_tokenize();fn_analyze();fn_makedb();discard fn_lookup();fn_printer()

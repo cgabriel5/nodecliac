@@ -43,6 +43,7 @@ my $input_remainder = substr($cline, $cpoint, -1); # CLI input from caret index 
 my $hdir = $ENV{'HOME'};
 my $TESTMODE = $ENV{'TESTMODE'};
 my $DEBUGMODE = 1;
+my @debuglines = ();
 my $filedir = '';
 
 my %db;
@@ -64,6 +65,21 @@ my $decor = "------------";
 my $header = colored("DEBUGMODE", "bold magenta");
 my $script = colored("Perl", "bold");
 my $dheader = "\n$decor [$header $script] $decor";
+
+# Adds line to debug line array.
+#
+# @param  {string} line - The line to add.
+# @param  {bool} skip - Whether to skip line.
+# @return {string} - The header string.
+sub __dline {
+	my ($line, $skip) = @_;
+	$skip //= 0;
+
+	if (!$skip) { push(@debuglines, $line); }
+	else { # If last entry is a "newline" (empty) skip it.
+		if ($debuglines[-1] ne "\n") { push(@debuglines, $line); }
+	}
+}
 
 # Prints a debug header.
 #
@@ -102,16 +118,16 @@ sub __dvar {
 }
 
 if ($DEBUGMODE) {
-	print "$dheader (" . colored("exit", "bold") . ": nodecliac debug --disable)\n\n";
-	print __dhd("Arguments") . "\n";
-	print __dvar("oinput") . "$pstart$oinput$pend\n";
-	print __dvar("cline") . "$pstart$cline$pend\n";
-	print __dvar("cline.len") . $pstart . length($cline) . "$pend\n";
-	print __dvar("cpoint") . "$pstart$cpoint$pend\n";
-	print __dvar("maincommand") . "$pstart$maincommand$pend\n";
+	__dline("$dheader (" . colored("exit", "bold") . ": nodecliac debug --disable)\n\n");
+	__dline(__dhd("Arguments") . "\n");
+	__dline(__dvar("oinput") . "$pstart$oinput$pend\n");
+	__dline(__dvar("cline") . "$pstart$cline$pend\n");
+	__dline(__dvar("cline.len") . $pstart . length($cline) . "$pend\n");
+	__dline(__dvar("cpoint") . "$pstart$cpoint$pend\n");
+	__dline(__dvar("maincommand") . "$pstart$maincommand$pend\n");
 	my $p = "~/.nodecliac/registry/$maincommand/$maincommand.acdef";
-	print __dvar("acdef") . "$pstart$p$pend\n";
-	print "\n";
+	__dline(__dvar("acdef") . "$pstart$p$pend\n");
+	__dline("\n");
 }
 
 # # Log local variables and their values.
@@ -223,11 +239,11 @@ sub __exec_command {
 	if ($res) { @r = split(/$delimiter/m, $res); }
 
 	if ($DEBUGMODE) {
-		print "\n";
-		print __dfn("execCommand") . "\n";
-		print __dvar("command") . "$pstart$command$pend\n";
-		print __dvar("res") . "$pstart$res$pend\n";
-		print "\n";
+		__dline("\n");
+		__dline(__dfn("execCommand") . "\n");
+		__dline(__dvar("command") . "$pstart$command$pend\n");
+		__dline(__dvar("res") . "$pstart$res$pend\n");
+		__dline("\n");
 	}
 
 	return \@r;
@@ -358,35 +374,35 @@ sub __set_envs {
 	if ($lastchar eq '' && $l > $l - 2) { $envs{"${prefix}PREV"} = $args[$l - 2]; }
 
 	if ($DEBUGMODE) {
-		print "\n";
-		print __dfn("setEnvs") . "\n";
-		print __dvar("${prefix}COMP_INDEX") . "$pstart$comp_index$pend\n";
-		print __dvar("${prefix}COMP_LINE") . "$pstart$cline$pend\n";
-		print __dvar("${prefix}COMP_POINT") . "$pstart$cpoint$pend\n";
-		print __dvar("${prefix}MAIN_COMMAND") . "$pstart$maincommand$pend\n";
-		print __dvar("${prefix}COMMAND_CHAIN") . "$pstart$commandchain$pend\n";
-		print __dvar("${prefix}USED_FLAGS") . "$pstart" . Dumper(\@usedflags) . "$pend\n";
-		print __dvar("${prefix}LAST") . "$pstart$last$pend\n";
-		print __dvar("${prefix}PREV") . "$pstart$prev$pend\n";
-		print __dvar("${prefix}INPUT") . "$pstart$input$pend\n";
-		print __dvar("${prefix}INPUT_ORIGINAL") . "$pstart$oinput$pend\n";
-		print __dvar("${prefix}INPUT_REMAINDER") . "$pstart$input_remainder$pend\n";
-		print __dvar("${prefix}LAST_CHAR") . "$pstart$lastchar$pend\n";
-		print __dvar("${prefix}NEXT_CHAR") . "$pstart$nextchar$pend\n";
-		print __dvar("${prefix}COMP_LINE_LENGTH") . "$pstart$cline_length$pend\n";
-		print __dvar("${prefix}INPUT_LINE_LENGTH") . $pstart . length($input) . "$pend\n";
-		print __dvar("${prefix}ARG_COUNT") . "$pstart$l$pend\n";
-		print __dvar("${prefix}USED_DEFAULT_POSITIONAL_ARGS") . "$pstart$used_default_pa_args$pend\n";
-		print __dvar("${prefix}COMP_TYPE") . "$pstart$ctype$pend\n";
-		print __dvar("${prefix}FLAG_NAME") . "$pstart" . $dflag[0] . "$pend\n";
-		print __dvar("${prefix}FLAG_EQSIGN") . "$pstart" . $dflag[1] . "$pend\n";
-		print __dvar("${prefix}FLAG_VALUE") . "$pstart" . $dflag[2] . "$pend\n";
-		print __dvar("${prefix}QUOTE_OPEN") . "$pstart$quote_open$pend\n";
+		__dline("\n", 1);
+		__dline(__dfn("setEnvs") . "\n");
+		__dline(__dvar("${prefix}COMP_INDEX") . "$pstart$comp_index$pend\n");
+		__dline(__dvar("${prefix}COMP_LINE") . "$pstart$cline$pend\n");
+		__dline(__dvar("${prefix}COMP_POINT") . "$pstart$cpoint$pend\n");
+		__dline(__dvar("${prefix}MAIN_COMMAND") . "$pstart$maincommand$pend\n");
+		__dline(__dvar("${prefix}COMMAND_CHAIN") . "$pstart$commandchain$pend\n");
+		__dline(__dvar("${prefix}USED_FLAGS") . "$pstart" . Dumper(\@usedflags) . "$pend\n");
+		__dline(__dvar("${prefix}LAST") . "$pstart$last$pend\n");
+		__dline(__dvar("${prefix}PREV") . "$pstart$prev$pend\n");
+		__dline(__dvar("${prefix}INPUT") . "$pstart$input$pend\n");
+		__dline(__dvar("${prefix}INPUT_ORIGINAL") . "$pstart$oinput$pend\n");
+		__dline(__dvar("${prefix}INPUT_REMAINDER") . "$pstart$input_remainder$pend\n");
+		__dline(__dvar("${prefix}LAST_CHAR") . "$pstart$lastchar$pend\n");
+		__dline(__dvar("${prefix}NEXT_CHAR") . "$pstart$nextchar$pend\n");
+		__dline(__dvar("${prefix}COMP_LINE_LENGTH") . "$pstart$cline_length$pend\n");
+		__dline(__dvar("${prefix}INPUT_LINE_LENGTH") . $pstart . length($input) . "$pend\n");
+		__dline(__dvar("${prefix}ARG_COUNT") . "$pstart$l$pend\n");
+		__dline(__dvar("${prefix}USED_DEFAULT_POSITIONAL_ARGS") . "$pstart$used_default_pa_args$pend\n");
+		__dline(__dvar("${prefix}COMP_TYPE") . "$pstart$ctype$pend\n");
+		__dline(__dvar("${prefix}FLAG_NAME") . "$pstart" . $dflag[0] . "$pend\n");
+		__dline(__dvar("${prefix}FLAG_EQSIGN") . "$pstart" . $dflag[1] . "$pend\n");
+		__dline(__dvar("${prefix}FLAG_VALUE") . "$pstart" . $dflag[2] . "$pend\n");
+		__dline(__dvar("${prefix}QUOTE_OPEN") . "$pstart$quote_open$pend\n");
 	}
 
 	# Add parsed arguments as individual env variables.
 	my $i = 0; foreach my $arg (@args) {
-		if ($DEBUGMODE) { print __dvar("${prefix}ARG_${i}") . "$pstart$arg$pend\n"; }
+		__dline(__dvar("${prefix}ARG_${i}") . "$pstart$arg$pend\n");
 		$envs{"${prefix}ARG_${i}"} = $arg; $i++;
 	}
 
@@ -400,9 +416,9 @@ sub __set_envs {
 	}
 
 	# if ($DEBUGMODE) {
-	# 	print "\n";
-	# 	print __dfn("setEnvs") . "\n";
-	# 	print __dvar("envs") . $pstart . Dumper(\%envs) . "$pend\n";
+	# 	__dline("\n");
+	# 	__dline(__dfn("setEnvs") . "\n");
+	# 	__dline(__dvar("envs") . $pstart . Dumper(\%envs) . "$pend\n");
 	# }
 }
 
@@ -523,11 +539,11 @@ sub __tokenize {
 	$lastchar = !($c ne ' ' && $p ne '\\') ? $c : '';
 
 	if ($DEBUGMODE) {
-		print __dfn("tokenize") . "\n";
-		print __dvar("ameta") . $pstart . Dumper(\@ameta) . "$pend\n";
-		print __dvar("args") . $pstart . Dumper(\@args) . "$pend\n";
-		print __dvar("lastchar") . "$pstart$lastchar$pend\n";
-		print "\n";
+		__dline(__dfn("tokenize") . "\n");
+		__dline(__dvar("ameta") . $pstart . Dumper(\@ameta) . "$pend\n");
+		__dline(__dvar("args") . $pstart . Dumper(\@args) . "$pend\n");
+		__dline(__dvar("lastchar") . "$pstart$lastchar$pend\n");
+		__dline("\n");
 	}
 }
 
@@ -680,26 +696,26 @@ sub __analyze {
 	}
 
 	if ($DEBUGMODE) {
-		print __dfn("analyze") . "\n";
-		print __dvar("commandchain") . $pstart . $commandchain . "$pend\n";
-		print __dvar("ameta") . $pstart . Dumper(\@ameta) . "$pend\n";
-		print __dvar("args") . $pstart . Dumper(\@args) . "$pend\n";
-		print __dvar("cargs") . $pstart . Dumper(\@cargs) . "$pend\n";
-		print __dvar("commands") . $pstart . Dumper(\@commands) . "$pend\n";
-		print __dvar("lastchar") . $pstart . $lastchar . "$pend\n";
-		print __dvar("last") . $pstart . $last . "$pend\n";
-		print __dvar("chainstrings") . $pstart . Dumper(\@chainstrings) . "$pend\n";
-		print __dvar("chainflags") . $pstart . Dumper(\@chainflags) . "$pend\n";
-		print __dvar("foundflags") . $pstart . Dumper(\@foundflags) . "$pend\n";
-		print __dvar("delindices") . $pstart . Dumper(\@delindices) . "$pend\n";
-		print __dvar("posargs") . $pstart . Dumper(\@posargs) . "$pend\n";
-		print __dvar("used_default_pa_args") . $pstart . $used_default_pa_args . "$pend\n";
-		print __dvar("isquoted") . $pstart . $isquoted . "$pend\n";
-		print __dvar("usedflags") . $pstart . Dumper(\%usedflags) . "$pend\n";
-		print __dvar("usedflags_valueless") . $pstart . Dumper(\%usedflags{'valueless'}) . "$pend\n";
-		print __dvar("usedflags_multi") . $pstart . Dumper(\%usedflags{'multi'}) . "$pend\n";
-		print __dvar("usedflags_counts") . $pstart . Dumper(\%usedflags{'counts'}) . "$pend\n";
-		print "\n";
+		__dline(__dfn("analyze") . "\n");
+		__dline(__dvar("commandchain") . $pstart . $commandchain . "$pend\n");
+		__dline(__dvar("ameta") . $pstart . Dumper(\@ameta) . "$pend\n");
+		__dline(__dvar("args") . $pstart . Dumper(\@args) . "$pend\n");
+		__dline(__dvar("cargs") . $pstart . Dumper(\@cargs) . "$pend\n");
+		__dline(__dvar("commands") . $pstart . Dumper(\@commands) . "$pend\n");
+		__dline(__dvar("lastchar") . $pstart . $lastchar . "$pend\n");
+		__dline(__dvar("last") . $pstart . $last . "$pend\n");
+		__dline(__dvar("chainstrings") . $pstart . Dumper(\@chainstrings) . "$pend\n");
+		__dline(__dvar("chainflags") . $pstart . Dumper(\@chainflags) . "$pend\n");
+		__dline(__dvar("foundflags") . $pstart . Dumper(\@foundflags) . "$pend\n");
+		__dline(__dvar("delindices") . $pstart . Dumper(\@delindices) . "$pend\n");
+		__dline(__dvar("posargs") . $pstart . Dumper(\@posargs) . "$pend\n");
+		__dline(__dvar("used_default_pa_args") . $pstart . $used_default_pa_args . "$pend\n");
+		__dline(__dvar("isquoted") . $pstart . $isquoted . "$pend\n");
+		__dline(__dvar("usedflags") . $pstart . Dumper(\%usedflags) . "$pend\n");
+		__dline(__dvar("usedflags_valueless") . $pstart . Dumper(\%usedflags_valueless) . "$pend\n");
+		__dline(__dvar("usedflags_multi") . $pstart . Dumper(\%usedflags_multi) . "$pend\n");
+		__dline(__dvar("usedflags_counts") . $pstart . Dumper(\%usedflags_counts) . "$pend\n");
+		__dline("\n");
 	}
 }
 
@@ -710,15 +726,15 @@ sub __lookup {
 	# if ($isquoted || !$autocompletion) { return; }
 
 	if (rindex($last, '-', 0) == 0) {
-		if ($DEBUGMODE) { print __dfn("lookup", "(flag)") . "\n"; }
+		if ($DEBUGMODE) { __dline(__dfn("lookup", "(flag)") . "\n"); }
 
 		$type = 'flag';
 
 		my $letter = substr($commandchain, 1, 1) // '';
 
 		if ($DEBUGMODE) {
-			print __dvar("letter") . "$pstart$letter$pend\n";
-			print __dvar("commandchain") . "$pstart$commandchain$pend\n";
+			__dline(__dvar("letter") . "$pstart$letter$pend\n");
+			__dline(__dvar("commandchain") . "$pstart$commandchain$pend\n");
 		}
 
 		if ($db{dict}{$letter}{$commandchain}) {
@@ -739,12 +755,12 @@ sub __lookup {
 			# my @flags = split(/(?:\\\\\|)|(?:(?<!\\)\|)/, $flag_list);
 			my @flags = split(/(?<!\\)\|/, $flag_list);
 
-			if ($DEBUGMODE) { print __dvar("flags") . $pstart . Dumper(\@flags) . "$pend\n"; }
+			if ($DEBUGMODE) { __dline(__dvar("flags") . $pstart . Dumper(\@flags) . "$pend\n"); }
 
 			# Context string logic: start --------------------------------------
 
 			my $cchain = ($commandchain eq '_' ? '' : quotemeta($commandchain));
-			if ($DEBUGMODE) { print __dvar("cchain") . "$pstart$cchain$pend\n"; }
+			if ($DEBUGMODE) { __dline(__dvar("cchain") . "$pstart$cchain$pend\n"); }
 			my $pattern = '^' . $cchain . ' context ("|\')(.+)\1$';
 			if ($acdef =~ /$pattern/m) {
 				my @ctxs = split(/;/, $2);
@@ -847,7 +863,7 @@ sub __lookup {
 				}
 			}
 
-			if ($DEBUGMODE) { print __dvar("excluded") . $pstart . Dumper(\%db{excluded}) . "$pend\n"; }
+			if ($DEBUGMODE) { __dline(__dvar("excluded") . $pstart . Dumper(\%db{excluded}) . "$pend\n"); }
 
 			# Context string logic: end ----------------------------------------
 
@@ -1057,8 +1073,8 @@ sub __lookup {
 	} else {
 
 		if ($DEBUGMODE) {
-			print __dfn("lookup", "(command)") . "\n";
-			print __dvar("commandchain") . "$pstart$commandchain$pend\n";
+			__dline(__dfn("lookup", "(command)") . "\n");
+			__dline(__dvar("commandchain") . "$pstart$commandchain$pend\n");
 		}
 
 		$type = 'command';
@@ -1073,9 +1089,9 @@ sub __lookup {
 			if (!@posargs) { @completions = keys %{ $db{levels}{1} }; }
 		} else {
 			my $letter = substr($commandchain, 1, 1);
-			if ($DEBUGMODE) { print __dvar("letter") . "$pstart$letter$pend\n"; }
+			if ($DEBUGMODE) { __dline(__dvar("letter") . "$pstart$letter$pend\n"); }
 			my @rows = (keys %{ $db{dict}{$letter} });
-			if ($DEBUGMODE) { print __dvar("rows") . $pstart . Dumper(\@rows) . "$pend\n"; }
+			if ($DEBUGMODE) { __dline(__dvar("rows") . $pstart . Dumper(\@rows) . "$pend\n"); }
 			my $lastchar_notspace = ($lastchar ne ' ');
 
 			if (!@rows) { return; }
@@ -1096,7 +1112,7 @@ sub __lookup {
 			# If level does not match argument length, return. As the
 			# parsed arguments do not match that of a valid commandchain.
 			my $la = (scalar(@cargs) + 1) - $afcount;
-			if ($DEBUGMODE) { print __dvar("level") . "$pstart$level$pend\n"; }
+			if ($DEBUGMODE) { __dline(__dvar("level") . "$pstart$level$pend\n"); }
 
 			if (!(($la == $level + 1 && $lastchar) ||
 				($la > $level && $lastchar) || ($la - $level > 1))) {
@@ -1192,7 +1208,7 @@ sub __lookup {
 				$copy_commandchain =~ s/$pattern//;
 			}
 		}
-		if ($DEBUGMODE) { print __dvar("completions") . $pstart . Dumper(\@completions) . "$pend\n"; }
+		if ($DEBUGMODE) { __dline(__dvar("completions") . $pstart . Dumper(\@completions) . "$pend\n"); }
 	}
 
 	# Get filedir of command chain.
@@ -1202,8 +1218,8 @@ sub __lookup {
 	}
 
 	if ($DEBUGMODE) {
-		print __dvar("filedir") . "$pstart$filedir$pend\n";
-		print "\n";
+		__dline(__dvar("filedir") . "$pstart$filedir$pend\n");
+		__dline("\n");
 	}
 
 	# Run posthook if it exists.
@@ -1220,10 +1236,10 @@ sub __lookup {
 		my $dsl = 0; # Delimiter Separated List.
 
 		if ($DEBUGMODE) {
-			print "\n";
-			print __dfn("posthook") . "\n";
-			print __dvar("command") . "$pstart$posthook$pend\n";
-			print __dvar("res") . "$pstart$res$pend\n";
+			__dline("\n");
+			__dline(__dfn("posthook") . "\n");
+			__dline(__dvar("command") . "$pstart$posthook$pend\n");
+			__dline(__dvar("res") . "$pstart$res$pend\n");
 		}
 
 		if (@r) {
@@ -1251,8 +1267,8 @@ sub __lookup {
 			@completions = @filtered;
 
 			if ($DEBUGMODE) {
-				print __dvar("__DSL__") . "$pstart$dsl$pend\n";
-				print "\n";
+				__dline(__dvar("__DSL__") . "$pstart$dsl$pend\n");
+				__dline("\n");
 			}
 
 			if (scalar(@completions) == 0 && $dsl) {
@@ -1265,8 +1281,8 @@ sub __lookup {
 			}
 		} else {
 			if ($DEBUGMODE) {
-				print __dvar("__DSL__") . "$pstart$dsl$pend\n";
-				print "\n";
+				__dline(__dvar("__DSL__") . "$pstart$dsl$pend\n");
+				__dline("\n");
 			}
 		}
 	}
@@ -1559,9 +1575,12 @@ sub __printer {
 	if ($DEBUGMODE) {
 		@completions = sort(@completions);
 		my $output = $lines . join('', @completions);
-		print __dfn("printer") . "\n";
-		print __dvar("output") . "$pstart$output$pend\n";
-		print "$dheader\n";
+		__dline(__dfn("printer") . "\n");
+		__dline(__dvar("output") . "$pstart$output$pend\n");
+		__dline("$dheader\n");
+
+		foreach my $x (@debuglines) { print $x; }
+
 	} else { print $lines . join('', @completions); }
 }
 
@@ -1580,20 +1599,20 @@ sub __makedb {
 			}
 
 		if ($DEBUGMODE) {
-			print __dfn("makedb", "(first level commands only)") . "\n";
-			print __dvar("commandchain") . "$pstart$commandchain$pend\n";
-			print __dvar("db_levels") . $pstart . Dumper(\%db{levels}) . "$pend\n";
-			print "\n";
+			__dline(__dfn("makedb", "(first level commands only)") . "\n");
+			__dline(__dvar("commandchain") . "$pstart$commandchain$pend\n");
+			__dline(__dvar("db_levels") . $pstart . Dumper(\%db{levels}) . "$pend\n");
+			__dline("\n");
 		}
 
 		} else { # First level flags.
 			if ($acdef =~ /^ ([^\n]+)/m) {$db{dict}{''}{''} = { flags => $1 };}
 
 			if ($DEBUGMODE) {
-				print __dfn("makedb", "(first level flags only)") . "\n";
-				print __dvar("commandchain") . "$pstart$commandchain$pend\n";
-				print __dvar("db_dict") . $pstart . Dumper(\%letters) . "$pend\n";
-				print "\n";
+				__dline(__dfn("makedb", "(first level flags only)") . "\n");
+				__dline(__dvar("commandchain") . "$pstart$commandchain$pend\n");
+				__dline(__dvar("db_dict") . $pstart . Dumper(\%letters) . "$pend\n");
+				__dline("\n");
 			}
 		}
 	} else { # Go through entire .acdef file contents.
@@ -1627,13 +1646,13 @@ sub __makedb {
 		}
 
 		if ($DEBUGMODE) {
-			print __dfn("makedb", "(first level flags only)") . "\n";
-			print __dvar("commandchain") . "$pstart$commandchain$pend\n";
-			print __dvar("db_defaults") . $pstart . Dumper(\%db_defaults) . "$pend\n";
-			print __dvar("db_filedirs") . $pstart . Dumper(\%db_filedirs) . "$pend\n";
-			print __dvar("db_contexts") . $pstart . Dumper(\%db_contexts) . "$pend\n";
-			print __dvar("db_dict") . $pstart . Dumper(\%letters) . "$pend\n";
-			print "\n";
+			__dline(__dfn("makedb", "(first level flags only)") . "\n");
+			__dline(__dvar("commandchain") . "$pstart$commandchain$pend\n");
+			__dline(__dvar("db_defaults") . $pstart . Dumper(\%db_defaults) . "$pend\n");
+			__dline(__dvar("db_filedirs") . $pstart . Dumper(\%db_filedirs) . "$pend\n");
+			__dline(__dvar("db_contexts") . $pstart . Dumper(\%db_contexts) . "$pend\n");
+			__dline(__dvar("db_dict") . $pstart . Dumper(\%letters) . "$pend\n");
+			__dline("\n");
 		}
 
 		# Add letters hash to db (main) hash.

@@ -880,7 +880,7 @@ sub __lookup {
 			# }
 
 			my %usedcommands;
-			my @commands = split(/(?<!\\)\./, substr($commandchain, 1));
+			my @commands = split(/(?<!\\)\./, $commandchain);
 			my $level = $#commands;
 			# Increment level if completing a new command level.
 			if ($lastchar eq ' ') { $level++; }
@@ -888,9 +888,8 @@ sub __lookup {
 			# If level does not match argument length, return. As the
 			# parsed arguments do not match that of a valid commandchain.
 			my $la = (scalar(@cargs) + 1) - $afcount;
-			my $lvl = scalar(@commands);
-			if (!(($la == $lvl + 1 && $lastchar) ||
-				($la > $lvl && $lastchar) || ($la - $lvl > 1))) {
+			if (!(($la == $level + 1 && $lastchar) ||
+				($la > $level && $lastchar) || ($la - $level > 1))) {
 
 				# Get commandchains for specific letter outside of loop.
 				my %h = %{ $db{dict}{$letter} };
@@ -1328,7 +1327,8 @@ sub __makedb {
 			# not equal the chain of the line, skip the line.
 			next if ($lastchar eq ' ' && rindex($chain . '.', $commandchain . '.', 0) != 0);
 
-			my @commands = split(/(?<!\\)\./, substr($chain, 1));
+			# Remove starting '.'?
+			my @commands = split(/(?<!\\)\./, $chain);
 
 			# Cleanup remainder (flag/command-string).
 			if (ord($line) == 45) {

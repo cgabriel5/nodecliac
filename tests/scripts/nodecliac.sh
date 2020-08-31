@@ -16,6 +16,23 @@ cachepath="$HOME/.nodecliac/.cache-level"
 [[ -f "$cachepath" ]] && CACHE=$(<"$cachepath")
 TESTS=""
 
+# ANSI colors: [https://stackoverflow.com/a/5947802]
+# [https://misc.flogisoft.com/bash/tip_colors_and_formatting]
+RED="\033[0;31m"
+GREEN="\033[0;32m"
+YELLOW="\033[0;33m"
+# Bold colors.
+BOLD="\033[1m"
+BRED="\033[1;31m"
+BGREEN="\033[1;32m"
+BBLUE="\033[1;34m"
+BPURPLE="\033[1;35m"
+BTURQ="\033[1;36m"
+# Special
+DEFAULT="\033[0;39m"
+NC="\033[0m"
+DIM="\033[2m"
+
 OPTIND=1 # Reset variable: [https://unix.stackexchange.com/a/233737]
 while getopts 't:p:f:o:' flag; do # [https://stackoverflow.com/a/18003735]
 	case "$flag" in
@@ -45,8 +62,8 @@ __filepath="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 # ---------------------------------------------------------------------- IMPORTS
 
-[[ -z "$TESTS" ]] && echo -e "[\033[1;31mError\033[0m] Test file not provided." && exit 1
-[[ ! -f "$TESTS" ]] && echo -e "[\033[1;31mError\033[0m] Test file \033[1m$TESTS\033[0m not found." && exit 1
+[[ -z "$TESTS" ]] && echo -e "[${BRED}Error${NC}] Test file not provided." && exit 1
+[[ ! -f "$TESTS" ]] && echo -e "[${BRED}Error${NC}] Test file ${BOLD}$TESTS${NC} not found." && exit 1
 
 . "$TESTS" # [https://stackoverflow.com/a/12694189]
 
@@ -70,8 +87,8 @@ notset() {
 
 # [https://www.utf8-chartable.de/unicode-utf8-table.pl?start=9984&number=128&names=-&utf8=string-literal]
 # [https://misc.flogisoft.com/bash/tip_colors_and_formatting]
-CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m"
-X_MARK="\033[0;31m\xe2\x9c\x98\033[0m"
+CHECK_MARK="${GREEN}\xE2\x9C\x94${NC}"
+X_MARK="${RED}\xe2\x9c\x98${NC}"
 
 # ------------------------------------------------------------------------- VARS
 
@@ -112,8 +129,8 @@ test_columns="${#test_count}"
 # Note: If nodecliac is not installed tests cannot run so exit with message.
 if [[ $(notset "$(command -v nodecliac)") ]]; then
 	if [[ $(isset "$PRINT") ]]; then # Print header.
-		echo -e "\033[1m[Testing Completions]\033[0m [script=, override=$OVERRIDE, cache=\033[1;32m$CACHE\033[0m]"
-		echo -e " $X_MARK [skipped] \033[1;36mnodecliac\033[0m is not installed.\n"
+		echo -e "${BOLD}[Testing Completions]${NC} [script=, override=$OVERRIDE, cache=${BGREEN}$CACHE${NC}]"
+		echo -e " $X_MARK [skipped] ${BTURQ}nodecliac${NC} is not installed.\n"
 	fi
 	exit 0
 fi
@@ -121,8 +138,8 @@ fi
 # To run tests there needs to be modified src/ files or force flag.
 if [[ $(notset "$FORCE") && "$(git diff --name-only --cached)" != *"src/"* ]]; then
 	if [[ $(isset "$PRINT") ]]; then
-		echo -e "\033[1m[Testing Completions]\033[0m [script=, override=$OVERRIDE, cache=\033[1;32m$CACHE\033[0m]"
-		echo -e " $CHECK_MARK [skipped] No staged \033[1;34msrc/\033[0m files.\n"
+		echo -e "${BOLD}[Testing Completions]${NC} [script=, override=$OVERRIDE, cache=${BGREEN}$CACHE${NC}]"
+		echo -e " $CHECK_MARK [skipped] No staged ${BBLUE}src/${NC} files.\n"
 	fi
 	
 	[[ $(notset "$FORCE") ]] && exit 0 # Exit if not forced.
@@ -294,9 +311,9 @@ function xtest {
 
 			micros="${t:3:1}"
 			case $micros in
-			  0) t="\033[0;39m$t\033[0m" ;;
-			  1) t="\033[0;33m$t\033[0m" ;;
-			  *) t="\033[0;31m$t\033[0m" ;;
+			  0) t="${DEFAULT}$t${NC}" ;;
+			  1) t="${YELLOW}$t${NC}" ;;
+			  *) t="${RED}$t${NC}" ;;
 			esac
 
 			((test_id++))
@@ -392,8 +409,8 @@ function xtest {
 		((test_id--))
 		((skipped++))
 		if [[ $(isset "$PRINT") ]]; then
-			echo -e "(-) \033[1mIgnored (No Tests)\033[0m\n    [?] [$teststring_og]\\033[0m (${t}s)"
-			echo -e "    \033[1;35mOutput\033[0m"
+			echo -e "(-) ${BOLD}Ignored (No Tests)${NC}\n    [?] [$teststring_og]${NC} (${t}s)"
+			echo -e "    ${BPURPLE}Output${NC}"
 			readarray -t completions <<< "$(trim "$output")"
 			l="${#completions[@]}"
 			for ((i = 0 ; i < $l ; i++)); do
@@ -408,7 +425,7 @@ function xtest {
 				diff=$(( test_columns - tidl ))
 				padding="" # [https://stackoverflow.com/a/5349842]
 				[[ "$diff" > 0 ]] && padding="$(printf ' %.0s' $(seq 1 $diff))"
-				echo -e "${tid}${padding} $CHECK_MARK ${t}s [$teststring_og]\\033[0m"
+				echo -e "${tid}${padding} $CHECK_MARK ${t}s [$teststring_og]${NC}"
 			fi
 			((passed_count++))
 		else
@@ -418,20 +435,20 @@ function xtest {
 				padding="" # [https://stackoverflow.com/a/5349842]
 				[[ "$diff" > 0 ]] && padding="$(printf ' %.0s' $(seq 1 $diff))"
 				echo ""
-				echo -e "${tid}${padding} \033[1;31mFailing\033[0m\n    [$X_MARK] (${t}s) TS=[$teststring_og]\\033[0m"
+				echo -e "${tid}${padding} ${BRED}Failing${NC}\n    [$X_MARK] (${t}s) TS=[$teststring_og]${NC}"
 
 				l="${#tests[@]}"
 				for ((i = 0 ; i < $l ; i++)); do
 					r="${results[$i]}"
 					t="$(perl -pe 's/([\\])(;|:)/\2/g' <<< "$(trim "${tests[$i]}")")"
 					if [[ "$r" == 1 ]]; then
-						echo -e "    [$CHECK_MARK] [\033[1;36m${tlogic^^}\033[0m] —> [$t]"
+						echo -e "    [$CHECK_MARK] [${BTURQ}${tlogic^^}${NC}] —> [$t]"
 					else
-						echo -e "    [$X_MARK] [\033[1;36m${tlogic^^}\033[0m] -- [$t]"
+						echo -e "    [$X_MARK] [${BTURQ}${tlogic^^}${NC}] -- [$t]"
 					fi
 				done
 				
-				echo -e "    \033[1;35mOutput\033[0m"
+				echo -e "    ${BPURPLE}Output${NC}"
 				readarray -t completions <<< "$(trim "$output")"
 				l="${#completions[@]}"
 				for ((i = 0 ; i < $l ; i++)); do
@@ -453,7 +470,7 @@ for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-i
 
 	# Print header.
 	if [[ $(isset "$PRINT") ]]; then
-		echo -e "\033[1m[Testing Completions]\033[0m [script=\033[1;32m$(basename -- "$script")\033[0m, override=$OVERRIDE, cache=\033[1;32m$CACHE\033[0m]"
+		echo -e "${BOLD}[Testing Completions]${NC} [script=${BGREEN}$(basename -- "$script")${NC}, override=$OVERRIDE, cache=${BGREEN}$CACHE${NC}]"
 	fi
 	for test in "${tests[@]}"; do xtest "$test"; done
 
@@ -470,7 +487,7 @@ if [[ $(isset "$PRINT") ]]; then
 	test_count=$(( (2*test_count) - skipped ))
 	percent=$(perl -e "printf \"%.2f\", $passed_count/$test_count*100" 2> /dev/null)
 	[[ -z "$percent" ]] && percent=0
-	echo -e " \033[1;34mResult\033[0m: $passed_count/$test_count — (coverage: \033[1m$percent%\033[0m)"
+	echo -e " ${BBLUE}Result${NC}: $passed_count/$test_count — (coverage: ${BOLD}$percent%${NC})"
 fi
 
 [[ $(isset "$PRINT") ]] && echo "" # Pad output.

@@ -30,6 +30,11 @@ USER_OS=`perl -nle 'print lc' <<< "$USER_OS"`
 # If os is darwin rename to macosx.
 if [[ "$USER_OS" == "darwin" ]]; then USER_OS="macosx"; fi
 
+# ANSI colors: [https://stackoverflow.com/a/5947802]
+# [https://misc.flogisoft.com/bash/tip_colors_and_formatting]
+BOLD="\033[1m"
+NC="\033[0m"
+
 # Get passed flags.
 INPUT_PATH=""
 OUTPUT_PATH=""
@@ -71,12 +76,12 @@ if [[ -z "$INPUT_PATH" ]]; then
 fi
 
 if [[ ! -e "$INPUT_PATH" ]]; then
-	echo -e "[ABORTED] Path \033[1m$INPUT_PATH\033[0m doesn't exist."
+	echo -e "[ABORTED] Path ${BOLD}$INPUT_PATH${NC} doesn't exist."
 	exit 1
 fi
 
 if [[ ! -f "$INPUT_PATH" ]]; then
-	echo -e "[ABORTED] Path \033[1m$INPUT_PATH\033[0m doesn't lead to a file."
+	echo -e "[ABORTED] Path ${BOLD}$INPUT_PATH${NC} doesn't lead to a file."
 	exit 1
 fi
 

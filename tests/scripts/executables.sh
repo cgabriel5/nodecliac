@@ -35,7 +35,7 @@ STAGED_FILES=$(git diff --name-only --cached)
 # If no files are staged then exit.
 if [[ -z "$STAGED_FILES" ]]; then
 	if [[ $(isset "$PRINT") ]]; then
-		echo -e "\033[1m[Binary Executables]\033[0m"
+		echo -e "${BOLD}[Binary Executables]${NC}"
 	fi
 
 	if [[ $(isset "$PRINT") ]]; then
@@ -72,12 +72,12 @@ done
 # If array is populated there are errors.
 if [[ ${#binaries[@]} -ne 0 ]]; then # [https://serverfault.com/a/477506]
 	if [[ $(isset "$PRINT") ]]; then
-		echo -e "\033[1m[Binary Executables]\033[0m"
+		echo -e "${BOLD}[Binary Executables]${NC}"
 	fi
 
 	if [[ $(isset "$PRINT") ]]; then
 		for binfile in "${binaries[@]}"; do		
-			echo -e " $X_MARK Make executable: \033[1;36m$binfile\033[0m"
+			echo -e " $X_MARK Make executable: ${BTURQ}$binfile${NC}"
 		done
 	fi
 	
@@ -87,7 +87,7 @@ fi
 
 # If this block gets is there were no staged binaries so give message.
 if [[ $(isset "$PRINT") ]]; then
-	echo -e "\033[1m[Binary Executables]\033[0m"
+	echo -e "${BOLD}[Binary Executables]${NC}"
 fi
 
 if [[ $(isset "$PRINT") ]]; then

@@ -54,7 +54,7 @@ for file in "${list[@]}"; do # [https://www.cyberciti.biz/faq/bash-for-loop-arra
 	fi
 done
 
-[[ $(isset "$PRINT") ]] && echo -e "\033[1m[Installer Checksum]\033[0m"
+[[ $(isset "$PRINT") ]] && echo -e "${BOLD}[Installer Checksum]${NC}"
 
 # Ensure installer checksum is current.
 

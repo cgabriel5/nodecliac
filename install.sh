@@ -48,7 +48,7 @@ function cline() {
 # @param {string} 1) - Message to print.
 # @return - Nothing is returned.
 function err() {
-	echo -e "\033[1;31mError\033[0m: $1" && exit
+	echo -e "${BRED}Error${NC}: $1" && exit
 }
 
 # Print success message.
@@ -65,12 +65,20 @@ timestamp=$(perl -MTime::HiRes=time -e 'print int(time() * 1000);')
 outputdirname=".nodecliac-src-$timestamp"
 outputdir="$HOME/$outputdirname"
 binfilepath="/usr/local/bin/nodecliac" # [https://unix.stackexchange.com/a/8664]
-CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m"
+CHECK_MARK="${GREEN}\xE2\x9C\x94${NC}"
 branch_name="master"
 installer=""
 rcfile=""
 params=""
 manual=""
+
+# ANSI colors: [https://stackoverflow.com/a/5947802]
+# [https://misc.flogisoft.com/bash/tip_colors_and_formatting]
+BOLD="\033[1m"
+BRED="\033[1;31m"
+BGREEN="\033[1;32m"
+BBLUE="\033[1;34m"
+NC="${NC}"
 
 while (( "$#" )); do
 	case "$1" in
@@ -316,7 +324,7 @@ else
 		echo " - Checking local config store ownership..."
 		if [[ $(ls -ld "$configstore" | awk '{print $3}') != "$USER" ]]; then
 			cline && err "Change local config store ownership."
-			echo -e "Run: \033[1msudo chown -R \$USER:\$(id -gn \$USER) $configstore\033[0m"
+			echo -e "Run: ${BOLD}sudo chown -R \$USER:\$(id -gn \$USER) $configstore${NC}"
 		fi
 		success "Proper config store ownership."
 
@@ -339,8 +347,8 @@ fi
 
 # Use \033 rather than \e: [https://stackoverflow.com/a/37366139]
 if [[ "$(exists nodecliac)" ]]; then
-	echo -e "\033[1;32mSuccess\033[0m: nodecliac installed."
-	echo -e "    \033[1;34mTip\033[0m: Reload rcfile before using: \033[1msource ${rcfile/#$HOME/\~}\033[0m"
+	echo -e "${BGREEN}Success${NC}: nodecliac installed."
+	echo -e "    ${BBLUE}Tip${NC}: Reload rcfile before using: ${BOLD}source ${rcfile/#$HOME/\~}${NC}"
 fi
 }
 

@@ -40,12 +40,12 @@ passed_count=0
 # ------------------------------------------------------------------------- TEST
 
 # Print header.
-if [[ $(isset "$PRINT") ]]; then echo -e "\033[1m[Testing $HEADER]\033[0m"; fi
+if [[ $(isset "$PRINT") ]]; then echo -e "${BOLD}[Testing $HEADER]${NC}"; fi
 
 # To run tests there needs to be modified src/ files or force flag.
 if [[ "$(git diff --name-only --cached)" != *"src/"* && $(notset "$FORCE") ]]; then
 	if [[ $(isset "$PRINT") ]]; then
-		echo -e " $CHECK_MARK [skipped] No staged \033[1;34msrc/\033[0m files.\n"
+		echo -e " $CHECK_MARK [skipped] No staged ${BBLUE}src/${NC} files.\n"
 	fi
 
 	if [[ $(notset "$FORCE") ]]; then exit 0; fi # Exit if not forced.
@@ -129,7 +129,7 @@ for f in "$TESTDIR"/acmaps/*.acmap; do
 	# Check if file is a test file and not an actual/real .acmap.
 	istest_file=""
 	if [[ "$f" == *"-t" ]]; then
-		istest_file="\033[1m*\033[0m"
+		istest_file="${BOLD}*${NC}"
 		# [https://stackoverflow.com/a/27658733]
 		f=${f::-2} # Remove test file indicator.
 	fi
@@ -153,7 +153,7 @@ for f in "$TESTDIR"/acmaps/*.acmap; do
 	# If the contents don't match the output something failed.
 	if [[ "$output" != "$contents" ]]; then
 		if [[ $(isset "$PRINT") ]]; then
-			echo -e " $X_MARK \033[31m$f\033[0m$istest_file"
+			echo -e " $X_MARK ${RED}$f${NC}$istest_file"
 			# exit 1
 			# echo -e "$output"
 			# nodecliac make --source "$forg" --test
@@ -171,7 +171,7 @@ if [[ $(isset "$PRINT") ]]; then
 	echo ""
 	# Perl round number: [https://stackoverflow.com/a/178576]
 	percent=$(perl -e "printf \"%.2f\", $passed_count/$files_count*100")
-	echo -e " \033[1;34mResult\033[0m: $passed_count/$files_count — (coverage: \033[1m$percent%\033[0m)"
+	echo -e " ${BBLUE}Result${NC}: $passed_count/$files_count — (coverage: ${BOLD}$percent%${NC})"
 fi
 
 if [[ $(isset "$PRINT") ]]; then echo ""; fi # Pad output.

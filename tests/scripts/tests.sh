@@ -76,6 +76,7 @@ tests=(
 "nimble path ; *regex*"
 
 # [test-suite: op (1password)]
+"op ; *get*"
 "op get template ; *Social\\ Security\\ Number*"
 "op get template Social\\; *Social\\ Security\\ Number*"
 "op get template Social\\ ; *Social\\ Security\\ Number*"

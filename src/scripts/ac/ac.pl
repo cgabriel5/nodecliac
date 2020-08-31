@@ -44,9 +44,9 @@ $db{'filedirs'} = {};
 $db{'contexts'} = {};
 
 my %usedflags;
-$usedflags{'valueless'};
-$usedflags{'multi'};
-$usedflags{'counts'};
+my %usedflags_valueless;
+my %usedflags_multi;
+my %usedflags_counts;
 
 my $used_default_pa_args = '';
 my $prefix = 'NODECLIAC_';
@@ -538,11 +538,11 @@ sub __analyze {
 		}
 
 		if ($uflag_value) {$usedflags{$uflag_fkey}{$uflag_value} = 1;}
-		else { $usedflags{valueless}{$uflag_fkey} = undef; }
+		else { $usedflags_valueless{$uflag_fkey} = undef; }
 
 		# Track times flag was used.
 		if ($uflag_fkey && ($uflag_fkey ne '--' || $uflag_fkey ne '-')) {
-			$usedflags{counts}{$uflag_fkey}++;
+			$usedflags_counts{$uflag_fkey}++;
 		}
 
 		$i++;
@@ -593,7 +593,7 @@ sub __lookup {
 						} (split(/\|/, $ctx));
 						my $exclude = '';
 						foreach my $flag (@flags) {
-							if (exists($usedflags{counts}{$flag_fkey})) {
+							if (exists($usedflags_counts{$flag_fkey})) {
 								$exclude = $flag;
 								last;
 							}
@@ -630,9 +630,9 @@ sub __lookup {
 									my $c = 0;
 									if (substr($condition, 1, 1) eq 'f') {
 										# [https://stackoverflow.com/a/37438262]
-										$c = keys(%{$usedflags{counts}});
+										$c = keys(%{$usedflags_counts});
 										# Account for used '--' flag.
-										if ($c == 1 && exists($usedflags{counts}{'--'})) { $c = 0; }
+										if ($c == 1 && exists($usedflags_counts{'--'})) { $c = 0; }
 										if (!$lastchar) { $c--; }
 									} else { $c = $#posargs + 1; }
 									if    ($operator eq "eq") { $r = ($c == $n ? 1 : 0); }
@@ -645,9 +645,9 @@ sub __lookup {
 								# elsif ($fchar in {'1'..'9'}) { next; } # [TODO?]
 								} else { # Just a flag name.
 									if ($fchar eq '!') {
-										if (exists($usedflags{counts}{$condition})) { $r = 0; }
+										if (exists($usedflags_counts{$condition})) { $r = 0; }
 									} else {
-										if (exists($usedflags{counts}{$condition})) { $r = 1; }
+										if (exists($usedflags_counts{$condition})) { $r = 1; }
 									}
 								}
 								# Once any condition fails exit loop.
@@ -665,9 +665,9 @@ sub __lookup {
 							}
 						} else {
 							if ($fchar eq '!') {
-								if (exists($usedflags{counts}{$condition})) { $r = 0; }
+								if (exists($usedflags_counts{$condition})) { $r = 0; }
 							} else {
-								if (exists($usedflags{counts}{$condition})) { $r = 1; }
+								if (exists($usedflags_counts{$condition})) { $r = 1; }
 							}
 							if ($r == 1) {
 								my $flag = $ctx;
@@ -734,7 +734,7 @@ sub __lookup {
 						$flag_value = substr($flag_value, 1);
 
 						# Track multi-starred flags.
-						$usedflags{multi}{$flag_fkey} = undef;
+						$usedflags_multi{$flag_fkey} = undef;
 					}
 
 					# Create completion flag item.
@@ -774,7 +774,7 @@ sub __lookup {
 				my $dupe = 0;
 
 				# Let multi-flags through.
-				if (exists($usedflags{multi}{$flag_fkey})) {
+				if (exists($usedflags_multi{$flag_fkey})) {
 
 					# Check if multi-starred flag value has been used.
 					if ($flag_value && exists($usedflags{$flag_fkey}{$flag_value})) { $dupe = 1; }
@@ -782,10 +782,10 @@ sub __lookup {
 				} elsif (!$flag_eqsign) {
 
 					# Valueless --flag (no-value) dupe check.
-					if (exists($usedflags{valueless}{$flag_fkey}) || (
+					if (exists($usedflags_valueless{$flag_fkey}) || (
 					# Check if flag was used with a value already.
 						exists($usedflags{$flag_fkey}) &&
-						$usedflags{counts}{$flag_fkey} < 2 &&
+						$usedflags_counts{$flag_fkey} < 2 &&
 						!$lastchar
 					)) { $dupe = 1; }
 
@@ -800,14 +800,14 @@ sub __lookup {
 						} elsif (exists($usedflags{$flag_fkey}{$flag_value})) {
 							$dupe = 1; # subl -n 23 -n
 
-						} elsif (exists($usedflags{counts}{$flag_fkey})) {
-							if ($usedflags{counts}{$flag_fkey} > 1) { $dupe = 1; }
+						} elsif (exists($usedflags_counts{$flag_fkey})) {
+							if ($usedflags_counts{$flag_fkey} > 1) { $dupe = 1; }
 						}
 
 					# If no root level entry.
 					} else {
 						if ($last ne $flag_fkey
-							&& exists($usedflags{valueless}{$flag_fkey})) {
+							&& exists($usedflags_valueless{$flag_fkey})) {
 
 							# Autovivication: [https://perlmaven.com/multi-dimensional-hashes]
 							# [https://perlmaven.com/autovivification]

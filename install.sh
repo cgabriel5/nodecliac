@@ -59,6 +59,17 @@ function success() {
 	cline && echo -e " $CHECK_MARK $1" && sleep 0.1 && cline
 }
 
+# ANSI colors: [https://stackoverflow.com/a/5947802]
+GREEN="\033[0;32m"
+BOLD="\033[1m"
+BRED="\033[1;31m"
+BGREEN="\033[1;32m"
+BBLUE="\033[1;34m"
+BYELLOW="\033[1;33m"
+BPURPLE="\033[1;35m"
+NC="\033[0m"
+ITC="\033[3m"
+
 os=`platform`
 # Unix timestamp in ms: [https://stackoverflow.com/a/21640976]
 timestamp=$(perl -MTime::HiRes=time -e 'print int(time() * 1000);')
@@ -71,18 +82,13 @@ installer=""
 rcfile=""
 params=""
 manual=""
-
-# ANSI colors: [https://stackoverflow.com/a/5947802]
-# [https://misc.flogisoft.com/bash/tip_colors_and_formatting]
-BOLD="\033[1m"
-BRED="\033[1;31m"
-BGREEN="\033[1;32m"
-BBLUE="\033[1;34m"
-NC="${NC}"
+modrcfile=""
+yes=""
 
 while (( "$#" )); do
 	case "$1" in
 		--manual) manual="1"; shift ;;
+		--yes|-y) yes=1; shift ;;
 
 		--branch=*)
 			flag="${1%%=*}"; value="${1#*=}"
@@ -281,16 +287,35 @@ if [[ " binary manual " == *" $installer "* ]]; then
 
 	success "Setup ~/.nodecliac."
 
+	answer=""
+	if [[ -z "$yes" ]]; then
+		# Ask user whether to add nodecliac to rcfile.
+		echo -e "${BPURPLE}Prompt${NC}: For nodecliac to work it needs to be added to your rcfile."
+		echo -e "    ... The following line will be appended to ${BOLD}${rcfile/#$HOME/\~}${NC}:"
+		echo -e "    ... ${ITC}ncliac=~/.nodecliac/src/main/init.sh; [ -f \"\$ncliac\" ] && . \"\$ncliac\";${NC}"
+		echo -e "    ... (if skipping, manually add it after install to use nodecliac)"
+		echo -e -n "${BPURPLE}Answer${NC}: (default: Yes) Add now? [Y/n] "
+		read answer # [https://unix.stackexchange.com/a/165100]
+		case "$answer" in
+			[Yy]*) modrcfile=1; ;;
+			*) modrcfile=0 ;;
+		esac
+		for i in {1..5}; do cline; done # Remove question/answer lines.
+	fi
+	[[ -z "$answer" || "$yes" == 1 ]] && modrcfile=1
+
 	# Add nodecliac to rcfile.
-	if [[ -z "$(grep -F "ncliac=~/.nodecliac/src/main/init.sh" "$rcfile")" ]]; then
-		echo " - Adding nodecliac to $rcfile..."
-		perl -i -lpe 's/\x0a$//' "$rcfile" # Ensure newline.
-		echo 'ncliac=~/.nodecliac/src/main/init.sh; [ -f "$ncliac" ] && . "$ncliac";' >> "$rcfile"
-		perl -i -lpe 's/\x0a$//' "$rcfile" # Ensure newline.
-		success "Added nodecliac to $rcfile."
-		# [https://www.unix.com/shell-programming-and-scripting/229399-how-add-newline-character-end-file.html]
-		# [https://knowledge.ni.com/KnowledgeArticleDetails?id=kA00Z0000019KZDSA2]
-		# [https://stackoverflow.com/a/9021745]
+	if [[ "$modrcfile" == 1 ]]; then
+		if [[ -z "$(grep -F "ncliac=~/.nodecliac/src/main/init.sh" "$rcfile")" ]]; then
+			echo " - Adding nodecliac to $rcfile..."
+			perl -i -lpe 's/\x0a$//' "$rcfile" # Ensure newline.
+			echo 'ncliac=~/.nodecliac/src/main/init.sh; [ -f "$ncliac" ] && . "$ncliac";' >> "$rcfile"
+			perl -i -lpe 's/\x0a$//' "$rcfile" # Ensure newline.
+			success "Added nodecliac to $rcfile."
+			# [https://www.unix.com/shell-programming-and-scripting/229399-how-add-newline-character-end-file.html]
+			# [https://knowledge.ni.com/KnowledgeArticleDetails?id=kA00Z0000019KZDSA2]
+			# [https://stackoverflow.com/a/9021745]
+		fi
 	fi
 
 	# # Modify nodecliac.acdef for binary.
@@ -340,15 +365,24 @@ else
 		success "Installed nodecliac via yarn."
 	fi
 
-	echo " - Setting up nodecliac..."
-	nodecliac setup > /dev/null 2>&1
-	success "Setup nodecliac."
+	nodecliac setup --jsInstall # > /dev/null 2>&1
+	# echo " - Setting up nodecliac..."
+	# success "Setup nodecliac."
 fi
 
 # Use \033 rather than \e: [https://stackoverflow.com/a/37366139]
 if [[ "$(exists nodecliac)" ]]; then
-	echo -e "${BGREEN}Success${NC}: nodecliac installed."
-	echo -e "    ${BBLUE}Tip${NC}: Reload rcfile before using: ${BOLD}source ${rcfile/#$HOME/\~}${NC}"
+	echo -e "${BGREEN}Success${NC}: nodecliac installed in ~/.nodecliac"
+
+	if [[ -z "$(grep -F "ncliac=~/.nodecliac/src/main/init.sh" "$rcfile")" ]]; then
+		echo -e "   ${BYELLOW}Note${NC}: nodecliac wasn't added to rcfile (${rcfile/#$HOME/\~}) but is necessary to use it."
+		echo -e "     ... Add it and reload your rcfile by running the following commands:"
+		echo -e "     ... $ ${BOLD}echo${NC} 'ncliac=~/.nodecliac/src/main/init.sh; [ -f \"\$ncliac\" ] && . \"\$ncliac\";' >> ${rcfile/#$HOME/\~} && ${BOLD}source${NC} ${rcfile/#$HOME/\~}"
+	else
+		echo -e "${BGREEN}Success${NC}: nodecliac added to ${rcfile/#$HOME/\~}"
+		echo -e "    ${BBLUE}Tip${NC}: Reload rcfile before using by running:"
+		echo -e "     ... $ ${BOLD}source${NC} ${rcfile/#$HOME/\~}${NC}"
+	fi
 fi
 }
 

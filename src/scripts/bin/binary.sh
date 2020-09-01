@@ -125,13 +125,13 @@ while (( "$#" )); do
 		--enable)
 				if [[ "$command" == "status" ]]; then
 					enablencliac="1"; shift
-				elif
+				else
 					debug_enable="1"; shift
 				fi ;;
 		--disable)
 				if [[ "$command" == "status" ]]; then
 					disablencliac="1"; shift
-				elif
+				else
 					debug_disable="1"; shift
 				fi ;;
 

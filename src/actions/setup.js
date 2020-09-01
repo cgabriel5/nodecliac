@@ -2,16 +2,18 @@
 
 const path = require("path");
 const chalk = require("chalk");
+const shell = require("shelljs");
 const fe = require("file-exists");
 const mkdirp = require("make-dir");
-const copydir = require("recursive-copy");
-const de = require("directory-exists");
 const through = require("through2");
+const de = require("directory-exists");
+const copydir = require("recursive-copy");
 const toolbox = require("../utils/toolbox.js");
+const prompt = require("prompt-sync")({ sigint: true });
 const { fmt, exit, paths, read, write, strip_comments, chmod } = toolbox;
 
 module.exports = async (args) => {
-	let { force, rcfile, commands } = args;
+	let { force, rcfile, commands, yes, jsInstall } = args;
 	let err, res;
 	let tstring = "";
 
@@ -29,19 +31,38 @@ module.exports = async (args) => {
 		exit([fmt(tstring, chalk.bold(ncliacdir), chalk.bold("--force"))]);
 	}
 
-	if (!(await fe(bashrcpath))) {
-		exit([`${chalk.bold(bashrcpath)} file doesn't exist.`]);
-	}
+	// Create default rcfile if needed.
+	if (!(await fe(bashrcpath))) await write(bashrcpath, "", 0o644);
 
 	// [https://github.com/scopsy/await-to-js/issues/12#issuecomment-386147783]
 	await Promise.all([mkdirp(registrypath), mkdirp(acmapssource)]);
 
-	res = await read(bashrcpath);
-	if (!/^ncliac=~/m.test(res)) {
-		res = res.replace(/\n*$/g, ""); // Remove trailing newlines.
-		tstring =
-			'?\nncliac=~/.nodecliac/src/main/?; [ -f "$ncliac" ] && . "$ncliac";';
-		await write(bashrcpath, fmt(tstring, res, mainscriptname));
+	let answer = "";
+	let modrcfile = false;
+	// prettier-ignore
+	if (!yes) {
+		// Ask user whether to add nodecliac to rcfile.
+		let chomedir = bashrcpath.replace(new RegExp("^" + paths.homedir), "~");
+		console.log(`${chalk.bold.magenta("Prompt")}: For nodecliac to work it needs to be added to your rcfile.`);
+		console.log(`    ... The following line will be appended to ${chalk.bold(chomedir)}:`);
+		console.log(`    ... ${chalk.italic('ncliac=~/.nodecliac/src/main/init.sh; [ -f "$ncliac" ] && . "$ncliac";')}`);
+		console.log("    ... (if skipping, manually add it after install to use nodecliac)");
+		// [https://www.codecademy.com/articles/getting-user-input-in-node-js]
+		answer = prompt(`${chalk.bold.magenta("Answer")}: (default: Yes) Add now? [Y/n] `);
+		if (/^[Yy]/.test(answer)) modrcfile = true;
+		// Remove question/answer lines.
+		shell.exec("tput cuu 1 && tput el;".repeat(5));
+	}
+	if (!answer || yes) modrcfile = true;
+
+	if (modrcfile) {
+		res = await read(bashrcpath);
+		if (!/^ncliac=~/m.test(res)) {
+			res = res.replace(/\n*$/g, ""); // Remove trailing newlines.
+			tstring =
+				'?\nncliac=~/.nodecliac/src/main/?; [ -f "$ncliac" ] && . "$ncliac";';
+			await write(bashrcpath, fmt(tstring, res, mainscriptname));
+		}
 	}
 
 	// Create setup info file to reference on uninstall.
@@ -121,5 +142,5 @@ module.exports = async (args) => {
 		}).on(copydir.events.COPY_FILE_COMPLETE, cmode)
 	]);
 
-	console.log(chalk.green("Setup successful."));
+	if (!jsInstall) console.log(chalk.green("Setup successful."));
 };

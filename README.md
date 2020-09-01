@@ -112,6 +112,7 @@ install() {
   - `binary`: Uses nodecliac's [Nim](https://nim-lang.org/) Linux/macOS CLI tools.
 - `--branch`: An _existing_ nodecliac branch name to install. (default: `master`)
 - `--rcfile`: `bashrc` file to install nodecliac to. (default: `~/.bashrc`)
+- `--yes`: Automate install by saying yes to any prompt(s).
 
 </details>
 

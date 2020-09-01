@@ -85,6 +85,8 @@ manual=""
 modrcfile=""
 yes=""
 
+sudo echo > /dev/null 2>&1 # Prompt password early.
+
 while (( "$#" )); do
 	case "$1" in
 		--manual) manual="1"; shift ;;

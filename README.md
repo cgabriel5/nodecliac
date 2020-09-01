@@ -31,9 +31,11 @@
 <!-- [https://stackoverflow.com/questions/39065921/what-do-raw-githubusercontent-com-urls-represent] -->
 
 <!-- Using `bash -s`: [https://stackoverflow.com/a/51854728] -->
+<!-- [https://unix.stackexchange.com/a/339238] -->
+<!-- [https://unix.stackexchange.com/a/180826] -->
 
 ```sh
-$ sudo curl -Ls git.io/nodecliac | bash -s && source ~/.bashrc
+$ bash <(curl -Ls git.io/nodecliac) && source ~/.bashrc
 ```
 
 <!-- [https://stackoverflow.com/questions/17341122/link-and-execute-external-javascript-file-hosted-on-github] -->
@@ -45,13 +47,13 @@ $ sudo curl -Ls git.io/nodecliac | bash -s && source ~/.bashrc
 **curl Install** (_explicit defaults_):
 
 ```sh
-$ sudo curl -Ls git.io/nodecliac | bash -s -- --installer= --branch=master --rcfile=~/.bashrc && source ~/.bashrc
+$ bash <(curl -Ls git.io/nodecliac) --installer= --branch=master --rcfile=~/.bashrc && source ~/.bashrc
 ```
 
 **wget Install** (_defaults_):
 
 ```sh
-$ sudo wget -qO- git.io/nodecliac | bash -s && source ~/.bashrc
+$ bash <(wget -qO- git.io/nodecliac) && source ~/.bashrc
 ```
 
 **Manual Install**: One can also install manually.
@@ -82,11 +84,10 @@ install() {
     x=($([[ "$OSTYPE" == "darwin"* ]] && shasum -a 256 <<< "$is" || sha256sum <<< "$is"))
     c="df0f62840c974d1382c51c0c1db739af5070a05b0ad17ef7fcdba9bc7ea08759"
     err="\033[1;31mError\033[0m: Verification failed: checksums don't match."
-    [[ "$c" == "$x" ]] && bash -s -- \
+    [[ "$c" == "$x" ]] && bash <(echo "$is") \
         --installer= \
         --branch=master \
         --rcfile=~/.bashrc \
-        <<< "$is" \
         && source ~/.bashrc || echo -e "$err" && exit 1
 } && install
 ```

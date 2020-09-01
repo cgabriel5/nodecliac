@@ -313,6 +313,7 @@ $ nodecliac cache --level 1 # Set cache level to 1.
 > Setup nodecliac.
 
 - `--force`: (**required** _if nodecliac is already setup)_: Overwrites old nodecliac setup and installs anew.
+- `--yes`: Automate install by saying yes to any prompt(s).
 - `--rcfile`: By default `~/.bashrc` is used. If another rcfile should be used provide its path.
 - **Note**: Setup appends `ncliac=~/.nodecliac/src/main/init.sh; [ -f "$ncliac" ] && . "$ncliac";` to rcfile.
 
@@ -320,6 +321,8 @@ $ nodecliac cache --level 1 # Set cache level to 1.
 
 ```sh
 $ nodecliac setup # Setup nodecliac.
+$ nodecliac setup --force # Force nodecliac setup.
+$ nodecliac setup --force --yes # Force nodecliac setup and assume yes to any prompt(s).
 ```
 
 ---

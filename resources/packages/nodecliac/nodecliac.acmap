@@ -6,7 +6,7 @@ nodecliac.format = --indent|--source|--print?|--strip-comments?|filedir '@(acmap
 nodecliac.make = --source|--print?|filedir '@(acmap)'
 
 # Helper commands:
-nodecliac.setup = --force?|--rcfile
+nodecliac.setup = --force?|--rcfile|--yes?
 nodecliac.status = --enable?|--disable?|context "{enable | disable}"
 nodecliac.uninstall = --rcfile
 nodecliac.registry

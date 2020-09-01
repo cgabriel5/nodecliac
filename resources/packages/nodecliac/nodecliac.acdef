@@ -1,4 +1,4 @@
-# DON'T EDIT FILE —— GENERATED: Tue Aug 18 2020 18:30:28 (1597800628)
+# DON'T EDIT FILE —— GENERATED: Tue Sep 01 2020 11:54:37 (1598986477)
 
  --version?
 .add --force?
@@ -12,7 +12,7 @@
 .print --command=|--command=$('for f in ~/.nodecliac/registry/*; do echo "$(basename -- $f)"; done')
 .registry --
 .remove --all
-.setup --force?|--rcfile
+.setup --force?|--rcfile|--yes?
 .status --disable?|--enable?
 .test --
 .uninstall --rcfile

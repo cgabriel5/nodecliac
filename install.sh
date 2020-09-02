@@ -82,7 +82,6 @@ installer=""
 rcfile=""
 params=""
 manual=""
-modrcfile=""
 yes=""
 
 sudo echo > /dev/null 2>&1 # Prompt password early.
@@ -291,26 +290,27 @@ if [[ " binary manual " == *" $installer "* ]]; then
 
 	success "Setup ~/.nodecliac."
 
-	answer=""
-	if [[ -z "$yes" ]]; then
-		# Ask user whether to add nodecliac to rcfile.
-		echo -e "${BPURPLE}Prompt${NC}: For nodecliac to work it needs to be added to your rcfile."
-		echo -e "    ... The following line will be appended to ${BOLD}${rcfile/#$HOME/\~}${NC}:"
-		echo -e "    ... ${ITC}ncliac=~/.nodecliac/src/main/init.sh; [ -f \"\$ncliac\" ] && . \"\$ncliac\";${NC}"
-		echo -e "    ... (if skipping, manually add it after install to use nodecliac)"
-		echo -e -n "${BPURPLE}Answer${NC}: (default: Yes) Add now? [Y/n] "
-		read answer # [https://unix.stackexchange.com/a/165100]
-		case "$answer" in
-			[Yy]*) modrcfile=1; ;;
-			*) modrcfile=0 ;;
-		esac
-		for i in {1..5}; do cline; done # Remove question/answer lines.
-	fi
-	[[ -z "$answer" || "$yes" == 1 ]] && modrcfile=1
+	if [[ -z "$(grep -F "ncliac=~/.nodecliac/src/main/init.sh" "$rcfile")" ]]; then
+		answer=""
+		modrcfile=""
+		if [[ -z "$yes" ]]; then
+			# Ask user whether to add nodecliac to rcfile.
+			echo -e "${BPURPLE}Prompt${NC}: For nodecliac to work it needs to be added to your rcfile."
+			echo -e "    ... The following line will be appended to ${BOLD}${rcfile/#$HOME/\~}${NC}:"
+			echo -e "    ... ${ITC}ncliac=~/.nodecliac/src/main/init.sh; [ -f \"\$ncliac\" ] && . \"\$ncliac\";${NC}"
+			echo -e "    ... (if skipping, manually add it after install to use nodecliac)"
+			echo -e -n "${BPURPLE}Answer${NC}: [Press enter for default: Yes] ${BOLD}Add nodecliac to rcfile?${NC} [Y/n] "
+			read answer # [https://unix.stackexchange.com/a/165100]
+			case "$answer" in
+				[Yy]*) modrcfile=1; ;;
+				*) modrcfile=0 ;;
+			esac
+			for i in {1..5}; do cline; done # Remove question/answer lines.
+		fi
+		[[ -z "$answer" || "$yes" == 1 ]] && modrcfile=1
 
-	# Add nodecliac to rcfile.
-	if [[ "$modrcfile" == 1 ]]; then
-		if [[ -z "$(grep -F "ncliac=~/.nodecliac/src/main/init.sh" "$rcfile")" ]]; then
+		# Add nodecliac to rcfile.
+		if [[ "$modrcfile" == 1 ]]; then
 			echo " - Adding nodecliac to $rcfile..."
 			perl -i -lpe 's/\x0a$//' "$rcfile" # Ensure newline.
 			echo 'ncliac=~/.nodecliac/src/main/init.sh; [ -f "$ncliac" ] && . "$ncliac";' >> "$rcfile"

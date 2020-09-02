@@ -33,18 +33,16 @@ ROOTDIR=$(chipdir "$__filepath" 2) # Get the project's root directory.
 
 # Print script executable permission.
 if [[ $(isset "$PRINT") ]]; then
+	c=0
 	echo -e "${BOLD}[Script Executables]${NC}"
 	for f in  "$ROOTDIR"/*.sh "$ROOTDIR"/src/scripts/*/*.{sh,pl,nim} "$ROOTDIR"/tests/scripts/*.sh; do
 		dir=${f%/*}
 		dir="${dir/$ROOTDIR/}"
 		[[ -n "$dir" ]] && dir=" ${DIM}$dir${NC}"
 		filename="${f##*/}"
-		if [[ -x "$f" ]]; then
-			echo -e " $CHECK_MARK $filename$dir"
-		else
-			echo -e " $X_MARK $filename$dir"
-		fi
+		[[ ! -x "$f" ]] && echo -e " $X_MARK $filename$dir" && ((c=c+1))
 	done
+	[[ "$c" == 0 ]] && echo -e " $CHECK_MARK All scripts are executable."
 	echo ""
 fi
 

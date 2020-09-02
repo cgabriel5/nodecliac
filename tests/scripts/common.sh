@@ -36,7 +36,24 @@ notset() {
 
 # ------------------------------------------------------------------------- VARS
 
+# ANSI colors: [https://stackoverflow.com/a/5947802]
+# [https://misc.flogisoft.com/bash/tip_colors_and_formatting]
+RED="\033[0;31m"
+GREEN="\033[0;32m"
+YELLOW="\033[0;33m"
+# Bold colors.
+BOLD="\033[1m"
+BRED="\033[1;31m"
+BGREEN="\033[1;32m"
+BBLUE="\033[1;34m"
+BPURPLE="\033[1;35m"
+BTURQ="\033[1;36m"
+# Special
+DEFAULT="\033[0;39m"
+NC="\033[0m"
+DIM="\033[2m"
+
 # [https://www.utf8-chartable.de/unicode-utf8-table.pl?start=9984&number=128&names=-&utf8=string-literal]
 # [https://misc.flogisoft.com/bash/tip_colors_and_formatting]
-CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m"
-X_MARK="\033[0;31m\xe2\x9c\x98\033[0m"
+CHECK_MARK="${GREEN}\xE2\x9C\x94${NC}"
+X_MARK="${RED}\xe2\x9c\x98${NC}"

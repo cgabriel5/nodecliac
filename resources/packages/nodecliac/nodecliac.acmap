@@ -1,26 +1,50 @@
+$names = "~/.nodecliac/registry/nodecliac/scripts/names.pl"
+$commands = 'for f in ~/.nodecliac/registry/*; do echo "$(basename -- $f)"; done'
+
 # CLI tool commands:
 nodecliac.format = --indent|--source|--print?|--strip-comments?|filedir '@(acmap)'
 nodecliac.make = --source|--print?|filedir '@(acmap)'
 
 # Helper commands:
-nodecliac.setup = --force?|--rcfile
-nodecliac.status = --enable?|--disable?
+nodecliac.setup = --force?|--rcfile|--yes?
+nodecliac.status = --enable?|--disable?|context "{enable | disable}"
 nodecliac.uninstall = --rcfile
 nodecliac.registry
 # print command helps showcase command-strings.
-nodecliac.print = --command=$('for f in ~/.nodecliac/registry/*; do echo "$(basename -- $f)"; done')
+nodecliac.print = --command=$('${commands}')
 
 # Package commands:
-nodecliac.add
+nodecliac.add = --force?
 nodecliac.link
-nodecliac.remove,
-nodecliac.unlink,
-nodecliac.enable,
-nodecliac.disable = --all
+nodecliac.{remove,unlink,enable,disable} = --all|default $('${names}')
+nodecliac.test = default $('${names}')
+nodecliac.debug = [
+	--enable?
+	--disable?
+	context "{enable | disable}"
+	--script=(nim perl)
+]
 
 # Other commands:
 nodecliac = --version?
-nodecliac.cache = [
-	--clear?
-	--level=(0 1 2)
-]
+nodecliac.cache = --clear?|--level=(0 1 2)
+
+# nodecliac complete tests.
+@test = "nodecliac ; *uninstall*"
+@test = "nodecliac --engine=2 --; *--version *"
+@test = "nodecliac format; *format*"
+@test = "nodecliac format positional_arg; !*format*"
+@test = "nodecliac format positional_arg ; !*format*"
+@test = "nodecliac print --command=; *subl*"
+@test = "nodecliac print --command; *--command=*"
+@test = "nodecliac print --command=node; *nodecliac *"
+@test = "nodecliac print --command node; *nodecliac *"
+@test = "nodecliac print --command ; *nodecliac *"
+@test = "nodecliac print --comm; *--command*"
+@test = "nodecliac make --sou| path/to/file; *source*"
+@test = "nodecliac make --source install --print --so; !*--source*"
+@test = 'nodecliac format --source command.acmap --print --indent "s:2" --; *strip-comments*'
+@test = 'nodecliac NONEXISTANTCOMMAND ; *format*'
+@test = 'nodecliac NONEXISTANTCOMMAND for; *format*'
+@test = 'nodecliac . ; *format*'
+@test = 'nodecliac . -; 1:*--version*'

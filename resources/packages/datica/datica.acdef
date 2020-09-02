@@ -1,0 +1,213 @@
+# DON'T EDIT FILE —— GENERATED: Thu Jul 09 2020 17:27:34 (1594340854)
+
+ --email|--env?|--help?|--password|--username|--version?
+.certs --help?
+.certs.create --down-stream=|--help?|--lets-encrypt=|--lets-encrypt=false|--lets-encrypt=true|--resolve=|--resolve=false|--resolve=true|--self-signed=|--self-signed=false|--self-signed=true
+.certs.list --down-stream|--help?
+.certs.rm --down-stream|--help?
+.certs.update --down-stream|--help?|--resolve=|--resolve=false|--resolve=true|--self-signed=|--self-signed=false|--self-signed=true
+.clear --all=|--all=false|--all=true|--environments=|--environments=false|--environments=true|--help?|--pods=|--pods=false|--pods=true|--private-key=|--private-key=false|--private-key=true|--session=|--session=false|--session=true
+.console --help?
+.db --help?
+.db.backup --help?|--skip-poll=|--skip-poll=false|--skip-poll=true
+.db.download --force=|--force=false|--force=true|--help?
+.db.export --force=|--force=false|--force=true|--help?
+.db.import --help?|--mongo-collection=|--mongo-database=|--skip-backup=|--skip-backup=false|--skip-backup=true
+.db.list --help?|--page-size=|--page=
+.db.logs --help?
+.db.restore --help?|--mongo-database=|--yes=|--yes=false|--yes=true
+.deploy --help?
+.deploy-keys --help?
+.deploy-keys.add --help?
+.deploy-keys.list --help?
+.deploy-keys.rm --help?
+.domain --help?
+.environments --help?
+.environments.list --help?
+.environments.rename --help?
+.files --help?
+.files.download --help?|--showTimestamps=|--showTimestamps=false|--showTimestamps=true
+.files.list --help?
+.git-remote --help?
+.git-remote.add --force=|--force=false|--force=true|--help?|--remote=
+.git-remote.show --help?
+.images --help?
+.images.list --help?
+.images.pull --help?
+.images.push --help?
+.images.tags --help?
+.images.tags.list --help?
+.images.tags.rm --help?
+.images.targets --help?
+.images.targets.list --help?
+.images.targets.reset --help?
+.images.targets.rm --help?
+.images.targets.status --help?
+.init --help?
+.invites --help?
+.invites.accept --help?
+.invites.list --help?
+.invites.rm --help?
+.invites.send --help?
+.jobs --help?
+.jobs.list --help?
+.jobs.start --help?
+.jobs.stop --force=|--force=false|--force=true|--help?
+.keys --help?
+.keys.add --help?
+.keys.list --help?
+.keys.rm --help?
+.keys.set --help?
+.logout --help?
+.logs --follow=|--follow=false|--follow=true|--help?|--hours=|--job-id=|--minutes=|--seconds=|--service=|--tail=|--tail=false|--tail=true|--target=
+.maintenance --help?
+.maintenance.disable --help?
+.maintenance.enable --help?
+.maintenance.show --help?
+.metrics --help?
+.metrics.cpu --csv=|--csv=false|--csv=true|--help?|--json=|--json=false|--json=true|--mins=|--stream=|--stream=false|--stream=true|--text=|--text=false|--text=true
+.metrics.memory --csv=|--csv=false|--csv=true|--help?|--json=|--json=false|--json=true|--mins=|--stream=|--stream=false|--stream=true|--text=|--text=false|--text=true
+.metrics.network-in --csv=|--csv=false|--csv=true|--help?|--json=|--json=false|--json=true|--mins=|--stream=|--stream=false|--stream=true|--text=|--text=false|--text=true
+.metrics.network-out --csv=|--csv=false|--csv=true|--help?|--json=|--json=false|--json=true|--mins=|--stream=|--stream=false|--stream=true|--text=|--text=false|--text=true
+.rake --help?
+.redeploy --help?
+.releases --help?
+.releases.list --help?
+.releases.rm --help?
+.releases.update --help?|--notes=
+.rollback --help?
+.services --help?
+.services.list --help?
+.services.rename --help?
+.services.stop --help?
+.sites --help?
+.sites.create --client-max-body-size=|--down-stream=|--enable-cors=|--enable-cors=false|--enable-cors=true|--enable-websockets=|--enable-websockets=false|--enable-websockets=true|--help?|--lets-encrypt=|--lets-encrypt=false|--lets-encrypt=true|--proxy-connect-timeout=|--proxy-read-timeout=|--proxy-send-timeout=|--proxy-upstream-timeout=
+.sites.list --down-stream=|--help?
+.sites.rm --down-stream=|--help?
+.sites.show --down-stream=|--help?
+.ssl --help?
+.ssl.resolve --force=|--force=false|--force=true|--help?
+.ssl.verify --help?|--self-signed=|--self-signed=false|--self-signed=true
+.status --help?|--historical=|--historical=false|--historical=true
+.support-ids --help?
+.update --help?
+.users --help?
+.users.list --help?
+.users.rm --help?
+.vars --help?
+.vars.list --help?|--json=|--json=false|--json=true|--yaml=|--yaml=false|--yaml=true
+.vars.set --variable=*|--file=|--help?|--variable=
+.vars.unset --help?
+.version --help?
+.whoami --help?
+.worker --help?
+.worker.deploy --help?
+.worker.list --help?
+.worker.rm --help?
+.worker.scale --help?
+
+ context "!help:#fge1"
+.certs context "!help:#fge1"
+.certs.create context "!help:#fge1"
+.certs.list context "!help:#fge1"
+.certs.rm context "!help:#fge1"
+.certs.update context "!help:#fge1"
+.clear context "!help:#fge1"
+.console context "!help:#fge1"
+.db context "!help:#fge1"
+.db.backup context "!help:#fge1"
+.db.download context "!help:#fge1"
+.db.export context "!help:#fge1"
+.db.import context "!help:#fge1"
+.db.list context "!help:#fge1"
+.db.logs context "!help:#fge1"
+.db.restore context "!help:#fge1"
+.deploy context "!help:#fge1"
+.deploy-keys context "!help:#fge1"
+.deploy-keys.add context "!help:#fge1"
+.deploy-keys.list context "!help:#fge1"
+.deploy-keys.rm context "!help:#fge1"
+.domain context "!help:#fge1"
+.environments context "!help:#fge1"
+.environments.list context "!help:#fge1"
+.environments.rename context "!help:#fge1"
+.files context "!help:#fge1"
+.files.download context "!help:#fge1"
+.files.list context "!help:#fge1"
+.git-remote context "!help:#fge1"
+.git-remote.add context "!help:#fge1"
+.git-remote.show context "!help:#fge1"
+.images context "!help:#fge1"
+.images.list context "!help:#fge1"
+.images.pull context "!help:#fge1"
+.images.push context "!help:#fge1"
+.images.tags context "!help:#fge1"
+.images.tags.list context "!help:#fge1"
+.images.tags.rm context "!help:#fge1"
+.images.targets context "!help:#fge1"
+.images.targets.list context "!help:#fge1"
+.images.targets.reset context "!help:#fge1"
+.images.targets.rm context "!help:#fge1"
+.images.targets.status context "!help:#fge1"
+.init context "!help:#fge1"
+.invites context "!help:#fge1"
+.invites.accept context "!help:#fge1"
+.invites.list context "!help:#fge1"
+.invites.rm context "!help:#fge1"
+.invites.send context "!help:#fge1"
+.jobs context "!help:#fge1"
+.jobs.list context "!help:#fge1"
+.jobs.start context "!help:#fge1"
+.jobs.stop context "!help:#fge1"
+.keys context "!help:#fge1"
+.keys.add context "!help:#fge1"
+.keys.list context "!help:#fge1"
+.keys.rm context "!help:#fge1"
+.keys.set context "!help:#fge1"
+.logout context "!help:#fge1"
+.logs context "{follow|tail};{job-id|target};!help:#fge1"
+.maintenance context "!help:#fge1"
+.maintenance.disable context "!help:#fge1"
+.maintenance.enable context "!help:#fge1"
+.maintenance.show context "!help:#fge1"
+.metrics context "!help:#fge1"
+.metrics.cpu context "{json|csv|text};!help:#fge1"
+.metrics.memory context "{json|csv|text};!help:#fge1"
+.metrics.network-in context "{json|csv|text};!help:#fge1"
+.metrics.network-out context "{json|csv|text};!help:#fge1"
+.rake context "!help:#fge1"
+.redeploy context "!help:#fge1"
+.releases context "!help:#fge1"
+.releases.list context "!help:#fge1"
+.releases.rm context "!help:#fge1"
+.releases.update context "!help:#fge1"
+.rollback context "!help:#fge1"
+.services context "!help:#fge1"
+.services.list context "!help:#fge1"
+.services.rename context "!help:#fge1"
+.services.stop context "!help:#fge1"
+.sites context "!help:#fge1"
+.sites.create context "!help:#fge1"
+.sites.list context "!help:#fge1"
+.sites.rm context "!help:#fge1"
+.sites.show context "!help:#fge1"
+.ssl context "!help:#fge1"
+.ssl.resolve context "!help:#fge1"
+.ssl.verify context "!help:#fge1"
+.status context "!help:#fge1"
+.support-ids context "!help:#fge1"
+.update context "!help:#fge1"
+.users context "!help:#fge1"
+.users.list context "!help:#fge1"
+.users.rm context "!help:#fge1"
+.vars context "!help:#fge1"
+.vars.list context "{json|yaml};!help:#fge1"
+.vars.set context "!help:#fge1"
+.vars.unset context "!help:#fge1"
+.version context "!help:#fge1"
+.whoami context "!help:#fge1"
+.worker context "!help:#fge1"
+.worker.deploy context "!help:#fge1"
+.worker.list context "!help:#fge1"
+.worker.rm context "!help:#fge1"
+.worker.scale context "!help:#fge1"

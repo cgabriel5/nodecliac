@@ -1,36 +1,36 @@
 "use strict";
 
+const path = require("path");
 const chalk = require("chalk");
 const flatry = require("flatry");
-const mkdirp = require("make-dir");
 const de = require("directory-exists");
-const { paths, rmrf, read, write, hasProp } = require("../utils/toolbox.js");
+const { paths, readdir, remove, hasProp } = require("../utils/toolbox.js");
+const { initconfig, getsetting, setsetting } = require("../utils/config.js");
 
 module.exports = async (args) => {
-	let { cachepath, cachelevel } = paths;
-	// eslint-disable-next-line no-unused-vars
-	let err, res;
-
+	let { cachepath } = paths;
 	let { clear, level } = args;
 
+	await initconfig();
+
 	if (clear) {
-		[err, res] = await flatry(de(cachepath));
+		let [err, res] = await flatry(de(cachepath));
 		if (!err) {
-			await flatry(rmrf(cachepath));
-			await flatry(mkdirp(cachepath));
-			console.log(chalk.green("Successfully"), "cleared cache.");
+			let [err, files] = await flatry(readdir(cachepath));
+			if (!files) files = [];
+			for (let i = 0, l = files.length; i < l; i++) {
+				await remove(path.join(cachepath, files[i]));
+			}
+			console.log(chalk.green("success"), "Cleared cache");
 		}
 	}
 
 	if (hasProp(args, "level")) {
 		if (Number.isInteger(level)) {
 			const levels = [0, 1, 2]; // Cache levels.
-			await flatry(
-				write(cachelevel, -~levels.indexOf(level) ? level : 1)
-			);
+			await setsetting("cache", -~levels.indexOf(level) ? level : 1);
 		} else {
-			[err, res] = await flatry(read(cachelevel));
-			if (!err) console.log(res.trim());
+			process.stdout.write(await getsetting("cache"));
 		}
 	}
 };

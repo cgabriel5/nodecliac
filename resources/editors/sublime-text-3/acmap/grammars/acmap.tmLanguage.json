@@ -82,9 +82,6 @@
 				},
 				{
 					"include": "#single-quoted-string"
-				},
-				{
-					"include": "#template-string"
 				}
 			]
 		},
@@ -248,12 +245,6 @@
 				},
 				"2": {
 					"name": "punctuation.section.parens.command-string.begin.acmap"
-				},
-				"3": {
-					"name": "entity.name.variable.acmap"
-				},
-				"4": {
-					"name": "keyword.operator.assignment.acmap"
 				}
 			},
 			"contentName": "meta.command-string.acmap",
@@ -279,6 +270,9 @@
 				},
 				{
 					"include": "#strings"
+				},
+				{
+					"include": "#unaccounted"
 				}
 			],
 			"end": "(?<!\\\\)(\\))",
@@ -288,10 +282,45 @@
 				}
 			}
 		},
+		"command-group": {
+			"begin": "\\s*(\\{)",
+			"beginCaptures": {
+				"1": {
+					"name": "punctuation.section.command-group.begin.acmap"
+				}
+			},
+			"contentName": "meta.command-group.acmap",
+			"patterns": [
+				{
+					"include": "#comment"
+				},
+				{
+					"include": "#command"
+				},
+				{
+					"include": "#delimiter"
+				},
+				{
+					"include": "#escape"
+				}
+			],
+			"end": "(\\})",
+			"endCaptures": {
+				"1": {
+					"name": "punctuation.section.command-group.end.acmap"
+				}
+			}
+		},
 		"command": {
-			"begin": "^\\s*(?=\\.?[a-zA-Z])",
+			"begin": "^\\s*(?=(\\.?[_a-zA-Z])|\\*)",
 			"contentName": "entity.other.command.acmap",
 			"patterns": [
+				{
+					"include": "#command-group"
+				},
+				{
+					"include": "#delimiter"
+				},
 				{
 					"include": "#escape"
 				},
@@ -304,6 +333,15 @@
 						},
 						"3": {
 							"name": "punctuation.accessor.forward-slash.acmap"
+						}
+					}
+				},
+				{
+					"match": "(\\*)\\s*(?==)",
+					"name": "",
+					"captures": {
+						"1": {
+							"name": "entity.command.wildcard.acmap"
 						}
 					}
 				},
@@ -355,6 +393,9 @@
 				},
 				{
 					"include": "#keywords"
+				},
+				{
+					"include": "#unaccounted"
 				}
 			]
 		},
@@ -394,7 +435,7 @@
 			]
 		},
 		"flag-oneliner": {
-			"begin": "( |(=)\\s*)(?=(--?|default|filedir))",
+			"begin": "( |(=)\\s*)(?=(--?|\"|'|default|filedir|context|exclude))",
 			"beginCaptures": {
 				"2": {
 					"name": "keyword.operator.assignment.acmap"
@@ -402,6 +443,9 @@
 			},
 			"contentName": "",
 			"patterns": [
+				{
+					"include": "#strings"
+				},
 				{
 					"include": "#flags-oneliner"
 				}
@@ -462,7 +506,7 @@
 		"keywords": {
 			"patterns": [
 				{
-					"match": "(default|filedir)([\\x{0020}\\t]{1,})",
+					"match": "(default|filedir|context|exclude)([\\x{0020}\\t]{1,})",
 					"name": "",
 					"captures": {
 						"1": {
@@ -479,7 +523,7 @@
 			]
 		},
 		"flag": {
-			"match": "(--?)(([a-zA-Z][-_.:a-zA-Z0-9]*)(\\?)?)?",
+			"match": "(--?)(([a-zA-Z][-_.a-zA-Z0-9]*)((::)([a-zA-Z]))?(\\?)?)?",
 			"name": "meta.flag-name.acmap",
 			"captures": {
 				"1": {
@@ -488,7 +532,13 @@
 				"3": {
 					"name": "support.type.flag-name.acmap"
 				},
-				"4": {
+				"5": {
+					"name": "punctuation.punctuation.flag-alias.acmap"
+				},
+				"6": {
+					"name": "support.type.flag-alias.acmap"
+				},
+				"7": {
 					"name": "keyword.operator.assignment.boolean.acmap"
 				}
 			}
@@ -560,6 +610,9 @@
 				},
 				{
 					"include": "#options-values"
+				},
+				{
+					"include": "#unaccounted"
 				}
 			]
 		},

@@ -10,9 +10,16 @@ const { hasProp } = require("./objects.js");
 const { fmt, rtp } = require("./strings.js");
 const fs = require("./filesystem.js");
 const { realpath, readdir, lstats, remove } = fs;
-const { write, info, read, copy, rmrf, ispath_abs } = fs;
+const { write, info, read, copy, rmrf, ispath_abs, exists } = fs;
+const { fexists, dexists, lexists, access, chmod } = fs;
 
 module.exports = {
+	exists,
+	fexists,
+	dexists,
+	lexists,
+	access,
+	chmod,
 	hasProp,
 	strip_comments,
 	checksum,

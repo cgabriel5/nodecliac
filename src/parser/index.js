@@ -1,5 +1,6 @@
 "use strict";
 
+const flatry = require("flatry");
 const state = require("./helpers/state.js");
 const error = require("./helpers/error.js");
 const { hasProp } = require("../utils/toolbox.js");
@@ -10,8 +11,17 @@ const specificity = require("./helpers/specificity.js");
 const bracechecks = require("./helpers/brace-checks.js");
 const { cin, cnotin, C_NL, C_SOL, C_SPACES } = require("./helpers/charsets.js");
 
-module.exports = (action, text, cmdname, source, fmt, trace, igc, test) => {
-	const S = state(action, text, source, fmt, trace, igc, test);
+module.exports = async (
+	action,
+	text,
+	cmdname,
+	source,
+	fmt,
+	trace,
+	igc,
+	test
+) => {
+	const S = state(action, cmdname, text, source, fmt, trace, igc, test);
 	const { linestarts } = S.tables;
 	// const stime = process.hrtime();
 	let ltype;
@@ -51,6 +61,6 @@ module.exports = (action, text, cmdname, source, fmt, trace, igc, test) => {
 
 	let res = {};
 	if (action === "format") res.formatted = formatter(S);
-	else res = require("./tools/acdef.js")(S, cmdname);
+	else [, res] = await flatry(require("./tools/acdef.js")(S, cmdname));
 	return res;
 };

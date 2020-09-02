@@ -1,107 +1,129 @@
 from re import re, find, replace
 from strutils import split, parseInt
-from os import isAbsolute, absolutePath, existsDir, existsFile, joinPath, createDir
+from os import isAbsolute, absolutePath, existsDir, existsFile, joinPath,
+    createDir, fpUserExec, fpUserWrite, fpUserRead, fpGroupExec, fpGroupWrite,
+    fpGroupRead, fpOthersExec, fpOthersRead
 from tables import Table, `[]`, `$`, keys, pairs, len # [https://github.com/nim-lang/Nim/issues/11155]
+from strtabs import StringTableRef, len, `[]`, keys
 
 from parser/index import parser
 import utils/[chalk, argvparse, exit]
 from utils/fs import info, read, write
 
-let args = argvparse()
-let igc = args.igc
-let test = args.test
-let print = args.print
-let trace = args.trace
-let action = args.action
-var indent = args.indent
-var source = args.source
-let formatting = action == "format"
+# Wrap code in a function:
+# [https://forum.nim-lang.org/t/4835#30312]
+# [https://forum.nim-lang.org/t/1268#7848]
+# [https://forum.nim-lang.org/t/3788#23609]
+proc main =
+    let args = argvparse()
+    let igc = args.igc
+    let test = args.test
+    let print = args.print
+    let trace = args.trace
+    let action = args.action
+    var indent = args.indent
+    var source = args.source
+    let formatting = action == "format"
 
-var fmtinfo: tuple[char: char, amount: int]
-fmtinfo = (char: '\t', amount: 1)
-# Parse/validate indentation.
-if formatting and indent != "":
-    let r = re"^(s|t):\d+$"
-    if indent.find(r) == -1:
-        echo "Invalid indentation string."
+    var fmtinfo: tuple[char: char, amount: int]
+    fmtinfo = (char: '\t', amount: 1)
+    # Parse/validate indentation.
+    if formatting and indent != "":
+        let r = re"^(s|t):\d+$"
+        if indent.find(r) == -1:
+            echo "Invalid indentation string."
+            exit()
+        let components = indent.split(":", 2)
+        fmtinfo.char = if components[0] == "s": ' ' else: '\t'
+        fmtinfo.amount = components[1].parseInt()
+
+    # Source must be provided.
+    if source == "":
+        echo "Please provide a " &  "--source".chalk("bold") & " path."
         exit()
-    let components = indent.split(":", 2)
-    fmtinfo.char = if components[0] == "s": ' ' else: '\t'
-    fmtinfo.amount = components[1].parseInt()
 
-# Source must be provided.
-if source == "":
-    echo "Please provide a " &  "--source".chalk("bold") & " path."
-    exit()
+    # Breakdown path.
+    let fi = info(source)
+    let extension = fi.ext
+    let cmdname = fi.name.replace(re("\\." & extension & "$")) # [TODO] `replace`
+    let dirname = fi.dirname
 
-# Breakdown path.
-let fi = info(source)
-let extension = fi.ext
-let cmdname = fi.name.replace(re("\\." & extension & "$")) # [TODO] `replace`
-let dirname = fi.dirname
+    # Make path absolute.
+    if not source.isAbsolute(): source = absolutePath(source)
 
-# Make path absolute.
-if not source.isAbsolute(): source = absolutePath(source)
+    if existsDir(source):
+        echo "Directory provided but .acmap file path needed."
+        exit()
+    if not existsFile(source):
+        echo "Path " & source.chalk("bold") & " doesn't exist."
+        exit()
 
-if existsDir(source):
-    echo "Directory provided but .acmap file path needed."
-    exit()
-if not existsFile(source):
-    echo "Path " & source.chalk("bold") & " doesn't exist."
-    exit()
+    var res = read(source);shallow(res)
+    let pres = parser(action, res, cmdname, source, fmtinfo, trace, igc, test)
+    let acdef = pres.acdef
+    let config = pres.config
+    let keywords = pres.keywords
+    let filedirs = pres.filedirs
+    let contexts = pres.contexts
+    let placeholders = pres.placeholders
+    let formatted = pres.formatted
+    let tests = pres.tests
 
-var res = read(source);shallow(res)
-let pres = parser(action, res, cmdname, source, fmtinfo, trace, igc, test)
-let acdef = pres.acdef
-let config = pres.config
-let keywords = pres.keywords
-let filedirs = pres.filedirs
-let placeholders = pres.placeholders
-let formatted = pres.formatted
+    let testname = cmdname &  ".tests.sh"
+    let savename = cmdname & ".acdef"
+    let saveconfigname = "." & cmdname & ".config.acdef"
 
-let savename = cmdname & ".acdef"
-let saveconfigname = "." & cmdname & ".config.acdef"
+    # Only save files to disk when not testing.
+    if not test:
+        if formatting: write(source, formatted)
+        else:
+            let testpath = joinPath(dirname, testname)
+            let commandpath = joinPath(dirname, savename)
+            let commandconfigpath = joinPath(dirname, saveconfigname)
+            let placeholderspaths = joinPath(dirname, "placeholders")
 
-# Only save files to disk when not testing.
-if not test:
-    if formatting: write(source, formatted)
-    else:
-        let commandpath = joinPath(dirname, savename)
-        let commandconfigpath = joinPath(dirname, saveconfigname)
-        let placeholderspaths = joinPath(dirname, "placeholders")
+            createDir(dirname)
+            write(commandpath, acdef & keywords & filedirs & contexts)
+            write(commandconfigpath, config)
 
-        createDir(dirname)
-        write(commandpath, acdef & keywords & filedirs)
-        write(commandconfigpath, config)
+            # Save test file if tests were provided.
+            if tests != "":
+                write(testpath, tests) # [https://forum.nim-lang.org/t/5270]
+                os.setFilePermissions(testpath, { # 775 permissions
+                    fpUserExec, fpUserWrite, fpUserRead, fpGroupExec,
+                    fpGroupWrite, fpGroupRead, fpOthersExec, fpOthersRead
+                }) # [https://stackoverflow.com/a/54638633]
 
-        # Create placeholder files if object is populated.
-        let placeholders = placeholders
-        if placeholders.len > 0:
-            createDir(placeholderspaths)
+            # Create placeholder files if object is populated.
+            let placeholders = placeholders
+            if placeholders.len > 0:
+                createDir(placeholderspaths)
 
-            for key in placeholders.keys:
-                let p = placeholderspaths & "/" & key
-                write(p, placeholders[key])
+                for key in placeholders.keys:
+                    let p = placeholderspaths & "/" & key
+                    write(p, placeholders[key])
 
-if print:
-    if not formatting:
-        if acdef != "":
-            echo "[" & (cmdname & ".acdef").chalk("bold") & "]\n"
-            echo acdef & keywords & filedirs
-            if config == "": echo ""
-        if config != "":
-            let msg = "\n[" & ("." & cmdname & ".config.acdef").chalk("bold") & "]\n"
-            echo msg
-            echo config & "\n"
-    else: echo formatted
+    if print:
+        if not formatting:
+            if acdef != "":
+                echo "[" & (cmdname & ".acdef").chalk("bold") & "]\n"
+                echo acdef & keywords & filedirs & contexts
+                if config == "": echo ""
+            if config != "":
+                let msg = "\n[" & ("." & cmdname & ".config.acdef").chalk("bold") & "]\n"
+                echo msg
+                echo config & "\n"
+        else: echo formatted
 
-# Test (--test) purposes.
-if test:
-    if not formatting:
-        if acdef != "":
-            echo acdef & keywords & filedirs
-            if config == "": echo ""
-        if config != "":
-            if acdef != "": echo ""
-            echo config
-    else: echo formatted
+    # Test (--test) purposes.
+    if test:
+        if not formatting:
+            if acdef != "":
+                echo acdef & keywords & filedirs & contexts
+                if config == "": echo ""
+            if config != "":
+                if acdef != "": echo ""
+                echo config
+        else: echo formatted
+
+main()

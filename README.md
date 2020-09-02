@@ -31,9 +31,11 @@
 <!-- [https://stackoverflow.com/questions/39065921/what-do-raw-githubusercontent-com-urls-represent] -->
 
 <!-- Using `bash -s`: [https://stackoverflow.com/a/51854728] -->
+<!-- [https://unix.stackexchange.com/a/339238] -->
+<!-- [https://unix.stackexchange.com/a/180826] -->
 
 ```sh
-$ sudo curl -Ls git.io/nodecliac | bash -s && source ~/.bashrc
+$ bash <(curl -Ls git.io/nodecliac) && source ~/.bashrc
 ```
 
 <!-- [https://stackoverflow.com/questions/17341122/link-and-execute-external-javascript-file-hosted-on-github] -->
@@ -45,13 +47,13 @@ $ sudo curl -Ls git.io/nodecliac | bash -s && source ~/.bashrc
 **curl Install** (_explicit defaults_):
 
 ```sh
-$ sudo curl -Ls git.io/nodecliac | bash -s -- --installer= --branch=master --rcfile=~/.bashrc && source ~/.bashrc
+$ bash <(curl -Ls git.io/nodecliac) --installer= --branch=master --rcfile=~/.bashrc && source ~/.bashrc
 ```
 
 **wget Install** (_defaults_):
 
 ```sh
-$ sudo wget -qO- git.io/nodecliac | bash -s && source ~/.bashrc
+$ bash <(wget -qO- git.io/nodecliac) && source ~/.bashrc
 ```
 
 **Manual Install**: One can also install manually.
@@ -65,7 +67,7 @@ $ sudo wget -qO- git.io/nodecliac | bash -s && source ~/.bashrc
 
 **Checksum Install**: If desired, the install script file's integrity can be verified before running.
 
-[install.sh](https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install.sh) `sha256sum` checksum: `06653d95f118cb4fdb115670b8ec91d1adfbea3ea9d994c67690e0358dcc9479`
+[install.sh](https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install.sh) `sha256sum` checksum: `3b168fd5736f649854fb1010e16d3367b1bd98332428aba7467685ebd27fd3b8`
 
 Create an executable shell file called `install.sh`, add the following, and run it.
 
@@ -80,13 +82,12 @@ install() {
     url="git.io/nodecliac"
     is="$([[ "$(command -v curl)" ]] && sudo curl -Ls "$url" || sudo wget -qO- "$url")"
     x=($([[ "$OSTYPE" == "darwin"* ]] && shasum -a 256 <<< "$is" || sha256sum <<< "$is"))
-    c="06653d95f118cb4fdb115670b8ec91d1adfbea3ea9d994c67690e0358dcc9479"
+    c="3b168fd5736f649854fb1010e16d3367b1bd98332428aba7467685ebd27fd3b8"
     err="\033[1;31mError\033[0m: Verification failed: checksums don't match."
-    [[ "$c" == "$x" ]] && bash -s -- \
+    [[ "$c" == "$x" ]] && bash <(echo "$is") \
         --installer= \
         --branch=master \
         --rcfile=~/.bashrc \
-        <<< "$is" \
         && source ~/.bashrc || echo -e "$err" && exit 1
 } && install
 ```
@@ -111,6 +112,7 @@ install() {
   - `binary`: Uses nodecliac's [Nim](https://nim-lang.org/) Linux/macOS CLI tools.
 - `--branch`: An _existing_ nodecliac branch name to install. (default: `master`)
 - `--rcfile`: `bashrc` file to install nodecliac to. (default: `~/.bashrc`)
+- `--yes`: Automate install by saying yes to any prompt(s).
 
 </details>
 
@@ -312,6 +314,7 @@ $ nodecliac cache --level 1 # Set cache level to 1.
 > Setup nodecliac.
 
 - `--force`: (**required** _if nodecliac is already setup)_: Overwrites old nodecliac setup and installs anew.
+- `--yes`: Automate install by saying yes to any prompt(s).
 - `--rcfile`: By default `~/.bashrc` is used. If another rcfile should be used provide its path.
 - **Note**: Setup appends `ncliac=~/.nodecliac/src/main/init.sh; [ -f "$ncliac" ] && . "$ncliac";` to rcfile.
 
@@ -319,6 +322,8 @@ $ nodecliac cache --level 1 # Set cache level to 1.
 
 ```sh
 $ nodecliac setup # Setup nodecliac.
+$ nodecliac setup --force # Force nodecliac setup.
+$ nodecliac setup --force --yes # Force nodecliac setup and assume yes to any prompt(s).
 ```
 
 ---
@@ -637,6 +642,21 @@ yarn.run = default $("${mainscript} run")
 
 </details>
 
+<details>
+  <summary>Variable Builtins</summary>
+
+#### Variable Builtins
+
+`acmap`s provide the following builtin variables:
+
+- `$OS`: The user's platform: `linux`, `macosx`
+- `$HOME`: The user's home directory.
+- `$COMMAND`: The command being completed.
+- `$PATH`: The command's nodecliac registry path:
+  - For example: `~/.nodecliac/registry/<COMMAND>`
+
+</details>
+
 <a name="syntax-cc"></a>
 
 #### Command Chains
@@ -768,6 +788,33 @@ Letting the completion engine know an option should be ignored (not displayed) i
 
 </details>
 
+<details>
+  <summary>Command chain grouping</summary>
+
+#### Command Chain Grouping
+
+Command chains can be grouped. It is not necessary but doing may help condense acmaps.
+
+- A command group is denoted with starting `{` and closing `}`.
+- The commands are found in between the closing/starting syntax.
+- Commands are comma delimited.
+
+For example, take the following:
+
+```acmap
+program.deploy-keys.add
+program.deploy-keys.list
+program.deploy-keys.rm
+```
+
+Grouping can reduce it to:
+
+```acmap
+program.deploy-keys.{add,list,rm}
+```
+
+</details>
+
 <a name="syntax-flags"></a>
 
 #### Flags
@@ -790,10 +837,37 @@ program.install = [
 program.uninstall
 ```
 
+However, it can be cleaned up a bit by using the flag `alias` syntax:
+
+```acmap
+program.install = [
+  --destination::d
+  --force::f
+]
+program.uninstall
+```
+
 <details>
   <summary>Flag variants</summary>
 
-#### Flags (user input)
+###### Types:
+
+- [Input](#flags-variant-input)
+- [Boolean](#flags-variant-boolean)
+- [Multi](#flags-variant-multi)
+- [Oneliner](#flags-variant-oneliner)
+- [Long Form](#flags-variant-long-form)
+- [Dynamic](#flags-variant-dynamic)
+
+###### Keywords:
+
+- [filedir](#flags-variant-filedir)
+- [context](#flags-variant-context)
+- [exclude](#flags-variant-exclude)
+
+<a name="flags-variant-input"></a>
+
+#### Flags (input)
 
 - If flag requires user input append `=` to the flag.
 
@@ -802,6 +876,8 @@ program.command = [
   --flag=
 ]
 ```
+
+<a name="flags-variant-boolean"></a>
 
 #### Flags (boolean)
 
@@ -812,6 +888,8 @@ program.command = [
   --flag?
 ]
 ```
+
+<a name="flags-variant-multi"></a>
 
 #### Flags (multi-flag)
 
@@ -828,11 +906,13 @@ program.command = [
 ]
 ```
 
+<a name="flags-variant-oneliner"></a>
+
 #### Flags (one liner)
 
 - This method should be used when the flag value list can be kept to a single line.
 - **Note**: Values must be delimited with spaces.
-- **Note**: When a flag has many values a [long form list](#flags-long-form) should be used for clarities sake.
+- **Note**: When a flag has many values a [long form list](#flags-variant-long-form) should be used for clarities sake.
 
 ```acmap
 program.command = [
@@ -845,7 +925,7 @@ program.command = [
 ]
 ```
 
-<a name="flags-long-form"></a>
+<a name="flags-variant-long-form"></a>
 
 #### Flags (long form)
 
@@ -874,6 +954,8 @@ program.command = [
 ]
 program.uninstall
 ```
+
+<a name="flags-variant-dynamic"></a>
 
 #### Flags (dynamic values)
 
@@ -927,7 +1009,9 @@ program.command = [
 program.uninstall
 ```
 
-#### Flags (filedir)
+<a name="flags-variant-filedir"></a>
+
+#### Keyword (filedir)
 
 When no completion items are found bash-completion's `_filedir` function is used as a fallback. `_filedir` performs file/directory completion. By default it returns both file and directory names. However, this can be controlled to only return directory names or files of certain types.
 
@@ -950,6 +1034,241 @@ program.command = [
 - If a command uses `filedir` use that.
 - If not, look for `@filedir` setting.
 - If neither are provided all files/directories are returned (_no filtering_).
+
+<a name="flags-variant-context"></a>
+
+#### Keyword (context)
+
+The `context` keyword provides the ability to disable flags and deal with mutual flag exclusivity.
+
+- Start by using the keyword `context` followed by a whitespace character.
+- Follow that with a string:
+  - **Conditional Example**: `context "!help: #fge0"`
+  - **Mutual Exclusivity Example**: `context "{ json | yaml | csv }`
+
+#### Context String (conditional):
+
+Conditional context strings have their own grammar: `"<flag1, flagN> : <condition1, conditionN>"`. If each `<condition>` results in `true` the `<flags>` are enabled/disabled.
+
+##### Flag grammar
+
+- A flag is represented without the hyphens.
+  - Example: For the flag `--help` it would just be `help`.
+- If the flag needs to be disabled, prepend a `!`.
+  - Example: `help` (If conditions are `true` flag will be _enabled_)
+  - Example: `!help` (If conditions are `true` flag will be _disabled_)
+
+##### Condition grammar
+
+- Check against flag/positional arguments:
+  - Format: `# + (f)lag|(a)rgument + operator + number`
+  - Example (flag check): `#fge0`
+  - Example (argument check): `#age0`
+- Operators:
+  - `eq`: Equal to
+  - `ne`: Not equal to
+  - `gt`: Greater than
+  - `ge`: Greater than or equal to
+  - `lt`: Less than
+  - `le`: Less than or equal to
+- Number:
+  - Must be a positive number.
+- Inversion: Tests can be _inverted_ by prepending a `!`.
+
+###### Example 1
+
+Disable `help` and `version` flags when used flag count is greater or equal to 0.
+
+```acmap
+program.command = [
+  --help?
+  --version?
+  context "!help, !version: #fge0"
+]
+```
+
+###### Example 2
+
+Disable `help` flag when the used flag count is greater or equal to 0 and version flag is used.
+
+```acmap
+program.command = [
+  --help?
+  --version?
+  context "!help: #fge0, version"
+]
+```
+
+#### Context String (mutual exclusivity):
+
+Mutual exclusivity is represented like so: `"{ flag1 | flagN }"`. Once a grouped flag is used the other(s) are disabled.
+
+###### Example 1
+
+For example, say the `--json`, `--csv`, and `--text` flags are allowed but the `--json` flag is used. The remaining flags `--text` and `--csv` won't be shown as completion items.
+
+```acmap
+program.command = [
+  --json=,
+  --csv=,
+  --text=(false true)
+  context "{ json | csv | text }"
+]
+```
+
+###### Example 2
+
+In this example, once `--follow` or `--tail` is used the other flag will be disabled.
+
+```acmap
+program.command = [
+  --follow=,
+  --tail=(false true)
+  context "{follow | tail}"
+]
+```
+
+This is equivalent to the previous example.
+
+```acmap
+program.command = [
+  --follow=,
+  --tail=(false true)
+  context "!follow: tail"
+  context "!tail: follow"
+]
+```
+
+#### Combine Context Strings
+
+Context strings can be combined but for maintainability it's better to separate them.
+
+###### Example 1: Separate Context Strings
+
+```acmap
+program.command = [
+  --help?
+  --version?
+  context "!help, !version: #fge0"
+
+  --json=,
+  --csv=,
+  --text=(false true)
+  context "{ json | csv | text }"
+
+  --follow=,
+  --tail=(false true)
+  context "{follow | tail}"
+
+  --hours=
+  --minutes=
+  --seconds=
+  --service=
+
+  --job-id=
+  --target=
+  context "{ job-id | target }"
+]
+```
+
+###### Example 1: Combined Context Strings
+
+Context strings can be combined by delimiting them with `;`.
+
+```acmap
+program.command = [
+  --help?
+  --version?
+
+  --json=,
+  --csv=,
+  --text=(false true)
+
+  --follow=,
+  --tail=(false true)
+
+  --hours=
+  --minutes=
+  --seconds=
+  --service=
+
+  --job-id=
+  --target=
+
+  context "!help, !version: #fge0; { json | csv | text }; { follow | tail }; { job-id | target }"
+]
+```
+
+**Note**: Context strings are evaluated on every completion cycle. Therefore, using too many may slow down the 'perceived completion feel' as it takes time to evaluate all provided contexts.
+
+<a name="flags-variant-exclude"></a>
+
+#### Keyword (exclude)
+
+The `exclude` keyword is only allowed in a _wildcard_ command block. It serves to easily give all command strings the same (universal/shared) flags. Although this can be done manually, this can help reduce the acmap and make it easier to maintain.
+
+Let's look at an example. All command strings but `program.cache` share the `--help` flag.
+
+```acmap
+program = [
+  --help?
+  --version
+]
+
+program.make = [
+  --help?
+  --extensions=*(js html css)
+]
+
+program.format = [
+  --help?
+  --extensions=*(js html css)
+  --indentation
+]
+
+program.cache = [
+  --clear?
+]
+```
+
+Now let's use a wildcard block and exclude the `program.cache` command string.
+
+```acmap
+* = [
+  exclude "program.cache"
+  --help?
+]
+
+program = [
+  --version
+]
+
+program.make = [
+  --extensions=*(js html css)
+]
+
+program.format = [
+  --extensions=*(js html css)
+  --indentation
+]
+
+program.cache = [
+  --clear?
+]
+```
+
+If desired it can even be condensed to.
+
+```acmap
+* = --help?|exclude "program.cache"
+program = --version
+program.make,
+program.format = --extensions=*(js html css)
+program.format = --indentation
+program.cache = --clear?
+```
+
+<br>
 
 </details>
 
@@ -1122,6 +1441,7 @@ Hooks are _just regular executable shell scripts_ that run at specific points al
 #### Available Hooks
 
 1. `hooks/pre-parse.sh`: Modifies select initialization variables before running [completion script](/src/scripts/ac).
+1. `hooks/post-parse.sh`: Modifies final completions before terminating the completion cycle and printing suggestions.
 
 #### `hooks/` Directory
 
@@ -1154,6 +1474,7 @@ Hook scripts are provided parsing information via environment variables.
 
 - `NODECLIAC_MAIN_COMMAND`: The command auto completion is being performed for.
 - `NODECLIAC_COMMAND_CHAIN`: The parsed command chain.
+- `NODECLIAC_COMP_INDEX`: The index where completion is being attempted.
 - `NODECLIAC_LAST`: The last parsed word item.
   - **Note**: Last word item could be a _partial_ word item.
     - This happens when the <kbd>Tab</kbd> key gets pressed _within_ a word item. For example, take the following input:`$ program command`. If the<kbd>Tab</kbd> key was pressed like so: <code>\$ program comm<kbd>Tab</kbd>and</code>, the last word item is `comm`. Thus a _partial_ word with a remainder string of `and`. Resulting in finding completions for `comm`.
@@ -1181,7 +1502,7 @@ Hook scripts are provided parsing information via environment variables.
 
 </details>
 
-#### Writing Hook Script
+#### Writing Pre Hook Script
 
 Take yarn's [`pre-parse.sh`](/resources/packages/yarn/hooks/pre-parse.sh) script as an example:
 
@@ -1197,18 +1518,69 @@ Take yarn's [`pre-parse.sh`](/resources/packages/yarn/hooks/pre-parse.sh) script
 
 output="$("$HOME/.nodecliac/registry/$command/hooks/pre-parse.pl" "$cline")"
 
-# 1st line is the modified CLI (workspace) input.
-read -r firstline <<< "$output"
-[[ -n "$firstline" ]] && cline="$firstline"
-
 # Remaining lines are package.json's script entries.
-len="${#firstline}"; [[ ! "$len" ]] || len=1
-addon="${output:$len}"; [[ -n "$addon" ]] && acdef+=$'\n'"$addon"
+mapfile -ts1 lines < <(echo -e "$output")
+printf -v output '%s\n' "${lines[@]}" && acdef+=$'\n'"$output"
 ```
 
 - The Bash script is [glue code](https://en.wikipedia.org/wiki/Scripting_language#Glue_languages). It runs the Perl script [`pre-parse.pl`](/resources/packages/yarn/hooks/pre-parse.pl) to retrieve the cwd `package.json` `scripts` and determine whether yarn is being used in a workspace.
 - Using the Perl script's output the Bash script overwrites the `cline` variable and appends the `package.json` `scripts` to the `acdef` variable. Adding them as their [own commands](https://yarnpkg.com/en/docs/cli/run#toc-yarn-run).
 - nodecliac uses the new values to determine completions.
+
+#### Writing Post Hook Script
+
+Take m-cli's [`post-parse.sh`](/resources/packages/m-cli/hooks/post-parse.sh) script as an example:
+
+```sh
+#!/bin/bash
+
+function completion_logic() {
+  COMP_CWORD="$NODECLIAC_COMP_INDEX"
+  prev="$NODECLIAC_PREV"
+  cmd="$NODECLIAC_ARG_1"
+  sub="$NODECLIAC_ARG_2"
+  case "$cmd" in
+    dir)
+      case "$prev" in
+        delete) echo -e "empty\ndsfiles"; return ;;
+        dsfiles) echo -e "on\noff"; return ;;
+      esac
+      ;;
+    disk)
+      case "$sub" in
+        # _m_disk
+        verify|repair) [[ $COMP_CWORD == 3 ]] && echo -e "disk\nvolume"; return ;;
+        format)
+          case $COMP_CWORD in
+            3) echo -e "ExFAT\nJHFS+\nMS-DOS\nvolume" ;;
+            4) [[ "$NODECLIAC_ARG_3" == "volume" ]] && echo -e "ExFAT\nJHFS+\nMS-DOS" ;;
+          esac
+          return
+        ;;
+        rename) [[ $COMP_CWORD == 3 ]] && \
+        echo -e "$(grep -oE '(disk[0-9s]+)' <<< "$(diskutil list)")"; return ;;
+
+        # _m_dock
+        autohide) [[ $COMP_CWORD == 3 ]] && echo -e "YES\nNO"; return ;;
+        magnification) [[ $COMP_CWORD == 3 ]] && echo -e "YES\nNO"; return ;;
+        position) [[ $COMP_CWORD == 3 ]] && echo -e "BOTTOM\nLEFT\nRIGHT"; return ;;
+      esac
+      ;;
+    dock)
+      case "$sub" in
+        autohide) [[ $COMP_CWORD == 3 ]] && echo -e "YES\nNO"; return ;;
+        magnification) [[ $COMP_CWORD == 3 ]] && echo -e "YES\nNO"; return ;;
+        position) [[ $COMP_CWORD == 3 ]] && echo -e "BOTTOM\nLEFT\nRIGHT"; return ;;
+      esac
+      ;;
+    finder) [[ $COMP_CWORD == 3 ]] && echo -e "YES\nNO"; return ;;
+    screensaver) [[ $sub == "askforpassword" && $COMP_CWORD == 3 ]] && echo -e "YES\nNO"; return ;;
+  esac
+}
+completion_logic
+```
+
+- The post hook script is written in Bash but any language may be used. As shown, the script makes use of the provided `NODECLIAC_*` environment variables to determine what completion items to add. Each completion item must be returned on its own line.
 
 </details>
 
@@ -1230,6 +1602,106 @@ To return quicker results completions are cached.
 $ nodecliac cache --clear # Clear cache.
 $ nodecliac cache --level 0 # Turn cache off.
 ```
+
+</details>
+
+<a name="testing"></a>
+
+## Testing
+
+nodecliac provides a way to test completions for your program.
+
+<details><summary>Expand testing section</summary>
+
+#### Creating tests:
+
+Creating tests is done directly from the program's acmap via `@test`. Start with `@test =` followed by the test string `"<completion string> ; <test1 ; testN>"`.
+
+- Test entire completion output (including meta data):
+  - _Does the output contain_ `format`_?_: `@test = "program --; *format*`
+  - _Does the output omit_ `format`_?_: `@test = "program --; !*format*`
+- Test individual completion items:
+  - _Do any completion items contain_ `format`_?_: `@test = "program --; *:*format*`
+  - _Does the first completion item contain_ `format`_?_: `@test = "program --; 1:*format*`
+  - _Does the first completion item start with_ `--for`_?_: `@test = "program --; 1:--for*`
+  - _Does the first completion item end with_ `format`_?_: `@test = "program --; 1:*format`
+  - _Does the first completion item equal_ `--format`_?_: `@test = "program --; 1:--format`
+- Test completion items count:
+  - _Is there at least 1 completion item?_: `@test = "program --; #cgt0`
+  - _Are there 3 completion items?_: `@test = "program --; #ceq3`
+    - Format: `# + (c)ount + operator + number`
+    - Operators:
+      - `eq`: Equal to
+      - `ne`: Not equal to
+      - `gt`: Greater than
+      - `ge`: Greater than or equal to
+      - `lt`: Less than
+      - `le`: Less than or equal to
+    - Number:
+      - Must be a positive number.
+- Inversion: Any test can be _inverted_ by preceding the test with a `!`.
+
+###### Example 1
+
+Take the following example acmap. It contains a couple commands and their respective flags.
+
+```acmap
+program.make = --source
+program.format = --source
+
+@test = "program make --; *source*"
+@test = "program format --for; *format*"
+```
+
+###### Example 2
+
+Multiple tests can be provided to test a single completion string. Simply delimit them with `;`.
+
+```acmap
+program.make = --source
+program.format = --source
+
+@test = "program make --; *source* ; #ceq1"
+@test = "program format --for; *format* ; #ceq1"
+```
+
+#### Running tests:
+
+Running tests is done by running a built in command: `$ nodecliac test <command-name>`. As an example, try running nodecliac's tests. With nodecliac installed, enter `nodecliac test nodecliac` into a Terminal and press <kbd>Enter</kbd>. Note, for tests to run the program's completion package _must_ exist in the [registry](#registry) to be able to run tests. Running `$ nodecliac registry` will list installed completion packages.
+
+</details>
+
+<a name="debugging"></a>
+
+## Debugging
+
+Like with testing completion strings, nodecliac also provides a way to debug completions. This is useful when creating a completion package. To start debugging simply enable it. When enabled pressing the <kbd>Tab</kbd> key will output debugging information instead of providing bash completions.
+
+<details><summary>Expand debugging section</summary>
+
+#### Enabling debugging:
+
+Run: `$ nodecliac debug --enable`
+
+#### Disabling debugging:
+
+Run: `$ nodecliac debug --disable`
+
+#### Picking Debug Script
+
+nodecliac's auto-completion script is written in `Nim` and `Perl`. The Nim version supports Linux/macOS while Perl is used as a fallback. When both versions are installed it's possible to use one over the other to debug. This is done with the `--script` flag like so:
+
+- Explicitly use Nim script: `$ nodecliac debug --enable --script nim`
+- Explicitly use Perl script: `$ nodecliac debug --enable --script perl`
+
+#### Debug mode
+
+To get the debug mode: `$ nodecliac debug`
+
+- `0`: Disabled
+- `1`: Enabled
+- `2`: Enabled + use Perl script
+- `3`: Enabled + use Nim script
 
 </details>
 

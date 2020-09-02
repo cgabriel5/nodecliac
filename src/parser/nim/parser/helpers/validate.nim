@@ -1,12 +1,14 @@
-from re import re
-from strutils import join, find, strip, startsWith
-from tables import toTable, hasKey, initTable, `[]=`, `[]`, `$`
+from re import re, replacef
+from strutils import join, strip, startsWith
+from tables import `[]=`, `[]`, hasKey, OrderedTableRef, pairs
 
-import error
+import error, vcontext, vtest
 from types import State, Node, Branch
-from charsets import C_QUOTES, C_SPACES
+from charsets import C_QUOTES, C_SPACES, C_CTX_ALL, C_CTX_MUT,
+    C_CTX_FLG, C_CTX_CON, C_LETTERS, C_CTX_CAT, C_CTX_OPS
 from ../../utils/regex import findAllBounds
 let r = re"(?<!\\)\$\{\s*[^}]*\s*\}"
+let r_unescap = re"(?:\\(.))"
 
 # Validates string and interpolates its variables.
 #
@@ -15,7 +17,36 @@ let r = re"(?<!\\)\$\{\s*[^}]*\s*\}"
 # @return {object} - Object containing parsed information.
 proc validate*(S: State, N: Node, `type`: string = ""): string =
     var value = N.value.value
+    let action = S.args.action
+    let formatting = S.args.action == "format"
     var `type` = `type`
+
+    # Get column index to resume error checks at.
+    var resumepoint = N.value.start - S.tables.linestarts[S.line]
+    inc(resumepoint) # Add 1 to account for 0 base indexing.
+
+    # If validating a keyword there must be a value.
+    if N.node == "FLAG" and N.keyword.value != "":
+        let kw = N.keyword.value
+        let ls = S.tables.linestarts[S.line]
+        # Check for misused exclude.
+        let sc = S.scopes.command
+        if sc.node != "":
+            if kw == "exclude" and sc.command.value != "*":
+                S.column = N.keyword.start - ls
+                inc(S.column) # Add 1 to account for 0 base indexing.
+                error(S, currentSourcePath, 17)
+
+        if value == "":
+            S.column = N.keyword.`end` - S.tables.linestarts[S.line]
+            inc(S.column) # Add 1 to account for 0 base indexing.
+            error(S, currentSourcePath, 16)
+
+        let C = if kw == "default": C_QUOTES + {'$'} else: C_QUOTES
+        # context, filedir, exclude must have quoted string values.
+        if value[0] notin C:
+            S.column = resumepoint
+            error(S, currentSourcePath)
 
     # If value doesn't exist or is '(' (long-form flag list) return.
     if value == "" or value == "(": return
@@ -27,10 +58,6 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
         if `char` == '$': `type` = "command-flag"
         elif `char` == '(': `type` = "list"
         elif `char` in C_QUOTES: `type` = "quoted"
-
-    # Get column index to resume error checks at.
-    var resumepoint = N.value.start - S.tables.linestarts[S.line]
-    inc(resumepoint) # Add 1 to account for 0 base indexing.
 
     # Create temporary Node.
     #
@@ -54,9 +81,10 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
             let fchar = if value[0] == '$': value[1] else: value[0]
             let isquoted = fchar in C_QUOTES
             let lchar = value[^1]
+            let schar = value[^2]
             if isquoted:
-                # Error if improperly quoted.
-                if lchar != fchar:
+                # Error if improperly quoted/end quote is escaped.
+                if lchar != fchar or schar == '\\':
                     S.column = resumepoint
                     error(S, currentSourcePath, 10)
                 # Error it string is empty.
@@ -66,8 +94,8 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
 
             # Interpolate variables.
             var bounds = findAllBounds(value, r)
+            var vindices = OrderedTableRef[int, tuple[ind, sl: int]]()
             if bounds.len > 0:
-                var action = S.args.action
                 let vars = S.tables.variables
                 for i in countdown(bounds.high, 0):
                     let bound = bounds[i]
@@ -82,6 +110,21 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                         sub = vars[rp]
                     else: sub = "${" & rp & "}"
                     value[bound.first .. bound.last] = sub
+
+                    # Calculate variable indices.
+                    let sl = sub.len
+                    let vl = (bound.last - bound.first) + 1
+                    let dt = sl - vl
+                    vindices[bound.first] = (ind: if sl > vl: dt * -1 else: abs(dt), sl: sl)
+
+            # Validate context string.
+            if not formatting and N.node == "FLAG" and
+                N.keyword.value == "context":
+                value = vcontext(S, value, vindices, resumepoint)
+            # Validate test string.
+            if not formatting and N.node == "SETTING" and
+                N.name.value == "test":
+                value = vtest(S, value, vindices, resumepoint);
 
             N.args = @[value]
             N.value.value = value
@@ -176,7 +219,9 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                 argument = validate(S, tN, "quoted")
                 args.add(argument)
 
-            let cvalue = "$(" & args.join(",") & ")" # Build clean cmd-flag.
+            # Build clean cmd-flag and remove backslash escapes, but keep
+            # escaped backslashes: [https://stackoverflow.com/a/57430306]
+            let cvalue = ("$(" & args.join(",") & ")").replacef(r_unescap, "$1")
             N.args = @[cvalue]
             N.value.value = cvalue
             value = cvalue

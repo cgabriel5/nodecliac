@@ -1,8 +1,11 @@
 "use strict";
 
 const error = require("./error.js");
+const vtest = require("./vtest.js");
+const vcontext = require("./vcontext.js");
 const { cin, cnotin, C_SPACES, C_QUOTES } = require("./charsets.js");
 const r = /(?<!\\)\$\{\s*[^}]*\s*\}/g;
+const r_unescap = /(?:\\(.))/g;
 
 /**
  * Validates string and interpolates its variables.
@@ -13,6 +16,38 @@ const r = /(?<!\\)\$\{\s*[^}]*\s*\}/g;
  */
 let validate = (S, N, type) => {
 	let { value } = N.value;
+	let formatting = S.args.action === "format";
+	// Get column index to resume error checks at.
+	let resumepoint = N.value.start - S.tables.linestarts[S.line];
+	resumepoint++; // Add 1 to account for 0 base indexing.
+
+	// If validating a keyword there must be a value.
+	if (N.node === "FLAG" && N.keyword.value) {
+		let kw = N.keyword.value;
+		let ls = S.tables.linestarts[S.line];
+		// Check for misused exclude.
+		let sc = S.scopes.command;
+		if (sc) {
+			if (kw === "exclude" && sc.command.value !== "*") {
+				S.column = N.keyword.start - ls;
+				S.column++; // Add 1 to account for 0 base indexing.
+				error(S, __filename, 17);
+			}
+		}
+
+		if (!value) {
+			S.column = N.keyword.end - ls;
+			S.column++; // Add 1 to account for 0 base indexing.
+			error(S, __filename, 16);
+		}
+
+		let C = kw === "default" ? new Set([...C_QUOTES, "$"]) : C_QUOTES;
+		// context, filedir, exclude must have quoted string values.
+		if (cnotin(C, value.charAt(0))) {
+			S.column = resumepoint;
+			error(S, __filename);
+		}
+	}
 
 	// If value doesn't exist or is '(' (long-form flag list) return.
 	if (!value || value === "(") return;
@@ -25,10 +60,6 @@ let validate = (S, N, type) => {
 		else if (char === "(") type = "list";
 		else if (cin(C_QUOTES, char)) type = "quoted";
 	}
-
-	// Get column index to resume error checks at.
-	let resumepoint = N.value.start - S.tables.linestarts[S.line];
-	resumepoint++; // Add 1 to account for 0 base indexing.
 
 	/**
 	 * Create temporary Node.
@@ -56,26 +87,30 @@ let validate = (S, N, type) => {
 			{
 				let fchar = value.charAt(~~(value.charAt(0) === "$"));
 				let isquoted = cin(C_QUOTES, fchar);
-				let lchar = value.charAt(value.length - 1);
+				let l = value.length;
+				let lchar = value.charAt(l - 1);
+				let schar = value.charAt(l - 2);
 				if (isquoted) {
-					// Error if improperly quoted.
-					if (lchar !== fchar) {
+					// Error if improperly quoted/end quote is escaped.
+					if (lchar !== fchar || schar === "\\") {
 						S.column = resumepoint;
 						error(S, __filename, 10);
 					}
 					// Error it string is empty.
-					if (lchar === fchar && value.length === 2) {
+					if (lchar === fchar && l === 2) {
 						S.column = resumepoint;
 						error(S, __filename, 11);
 					}
 				}
 
 				// Interpolate variables.
+				let vindices = {};
 				value = value.replace(r, function (match, index) {
+					let lm = match.length - 1;
 					match = match.slice(2, -1).trim();
 
 					// Don't interpolate when formatting.
-					if (S.args.action === "format") return `\${${match}}`;
+					if (formatting) return `\${${match}}`;
 
 					let value = S.tables.variables[match];
 					// Error if var is being used before declared.
@@ -84,8 +119,31 @@ let validate = (S, N, type) => {
 						return error(S, __filename, 12);
 					}
 
+					// Calculate variable indices.
+					let sl = value.length;
+					// let vl = index + sl - index + 1;
+					let vl = index + lm - index + 1;
+					let dt = sl - vl;
+					vindices[index] = [sl > vl ? dt * -1 : Math.abs(dt), sl];
 					return value;
 				});
+
+				// Validate context string.
+				if (
+					!formatting &&
+					N.node === "FLAG" &&
+					N.keyword.value === "context"
+				) {
+					value = vcontext(S, value, vindices, resumepoint);
+				}
+				// Validate test string.
+				if (
+					!formatting &&
+					N.node === "SETTING" &&
+					N.name.value === "test"
+				) {
+					value = vtest(S, value, vindices, resumepoint);
+				}
 
 				N.args = [value];
 				N.value.value = value;
@@ -193,7 +251,9 @@ let validate = (S, N, type) => {
 					args.push(argument);
 				}
 
-				let cvalue = `$(${args.join(",")})`; // Build clean cmd-flag.
+				// Build clean cmd-flag and remove backslash escapes, but keep
+				// escaped backslashes: [https://stackoverflow.com/a/57430306]
+				let cvalue = `$(${args.join(",")})`.replace(r_unescap, "$1");
 				N.args = [cvalue];
 				N.value.value = value = cvalue;
 			}
@@ -321,6 +381,4 @@ let validate = (S, N, type) => {
 	return value;
 };
 
-module.exports = (...args) => {
-	return validate(...args);
-};
+module.exports = (...args) => validate(...args);

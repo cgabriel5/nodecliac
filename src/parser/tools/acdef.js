@@ -1,5 +1,6 @@
 "use strict";
 
+const node = require("../helpers/nodes.js");
 const { md5, hasProp } = require("../../utils/toolbox.js");
 
 /**
@@ -9,11 +10,12 @@ const { md5, hasProp } = require("../../utils/toolbox.js");
  * @param  {string} cmdname - Name of <command>.acdef being parsed.
  * @return {object} - Object containing acdef, config, and keywords contents.
  */
-module.exports = (S, cmdname) => {
+module.exports = async (S, cmdname) => {
 	let oSets = {};
 	let oGroups = {};
 	let oDefaults = {};
 	let oFiledirs = {};
+	let oContexts = {};
 	let oSettings = {};
 	let settings_count = 0;
 	let oPlaceholders = {};
@@ -24,17 +26,18 @@ module.exports = (S, cmdname) => {
 	let config = "";
 	let defaults = "";
 	let filedirs = "";
+	let contexts = "";
 	let has_root = false;
 
 	// Escape '+' chars in commands.
 	const rcmdname = cmdname.replace(/\+/g, "\\+");
 	const r = new RegExp(`^(${rcmdname}|[-_a-zA-Z0-9]+)`);
 
-	const date = new Date();
-	const hours = date.getHours();
-	const minutes = date.getMinutes();
-	const seconds = date.getSeconds();
-	const datestring = date.toDateString();
+	const date = new Date(); // [https://stackoverflow.com/a/3313887]
+	const hours = `${date.getHours()}`.padStart(2, "0");
+	const minutes = `${date.getMinutes()}`.padStart(2, "0");
+	const seconds = `${date.getSeconds()}`.padStart(2, "0");
+	const datestring = `${date.toDateString()}`.padStart(2, "0");
 	const timestamp = Math.floor(date.getTime() / 1000); // Date.now();
 	const ctime = `${datestring} ${hours}:${minutes}:${seconds} (${timestamp})`;
 	let header = `# DON'T EDIT FILE —— GENERATED: ${ctime}\n\n`;
@@ -138,8 +141,15 @@ module.exports = (S, cmdname) => {
 	let rN = {}; // Reference node.
 	let dN = []; // Delimited flag nodes.
 	let xN = S.tables.tree.nodes;
+	let wildcard = false;
+	let wc_flg = [];
+	let wc_exc = new Set();
 	const ftypes = new Set(["FLAG", "OPTION"]);
 	const types = new Set(["SETTING", "COMMAND", "FLAG", "OPTION"]);
+
+	// Contain missing parent command chains in their own group.
+	oGroups[-1] = { commands: [], flags: [] };
+
 	for (let i = 0, l = xN.length; i < l; i++) {
 		let N = xN[i];
 		let type = N.node;
@@ -159,6 +169,12 @@ module.exports = (S, cmdname) => {
 
 		switch (type) {
 			case "COMMAND": {
+				// Handle wildcard node.
+				if (N.command.value === "*") {
+					wildcard = true;
+					continue;
+				} else wildcard = false;
+
 				// Store command in current group.
 				if (!oGroups[count]) {
 					oGroups[count] = { commands: [N], flags: [] };
@@ -173,7 +189,12 @@ module.exports = (S, cmdname) => {
 					commands.pop(); // Remove last command (already made).
 					for (let i = commands.length - 1; i > -1; i--) {
 						let rchain = commands.join("."); // Remainder chain.
-						if (!hasProp(oSets, rchain)) oSets[rchain] = new Set();
+						if (!hasProp(oSets, rchain)) {
+							let tN = node(S, "COMMAND");
+							tN.command.value = rchain;
+							oGroups[-1].commands.push(tN);
+							oSets[rchain] = new Set();
+						}
 						commands.pop(); // Remove last command.
 					}
 				}
@@ -184,11 +205,21 @@ module.exports = (S, cmdname) => {
 				break;
 			}
 
-			case "FLAG":
+			case "FLAG": {
+				let keyword = N.keyword.value;
+
+				// Handle wildcard flags.
+				if (wildcard) {
+					if (keyword === "exclude") {
+						wc_exc.add(N.value.value.slice(1, -1));
+					} else wc_flg.push(N);
+					continue;
+				}
+
 				// Add values/arguments to delimited flags.
-				if (N.delimiter.value) {
-					dN.push(N);
-				} else {
+				if (N.delimiter.value) dN.push(N);
+				// Skip/ignore keywords.
+				else if (!keyword) {
 					let args = N.args;
 					let value = N.value.value;
 					for (let i = 0, l = dN.length; i < l; i++) {
@@ -203,6 +234,7 @@ module.exports = (S, cmdname) => {
 				last = type;
 
 				break;
+			}
 
 			case "OPTION": {
 				// Add value to last flag in group.
@@ -213,24 +245,31 @@ module.exports = (S, cmdname) => {
 				break;
 			}
 
-			case "SETTING":
-				if (!hasProp(oSettings, N.name.value)) settings_count++;
-				oSettings[N.name.value] = N.value.value;
+			case "SETTING": {
+				let name = N.name.value;
+				if (name !== "test") {
+					if (!hasProp(oSettings, name)) settings_count++;
+					oSettings[name] = N.value.value;
+				}
 
 				break;
+			}
 		}
 	}
 
 	// Populate Sets.
 
-	for (let i in oGroups) {
-		if (!hasProp(oGroups, i)) continue;
-
-		let { commands: cxN, flags: fxN } = oGroups[i];
-		let queue_defs = new Set();
-		let queue_fdir = new Set();
-		let queue_flags = new Set();
-
+	/**
+	 * Add flags, keywords to respective containers.
+	 *
+	 * @param  {array} fxN - The flag nodes.
+	 * @param  {set} queue_defs - The defaults container.
+	 * @param  {set} queue_fdir - The filedirs container.
+	 * @param  {set} queue_ctxs - The contexts container.
+	 * @param  {set} queue_flags - The flags container.
+	 * @return {undefined} - Nothing is returned.
+	 */
+	let queues = (fxN, queue_defs, queue_fdir, queue_ctxs, queue_flags) => {
 		for (let i = 0, l = fxN.length; i < l; i++) {
 			let fN = fxN[i];
 			let { args } = fN;
@@ -241,6 +280,9 @@ module.exports = (S, cmdname) => {
 				let value = fN.value.value;
 				if (keyword === "default") queue_defs.add(value);
 				else if (keyword === "filedir") queue_fdir.add(value);
+				else if (keyword === "context") {
+					queue_ctxs.add(value.slice(1, -1));
+				}
 				continue; // defaults don't need to be added to Sets.
 			}
 
@@ -258,17 +300,43 @@ module.exports = (S, cmdname) => {
 
 				args.forEach((arg) => queue_flags.add(flag + aval + arg));
 			} else {
-				// Boolean flag...
-				const val = bval ? "?" : aval ? "=" : "";
-				queue_flags.add(flag + val);
+				if (!ismulti) {
+					if (bval) queue_flags.add(flag + "?");
+					else if (aval) queue_flags.add(flag + "=");
+					else queue_flags.add(flag);
+				} else {
+					queue_flags.add(flag + "=*");
+					queue_flags.add(flag + "=");
+				}
 			}
 		}
+	};
 
+	for (let i in oGroups) {
+		if (!hasProp(oGroups, i)) continue;
+
+		let { commands: cxN, flags: fxN } = oGroups[i];
+		let queue_defs = new Set();
+		let queue_fdir = new Set();
+		let queue_ctxs = new Set();
+		let queue_flags = new Set();
+
+		queues(fxN, queue_defs, queue_fdir, queue_ctxs, queue_flags);
+
+		let a = [wc_flg, queue_defs, queue_fdir, queue_ctxs, queue_flags];
 		for (let i = 0, l = cxN.length; i < l; i++) {
 			let value = cxN[i].command.value;
+
+			// Add wildcard flags.
+			if (wc_flg.length && !wc_exc.has(value)) queues.apply(null, a);
+
 			for (let item of queue_flags) oSets[value].add(item);
 			for (let item of queue_defs) oDefaults[value] = item;
 			for (let item of queue_fdir) oFiledirs[value] = item;
+			for (let item of queue_ctxs) {
+				if (hasProp(oContexts, value)) oContexts[value] += ";" + item;
+				else oContexts[value] = item;
+			}
 		}
 	}
 
@@ -309,21 +377,32 @@ module.exports = (S, cmdname) => {
 
 	// Build defaults contents.
 	let defs = mapsort(Object.keys(oDefaults), asort, aobj);
-	let dl = defs.length;
+	let dl = defs.length - 1;
 	defs.forEach((c, i) => {
 		defaults += `${rm_fcmd(c)} default ${oDefaults[c]}`;
-		if (i < dl - 1) defaults += "\n";
+		if (i < dl) defaults += "\n";
 	});
 	if (defaults) defaults = "\n\n" + defaults;
 
 	// Build filedirs contents.
 	let fdirs = mapsort(Object.keys(oFiledirs), asort, aobj);
-	let fl = fdirs.length;
+	let fl = fdirs.length - 1;
 	fdirs.forEach((c, i) => {
 		filedirs += `${rm_fcmd(c)} filedir ${oFiledirs[c]}`;
-		if (i < fl - 1) filedirs += "\n";
+		if (i < fl) filedirs += "\n";
 	});
 	if (filedirs) filedirs = "\n\n" + filedirs;
+
+	// Build contexts contents.
+	var ctxlist = [];
+	for (let context in oContexts) ctxlist.push(context);
+	let ctxs = mapsort(Object.keys(oContexts), asort, aobj);
+	let cl = ctxs.length - 1;
+	ctxs.forEach((c, i) => {
+		contexts += rm_fcmd(c) + ' context "' + oContexts[c] + '"';
+		if (i < cl) contexts += "\n";
+	});
+	if (contexts !== "") contexts = "\n\n" + contexts;
 
 	// Build settings contents.
 	settings_count--;
@@ -341,11 +420,17 @@ module.exports = (S, cmdname) => {
 	acdef = acdef_contents ? header + acdef_contents : sheader;
 	config = config ? header + config : sheader;
 
-	return {
+	let tests = S.tests.length
+		? `#!/bin/bash\n\n${header}tests=(\n${S.tests.join("\n")}\n)`
+		: "";
+
+	return Promise.resolve({
 		acdef,
 		config,
 		keywords: defaults,
 		filedirs,
-		placeholders: oPlaceholders
-	};
+		contexts,
+		placeholders: oPlaceholders,
+		tests
+	});
 };

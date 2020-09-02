@@ -1,0 +1,41 @@
+# This acmap tests the wildcard (universal *) command.
+
+* = [
+	exclude "program"
+	exclude "program.certs"
+
+	--help?
+	context "!help: #fge1"
+]
+
+program = [
+	--email
+	# Deprecated still add?
+	--username
+	--password
+	--env?
+	--version?
+]
+
+* = [
+	exclude "program"
+	exclude "program.certs"
+
+	--help?
+	context "!help: #fge1"
+]
+
+program.certs,
+program.certs.create = [
+	--down-stream=
+	--self-signed=,
+	--resolve=,
+	--lets-encrypt=(false true)
+]
+program.certs.list,
+program.certs.rm = --down-stream
+program.certs.update = [
+	--down-stream
+	--self-signed=,
+	--resolve=(false true)
+]

@@ -1,0 +1,4 @@
+# This acmap tests improperly quoted strings.
+
+@test = "nodecliac ;\"
+# -------------------^ Quote is wrongly escaped.

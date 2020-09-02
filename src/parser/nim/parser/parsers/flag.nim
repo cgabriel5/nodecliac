@@ -2,7 +2,7 @@ from ../helpers/tree_add import add
 from ../helpers/types import State, Node, node
 import ../helpers/[error, validate, forward, rollback]
 from ../helpers/charsets import C_NL, C_SPACES, C_LETTERS, C_QUOTES,
-    C_FLG_IDENT
+    C_FLG_IDENT, C_KW_ALL, C_KD_STR
 
 # ------------------------------------------------------------ Parsing Breakdown
 # --flag
@@ -29,6 +29,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
     var `end` = false # Flag: true - ends consuming chars.
     var `type` = "escaped"
     var N = node(S, "FLAG")
+    var alias = false
 
     # If not a oneliner or no command scope, flag is being declared out of scope.
     if not (isoneliner != "" or S.scopes.command.node != ""): error(S, currentSourcePath, 10)
@@ -70,7 +71,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 let keyword = text[S.i .. endpoint]
 
                 # Keyword must be allowed.
-                if keyword notin ["default", "filedir"]: error(S, currentSourcePath)
+                if keyword notin C_KW_ALL: error(S, currentSourcePath)
                 N.keyword.start = S.i
                 N.keyword.`end` = endpoint
                 N.keyword.value = keyword
@@ -94,6 +95,9 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     if `char` in C_FLG_IDENT:
                         N.name.`end` = S.i
                         N.name.value &= $`char`
+                    elif `char` == ':' and not alias:
+                        state = "alias"
+                        rollback(S)
                     elif `char` == '=':
                         state = "assignment"
                         rollback(S)
@@ -130,6 +134,27 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 N.boolean.value = $`char`
                 state = "pipe-delimiter"
 
+            of "alias":
+                alias = true
+                # Next char must also be a colon.
+                let nchar = if S.i + 1 < l: text[S.i + 1] else: '\0'
+                if nchar != ':': error(S, currentSourcePath)
+                N.alias.start = S.i
+                N.alias.`end` = S.i + 2
+
+                let letter = if S.i + 2 < l: text[S.i + 2] else: '\0'
+                if letter notin C_LETTERS:
+                    S.i += 1
+                    S.column += 1
+                    error(S, currentSourcePath)
+
+                N.alias.value = $letter
+                state = "name"
+
+                # Note: Forward indices to skip alias chars.
+                S.i += 2
+                S.column += 2
+
             of "assignment":
                 N.assignment.start = S.i
                 N.assignment.`end` = S.i
@@ -149,7 +174,13 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     rollback(S)
 
             of "pipe-delimiter":
-                if `char` != '|': error(S, currentSourcePath)
+                # Note: If char is not a pipe or if the flag is not a oneliner
+                # flag and there are more characters after the flag error.
+                # Example:
+                # * = [
+                #      --help?|context "!help: #fge1"
+                # ]
+                if `char` != '|' or isoneliner == "": error(S, currentSourcePath)
                 stop = true
 
             of "delimiter":
@@ -160,7 +191,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
 
             of "wsb-prevalue":
                 if `char` notin C_SPACES:
-                    let keyword = N.keyword.value != "filedir"
+                    let keyword = N.keyword.value notin C_KD_STR
                     if `char` == '|' and keyword: state = "pipe-delimiter"
                     elif `char` == ',': state = "delimiter"
                     else: state = "value"
@@ -179,7 +210,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     N.value.`end` = S.i
                     N.value.value = $`char`
                 else:
-                    if `char` == '|' and N.keyword.value != "filedir" and pchar != '\\':
+                    if `char` == '|' and N.keyword.value notin C_KD_STR and pchar != '\\':
                         state = "pipe-delimiter"
                         rollback(S)
                     else:
@@ -215,6 +246,16 @@ proc p_flag*(S: State, isoneliner: string): Node =
 
     if isoneliner == "":
         N.singleton = true
+
+        # Add alias node if it exists.
+        if N.alias.value != "":
+            var cN = node(S, "FLAG")
+            cN.hyphens.value = "-"
+            cN.delimiter.value = ","
+            cN.name.value = N.alias.value
+            cN.singleton = true
+            cN.boolean.value = N.boolean.value
+            add(S, cN)
         add(S, N)
 
     return N

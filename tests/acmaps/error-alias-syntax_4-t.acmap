@@ -1,0 +1,7 @@
+# This acmap tests alias syntax.
+
+npm = [
+	--version:::v
+	# ---------^ Invalid.
+	--help::h
+]

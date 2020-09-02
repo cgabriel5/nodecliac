@@ -1,0 +1,94 @@
+# 1password acmap.
+# [https://support.1password.com/command-line-getting-started/]
+# [https://app-updates.agilebits.com/product_history/CLI#v1050001]
+# [https://support.1password.com/command-line-reference/]
+# [https://support.1password.com/command-line/]
+
+* = [
+	--help::h?
+	context "!help: #fge1"
+	--account=
+	--session=
+]
+
+op.add.group
+op.add.user = --role=
+op.completion.{bash,zsh}
+
+# Only show --all flag when nothing is set.
+op.confirm = --all
+
+op.create.document = [
+	--file-name=
+	--tags=
+	--title=
+	--vault=
+]
+op.create.group = --description=
+op.create.item = [
+	--generate-password
+	--tags=
+	--title=
+	--url=
+	--vault=
+]
+op.create.user = --language=
+op.create.vault = --allow-admins-to-manage=(true false)|--description=
+
+op.delete.{document,item} = --vault=
+op.delete.{group,trash,user,vault}
+
+op.edit.group = --description=|--name=
+op.edit.item = --generate-password|--vault=
+op.edit.user = --name=|--travelmode=(on off)
+op.edit.vault = --name=
+
+op.encode
+op.forget
+
+op.get.account
+op.get.document = [
+	--include-trash?
+	--output=
+	--vault=
+]
+op.get.group
+op.get.item = [
+	--fields=
+	--format=
+	--include-trash?
+	--share-link?
+	--vault=
+]
+# Post-hook script provides category completions.
+op.get.template
+op.get.totp = --vault=
+op.get.user = --fingerprint?|--publickey?
+op.get.vault
+
+op.help
+
+op.list.documents = --include-trash?|--vault=
+op.list.events = --eventid=|--older?
+op.list.groups = --user=|--vault=
+op.list.items = [
+	# Post-hook script provides category completions.
+	--categories=
+	--category=$("${PATH}/scripts/categories.pl")
+	--include-trash?
+	--tags=
+	--vault=
+]
+op.list.templates
+op.list.users = --group=|--vault=
+op.list.vaults = --group=|--user=
+
+op.reactivate
+
+op.remove.group
+op.remove.user
+
+op.signin = --raw::r?|--shorthand=
+op.signout = --forget?
+op.suspend
+op.update = --directory=

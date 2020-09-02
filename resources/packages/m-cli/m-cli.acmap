@@ -1,0 +1,51 @@
+m-cli
+m-cli.help
+m-cli.airdrop.{status,on,enable,off,disable,help}
+m-cli.airdrop.{darkmode,transparency,antialiasthreshold,sidebariconsize,maincolor,highlightcolor}
+m-cli.battery.{status,help}
+m-cli.bluetooth.{status,on,enable,off,disable,help}
+m-cli.dir.{tree,size,delete,help} = []
+m-cli.dir.delete.{empty,dsfiles}
+m-cli.dir.delete.dsfiles.{on,off}
+m-cli.disk.{fs,filesystems,ejectall,help}
+m-cli.disk.{ls,list,info,reformat}
+m-cli.disk.{verify,repair}
+m-cli.disk.{format}
+m-cli.disk.rename
+m-cli.display.{status,help}
+m-cli.dns.{flush,help}
+m-cli.dock.{showdelay,autohidedelay,position,addblankspace,addrecentitems,prune,help}
+m-cli.dock.{autohide,magnification}.{YES,NO}
+m-cli.finder.{showhiddenfiles,showextensions,showdesktop,help}.{YES,NO}
+m-cli.firewall.{status,enable,disable,add,remove,list,help}
+m-cli.flightmode.{on,off,help}
+m-cli.gatekeeper.{status,list,enable,disable,create,help}
+m-cli.group.{list,info,adduser,removeuser,ismember,help}
+m-cli.hostname.{help}
+m-cli.info.{help}
+m-cli.itunes.{status,play,pause,next,prev,mute,unmute,vol,stop,quit,help}
+m-cli.localhost.{ls,add,remove,help}
+m-cli.lock.{help}
+m-cli.network.{ls,location,help}
+m-cli.nosleep.{until,help}
+m-cli.notification.{showcenter,help}
+m-cli.ntp.{status,enable,disable,set,help}
+m-cli.printer.{settings,name,queue,drivers,web,help}
+m-cli.restart = -f
+m-cli.restart.{help}
+m-cli.safeboot.{status,enable,disable,help}
+m-cli.screensaver.{status,askforpassword,help}
+m-cli.service = --list|--ls|--status-all
+m-cli.service.{start,stop,load,unload,help}
+m-cli.shutdown = -f
+m-cli.shutdown.{help}
+m-cli.sleep.{help}
+m-cli.timezone.{ls,set,help}
+m-cli.touchbar.{reset,help}
+m-cli.trash.{status,clean,help}
+m-cli.user.{ls,info,create,delete,help}
+m-cli.update.{ls,install,help}
+m-cli.volume.{up,down,mute,unmute,ismute,help}
+m-cli.vpn.{list,status,stop,start,help}
+m-cli.wallpaper.{help}
+m-cli.wifi.{status,scan,showpassword,ls,list,forget,history,on,off,connect,help}

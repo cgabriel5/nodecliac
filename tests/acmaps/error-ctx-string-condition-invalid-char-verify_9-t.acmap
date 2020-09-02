@@ -1,0 +1,13 @@
+# This acmap tests a context string.
+
+$var = "prefix"
+
+program = [
+	--version?
+	--help?
+
+	# The following flag is used to test the context string.
+	--test
+	context "!flag1, ${var}flag2, flag3: #fge3, #alt00, !flag   ; flag;     { a } ;{flag1 | flag2 | flag-3};{b}       "
+	# ----------------------------------------------^
+]

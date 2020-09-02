@@ -31,16 +31,27 @@ const C_LETTERS = (() => {
 	list.forEach((letter) => r.add(letter.toUpperCase()));
 	return r;
 })();
-const C_SOL = create(C_LETTERS, ["-", "@", ")", "\\", "]", "$", ";", "#"]);
+const C_SOL = create(C_LETTERS, ["-", "@", ")", "\\", "]", "$", ";", "#", "*"]);
 const C_SET_IDENT = create(C_LETTERS, ["-", "_"]);
 const C_SET_VALUE = create(C_QUOTES, C_LETTERS, C_DIGITS);
 const C_VAR_IDENT = C_SET_IDENT;
 const C_VAR_VALUE = C_SET_VALUE;
 const C_FLG_IDENT = create(C_LETTERS, C_DIGITS, ["-", "."]);
-const C_CMD_IDENT_START = create(C_LETTERS, [":"]);
+const C_CMD_IDENT_START = create(C_LETTERS, [":", "*"]);
+const C_CMD_GRP_IDENT_START = create(C_CMD_IDENT_START, C_DIGITS);
 const C_CMD_IDENT_REM = ["-", "_", ".", ":", "+", "\\"];
 const C_CMD_IDENT = create(C_LETTERS, C_DIGITS, C_CMD_IDENT_REM);
-const C_CMD_VALUE = new Set(["-", "d", "f", "["]);
+const C_CMD_VALUE = new Set(["-", "c", "d", "f", "["]);
+const C_KW_ALL = ["context", "default", "filedir", "exclude"];
+const C_KD_STR = ["context", "filedir", "exclude"];
+const C_CTX_MUT = create(C_LETTERS, C_DIGITS, ["-", "}", "|"]);
+const C_CTX_CON = create(C_LETTERS, C_DIGITS, ["#", "-", "!", ","]);
+const C_CTX_ALL_CHARS = ["#", "-", "{", "}", "|", "!", ":", ";", ","];
+const C_CTX_ALL = create(C_LETTERS, C_DIGITS, C_CTX_ALL_CHARS);
+const C_CTX_FLG = create(C_LETTERS, C_DIGITS, ["-", "!", ",", ":"]);
+const C_CTX_OPS = new Set(["eq", "ne", "gt", "ge", "lt", "le"]);
+const C_CTX_CAT = new Set(["a", "A", "f", "F"]); // Conditional argument-count type.
+const C_CTX_CTT = new Set(["c", "C"]); // Conditional test-count type.
 
 module.exports = {
 	cin,
@@ -56,6 +67,16 @@ module.exports = {
 	C_VAR_VALUE,
 	C_FLG_IDENT,
 	C_CMD_IDENT_START,
+	C_CMD_GRP_IDENT_START,
 	C_CMD_IDENT,
-	C_CMD_VALUE
+	C_CMD_VALUE,
+	C_KW_ALL,
+	C_KD_STR,
+	C_CTX_MUT,
+	C_CTX_CON,
+	C_CTX_ALL,
+	C_CTX_FLG,
+	C_CTX_OPS,
+	C_CTX_CAT,
+	C_CTX_CTT
 };

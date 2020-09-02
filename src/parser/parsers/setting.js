@@ -133,4 +133,7 @@ module.exports = (S) => {
 
 	validate(S, N);
 	add(S, N);
+
+	// Store test.
+	if (N.name.value === "test") S.tests.push(N.value.value);
 };

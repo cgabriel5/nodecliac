@@ -1,4 +1,5 @@
-from tables import Table, initTable, `[]=`, `$`
+from os import getEnv
+from tables import Table, toTable, initTable, `[]=`, `$`
 
 type
 
@@ -10,6 +11,7 @@ type
         text*: string
         scopes*: Scopes
         tables*: Tables
+        tests*: seq[string]
         args*: Args
     Scopes* = ref object
         command*, flag*: Node # Track command/flag scopes.
@@ -48,7 +50,7 @@ type
             command*: Branch
             flags*: seq[Node]
         of flag:
-            hyphens*, variable*, boolean*, multi*, keyword*: Branch
+            hyphens*, variable*, alias*, boolean*, multi*, keyword*: Branch
             singleton*: bool
         of option: bullet*: Branch
         of brace: brace*: Branch
@@ -58,12 +60,19 @@ type
 
 # Object constructors.
 
-proc state*(action: string, text: string, source: string, fmt: tuple,
-    trace: bool, igc: bool, test: bool): State =
+proc state*(action: string, cmdname: string, text: string, source: string,
+    fmt: tuple, trace: bool, igc: bool, test: bool): State =
     new(result)
 
+    var tests: seq[string] = @[]
     var linestarts = initTable[int, int]()
-    var variables = initTable[string, string]()
+    # Builtin variables.
+    var variables = {
+        "HOME": os.getEnv("HOME"),
+        "OS": hostOS,
+        "COMMAND": cmdname,
+        "PATH": "~/.nodecliac/registry/" & cmdname,
+    }.toTable
     var tree = initTable[string, seq[Node]]()
     tree["nodes"] = @[]
 
@@ -76,6 +85,7 @@ proc state*(action: string, text: string, source: string, fmt: tuple,
     result.specf = 0 # Default to allow anything initially.
     result.scopes = Scopes(command: Node(), flag: Node()) #Scopes(command: Node, flag: Node),
     result.tables = Tables(variables: variables, linestarts: linestarts, tree: tree) # Parsing lookup tables.
+    result.tests = tests
     # Arguments/parameters for quick access across parsers.
     result.args = Args(action: action, source: source, fmt: fmt, trace: trace, igc: igc, test: test)
 
@@ -126,6 +136,7 @@ proc node*(S: State, node: string): Node =
         result.hyphens = Branch()
         result.variable = Branch()
         result.name = Branch()
+        result.alias = Branch()
         result.boolean = Branch()
         result.assignment = Branch()
         result.delimiter = Branch()

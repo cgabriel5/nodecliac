@@ -2,16 +2,18 @@
 
 import streams
 from strformat import fmt
+from algorithm import sort
 from osproc import execProcess
 from re import re, `=~`, find, split, replace, contains,
     replacef, reMultiLine, findBounds
 from sequtils import map, mapIt, toSeq, concat, filter
 from tables import `$`, add, del, len, keys, `[]`, `[]=`, pairs,
-    Table, hasKey, values, toTable, initTable, initOrderedTable
+    Table, hasKey, values, toTable, initTable, initOrderedTable, getOrDefault
 from os import getEnv, putEnv, paramStr, paramCount
+from strtabs import `[]`, `[]=`, hasKey, newStringTable, getOrDefault
 from strutils import find, join, split, strip, delete, Digits, Letters,
     replace, contains, endsWith, intToStr, parseInt, splitLines, startsWith,
-    removePrefix, allCharsInSet
+    removePrefix, allCharsInSet, multiReplace, parseBool
 
 import utils/lcp
 
@@ -22,11 +24,19 @@ let cline = os.paramStr(2) # CLI input (could be modified via pre-parse).
 let cpoint = os.paramStr(3).parseInt(); # Caret index when [tab] key was pressed.
 let maincommand = os.paramStr(4) # Get command name from sourced passed-in argument.
 let acdef = os.paramStr(5) # Get the acdef definitions file.
+let posthook = os.paramStr(6) # Get the posthook file path.
+let singletons = parseBool(os.paramStr(7)) # Show singleton flags?
 
 var args: seq[string] = @[]
+var cargs: seq[string] = @[]
+var posargs: seq[string] = @[]
+var afcount = 0
 # Arguments meta data: [eq-sign index, isBool]
 var ameta: seq[array[2, int]] = @[]
 var last = ""
+var quote_open = false
+# Parsed last (flag) data.
+var dflag: tuple[flag: string, eq: char, value: string]
 var `type` = ""
 var foundflags: seq[string] = @[]
 var completions: seq[string] = @[]
@@ -35,16 +45,18 @@ var lastchar: char # Character before caret.
 let nextchar = cline.substr(cpoint, cpoint) # Character after caret.
 var cline_length = cline.len # Original input's length.
 var isquoted = false
-var autocompletion = true
+# var autocompletion = true
 var input = cline.substr(0, cpoint - 1) # CLI input from start to caret index.
 var input_remainder = cline.substr(cpoint, -1)# CLI input from caret index to input string end.
 let hdir = os.getEnv("HOME")
+let TESTMODE = os.getEnv("TESTMODE") == "1"
 var filedir = ""
 
 var db_dict = initTable[char, Table[string, Table[string, seq[string]]]]()
 var db_levels = initTable[int, Table[string, int]]()
-var db_defaults = initTable[string, string]()
-var db_filedirs = initTable[string, string]()
+var db_defaults = newStringTable()
+var db_filedirs = newStringTable()
+var db_contexts = newStringTable()
 
 var usedflags = initTable[string, Table[string, int]]()
 var usedflags_valueless = initTable[string, int]()
@@ -59,18 +71,6 @@ const C_SPACES = {' ', '\t'}
 const C_QUOTEMETA = Letters + Digits + {'_'}
 const C_VALID_CMD = Letters + Digits + {'-', '.', '_', ':', '\\'}
 const C_VALID_FLG = Letters + Digits + {'-', '_', }
-
-# # Log local variables and their values.
-# proc fn_debug() =
-#     echo "\n  commandchain: '" & $(commandchain) & "'"
-#     echo "          last: '" & $(last) & "'"
-#     echo "         input: '" & $(input) & "'"
-#     echo "  input length: '" & $(cline_length) & "'"
-#     echo "   caret index: '" & $(cpoint) & "'"
-#     echo "      lastchar: '" & $(lastchar) & "'"
-#     echo "      nextchar: '" & $(nextchar) & "'"
-#     echo "      isquoted: '" & $(isquoted) & "'"
-#     echo "autocompletion: '" & $(autocompletion) & "'"
 
 # --------------------------------------------------------- VALIDATION-FUNCTIONS
 
@@ -152,7 +152,7 @@ proc quotemeta(s: string): string =
 
 # Predefine procs to maintain proc order with ac.pl.
 proc parseCmdStr(input: var string): seq[string]
-proc setEnvs(arguments: varargs[string])
+proc setEnvs(arguments: varargs[string], post=false)
 
 # Parse and run command-flag (flag) or default command chain.
 #
@@ -183,7 +183,9 @@ proc execCommand(command_str: var string): seq[string] =
                 discard shift(arg)
                 let qchar = arg[0]
                 unquote(arg)
-                command &= " \"$(" & qchar & arg & qchar & ")\""
+                # command &= " \"$(" & qchar & arg & qchar & ")\""
+                # Wrap command with ticks to target the common shell 'sh'.
+                command &= " " & qchar & "`" & arg & "`" & qchar
             else: command &= " " & arg
 
     setEnvs()
@@ -215,6 +217,8 @@ proc parseCmdStr(input: var string): seq[string] =
             if c in C_QUOTES and p != '\\':
                 qchar = c
                 argument &= $c
+            elif args.len > 1 and c == '$' and argument == "":
+                argument &= $c
         else:
             if c == '|' and p == '\\': discard chop(argument)
             argument &= $c
@@ -231,8 +235,13 @@ proc parseCmdStr(input: var string): seq[string] =
 #
 # @param  {string} arguments - N amount of env names to set.
 # @return - Nothing is returned.
-proc setEnvs(arguments: varargs[string]) =
+proc setEnvs(arguments: varargs[string], post=false) =
     let l = args.len
+    let ctype = (if `type`[0] == 'c': "command" else: "flag")
+
+    # Get any used flags to pass along.
+    var usedflags: seq[string] = @[]
+    for k in usedflags_counts.keys: usedflags.add(k)
 
     var envs = {
         # nodecliac exposed Bash env vars.
@@ -246,7 +255,7 @@ proc setEnvs(arguments: varargs[string]) =
         # The command auto completion is being performed for.
         fmt"{prefix}MAIN_COMMAND": maincommand,
         fmt"{prefix}COMMAND_CHAIN": commandchain, # The parsed command chain.
-        # fmt"{prefix}USED_FLAGS": usedflags, # The parsed used flags.
+        fmt"{prefix}USED_FLAGS": usedflags.join("\n"), # The parsed used flags.
         # The last parsed word item (note: could be a partial word item.
         # This happens when the [tab] key gets pressed within a word item.
         # For example, take the input 'maincommand command'. If
@@ -255,7 +264,8 @@ proc setEnvs(arguments: varargs[string]) =
         # text is 'and'. This will result in using 'comm' to determine
         # possible auto completion word possibilities.).
         fmt"{prefix}LAST": last,
-        fmt"{prefix}PREV": args[^2], # The word item preceding last word item.
+        # The word item preceding last word item.
+        fmt"{prefix}PREV": args[^(if not post: 2 else: 1)],
         fmt"{prefix}INPUT": input, # CLI input from start to caret index.
         fmt"{prefix}INPUT_ORIGINAL": oinput, # Original unmodified CLI input.
         # CLI input from start to caret index.
@@ -272,8 +282,30 @@ proc setEnvs(arguments: varargs[string]) =
         fmt"{prefix}ARG_COUNT": intToStr(l),
         # Store collected positional arguments after validating the
         # command-chain to access in plugin auto-completion scripts.
-        fmt"{prefix}USED_DEFAULT_POSITIONAL_ARGS": used_default_pa_args
+        fmt"{prefix}USED_DEFAULT_POSITIONAL_ARGS": used_default_pa_args,
+        # Whether completion is being done for a command or a flag.
+        fmt"{prefix}COMP_TYPE": ctype
     }.toTable
+
+    # If completion is for a flag, set flag data for quick access in script.
+    if ctype == "flag":
+        envs[fmt"{prefix}FLAG_NAME"] = dflag.flag
+        envs[fmt"{prefix}FLAG_EQSIGN"] = $dflag.eq
+        envs[fmt"{prefix}FLAG_VALUE"] = dflag.value
+        # Indicates if last word is an open quoted value.
+        envs[fmt"{prefix}QUOTE_OPEN"] = if quote_open: "1" else: "0"
+
+    # Set completion index (index where completion is being attempted) to
+    # better mimic bash's $COMP_CWORD builtin variable.
+    let comp_index = if lastchar == '\0' or
+        (last.len > 0 and (
+            last[0] in C_QUOTES or quote_open or last[^2] == '\\'
+        )): $(l - 1) else: $l
+    envs[fmt"{prefix}COMP_INDEX"] = comp_index
+    # Also, ensure NODECLIAC_PREV is reset to the second last argument
+    # if it exists only when the lastchar is empty to To better mimic
+    # prev=${COMP_WORDS[COMP_CWORD-1]}.
+    if lastchar == '\0' and l > l - 2: envs[fmt"{prefix}PREV"] = args[l - 2]
 
     # Add parsed arguments as individual env variables.
     for i, arg in args: envs[fmt"{prefix}ARG_{i}"] = arg
@@ -379,6 +411,10 @@ proc fn_tokenize() =
                     c = '=' # Normalize ':' to '='.
                 argument &= $c
 
+    # If the qchar is set, there was an unclosed string like:
+    # '$ op list itema --categories="Outdoor '
+    if qchar != '\0': quote_open = true
+
     # Get last argument.
     if argument != "":
         ameta.add([delindex, 0]); delindex = -1
@@ -392,46 +428,45 @@ proc fn_tokenize() =
 # @return - Nothing is returned.
 proc fn_analyze() =
     let l = args.len
-    var cargs: seq[string] = @[]
     var commands: seq[string] = @[""]
     var chainstrings: seq[string] = @[" "]
     var chainflags: seq[seq[string]] = @[@[""]]
     var delindices: seq[seq[int]] = @[@[0]]
     var bounds: seq[int] = @[0]
-    var posargs: seq[string] = @[]
-    var cmdend = false
     var aindex = 0
 
     var i = 1; while i < l:
         var item = args[i]
         let nitem = if i + 1 < l: args[i + 1] else: ""
 
-        # Skip quoted or escaped items.
-        if item[0] in C_QUOTES or '\\' in item: cargs.add(item); inc(i); continue
+        # # Skip quoted or escaped items.
+        # if item[0] in C_QUOTES or '\\' in item:
+        #     posargs.add(item)
+        #     cargs.add(item)
+        #     inc(i)
+        #     continue
 
         if not item.startsWith('-'):
-            if not cmdend:
-                let command = fn_normalize_command(item)
-                var chain = commands.join(".") & "." & command
-                if not chain.startsWith('.'): chain = "." & chain
+            let command = fn_normalize_command(item)
+            var chain = commands.join(".") & "." & command
+            if not chain.startsWith('.'): chain = "." & chain
 
-                let pattern = "^" & quotemeta(chain) & "[^ ]* "
-                let (start, `end`) = findBounds(acdef, re(pattern, {reMultiLine}))
-                if start != -1:
-                    chainstrings.add(acdef[start .. `end`])
-                    chainflags.add(@[])
-                    delindices.add(@[])
-                    bounds.add(start)
-                    commands.add(command)
-                    inc(aindex)
-                else:
-                    cmdend = true
-                    posargs.add(item)
+            let pattern = "^" & quotemeta(chain) & "[^ ]* "
+            let (start, `end`) = findBounds(acdef, re(pattern, {reMultiLine}))
+            if start != -1:
+                chainstrings.add(acdef[start .. `end`])
+                chainflags.add(@[])
+                delindices.add(@[])
+                bounds.add(start)
+                commands.add(command)
+                inc(aindex)
             else: posargs.add(item)
 
             cargs.add(item)
 
         else:
+            inc(afcount) # Increment flag counter.
+
             if ameta[i][0] > -1:
                 cargs.add(item)
                 chainflags[^1].add(item)
@@ -475,11 +510,18 @@ proc fn_analyze() =
     if posargs.len > 0: used_default_pa_args = posargs.join("\n")
 
     last = if lastchar == ' ': "" else: cargs[^1]
+    # Reset if completion is being attempted for a quoted/escaped string.
+    if lastchar == ' ' and cargs.len > 0:
+        let litem = cargs[^1]
+        quote_open = quote_open and litem[0] == '-'
+        if (litem[0] in C_QUOTES or quote_open or litem[^2] == '\\'): last = litem
     if last.find(C_QUOTES) == 0: isquoted = true
 
     # Handle case: 'nodecliac print --command [TAB]'
+    # if last == "" and cargs.len > 0 and cargs[^1].startsWith('-') and
+    # ameta[^1][0] == -1 and ameta[^1][1] == 0:
     if last == "" and cargs.len > 0 and cargs[^1].startsWith('-') and
-    ameta[^1][0] == -1 and ameta[^1][1] == 0:
+    '=' notin cargs[^1] and ameta[^1][0] == -1 and ameta[^1][1] == 0:
         let r = cargs[^1] & "="
         lastchar = '\0'
         last = r
@@ -506,15 +548,16 @@ proc fn_analyze() =
         else: usedflags_valueless[uflag_fkey] = 1
 
         # Track times flag was used.
-        if not usedflags_counts.hasKey(uflag_fkey):
-            usedflags_counts[uflag_fkey] = 0
-        inc(usedflags_counts[uflag_fkey])
+        if uflag_fkey != "" and (uflag_fkey != "--" or uflag_fkey != "-"):
+            if not usedflags_counts.hasKey(uflag_fkey):
+                usedflags_counts[uflag_fkey] = 0
+            inc(usedflags_counts[uflag_fkey])
 
 # Lookup acdef definitions.
 #
 # @return - Nothing is returned.
 proc fn_lookup(): string =
-    if isquoted or not autocompletion: return ""
+    # if isquoted or not autocompletion: return ""
 
     if last.startsWith('-'):
         `type` = "flag"
@@ -522,6 +565,7 @@ proc fn_lookup(): string =
         var letter = if commandchain != "": commandchain[1] else: '_'
         commandchain = if commandchain != "": commandchain else: "_"
         if db_dict.hasKey(letter) and db_dict[letter].hasKey(commandchain):
+            var excluded = initTable[string, int]()
             var parsedflags = initTable[string, int]()
             var flag_list = db_dict[letter][commandchain]["flags"][0]
 
@@ -536,6 +580,104 @@ proc fn_lookup(): string =
             # Split by unescaped pipe '|' characters:
             var flags = flag_list.split(re"(?<!\\)\|")
 
+            # Context string logic: start --------------------------------------
+
+            let cchain = if commandchain == "_": "" else: quotemeta(commandchain)
+            let pattern = "^" & cchain & " context (.+)$"
+            let (start, `end`) = findBounds(acdef, re(pattern, {reMultiLine}))
+            if start != -1:
+                let row = acdef[start .. `end`]
+                let kw_index = row.find("context")
+                let sp_index = row.find(' ', start=kw_index)
+                let context = row[sp_index + 2 .. row.high - 1] # Unquote.
+
+                let ctxs = context.split(';')
+                for ctx in ctxs:
+                    var ctx = ctx.multiReplace([(" ", ""), ("\t", "")])
+                    if ctx.len == 0: continue
+                    if ctx[0] == '{' and ctx[^1] == '}': # Mutual exclusion.
+                        ctx = ctx.strip(chars={'{', '}'})
+                        let flags = map(ctx.split('|'), proc (x: string): string =
+                            if x.len == 1: "-" else: "--" & x
+                        )
+                        var exclude = ""
+                        for flag in flags:
+                            if usedflags_counts.hasKey(flag):
+                                exclude = flag
+                                break
+                        if exclude != "":
+                            for flag in flags:
+                                if exclude != flag: excluded[flag] = 1
+                            excluded.del(exclude)
+                    else:
+                        var r = false
+                        if ':' in ctx:
+                            let parts = ctx.split(':')
+                            let flags = parts[0].split(',')
+                            let conditions = parts[1].split(',')
+                            # Examples:
+                            # flags:      !help,!version
+                            # conditions: #fge1, #ale4, !#fge0, !flag-name
+                            # [TODO?] index-conditions: 1follow, 1!follow
+                            for condition in conditions:
+                                var invert = false
+                                var condition = condition
+                                # Check for inversion.
+                                if condition[0] == '!':
+                                    discard shift(condition)
+                                    invert = true
+
+                                let fchar = condition[0]
+                                if fchar == '#':
+                                    let operator = condition[2 .. 3]
+                                    let n = condition[4 .. ^1].parseInt()
+                                    var c = 0
+                                    if condition[1] == 'f':
+                                        c = usedflags_counts.len
+                                        # Account for used '--' flag.
+                                        if c == 1 and usedflags_counts.hasKey("--"): c = 0
+                                        if lastchar == '\0': dec(c)
+                                    else: c = posargs.len
+                                    case (operator):
+                                        of "eq": r = if c == n: true else: false
+                                        of "ne": r = if c != n: true else: false
+                                        of "gt": r = if c >  n: true else: false
+                                        of "ge": r = if c >= n: true else: false
+                                        of "lt": r = if c <  n: true else: false
+                                        of "le": r = if c <= n: true else: false
+                                        else: discard
+                                    if invert: r = not r
+                                # elif fchar in {'1'..'9'}: continue # [TODO?]
+                                else: # Just a flag name.
+                                    if fchar == '!':
+                                        if usedflags_counts.hasKey(condition): r = false
+                                    else:
+                                        if usedflags_counts.hasKey(condition): r = true
+                                # Once any condition fails exit loop.
+                                if r == false: break
+                            if r == true:
+                                for flag in flags:
+                                    var flag = flag
+                                    let fchar = flag[0]
+                                    flag = flag.strip(chars={'!'})
+                                    flag = (if flag.len == 1: "-" else: "--") & flag
+                                    if fchar == '!': excluded[flag] = 1
+                                    else: excluded.del(flag)
+                        else: # Just a flag name.
+                            if ctx[0] == '!':
+                                if usedflags_counts.hasKey(ctx): r = false
+                            else:
+                                if usedflags_counts.hasKey(ctx): r = true
+                            if r == true:
+                                var flag = ctx
+                                let fchar = flag[0]
+                                flag = flag.strip(chars={'!'})
+                                flag = (if flag.len == 1: "-" else: "--") & flag
+                                if fchar == '!': excluded[flag] = 1
+                                else: excluded.del(flag)
+
+            # Context string logic: end ----------------------------------------
+
             var last_fkey = last
             var last_eqsign: char
             # var last_multif = ""
@@ -548,11 +690,14 @@ proc fn_lookup(): string =
 
                 if last_value.startsWith('*'):
                     # last_multif = "*"
-                    last_value = last_value[0 .. ^1]
+                    last_value = last_value[0 .. ^2]
 
                 last_eqsign = '='
 
             let last_val_quoted = last_value.find(C_QUOTES) == 0
+
+            # Store data for env variables.
+            dflag = (flag: last_fkey, eq: last_eqsign, value: last_value)
 
             # Process flags.
             var i = 0; while i < flags.len:
@@ -575,10 +720,12 @@ proc fn_lookup(): string =
                     flag_eqsign = '='
 
                     if '?' in flag_fkey: flag_isbool = chop(flag_fkey)
+                    # Skip flag if it's mutually exclusivity.
+                    if excluded.hasKey(flag_fkey): inc(i); continue
 
                     if flag_value.startsWith('*'):
                         flag_multif = '*'
-                        flag_value = flag_value[0 .. ^1]
+                        flag_value = flag_value[0 .. ^2]
 
                         # Track multi-starred flags.
                         usedflags_multi[flag_fkey] = 1
@@ -600,6 +747,9 @@ proc fn_lookup(): string =
                     parsedflags[fmt"{flag_fkey}={flag_value}"] = 1
                 else:
                     if '?' in flag_fkey: flag_isbool = chop(flag_fkey)
+                    # Skip flag if it's mutually exclusivity.
+                    if excluded.hasKey(flag_fkey): inc(i); continue
+
                     # Create completion flag item.
                     cflag = flag_fkey
                     # Store for later checks.
@@ -669,7 +819,9 @@ proc fn_lookup(): string =
                 # Note: Don't list single letter flags. Listing them along
                 # with double hyphen flags is awkward. Therefore, only list
                 # them when completing or showing its value(s).
-                if flag_fkey.len == 2 and flag_value == "": inc(i); continue
+                # [https://scripter.co/notes/nim/#from-string]
+                if not singletons and flag_fkey.len == 2 and flag_value == "":
+                    inc(i); continue
 
                 # If last word is in the form '--flag=', remove the last
                 # word from the flag to only return its option/value.
@@ -726,7 +878,8 @@ proc fn_lookup(): string =
 
         # If no cc get first level commands.
         if commandchain == "" and last == "":
-            if db_levels.hasKey(1): completions = toSeq(db_levels[1].keys)
+            if posargs.len == 0:
+                if db_levels.hasKey(1): completions = toSeq(db_levels[1].keys)
         else:
             let letter = if commandchain != "": commandchain[1] else: '_'
             # Letter must exist in dictionary.
@@ -742,30 +895,40 @@ proc fn_lookup(): string =
             # if (rows.len == 1 and commandchain.endsWith(rows[0])): rows.setLen(0)
 
             var usedcommands = initTable[string, int]()
-            var commands = (commandchain[0 .. ^1]).split(re"(?<!\\)\.")
+            var commands = (commandchain).split(re"(?<!\\)\.")
             var level = commands.len - 1
             # Increment level if completing a new command level.
             if lastchar == ' ': inc(level)
 
-            # Get commandchains for specific letter outside of loop.
-            var h = db_dict[letter]
+            # If level does not match argument length, return. As the
+            # parsed arguments do not match that of a valid commandchain.
+            let la = (cargs.len + 1) - afcount
+            if not ((la == level + 1 and lastchar != '\0') or
+                (la > level and lastchar != '\0') or (la - level > 1)):
 
-            for row in rows:
-                var row = row
-                # Command must exist.
-                if not h[row].hasKey("commands"): continue
+                # Get commandchains for specific letter outside of loop.
+                var h = db_dict[letter]
 
-                var cmds = h[row]["commands"]
-                row = if level < cmds.len: cmds[level] else: ""
+                for row in rows:
+                    var row = row
+                    # Command must exist.
+                    if not h[row].hasKey("commands"): continue
 
-                # Add last command it not yet already added.
-                if row == "" or usedcommands.hasKey(row): continue
-                # If char before caret isn't a space, completing a command.
-                if lastchar_notspace:
-                    if row.startsWith(last): completions.add(row)
-                else: completions.add(row) # Allow all.
+                    var cmds = h[row]["commands"]
+                    row = if level < cmds.len: cmds[level] else: ""
 
-                usedcommands[row] = 1
+                    # Add last command if not yet already added.
+                    if row == "" or usedcommands.hasKey(row): continue
+                    # If char before caret isn't a space, completing a command.
+                    if lastchar_notspace:
+                        if row.startsWith(last):
+                            let c = commandchain.endsWith("." & row)
+                            if (not c or (c and lastchar == '\0')) or
+                            used_default_pa_args == "" and lastchar == '\0':
+                                completions.add(row)
+                    else: completions.add(row) # Allow all.
+
+                    usedcommands[row] = 1
 
         # Note: If only 1 completion exists, check if command exists in
         # commandchain. If so, it's already used so clear completions.
@@ -781,7 +944,7 @@ proc fn_lookup(): string =
             # Loop over command chains to build individual chain levels.
             while copy_commandchain != "":
                 # Get command-string, parse and run it.
-                var command_str = if db_defaults.hasKey(copy_commandchain): db_defaults[copy_commandchain] else: ""
+                var command_str = db_defaults.getOrDefault(copy_commandchain, "")
                 if command_str != "":
                     var lchar = chop(command_str)
 
@@ -831,17 +994,51 @@ proc fn_lookup(): string =
             let sp_index = row.find(' ', start=kw_index)
             filedir = row[sp_index + 2 .. row.high - 1] # Unquote.
 
+    # Run posthook if it exists.
+    if posthook != "":
+        const delimiter = "\\r?\\n"
+        var r: seq[string] = @[]
+        setEnvs(post=true)
+        var res = ""
+        try: res = execProcess(posthook)
+        except: discard
+        res = res.strip(trailing=true)
+        if res != "": r= split(res, re(delimiter))
+        var dsl = false # Delimiter Separated List.
+        if r.len != 0:
+            let l = last.len
+            var filtered: seq[string] = @[]
+            var useditems: seq[string] = @[]
+            let eqsign_index = last.find('=')
+            for c in r:
+                var c = c
+                if c == "__DSL__": dsl = true
+                if c[0] == '!': useditems.add(c[1 .. ^1]); continue
+                if not c.startsWith(last): continue
+                # When completing a delimited separated list, ensure to remove
+                # the flag from every completion item to leave the values only.
+                # [https://unix.stackexchange.com/q/124539]
+                # [https://github.com/scop/bash-completion/issues/240]
+                # [https://github.com/scop/bash-completion/blob/master/completions/usermod]
+                # [https://github.com/scop/bash-completion/commit/021058b38ad7279c33ffbaa36d73041d607385ba]
+                if dsl and c.len >= l: c.delete(0, eqsign_index)
+                filtered.add(c)
+            completions = filtered
+
+            if completions.len == 0 and dsl:
+                for c in useditems:
+                    var c = c
+                    if not c.startsWith(last): continue
+                    if dsl and c.len >= l: c.delete(0, eqsign_index)
+                    completions.add(c)
+
 # Send all possible completions to bash.
 proc fn_printer() =
-    var lines = fmt"{`type`}:{last}"
-    lines &= "+" & filedir
-
-    var iscommand = `type`.startsWith('c')
-    if iscommand: lines &= "\n"
-
-    var sep = if iscommand: " " else: "\n"
-    var isflag_type = `type`.startsWith('f')
+    const sep = "\n"
     var skip_map = false
+    let isflag = `type`.startsWith('f')
+    let iscommand = not isflag
+    let lines = fmt"{`type`}:{last}+{filedir}"
 
     # Note: When providing flag completions and only "--" is provided,
     # collapse (don't show) flags with the same prefix. This aims to
@@ -893,10 +1090,15 @@ proc fn_printer() =
             # that have trailing characters (commands that are being
             # completed in the middle), and flag string completions
             # (i.e. --flag="some-word...).
-            let final_space = if isflag_type and not x.endsWith('=') and x.find({'"', '\''}) != 0 and nextchar == "": " " else: ""
+            let final_space = if isflag and not x.endsWith('=') and x.find({'"', '\''}) != 0 and nextchar == "": " " else: ""
 
             sep & x & final_space
         )
+
+    # Note: bash-completion already sorts completions so this is not needed.
+    # However, when testing the results are never returned to bash-completion
+    # so the completions need to be sorted for testing purposes.
+    if TESTMODE: completions.sort()
 
     echo lines & completions.join("")
 
@@ -937,7 +1139,8 @@ proc fn_makedb() =
             # not equal the chain of the line, skip the line.
             if lastchar == ' ' and not (chain & ".").startsWith(commandchain & "."): continue
 
-            let commands = (chain[0 .. ^1]).split(re"(?<!\\)\.")
+            # Remove starting '.'?
+            let commands = (chain).split(re"(?<!\\)\.")
 
             # Cleanup remainder (flag/command-string).
             if ord(line[0]) == 45:
@@ -949,9 +1152,13 @@ proc fn_makedb() =
             else: # Store keywords.
                 let keyword = line[0 .. 6]
                 let value = line.substr(8)
-                if keyword == "default":
-                    if not db_defaults.hasKey(chain): db_defaults[chain] = value
-                else:
-                    if not db_filedirs.hasKey(chain): db_filedirs[chain] = value
+                case (keyword):
+                    of "default":
+                        if not db_defaults.hasKey(chain): db_defaults[chain] = value
+                    of "filedir":
+                        if not db_filedirs.hasKey(chain): db_filedirs[chain] = value
+                    of "context":
+                        if not db_contexts.hasKey(chain): db_contexts[chain] = value
+                    else: discard
 
 fn_tokenize();fn_analyze();fn_makedb();discard fn_lookup();fn_printer()

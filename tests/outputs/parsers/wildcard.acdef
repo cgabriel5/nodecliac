@@ -1,0 +1,11 @@
+ --email|--env?|--password|--username|--version?
+.certs --down-stream=|--lets-encrypt=|--lets-encrypt=false|--lets-encrypt=true|--resolve=|--resolve=false|--resolve=true|--self-signed=|--self-signed=false|--self-signed=true
+.certs.create --down-stream=|--help?|--lets-encrypt=|--lets-encrypt=false|--lets-encrypt=true|--resolve=|--resolve=false|--resolve=true|--self-signed=|--self-signed=false|--self-signed=true
+.certs.list --down-stream|--help?
+.certs.rm --down-stream|--help?
+.certs.update --down-stream|--help?|--resolve=|--resolve=false|--resolve=true|--self-signed=|--self-signed=false|--self-signed=true
+
+.certs.create context "!help:#fge1"
+.certs.list context "!help:#fge1"
+.certs.rm context "!help:#fge1"
+.certs.update context "!help:#fge1"

@@ -2,7 +2,7 @@
 
 from algorithm import sort
 from tables import `$`, add, del, len, `[]`, `[]=`, pairs, Table,
-    hasKey, initTable, initOrderedTable
+    hasKey, initTable, initOrderedTable, getOrDefault
 from strutils import startsWith
 
 # Finds all common prefixes in a list of strings.
@@ -131,7 +131,7 @@ proc lcp*(
         block loop1:
             if not tprefixes.hasKey(str) and count >= 2:
                 let prevkey = str[0 .. ^2]
-                let prevcount = if tprefixes.hasKey(prevkey): tprefixes[prevkey] else: 0
+                let prevcount = tprefixes.getOrDefault(prevkey, 0)
 
                 if prevcount > count: continue
 

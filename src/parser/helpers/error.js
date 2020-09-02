@@ -12,7 +12,10 @@ let errors = {
 		12: "Check line specificity order"
 	},
 	command: {
-		10: "Illegal escape sequence"
+		10: "Illegal escape sequence",
+		11: "Empty command group",
+		12: "Useless delimiter",
+		13: "Unclosed command group"
 	},
 	comment: {},
 	flag: {
@@ -35,8 +38,19 @@ let errors = {
 		11: "String cannot be empty",
 		12: "Undefined variable",
 		13: "Illegal command-flag syntax",
-		14: "Useless comma delimiter",
-		15: "Illegal list syntax"
+		14: "Useless delimiter",
+		15: "Illegal list syntax",
+		16: "Keyword cannot be valueless",
+		17: "Illegal exclude"
+	},
+	vcontext: {
+		14: "Useless delimiter",
+		16: "Missing flag conditions",
+		17: "Unclosed brace"
+	},
+	vtest: {
+		14: "Useless delimiter",
+		15: "Malformed test string"
 	}
 };
 

@@ -1,0 +1,4 @@
+# This acmap tests unclosed command group syntax.
+
+program.deploy-keys.{ add
+# ------------------^

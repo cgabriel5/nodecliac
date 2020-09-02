@@ -7,9 +7,6 @@ const { paths, rmrf } = require("../utils/toolbox.js");
 
 module.exports = async (args) => {
 	let { registrypath } = paths;
-	// eslint-disable-next-line no-unused-vars
-	let err, res;
-
 	let { all } = args;
 	let packages = args._;
 	packages.shift();
@@ -26,7 +23,7 @@ module.exports = async (args) => {
 		let pkg = packages[i];
 		let pkgpath = `${registrypath}/${pkg}`;
 
-		[err, res] = await flatry(de(pkgpath));
+		let [err, res] = await flatry(de(pkgpath));
 		if (err || !res) continue;
 		await flatry(rmrf(pkgpath));
 	}

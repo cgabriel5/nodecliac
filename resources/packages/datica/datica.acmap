@@ -1,0 +1,141 @@
+# Experimental datica nodecliac bash-completion.
+
+* = --help?|context "!help: #fge1"
+
+datica = [
+	--email
+	# Deprecated still add?
+	--username
+	--password
+	--env?
+	--version?
+]
+
+datica.certs.create = [
+	--down-stream=
+	--self-signed=,
+	--resolve=,
+	--lets-encrypt=(false true)
+]
+datica.certs.{list,rm} = --down-stream
+datica.certs.update = [
+	--down-stream
+	--self-signed=,
+	--resolve=(false true)
+]
+
+datica.clear = [
+	--private-key=,
+	--session=,
+	--environments=,
+	--pods=,
+	--all=(false true)
+]
+
+datica.console
+datica.db.backup = --skip-poll=(false true)
+datica.db.{download,export} = --force=(false true)
+datica.db.import = [
+	--mongo-collection=
+	--mongo-database=
+	--skip-backup=(false true)
+]
+datica.db.list = [
+	--page=
+	--page-size=
+]
+datica.db.logs
+datica.db.restore = [
+	--mongo-database=
+	--yes=(false true)
+]
+
+datica.deploy
+datica.deploy-keys.{add,list,rm}
+datica.images.{list,push,pull}
+datica.images.targets.{list,rm,status,reset}
+datica.images.tags.{list,rm}
+datica.domain
+datica.environments.{list,rename}
+datica.files.download = --showTimestamps=(false true)
+datica.files.list
+
+datica.git-remote.add = [
+	--remote=
+	--force=(false true)
+]
+datica.git-remote.show
+
+datica.init
+datica.invites.{accept,list,rm,send}
+datica.jobs.{list,start}
+datica.jobs.stop = --force=(false true)
+datica.keys.{add,list,rm,set}
+datica.logout
+
+datica.logs = [
+	--follow=,
+	--tail=(false true)
+	context "{ follow | tail }"
+
+	--hours=
+	--minutes=
+	--seconds=
+	--service=
+
+	--job-id=
+	--target=
+	context "{ job-id | target }"
+]
+
+datica.maintenance.{disable,enable,show}
+datica.metrics.{cpu,memory,network-in,network-out} = [
+	--json=,
+	--csv=,
+	--text=,
+	context "{ json | csv | text }"
+	--stream=(false true)
+	--mins=
+]
+
+datica.rake
+datica.redeploy
+datica.releases.{list,rm}
+datica.releases.update = --notes=
+datica.rollback
+datica.services.{list,stop,rename}
+
+datica.sites.create = [
+	--down-stream=
+	--client-max-body-size=
+	--proxy-connect-timeout=
+	--proxy-read-timeout=
+	--proxy-send-timeout=
+	--proxy-upstream-timeout=
+	--enable-cors=(false true)
+	--enable-websockets=(false true)
+	--lets-encrypt=(false true)
+]
+datica.sites.{list,rm,show} = --down-stream=
+
+datica.ssl.resolve = --force=(false true)
+datica.ssl.verify = --self-signed=(false true)
+datica.status = --historical=(false true)
+datica.support-ids
+datica.update
+datica.users.{list,rm}
+
+datica.vars.list = [
+	--json=,
+	--yaml=(false true)
+	context "{json | yaml}"
+]
+datica.vars.set = [
+	--variable=*
+	--file=
+]
+
+datica.vars.unset
+datica.version
+datica.whoami
+datica.worker.{deploy,list,rm,scale}

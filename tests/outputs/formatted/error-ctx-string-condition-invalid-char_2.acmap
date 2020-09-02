@@ -1,0 +1,11 @@
+# This acmap tests a context string.
+
+program = [
+	--version?
+	--help?
+
+	# The following flag is used to test the context string.
+	--test
+	context "!flag1, flag2, flag3: #fg?e0, #alt100, !flag   ; flag;     {   a} ;{flag1 | flag2 | flag-3};{b}       "
+	# --------------------------------^
+]

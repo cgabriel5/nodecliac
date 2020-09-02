@@ -3,12 +3,13 @@ from algorithm import sort
 from sequtils import insert
 from unicode import toLower
 from re import re, split, replace
-from strutils import join, endsWith
+from strutils import join, endsWith, strip
 from times import format, getTime, toUnix
-from sets import HashSet, initHashSet, incl, excl, toHashSet, contains, len, items
-from tables import Table, initTable, initOrderedTable, `[]=`, toTable, hasKey, len, del, `$`
+from strtabs import `[]`, `[]=`, hasKey, keys, newStringTable, `$`
+from sets import HashSet, OrderedSet, initHashSet, incl, excl, toHashSet, contains, len, items, `$`
+from tables import Table, initTable, initOrderedTable, `[]=`, toTable, hasKey, keys, len, del, `$`
 
-from ../helpers/types import State, Node
+from ../helpers/types import State, Node, node
 
 # Generate .acdef, .config.acdef file contents.
 #
@@ -18,18 +19,20 @@ from ../helpers/types import State, Node
 proc acdef*(S: State, cmdname: string): tuple =
     var oSets = initTable[string, HashSet[string]]()
     var oGroups = initTable[int, Table[string, seq[Node]]]()
-    var oDefaults = initTable[string, string]()
-    var oFiledirs = initTable[string, string]()
+    var oDefaults = newStringTable()
+    var oFiledirs = newStringTable()
+    var oContexts = newStringTable()
     var oSettings = initOrderedTable[string, string]()
     var settings_count = 0
-    var oPlaceholders = initTable[string, string]()
-    var omd5Hashes = initTable[string, string]()
+    var oPlaceholders = newStringTable()
+    var omd5Hashes = newStringTable()
     var count = 0
     var acdef = ""
     var acdef_lines: seq[string] = @[]
     var config = ""
     var defaults = ""
     var filedirs = ""
+    var contexts = ""
     var has_root = false
 
     # Escape '+' chars in commands.
@@ -37,7 +40,7 @@ proc acdef*(S: State, cmdname: string): tuple =
     var r = re("^(" & rcmdname & "|[-_a-zA-Z0-9]+)")
 
     let date = getTime()
-    let datestring = date.format("ddd MMM d yyyy HH:mm:ss")
+    let datestring = date.format("ddd MMM dd yyyy HH:mm:ss")
     let timestamp = date.toUnix()
     let ctime = datestring & " (" & $timestamp & ")"
     var header = "# DON'T EDIT FILE —— GENERATED: " & ctime & "\n\n"
@@ -136,8 +139,14 @@ proc acdef*(S: State, cmdname: string): tuple =
     var rN: Node # Reference node.
     var dN: seq[Node] = @[] # Delimited flag nodes.
     var xN = S.tables.tree["nodes"]
+    var wildcard = false
+    var wc_flg: seq[Node] = @[]
+    var wc_exc = initHashSet[string]()
     const ftypes = toHashSet(["FLAG", "OPTION"])
     const types = toHashSet(["SETTING", "COMMAND", "FLAG", "OPTION"])
+
+    # Contain missing parent command chains in their own group.
+    oGroups[-1] = {"commands": @[], "flags": @[], "_": @[node(S, "COMMAND")]}.toTable
 
     var i = 0; var l = xN.len; while i < l:
         let N = xN[i]
@@ -156,6 +165,13 @@ proc acdef*(S: State, cmdname: string): tuple =
 
         case (`type`):
             of "COMMAND":
+
+                # Handle wildcard node.
+                if N.command.value == "*":
+                    wildcard = true
+                    inc(i); continue
+                else: wildcard = false
+
                 # Store command in current group.
                 if not oGroups.hasKey(count):
                     oGroups[count] = {"commands": @[N], "flags": @[]}.toTable
@@ -172,6 +188,9 @@ proc acdef*(S: State, cmdname: string): tuple =
                     while i > -1:
                         let rchain = commands.join(".") # Remainder chain.
                         if not oSets.hasKey(rchain):
+                            var mN = node(S, "COMMAND")
+                            mN.command.value = rchain
+                            oGroups[-1]["commands"].add(mN)
                             oSets[rchain] = initHashSet[string]()
                         discard commands.pop() # Remove last command.
                         dec(i)
@@ -180,10 +199,17 @@ proc acdef*(S: State, cmdname: string): tuple =
                 rN = N # Store reference to node.
 
             of "FLAG":
+                let keyword = N.keyword.value
+
+                # Handle wildcard flags.
+                if wildcard:
+                    if keyword == "exclude": wc_exc.incl(N.value.value[1 .. ^2])
+                    else: wc_flg.add(N)
+                    inc(i); continue
+
                 # Add values/arguments to delimited flags.
-                if N.delimiter.value != "":
-                    dN.add(N)
-                else:
+                if N.delimiter.value != "": dN.add(N)
+                elif keyword == "": # Skip/ignore keywords.
                     let args = N.args
                     let value = N.value.value
                     for i, tN in dN:
@@ -202,20 +228,26 @@ proc acdef*(S: State, cmdname: string): tuple =
                 last = `type`
 
             of "SETTING":
-                if not oSettings.hasKey(N.name.value): inc(settings_count)
-                oSettings[N.name.value] = N.value.value
+                let name = N.name.value
+                if name != "test":
+                    if not oSettings.hasKey(name): inc(settings_count)
+                    oSettings[name] = N.value.value
 
         inc(i)
 
     # Populate Sets.
 
-    for i, group in oGroups.pairs:
-        var cxN = group["commands"]
-        var fxN = group["flags"]
-        var queue_defs: HashSet[string]
-        var queue_fdir: HashSet[string]
-        var queue_flags: HashSet[string]
-
+    # Add flags, keywords to respective containers.
+    #
+    # @param  {array} fxN - The flag nodes.
+    # @param  {set} queue_defs - The defaults container.
+    # @param  {set} queue_fdir - The filedirs container.
+    # @param  {set} queue_ctxs - The contexts container.
+    # @param  {set} queue_flags - The flags container.
+    # @return - Nothing is returned.
+    proc queues(fxN: seq[Node], queue_defs: var HashSet[string],
+        queue_fdir: var HashSet[string], queue_ctxs: var OrderedSet[string],
+        queue_flags: var HashSet[string]) =
         for fN in fxN:
             let args = fN.args
             let keyword = fN.keyword.value
@@ -225,6 +257,8 @@ proc acdef*(S: State, cmdname: string): tuple =
                 let value = fN.value.value
                 if keyword == "default": queue_defs.incl(value)
                 elif keyword == "filedir": queue_fdir.incl(value)
+                elif keyword == "context":
+                    queue_ctxs.incl(value.strip(chars={'"', '\''}))
                 continue # defaults don't need to be added to Sets.
 
             let aval = fN.assignment.value
@@ -242,16 +276,42 @@ proc acdef*(S: State, cmdname: string): tuple =
                 for arg in args: queue_flags.incl(flag & aval & arg)
             else:
                 # Boolean flag...
-                var val = ""
-                if bval != "": val = "?"
-                elif aval != "": val = "="
-                queue_flags.incl(flag & val)
+                if bval != "": queue_flags.incl(flag & "?")
+                elif not ismulti:
+                    if aval != "": queue_flags.incl(flag & "=")
+                    else: queue_flags.incl(flag)
+                else:
+                    if not ismulti:
+                        if bval != "": queue_flags.incl(flag & "?")
+                        elif aval != "": queue_flags.incl(flag & "=")
+                        else: queue_flags.incl(flag)
+                    else:
+                        queue_flags.incl(flag & "=*")
+                        queue_flags.incl(flag & "=")
+
+    for i, group in oGroups.pairs:
+        var cxN = group["commands"]
+        var fxN = group["flags"]
+        var queue_defs: HashSet[string]
+        var queue_fdir: HashSet[string]
+        var queue_ctxs: OrderedSet[string]
+        var queue_flags: HashSet[string]
+
+        queues(fxN, queue_defs, queue_fdir, queue_ctxs, queue_flags)
 
         for cN in cxN:
             let value = cN.command.value;
+
+            # Add wildcard flags.
+            if wc_flg.len != 0 and not wc_exc.contains(value):
+                queues(wc_flg, queue_defs, queue_fdir, queue_ctxs, queue_flags)
+
             for item in queue_flags.items: oSets[value].incl(item)
             for item in queue_defs.items: oDefaults[value] = item
             for item in queue_fdir.items: oFiledirs[value] = item
+            for item in queue_ctxs.items:
+                if oContexts.hasKey(value): oContexts[value] &= ";" & item
+                else: oContexts[value] = item
 
     # Generate acdef.
 
@@ -294,7 +354,7 @@ proc acdef*(S: State, cmdname: string): tuple =
     let dl = defs.high
     for i, c in defs:
         defaults &= rm_fcmd(c) & " default " & oDefaults[c]
-        if i != dl: defaults &= "\n"
+        if i < dl: defaults &= "\n"
     if defaults != "": defaults = "\n\n" & defaults
 
     # Build filedir contents.
@@ -304,8 +364,18 @@ proc acdef*(S: State, cmdname: string): tuple =
     let fl = fdirs.high
     for i, c in fdirs:
         filedirs &= rm_fcmd(c) & " filedir " & oFiledirs[c]
-        if i != fl: filedirs &= "\n"
+        if i < fl: filedirs &= "\n"
     if filedirs != "": filedirs = "\n\n" & filedirs
+
+    # Build contexts contents.
+    var ctxlist: seq[string] = @[]
+    for context in oContexts.keys: ctxlist.add(context)
+    let ctxs = mapsort(ctxlist, asort, "aobj")
+    let cl = ctxs.high
+    for i, c in ctxs:
+        contexts &= rm_fcmd(c) & " context \"" & oContexts[c] & "\""
+        if i < cl: contexts &= "\n"
+    if contexts != "": contexts = "\n\n" & contexts
 
     # Build settings contents.
     dec(settings_count)
@@ -320,18 +390,26 @@ proc acdef*(S: State, cmdname: string): tuple =
     acdef = if acdef_contents != "": header & acdef_contents else: sheader
     config = if config != "": header & config else: sheader
 
+    let tests = if S.tests.len != 0:
+        "#!/bin/bash\n\n" & header & "tests=(\n" & S.tests.join("\n") & "\n)"
+        else: ""
+
     var data: tuple[
         acdef: string,
         config: string,
         keywords: string,
         filedirs: string,
+        contexts: string,
         formatted: string,
-        placeholders: Table[string, string]
+        placeholders: StringTableRef,
+        tests: string
     ]
 
     data.acdef = acdef
     data.config = config
     data.keywords = defaults
     data.filedirs = filedirs
+    data.contexts = contexts
     data.placeholders = oPlaceholders
+    data.tests = tests
     result = data

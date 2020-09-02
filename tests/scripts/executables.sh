@@ -29,13 +29,30 @@ __filepath="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 # ------------------------------------------------------------------------- VARS
 
+ROOTDIR=$(chipdir "$__filepath" 2) # Get the project's root directory.
+
+# Print script executable permission.
+if [[ $(isset "$PRINT") ]]; then
+	c=0
+	echo -e "${BOLD}[Script Executables]${NC}"
+	for f in  "$ROOTDIR"/*.sh "$ROOTDIR"/src/scripts/*/*.{sh,pl,nim} "$ROOTDIR"/tests/scripts/*.sh; do
+		dir=${f%/*}
+		dir="${dir/$ROOTDIR/}"
+		[[ -n "$dir" ]] && dir=" ${DIM}$dir${NC}"
+		filename="${f##*/}"
+		[[ ! -x "$f" ]] && echo -e " $X_MARK $filename$dir" && ((c=c+1))
+	done
+	[[ "$c" == 0 ]] && echo -e " $CHECK_MARK All scripts are executable."
+	echo ""
+fi
+
 # Get list of staged files. [https://stackoverflow.com/a/33610683]
 STAGED_FILES=$(git diff --name-only --cached)
 
 # If no files are staged then exit.
 if [[ -z "$STAGED_FILES" ]]; then
 	if [[ $(isset "$PRINT") ]]; then
-		echo -e "\033[1m[Binary Executables]\033[0m"
+		echo -e "${BOLD}[Binary Executables]${NC}"
 	fi
 
 	if [[ $(isset "$PRINT") ]]; then
@@ -49,8 +66,6 @@ fi
 # Read staged files list into an array.
 readarray -t list <<< "$STAGED_FILES" # [https://stackoverflow.com/a/19772067]
 
-ROOTDIR=$(chipdir "$__filepath" 2) # Get the project's root directory.
-
 # Declare empty array to contain unexecutable binaries.
 declare -a binaries # [https://stackoverflow.com/a/41108078]
 
@@ -58,7 +73,7 @@ declare -a binaries # [https://stackoverflow.com/a/41108078]
 for file in "${list[@]}"; do # [https://www.cyberciti.biz/faq/bash-for-loop-array/]
 	# If file is macOS/Linux binary check that's executable.
 	# [https://unix.stackexchange.com/a/340485]
-	if [[ "$file" =~ ac\.(macosx|linux)$ ]]; then
+	if [[ "$file" =~ \.(macosx|linux)$ ]]; then
 		filepath="$ROOTDIR/$file" # The file's complete path.
 
 		# If file is not executable exit with error.
@@ -72,12 +87,12 @@ done
 # If array is populated there are errors.
 if [[ ${#binaries[@]} -ne 0 ]]; then # [https://serverfault.com/a/477506]
 	if [[ $(isset "$PRINT") ]]; then
-		echo -e "\033[1m[Binary Executables]\033[0m"
+		echo -e "${BOLD}[Binary Executables]${NC}"
 	fi
 
 	if [[ $(isset "$PRINT") ]]; then
 		for binfile in "${binaries[@]}"; do		
-			echo -e " $X_MARK Make executable: \033[1;36m$binfile\033[0m"
+			echo -e " $X_MARK Make executable: ${BTURQ}$binfile${NC}"
 		done
 	fi
 	
@@ -87,7 +102,7 @@ fi
 
 # If this block gets is there were no staged binaries so give message.
 if [[ $(isset "$PRINT") ]]; then
-	echo -e "\033[1m[Binary Executables]\033[0m"
+	echo -e "${BOLD}[Binary Executables]${NC}"
 fi
 
 if [[ $(isset "$PRINT") ]]; then

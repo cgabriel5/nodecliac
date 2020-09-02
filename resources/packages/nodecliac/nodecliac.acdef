@@ -1,8 +1,9 @@
-# DON'T EDIT FILE —— GENERATED: Thu Jun 04 2020 14:27:9 (1591306029)
+# DON'T EDIT FILE —— GENERATED: Tue Sep 01 2020 11:54:37 (1598986477)
 
  --version?
-.add --
+.add --force?
 .cache --clear?|--level=|--level=0|--level=1|--level=2
+.debug --disable?|--enable?|--script=|--script=nim|--script=perl
 .disable --all
 .enable --all
 .format --indent|--print?|--source|--strip-comments?
@@ -11,10 +12,20 @@
 .print --command=|--command=$('for f in ~/.nodecliac/registry/*; do echo "$(basename -- $f)"; done')
 .registry --
 .remove --all
-.setup --force?|--rcfile
+.setup --force?|--rcfile|--yes?
 .status --disable?|--enable?
+.test --
 .uninstall --rcfile
 .unlink --all
 
+.disable default $('~/.nodecliac/registry/nodecliac/scripts/names.pl')
+.enable default $('~/.nodecliac/registry/nodecliac/scripts/names.pl')
+.remove default $('~/.nodecliac/registry/nodecliac/scripts/names.pl')
+.test default $('~/.nodecliac/registry/nodecliac/scripts/names.pl')
+.unlink default $('~/.nodecliac/registry/nodecliac/scripts/names.pl')
+
 .format filedir '@(acmap)'
 .make filedir '@(acmap)'
+
+.debug context "{enable|disable}"
+.status context "{enable|disable}"

@@ -1,0 +1,5 @@
+# This acmap tests command group syntax.
+
+program.deploy-keys.{add,list,rm}.get.{first,second}.set.delete.{THIRD,FOURTH,FIFTH} = [
+	--flag
+]

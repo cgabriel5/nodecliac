@@ -1,0 +1,4 @@
+# This acmap tests a completion test string.
+
+@test = "  nodecliac ; ; *uni\;nstall* ; !#ceq3 ; #cgt10"
+# ---------------------^ Useless delimiter.

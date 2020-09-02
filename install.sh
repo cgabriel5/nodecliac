@@ -48,7 +48,7 @@ function cline() {
 # @param {string} 1) - Message to print.
 # @return - Nothing is returned.
 function err() {
-	echo -e "\033[1;31mError\033[0m: $1" && exit
+	echo -e "${BRED}Error${NC}: $1" && exit
 }
 
 # Print success message.
@@ -59,22 +59,37 @@ function success() {
 	cline && echo -e " $CHECK_MARK $1" && sleep 0.1 && cline
 }
 
+# ANSI colors: [https://stackoverflow.com/a/5947802]
+GREEN="\033[0;32m"
+BOLD="\033[1m"
+BRED="\033[1;31m"
+BGREEN="\033[1;32m"
+BBLUE="\033[1;34m"
+BYELLOW="\033[1;33m"
+BPURPLE="\033[1;35m"
+NC="\033[0m"
+ITC="\033[3m"
+
 os=`platform`
 # Unix timestamp in ms: [https://stackoverflow.com/a/21640976]
 timestamp=$(perl -MTime::HiRes=time -e 'print int(time() * 1000);')
 outputdirname=".nodecliac-src-$timestamp"
 outputdir="$HOME/$outputdirname"
 binfilepath="/usr/local/bin/nodecliac" # [https://unix.stackexchange.com/a/8664]
-CHECK_MARK="\033[0;32m\xE2\x9C\x94\033[0m"
+CHECK_MARK="${GREEN}\xE2\x9C\x94${NC}"
 branch_name="master"
 installer=""
 rcfile=""
 params=""
 manual=""
+yes=""
+
+sudo echo > /dev/null 2>&1 # Prompt password early.
 
 while (( "$#" )); do
 	case "$1" in
 		--manual) manual="1"; shift ;;
+		--yes|-y) yes=1; shift ;;
 
 		--branch=*)
 			flag="${1%%=*}"; value="${1#*=}"
@@ -194,8 +209,9 @@ if [[ "$(exists yarn)" ]]; then
 		cline && echo " - Removing global nodecliac from yarn..."
 		yarn global remove nodecliac > /dev/null 2>&1
 		success "Removed global yarn nodecliac install."
+	else
+		success "No global yarn nodecliac install to remove."
 	fi
-	success "No global yarn nodecliac install to remove."
 fi
 if [[ "$(exists npm)" ]]; then
 	echo " - Checking for npm global nodecliac install..."
@@ -203,8 +219,9 @@ if [[ "$(exists npm)" ]]; then
 		cline && echo " - Removing global nodecliac from npm..."
 		sudo npm uninstall -g nodecliac > /dev/null 2>&1
 		success "Removed global npm nodecliac install."
+	else
+		success "No global npm nodecliac install to remove."
 	fi
-	success "No global npm nodecliac install to remove."
 fi
 
 # -------------------------------------------------------------- INSTALLER-LOGIC
@@ -246,6 +263,7 @@ if [[ " binary manual " == *" $installer "* ]]; then
 	acpath="$outputdir/src/scripts/ac"
 	mainpath="$outputdir/src/scripts/main"
 	binpath="$outputdir/src/scripts/bin"
+	testspath="$outputdir/tests"
 	mkdir -p ~/.nodecliac/{registry,src}
 	mkdir -p "$dest"/{bin,main}
 	mkdir -p "$dest"/ac/utils
@@ -253,11 +271,13 @@ if [[ " binary manual " == *" $installer "* ]]; then
 	cp -pr "$acpath"/utils/LCP.pm "$dest/ac/utils"
 	cp -pr "$mainpath"/init.sh "$dest/main"
 	cp -pr "$mainpath"/config.pl "$dest/main"
+	cp -pr "$testspath"/scripts/nodecliac.sh "$dest/main/test.sh"
 	cp -pr "$binpath"/binary.sh "$dest/bin"
 	cp -pr "$outputdir"/resources/packages/* ~/.nodecliac/registry
 	nimbin="$outputdir/src/parser/nim/nodecliac.$os"
 	[[ -e "$nimbin" ]] && cp -pr "$nimbin" "$dest/bin"
 	acbin="$binpath/ac.$os"; [[ -e "$acbin" ]] && cp -pr "$acbin" "$dest/bin"
+	dacbin="$binpath/ac_debug.$os"; [[ -e "$dacbin" ]] && cp -pr "$dacbin" "$dest/bin"
 
 	version="$(perl -ne 'print $1 if /"version":\s*"([^"]+)/' "$outputdir/package.json")"
 	echo "{ \"force\": false, \"rcfile\": \"$rcfile\", \"time\": \"$timestamp\", \"binary\": true, \"version\": \"$version\" }" > ~/.nodecliac/.setup.db.json
@@ -266,19 +286,40 @@ if [[ " binary manual " == *" $installer "* ]]; then
 	# [http://isunix.github.io/blog/2014/07/24/perl-one-liner-to-remove-blank-lines/].
 	# [https://stackoverflow.com/a/6995010], [https://unix.stackexchange.com/a/179449]
 	perl -pi -e 's/^\s*#(?!!).*?$//g;s/\s{1,}#\s{1,}.+$//g;s!^\s+?$!!' ~/.nodecliac/src/**/*.{sh,pl}
+	sudo chmod +x ~/.nodecliac/src/**/*.{sh,pl}
 
 	success "Setup ~/.nodecliac."
 
-	# Add nodecliac to rcfile.
 	if [[ -z "$(grep -F "ncliac=~/.nodecliac/src/main/init.sh" "$rcfile")" ]]; then
-		echo " - Adding nodecliac to $rcfile..."
-		perl -i -lpe 's/\x0a$//' "$rcfile" # Ensure newline.
-		echo 'ncliac=~/.nodecliac/src/main/init.sh; [ -f "$ncliac" ] && . "$ncliac";' >> "$rcfile"
-		perl -i -lpe 's/\x0a$//' "$rcfile" # Ensure newline.
-		success "Added nodecliac to $rcfile."
-		# [https://www.unix.com/shell-programming-and-scripting/229399-how-add-newline-character-end-file.html]
-		# [https://knowledge.ni.com/KnowledgeArticleDetails?id=kA00Z0000019KZDSA2]
-		# [https://stackoverflow.com/a/9021745]
+		answer=""
+		modrcfile=""
+		if [[ -z "$yes" ]]; then
+			# Ask user whether to add nodecliac to rcfile.
+			echo -e "${BPURPLE}Prompt${NC}: For nodecliac to work it needs to be added to your rcfile."
+			echo -e "    ... The following line will be appended to ${BOLD}${rcfile/#$HOME/\~}${NC}:"
+			echo -e "    ... ${ITC}ncliac=~/.nodecliac/src/main/init.sh; [ -f \"\$ncliac\" ] && . \"\$ncliac\";${NC}"
+			echo -e "    ... (if skipping, manually add it after install to use nodecliac)"
+			echo -e -n "${BPURPLE}Answer${NC}: [Press enter for default: Yes] ${BOLD}Add nodecliac to rcfile?${NC} [Y/n] "
+			read answer # [https://unix.stackexchange.com/a/165100]
+			case "$answer" in
+				[Yy]*) modrcfile=1; ;;
+				*) modrcfile=0 ;;
+			esac
+			for i in {1..5}; do cline; done # Remove question/answer lines.
+		fi
+		[[ -z "$answer" || "$yes" == 1 ]] && modrcfile=1
+
+		# Add nodecliac to rcfile.
+		if [[ "$modrcfile" == 1 ]]; then
+			echo " - Adding nodecliac to $rcfile..."
+			perl -i -lpe 's/\x0a$//' "$rcfile" # Ensure newline.
+			echo 'ncliac=~/.nodecliac/src/main/init.sh; [ -f "$ncliac" ] && . "$ncliac";' >> "$rcfile"
+			perl -i -lpe 's/\x0a$//' "$rcfile" # Ensure newline.
+			success "Added nodecliac to $rcfile."
+			# [https://www.unix.com/shell-programming-and-scripting/229399-how-add-newline-character-end-file.html]
+			# [https://knowledge.ni.com/KnowledgeArticleDetails?id=kA00Z0000019KZDSA2]
+			# [https://stackoverflow.com/a/9021745]
+		fi
 	fi
 
 	# # Modify nodecliac.acdef for binary.
@@ -312,7 +353,7 @@ else
 		echo " - Checking local config store ownership..."
 		if [[ $(ls -ld "$configstore" | awk '{print $3}') != "$USER" ]]; then
 			cline && err "Change local config store ownership."
-			echo -e "Run: \033[1msudo chown -R \$USER:\$(id -gn \$USER) $configstore\033[0m"
+			echo -e "Run: ${BOLD}sudo chown -R \$USER:\$(id -gn \$USER) $configstore${NC}"
 		fi
 		success "Proper config store ownership."
 
@@ -328,15 +369,24 @@ else
 		success "Installed nodecliac via yarn."
 	fi
 
-	echo " - Setting up nodecliac..."
-	nodecliac setup > /dev/null 2>&1
-	success "Setup nodecliac."
+	nodecliac setup --jsInstall # > /dev/null 2>&1
+	# echo " - Setting up nodecliac..."
+	# success "Setup nodecliac."
 fi
 
 # Use \033 rather than \e: [https://stackoverflow.com/a/37366139]
 if [[ "$(exists nodecliac)" ]]; then
-	echo -e "\033[1;32mSuccess\033[0m: nodecliac installed."
-	echo -e "    \033[1;34mTip\033[0m: Reload rcfile before using: \033[1msource ${rcfile/#$HOME/\~}\033[0m"
+	echo -e "${BGREEN}Success${NC}: nodecliac installed in ~/.nodecliac"
+
+	if [[ -z "$(grep -F "ncliac=~/.nodecliac/src/main/init.sh" "$rcfile")" ]]; then
+		echo -e "   ${BYELLOW}Note${NC}: nodecliac wasn't added to rcfile (${rcfile/#$HOME/\~}) but is necessary to use it."
+		echo -e "     ... Add it and reload your rcfile by running the following commands:"
+		echo -e "     ... $ ${BOLD}echo${NC} 'ncliac=~/.nodecliac/src/main/init.sh; [ -f \"\$ncliac\" ] && . \"\$ncliac\";' >> ${rcfile/#$HOME/\~} && ${BOLD}source${NC} ${rcfile/#$HOME/\~}"
+	else
+		echo -e "${BGREEN}Success${NC}: nodecliac added to ${rcfile/#$HOME/\~}"
+		echo -e "    ${BBLUE}Tip${NC}: Reload rcfile before using by running:"
+		echo -e "     ... $ ${BOLD}source${NC} ${rcfile/#$HOME/\~}${NC}"
+	fi
 fi
 }
 

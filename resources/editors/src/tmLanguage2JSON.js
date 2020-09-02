@@ -8,7 +8,6 @@
 "use strict";
 
 const path = require("path");
-const flatry = require("flatry");
 const fe = require("file-exists");
 
 const { read, write } = require("../../../src/utils/toolbox.js");
@@ -42,11 +41,8 @@ const { read, write } = require("../../../src/utils/toolbox.js");
 	let vscode_opath = path.join(vscode_spath, outputfilename);
 
 	// tmLanguage file must exist to proceed.
-	[err, res] = await flatry(fe(acmaptmpath));
-	if (res) {
-		[err, res] = await flatry(read(acmaptmpath));
-
-		let contents = res;
+	if (await fe(acmaptmpath)) {
+		let contents = await read(acmaptmpath);
 		const entities = { "&quot;": '"', "&apos;": "'", "&lt;": "<" };
 
 		contents = contents.match(/<plist .*?>([\s\S]*?)<\/plist>/)[1];
@@ -91,8 +87,8 @@ const { read, write } = require("../../../src/utils/toolbox.js");
 		});
 
 		// Save acmap.tmLanguage.json to needed locations.
-		[err, res] = await flatry(write(st_opath, contents));
-		[err, res] = await flatry(write(atom_opath, contents));
-		[err, res] = await flatry(write(vscode_opath, contents));
+		await write(st_opath, contents);
+		await write(atom_opath, contents);
+		await write(vscode_opath, contents);
 	}
 })();

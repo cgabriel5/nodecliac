@@ -62,7 +62,7 @@ contexts:
   strings:
     - include: double-quoted-string
     - include: single-quoted-string
-    - include: template-string
+    # - include: template-string
 
 # ---------------------------------------------------- PRIMITIVE-BUILDING-BLOCKS
 
@@ -167,15 +167,28 @@ contexts:
         - include: constants
         - include: numbers
         - include: strings
+        - include: unaccounted
+
+  command-group:
+    - match: "\\s*(\\{)"
+      captures:
+        1: punctuation.section.command-group.begin.acmap # **purple-brace
+      push:
+        - meta_scope: meta.command-group.acmap
+        - match: "(\\})"
+          scope: punctuation.section.command-group.end.acmap # **purple-brace
+          pop: true
+        - include: command
+        - include: delimiter
+        - include: escape
 
   command:
-    - match: "^\\s*(?=\\.?[a-zA-Z])"
+    - match: "^\\s*(?=(\\.?[_a-zA-Z])|\\*)"
       push:
         - meta_scope: entity.other.command.acmap # **italicize
         - meta_include_prototype: false
-        - match: "\\s*(,)\\s*"
-          captures:
-            1: punctuation.separator.comma.acmap # **purple
+        - include: command-group
+        - include: delimiter
           pop: true
         - match: "(?=(=|,| |\t|$))"
           pop: true
@@ -184,6 +197,9 @@ contexts:
           captures:
             2: punctuation.accessor.dot.acmap # **purple
             3: punctuation.accessor.forward-slash.acmap # **purple
+        - match: "(\\*)\\s*(?==)"
+          captures:
+              1: entity.command.wildcard.acmap # **purple
         - match: "[^-_+:/a-zA-Z0-9]"
           scope: invalid.illegal.acmap
 
@@ -204,6 +220,7 @@ contexts:
   flag-rule-list:
     - include: flags-list
     - include: keywords
+    - include: unaccounted
   # ➚
   flags-list:
     - include: flag
@@ -221,12 +238,13 @@ contexts:
         - include: default
 
   flag-oneliner:
-    - match: "( |(=)\\s*)(?=(--?|default|filedir))"
+    - match: "( |(=)\\s*)(?=(--?|\"|'|default|filedir|context|exclude))"
       captures:
         2: keyword.operator.assignment.acmap
       push:
         - match: "$"
           pop: true
+        - include: strings
         - include: flags-oneliner
   # ➚
   flags-oneliner:
@@ -252,19 +270,22 @@ contexts:
         3: constant.numeric.acmap
 
   keywords:
-    - match: "(default|filedir)([ \t]{1,})"
+    - match: "(default|filedir|context|exclude)([ \t]{1,})"
       captures:
         1: keyword.control.default.acmap
     - include: command-string
     - include: strings
 
   flag:
-    - match: "(--?)(([a-zA-Z][-_.:a-zA-Z0-9]*)(\\?)?)?" # Handle: '--flag'
+    - match: "(--?)(([a-zA-Z][-_.a-zA-Z0-9]*)((::)([a-zA-Z]))?(\\?)?)?" # Handle: '--flag'
       scope: meta.flag-name.acmap
       captures:
         1: punctuation.definition.flag.acmap
         3: support.type.flag-name.acmap # **purple
-        4: keyword.operator.assignment.boolean.acmap # **purple
+        5: punctuation.punctuation.flag-alias.acmap
+        # 6: entity.name.flag-alias.acmap
+        6: support.type.flag-alias.acmap
+        7: keyword.operator.assignment.boolean.acmap # **purple
 
   options-list:
     - match: "(=)(\\*)?\\s*(\\()"
@@ -296,6 +317,7 @@ contexts:
           pop: true
         - include: options-values
     - include: options-values # Non-bullet (oneliner) options.
+    - include: unaccounted
 
   options-values:
     - include: command-string

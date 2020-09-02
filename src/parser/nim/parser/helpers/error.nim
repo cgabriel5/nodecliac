@@ -20,12 +20,17 @@ var errors = {
     "close_brace": tb,
     "brace_checks": tb,
     "template_string": tb,
-    "validate": tb
+    "validate": tb,
+    "vcontext": tb,
+    "vtest": tb
 }.toTable
 errors["*"][0] = "Syntax: Unexpected character"
 errors["index"][10] = "Illegal start-of-line character"
 errors["index"][12] = "Check line specificity order"
 errors["command"][10] = "Illegal escape sequence"
+errors["command"][11] = "Empty command group"
+errors["command"][12] = "Useless delimiter"
+errors["command"][13] = "Unclosed command group"
 errors["flag"][10] = "Flag declared out of scope"
 errors["flag"][11] = "Flag declared within flag scope"
 errors["brace_checks"][10] = "Command declared out of scope"
@@ -36,8 +41,15 @@ errors["validate"][10] = "Improperly quoted string"
 errors["validate"][11] = "String cannot be empty"
 errors["validate"][12] = "Undefined variable"
 errors["validate"][13] = "Illegal command-flag syntax"
-errors["validate"][14] = "Useless comma delimiter"
+errors["validate"][14] = "Useless delimiter"
 errors["validate"][15] = "Illegal list syntax"
+errors["validate"][16] = "Keyword cannot be valueless"
+errors["validate"][17] = "Illegal exclude"
+errors["vcontext"][14] = "Useless delimiter"
+errors["vcontext"][16] = "Missing flag conditions"
+errors["vcontext"][17] = "Unclosed brace"
+errors["vtest"][14] = "Useless delimiter"
+errors["vtest"][15] = "Malformed test string"
 
 # Print error and kill process.
 #

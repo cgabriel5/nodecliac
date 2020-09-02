@@ -1,0 +1,8 @@
+# This acmap tests a runon pipe singleton flag.
+
+program.command\.name = --flag=true|--website?
+
+* = [
+	--help?|context "!help: #fge1"
+	# -----^ This should cause an error.
+]

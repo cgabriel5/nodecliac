@@ -1,6 +1,6 @@
 "use strict";
 
-const { cin, C_SPACES, C_LETTERS } = require("./charsets.js");
+const { cin, C_SPACES, C_KW_ALL, C_CMD_IDENT_START } = require("./charsets.js");
 
 /**
  * Determine line's line type.
@@ -26,12 +26,12 @@ module.exports = (S, char, nchar) => {
 	let line_type = types[char];
 
 	// Line type overrides for: command, option, default.
-	if (!line_type && cin(C_LETTERS, char)) line_type = "command";
+	if (!line_type && cin(C_CMD_IDENT_START, char)) line_type = "command";
 	if (line_type === "flag") {
 		if (nchar && cin(C_SPACES, nchar)) line_type = "option";
 	} else if (line_type === "command") {
 		let keyword = text.substr(S.i, 7);
-		if (-~["default", "filedir"].indexOf(keyword)) line_type = "flag";
+		if (-~C_KW_ALL.indexOf(keyword)) line_type = "flag";
 	}
 
 	return line_type;

@@ -2,18 +2,18 @@
 
 const path = require("path");
 const chalk = require("chalk");
-const flatry = require("flatry");
-const log = require("fancy-log");
-const mkdirp = require("make-dir");
+const shell = require("shelljs");
 const fe = require("file-exists");
-const copydir = require("recursive-copy");
-const de = require("directory-exists");
+const mkdirp = require("make-dir");
 const through = require("through2");
+const de = require("directory-exists");
+const copydir = require("recursive-copy");
 const toolbox = require("../utils/toolbox.js");
-const { fmt, exit, paths, read, write, strip_comments } = toolbox;
+const prompt = require("prompt-sync")({ sigint: true });
+const { fmt, exit, paths, read, write, strip_comments, chmod } = toolbox;
 
 module.exports = async (args) => {
-	let { force, rcfile, commands } = args;
+	let { force, rcfile, commands, yes, jsInstall } = args;
 	let err, res;
 	let tstring = "";
 
@@ -23,26 +23,46 @@ module.exports = async (args) => {
 
 	let { ncliacdir, bashrcpath, mainscriptname, registrypath } = paths;
 	let { acmapssource, resourcespath, resourcessrcs, setupfilepath } = paths;
+	let { testsrcpath } = paths;
 	if (rcfile) bashrcpath = rcfile; // Use provided path.
 
-	[err, res] = await flatry(de(ncliacdir));
-	if (res && !force) {
+	if ((await de(ncliacdir)) && !force) {
 		tstring = "? exists. Setup with ? to overwrite directory.";
 		exit([fmt(tstring, chalk.bold(ncliacdir), chalk.bold("--force"))]);
 	}
 
-	[err, res] = await flatry(fe(bashrcpath));
-	if (!res) exit([`${chalk.bold(bashrcpath)} file doesn't exist.`]);
+	// Create default rcfile if needed.
+	if (!(await fe(bashrcpath))) await write(bashrcpath, "", 0o644);
 
 	// [https://github.com/scopsy/await-to-js/issues/12#issuecomment-386147783]
-	await flatry(Promise.all([mkdirp(registrypath), mkdirp(acmapssource)]));
+	await Promise.all([mkdirp(registrypath), mkdirp(acmapssource)]);
 
-	[err, res] = await flatry(read(bashrcpath));
+	res = await read(bashrcpath);
 	if (!/^ncliac=~/m.test(res)) {
-		res = res.replace(/\n*$/g, ""); // Remove trailing newlines.
-		tstring =
-			'?\nncliac=~/.nodecliac/src/main/?; [ -f "$ncliac" ] && . "$ncliac";';
-		await flatry(write(bashrcpath, fmt(tstring, res, mainscriptname)));
+		let answer = "";
+		let modrcfile = false;
+		// prettier-ignore
+		if (!yes) {
+			// Ask user whether to add nodecliac to rcfile.
+			let chomedir = bashrcpath.replace(new RegExp("^" + paths.homedir), "~");
+			console.log(`${chalk.bold.magenta("Prompt")}: For nodecliac to work it needs to be added to your rcfile.`);
+			console.log(`    ... The following line will be appended to ${chalk.bold(chomedir)}:`);
+			console.log(`    ... ${chalk.italic('ncliac=~/.nodecliac/src/main/init.sh; [ -f "$ncliac" ] && . "$ncliac";')}`);
+			console.log("    ... (if skipping, manually add it after install to use nodecliac)");
+			// [https://www.codecademy.com/articles/getting-user-input-in-node-js]
+			answer = prompt(`${chalk.bold.magenta("Answer")}: [Press enter for default: Yes] ${chalk.bold("Add nodecliac to rcfile?")} [Y/n] `);
+			if (/^[Yy]/.test(answer)) modrcfile = true;
+			// Remove question/answer lines.
+			shell.exec("tput cuu 1 && tput el;".repeat(5));
+		}
+		if (!answer || yes) modrcfile = true;
+
+		if (modrcfile) {
+			res = res.replace(/\n*$/g, ""); // Remove trailing newlines.
+			tstring =
+				'?\nncliac=~/.nodecliac/src/main/?; [ -f "$ncliac" ] && . "$ncliac";';
+			await write(bashrcpath, fmt(tstring, res, mainscriptname));
+		}
 	}
 
 	// Create setup info file to reference on uninstall.
@@ -52,51 +72,75 @@ module.exports = async (args) => {
 	data.time = Date.now();
 	data.version = require("../../package.json").version;
 	let contents = JSON.stringify(data, undefined, "\t");
-	[err, res] = await flatry(write(setupfilepath, contents));
+	await write(setupfilepath, contents);
 
-	// Copy directory module options.
-	let opts = {};
-	opts.overwrite = true;
-	opts.dot = false;
-	opts.debug = false;
-	const files = new Set([
+	let files = new Set([
 		"ac/ac.pl",
+		"ac/ac_debug.pl",
 		"ac/utils",
 		"ac/utils/LCP.pm",
 		"bin/ac.linux",
+		"bin/ac_debug.linux",
 		"main/config.pl",
 		"main/init.sh"
 	]);
 	if (process.platform === "darwin") {
-		files.delete("bin/ac.linux");
-		files.add("bin/ac.macosx");
+		let list = ["ac", "ac_debug"];
+		list.forEach((name) => files.delete(`bin/${name}.linux`));
+		list.forEach((name) => files.add(`bin/${name}.macosx`));
 	}
-	opts.filter = (filename) => files.has(filename);
-	opts.transform = (src /*dest, stats*/) => {
-		if (!/\.(sh|pl|nim)$/.test(path.extname(src))) return null;
-		// Remove comments from files and return.
+	let mainpath = path.join(acmapssource, "main");
+
+	// Remove comments from '#' comments from files.
+	let transform = function (chunk, enc, done) {
 		return through((chunk, enc, done) => {
 			done(null, strip_comments(chunk.toString()));
 		});
 	};
 
-	// Copy nodecliac command packages/files to nodecliac registry.
-	[err, res] = await flatry(copydir(resourcessrcs, acmapssource, opts));
-	if (err) exit(["Failed to copy source files."]);
-
-	opts.dot = true;
-	delete opts.filter;
-	opts.transform = (src /*dest, stats*/) => {
-		if (!/\.(sh|pl)$/.test(path.extname(src))) return null;
-		// Remove comments from files and return.
-		return through((chunk, enc, done) => {
-			done(null, strip_comments(chunk.toString()));
-		});
+	/**
+	 * Ensure script files are executable.
+	 *
+	 * @param  {object} op - The files CopyOperation object.
+	 * @return {undefined} - Nothing is returned.
+	 */
+	let cmode = async (operation) => {
+		let p = operation.dest;
+		if (/\.(sh|pl|nim)$/.test(p)) await chmod(p, 0o775);
 	};
 
-	// Copy nodecliac command packages/files to nodecliac registry.
-	[err, res] = await flatry(copydir(resourcespath, registrypath, opts));
-	if (err) exit(["Failed to copy command files."]);
+	await Promise.all([
+		// Copy completion packages.
+		copydir(resourcessrcs, acmapssource, {
+			overwrite: true,
+			dot: false,
+			filter: (filename) => files.has(filename),
+			transform: (src /*dest, stats*/) => {
+				if (!/\.(sh|pl|nim)$/.test(path.extname(src))) return null;
+				return transform();
+			}
+		}).on(copydir.events.COPY_FILE_COMPLETE, cmode),
+		// Copy nodecliac.sh test file.
+		copydir(testsrcpath, mainpath, {
+			overwrite: true,
+			dot: false,
+			filter: ["nodecliac.sh"],
+			rename: (/*p*/) => "test.sh",
+			transform: (src /*dest, stats*/) => {
+				if (!/\.(sh)$/.test(path.extname(src))) return null;
+				return transform(src);
+			}
+		}).on(copydir.events.COPY_FILE_COMPLETE, cmode),
+		// Copy nodecliac command packages/files to nodecliac registry.
+		copydir(resourcespath, registrypath, {
+			overwrite: true,
+			dot: true,
+			transform: (src /*dest, stats*/) => {
+				if (!/\.(sh|pl)$/.test(path.extname(src))) return null;
+				return transform();
+			}
+		}).on(copydir.events.COPY_FILE_COMPLETE, cmode)
+	]);
 
-	log(chalk.green("Setup successful."));
+	if (!jsInstall) console.log(chalk.green("Setup successful."));
 };

@@ -199,10 +199,10 @@
 						<string>#single-quoted-string</string>
 					</dict>
 
-					<dict>
+					<!-- <dict>
 						<key>include</key>
 						<string>#template-string</string>
-					</dict>
+					</dict> -->
 				</array>
 			</dict>
 
@@ -525,18 +525,6 @@
 						<key>name</key>
 						<string>punctuation.section.parens.command-string.begin.acmap</string>
 					</dict>
-
-					<key>3</key>
-					<dict>
-						<key>name</key>
-						<string>entity.name.variable.acmap</string>
-					</dict>
-
-					<key>4</key>
-					<dict>
-						<key>name</key>
-						<string>keyword.operator.assignment.acmap</string>
-					</dict>
 				</dict>
 
 				<key>contentName</key>
@@ -590,6 +578,11 @@
 						<key>include</key>
 						<string>#strings</string>
 					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#unaccounted</string>
+					</dict>
 				</array>
 
 				<key>end</key>
@@ -606,16 +599,75 @@
 			</dict>
 
 
+			<key>command-group</key>
+			<dict>
+				<key>begin</key>
+				<string>\s*(\{)</string>
+
+				<key>beginCaptures</key>
+				<dict>
+					<key>1</key>
+					<dict>
+						<key>name</key>
+						<string>punctuation.section.command-group.begin.acmap</string>
+					</dict>
+				</dict>
+
+				<key>contentName</key>
+				<string>meta.command-group.acmap</string>
+
+				<key>patterns</key>
+				<array>
+					<dict>
+						<key>include</key>
+						<string>#comment</string>
+					</dict>
+					<dict>
+						<key>include</key>
+						<string>#command</string>
+					</dict>
+					<dict>
+						<key>include</key>
+						<string>#delimiter</string>
+					</dict>
+					<dict>
+						<key>include</key>
+						<string>#escape</string>
+					</dict>
+				</array>
+
+				<key>end</key>
+				<string>(\})</string>
+
+				<key>endCaptures</key>
+				<dict>
+					<key>1</key>
+					<dict>
+						<key>name</key>
+						<string>punctuation.section.command-group.end.acmap</string> <!-- **purple-brace -->
+					</dict>
+				</dict>
+			</dict>
+
+
 			<key>command</key>
 			<dict>
 				<key>begin</key>
-				<string>^\s*(?=\.?[a-zA-Z])</string>
+				<string>^\s*(?=(\.?[_a-zA-Z])|\*)</string>
 
 				<key>contentName</key>
 				<string>entity.other.command.acmap</string> <!-- **italicize -->
 
 				<key>patterns</key>
 				<array>
+					<dict>
+						<key>include</key>
+						<string>#command-group</string>
+					</dict>
+					<dict>
+						<key>include</key>
+						<string>#delimiter</string>
+					</dict>
 					<dict>
 						<key>include</key>
 						<string>#escape</string>
@@ -639,6 +691,22 @@
 							<dict>
 								<key>name</key>
 								<string>punctuation.accessor.forward-slash.acmap</string> <!-- **purple -->
+							</dict>
+						</dict>
+					</dict>
+					<dict>
+						<key>match</key>
+						<string>(\*)\s*(?==)</string>
+
+						<key>name</key>
+						<string></string>
+
+						<key>captures</key>
+						<dict>
+							<key>1</key>
+							<dict>
+								<key>name</key>
+								<string>entity.command.wildcard.acmap</string> <!-- **purple -->
 							</dict>
 						</dict>
 					</dict>
@@ -735,6 +803,11 @@
 						<key>include</key>
 						<string>#keywords</string>
 					</dict>
+
+					<dict>
+						<key>include</key>
+						<string>#unaccounted</string>
+					</dict>
 				</array>
 			</dict>
 
@@ -803,7 +876,7 @@
 			<key>flag-oneliner</key>
 			<dict>
 				<key>begin</key>
-				<string>( |(=)\s*)(?=(--?|default|filedir))</string>
+				<string>( |(=)\s*)(?=(--?|"|'|default|filedir|context|exclude))</string>
 
 				<key>beginCaptures</key>
 				<dict>
@@ -819,6 +892,11 @@
 
 				<key>patterns</key>
 				<array>
+					<dict>
+						<key>include</key>
+						<string>#strings</string>
+					</dict>
+
 					<dict>
 						<key>include</key>
 						<string>#flags-oneliner</string>
@@ -928,7 +1006,7 @@
 				<array>
 					<dict>
 						<key>match</key>
-						<string>(default|filedir)([\x{0020}\t]{1,})</string> <!-- Space char = '\x{0020}' -->
+						<string>(default|filedir|context|exclude)([\x{0020}\t]{1,})</string> <!-- Space char = '\x{0020}' -->
 
 						<key>name</key>
 						<string></string>
@@ -957,7 +1035,7 @@
 			<key>flag</key>
 			<dict>
 				<key>match</key>
-				<string>(--?)(([a-zA-Z][-_.:a-zA-Z0-9]*)(\?)?)?</string> <!-- Handle: '\-\-flag' -->
+				<string>(--?)(([a-zA-Z][-_.a-zA-Z0-9]*)((::)([a-zA-Z]))?(\?)?)?</string> <!-- Handle: '\-\-flag' -->
 
 				<key>name</key>
 				<string>meta.flag-name.acmap</string>
@@ -976,7 +1054,20 @@
 						<string>support.type.flag-name.acmap</string> <!-- # **purple -->
 					</dict>
 
-					<key>4</key>
+					<key>5</key>
+					<dict>
+						<key>name</key>
+						<string>punctuation.punctuation.flag-alias.acmap</string>
+					</dict>
+
+					<key>6</key>
+					<dict>
+						<key>name</key>
+						<!-- entity.name.flag-alias.acmap -->
+						<string>support.type.flag-alias.acmap</string>
+					</dict>
+
+					<key>7</key>
 					<dict>
 						<key>name</key>
 						<string>keyword.operator.assignment.boolean.acmap</string> <!-- **purple -->
@@ -1113,6 +1204,10 @@
 						<string>#options-values</string>
 					</dict>
 
+					<dict>
+						<key>include</key>
+						<string>#unaccounted</string>
+					</dict>
 				</array>
 			</dict>
 

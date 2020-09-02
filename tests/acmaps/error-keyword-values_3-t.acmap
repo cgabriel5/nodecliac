@@ -1,0 +1,11 @@
+# This acmap tests keyword values.
+
+* = [
+	--help?
+	context $('command')
+	# ------^ Only default can take command-strings.
+	default $('command')
+	default 'command'
+	filedir "@(ext)"
+	exclude "program"
+]

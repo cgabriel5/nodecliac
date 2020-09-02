@@ -98,19 +98,19 @@
 .workspaces.info --
 .workspaces.run --
 
-.add default $('ls -lF ~/.cache/yarn/v4 \| perl -ne "print \"\$1\\n\" if /npm-([-a-z]+)-\\d/"')
+.add default $('ls -lF ~/.cache/yarn/v4 | perl -ne "print "$1\n" if /npm-([-a-z]+)-\d/"')
 .config.delete default $("~/.nodecliac/registry/yarn/scripts/config.pl")
 .config.get default $("~/.nodecliac/registry/yarn/scripts/config.pl")
 .config.set default $("~/.nodecliac/registry/yarn/scripts/config.pl")
-.global.add default $('ls -lF ~/.cache/yarn/v4 \| perl -ne "print \"\$1\\n\" if /npm-([-a-z]+)-\\d/"')
+.global.add default $('ls -lF ~/.cache/yarn/v4 | perl -ne "print "$1\n" if /npm-([-a-z]+)-\d/"')
 .global.remove default $("~/.nodecliac/registry/yarn/scripts/main.pl remove -g")
 .global.upgrade default $("~/.nodecliac/registry/yarn/scripts/main.pl upgrade -g")
-.info default $('ls -lF ~/.cache/yarn/v4 \| perl -ne "print \"\$1\\n\" if /npm-([-a-z]+)-\\d/"')
+.info default $('ls -lF ~/.cache/yarn/v4 | perl -ne "print "$1\n" if /npm-([-a-z]+)-\d/"')
 .outdated default $("~/.nodecliac/registry/yarn/scripts/main.pl outdated")
 .remove default $("~/.nodecliac/registry/yarn/scripts/main.pl remove")
 .run default $("~/.nodecliac/registry/yarn/scripts/main.pl run")
 .unplug default $("~/.nodecliac/registry/yarn/scripts/main.pl unplug")
 .upgrade default $("~/.nodecliac/registry/yarn/scripts/main.pl upgrade")
-.why default $('yarn list --depth=0 \| perl -wln -e "/(?! ─ )([-\\/_.@(?)a-zA-Z0-9]*)(?=\\@)/ and print $&;"')
+.why default $('yarn list --depth=0 | perl -wln -e "/(?! ─ )([-\/_.@(?)a-zA-Z0-9]*)(?=\@)/ and print $&;"')
 .workspace default $("~/.nodecliac/registry/yarn/scripts/main.pl workspace")
 .workspaces.run default $("~/.nodecliac/registry/yarn/scripts/main.pl run")

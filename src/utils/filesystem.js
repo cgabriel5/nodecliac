@@ -83,6 +83,22 @@ let remove = (p) => {
 };
 
 /**
+ * Wrapper chmod method. Returns a Promise.
+ *
+ * @param  {string} p - The path of file to change mode.
+ * @param  {number} mode - The files mode.
+ * @return {promise} - Promise is returned.
+ */
+let chmod = (p, mode) => {
+	return new Promise((resolve, reject) => {
+		fs.chmod(p, mode, (err) => {
+			if (err) reject(err);
+			resolve(true);
+		});
+	});
+};
+
+/**
  * Get file path information (i.e. file name and directory path).
  *
  * @param  {string} p - The complete file path.
@@ -102,7 +118,7 @@ let info = (p) => {
 };
 
 /**
- * Wrapper for readFile method. Returns a Promise.
+ * Wrapper for readdir method. Returns a Promise.
  *
  * @param  {string} p - The path of file to read.
  * @return {promise} - Promise is returned.
@@ -169,6 +185,66 @@ let lstats = (p) => {
 };
 
 /**
+ * Checks if path exists.
+ *
+ * @param  {string} p - The path to use.
+ * @return {boolean} - True if exists, else false.
+ */
+let exists = (p) => {
+	return new Promise((resolve /*, reject*/) => {
+		fs.lstat(p, (err /*, stats*/) => resolve(!err));
+	});
+};
+/**
+ * Checks if file path exists.
+ *
+ * @param  {string} p - The path to use.
+ * @return {boolean} - True if exists, else false.
+ */
+let fexists = (p) => {
+	return new Promise((resolve /*, reject*/) => {
+		fs.lstat(p, (err, stats) => resolve(!err && stats.isFile()));
+	});
+};
+/**
+ * Checks if directory path exists.
+ *
+ * @param  {string} p - The path to use.
+ * @return {boolean} - True if exists, else false.
+ */
+let dexists = (p) => {
+	return new Promise((resolve /*, reject*/) => {
+		fs.lstat(p, (err, stats) => resolve(!err && stats.isDirectory()));
+	});
+};
+/**
+ * Checks if symlink path exists.
+ *
+ * @param  {string} p - The path to use.
+ * @return {boolean} - True if exists, else false.
+ */
+let lexists = (p) => {
+	return new Promise((resolve /*, reject*/) => {
+		fs.lstat(p, (err, stats) => resolve(!err && stats.isSymbolicLink()));
+	});
+};
+
+/**
+ * Checks if user has access (permission) to access path.
+ *
+ * @param  {string} p - The path to use.
+ * @return {boolean} - True if yes, else false.
+ */
+let access = (p) => {
+	return new Promise((resolve, reject) => {
+		fs.access(p, fs.constants.F_OK, (err) => {
+			if (err) reject(err);
+			resolve(true);
+		});
+	});
+};
+
+/**
  * Resolve paths `real` path. This means solving symlinks.
  *
  * @param  {string} p - The file path to use.
@@ -218,5 +294,11 @@ module.exports = {
 	info,
 	read,
 	rmrf,
-	copy
+	copy,
+	exists,
+	fexists,
+	dexists,
+	lexists,
+	access,
+	chmod
 };

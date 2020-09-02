@@ -18,14 +18,81 @@ function platform() {
 	esac
 }
 
+# Create config file if it's empty or does not exist yet.
+#
+# @return {undefined} - Nothing is returned.
+function initconfig() {
+	# Config settings:
+	# [1] status (disabled)
+	# [2] cache
+	# [3] debug
+	# [4] singletons
+	local root=~/.nodecliac
+	local config="$root/.config"
+	[[ ! -e "$config" || ! -s "$config" ]] && echo "1101" > "$config"
+}
+
+# Returns config setting.
+#
+# @param  {string} setting - The setting name.
+# @return {undefined} - Nothing is returned.
+function getsetting() {
+	local root=~/.nodecliac
+	local config="$root/.config"
+	local cstring=$(<"$config")
+	# [https://stackoverflow.com/a/3352015]
+	cstring="${cstring%"${cstring##*[![:space:]]}"}"
+	case "$1" in
+		status) echo "${cstring:0:1}" ;;
+		cache) echo "${cstring:1:1}" ;;
+		debug) echo "${cstring:2:1}" ;;
+		singletons) echo "${cstring:3:1}" ;;
+	esac
+}
+
+# Sets the config setting.
+#
+# @param  {string} setting - The setting name.
+# @param  {string} value - The setting's value.
+# @return {undefined} - Nothing is returned.
+function setsetting() {
+	local root=~/.nodecliac
+	local config="$root/.config"
+	local cstring=$(<"$config")
+	# [https://stackoverflow.com/a/3352015]
+	cstring="${cstring%"${cstring##*[![:space:]]}"}"
+	case "$1" in
+		status) cstring="$2${v:1}" ;;
+		cache) cstring="${cstring:0:1}$2${cstring:2}" ;;
+		debug) cstring="${cstring:0:2}$2${cstring:3}" ;;
+		singletons) cstring="${cstring:0:3}$2${cstring:4}" ;;
+	esac
+	echo "$cstring" > "$config"
+}
+
+# ANSI colors: [https://stackoverflow.com/a/5947802]
+# [https://misc.flogisoft.com/bash/tip_colors_and_formatting]
+RED="\033[0;31m"
+GREEN="\033[0;32m"
+# Bold colors.
+BOLD="\033[1m"
+BRED="\033[1;31m"
+BBLUE="\033[1;34m"
+BTURQ="\033[1;36m"
+NC="\033[0m"
+
 rcfile=""
 prcommand=""
 enablencliac=""
 disablencliac=""
+debug_enable=""
+debug_disable=""
+debug_script=""
 command=""
 version=""
 ccache=""
 level=""
+force=""
 setlevel=0
 all=""
 
@@ -54,6 +121,27 @@ while (( "$#" )); do
 		--enable) enablencliac="1"; shift ;;
 		--disable) disablencliac="1"; shift ;;
 
+		# `status|debug` command flags.
+		--enable)
+				if [[ "$command" == "status" ]]; then
+					enablencliac="1"; shift
+				else
+					debug_enable="1"; shift
+				fi ;;
+		--disable)
+				if [[ "$command" == "status" ]]; then
+					disablencliac="1"; shift
+				else
+					debug_disable="1"; shift
+				fi ;;
+
+		# `debug` command flag.
+		--script=*)
+			flag="${1%%=*}"; value="${1#*=}"
+			[[ -n "$value" ]] && debug_script="$value" && shift ;;
+		--script)
+			[[ -n "$2" && "$2" != *"-" ]] && debug_script="$2" && shift ;;
+
 		# `cache` command flags.
 		--clear) ccache="1"; shift ;;
 		--level=*)
@@ -73,6 +161,9 @@ while (( "$#" )); do
 
 		# `remove|unlink|enable|disable` command flags.
 		--all) all="1"; shift ;;
+
+		# `add` command flags.
+		--force) force="1"; shift ;;
 
 		--) shift; break ;; # End argument parsing.
 		-*|--*=)
@@ -104,7 +195,7 @@ if [[ -z "$command" && "$version" == "1" && -f "$setupfilepath" ]]; then
 fi
 
 # Allowed commands.
-commands=" make format print registry setup status uninstall add remove link unlink enable disable cache "
+commands=" make format print registry setup status uninstall add remove link unlink enable disable cache test debug "
 
 if [[ "$commands" != *"$command"* ]]; then exit; fi # Exit if invalid command.
 
@@ -133,10 +224,10 @@ case "$command" in
 			acdefpath=~/.nodecliac/registry/"$prcommand/$prcommand.acdef"
 			acdefconfigpath=~/.nodecliac/registry/"$prcommand/.$prcommand.config.acdef"
 			if [[ -e "$acdefpath" ]]; then
-				echo -e "\033[1m[$prcommand.acdef]\033[0m\n$(cat "$acdefpath")"
+				echo -e "${BOLD}[$prcommand.acdef]${NC}\n$(cat "$acdefpath")"
 			fi
 			if [[ -e "$acdefconfigpath" ]]; then
-				echo -e "\033[1m[$prcommand.config.acdef]\033[0m\n$(cat "$acdefconfigpath")"
+				echo -e "${BOLD}[$prcommand.config.acdef]${NC}\n$(cat "$acdefconfigpath")"
 			fi
 		fi
 
@@ -162,7 +253,7 @@ case "$command" in
 
 		# Count items in directory: [https://stackoverflow.com/a/33891876]
 		count="$(trim "$(ls 2>/dev/null -Ubd1 -- ~/.nodecliac/registry/* | wc -l)")"
-		echo -e "\033[1m$registrypath\033[0m ($count)" # Print header.
+		echo -e "${BOLD}$registrypath${NC} ($count)" # Print header.
 		[[ $count -gt 0 ]] && count="$((count - 1))" # Account for 0 base index.
 		counter=0
 
@@ -224,9 +315,9 @@ case "$command" in
 				[[ "$realpath" =~ $re ]]
 				realpath="~/${BASH_REMATCH[1]}"
 
-				bcommand="\033[1;34m$command\033[0m"
-				ccommand="\033[1;36m$command\033[0m"
-				rcommand="\033[1;31m$command\033[0m"
+				bcommand="${BBLUE}$command${NC}"
+				ccommand="${BTURQ}$command${NC}"
+				rcommand="${BRED}$command${NC}"
 
 				# Row declaration.
 				decor="├── "; if [[ "$counter" == "$count" ]]; then decor="└── "; fi
@@ -240,8 +331,8 @@ case "$command" in
 					fi
 				else
 					if [[ "$issymlinkdir" == 1 ]]; then
-						color=$([ "$issymlink_valid" == 1 ] && echo "\033[1;34m" || echo "\033[1;31m")
-						linkdir="$color$realpath\033[0m"
+						color=$([ "$issymlink_valid" == 1 ] && echo "${BBLUE}" || echo "${BRED}")
+						linkdir="$color$realpath${NC}"
 						echo -e "$decor$ccommand -> $linkdir/"
 					else
 						echo -e "$decor$ccommand -> $realpath"
@@ -260,26 +351,57 @@ case "$command" in
 	setup) ;; # No-operation.
 
 	status)
+		initconfig
 
-		dotfile=~/.nodecliac/.disable # Path to disabled dot file.
-
-		if [[ "$enablencliac" || "$disablencliac" ]]; then
-			# If --enable flag is used remove dot file.
-			if [[ -n "$enablencliac" ]]; then
-				if [[ -e "$dotfile" ]]; then rm "$dotfile"; fi
-				echo -e "\033[0;32mEnabled.\033[0m"
-			fi
-			# If --disable flag ensure dot file exist.
-			if [[ -n "$disablencliac" ]]; then
-				touch "$dotfile"
-				echo -e "\033[0;31mDisabled.\033[0m"
-			fi
+		# If no flag is supplied then only print the status.
+		if [[ -z "$enable" && -z "$disable" ]]; then
+			status="$(getsetting status)"
+			message="nodecliac: ${RED}off${NC}"
+			[[ "$status" == 1 ]] && message="nodecliac: ${GREEN}on${NC}"
+			echo -e "$message"
 		else
-			if [[ ! -e "$dotfile" ]]; then
-				echo -e "nodecliac: \033[0;32menabled\033[0m"
-			else
-				echo -e "nodecliac: \033[0;31mdisabled\033[0m"
+			if [[ -n "$enable" && -n "$disable" ]]; then
+				varg1="${BOLD}--enable${NC}"
+				varg2="${BOLD}--disable${NC}"
+				echo -e "$varg1 and $varg2 given when only one can be provided." && exit 1
 			fi
+
+			if [[ -n "$enable" ]]; then
+				setsetting status 1 # perl -pi -e 's/^./1/' "$config"
+				echo -e "${GREEN}off${NC}"
+			elif [[ -n "$disable" ]]; then
+				# timestamp="$(perl -MTime::HiRes=time -e 'print int(time() * 1000);')"
+				# [https://www.tutorialspoint.com/perl/perl_date_time.htm]
+				# date="$(perl -e 'use POSIX qw(strftime); $datestring = strftime "%a %b %d %Y %H:%M:%S %z (%Z)", localtime; print "$datestring"')"
+				# contents="Disabled: $date;$timestamp"
+				setsetting status 0 # perl -pi -e 's/^./0/' "$config"
+				echo -e "${RED}off${NC}"
+			fi
+		fi
+
+		;;
+
+	debug)
+		initconfig
+
+		if [[ -n "$enablencliac" && -n "$disablencliac" ]]; then
+			varg1="${BOLD}--enable${NC}"
+			varg2="${BOLD}--disable${NC}"
+			echo -e "$varg1 and $varg2 given when only one can be provided."
+		fi
+
+		# 0=off , 1=debug , 2=debug + ac.pl , 3=debug + ac.nim
+		if [[ -n "$debug_enable" ]]; then
+			value=1
+			if [[ "$debug_script" == "nim" ]]; then value=3
+			elif [[ "$debug_script" == "perl" ]]; then value=2; fi
+			setsetting debug "$value"
+			echo -e "${GREEN}on${NC}"
+		elif [[ -n "$debug_disable" ]]; then
+			setsetting debug 0
+			echo -e "${RED}off${NC}"
+		else
+			getsetting debug
 		fi
 
 		;;
@@ -301,7 +423,7 @@ case "$command" in
 			# [https://stackoverflow.com/a/57813295]
 			perl -0pi -e 's/([# \t]*)\bncliac.*"\$ncliac";?\n?//g;s/\n+(\n)$/\1/gs' ~/.bashrc
 			# perl -pi -e "s/ncliac=~\/.nodecliac\/src\/main\/init.sh;if \[ -f \"\\\$ncliac\" \];then source \"\\\$ncliac\";fi;// if /^ncliac/" "$rcfile"
-			echo -e "\033[32mSuccessfully\033[0m reverted \033[1m"$rcfile"\033[0m changes."
+			echo -e "${GREEN}success${NC} reverted ${BOLD}"$rcfile"${NC} changes."
 		fi
 
 		# Delete main folder.
@@ -311,7 +433,7 @@ case "$command" in
 		binfilepath=/usr/local/bin/nodecliac
 		if [[ -f "$binfilepath" && -n "$(grep -o "\#\!/bin/bash" "$binfilepath")" ]]; then
 			sudo rm -f "$binfilepath"
-			echo -e "\033[32mSuccessfully\033[0m removed nodecliac bin file."
+			echo -e "${GREEN}success${NC} removed nodecliac bin file."
 		fi
 
 		;;
@@ -327,13 +449,28 @@ case "$command" in
 		if [[ -d "$destination" ]]; then
 			# Check if folder is a symlink.
 			type=$([ -L "$destination" ] && echo "Symlink " || echo "")
-			echo -e "$type\033[1m$dirname\033[0m/ exists. First remove and try again."
+			echo -e "$type${BOLD}$dirname${NC}/ exists. First remove and try again."
+			exit
+		fi
+
+		# Skip size check when --force is provided.
+		if [[ -z "$force" ]]; then
+			if [[ "$(platform)" == "macosx" ]]; then
+				# [https://serverfault.com/a/913506]
+				size=$(du -skL "$cwd" | grep -oE '[0-9]+' | head -n1)
+			else
+				# [https://stackoverflow.com/a/22295129]
+				size=$(du --apparent-size -skL "$cwd" | grep -oE '[0-9]+' | head -n1)
+			fi
+			# Anything larger than 10MB must be force added.
+			[[ -n "$(perl -e 'print int('"$size"') > 10000')" ]] &&
+			echo -e "${BOLD}$dirname${NC}/ exceeds 10MB. Use --force to add package anyway." && exit
 		fi
 
 		mkdir -p "$destination" # Create needed parent directories.
 
 		# [https://stackoverflow.com/a/14922600]
-		cp -r "$cwd" "$destination" # Copy folder to nodecliac registry.
+		cp -r "$cwd" "$registrypath" # Copy folder to nodecliac registry.
 
 		;;
 
@@ -359,6 +496,26 @@ case "$command" in
 
 		;;
 
+	test)
+
+		errscript="$HOME/.nodecliac/src/main/test.sh"
+		if [[ ! -f "$errscript" ]]; then
+			echo -e "File ${BOLD}${errscript}${NC} doesn't exit."
+			exit
+		fi
+
+		# Loop over packages and remove each if its exists.
+		for pkg in "${paramsargs[@]}"; do
+			# Needed paths.
+			pkgpath="$registrypath/$pkg"
+			test="$pkgpath/$pkg.tests.sh"
+
+			[[ ! -f "$test" ]] && continue
+			"$errscript" "-p" "true" "-f" "true" "-t" "$test"
+		done
+
+		;;
+
 	link)
 
 		# Needed paths.
@@ -373,7 +530,8 @@ case "$command" in
 		if [[ -d "$destination" || -L "$destination" ]]; then
 			# Check if folder is a symlink.
 			type=$([ -L "$destination" ] && echo "Symlink " || echo "")
-			echo -e "$type\033[1m$dirname\033[0m/ exists. First remove and try again."
+			echo -e "$type${BOLD}$dirname${NC}/ exists. First remove and try again."
+			exit
 		fi
 
 		ln -s "$cwd" "$destination" # Create symlink.
@@ -430,17 +588,19 @@ case "$command" in
 
 		cachepath=~/.nodecliac/.cache
 
+		initconfig
+
 		if [[ -d "$cachepath" && "$ccache" == "1" ]]; then
 			rm -rf "$cachepath"/*
-			echo -e "\033[0;32mSuccessfully\033[0m cleared cache."
+			echo -e "${GREEN}success${NC} Cleared cache."
 		fi
 
 		if [[ "$setlevel" == 1 ]]; then
 			if [[ ! -z "${level##*[!0-9]*}" ]]; then
-				if [[ " 0 1 2 " != *" $level "* ]]; then level=1; fi
-				echo "$level" > ~/.nodecliac/.cache-level
+				[[ " 0 1 2 " != *" $level "* ]] && level=1
+				setsetting cache "$level"
 			else
-				echo "$(<~/.nodecliac/.cache-level)"
+				getsetting cache
 			fi
 		fi
 

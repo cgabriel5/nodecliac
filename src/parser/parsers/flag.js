@@ -5,15 +5,9 @@ const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
 const rollback = require("../helpers/rollback.js");
 const validate = require("../helpers/validate.js");
-const {
-	cin,
-	cnotin,
-	C_NL,
-	C_SPACES,
-	C_LETTERS,
-	C_QUOTES,
-	C_FLG_IDENT
-} = require("../helpers/charsets.js");
+const charsets = require("../helpers/charsets.js");
+const { cin, cnotin, C_NL, C_SPACES, C_LETTERS } = charsets;
+const { C_QUOTES, C_FLG_IDENT, C_KW_ALL, C_KD_STR } = charsets;
 
 /**
  * ----------------------------------------------------------- Parsing Breakdown
@@ -42,6 +36,7 @@ module.exports = (S, isoneliner) => {
 	let end; // Flag: true - ends consuming chars.
 	let type = "escaped";
 	let N = node(S, "FLAG");
+	let alias = false;
 
 	// If not a oneliner or no command scope, flag is being declared out of scope.
 	if (!(isoneliner || S.scopes.command)) error(S, __filename, 10);
@@ -86,9 +81,7 @@ module.exports = (S, isoneliner) => {
 					let keyword = text.substr(S.i, keyword_len);
 
 					// Keyword must be allowed.
-					if (!-~["default", "filedir"].indexOf(keyword)) {
-						error(S, __filename);
-					}
+					if (!-~C_KW_ALL.indexOf(keyword)) error(S, __filename);
 					N.keyword.start = S.i;
 					N.keyword.end = S.i + endpoint;
 					N.keyword.value = keyword;
@@ -116,6 +109,9 @@ module.exports = (S, isoneliner) => {
 					if (cin(C_FLG_IDENT, char)) {
 						N.name.end = S.i;
 						N.name.value += char;
+					} else if (char === ":" && !alias) {
+						state = "alias";
+						rollback(S);
 					} else if (char === "=") {
 						state = "assignment";
 						rollback(S);
@@ -159,6 +155,30 @@ module.exports = (S, isoneliner) => {
 
 				break;
 
+			case "alias":
+				alias = true;
+				// Next char must also be a colon.
+				let nchar = text.charAt(S.i + 1);
+				if (nchar !== ":") error(S, __filename);
+				N.alias.start = S.i;
+				N.alias.end = S.i + 2;
+
+				let letter = text.charAt(S.i + 2);
+				if (cnotin(C_LETTERS, letter)) {
+					S.i += 1;
+					S.column += 1;
+					error(S, __filename);
+				}
+
+				N.alias.value = letter;
+				state = "name";
+
+				// Note: Forward indices to skip alias chars.
+				S.i += 2;
+				S.column += 2;
+
+				break;
+
 			case "assignment":
 				N.assignment.start = N.assignment.end = S.i;
 				N.assignment.value = char;
@@ -181,7 +201,13 @@ module.exports = (S, isoneliner) => {
 				break;
 
 			case "pipe-delimiter":
-				if (char !== "|") error(S, __filename);
+				// Note: If char is not a pipe or if the flag is not a oneliner
+				// flag and there are more characters after the flag error.
+				// Example:
+				// * = [
+				// 		--help?|context "!help: #fge1"
+				// ]
+				if (char !== "|" || !isoneliner) error(S, __filename);
 				stop = true;
 
 				break;
@@ -195,7 +221,7 @@ module.exports = (S, isoneliner) => {
 
 			case "wsb-prevalue":
 				if (cnotin(C_SPACES, char)) {
-					let keyword = N.keyword.value !== "filedir";
+					let keyword = !-~C_KD_STR.indexOf(N.keyword.value);
 					if (char === "|" && keyword) state = "pipe-delimiter";
 					else if (char === ",") state = "delimiter";
 					else state = "value";
@@ -219,7 +245,7 @@ module.exports = (S, isoneliner) => {
 					} else {
 						if (
 							char === "|" &&
-							N.keyword.value !== "filedir" &&
+							!-~C_KD_STR.indexOf(N.keyword.value) &&
 							pchar !== "\\"
 						) {
 							state = "pipe-delimiter";
@@ -264,6 +290,17 @@ module.exports = (S, isoneliner) => {
 
 	if (!isoneliner) {
 		N.singleton = true;
+
+		// Add alias node if it exists.
+		if (N.alias.value) {
+			let cN = node(S, "FLAG");
+			cN.hyphens.value = "-";
+			cN.delimiter.value = ",";
+			cN.name.value = N.alias.value;
+			cN.singleton = true;
+			cN.boolean.value = N.boolean.value;
+			add(S, cN);
+		}
 		add(S, N);
 	}
 

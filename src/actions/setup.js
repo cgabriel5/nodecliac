@@ -37,27 +37,27 @@ module.exports = async (args) => {
 	// [https://github.com/scopsy/await-to-js/issues/12#issuecomment-386147783]
 	await Promise.all([mkdirp(registrypath), mkdirp(acmapssource)]);
 
-	let answer = "";
-	let modrcfile = false;
-	// prettier-ignore
-	if (!yes) {
-		// Ask user whether to add nodecliac to rcfile.
-		let chomedir = bashrcpath.replace(new RegExp("^" + paths.homedir), "~");
-		console.log(`${chalk.bold.magenta("Prompt")}: For nodecliac to work it needs to be added to your rcfile.`);
-		console.log(`    ... The following line will be appended to ${chalk.bold(chomedir)}:`);
-		console.log(`    ... ${chalk.italic('ncliac=~/.nodecliac/src/main/init.sh; [ -f "$ncliac" ] && . "$ncliac";')}`);
-		console.log("    ... (if skipping, manually add it after install to use nodecliac)");
-		// [https://www.codecademy.com/articles/getting-user-input-in-node-js]
-		answer = prompt(`${chalk.bold.magenta("Answer")}: (default: Yes) Add now? [Y/n] `);
-		if (/^[Yy]/.test(answer)) modrcfile = true;
-		// Remove question/answer lines.
-		shell.exec("tput cuu 1 && tput el;".repeat(5));
-	}
-	if (!answer || yes) modrcfile = true;
+	res = await read(bashrcpath);
+	if (!/^ncliac=~/m.test(res)) {
+		let answer = "";
+		let modrcfile = false;
+		// prettier-ignore
+		if (!yes) {
+			// Ask user whether to add nodecliac to rcfile.
+			let chomedir = bashrcpath.replace(new RegExp("^" + paths.homedir), "~");
+			console.log(`${chalk.bold.magenta("Prompt")}: For nodecliac to work it needs to be added to your rcfile.`);
+			console.log(`    ... The following line will be appended to ${chalk.bold(chomedir)}:`);
+			console.log(`    ... ${chalk.italic('ncliac=~/.nodecliac/src/main/init.sh; [ -f "$ncliac" ] && . "$ncliac";')}`);
+			console.log("    ... (if skipping, manually add it after install to use nodecliac)");
+			// [https://www.codecademy.com/articles/getting-user-input-in-node-js]
+			answer = prompt(`${chalk.bold.magenta("Answer")}: [Press enter for default: Yes] ${chalk.bold("Add nodecliac to rcfile?")} [Y/n] `);
+			if (/^[Yy]/.test(answer)) modrcfile = true;
+			// Remove question/answer lines.
+			shell.exec("tput cuu 1 && tput el;".repeat(5));
+		}
+		if (!answer || yes) modrcfile = true;
 
-	if (modrcfile) {
-		res = await read(bashrcpath);
-		if (!/^ncliac=~/m.test(res)) {
+		if (modrcfile) {
 			res = res.replace(/\n*$/g, ""); // Remove trailing newlines.
 			tstring =
 				'?\nncliac=~/.nodecliac/src/main/?; [ -f "$ncliac" ] && . "$ncliac";';

@@ -14,9 +14,10 @@ module.exports = async (args) => {
 	await initconfig();
 
 	if (clear) {
-		let [err] = await flatry(de(cachepath));
+		let [err, res] = await flatry(de(cachepath));
 		if (!err) {
-			let files = await readdir(cachepath);
+			let [err, files] = await flatry(readdir(cachepath));
+			if (!files) files = [];
 			for (let i = 0, l = files.length; i < l; i++) {
 				await remove(path.join(cachepath, files[i]));
 			}

@@ -73,7 +73,7 @@ declare -a binaries # [https://stackoverflow.com/a/41108078]
 for file in "${list[@]}"; do # [https://www.cyberciti.biz/faq/bash-for-loop-array/]
 	# If file is macOS/Linux binary check that's executable.
 	# [https://unix.stackexchange.com/a/340485]
-	if [[ "$file" =~ ac\.(macosx|linux)$ ]]; then
+	if [[ "$file" =~ \.(macosx|linux)$ ]]; then
 		filepath="$ROOTDIR/$file" # The file's complete path.
 
 		# If file is not executable exit with error.

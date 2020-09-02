@@ -29,6 +29,25 @@ __filepath="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 
 # ------------------------------------------------------------------------- VARS
 
+ROOTDIR=$(chipdir "$__filepath" 2) # Get the project's root directory.
+
+# Print script executable permission.
+if [[ $(isset "$PRINT") ]]; then
+	echo -e "${BOLD}[Script Executables]${NC}"
+	for f in  "$ROOTDIR"/*.sh "$ROOTDIR"/src/scripts/*/*.{sh,pl,nim} "$ROOTDIR"/tests/scripts/*.sh; do
+		dir=${f%/*}
+		dir="${dir/$ROOTDIR/}"
+		[[ -n "$dir" ]] && dir=" ${DIM}$dir${NC}"
+		filename="${f##*/}"
+		if [[ -x "$f" ]]; then
+			echo -e " $CHECK_MARK $filename$dir"
+		else
+			echo -e " $X_MARK $filename$dir"
+		fi
+	done
+	echo ""
+fi
+
 # Get list of staged files. [https://stackoverflow.com/a/33610683]
 STAGED_FILES=$(git diff --name-only --cached)
 
@@ -48,8 +67,6 @@ fi
 
 # Read staged files list into an array.
 readarray -t list <<< "$STAGED_FILES" # [https://stackoverflow.com/a/19772067]
-
-ROOTDIR=$(chipdir "$__filepath" 2) # Get the project's root directory.
 
 # Declare empty array to contain unexecutable binaries.
 declare -a binaries # [https://stackoverflow.com/a/41108078]

@@ -210,8 +210,9 @@ if [[ "$(exists yarn)" ]]; then
 		cline && echo " - Removing global nodecliac from yarn..."
 		yarn global remove nodecliac > /dev/null 2>&1
 		success "Removed global yarn nodecliac install."
+	else
+		success "No global yarn nodecliac install to remove."
 	fi
-	success "No global yarn nodecliac install to remove."
 fi
 if [[ "$(exists npm)" ]]; then
 	echo " - Checking for npm global nodecliac install..."
@@ -219,8 +220,9 @@ if [[ "$(exists npm)" ]]; then
 		cline && echo " - Removing global nodecliac from npm..."
 		sudo npm uninstall -g nodecliac > /dev/null 2>&1
 		success "Removed global npm nodecliac install."
+	else
+		success "No global npm nodecliac install to remove."
 	fi
-	success "No global npm nodecliac install to remove."
 fi
 
 # -------------------------------------------------------------- INSTALLER-LOGIC

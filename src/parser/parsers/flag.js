@@ -268,6 +268,7 @@ module.exports = (S, isoneliner) => {
 								case "escaped":
 									if (cin(C_SPACES, char) && pchar !== "\\") {
 										state = "eol-wsb";
+										continue;
 									}
 
 									break;

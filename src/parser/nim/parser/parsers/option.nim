@@ -75,6 +75,8 @@ proc p_option*(S: State): Node =
                         of "escaped":
                             if `char` in C_SPACES and pchar != '\\':
                                 state = "eol-wsb"
+                                forward(S)
+                                continue
                         of "quoted":
                             if `char` == qchar and pchar != '\\':
                                 state = "eol-wsb"

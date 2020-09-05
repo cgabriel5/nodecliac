@@ -118,4 +118,3 @@ proc p_variable*(S: State) =
     value = value[1 .. ^2]
 
     S.tables.variables[N.name.value] = value # Store var/val.
-

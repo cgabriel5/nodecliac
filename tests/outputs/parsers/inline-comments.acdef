@@ -3,7 +3,7 @@
 .command.group --
 .sub --
 .sub2 --
-.sub3 --fl|--flag|--flag2=|--flag2="VA#LUE"|--flag=|--flag="val#ue"|--flag="VALUE"|--flag=$("cmd")|--flag=1|--flag=2|--flag=3\)|--flag=\l|--flag=va\)|--opts=|--opts="STR#ING"|--opts=$("command","p")|--opts=STRING 
+.sub3 --fl|--flag|--flag2=|--flag2="VA#LUE"|--flag=|--flag="val#ue"|--flag="VALUE"|--flag=$("cmd")|--flag=1|--flag=2|--flag=3\)|--flag=\l|--flag=va\)|--opts=|--opts="STR#ING"|--opts=$("command","p")|--opts=STRING
 
 @setting_a = 
 @setting_b = 

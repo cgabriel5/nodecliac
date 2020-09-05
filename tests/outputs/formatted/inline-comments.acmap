@@ -33,7 +33,7 @@ program.sub3 = [
 	--flag="VALUE" #comment
 	--flag2="VA#LUE" #comment
 	--opts=(
-		- STRING  # comment
+		- STRING # comment
 		- "STR#ING" # comment
 		# - $("com)mand" \# val "ue\)") # comment
 		# - $("command", "p")) # comment

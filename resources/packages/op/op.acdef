@@ -1,4 +1,4 @@
-# DON'T EDIT FILE —— GENERATED: Sun Aug 30 2020 00:21:14 (1598772074)
+# DON'T EDIT FILE —— GENERATED: Sat Sep 05 2020 14:07:06 (1599340026)
 
  --account=|--help?|--session=|-h?
 .add --account=|--help?|--session=|-h?
@@ -12,7 +12,7 @@
 .create.document --account=|--file-name=|--help?|--session=|--tags=|--title=|--vault=|-h?
 .create.group --account=|--description=|--help?|--session=|-h?
 .create.item --account=|--generate-password|--help?|--session=|--tags=|--title=|--url=|--vault=|-h?
-.create.user --account=|--help?|--language=|--session=|-h?
+.create.user --account=|--help?|--language=|--language=af|--language=cs|--language=da|--language=de|--language=el|--language=en|--language=en-CA|--language=en-GB|--language=es|--language=fi|--language=fr|--language=he|--language=it|--language=ja|--language=ko|--language=nb|--language=nl|--language=pl|--language=pr|--language=pt-BR|--language=pt-PT|--language=ru|--language=sv|--language=zh-Hans|--language=zh-Hant|--session=|-h?
 .create.vault --account=|--allow-admins-to-manage=|--allow-admins-to-manage=false|--allow-admins-to-manage=true|--description=|--help?|--session=|-h?
 .delete --account=|--help?|--session=|-h?
 .delete.document --account=|--help?|--session=|--vault=|-h?

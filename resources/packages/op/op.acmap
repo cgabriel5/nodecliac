@@ -32,7 +32,37 @@ op.create.item = [
 	--url=
 	--vault=
 ]
-op.create.user = --language=
+op.create.user = [
+	# Retrieved from iOS app: Settings >  Advanced > Language.
+	# [https://gist.github.com/wpsmith/7604842]
+	--language=(
+		- de # Deutsch
+		- he # Hebrew
+		- el # Greek
+		- ja # Japanese
+		- en # English
+		- nb # Norwegian (Bokmal)
+		- zh-Hant # Chinese (traditional script)
+		- es # Spanish
+		- da # Danish
+		- zh-Hans # Chinese (simplified script)
+		- it # Italian
+		- en-GB # UK English
+		- sv # Swedish
+		- cs # Czech
+		- ko # Korean
+		- en-CA # English (Canada)
+		- pl # Polish
+		- ru # Russian
+		- pt-PT # Portuguese (Portugal)
+		- af # Afrikaans
+		- fr # French
+		- pt-BR # Portuguese (Brazil)
+		- fi # Finnish
+		- nl # Dutch (Standard)
+		- pr # Portuguese
+	)
+]
 op.create.vault = --allow-admins-to-manage=(true false)|--description=
 
 op.delete.{document,item} = --vault=
@@ -60,8 +90,7 @@ op.get.item = [
 	--share-link?
 	--vault=
 ]
-# Post-hook script provides category completions.
-op.get.template
+op.get.template # Post-hook script provides category completions.
 op.get.totp = --vault=
 op.get.user = --fingerprint?|--publickey?
 op.get.vault
@@ -72,8 +101,7 @@ op.list.documents = --include-trash?|--vault=
 op.list.events = --eventid=|--older?
 op.list.groups = --user=|--vault=
 op.list.items = [
-	# Post-hook script provides category completions.
-	--categories=
+	--categories= # Post-hook script provides category completions.
 	--category=$("${PATH}/scripts/categories.pl")
 	--include-trash?
 	--tags=

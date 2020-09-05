@@ -1,3 +1,5 @@
+from tables import `[]`
+
 from ../helpers/tree_add import add
 from ../helpers/types import State, Node, node
 import ../helpers/[error, validate, forward, rollback]
@@ -268,7 +270,10 @@ proc p_flag*(S: State, isoneliner: string): Node =
                                         if braces.len == 0:
                                             comment = true
                                             rollback(S)
-                                        else: error(S, currentSourcePath)
+                                        else:
+                                            S.column = braces.pop() - S.tables.linestarts[S.line]
+                                            inc(S.column) # Add 1 to account for 0 base indexing.
+                                            error(S, currentSourcePath)
 
                         N.value.`end` = S.i
                         N.value.value &= $`char`

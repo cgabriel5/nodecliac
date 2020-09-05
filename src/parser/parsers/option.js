@@ -155,6 +155,8 @@ module.exports = (S) => {
 												comment = true;
 												rollback(S);
 											} else {
+												S.column = braces.pop() - S.tables.linestarts[S.line];
+												S.column++; // Add 1 to account for 0 base indexing.
 												error(S, __filename);
 											}
 										}

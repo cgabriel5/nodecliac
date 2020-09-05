@@ -221,6 +221,8 @@ module.exports = (S) => {
 					cN.name.value = fN.alias.value;
 					cN.singleton = true;
 					cN.boolean.value = fN.boolean.value;
+					cN.assignment.value = fN.assignment.value;
+					cN.alias.value = cN.name.value;
 					N.flags.push(cN);
 				}
 				N.flags.push(fN);

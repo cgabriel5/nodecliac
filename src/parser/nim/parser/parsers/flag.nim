@@ -301,6 +301,8 @@ proc p_flag*(S: State, isoneliner: string): Node =
             cN.name.value = N.alias.value
             cN.singleton = true
             cN.boolean.value = N.boolean.value
+            cN.assignment.value = N.assignment.value
+            cN.alias.value = cN.name.value
             add(S, cN)
         add(S, N)
 

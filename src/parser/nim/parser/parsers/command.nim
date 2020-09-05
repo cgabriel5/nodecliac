@@ -185,6 +185,8 @@ proc p_command*(S: State) =
                     cN.name.value = fN.alias.value
                     cN.singleton = true
                     cN.boolean.value = fN.boolean.value
+                    cN.assignment.value = N.assignment.value
+                    cN.alias.value = cN.name.value
                     N.flags.add(cN)
                 N.flags.add(fN)
 

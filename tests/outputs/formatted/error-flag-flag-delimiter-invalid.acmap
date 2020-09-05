@@ -1,1 +1,3 @@
-[err flag,0] ...tests/acmaps/error-flag-flag-delimiter-invalid-t.acmap:3:19 — Syntax: Unexpected character
+# Should produce an Unexpected character error
+# as flag delimiter is not allowed via oneliner.
+program = --flag=,|--flag2="value"

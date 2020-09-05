@@ -93,12 +93,20 @@ module.exports = (S) => {
 		}
 	};
 
+	let char, pchar = "";
 	for (; S.i < l; S.i++, S.column++) {
-		let char = text.charAt(S.i);
+		pchar = char;
+		char = text.charAt(S.i);
 
 		if (cin(C_NL, char)) {
 			N.end = rollback(S) && S.i;
 			break; // Stop at nl char.
+		}
+
+		if (char === "#" && pchar !== "\\") {
+			rollback(S);
+			N.end = S.i;
+			break;
 		}
 
 		switch (state) {

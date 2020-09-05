@@ -88,7 +88,7 @@ module.exports = (S) => {
 			case "COMMENT":
 				{
 					let scope = scopes[scopes.length - 1] || null;
-					let pad = indent(null, scope);
+					let pad = !N.inline ? indent(null, scope) : " ";
 
 					output.push(`${pad}${N.comment.value}`);
 				}

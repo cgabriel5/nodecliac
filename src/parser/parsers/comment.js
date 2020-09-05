@@ -15,10 +15,12 @@ const { cin, C_NL } = require("../helpers/charsets.js");
  * @param  {object} S - State object.
  * @return {undefined} - Nothing is returned.
  */
-module.exports = (S) => {
+module.exports = (S, inline = false) => {
 	let { l, text } = S;
 	let N = node(S, "COMMENT");
 	N.comment.start = S.i;
+
+	if (inline) N.inline = inline;
 
 	for (; S.i < l; S.i++, S.column++) {
 		let char = text.charAt(S.i);

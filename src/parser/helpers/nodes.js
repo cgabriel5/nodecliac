@@ -26,6 +26,7 @@ module.exports = (S, type) => {
 	switch (type) {
 		case "COMMENT":
 			N.comment = o();
+			N.inline = false;
 
 			break;
 

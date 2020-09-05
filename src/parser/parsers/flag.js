@@ -33,10 +33,12 @@ module.exports = (S, isoneliner) => {
 	let { l, text } = S;
 	let state = text.charAt(S.i) === "-" ? "hyphen" : "keyword";
 	let stop; // Flag: true - stops parser.
-	let end; // Flag: true - ends consuming chars.
 	let type = "escaped";
 	let N = node(S, "FLAG");
 	let alias = false;
+	let qchar = "";
+	let comment = false;
+	let braces = [];
 
 	// If not a oneliner or no command scope, flag is being declared out of scope.
 	if (!(isoneliner || S.scopes.command)) error(S, __filename, 10);
@@ -44,12 +46,20 @@ module.exports = (S, isoneliner) => {
 	// If flag scope already exists another flag cannot be declared.
 	if (S.scopes.flag) error(S, __filename, 11);
 
+	let char, pchar = "";
 	for (; S.i < l; S.i++, S.column++) {
-		let char = text.charAt(S.i);
+		pchar = char;
+		char = text.charAt(S.i);
 
 		if (stop || cin(C_NL, char)) {
 			N.end = rollback(S) && S.i;
 			break; // Stop at nl char.
+		}
+
+		if (char === "#" && pchar !== "\\" && (state !== "value" || comment)) {
+			rollback(S);
+			N.end = S.i;
+			break;
 		}
 
 		switch (state) {
@@ -232,13 +242,16 @@ module.exports = (S, isoneliner) => {
 
 			case "value":
 				{
-					let pchar = text.charAt(S.i - 1);
-
 					if (!N.value.value) {
 						// Determine value type.
 						if (char === "$") type = "command-flag";
-						else if (char === "(") type = "list";
-						else if (cin(C_QUOTES, char)) type = "quoted";
+						else if (char === "(") {
+							type = "list";
+							braces.push(S.i);
+						} else if (cin(C_QUOTES, char)) {
+							type = "quoted";
+							qchar = char;
+						}
 
 						N.value.start = N.value.end = S.i;
 						N.value.value = char;
@@ -251,19 +264,75 @@ module.exports = (S, isoneliner) => {
 							state = "pipe-delimiter";
 							rollback(S);
 						} else {
-							// If flag is set and chars can still be consumed
-							// there is a syntax error. For example, string
-							// may be improperly quoted/escaped so error.
-							if (end) error(S, __filename);
+							switch (type) {
+								case "escaped":
+									if (cin(C_SPACES, char) && pchar !== "\\") {
+										state = "eol-wsb";
+									}
 
-							let isescaped = pchar !== "\\";
-							if (type === "escaped") {
-								if (cin(C_SPACES, char) && isescaped)
-									end = true;
-							} else if (type === "quoted") {
-								let vfchar = N.value.value.charAt(0);
-								if (char === vfchar && isescaped) end = true;
+									break;
+
+								case "quoted":
+									if (char === qchar && pchar !== "\\") {
+										state = "eol-wsb";
+									} else if (char === "#" && !qchar) {
+										comment = true;
+										rollback(S);
+									}
+
+									break;
+
+								default:
+									// list|command-flag
+									// The following character after the initial
+									// '$' must be a '('. If it does not follow,
+									// error.
+									//   --help=$"cat ~/files.text"
+									//   --------^ Missing '(' after '$'.
+									if (type === "command-flag") {
+										if (
+											N.value.value.length === 1 &&
+											char !== "("
+										) {
+											error(S, __filename);
+										}
+									}
+
+									// The following logic, is precursor validation
+									// logic that ensures braces are balanced and
+									// detects inline comment.
+									if (pchar !== "\\") {
+										if (char === "(" && !qchar) {
+											braces.push(S.i);
+										} else if (char === ")" && !qchar) {
+											// If braces len is negative, opening
+											// braces were never introduced so
+											// current closing brace is invalid.
+											if (!braces.length) {
+												error(S, __filename);
+											}
+											braces.pop();
+											if (!braces.length) {
+												state = "eol-wsb";
+											}
+										}
+
+										if (cin(C_QUOTES, char)) {
+											if (!qchar) qchar = char;
+											else if (qchar === char) qchar = "";
+										}
+
+										if (char === "#" && !qchar) {
+											if (!braces.length) {
+												comment = true;
+												rollback(S);
+											} else {
+												error(S, __filename);
+											}
+										}
+									}
 							}
+
 							N.value.end = S.i;
 							N.value.value += char;
 						}
@@ -273,7 +342,14 @@ module.exports = (S, isoneliner) => {
 				break;
 
 			case "eol-wsb":
-				if (cnotin(C_SPACES, char)) error(S, __filename);
+				if (
+					char === "|" &&
+					!-~C_KD_STR.indexOf(N.keyword.value) &&
+					pchar !== "\\"
+				) {
+					state = "pipe-delimiter";
+					rollback(S);
+				} else if (cnotin(C_SPACES, char)) error(S, __filename);
 
 				break;
 		}

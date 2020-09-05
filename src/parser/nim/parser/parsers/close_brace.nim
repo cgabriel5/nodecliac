@@ -18,14 +18,20 @@ proc p_closebrace*(S: State) =
     var state = "brace"
     var N = node(S, "BRACE")
 
-    let l = S.l; var `char`: char
+    let l = S.l; var `char`, pchar: char
     while S.i < l:
+        pchar = `char`
         `char` = text[S.i]
 
         if `char` in C_NL:
             rollback(S)
             N.`end` = S.i
             break # Stop at nl char.
+
+        if `char` == '#' and pchar != '\\':
+            rollback(S)
+            N.`end` = S.i
+            break
 
         case (state):
             of "brace":

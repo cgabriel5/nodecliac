@@ -11,10 +11,12 @@ from ../helpers/charsets import C_NL
 #
 # @param  {object} S - State object.
 # @return - Nothing is returned.
-proc p_comment*(S: State) =
+proc p_comment*(S: State, inline=false) =
     let text = S.text
     var N = node(S, "COMMENT")
     N.comment.start = S.i
+
+    if inline: N.inline = inline
 
     let l = S.l; var `char`: char
     while S.i < l:

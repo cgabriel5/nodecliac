@@ -89,7 +89,7 @@ proc formatter*(S: State): tuple =
         case (`type`):
             of "COMMENT":
                 let scope = if scopes.len > 0: scopes[^1] else: 0
-                let pad = indent(count = scope)
+                let pad = if not N.inline: indent(count = scope) else: " "
 
                 output.add(fmt"{pad}{N.comment.value}")
 

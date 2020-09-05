@@ -16,6 +16,7 @@ proc formatter*(S: State): tuple =
     var output: seq[string] = @[]
     var passed: seq[Node] = @[]
     let r = re"^[ \t]+"
+    var alias: Node
 
     # Indentation level multipliers.
     const MXP = {
@@ -169,9 +170,16 @@ proc formatter*(S: State): tuple =
                 let dval = N.delimiter.value
                 let mval = N.multi.value
                 let vval = N.value.value
+                let ival = N.alias.value
                 let singleton = N.singleton
                 let pad = indent(count = singleton.int)
                 var pipe_del = if singleton: "" else: "|"
+
+                # Skip if an alias and set ref for later.
+                if ival != "" and ival == nval:
+                    alias = N
+                    inc(i) # + 1 to account for continue.
+                    continue
 
                 # Note: If nN is a flag reset var.
                 if pipe_del != "":
@@ -188,6 +196,9 @@ proc formatter*(S: State): tuple =
                         r &= hval
                         if nval != "":
                             r &= nval
+                            if ival != "" and alias != nil and ival == alias.alias.value:
+                                r &= "::" & ival
+                                alias = nil
                             if bval != "":
                                 r &= bval
                             elif aval != "":

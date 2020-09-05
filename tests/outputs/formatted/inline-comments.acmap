@@ -1,0 +1,75 @@
+# This acmap tests inline comments.
+
+@setting_a # comment
+@setting_b # comment
+@setting_c = # comment
+@setting_d = value1 # comment
+@setting_e = "va#lue2" # comment
+@setting_f = 'va#lue2' # comment
+@setting_g = va\#lue3 # comment
+@setting_h = va\ \#\ lue4 # comment
+# comment
+
+# comment
+
+$var # comment
+$var # comment
+$var = # comment
+$var = value # comment
+$var = "value" # comment
+$var = 'value' # comment
+
+program # comment
+program = # comment
+program = [] # comment
+program = [] # comment
+
+program.sub # comment
+program.sub2 # comment
+
+program.sub3 = [
+	--flag #comment
+	--fl #ag       #   comment
+	--flag="VALUE" #comment
+	--flag2="VA#LUE" #comment
+	--opts=(
+		- STRING  # comment
+		- "STR#ING" # comment
+		# - $("com)mand" \# val "ue\)") # comment
+		# - $("command", "p")) # comment
+		- $("command","p") # comment
+	) # comment
+	# --flag=(1 2 3\) va\) \l "val#ue")		 # comment
+	--flag=(1 2 3\) va\) \l $("cmd") "val#ue") # comment
+] # comment
+
+program = --version::v?|--help::h?|--registry::r=(1 2 3 4)|--socket::s=*(start end)
+# --------------------------------------------------------^ Spaces allowed.
+
+program = [
+	--help=("cat ~/fil(es.t)ext" (a)) # comment
+	--help=("cat ~/fil(es.t)ext") # comment
+	--help=("cat ~/fil(es.t)ext")
+	# Closing ')' missing ----^.
+]
+
+# program.command.{group #}
+program.command.{group} = # comment
+program.command.{group} # comment
+
+# echo "> [", S.i, "] [", `char`, "] :: ", state
+
+# Should produce an Unexpected character error
+# as flag delimiter is not allowed via oneliner.
+# program = --flag=   ,  ,|--flag2="value"
+program = --flag=,|--flag2="value" # comment
+program = --flag=, # comment
+program = --flag=$("cmd","param1","param2")|--flag2="value" # comment
+program = --flag=,|--flag2="value" # comment
+
+program = --flag=,|--flag2="value" # comment
+
+# program = [
+# 	--help=$"cat ~/files.text"
+# 	# Missing '(' after '$'.
+# ]

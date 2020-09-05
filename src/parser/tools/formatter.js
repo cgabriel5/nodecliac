@@ -13,6 +13,7 @@ module.exports = (S) => {
 	let output = [];
 	let passed = [];
 	const r = /^[ \t]+/g;
+	let alias;
 
 	// Indentation level multipliers.
 	let MXP = {
@@ -200,9 +201,16 @@ module.exports = (S) => {
 					let dval = N.delimiter.value;
 					let mval = N.multi.value;
 					let vval = N.value.value;
+					let ival = N.alias.value;
 					let singleton = N.singleton;
 					let pad = indent(null, singleton ? 1 : null);
 					let pipe_del = singleton ? "" : "|";
+
+					// Skip if an alias and set ref for later.
+					if (ival && ival === nval) {
+						alias = N;
+						continue;
+					}
 
 					// Note: If nN is a flag reset var.
 					if (pipe_del) {
@@ -221,6 +229,10 @@ module.exports = (S) => {
 							r += hval;
 							if (nval) {
 								r += nval;
+								if (ival && alias && ival === alias.alias.value) {
+									r += `::${ival}`;
+									alias = null;
+								}
 								if (bval) {
 									r += bval;
 								} else if (aval) {

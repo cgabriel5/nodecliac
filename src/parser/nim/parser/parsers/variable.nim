@@ -115,6 +115,6 @@ proc p_variable*(S: State) =
     add(S, N)
 
     var value = if N.value.value != "": N.value.value else: ""
-    value = value[1 .. ^2]
+    if value.len > 0 and value[0] in C_QUOTES: value = value[1 .. ^2]
 
     S.tables.variables[N.name.value] = value # Store var/val.

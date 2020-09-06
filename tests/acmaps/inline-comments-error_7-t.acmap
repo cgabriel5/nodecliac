@@ -1,0 +1,8 @@
+# This acmap tests inline comment errors.
+
+program.sub3 = [
+	--opts=(
+		- $("com)mand" # val "ue\)") # comment
+# ---------^
+	)
+]

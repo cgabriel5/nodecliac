@@ -22,14 +22,20 @@ proc p_setting*(S: State) =
     var state = "sigil"
     var N = node(S, "SETTING")
 
-    let l = S.l; var `char`: char
+    let l = S.l; var `char`, pchar: char
     while S.i < l:
+        pchar = `char`
         `char` = text[S.i]
 
         if `char` in C_NL:
             rollback(S)
             N.`end` = S.i
             break # Stop at nl char.
+
+        if `char` == '#' and pchar != '\\' and state != "value":
+            rollback(S)
+            N.`end` = S.i
+            break
 
         case (state):
             of "sigil":
@@ -85,13 +91,11 @@ proc p_setting*(S: State) =
                     N.value.value = $`char`
                 else:
                     if qchar != '\0':
-                        let pchar = text[S.i - 1]
-
                         if `char` == qchar and pchar != '\\': state = "eol-wsb"
                         N.value.`end` = S.i
                         N.value.value &= $`char`
                     else:
-                        if `char` in C_SPACES:
+                        if `char` in C_SPACES and pchar != '\\':
                             state = "eol-wsb"
                             rollback(S)
                         else:

@@ -1,1 +1,1 @@
- --socket=*|--help?|--registry=|--registry=1|--registry=2|--registry=3|--registry=4|--socket=end|--socket=start|--version?|-h?|-r1|-r2|-r3|-r4|-r=|-s=|-send|-sstart|-v?
+ --socket=*|--global|--help?|--registry=|--registry=1|--registry=2|--registry=3|--registry=4|--socket=end|--socket=start|--trace?|--version?|-g|-h?|-r=|-r=1|-r=2|-r=3|-r=4|-s=|-s=end|-s=start|-t?|-v?

@@ -1,9 +1,11 @@
 # This acmap tests alias syntax.
 
 npm = [
-	-v?	--version?
-	-h?	--help?
+	--version::v?
+	--help::h?
+	--trace::t?
+	--global::g
 
-	-r	--registry=(1 2 3 4)
-	-s	--socket=*(start end)
+	--registry::r=(1 2 3 4)
+	--socket::s=*(start end)
 ]

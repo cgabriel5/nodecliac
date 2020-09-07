@@ -76,14 +76,20 @@ proc p_command*(S: State) =
                 if isgroup: G.command = G.command[0 .. ^2]
                 else: N.command.value = N.command.value[0 .. ^2]
 
-    let l = S.l; var `char`: char
+    let l = S.l; var `char`, pchar: char
     while S.i < l:
+        pchar = `char`
         `char` = text[S.i]
 
         if `char` in C_NL:
             rollback(S)
             N.`end` = S.i
             break # Stop at nl char.
+
+        if `char` == '#' and pchar != '\\':
+            rollback(S)
+            N.`end` = S.i
+            break
 
         case (state):
             of "command":
@@ -179,6 +185,8 @@ proc p_command*(S: State) =
                     cN.name.value = fN.alias.value
                     cN.singleton = true
                     cN.boolean.value = fN.boolean.value
+                    cN.assignment.value = fN.assignment.value
+                    cN.alias.value = cN.name.value
                     N.flags.add(cN)
                 N.flags.add(fN)
 

@@ -42,7 +42,8 @@ contexts:
 # ------------------------------------------------------------------- PRIMITIVES
 
   comment:
-    - match: "^\\s*((\\#).*)" # Single line comment.
+    #- match: "^\\s*((\\#).*)" # Single line comment.
+    - match: "((\\#).*)" # Single line comment.
       captures:
         1: comment.line.number-sign.acmap
         2: punctuation.definition.comment.line.number-sign.acmap
@@ -200,6 +201,7 @@ contexts:
         - match: "(\\*)\\s*(?==)"
           captures:
               1: entity.command.wildcard.acmap # **purple
+        - include: comment
         - match: "[^-_+:/a-zA-Z0-9]"
           scope: invalid.illegal.acmap
 
@@ -225,12 +227,15 @@ contexts:
   flags-list:
     - include: flag
     - include: options-list
-    - match: "="
-      scope: keyword.operator.assignment.acmap
+    - match: "(=)(\\s*(,)\\s*(?=($|\\|)))?"
+      # scope: keyword.operator.assignment.acmap
+      captures:
+        1: keyword.operator.assignment.acmap
+        2: punctuation.separator.comma.acmap
       push:
         - match: "$"
           pop: true
-        - include: delimiter
+        # - include: delimiter
         - include: command-string
         - include: constants
         - include: numbers
@@ -252,8 +257,12 @@ contexts:
     - include: keywords
     - include: flag
     - include: options-list
-    - match: "="
-      scope: keyword.operator.assignment.acmap
+    - match: "(=)(\\s*(,)\\s*(?=($|\\|)))?"
+      # scope: keyword.operator.assignment.acmap
+      captures:
+        1: keyword.operator.assignment.acmap
+        2: punctuation.separator.comma.acmap
+    # - include: delimiter
     - include: constants
     - include: numbers
     - include: strings

@@ -110,7 +110,7 @@
 				<array>
 					<dict>
 						<key>match</key>
-						<string>^\s*((\#).*)</string> <!-- Single line comment. -->
+						<string>((\#).*)</string> <!-- Single line comment. -->
 
 						<!-- <key>name</key> -->
 						<!-- <string></string> -->
@@ -485,6 +485,10 @@
 				<array>
 					<dict>
 						<key>include</key>
+						<string>#comment</string>
+					</dict>
+					<dict>
+						<key>include</key>
 						<string>#strings</string>
 					</dict>
 					<dict>
@@ -711,6 +715,10 @@
 						</dict>
 					</dict>
 					<dict>
+						<key>include</key>
+						<string>#comment</string>
+					</dict>
+					<dict>
 						<key>match</key>
 						<string>[^-_+:/a-zA-Z0-9]</string>
 
@@ -828,17 +836,33 @@
 
 					<dict>
 						<key>begin</key>
-						<string>=</string>
+						<string>(=)(\s*(,)\s*(?=($|\|)))?</string>
+
+						<key>beginCaptures</key>
+						<dict>
+							<key>1</key>
+							<dict>
+								<key>name</key>
+								<string>keyword.operator.assignment.acmap</string>
+							</dict>
+
+							<key>2</key>
+							<dict>
+								<key>name</key>
+								<string>punctuation.separator.comma.acmap</string>
+							</dict>
+						</dict>
 
 						<key>contentName</key>
-						<string>keyword.operator.assignment.acmap</string>
+						<!-- <string>keyword.operator.assignment.acmap</string> -->
+						<string></string>
 
 						<key>patterns</key>
 						<array>
-							<dict>
-								<key>include</key>
-								<string>#delimiter</string>
-							</dict>
+							<!-- <dict> -->
+								<!-- <key>include</key> -->
+								<!-- <string>#delimiter</string> -->
+							<!-- </dict> -->
 
 							<dict>
 								<key>include</key>
@@ -894,6 +918,10 @@
 				<array>
 					<dict>
 						<key>include</key>
+						<string>#comment</string>
+					</dict>
+					<dict>
+						<key>include</key>
 						<string>#strings</string>
 					</dict>
 
@@ -934,9 +962,25 @@
 
 					<dict>
 						<key>match</key>
-						<string>=</string>
+						<string>(=)(\s*(,)\s*(?=($|\|)))?</string>
+
 						<key>name</key>
-						<string>keyword.operator.assignment.acmap</string>
+						<string></string>
+
+						<key>captures</key>
+						<dict>
+							<key>1</key>
+							<dict>
+								<key>name</key>
+								<string>keyword.operator.assignment.acmap</string>
+							</dict>
+
+							<key>2</key>
+							<dict>
+								<key>name</key>
+								<string>punctuation.separator.comma.acmap</string>
+							</dict>
+						</dict>
 					</dict>
 
 					<dict>
@@ -1216,6 +1260,10 @@
 			<dict>
 				<key>patterns</key>
 				<array>
+					<dict>
+						<key>include</key>
+						<string>#comment</string>
+					</dict>
 					<dict>
 						<key>include</key>
 						<string>#command-string</string>

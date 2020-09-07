@@ -1,1 +1,1 @@
-[err flag,0] ...tests/acmaps/error-flag-flag-delimiter-invalid-t.acmap:3:19 — Syntax: Unexpected character
+ --flag2=|--flag2="value"|--flag=|--flag="value"

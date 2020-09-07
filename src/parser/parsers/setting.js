@@ -36,12 +36,21 @@ module.exports = (S) => {
 	let state = "sigil";
 	let N = node(S, "SETTING");
 
+	let char,
+		pchar = "";
 	for (; S.i < l; S.i++, S.column++) {
-		let char = text.charAt(S.i);
+		pchar = char;
+		char = text.charAt(S.i);
 
 		if (cin(C_NL, char)) {
 			N.end = rollback(S) && S.i;
 			break; // Stop at nl char.
+		}
+
+		if (char === "#" && pchar !== "\\" && state !== "value") {
+			rollback(S);
+			N.end = S.i;
+			break;
 		}
 
 		switch (state) {
@@ -106,13 +115,11 @@ module.exports = (S) => {
 					N.value.value = char;
 				} else {
 					if (qchar) {
-						let pchar = text.charAt(S.i - 1);
-
 						if (char === qchar && pchar !== "\\") state = "eol-wsb";
 						N.value.end = S.i;
 						N.value.value += char;
 					} else {
-						if (cin(C_SPACES, char)) {
+						if (cin(C_SPACES, char) && pchar !== "\\") {
 							state = "eol-wsb";
 							rollback(S);
 						} else {

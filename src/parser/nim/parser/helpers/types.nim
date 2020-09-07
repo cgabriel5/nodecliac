@@ -43,7 +43,9 @@ type
 
         # Depending on node type add needed fields.
         case kind: NodeKind
-        of comment: comment*: Branch
+        of comment:
+            comment*: Branch
+            inline*: bool
         of newline: discard
         of setting, variable: sigil*: Branch
         of command:

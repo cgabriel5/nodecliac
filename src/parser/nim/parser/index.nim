@@ -22,6 +22,13 @@ proc parser*(action: string, text: string, cmdname: string, source: string,
             forward(S)
             continue
 
+        # Handle inline comment.
+        if `char` == '#' and S.sol_char != '\0':
+            tracer.trace(S, "comment")
+            p_comment(S, true)
+            forward(S)
+            continue
+
         # Store line start index.
         if not S.tables.linestarts.hasKey(S.line):
             S.tables.linestarts[S.line] = S.i

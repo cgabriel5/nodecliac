@@ -1,1 +1,1 @@
-[err validate,13] ...tests/acmaps/error-validate-illegal-command-flag-syntax-t.acmap:2:10 — Illegal command-flag syntax
+[err flag,0] ...tests/acmaps/error-validate-illegal-command-flag-syntax-t.acmap:2:10 — Syntax: Unexpected character

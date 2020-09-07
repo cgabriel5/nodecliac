@@ -37,7 +37,7 @@
 		"comment": {
 			"patterns": [
 				{
-					"match": "^\\s*((\\#).*)",
+					"match": "((\\#).*)",
 					"captures": {
 						"1": {
 							"name": "comment.line.number-sign.acmap"
@@ -229,6 +229,9 @@
 			"contentName": "",
 			"patterns": [
 				{
+					"include": "#comment"
+				},
+				{
 					"include": "#strings"
 				},
 				{
@@ -346,6 +349,9 @@
 					}
 				},
 				{
+					"include": "#comment"
+				},
+				{
 					"match": "[^-_+:/a-zA-Z0-9]",
 					"name": "invalid.illegal.acmap"
 				}
@@ -408,12 +414,17 @@
 					"include": "#options-list"
 				},
 				{
-					"begin": "=",
-					"contentName": "keyword.operator.assignment.acmap",
-					"patterns": [
-						{
-							"include": "#delimiter"
+					"begin": "(=)(\\s*(,)\\s*(?=($|\\|)))?",
+					"beginCaptures": {
+						"1": {
+							"name": "keyword.operator.assignment.acmap"
 						},
+						"2": {
+							"name": "punctuation.separator.comma.acmap"
+						}
+					},
+					"contentName": "",
+					"patterns": [
 						{
 							"include": "#command-string"
 						},
@@ -444,6 +455,9 @@
 			"contentName": "",
 			"patterns": [
 				{
+					"include": "#comment"
+				},
+				{
 					"include": "#strings"
 				},
 				{
@@ -467,8 +481,16 @@
 					"include": "#options-list"
 				},
 				{
-					"match": "=",
-					"name": "keyword.operator.assignment.acmap"
+					"match": "(=)(\\s*(,)\\s*(?=($|\\|)))?",
+					"name": "",
+					"captures": {
+						"1": {
+							"name": "keyword.operator.assignment.acmap"
+						},
+						"2": {
+							"name": "punctuation.separator.comma.acmap"
+						}
+					}
 				},
 				{
 					"include": "#constants"
@@ -618,6 +640,9 @@
 		},
 		"options-values": {
 			"patterns": [
+				{
+					"include": "#comment"
+				},
 				{
 					"include": "#command-string"
 				},

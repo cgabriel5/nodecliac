@@ -1,3 +1,5 @@
+from tables import `[]`
+
 from ../helpers/tree_add import add
 from ../helpers/types import State, Node, node
 import ../helpers/[error, validate, forward, rollback]
@@ -26,10 +28,12 @@ proc p_flag*(S: State, isoneliner: string): Node =
     let text = S.text
     var state = if text[S.i] == '-': "hyphen" else: "keyword"
     var stop = false # Flag: true - stops parser.
-    var `end` = false # Flag: true - ends consuming chars.
     var `type` = "escaped"
     var N = node(S, "FLAG")
     var alias = false
+    var qchar: char
+    var comment = false
+    var braces: seq[int] = @[]
 
     # If not a oneliner or no command scope, flag is being declared out of scope.
     if not (isoneliner != "" or S.scopes.command.node != ""): error(S, currentSourcePath, 10)
@@ -37,14 +41,20 @@ proc p_flag*(S: State, isoneliner: string): Node =
     # If flag scope already exists another flag cannot be declared.
     if S.scopes.flag.node != "": error(S, currentSourcePath, 11)
 
-    let l = S.l; var `char`: char
+    let l = S.l; var `char`, pchar: char
     while S.i < l:
+        pchar = `char`
         `char` = text[S.i]
 
         if stop or `char` in C_NL:
             rollback(S)
             N.`end` = S.i
             break # Stop at nl char.
+
+        if `char` == '#' and pchar != '\\' and (state != "value" or comment):
+            rollback(S)
+            N.`end` = S.i
+            break
 
         case (state):
             of "hyphen":
@@ -198,13 +208,15 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     rollback(S)
 
             of "value":
-                let pchar = if S.i - 1 < l: text[S.i - 1] else: '\0'
-
                 if N.value.value == "":
                     # Determine value type.
                     if `char` == '$': `type` = "command-flag"
-                    elif `char` == '(': `type` = "list"
-                    elif `char` in C_QUOTES: `type` = "quoted"
+                    elif `char` == '(':
+                        `type` = "list"
+                        braces.add(S.i)
+                    elif `char` in C_QUOTES:
+                        `type` = "quoted"
+                        qchar = `char`
 
                     N.value.start = S.i
                     N.value.`end` = S.i
@@ -214,22 +226,63 @@ proc p_flag*(S: State, isoneliner: string): Node =
                         state = "pipe-delimiter"
                         rollback(S)
                     else:
-                        # If flag is set and chars can still be consumed
-                        # there is a syntax error. For example, string
-                        # may be improperly quoted/escaped so error.
-                        if `end`: error(S, currentSourcePath)
+                        case `type`:
+                            of "escaped":
+                                if `char` in C_SPACES and pchar != '\\':
+                                    state = "eol-wsb"
+                                    forward(S)
+                                    continue
+                            of "quoted":
+                                if `char` == qchar and pchar != '\\':
+                                    state = "eol-wsb"
+                                elif `char` == '#' and qchar == '\0':
+                                    comment = true
+                                    rollback(S)
+                            else: # list|command-flag
+                                # The following character after the initial
+                                # '$' must be a '('. If it does not follow,
+                                # error.
+                                #   --help=$"cat ~/files.text"
+                                #   --------^ Missing '(' after '$'.
+                                if `type` == "command-flag":
+                                    if N.value.value.len == 1 and `char` != '(':
+                                        error(S, currentSourcePath)
 
-                        let isescaped = pchar != '\\'
-                        if `type` == "escaped":
-                            if `char` in C_SPACES and isescaped: `end` = true
-                        elif `type` == "quoted":
-                            let vfchar = N.value.value[0]
-                            if `char` == vfchar and isescaped: `end` = true
+                                # The following logic, is precursor validation
+                                # logic that ensures braces are balanced and
+                                # detects inline comment.
+                                if pchar != '\\':
+                                    if `char` == '(' and qchar == '\0':
+                                        braces.add(S.i)
+                                    elif `char` == ')' and qchar == '\0':
+                                        # If braces len is negative, opening
+                                        # braces were never introduced so
+                                        # current closing brace is invalid.
+                                        if braces.len == 0: error(S, currentSourcePath)
+                                        discard braces.pop()
+                                        if braces.len == 0: state = "eol-wsb"
+
+                                    if `char` in C_QUOTES:
+                                        if qchar == '\0': qchar = `char`
+                                        elif qchar == `char`: qchar = '\0'
+
+                                    if `char` == '#' and qchar == '\0':
+                                        if braces.len == 0:
+                                            comment = true
+                                            rollback(S)
+                                        else:
+                                            S.column = braces.pop() - S.tables.linestarts[S.line]
+                                            inc(S.column) # Add 1 to account for 0 base indexing.
+                                            error(S, currentSourcePath)
+
                         N.value.`end` = S.i
                         N.value.value &= $`char`
 
             of "eol-wsb":
-                if `char` notin C_SPACES: error(S, currentSourcePath)
+                if `char` == '|' and N.keyword.value notin C_KD_STR and pchar != '\\':
+                    state = "pipe-delimiter"
+                    rollback(S)
+                elif `char` notin C_SPACES: error(S, currentSourcePath)
 
             else: discard
 
@@ -255,6 +308,8 @@ proc p_flag*(S: State, isoneliner: string): Node =
             cN.name.value = N.alias.value
             cN.singleton = true
             cN.boolean.value = N.boolean.value
+            cN.assignment.value = N.assignment.value
+            cN.alias.value = cN.name.value
             add(S, cN)
         add(S, N)
 

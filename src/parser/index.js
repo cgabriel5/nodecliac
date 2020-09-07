@@ -3,6 +3,7 @@
 const flatry = require("flatry");
 const state = require("./helpers/state.js");
 const error = require("./helpers/error.js");
+const tracer = require("./helpers/trace.js");
 const { hasProp } = require("../utils/toolbox.js");
 const formatter = require("./tools/formatter.js");
 const p_newline = require("./parsers/newline.js");
@@ -36,6 +37,13 @@ module.exports = async (
 			continue;
 		}
 
+		// Handle inline comment.
+		if (char === "#" && S.sol_char) {
+			tracer(S, "comment");
+			require("./parsers/comment.js")(S, true);
+			continue;
+		}
+
 		// Store line start index.
 		if (!hasProp(linestarts, S.line)) linestarts[S.line] = S.i;
 
@@ -51,7 +59,7 @@ module.exports = async (
 
 			specificity(S, ltype, __filename);
 
-			require("./helpers/trace.js")(S, ltype);
+			tracer(S, ltype);
 			require(`./parsers/${ltype}.js`)(S);
 		}
 	}

@@ -1,0 +1,6 @@
+# This acmap tests inline comment errors.
+
+program.sub3 = [
+	--flag="VALUE" a #comment
+# -----------------^
+]

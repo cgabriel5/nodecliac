@@ -1,0 +1,15 @@
+ --socket=*|--flag2=|--flag2="value"|--flag=|--flag="value"|--flag=$("cmd","param1","param2")|--help=|--help="cat ~/fil(es.t)ext"|--help=(a)|--help?|--registry=|--registry=1|--registry=2|--registry=3|--registry=4|--socket=end|--socket=start|--version?|-h?|-r=|-r=1|-r=2|-r=3|-r=4|-s=|-s=end|-s=start|-v?
+.command --
+.command.group --
+.sub --
+.sub2 --
+.sub3 --fl|--flag|--flag2=|--flag2="VA#LUE"|--flag=|--flag="val#ue"|--flag="VALUE"|--flag=$("cmd")|--flag=1|--flag=2|--flag=3\)|--flag=\l|--flag=va\)|--opts=|--opts="STR#ING"|--opts=$("command","p")|--opts=STRING
+
+@setting_a = 
+@setting_b = 
+@setting_c = 
+@setting_d = value1
+@setting_e = "va#lue2"
+@setting_f = 'va#lue2'
+@setting_g = va\#lue3
+@setting_h = va\ \#\ lue4

@@ -560,12 +560,13 @@ $ program [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] [file
 
 - Comments begin with a number-sign (<code>#</code>) and continue to the end of the line.
 - Whitespace indentation can precede a comment.
-- Comments _must_ be on their _own_ line.
-- Multi-line and trailing comments are _not_ supported.
+- Trailing comments are allowed.
+- Multi-line comments are _not_ supported.
 
 ```acmap
 # This is a comment.
     # Whitespace can precede comment.
+program.command = --flag # A trailing comment.
 ```
 
 <a name="syntax-settings"></a>

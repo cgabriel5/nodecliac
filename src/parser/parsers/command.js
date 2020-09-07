@@ -93,7 +93,8 @@ module.exports = (S) => {
 		}
 	};
 
-	let char, pchar = "";
+	let char,
+		pchar = "";
 	for (; S.i < l; S.i++, S.column++) {
 		pchar = char;
 		char = text.charAt(S.i);
@@ -210,22 +211,24 @@ module.exports = (S) => {
 				break;
 
 			case "oneliner":
-				tracer(S, "flag"); // Trace parser.
+				{
+					tracer(S, "flag"); // Trace parser.
 
-				let fN = p_flag(S, "oneliner");
-				// Add alias node if it exists.
-				if (fN.alias.value) {
-					let cN = node(S, "FLAG");
-					cN.hyphens.value = "-";
-					cN.delimiter.value = ",";
-					cN.name.value = fN.alias.value;
-					cN.singleton = true;
-					cN.boolean.value = fN.boolean.value;
-					cN.assignment.value = fN.assignment.value;
-					cN.alias.value = cN.name.value;
-					N.flags.push(cN);
+					let fN = p_flag(S, "oneliner");
+					// Add alias node if it exists.
+					if (fN.alias.value) {
+						let cN = node(S, "FLAG");
+						cN.hyphens.value = "-";
+						cN.delimiter.value = ",";
+						cN.name.value = fN.alias.value;
+						cN.singleton = true;
+						cN.boolean.value = fN.boolean.value;
+						cN.assignment.value = fN.assignment.value;
+						cN.alias.value = cN.name.value;
+						N.flags.push(cN);
+					}
+					N.flags.push(fN);
 				}
-				N.flags.push(fN);
 
 				break;
 

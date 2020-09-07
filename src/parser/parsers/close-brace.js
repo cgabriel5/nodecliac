@@ -24,7 +24,8 @@ module.exports = (S) => {
 	let state = "brace";
 	let N = node(S, "BRACE");
 
-	let char, pchar = "";
+	let char,
+		pchar = "";
 	for (; S.i < l; S.i++, S.column++) {
 		pchar = char;
 		char = text.charAt(S.i);

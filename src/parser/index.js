@@ -40,7 +40,7 @@ module.exports = async (
 		// Handle inline comment.
 		if (char === "#" && S.sol_char) {
 			tracer(S, "comment");
-			require("./parsers/comment.js")(S, true)
+			require("./parsers/comment.js")(S, true);
 			continue;
 		}
 

@@ -46,7 +46,8 @@ module.exports = (S, isoneliner) => {
 	// If flag scope already exists another flag cannot be declared.
 	if (S.scopes.flag) error(S, __filename, 11);
 
-	let char, pchar = "";
+	let char,
+		pchar = "";
 	for (; S.i < l; S.i++, S.column++) {
 		pchar = char;
 		char = text.charAt(S.i);
@@ -166,26 +167,28 @@ module.exports = (S, isoneliner) => {
 				break;
 
 			case "alias":
-				alias = true;
-				// Next char must also be a colon.
-				let nchar = text.charAt(S.i + 1);
-				if (nchar !== ":") error(S, __filename);
-				N.alias.start = S.i;
-				N.alias.end = S.i + 2;
+				{
+					alias = true;
+					// Next char must also be a colon.
+					let nchar = text.charAt(S.i + 1);
+					if (nchar !== ":") error(S, __filename);
+					N.alias.start = S.i;
+					N.alias.end = S.i + 2;
 
-				let letter = text.charAt(S.i + 2);
-				if (cnotin(C_LETTERS, letter)) {
-					S.i += 1;
-					S.column += 1;
-					error(S, __filename);
+					let letter = text.charAt(S.i + 2);
+					if (cnotin(C_LETTERS, letter)) {
+						S.i += 1;
+						S.column += 1;
+						error(S, __filename);
+					}
+
+					N.alias.value = letter;
+					state = "name";
+
+					// Note: Forward indices to skip alias chars.
+					S.i += 2;
+					S.column += 2;
 				}
-
-				N.alias.value = letter;
-				state = "name";
-
-				// Note: Forward indices to skip alias chars.
-				S.i += 2;
-				S.column += 2;
 
 				break;
 
@@ -328,7 +331,9 @@ module.exports = (S, isoneliner) => {
 												comment = true;
 												rollback(S);
 											} else {
-												S.column = braces.pop() - S.tables.linestarts[S.line];
+												S.column =
+													braces.pop() -
+													S.tables.linestarts[S.line];
 												S.column++; // Add 1 to account for 0 base indexing.
 												error(S, __filename);
 											}

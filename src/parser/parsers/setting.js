@@ -36,7 +36,8 @@ module.exports = (S) => {
 	let state = "sigil";
 	let N = node(S, "SETTING");
 
-	let char, pchar = "";
+	let char,
+		pchar = "";
 	for (; S.i < l; S.i++, S.column++) {
 		pchar = char;
 		char = text.charAt(S.i);

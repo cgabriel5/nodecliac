@@ -229,7 +229,11 @@ module.exports = (S) => {
 							r += hval;
 							if (nval) {
 								r += nval;
-								if (ival && alias && ival === alias.alias.value) {
+								if (
+									ival &&
+									alias &&
+									ival === alias.alias.value
+								) {
 									r += `::${ival}`;
 									alias = null;
 								}

@@ -1,0 +1,37 @@
+# Balena CLI acmap.
+# [https://github.com/balena-io/balena-cli]
+# [https://www.balena.io/docs/reference/balena-cli/]
+# [https://github.com/balena-io/balena-cli/blob/master/balena-completion.bash]
+
+balena.app.{create,restart,rm}
+balena.apps
+balena.build
+balena.config.{generate,inject,read,reconfigure,write}
+balena.deploy
+
+balena.device.{identify,init,move,public-url,reboot,register,rename,rm,shutdown}
+# The old command style 'balena device public-url enable '
+# is deprecated, but still supported.
+# [https://www.balena.io/docs/reference/balena-cli/#device-public-url-uuid]
+balena.device.public-url.{disable,enable,status}
+
+balena.devices
+balena.env.{add,rename,rm}
+balena.envs
+balena.help
+balena.key.{add,rm}
+balena.keys
+balena.local.{configure,flash}
+balena.login
+balena.logout
+balena.logs
+balena.note
+balena.os.{build-config,configure,download,initialize,versions}
+balena.preload
+balena.quickstart
+balena.settings
+balena.scan
+balena.ssh
+balena.util.available-drives
+balena.version
+balena.whoami

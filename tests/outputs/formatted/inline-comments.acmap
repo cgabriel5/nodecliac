@@ -30,8 +30,12 @@ program.sub2 # comment
 program.sub3 = [
 	--flag #comment
 	--fl #ag       #   comment
+	--fla= #ag       #   comment
 	--flag="VALUE" #comment
 	--flag2="VA#LUE" #comment
+	--flag3::F=* #comment
+	--flag4::X=*(1 2) #comment
+	--flag5? #comment
 	--opts=(
 		- STRING # comment
 		- "STR#ING" # comment

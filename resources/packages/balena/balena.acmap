@@ -2,36 +2,333 @@
 # [https://github.com/balena-io/balena-cli]
 # [https://www.balena.io/docs/reference/balena-cli/]
 # [https://github.com/balena-io/balena-cli/blob/master/balena-completion.bash]
+# [https://github.com/balena-io/balena-cli/blob/master/doc/cli.markdown#note-note]
 
-balena.app.{create,restart,rm}
-balena.apps
-balena.build
-balena.config.{generate,inject,read,reconfigure,write}
-balena.deploy
+## API Keys
 
-balena.device.{identify,init,move,public-url,reboot,register,rename,rm,shutdown}
-# The old command style 'balena device public-url enable '
-# is deprecated, but still supported.
+# [https://www.balena.io/docs/reference/balena-cli/]
+balena.api-key.generate
+
+## Application
+
+balena.apps = --verbose::v?
+balena.app.create = --type::t= # Get --types with '$ balena devices supported'
+balena.app.rm = --yes::y?
+balena.app.restart
+
+## Authentication
+
+balena.login = [
+	--web::w?
+	--token::t=
+	--credentials::c?
+	--email::e=
+	--user::u=
+	--password::p=
+	--port::P= # Use with --web only?
+]
+balena.logout
+balena.whoami
+
+## Device
+
+balena.device.{identify,rename}
+balena.device.init = [
+	--application::a=
+	--app=
+	--yes::y?
+	--advanced::v?
+	--os-version=(default latest menu recommended)
+	--drive::d= # Get values with '$ balena util available-drives'?
+	--config=
+]
+balena.device.move = [
+	--application::a=
+	--app=
+]
+balena.device.reboot = --force::f?
+balena.device.register = --uuid::u=
+balena.device.rm = --yes::y?
+balena.device.shutdown = --force::f?
+
+balena.devices = [
+	--application::a=
+	--app=
+	--json::j?
+]
+balena.devices.supported = [
+	--discontinued?
+	--json::j?
+	--verbose::v?
+]
+balena.device.os-update = [
+	--version=
+	--yes::y?
+]
+# Old command style 'balena device public-url enable ' is deprecated,
+# but still supported.
 # [https://www.balena.io/docs/reference/balena-cli/#device-public-url-uuid]
 balena.device.public-url.{disable,enable,status}
+balena.device.public-url = [
+	--enable?
+	--disable?
+	--status?
+]
 
-balena.devices
-balena.env.{add,rename,rm}
-balena.envs
-balena.help
-balena.key.{add,rm}
+## Environment Variables
+
+balena.envs = [
+	--all?
+	--application::a=
+	--config::c?
+	--device::d=
+	--json::j?
+	--verbose::v?
+	--service::s=
+]
+
+balena.env.rm = [
+	--config::c?
+	--device::d?
+	--service::s?
+	--yes::y?
+]
+balena.env.add = [
+	--application::a=
+	--device::d=
+	--quiet::q?
+	--service::s=
+]
+balena.env.rename = [
+	--config::c?
+	--device::d?
+	--service::s?
+]
+
+## Tags
+
+balena.{tags,rm,set} = [
+	--application::a=
+	--device::d=
+	--release::r=
+	--app=
+]
+
+## Help and Version
+
+# prehook modifies CLI input to provide help completions.
+balena.help = --verbose::v?
+balena.version = --all::a?|--json::j?
+
+## Keys
+
 balena.keys
-balena.local.{configure,flash}
-balena.login
-balena.logout
-balena.logs
-balena.note
-balena.os.{build-config,configure,download,initialize,versions}
-balena.preload
-balena.quickstart
+balena.key.add
+balena.key.rm = --yes::y?
+
+## Logs
+
+balena.logs = [
+	--tail::t?
+	--service::s=
+	--system::S?
+]
+
+## Network
+
+balena.scan = [
+	--verbose::v?
+	--timeout::t=
+]
+
+balena.ssh = [
+	--port::p=
+	--tty::t?
+	--verbose::v?
+	--noproxy?
+]
+
+balena.tunnel = --port::p=
+
+## Notes
+
+balena.note = --device::d=|--dev=
+
+## OS
+
+balena.os.versions
+balena.os.download = [
+	--output::o=
+	--version=
+]
+balena.os.build-config = [
+	--advanced::v?
+	--output::o=
+]
+balena.os.configure = [
+	--advanced::v?
+	--app=
+	--application::a=
+	--config=
+	--config-app-update-poll-interval=
+	--config-network=
+	--config-wifi-key=
+	--config-wifi-ssid=
+	--device::d=
+	--device-api-key::k=
+	--device-type=
+	--initial-device-name=
+	--version=
+	--system-connection::c=
+]
+balena.os.initialize = [
+	--type::t=
+	--drive::d= # Get options with '$ balena util available-drives'?
+	--yes::y?
+]
+
+## Config
+
+balena.config.generate = [
+	--version=
+	--application::a=
+	--app=
+	--device::d=
+	--deviceApiKey::k=
+	--deviceType=
+	--generate-device-api-key?
+	--output::o=
+	--network=
+	--wifiSsid=
+	--wifiKey=
+	--appUpdatePollInterval=
+]
+balena.config.{inject,read,reconfigure,write} = [
+	--type::t= # Get options with '$ balena devices supported'?
+	--drive::d=
+]
+balena.config.reconfigure = --advanced::v?
+
+## Preload
+
+balena.preload = [
+	--app::a=
+	--commit::c=
+	--splash-image::s=
+	--dont-check-arch?
+	--pin-device-to-release::p=
+	--add-certificate=
+	--docker::P=
+	--dockerHost::h=
+	--dockerPort=
+	--ca=
+	--cert=
+	--key=
+]
+
+## Push
+
+balena.push = [
+	--source::s=
+	--emulated::f? # Is short alias correct?
+	--dockerfile=
+	--nocache::c?
+	--pull?
+	--noparent-check?
+	--registry-secrets::R=
+	--nolive?
+	--detached::d?
+	--service=
+	--system?
+	--env=
+	--convert-eol::l?
+	--noconvert-eol?
+	--multi-dockerignore::m?
+	--nogitignore::G?
+	--gitignore::g?
+]
+
+## Settings
+
 balena.settings
-balena.scan
-balena.ssh
+
+## Local
+
+balena.local.configure
+balena.local.flash = [
+	--drive::d= # Get options with '$ balena util available-drives'?
+	--yes::y?
+]
+
+## Deploy
+
+balena.build = [
+	--arch::A=
+	--deviceType::d=
+	--application::a=
+	--emulated::e?
+	--dockerfile=
+	--logs?
+	--nologs?
+	--gitignore::g?
+	--multi-dockerignore::m?
+	--nogitignore::G?
+	--noparent-check?
+	--registry-secrets::R=
+	--convert-eol::l?
+	--noconvert-eol?
+	--projectName::n=
+	--tag::t=
+	--buildArg::B=* # Use multiple times.
+	--cache-from=
+	--nocache?
+	--pull?
+	--squash?
+	--docker::P=
+	--dockerHost::h=
+	--dockerPort::p=
+	--ca=
+	--cert=
+	--key=
+]
+
+balena.deploy = [
+	--source::s=
+	--build::b?
+	--nologupload?
+	--emulated::e?
+	--dockerfile=
+	--logs?
+	--nologs?
+	--gitignore::g?
+	--multi-dockerignore::m?
+	--nogitignore::G?
+	--noparent-check?
+	--registry-secrets::R=
+	--convert-eol::l?
+	--noconvert-eol?
+	--projectName::n=
+	--tag::t=
+	--buildArg::B=* # Use multiple times.
+	--cache-from=
+	--nocache?
+	--pull?
+	--squash?
+	--docker::P=
+	--dockerHost::h=
+	--dockerPort::p=
+	--ca=
+	--cert=
+	--key=
+]
+
+## Platform
+
+balena.join = --application::a=|--pollInterval::i=
+balena.leave
+
+## Utilities
+
 balena.util.available-drives
-balena.version
-balena.whoami
+
+# balena.quickstart # No longer used command?

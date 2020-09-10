@@ -191,3 +191,11 @@ Procfile    text
 ## EXECUTABLES
 *.exe binary
 *.pyc binary
+
+## Vendor packages to exclude them from GitHub language stats.
+# [https://stackoverflow.com/a/26948938]
+# [https://github.com/github/linguist#troubleshooting]
+# [https://stackoverflow.com/a/23822142]
+# [https://stackoverflow.com/a/43142088]
+# [https://github.com/github/linguist#using-gitattributes]
+resources/**/* -linguist-detectable

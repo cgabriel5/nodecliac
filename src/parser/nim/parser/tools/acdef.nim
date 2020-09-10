@@ -71,7 +71,8 @@ proc acdef*(S: State, cmdname: string): tuple =
 
     type Cobj = ref object
             i, m: int
-            val: string
+            val, orig: string
+            single: bool
 
     proc aobj(s: string): Cobj =
         new (result)
@@ -79,14 +80,22 @@ proc acdef*(S: State, cmdname: string): tuple =
 
     proc fobj(s: string): Cobj =
         new(result)
+        result.orig = s
         result.val = s.toLower()
         result.m = s.endsWith("=*").int
+        if s[1] != '-':
+            result.orig = s
+            result.single = true
 
     proc asort(a, b: Cobj): int =
         if a.val != b.val:
             if a.val < b.val: result = -1
             else: result = 1
         else: result = 0
+
+        if result == 0 and a.single and b.single:
+            if a.orig < b.orig: result = 1
+            else: result = 0
 
     # compare function: Gives precedence to flags ending with '=*' else
     #     falls back to sorting alphabetically.

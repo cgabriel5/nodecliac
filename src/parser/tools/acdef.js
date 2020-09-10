@@ -82,7 +82,11 @@ module.exports = async (S, cmdname) => {
 
 	// 	return a.value !== b.value ? (a.value < b.value ? -1 : 1) : 0;
 	// };
-	let asort = (a, b) => (a.val !== b.val ? (a.val < b.val ? -1 : 1) : 0);
+	let asort = (a, b) => {
+		let r = a.val !== b.val ? (a.val < b.val ? -1 : 1) : 0;
+		if (r === 0 && a.single && b.single) r = a.orig < b.orig ? 1 : 0;
+		return r;
+	};
 	let aobj = (s) => ({ val: s.toLowerCase() });
 
 	/**
@@ -100,7 +104,14 @@ module.exports = async (S, cmdname) => {
 	 */
 	// let sort = (a, b) => ~~b.endsWith("=*") - ~~a.endsWith("=*") || asort(a, b);
 	let fsort = (a, b) => b.m - a.m || asort(a, b);
-	let fobj = (s) => ({ val: s.toLowerCase(), m: ~~s.endsWith("=*") });
+	let fobj = (s) => {
+		let o = { val: s.toLowerCase(), m: ~~s.endsWith("=*") };
+		if (s[1] !== "-") {
+			o.orig = s;
+			o.single = true;
+		}
+		return o;
+	};
 
 	/**
 	 * Uses map sorting to reduce redundant preprocessing on array items.

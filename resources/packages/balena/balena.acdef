@@ -1,4 +1,4 @@
-# DON'T EDIT FILE —— GENERATED: Wed Sep 09 2020 17:16:07 (1599696967)
+# DON'T EDIT FILE —— GENERATED: Thu Sep 10 2020 00:12:22 (1599721942)
 
  --
 .api-key --
@@ -8,14 +8,14 @@
 .app.restart --
 .app.rm --yes?|-y?
 .apps --verbose?|-v?
-.build --buildArg=*|--application=|--arch=|--buildArg=|--ca=|--cache-from=|--cert=|--convert-eol?|--deviceType=|--docker=|--dockerfile=|--dockerHost=|--dockerPort=|--emulated?|--gitignore?|--key=|--logs?|--multi-dockerignore?|--nocache?|--noconvert-eol?|--nogitignore?|--nologs?|--noparent-check?|--projectName=|--pull?|--registry-secrets=|--squash?|--tag=|-a=|-A=|-B=|-d=|-e?|-g?|-G?|-h=|-l?|-m?|-n=|-P=|-p=|-R=|-t=
+.build --buildArg=*|--application=|--arch=|--buildArg=|--ca=|--cache-from=|--cert=|--convert-eol?|--deviceType=|--docker=|--dockerfile=|--dockerHost=|--dockerPort=|--emulated?|--gitignore?|--key=|--logs?|--multi-dockerignore?|--nocache?|--noconvert-eol?|--nogitignore?|--nologs?|--noparent-check?|--projectName=|--pull?|--registry-secrets=|--squash?|--tag=|-a=|-A=|-B=|-d=|-e?|-g?|-G?|-h=|-l?|-m?|-n=|-p=|-P=|-R=|-t=
 .config --
 .config.generate --app=|--application=|--appUpdatePollInterval=|--device=|--deviceApiKey=|--deviceType=|--generate-device-api-key?|--network=|--output=|--version=|--wifiKey=|--wifiSsid=|-a=|-d=|-k=|-o=
 .config.inject --drive=|--type=|-d=|-t=
 .config.read --drive=|--type=|-d=|-t=
 .config.reconfigure --advanced?|--drive=|--type=|-d=|-t=|-v?
 .config.write --drive=|--type=|-d=|-t=
-.deploy --buildArg=*|--build?|--buildArg=|--ca=|--cache-from=|--cert=|--convert-eol?|--docker=|--dockerfile=|--dockerHost=|--dockerPort=|--emulated?|--gitignore?|--key=|--logs?|--multi-dockerignore?|--nocache?|--noconvert-eol?|--nogitignore?|--nologs?|--nologupload?|--noparent-check?|--projectName=|--pull?|--registry-secrets=|--source=|--squash?|--tag=|-B=|-b?|-e?|-G?|-g?|-h=|-l?|-m?|-n=|-P=|-p=|-R=|-s=|-t=
+.deploy --buildArg=*|--build?|--buildArg=|--ca=|--cache-from=|--cert=|--convert-eol?|--docker=|--dockerfile=|--dockerHost=|--dockerPort=|--emulated?|--gitignore?|--key=|--logs?|--multi-dockerignore?|--nocache?|--noconvert-eol?|--nogitignore?|--nologs?|--nologupload?|--noparent-check?|--projectName=|--pull?|--registry-secrets=|--source=|--squash?|--tag=|-B=|-b?|-e?|-g?|-G?|-h=|-l?|-m?|-n=|-p=|-P=|-R=|-s=|-t=
 .device --
 .device.identify --
 .device.init --advanced?|--app=|--application=|--config=|--drive=|--os-version=|--os-version=default|--os-version=latest|--os-version=menu|--os-version=recommended|--yes?|-a=|-d=|-v?|-y?
@@ -57,8 +57,8 @@
 .os.download --output=|--version=|-o=
 .os.initialize --drive=|--type=|--yes?|-d=|-t=|-y?
 .os.versions --
-.preload --add-certificate=|--app=|--ca=|--cert=|--commit=|--docker=|--dockerHost=|--dockerPort=|--dont-check-arch?|--key=|--pin-device-to-release=|--splash-image=|-a=|-c=|-h=|-P=|-p=|-s=
-.push --convert-eol?|--detached?|--dockerfile=|--emulated?|--env=|--gitignore?|--multi-dockerignore?|--nocache?|--noconvert-eol?|--nogitignore?|--nolive?|--noparent-check?|--pull?|--registry-secrets=|--service=|--source=|--system?|-c?|-d?|-f?|-G?|-g?|-l?|-m?|-R=|-s=
+.preload --add-certificate=|--app=|--ca=|--cert=|--commit=|--docker=|--dockerHost=|--dockerPort=|--dont-check-arch?|--key=|--pin-device-to-release=|--splash-image=|-a=|-c=|-h=|-p=|-P=|-s=
+.push --convert-eol?|--detached?|--dockerfile=|--emulated?|--env=|--gitignore?|--multi-dockerignore?|--nocache?|--noconvert-eol?|--nogitignore?|--nolive?|--noparent-check?|--pull?|--registry-secrets=|--service=|--source=|--system?|-c?|-d?|-f?|-g?|-G?|-l?|-m?|-R=|-s=
 .rm --app=|--application=|--device=|--release=|-a=|-d=|-r=
 .scan --timeout=|--verbose?|-t=|-v?
 .set --app=|--application=|--device=|--release=|-a=|-d=|-r=

@@ -5,6 +5,9 @@
 .sub2 --
 .sub3 --flag3=*|--flag4=*|--fl|--fla=|--flag|--flag2=|--flag2="VA#LUE"|--flag3=|--flag4=1|--flag4=2|--flag5?|--flag=|--flag="val#ue"|--flag="VALUE"|--flag=$("cmd")|--flag=1|--flag=2|--flag=3\)|--flag=\l|--flag=va\)|--opts=|--opts="STR#ING"|--opts=$("command","p")|--opts=STRING|-F=|-X=|-X=1|-X=2
 
+ context "{version|v};{help|h};{registry|r};{socket|s}"
+.sub3 context "{flag3|F};{flag4|X}"
+
 @setting_a = 
 @setting_b = 
 @setting_c = 

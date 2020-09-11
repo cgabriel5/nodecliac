@@ -848,6 +848,10 @@ sub __lookup {
 					$cflag = $flag_value;
 				}
 
+				# Don't add multi-starred flag item as its non-starred
+				# counterpart has already been added.
+				if ($flag_multif) { next; }
+
 				push(@completions, $cflag);
 			}
 

@@ -831,6 +831,10 @@ proc fn_lookup(): string =
                     if not flag_value.startsWith(last_value) or flag_value == "": inc(i); continue
                     cflag = flag_value
 
+                # Don't add multi-starred flag item as its non-starred
+                # counterpart has already been added.
+                if flag_multif != '\0': inc(i); continue
+
                 completions.add(cflag)
 
                 inc(i)

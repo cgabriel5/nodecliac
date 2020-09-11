@@ -22,8 +22,9 @@ scope: source.acmap
 
 # -------------------------------------------------------------------- VARIABLES
 
-# variables:
+variables:
   # settings: 'compopt|filedir|disable|placehold' # Allowed settings.
+  keywords: 'context|default|filedir|exclude'
   # flag: '(--?)(([a-zA-Z][-_.:a-zA-Z0-9]*)(\?)?)?'
 
 # --------------------------------------------------------------------- CONTEXTS
@@ -192,7 +193,7 @@ contexts:
         - include: escape
 
   command:
-    - match: "^\\s*(?=(\\.?[_a-zA-Z])|\\*)"
+    - match: "^\\s*(?=(\\.?[_a-zA-Z])|\\*)(?:(?!{{keywords}}))"
       push:
         - meta_scope: entity.other.command.acmap # **italicize
         - meta_include_prototype: false
@@ -251,7 +252,7 @@ contexts:
         - include: default
 
   flag-oneliner:
-    - match: "( |(=)\\s*)(?=(--?|\"|'|default|filedir|context|exclude))"
+    - match: "( |(=)\\s*)(?=(--?|\"|'|{{keywords}}))"
       captures:
         2: keyword.operator.assignment.acmap
       push:
@@ -287,7 +288,7 @@ contexts:
         3: constant.numeric.acmap
 
   keywords:
-    - match: "(default|filedir|context|exclude)([ \t]{1,})"
+    - match: "({{keywords}})([ \t]{1,})"
       captures:
         1: keyword.control.default.acmap
     - include: command-string

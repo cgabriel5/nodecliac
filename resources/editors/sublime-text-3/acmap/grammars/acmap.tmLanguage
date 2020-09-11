@@ -686,7 +686,7 @@
 			<key>command</key>
 			<dict>
 				<key>begin</key>
-				<string>^\s*(?=(\.?[_a-zA-Z])|\*)</string>
+				<string>^\s*(?=(\.?[_a-zA-Z])|\*)(?:(?!context|default|filedir|exclude))</string>
 
 				<key>contentName</key>
 				<string>entity.other.command.acmap</string> <!-- **italicize -->
@@ -934,7 +934,7 @@
 			<key>flag-oneliner</key>
 			<dict>
 				<key>begin</key>
-				<string>( |(=)\s*)(?=(--?|"|'|default|filedir|context|exclude))</string>
+				<string>( |(=)\s*)(?=(--?|"|'|context|default|filedir|exclude))</string>
 
 				<key>beginCaptures</key>
 				<dict>
@@ -1084,7 +1084,7 @@
 				<array>
 					<dict>
 						<key>match</key>
-						<string>(default|filedir|context|exclude)([\x{0020}\t]{1,})</string> <!-- Space char = '\x{0020}' -->
+						<string>(context|default|filedir|exclude)([\x{0020}\t]{1,})</string> <!-- Space char = '\x{0020}' -->
 
 						<key>name</key>
 						<string></string>

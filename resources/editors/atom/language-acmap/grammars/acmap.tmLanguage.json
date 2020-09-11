@@ -329,7 +329,7 @@
 			}
 		},
 		"command": {
-			"begin": "^\\s*(?=(\\.?[_a-zA-Z])|\\*)",
+			"begin": "^\\s*(?=(\\.?[_a-zA-Z])|\\*)(?:(?!context|default|filedir|exclude))",
 			"contentName": "entity.other.command.acmap",
 			"patterns": [
 				{
@@ -463,7 +463,7 @@
 			]
 		},
 		"flag-oneliner": {
-			"begin": "( |(=)\\s*)(?=(--?|\"|'|default|filedir|context|exclude))",
+			"begin": "( |(=)\\s*)(?=(--?|\"|'|context|default|filedir|exclude))",
 			"beginCaptures": {
 				"2": {
 					"name": "keyword.operator.assignment.acmap"
@@ -545,7 +545,7 @@
 		"keywords": {
 			"patterns": [
 				{
-					"match": "(default|filedir|context|exclude)([\\x{0020}\\t]{1,})",
+					"match": "(context|default|filedir|exclude)([\\x{0020}\\t]{1,})",
 					"name": "",
 					"captures": {
 						"1": {

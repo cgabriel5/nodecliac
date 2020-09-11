@@ -312,6 +312,15 @@ proc p_flag*(S: State, isoneliner: string): Node =
             cN.assignment.value = N.assignment.value
             cN.alias.value = cN.name.value
             add(S, cN)
+
+            # Add context node for mutual exclusivity.
+            let xN = node(S, "FLAG")
+            xN.value.value = "\"{" & N.name.value & "|" & N.alias.value & "}\""
+            xN.keyword.value = "context"
+            xN.singleton = false
+            xN.virtual = true
+            xN.args.add(xN.value.value)
+            add(S, xN)
         add(S, N)
 
     return N

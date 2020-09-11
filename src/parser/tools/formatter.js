@@ -193,6 +193,8 @@ module.exports = (S) => {
 
 			case "FLAG":
 				{
+					if (N.virtual) { continue; }
+
 					let kval = N.keyword.value;
 					let hval = N.hyphens.value;
 					let nval = N.name.value;

@@ -53,7 +53,7 @@ type
             flags*: seq[Node]
         of flag:
             hyphens*, variable*, alias*, boolean*, multi*, keyword*: Branch
-            singleton*: bool
+            singleton*, virtual*: bool
         of option: bullet*: Branch
         of brace: brace*: Branch
     Branch* = ref object
@@ -147,6 +147,7 @@ proc node*(S: State, node: string): Node =
         result.value = Branch()
         result.keyword = Branch()
         result.singleton = false
+        result.virtual = false
         result.args = @[]
 
     of "OPTION":

@@ -162,6 +162,10 @@ proc formatter*(S: State): tuple =
                 if vval != "" and vval == "[": scopes.add(1) # Track scope.
 
             of "FLAG":
+                if N.virtual:
+                    inc(i) # + 1 to account for continue.
+                    continue
+
                 let kval = N.keyword.value
                 let hval = N.hyphens.value
                 let nval = N.name.value

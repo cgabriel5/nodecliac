@@ -188,6 +188,15 @@ proc p_command*(S: State) =
                     cN.assignment.value = fN.assignment.value
                     cN.alias.value = cN.name.value
                     N.flags.add(cN)
+
+                    # Add context node for mutual exclusivity.
+                    let xN = node(S, "FLAG")
+                    xN.value.value = "\"{" & fN.name.value & "|" & fN.alias.value & "}\""
+                    xN.keyword.value = "context"
+                    xN.singleton = false
+                    xN.virtual = true
+                    xN.args.add(xN.value.value)
+                    N.flags.add(xN)
                 N.flags.add(fN)
 
             of "eol-wsb":

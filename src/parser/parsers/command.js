@@ -226,6 +226,15 @@ module.exports = (S) => {
 						cN.assignment.value = fN.assignment.value;
 						cN.alias.value = cN.name.value;
 						N.flags.push(cN);
+
+						// Add context node for mutual exclusivity.
+						let xN = node(S, "FLAG");
+						xN.value.value = `"{${fN.name.value}|${fN.alias.value}}"`;
+						xN.keyword.value = "context";
+						xN.singleton = false;
+						xN.virtual = true;
+						xN.args.push(xN.value.value);
+						N.flags.push(xN);
 					}
 					N.flags.push(fN);
 				}

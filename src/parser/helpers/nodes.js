@@ -75,6 +75,7 @@ module.exports = (S, type) => {
 			N.value = o();
 			N.keyword = o();
 			N.singleton = false;
+			N.virtual = false;
 			N.args = [];
 
 			break;

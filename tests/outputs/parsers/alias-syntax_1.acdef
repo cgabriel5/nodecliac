@@ -1,1 +1,3 @@
  --socket=*|--global|--help?|--registry=|--registry=1|--registry=2|--registry=3|--registry=4|--socket=end|--socket=start|--trace?|--version?|-g|-h?|-r=|-r=1|-r=2|-r=3|-r=4|-s=|-s=end|-s=start|-t?|-v?
+
+ context "{version|v};{help|h};{trace|t};{global|g};{registry|r};{socket|s}"

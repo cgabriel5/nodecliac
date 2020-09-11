@@ -445,12 +445,14 @@ proc fn_tokenize() =
 
     if input == "": return
 
+    # [TODO]: Re-do spread function; needs to be simplified/robust.
+
     # Spreads input, ex: '-n5 -abc "val"' => '-n 5 -a -b -c "val"'
     #
     # @param  {string} argument - The string to spread.
     # @return {string} - The remaining argument.
     proc spread(argument: var string): string =
-        if argument.len >= 3 and argument[1] != '-':
+        if argument.len >= 3 and argument[1] != '-' and '=' notin argument:
             discard shift(argument)
             let lchar = argument[^1]
 

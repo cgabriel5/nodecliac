@@ -436,6 +436,8 @@ sub __tokenize {
 
 	if (!$input) { return; }
 
+	# [TODO]: Re-do spread function; needs to be simplified/robust.
+
 	# Spreads input, ex: '-n5 -abc "val"' => '-n 5 -a -b -c "val"'
 	#
 	# @param  {string} argument - The string to spread.
@@ -443,7 +445,8 @@ sub __tokenize {
 	sub spread {
 		my ($argument) = @_;
 
-		if (length($argument) >= 3 && substr($argument, 1, 1) ne '-') {
+		if (length($argument) >= 3 && substr($argument, 1, 1) ne '-'
+			&& $argument =~ tr/=//) {
 			substr($argument, 0, 1, "");
 			my $lchar = chop($argument);
 			$argument .= $lchar;

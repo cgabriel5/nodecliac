@@ -4,6 +4,8 @@
 # [https://github.com/balena-io/balena-cli/blob/master/balena-completion.bash]
 # [https://github.com/balena-io/balena-cli/blob/master/doc/cli.markdown#note-note]
 
+@placehold = true
+
 ## API Keys
 
 # [https://www.balena.io/docs/reference/balena-cli/]

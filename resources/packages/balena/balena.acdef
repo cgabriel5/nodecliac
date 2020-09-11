@@ -1,4 +1,4 @@
-# DON'T EDIT FILE —— GENERATED: Thu Sep 10 2020 00:12:22 (1599721942)
+# DON'T EDIT FILE —— GENERATED: Fri Sep 11 2020 00:56:25 (1599810985)
 
  --
 .api-key --
@@ -8,17 +8,17 @@
 .app.restart --
 .app.rm --yes?|-y?
 .apps --verbose?|-v?
-.build --buildArg=*|--application=|--arch=|--buildArg=|--ca=|--cache-from=|--cert=|--convert-eol?|--deviceType=|--docker=|--dockerfile=|--dockerHost=|--dockerPort=|--emulated?|--gitignore?|--key=|--logs?|--multi-dockerignore?|--nocache?|--noconvert-eol?|--nogitignore?|--nologs?|--noparent-check?|--projectName=|--pull?|--registry-secrets=|--squash?|--tag=|-a=|-A=|-B=|-d=|-e?|-g?|-G?|-h=|-l?|-m?|-n=|-p=|-P=|-R=|-t=
+.build --p#74ac16
 .config --
-.config.generate --app=|--application=|--appUpdatePollInterval=|--device=|--deviceApiKey=|--deviceType=|--generate-device-api-key?|--network=|--output=|--version=|--wifiKey=|--wifiSsid=|-a=|-d=|-k=|-o=
+.config.generate --p#1db574
 .config.inject --drive=|--type=|-d=|-t=
 .config.read --drive=|--type=|-d=|-t=
 .config.reconfigure --advanced?|--drive=|--type=|-d=|-t=|-v?
 .config.write --drive=|--type=|-d=|-t=
-.deploy --buildArg=*|--build?|--buildArg=|--ca=|--cache-from=|--cert=|--convert-eol?|--docker=|--dockerfile=|--dockerHost=|--dockerPort=|--emulated?|--gitignore?|--key=|--logs?|--multi-dockerignore?|--nocache?|--noconvert-eol?|--nogitignore?|--nologs?|--nologupload?|--noparent-check?|--projectName=|--pull?|--registry-secrets=|--source=|--squash?|--tag=|-B=|-b?|-e?|-g?|-G?|-h=|-l?|-m?|-n=|-p=|-P=|-R=|-s=|-t=
+.deploy --p#d3187b
 .device --
 .device.identify --
-.device.init --advanced?|--app=|--application=|--config=|--drive=|--os-version=|--os-version=default|--os-version=latest|--os-version=menu|--os-version=recommended|--yes?|-a=|-d=|-v?|-y?
+.device.init --p#de8f88
 .device.move --app=|--application=|-a=
 .device.os-update --version=|--yes?|-y?
 .device.public-url --disable?|--enable?|--status?
@@ -53,12 +53,12 @@
 .note --dev=|--device=|-d=
 .os --
 .os.build-config --advanced?|--output=|-o=|-v?
-.os.configure --advanced?|--app=|--application=|--config-app-update-poll-interval=|--config-network=|--config-wifi-key=|--config-wifi-ssid=|--config=|--device-api-key=|--device-type=|--device=|--initial-device-name=|--system-connection=|--version=|-a=|-c=|-d=|-k=|-v?
+.os.configure --p#a6439e
 .os.download --output=|--version=|-o=
 .os.initialize --drive=|--type=|--yes?|-d=|-t=|-y?
 .os.versions --
-.preload --add-certificate=|--app=|--ca=|--cert=|--commit=|--docker=|--dockerHost=|--dockerPort=|--dont-check-arch?|--key=|--pin-device-to-release=|--splash-image=|-a=|-c=|-h=|-p=|-P=|-s=
-.push --convert-eol?|--detached?|--dockerfile=|--emulated?|--env=|--gitignore?|--multi-dockerignore?|--nocache?|--noconvert-eol?|--nogitignore?|--nolive?|--noparent-check?|--pull?|--registry-secrets=|--service=|--source=|--system?|-c?|-d?|-f?|-g?|-G?|-l?|-m?|-R=|-s=
+.preload --p#343878
+.push --p#2a9fa4
 .rm --app=|--application=|--device=|--release=|-a=|-d=|-r=
 .scan --timeout=|--verbose?|-t=|-v?
 .set --app=|--application=|--device=|--release=|-a=|-d=|-r=
@@ -70,3 +70,47 @@
 .util.available-drives --
 .version --all?|--json?|-a?|-j?
 .whoami --
+
+.app.create context "{type|t}"
+.app.rm context "{yes|y}"
+.apps context "{verbose|v}"
+.build context "{arch|A};{deviceType|d};{application|a};{emulated|e};{gitignore|g};{multi-dockerignore|m};{nogitignore|G};{registry-secrets|R};{convert-eol|l};{projectName|n};{tag|t};{buildArg|B};{docker|P};{dockerHost|h};{dockerPort|p}"
+.config.generate context "{application|a};{device|d};{deviceApiKey|k};{output|o}"
+.config.inject context "{type|t};{drive|d}"
+.config.read context "{type|t};{drive|d}"
+.config.reconfigure context "{type|t};{drive|d};{advanced|v}"
+.config.write context "{type|t};{drive|d}"
+.deploy context "{source|s};{build|b};{emulated|e};{gitignore|g};{multi-dockerignore|m};{nogitignore|G};{registry-secrets|R};{convert-eol|l};{projectName|n};{tag|t};{buildArg|B};{docker|P};{dockerHost|h};{dockerPort|p}"
+.device.init context "{application|a};{yes|y};{advanced|v};{drive|d}"
+.device.move context "{application|a}"
+.device.os-update context "{yes|y}"
+.device.reboot context "{force|f}"
+.device.register context "{uuid|u}"
+.device.rm context "{yes|y}"
+.device.shutdown context "{force|f}"
+.devices context "{application|a};{json|j}"
+.devices.supported context "{json|j};{verbose|v}"
+.env.add context "{application|a};{device|d};{quiet|q};{service|s}"
+.env.rename context "{config|c};{device|d};{service|s}"
+.env.rm context "{config|c};{device|d};{service|s};{yes|y}"
+.envs context "{application|a};{config|c};{device|d};{json|j};{verbose|v};{service|s}"
+.help context "{verbose|v}"
+.join context "{application|a};{pollInterval|i}"
+.key.rm context "{yes|y}"
+.local.flash context "{drive|d};{yes|y}"
+.login context "{web|w};{token|t};{credentials|c};{email|e};{user|u};{password|p};{port|P}"
+.logs context "{tail|t};{service|s};{system|S}"
+.note context "{device|d}"
+.os.build-config context "{advanced|v};{output|o}"
+.os.configure context "{advanced|v};{application|a};{device|d};{device-api-key|k};{system-connection|c}"
+.os.download context "{output|o}"
+.os.initialize context "{type|t};{drive|d};{yes|y}"
+.preload context "{app|a};{commit|c};{splash-image|s};{pin-device-to-release|p};{docker|P};{dockerHost|h}"
+.push context "{source|s};{emulated|f};{nocache|c};{registry-secrets|R};{detached|d};{convert-eol|l};{multi-dockerignore|m};{nogitignore|G};{gitignore|g}"
+.rm context "{application|a};{device|d};{release|r}"
+.scan context "{verbose|v};{timeout|t}"
+.set context "{application|a};{device|d};{release|r}"
+.ssh context "{port|p};{tty|t};{verbose|v}"
+.tags context "{application|a};{device|d};{release|r}"
+.tunnel context "{port|p}"
+.version context "{all|a};{json|j}"

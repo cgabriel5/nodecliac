@@ -600,7 +600,7 @@ proc fn_lookup(): string =
                     if ctx[0] == '{' and ctx[^1] == '}': # Mutual exclusion.
                         ctx = ctx.strip(chars={'{', '}'})
                         let flags = map(ctx.split('|'), proc (x: string): string =
-                            if x.len == 1: "-" else: "--" & x
+                            (if x.len == 1: "-" else: "--") & x
                         )
                         var exclude = ""
                         for flag in flags:

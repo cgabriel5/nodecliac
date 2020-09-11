@@ -42,8 +42,16 @@ contexts:
 # ------------------------------------------------------------------- PRIMITIVES
 
   comment:
-    #- match: "^\\s*((\\#).*)" # Single line comment.
-    - match: "((\\#).*)" # Single line comment.
+    # Single hyphen comment.
+    - match: "((##)(\\s*(.*)))"
+      # scope: comment.line.number-sign-double.acmap
+      captures:
+        1: comment.line.number-sign-double.acmap
+        2: punctuation.definition.comment.line.number-sign.acmap
+        3: comment.line.body.number-sign-double.acmap
+    # Double hyphen comment.
+    #- match: "^\\s*((\\#).*)"
+    - match: "((#).*)"
       captures:
         1: comment.line.number-sign.acmap
         2: punctuation.definition.comment.line.number-sign.acmap

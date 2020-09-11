@@ -110,7 +110,36 @@
 				<array>
 					<dict>
 						<key>match</key>
-						<string>((\#).*)</string> <!-- Single line comment. -->
+						<string>((##)(\s*(.*)))</string> <!-- Double hyphen comment. -->
+
+						<!-- <key>name</key> -->
+						<!-- <string></string> -->
+
+						<key>captures</key>
+						<dict>
+							<key>1</key>
+							<dict>
+								<key>name</key>
+								<string>comment.line.number-sign-double.acmap</string>
+							</dict>
+
+							<key>2</key>
+							<dict>
+								<key>name</key>
+								<string>punctuation.definition.comment.line.number-sign.acmap</string>
+							</dict>
+
+							<key>3</key>
+							<dict>
+								<key>name</key>
+								<string>comment.line.body.number-sign-double.acmap</string>
+							</dict>
+						</dict>
+					</dict>
+
+					<dict>
+						<key>match</key>
+						<string>((#).*)</string> <!-- Single hyphen comment. -->
 
 						<!-- <key>name</key> -->
 						<!-- <string></string> -->
@@ -859,6 +888,11 @@
 
 						<key>patterns</key>
 						<array>
+							<dict>
+								<key>include</key>
+								<string>#comment</string>
+							</dict>
+
 							<!-- <dict> -->
 								<!-- <key>include</key> -->
 								<!-- <string>#delimiter</string> -->

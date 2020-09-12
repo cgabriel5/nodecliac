@@ -44,7 +44,7 @@ module.exports = async (args) => {
 	// Remove nodecliac global module from npm/yarn.
 	// $ yarn global bin/ $ yarn global list / $ npm list --silent -q -g --depth=0
 	shell.exec(
-		'[ -n "$(command -v yarn)" ] && "$(command -v npm)" global remove nodecliac > /dev/null 2>&1; ' +
+		'[ -n "$(command -v yarn)" ] && "$(command -v yarn)" global remove nodecliac > /dev/null 2>&1; ' +
 			'[ -n "$(command -v npm)" ] && sudo "$(command -v npm)" uninstall -g nodecliac > /dev/null 2>&1',
 		{ silent: true },
 		(/*code, stdout, stderr*/) => {

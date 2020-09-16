@@ -6,7 +6,7 @@ let app = newWebView(currentHtmlPath("views/index.html"),
     width=1000, height=800,
     minWidth=600, minHeight=600,
     resizable=true,
-    cssPath=currentHtmlPath("css/empty.css")
+    cssPath=currentHtmlPath("css/empty.css") # [Bug] Line doesn't work on macOS?
 )
 
 template addHtmlS(_: Webview; id, html: string, position = beforeEnd): string =

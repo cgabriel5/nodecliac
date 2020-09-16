@@ -66,7 +66,12 @@ proc openBrowserURL() =
     openDefaultBrowser("https://github.com/cgabriel5/nodecliac")
 
 proc showAboutWindow() =
-    let about = newWebView(currentHtmlPath("views/about.html"), title="nodecliac GUI", width=600, height=350, resizable=false, cssPath=currentHtmlPath("css/empty.css"))
+    let about = newWebView(currentHtmlPath("views/about.html"),
+        title="nodecliac GUI",
+        width=600, height=350,
+        resizable=false,
+        cssPath=currentHtmlPath("css/about.css")
+    )
     about.run()
     about.exit()
 

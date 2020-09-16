@@ -13,6 +13,6 @@ nim compile \
 --passL:"-s" \
 --passC:"-flto -ffast-math -march=native -mtune=native -fsingle-precision-constant" \
 -d:noSignalHandler \
-ngui.nim
+main.nim
 
 # -d:nimDebugDlOpen \

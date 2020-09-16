@@ -1,10 +1,20 @@
 import os, algorithm, browsers, strutils, webgui
 
-# macos dimensions width: 725, height: 500
+when defined(linux):
+    const width = 1000
+    const height = 800
+    const minWidth = 600
+    const minHeight = 600
+elif defined(macosx):
+    const width = 725
+    const height = 500
+    const minWidth = 300
+    const minHeight = 350
+
 let app = newWebView(currentHtmlPath("views/index.html"),
     debug=true, title="nodecliac GUI",
-    width=1000, height=800,
-    minWidth=600, minHeight=600,
+    width=width, height=height,
+    minWidth=minWidth, minHeight=minHeight,
     resizable=true,
     cssPath=currentHtmlPath("css/empty.css") # [Bug] Line doesn't work on macOS?
 )

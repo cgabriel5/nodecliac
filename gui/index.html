@@ -1,0 +1,182 @@
+<!-- <!DOCTYPE html> -->
+<html lang="en">
+	<head id="head">
+		<title>nodecliac</title>
+		<meta charset="utf-8" />
+		<meta name="description" content="nodecliac GUI" />
+		<meta http-equiv="x-ua-compatible" content="ie=edge" />
+		<meta
+			name="viewport"
+			content="width=device-width,initial-scale=1,shrink-to-fit=no"
+		/>
+		<link href="app.css" rel="stylesheet" />
+		<script src="interaction.js"></script>
+		<script src="funnel.js"></script>
+		<script src="app.js"></script>
+	</head>
+
+	<!-- <body class="noselect" onclick="api.clickBody(this)"> -->
+	<body class="noselect">
+		<!-- <button onclick="api.callback()"> Run JavaScript </button> -->
+		<!-- <button onclick="api.callback()"> Run Command </button> -->
+
+		<div class="wrapper">
+			<div class="status">
+				<div class="status-left">
+					<div><span class="bold">nodecliac</span> v0.0.1</div>
+					<div class="button-light update-btn">Update nodecliac</div>
+				</div>
+
+				<div class="status-right">
+					<div>
+						<span
+							><a
+								id="link_github_repo"
+								href="https://github.com/cgabriel5/nodecliac"
+								target="_blank"
+								class="link"
+								onclick="api.openURL()"
+								>GitHub</a
+							></span
+						>
+					</div>
+				</div>
+			</div>
+
+			<div class="main">
+				<div class="sidebar">
+					<div class="header">
+						<div class="arrow-cont">
+							<div class="arrow-down"></div>
+						</div>
+						<div>Packages</div>
+					</div>
+					<div class="menu">
+						<div class="menu-item">
+							<div class="menu-title">
+								<div class="menu-icon"></div>
+								<div>Installed</div>
+							</div>
+							<div class="menu-right">14</div>
+						</div>
+						<div class="menu-item">
+							<div class="menu-title">
+								<div class="menu-icon"></div>
+								<div>Outdated</div>
+							</div>
+							<div class="menu-right">1</div>
+						</div>
+						<div class="menu-item">
+							<div class="menu-title">
+								<div class="menu-icon"></div>
+								<div>Available</div>
+							</div>
+							<div class="menu-right">1230</div>
+						</div>
+					</div>
+
+					<div class="header">
+						<div class="arrow-cont">
+							<div class="arrow-right"></div>
+						</div>
+						<div>Create Package</div>
+					</div>
+
+					<div class="header">
+						<div class="arrow-cont">
+							<div class="arrow-right"></div>
+						</div>
+						<div>Settings</div>
+					</div>
+
+					<div class="header">
+						<div class="arrow-cont">
+							<div class="arrow-right"></div>
+						</div>
+						<div>Update</div>
+					</div>
+
+					<div class="header" id="about" onclick="api.showAbout()">
+						<div class="arrow-cont noselect opa0">
+							<div class="arrow-right"></div>
+						</div>
+						<div>About</div>
+					</div>
+				</div>
+
+				<div class="content">
+					<div id="view" class="view">
+						<div class="vi-row-header">
+							<div class="">
+								<div class="vi-label-header">Name?</div>
+							</div>
+							<div class="">
+								<div class=""><input class="search-input"></div>
+							</div>
+						</div>
+						<div class="vi-row">
+							<div class="vi-label">balena</div>
+						</div>
+						<div class="vi-row">
+							<div class="vi-label">nodecliac</div>
+						</div>
+						<div class="vi-row">
+							<div class="vi-label">npm</div>
+						</div>
+					</div>
+
+					<div class="pkg-info">
+						<div class="pi-row">
+							<div class="pi-label-header">
+								Completion Package Information
+							</div>
+						</div>
+						<div class="pi-row">
+							<div class="pi-label">Name:</div>
+							<div class="pi-value">--</div>
+						</div>
+						<div class="pi-row">
+							<div class="pi-label">Description:</div>
+							<div class="pi-value">--</div>
+						</div>
+						<div class="pi-row">
+							<div class="pi-label">Author:</div>
+							<div class="pi-value">--</div>
+						</div>
+						<div class="pi-row">
+							<div class="pi-label">Repository:</div>
+							<div class="pi-value">--</div>
+						</div>
+						<div class="pi-row">
+							<div class="pi-label">Version:</div>
+							<div class="pi-value">--</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- <div style="display: none;">
+	<style>button{width: 220px;}</style>
+	<h1 style="text-align: center; margin: 0;">nodecliac</h1>
+	<fieldset style="text-align: center;">
+	  <legend>Commands</legend>
+	  <button onclick="api.cnShow()">Show selected</button>
+	  <button onclick="api.cnListInstalled()">List Installed</button>
+	  <button onclick="api.cnListAll()">List All</button>
+	  <br>
+	  <button onclick="api.cnSelect()">Choose</button>
+	  <button onclick="api.cnUpdate()">Update</button>
+	  <button onclick="api.cnInstall()">Install</button>
+	  <button onclick="api.cnRegistry()">Registry</button>
+	  <button onclick="api.cnClear()">Clear</button>
+	</fieldset>
+	<br>
+	<fieldset>
+	  <legend>Results</legend>
+	  <div id="versions"></div>
+	</fieldset>
+</div>
+ -->
+	</body>
+</html>

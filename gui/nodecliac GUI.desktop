@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Terminal=false
+Exec=/opt/lampp/htdocs/projects/nodecliac/gui/ngui
+Name=nodecliac
+Comment=nodecliac
+Icon=/opt/lampp/htdocs/projects/nodecliac/gui/LOGO2.png
+GenericName[en_US]=GUI application for nodecliac
+Name[en_US]=nodecliac GUI

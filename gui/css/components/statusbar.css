@@ -1,0 +1,17 @@
+.status {
+	/* Ensure status bar is above sidebar/content views. */
+	order: 1;
+	z-index: 9999;
+
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: space-between;
+	padding: 7px 10px;
+	border-top: 2px solid rgb(237, 236, 238);
+	background: #f7f6f8;
+}
+
+.status .left {
+	display: flex;
+	flex-flow: row nowrap;
+}

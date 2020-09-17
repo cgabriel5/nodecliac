@@ -31,21 +31,24 @@ proc innerHTML(_: Webview; id: string, html=""): string =
 template clearHTML(id: string) =
   app.js(innerHTML(app, id, ""))
 
-
 proc getPackages() =
     let hdir = os.getEnv("HOME")
     var names: seq[string] = @[]
 
     var html = """
-<div class="vi-row-header">
-    <div style="padding:5px 0;">
-        <div class="vi-label-header">Name</div>
+<div class="header">
+    <div class="header-wrapper">
+        <div class="left">
+            <div class="label">Name</div>
+        </div>
+        <div class="right">
+            <div class="input-cont">
+                <input id="INPUTBOX" class="search-input" placeholder="Search...">
+            </div>
+        </div>
     </div>
-    <div class="">
-        <div class="input-cont"><input id="INPUTBOX" class="search-input" placeholder="Search..."></div>
-    </div>
-</div>
-    """
+    <div class="pkg-list">
+"""
 
     for kind, path in walkDir(hdir & "/.nodecliac/registry"):
         let parts = splitPath(path)
@@ -53,31 +56,39 @@ proc getPackages() =
 
     names.sort()
     for n in names:
-        html &= "<div class=\"vi-row\" id=\"vrow-" & n &  "\">"
-        html &= "<div class=\"vi-label\">" & n & "</div>"
+        html &= "<div class=\"row\" id=\"vrow-" & n &  "\">"
+        html &= "<div class=\"label\">" & n & "</div>"
         html &= "</div>"
+    html &= "</div></div>"
+
     app.js(innerHTML(app, "view"))
     app.js(app.addHtml("#view", html, position=afterbegin))
 
+
 getPackages()
 
-proc openBrowserURL() =
-    # [https://github.com/webview/webview/issues/113]
-    openDefaultBrowser("https://github.com/cgabriel5/nodecliac")
-
-proc showAboutWindow() =
-    let about = newWebView(currentHtmlPath("views/about.html"),
-        title="nodecliac GUI",
-        width=600, height=350,
-        resizable=false,
-        cssPath=currentHtmlPath("css/about.css")
-    )
-    about.run()
-    about.exit()
-
 app.bindProcs("api"):
-    proc openURL() = openBrowserURL()
-    proc showAbout() = showAboutWindow()
+    # Open provided url in user's browser.
+    #
+    # @param  {string} url - The URL to open.
+    # @return {nil} - Nothing is returned.
+    proc open(url: string) =
+        # [https://github.com/webview/webview/issues/113]
+        openDefaultBrowser(url)
+
+    # Create a smaller window to show application about info.
+    #
+    # @return {nil} - Nothing is returned.
+    proc about() =
+        let about = newWebView(currentHtmlPath("views/about.html"),
+            title="nodecliac GUI",
+            width=600, height=350,
+            resizable=false,
+            cssPath=currentHtmlPath("css/about.css")
+        )
+        about.run()
+        about.exit()
+
 
 # import libfswatch
 # import libfswatch/fswatch

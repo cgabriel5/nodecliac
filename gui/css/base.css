@@ -1,0 +1,35 @@
+body {
+	font-size: 20px;
+	font-family: Roboto, -apple-system, "SFNS Display";
+
+	/* macOS Zoom level */
+	/* [https://stackoverflow.com/a/26866503] */
+	/* Sniff: [https://stackoverflow.com/a/4702584] */
+	zoom: 100%;
+}
+
+.app {
+	display: flex;
+	flex-flow: column nowrap;
+	background: #f7f6f8;
+	width: 100%;
+	min-width: 700px;
+	height: 100%;
+}
+
+.main {
+	display: flex;
+	flex-flow: row nowrap;
+	width: 100%;
+	/*height: calc(100% - 46px);*/
+	height: 100%;
+}
+
+@media (max-width: 700px) {
+	.app {
+		min-width: 100%;
+	}
+	.sidebar {
+		display: none;
+	}
+}

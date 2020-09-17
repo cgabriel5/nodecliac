@@ -1,0 +1,20 @@
+.button-light {
+	height: 30px;
+	padding: 2px 10px;
+	font-size: 17px;
+	border-radius: 6px;
+	background: #ffffff;
+	font-weight: bold;
+	cursor: pointer;
+	border: 1px solid rgba(27, 31, 35, 0.15);
+	box-shadow: 0 1px 0px 0px rgba(0, 0, 0, 0.04);
+}
+
+.button-light:active {
+	background: #f3f3f3;
+	box-shadow: 0 0px 0px 0px rgba(0, 0, 0, 0.04);
+}
+
+.update-btn {
+	margin-left: 10px;
+}

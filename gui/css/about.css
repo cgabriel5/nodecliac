@@ -1,31 +1,9 @@
 @charset "UTF-8";
 @import "../css/sanitize.css";
+@import "../css/overrides.css";
+@import "../css/classes.css";
 
-body {
-	font-size: 20px;
-	font-family: Roboto, -apple-system, "SFNS Display";
-	/*min-width: 500px;*/
-	/*min-height: 400px;*/
-
-	/* macOS Zoom level */
-	/* [https://stackoverflow.com/a/26866503] */
-	/*zoom: 65%;*/
-	/* Sniff: [https://stackoverflow.com/a/4702584] */
-	zoom: 100%;
-	background: #ffffff;
-}
-
-.noselect {
-	-webkit-touch-callout: none; /* iOS Safari */
-	-webkit-user-select: none; /* Safari */
-	-khtml-user-select: none; /* Konqueror HTML */
-	-moz-user-select: none; /* Old versions of Firefox */
-	-ms-user-select: none; /* Internet Explorer/Edge */
-	user-select: none; /* Non-prefixed version, currently
-                                  supported by Chrome, Edge, Opera and Firefox */
-}
-
-.wrapper {
+.app {
 	display: flex;
 	flex-flow: column nowrap;
 	justify-content: center;

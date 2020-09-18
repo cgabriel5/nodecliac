@@ -39,80 +39,111 @@
 
 			<div id="main" class="main">
 				<div id="sidebar" class="sidebar">
-					<div class="row">
-						<div class="icon-cont">
-							<div class="arrow-down"></div>
+					<div class="sb-row">
+						<div class="sb-row-icon-cont">
+							<div class="sb-row-icon arrow-down"></div>
 						</div>
-						<div>Packages</div>
+						<div class="sb-label">Packages</div>
 					</div>
 
-					<div class="menu">
-						<div class="item">
-							<div class="title">
-								<div class="icon"></div>
-								<div>Installed</div>
+					<div class="entries">
+						<div class="entry-item">
+							<div class="left">
+								<div class="entry-icon"></div>
+								<div class="entry-label">Installed</div>
 							</div>
-							<div class="right">14</div>
+							<div class="right">
+								<div class="entry-count">14</div>
+							</div>
 						</div>
-						<div class="item">
-							<div class="title">
-								<div class="icon"></div>
-								<div>Outdated</div>
+						<div class="entry-item">
+							<div class="left">
+								<div class="entry-icon"></div>
+								<div class="entry-label">Outdated</div>
 							</div>
-							<div class="right">1</div>
+							<div class="right">
+								<div class="entry-count">1</div>
+							</div>
 						</div>
-						<div class="item">
-							<div class="title">
-								<div class="icon"></div>
-								<div>Available</div>
+						<div class="entry-item">
+							<div class="left">
+								<div class="entry-icon"></div>
+								<div class="entry-label">Available</div>
 							</div>
-							<div class="right">1230</div>
+							<div class="right">
+								<div class="entry-count">1230</div>
+							</div>
 						</div>
 					</div>
 
-					<div class="row">
-						<div class="icon-cont">
-							<div class="arrow-right"></div>
+					<div class="sb-row">
+						<div class="sb-row-icon-cont">
+							<div class="sb-row-icon arrow-right"></div>
 						</div>
-						<div>Settings</div>
+						<div class="sb-label">Settings</div>
 					</div>
 
-					<div class="row" id="about" onclick="api.about()">
-						<div class="icon-cont noselect opa0">
-							<div class="arrow-right"></div>
+					<div class="sb-row" id="about" onclick="api.about()">
+						<div class="sb-row-icon-cont noselect opa0">
+							<div class="sb-row-icon arrow-right"></div>
 						</div>
-						<div>About</div>
+						<div class="sb-label">About</div>
 					</div>
 				</div>
 
 				<div id="content" class="content">
-					<div id="view" class="view"></div>
-
-					<div class="pkg-info">
-						<div class="row">
-							<div class="header">
-								Completion Package Information
+					<div id="packages-cont" class="packages-cont">
+						<div id="pkg-list" class="pkg-list">
+							<div>
+								<div class="pkg-list-header-cont">
+									<div class="left">
+										<div class="pkg-list-header-label">
+											Name
+										</div>
+									</div>
+									<div class="right">
+										<div class="pkg-header-input-cont">
+											<input
+												id="pkg-header-input"
+												class="pkg-header-input"
+												placeholder="Search..."
+											/>
+										</div>
+									</div>
+								</div>
+								<div
+									id="pkg-list-entries"
+									class="pkg-list-entries"
+								></div>
 							</div>
 						</div>
-						<div class="row">
-							<div class="label">Name:</div>
-							<div class="value">--</div>
-						</div>
-						<div class="row">
-							<div class="label">Description:</div>
-							<div class="value">--</div>
-						</div>
-						<div class="row">
-							<div class="label">Author:</div>
-							<div class="value">--</div>
-						</div>
-						<div class="row">
-							<div class="label">Repository:</div>
-							<div class="value">--</div>
-						</div>
-						<div class="row">
-							<div class="label">Version:</div>
-							<div class="value">--</div>
+
+						<div class="pkg-info">
+							<div class="pkg-info-row">
+								<div class="pkg-info-header">
+									Completion Package Information
+								</div>
+							</div>
+							<div class="pkg-info-row">
+								<div class="pkg-info-label">Name:</div>
+								<div class="pkg-info-value">--</div>
+							</div>
+							<div class="pkg-info-row">
+								<div class="pkg-info-label">Description:</div>
+								<div class="pkg-info-value">--</div>
+							</div>
+							<div class="pkg-info-row">
+								<div class="pkg-info-label">Author:</div>
+								<div class="pkg-info-value">--</div>
+							</div>
+							<div class="pkg-info-row">
+								<div class="pkg-info-label">Repository:</div>
+								<div class="pkg-info-value">--</div>
+							</div>
+							<div class="pkg-info-row">
+								<div class="pkg-info-label">Version:</div>
+								<div class="pkg-info-value">--</div>
+							</div>
 						</div>
 					</div>
 				</div>

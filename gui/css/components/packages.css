@@ -2,6 +2,11 @@
 /* [https://uxdesign.cc/position-stuck-96c9f55d9526] */
 
 .content {
+	width: 100%;
+	height: 100%;
+}
+
+.packages-cont {
 	display: flex;
 	flex-flow: column nowrap;
 	justify-content: space-between;
@@ -10,7 +15,7 @@
 	height: 100%;
 }
 
-.view {
+.pkg-list {
 	width: 100%;
 	height: 100%;
 	position: relative;
@@ -18,7 +23,8 @@
 	overscroll-behavior: contain;
 }
 
-.viewOFF::before {
+/* Improve this as it hinders window resize performance. */
+.pkg-list--disable::before {
 	width: 100%;
 	height: 100%;
 
@@ -28,7 +34,7 @@
 	background-color: #ffffff;
 	background-size: 25%;
 	/* [https://stackoverflow.com/a/53068329] */
-	/*background-blend-mode: luminosity;*/
+	background-blend-mode: luminosity;
 
 	/* [https://coder-coder.com/background-image-opacity/] */
 	content: "";
@@ -36,25 +42,13 @@
 	opacity: 0.035;
 }
 
-/* [https://davidwalsh.name/css-tables-css3-alternate-row-colors] */
-.view .row:nth-child(odd) {
-	background-color: rgba(255, 255, 255, 0.05);
-}
-.view .row:nth-child(even) {
-	background-color: rgba(0, 0, 0, 0.03);
-}
-
-.pkg-list {
-	/*background: red;*/
+.pkg-list-entries {
 	height: auto;
 	bottom: 0;
 	overflow: auto;
-	/*display: flex;*/
-	/*flex: stretch;*/
-	/*position: relative;*/
 }
 
-.view .row {
+.pkg-entry {
 	display: flex;
 	flex-flow: row nowrap;
 	padding: 4px 20px;
@@ -62,58 +56,45 @@
 	border-bottom: 1px solid transparent;
 }
 
-.row-selected {
+/* [https://davidwalsh.name/css-tables-css3-alternate-row-colors] */
+.pkg-entry:nth-child(odd) {
+	background-color: rgba(255, 255, 255, 0.05);
+}
+.pkg-entry:nth-child(even) {
+	background-color: rgba(0, 0, 0, 0.03);
+}
+
+.pkg-entry-selected {
 	background: rgb(16, 103, 222) !important;
 	color: white;
 	border-bottom: 1px solid white;
 }
 
-/*.view .row .label {}*/
-
-.view .header {
-	position: -webkit-sticky;
-	position: sticky !important;
-	top: 0;
-	/*z-index: 1;*/
-
-	display: flex;
-	flex-flow: column nowrap;
-	/*justify-content: space-between;*/
-
-	/*background-color: rgba(247, 246, 248, 1);*/
-
-	color: #444;
-	/*font-weight: bold;*/
-	/*border-bottom: 2px solid #ececec;*/
-	/*padding: 4px 20px;*/
-	width: 100%;
-}
-
-.view .header .left {
-	padding: 5px 0;
-}
-
-.view .header-wrapper {
+.pkg-list-header-cont {
 	position: -webkit-sticky;
 	position: sticky !important;
 	top: 0;
 	display: flex;
 	flex-flow: row nowrap;
 	justify-content: space-between;
-	/*background: white;*/
 	background-color: rgba(247, 246, 248, 1);
 	padding: 4px 20px;
 	border-bottom: 2px solid #ececec;
 }
 
-.input-cont {
+.pkg-list-header-label {
+	font-weight: bold;
+	padding: 5px;
+}
+
+.pkg-header-input-cont {
 	border: 1px solid rgba(0, 0, 0, 0.2);
 	border-radius: 6px;
 	background: rgba(0, 0, 0, 0.01);
 	transition: width 0.25s cubic-bezier(0.11, 0.38, 0.01, 0.99);
 	background: white;
 }
-.search-input {
+.pkg-header-input {
 	outline: none;
 	padding: 0px;
 	width: 200px;
@@ -126,12 +107,12 @@
 	transition: width 0.25s cubic-bezier(0.11, 0.38, 0.01, 0.99);
 }
 
-.search-input:active,
-.search-input:focus {
+.pkg-header-input:active,
+.pkg-header-input:focus {
 	width: 300px;
 	transition: width 0.2s cubic-bezier(0.11, 0.38, 0.01, 0.99);
 }
-.input-cont:focus-within {
+.pkg-header-input-cont:focus-within {
 	background: white;
 	box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5);
 	transition: width 0.2s cubic-bezier(0.11, 0.38, 0.01, 0.99);
@@ -148,20 +129,21 @@
 	padding: 10px;
 }
 
-.pkg-info .row {
+.pkg-info-row {
 	display: flex;
 	flex-flow: row nowrap;
 }
 
-.pkg-info .header {
+.pkg-info-header {
 	font-weight: bold;
 	color: #707982;
 }
 
-.pkg-info .label {
+.pkg-info-label {
 	color: #999999;
 }
 
-.pkg-info .value {
-	color: red;
+.pkg-info-value {
+	margin-left: 15px;
+	color: #999999;
 }

@@ -1,6 +1,6 @@
 .button-light {
-	height: 30px;
-	padding: 2px 10px;
+	height: 32px;
+	padding: 2px 20px;
 	font-size: 17px;
 	border-radius: 6px;
 	background: #ffffff;
@@ -17,4 +17,5 @@
 
 .update-btn {
 	margin-left: 10px;
+	margin-top: -3px;
 }

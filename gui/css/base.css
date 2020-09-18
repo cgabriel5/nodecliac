@@ -1,13 +1,3 @@
-body {
-	font-size: 20px;
-	font-family: Roboto, -apple-system, "SFNS Display";
-
-	/* macOS Zoom level */
-	/* [https://stackoverflow.com/a/26866503] */
-	/* Sniff: [https://stackoverflow.com/a/4702584] */
-	zoom: 100%;
-}
-
 .app {
 	display: flex;
 	flex-flow: column nowrap;

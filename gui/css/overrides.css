@@ -1,3 +1,13 @@
+body {
+	font-size: 20px;
+	font-family: Roboto, -apple-system, "SFNS Display";
+}
+
+/* [https://stackoverflow.com/a/26866503] */
+.macosx-zoom {
+	zoom: 65%;
+}
+
 /* Selection overrides. */
 
 ::selection {

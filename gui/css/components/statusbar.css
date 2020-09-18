@@ -10,8 +10,3 @@
 	border-top: 2px solid rgb(237, 236, 238);
 	background: #f7f6f8;
 }
-
-.status .left {
-	display: flex;
-	flex-flow: row nowrap;
-}

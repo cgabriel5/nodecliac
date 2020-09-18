@@ -1,3 +1,17 @@
+/* FlexBox helpers */
+
+.left {
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: start;
+}
+
+.right {
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: end;
+}
+
 .noselect {
 	-webkit-touch-callout: none; /* iOS Safari */
 	-webkit-user-select: none; /* Safari */

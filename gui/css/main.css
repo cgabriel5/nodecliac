@@ -1,9 +1,17 @@
 @charset "UTF-8";
+@import "../css/fonts.css";
 @import "../css/sanitize.css";
 @import "../css/overrides.css";
 @import "../css/base.css";
-@import "../css/classes.css";
-@import "../css/interfaces.css";
 @import "../css/components/sidebar.css";
 @import "../css/components/packages.css";
 @import "../css/components/statusbar.css";
+@import "../css/components/settings.css";
+@import "../css/components/about.css";
+@import "../css/classes.css";
+@import "../css/interfaces.css";
+
+/* Device Pixel Ratio */
+/* [https://stackoverflow.com/questions/28374359/media-queries-for-2x-3x-and-4x-images] */
+/* [https://developer.mozilla.org/en-US/docs/Web/CSS/@media/-webkit-device-pixel-ratio] */
+/* [https://developer.mozilla.org/en-US/docs/Web/CSS/@supports] */

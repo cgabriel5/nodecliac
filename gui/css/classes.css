@@ -4,12 +4,21 @@
 	display: flex;
 	flex-flow: row nowrap;
 	justify-content: start;
+	align-self: center;
 }
 
 .right {
 	display: flex;
 	flex-flow: row nowrap;
 	justify-content: end;
+	align-self: center;
+}
+
+.center {
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: center;
+	align-items: center;
 }
 
 .noselect {
@@ -19,6 +28,16 @@
 	-moz-user-select: none; /* Old versions of Firefox */
 	-ms-user-select: none; /* Internet Explorer/Edge */
 	user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+}
+
+.select {
+	-webkit-touch-callout: auto; /* iOS Safari */
+	-webkit-user-select: auto; /* Safari */
+	-khtml-user-select: auto; /* Konqueror HTML */
+	-moz-user-select: auto; /* Old versions of Firefox */
+	-ms-user-select: auto; /* Internet Explorer/Edge */
+	user-select: auto; /* Non-prefixed version, currently
                                   supported by Chrome, Edge, Opera and Firefox */
 }
 

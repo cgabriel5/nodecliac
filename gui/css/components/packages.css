@@ -9,7 +9,7 @@
 .packages-cont {
 	display: flex;
 	flex-flow: column nowrap;
-	justify-content: space-between;
+	/*justify-content: space-between;*/
 	background: #ffffff;
 	width: 100%;
 	height: 100%;
@@ -64,10 +64,23 @@
 	background-color: rgba(0, 0, 0, 0.03);
 }
 
+.pkg-entry-icon-selected {
+	color: rgb(16, 103, 222);
+}
+
+.pkg-entry-selected .pkg-entry-icon {
+	color: rgba(255, 255, 255, 1) !important;
+	opacity: 1;
+}
+
+.pkg-entry-selected .pkg-entry-icon-selected {
+	background: rgb(16, 103, 222) !important;
+	color: white;
+}
+
 .pkg-entry-selected {
 	background: rgb(16, 103, 222) !important;
 	color: white;
-	border-bottom: 1px solid white;
 }
 
 .pkg-list-header-cont {
@@ -78,14 +91,94 @@
 	flex-flow: row nowrap;
 	justify-content: space-between;
 	background-color: rgba(247, 246, 248, 1);
-	padding: 4px 20px;
+	padding: 2px 20px;
 	border-bottom: 2px solid #ececec;
+
+	/* So that checkbox images display under. */
+	z-index: 1;
+}
+
+.pkg-entry-icon {
+	font-size: 24px;
+	/* opacity: 0.075; */
+	margin-right: 15px;
+	position: relative;
+	color: #dddddd;
 }
 
 .pkg-list-header-label {
-	font-weight: bold;
-	padding: 5px;
+	/*font-weight: bold;*/ /* padding: 5px 5px 5px 0px; */
+	/*color: #777777;*/
 }
+
+.pkg-list-header-actions {
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: center;
+	align-items: center;
+	margin-left: 20px;
+	transition: all 0.1s ease-in-out;
+
+	transition-property: opacity, color;
+	color: rgb(85, 85, 85);
+}
+
+.pkg-list-header-actions-disabled {
+	opacity: 0;
+	color: rgb(155, 155, 155);
+	pointer-events: none;
+
+	transition: all 0.1s ease-in-out;
+	transition-property: opacity, color;
+}
+
+.pkg-list-header-action {
+	/*height: 35px;*/
+	padding: 10px 12px;
+	/* font-size: 18px; */
+	border-radius: 6px;
+	/* font-weight: bold; */
+	/*cursor: pointer;*/
+	/* border: 1px solid rgba(27, 31, 35, 0.15); */ /* margin-right: 5px; */
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: center;
+	align-items: center;
+	/* color: #444; */
+	color: rgb(85, 85, 85);
+	box-shadow: 0 0px 0px 0px rgba(0, 0, 0, 0.04);
+}
+
+.pkg-list-header-action:hover {
+	background: #e8e8e8;
+}
+
+.pkg-list-header-action:active {
+	background: #dddddd;
+	/*box-shadow: 0 0px 0px 0px rgba(0, 0, 0, 0.07);*/
+}
+
+.pkg-list-header-action-icon {
+	/*margin-right: 10px;*/
+}
+/*.pkg-list-header-action-left {
+	border-radius: 6px 0 0 6px;
+}
+
+.pkg-list-header-action-middle {
+	border-left: 0px;
+	border-radius: 0;
+}
+
+.pkg-list-header-action-middle-2 {
+	border-radius: 0;
+	border-left: none;
+	border-right: none;
+}
+
+.pkg-list-header-action-right {
+	border-radius: 0 6px 6px 0;
+}*/
 
 .pkg-header-input-cont {
 	border: 1px solid rgba(0, 0, 0, 0.2);
@@ -93,18 +186,31 @@
 	background: rgba(0, 0, 0, 0.01);
 	transition: width 0.25s cubic-bezier(0.11, 0.38, 0.01, 0.99);
 	background: white;
+
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: center;
+	align-items: center;
 }
+
+.pkg-header-search {
+	padding: 0 0 0 10px;
+	margin-right: -5px;
+	color: #999;
+}
+
 .pkg-header-input {
 	outline: none;
 	padding: 0px;
 	width: 200px;
-	height: 38px;
-	box-shadow: 0 1px 0px 0px rgba(0, 0, 0, 0.04);
+	height: 33px;
+	/*box-shadow: 0 1px 0px 0px rgba(0, 0, 0, 0.04);*/
 	padding: 4px 15px;
 	border: none;
 	background: transparent;
 	border-radius: 6px;
 	transition: width 0.25s cubic-bezier(0.11, 0.38, 0.01, 0.99);
+	font-size: 20px;
 }
 
 .pkg-header-input:active,
@@ -114,16 +220,21 @@
 }
 .pkg-header-input-cont:focus-within {
 	background: white;
-	box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5);
+	box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.7);
 	transition: width 0.2s cubic-bezier(0.11, 0.38, 0.01, 0.99);
 	border: 1px solid transparent;
+}
+
+.pkg-header-input-cont:focus-within .pkg-header-search {
+	color: #444;
 }
 
 /* Package Information */
 
 .pkg-info {
-	width: 100%;
-	height: 300px;
+	min-width: 100%;
+	min-height: 300px;
+	overflow: auto;
 	border-top: 2px solid rgba(0, 0, 0, 0.04);
 	background: #f7f6f8;
 	padding: 10px;
@@ -132,6 +243,7 @@
 .pkg-info-row {
 	display: flex;
 	flex-flow: row nowrap;
+	width: 100%;
 }
 
 .pkg-info-header {
@@ -141,9 +253,25 @@
 
 .pkg-info-label {
 	color: #999999;
+
+	/*display: flex;*/
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .pkg-info-value {
-	margin-left: 15px;
-	color: #999999;
+	margin-left: 10px;
+	color: #333333;
+	display: flex;
+	flex-grow: 1;
+	width: 40px;
+	/* [https://stackoverflow.com/a/17783233] */
+	/* [https://stackoverflow.com/a/7993098] */
+	/* [https://stackoverflow.com/a/25367443] */
+	display: inline-block;
+	overflow: hidden;
+	position: relative;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }

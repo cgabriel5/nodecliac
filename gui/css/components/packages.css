@@ -48,6 +48,18 @@
 	overflow: auto;
 }
 
+.pkg-empty {
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: center;
+	align-items: center;
+	/* background: coral; */
+	height: 100%;
+	font-weight: bold;
+	color: #c6c6c6;
+	font-size: 34px;
+}
+
 .pkg-entry {
 	display: flex;
 	flex-flow: row nowrap;

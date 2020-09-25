@@ -41,6 +41,10 @@
                                   supported by Chrome, Edge, Opera and Firefox */
 }
 
+.nointer {
+	pointer-events: none;
+}
+
 .link {
 	color: #0366d6;
 	text-decoration: none;
@@ -61,4 +65,8 @@
 
 .opa0 {
 	opacity: 0;
+}
+
+.opa1 {
+	opacity: 1;
 }

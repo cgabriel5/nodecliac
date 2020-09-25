@@ -3,6 +3,8 @@
 @import "../css/sanitize.css";
 @import "../css/overrides.css";
 @import "../css/base.css";
+@import "../css/components/splash_loader.css";
+@import "../css/components/loader.css";
 @import "../css/components/sidebar.css";
 @import "../css/components/packages.css";
 @import "../css/components/statusbar.css";

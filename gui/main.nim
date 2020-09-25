@@ -2,7 +2,7 @@ import os, algorithm, browsers, strutils, webgui, parsecfg, strformat, osproc
 
 when defined(linux):
     const width = 2000
-    const height = 800
+    const height = 1200
     const minWidth = 1000
     const minHeight = 600
 elif defined(macosx):
@@ -21,6 +21,43 @@ let app = newWebView(currentHtmlPath("views/index.html"),
     cssPath=currentHtmlPath("css/empty.css") # [Bug] Line doesn't work on macOS?
 )
 
+proc setting_config_state(state: int) =
+
+    # app.js(
+    #     "console.log(1111111, \"11111<<<<<\");document.body.classList.add(\"nointer\");" &
+    #     "document.getElementById(\"loader\").classList.remove(\"none\");" &
+    #     "setTimeout(function() { document.getElementById(\"loader\").classList.add(\"opa1\"); }, 10);"
+    # )
+
+    echo ">>>>>>>>>>>> [", state, "]"
+    let flag = if state == 1: "--enable" else: "--disable"
+    echo "=================== COMMAND: [", "nodecliac status " & flag, "]"
+    let res = execProcess("nodecliac status " & flag)
+    echo ">>>>>>>>>>>.RES [", res, "]"
+
+    # app.js(
+    #     "console.log(2222222, \"22222<<<<<\");setTimeout(function() { document.getElementById(\"loader\").classList.add(\"opa1\"); setTimeout(function() { document.getElementById(\"loader\").classList.add(\"none\"); document.body.classList.remove(\"nointer\"); }, 10); }, 250);")
+
+
+proc settings_clear_cache() =
+    # Use nodecliac CLI
+    # let res = execProcess("nodecliac cache --clear")
+
+    app.js(
+        "document.body.classList.add(\"nointer\");" &
+        "document.getElementById(\"loader\").classList.remove(\"none\");" &
+        "setTimeout(function() { document.getElementById(\"loader\").classList.add(\"opa1\"); }, 10);"
+    )
+
+    # Or write out Nim equivalent?
+    let cp = hdir & "/.nodecliac/.cache"
+    if dirExists(cp):
+        for kind, path in walkDir(cp):
+            if kind == pcFile: discard tryRemoveFile(path)
+
+    app.js(
+        "setTimeout(function() { document.getElementById(\"loader\").classList.add(\"opa1\"); setTimeout(function() { document.getElementById(\"loader\").classList.add(\"none\"); document.body.classList.remove(\"nointer\"); }, 10); }, 250);")
+
 proc get_config() =
     let p =  hdir & "/.nodecliac/.config"
     let config = if fileExists(p): readFile(p) else: ""
@@ -34,28 +71,39 @@ proc get_packages() =
     var html = ""
     var names: seq[string] = @[]
 
+    var empty = true
     for kind, path in walkDir(hdir & "/.nodecliac/registry"):
+        empty = false
         let parts = splitPath(path)
         names.add(parts.tail)
 
-    names.sort()
-    for n in names:
-        html &= "<div class=\"pkg-entry\" id=\"pkg-entry-" & n &  "\">"
-        html &= "<div class=\"center\">"
-        # html &= "<div class=\"pkg-entry-icon\"><i class=\"fas fa-check-square\"></i></div>"
-        # if n == "nodecliac":
+    if empty:
+        let a = 12
+        echo "EMPTY"
+        let html = """<div class="pkg-empty"><div>No Packages</div></div>"""
+        app.js(
+            app.setText("#pkg-list-entries", "") & ";" &
+            app.addHtml("#pkg-list-entries", html, position=afterbegin)
+        )
+    else:
+        names.sort()
+        for n in names:
+            html &= "<div class=\"pkg-entry\" id=\"pkg-entry-" & n &  "\">"
+            html &= "<div class=\"center\">"
             # html &= "<div class=\"pkg-entry-icon\"><i class=\"fas fa-check-square\"></i></div>"
-        # else:
-        html &= "<div class=\"pkg-entry-icon\"><i class=\"fas fa-square\"></i></div>"
-        # html &= "<div class=\"pkg-entry-icon\"><i class=\"fal fa-square\"></i></div>"
-        html &= "<div class=\"pkg-entry-label\">" & n & "</div>"
-        html &= "</div>"
-        html &= "</div>"
+            # if n == "nodecliac":
+                # html &= "<div class=\"pkg-entry-icon\"><i class=\"fas fa-check-square\"></i></div>"
+            # else:
+            html &= "<div class=\"pkg-entry-icon\"><i class=\"fas fa-square\"></i></div>"
+            # html &= "<div class=\"pkg-entry-icon\"><i class=\"fal fa-square\"></i></div>"
+            html &= "<div class=\"pkg-entry-label\">" & n & "</div>"
+            html &= "</div>"
+            html &= "</div>"
 
-    app.js(
-        app.setText("#pkg-list-entries", "") & ";" &
-        app.addHtml("#pkg-list-entries", html, position=afterbegin)
-    )
+        app.js(
+            app.setText("#pkg-list-entries", "") & ";" &
+            app.addHtml("#pkg-list-entries", html, position=afterbegin)
+        )
 
 proc clink(url: string): string =
     return fmt"""
@@ -169,6 +217,9 @@ app.bindProcs("api"):
     proc loaded(s: string) = jsLog(s)
     proc packages() = get_packages()
     proc config() = get_config()
+    proc clear_cache() = settings_clear_cache()
+
+    proc update_state(state: int) = setting_config_state(state)
 
 # import libfswatch
 # import libfswatch/fswatch

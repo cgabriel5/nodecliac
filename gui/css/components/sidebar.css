@@ -29,12 +29,23 @@
 	/*background: #327dff !important;*/
 	background: rgba(0, 0, 0, 0.05) !important;
 	/*color: #ffffff;*/
+	/*border-right: 4px solid rgb(26, 115, 232);*/
+}
+
+.sb-row-selected .sb-row-icon-cont,
+.sb-row-selected .sb-label {
+	color: #333;
+}
+
+.sb-label {
+	color: rgb(55, 55, 55);
 }
 
 .sb-row-icon-cont {
 	display: block;
 	margin-right: 5px;
 	width: 30px;
+	color: rgb(135, 135, 135);
 }
 
 .sb-row-icon-cont i {
@@ -76,6 +87,8 @@
 	border-radius: 20px;
 	/*background: #327dff;*/
 	background: #a9b8d3;
+	background: rgb(29, 131, 246);
+	background: rgb(26, 115, 232);
 	color: white;
 	font-weight: bold;
 	margin-right: 15px;

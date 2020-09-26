@@ -86,9 +86,7 @@ var which_animation_event = function (type) {
 };
 
 const init = function () {
-	window.api.loaded("API_LOADED");
-	let api = window.api; // Get Nim JS API.
-
+	let API = window.api;
 	let $cached_sb = null;
 	let $cached_pkg = null;
 	const { Interaction, Funnel } = window.app.libs;
@@ -150,7 +148,7 @@ const init = function () {
 						// prettier-ignore
 						let ids = ["name", "description", "author", "repository", "version", "location"];
 						// prettier-ignore
-						ids.forEach((id) => {document.getElementById("pkg-info-row-" + id).children[1].textContent = "--";});
+						ids.forEach((id) => {$("pkg-info-row-" + id).children[1].textContent = "--";});
 					}
 					let delegate = targets.delegateTarget;
 					if ($cached_pkg === delegate) {
@@ -160,7 +158,7 @@ const init = function () {
 					if (delegate) {
 						delegate.classList.toggle("pkg-entry-selected");
 						$cached_pkg = delegate;
-						window.api.get_pkg_info(delegate.id.slice(10));
+						API.get_pkg_info(delegate.id.slice(10));
 					}
 				}
 
@@ -174,7 +172,7 @@ const init = function () {
 						$cached_sb.classList.remove("sb-row-selected");
 						const dattr = $cached_sb.getAttribute("data-row");
 						const pname = dattr + "-cont";
-						const node = document.getElementById(pname);
+						const node = $(pname);
 						if (node) node.classList.add("none");
 					}
 					if (delegate) {
@@ -184,12 +182,12 @@ const init = function () {
 						delegate.classList.toggle("sb-row-selected");
 						const dattr = delegate.getAttribute("data-row");
 						const pname = dattr + "-cont";
-						const node = document.getElementById(pname);
+						const node = $(pname);
 						if (node) node.classList.remove("none");
 						$cached_sb = delegate;
 
-						if (dattr === "packages") window.api.packages();
-						else if (dattr === "settings") window.api.config();
+						if (dattr === "packages") API.packages();
+						else if (dattr === "settings") API.config();
 					}
 				}
 
@@ -206,9 +204,7 @@ const init = function () {
 							"pkg-entry-icon-selected"
 						);
 
-						let actions_cont = document.getElementById(
-							"pkg-list-header-actions"
-						);
+						let actions_cont = $("pkg-list-header-actions");
 						actions_cont.classList.remove(
 							"pkg-list-header-actions-disabled"
 						);
@@ -230,9 +226,7 @@ const init = function () {
 						);
 						icon.classList.add("fa-square");
 
-						let actions_cont = document.getElementById(
-							"pkg-list-header-actions"
-						);
+						let actions_cont = $("pkg-list-header-actions");
 						actions_cont.classList.add(
 							"pkg-list-header-actions-disabled"
 						);
@@ -257,9 +251,7 @@ const init = function () {
 					// let delegate = targets.delegateTarget;
 
 					// untoggle main toggle
-					let main_toggle = document.getElementById(
-						"select-all-toggle"
-					);
+					let main_toggle = $("select-all-toggle");
 					var icon = main_toggle.children[0];
 					icon.classList.remove(
 						"fa-check-square",
@@ -287,16 +279,12 @@ const init = function () {
 						document.querySelectorAll(".pkg-entry-icon-selected")
 							.length
 					) {
-						let actions_cont = document.getElementById(
-							"pkg-list-header-actions"
-						);
+						let actions_cont = $("pkg-list-header-actions");
 						actions_cont.classList.remove(
 							"pkg-list-header-actions-disabled"
 						);
 					} else {
-						let actions_cont = document.getElementById(
-							"pkg-list-header-actions"
-						);
+						let actions_cont = $("pkg-list-header-actions");
 						actions_cont.classList.add(
 							"pkg-list-header-actions-disabled"
 						);
@@ -330,7 +318,7 @@ const init = function () {
 						// 	e.children[0].classList.add("none");
 						// }
 
-						e = document.getElementById("setting-action-btn-all");
+						e = $("setting-action-btn-all");
 						e.classList.remove(
 							"noselect",
 							"setting-action-btn-unselected"
@@ -339,16 +327,14 @@ const init = function () {
 						e.children[0].classList.add("none");
 					} else if (id === "setting-action-btn-all") {
 						let e;
-						e = document.getElementById(
-							"setting-action-btn-dynamic"
-						);
+						e = $("setting-action-btn-dynamic");
 						e.classList.remove(
 							"noselect",
 							"setting-action-btn-unselected"
 						);
 						e.classList.add("setting-action-btn-unselected");
 						e.children[0].classList.add("none");
-						e = document.getElementById("setting-action-btn-all");
+						e = $("setting-action-btn-all");
 						e.classList.remove(
 							"noselect",
 							"setting-action-btn-unselected"
@@ -376,7 +362,7 @@ const init = function () {
 						// 	e.children[0].classList.add("none");
 						// }
 
-						e = document.getElementById("setting-action-btn-perl");
+						e = $("setting-action-btn-perl");
 						e.classList.remove(
 							"noselect",
 							"setting-action-btn-unselected"
@@ -385,14 +371,14 @@ const init = function () {
 						e.children[0].classList.add("none");
 					} else if (id === "setting-action-btn-perl") {
 						let e;
-						e = document.getElementById("setting-action-btn-nim");
+						e = $("setting-action-btn-nim");
 						e.classList.remove(
 							"noselect",
 							"setting-action-btn-unselected"
 						);
 						e.classList.add("setting-action-btn-unselected");
 						e.children[0].classList.add("none");
-						e = document.getElementById("setting-action-btn-perl");
+						e = $("setting-action-btn-perl");
 						e.classList.remove(
 							"noselect",
 							"setting-action-btn-unselected"
@@ -400,13 +386,13 @@ const init = function () {
 						e.classList.add("setting-action-btn-selected");
 						e.children[0].classList.remove("none");
 					} else if (id === "setting-action-btn-clear-cache") {
-						window.api.clear_cache();
+						API.clear_cache();
 					}
 
 					if (id.includes("dynamic") || id.includes("all")) {
-						document.getElementById("switch-cache").checked = true;
+						$("switch-cache").checked = true;
 					} else if (id.includes("nim") || id.includes("perl")) {
-						document.getElementById("switch-debug").checked = true;
+						$("switch-debug").checked = true;
 					}
 				}
 
@@ -416,7 +402,7 @@ const init = function () {
 				{
 					let delegate = targets.delegateTarget;
 					let id = delegate.getAttribute("for");
-					let toggle = document.getElementById(id);
+					let toggle = $(id);
 					let state = !toggle.checked;
 					if (state) {
 						let b1 = "";
@@ -430,11 +416,11 @@ const init = function () {
 						}
 
 						if (id === "switch-status") {
-							window.api.update_state(1);
+							API.update_state(1);
 						}
 
 						let e;
-						e = document.getElementById("setting-action-btn-" + b1);
+						e = $("setting-action-btn-" + b1);
 						if (!e) return;
 						e.classList.remove(
 							"setting-action-btn-unselected",
@@ -442,7 +428,7 @@ const init = function () {
 						);
 						e.classList.add("setting-action-btn-selected");
 						e.children[0].classList.remove("none");
-						e = document.getElementById("setting-action-btn-" + b2);
+						e = $("setting-action-btn-" + b2);
 						e.classList.remove("setting-action-btn-selected");
 						e.classList.add(
 							"setting-action-btn-unselected",
@@ -461,11 +447,11 @@ const init = function () {
 						}
 
 						if (id === "switch-status") {
-							window.api.update_state(0);
+							API.update_state(0);
 						}
 
 						let e;
-						e = document.getElementById("setting-action-btn-" + b1);
+						e = $("setting-action-btn-" + b1);
 						if (!e) return;
 						e.classList.remove("setting-action-btn-selected");
 						e.classList.add(
@@ -473,7 +459,7 @@ const init = function () {
 							"noselect"
 						);
 						e.children[0].classList.add("none");
-						e = document.getElementById("setting-action-btn-" + b2);
+						e = $("setting-action-btn-" + b2);
 						e.classList.remove("setting-action-btn-selected");
 						e.classList.add(
 							"setting-action-btn-unselected",
@@ -565,10 +551,8 @@ const init = function () {
 		.enable();
 
 	Interaction.addHandler("focus:H", function (e, targets) {
-		if (
-			!document.getElementById("settings-cont").classList.contains("none")
-		) {
-			window.api.config();
+		if (!$("settings-cont").classList.contains("none")) {
+			API.config();
 		}
 	});
 	var event = new Interaction("Handle window focus events.")
@@ -617,8 +601,8 @@ const init = function () {
 
 // 			if ($target.id && $target.id === "leaf") {
 // 				if (aname === "animate-pulse") {
-// 					document.getElementById("leaf").classList.add("on");
-// 					let el = document.getElementById("splash-overlay");
+// 					$("leaf").classList.add("on");
+// 					let el = $("splash-overlay");
 // 					el.classList.remove("opa1");
 // 					el.classList.add("opa0");
 // 				}
@@ -630,12 +614,12 @@ const init = function () {
 // 			var pname = e.propertyName;
 
 // 			if ($target.id && $target.id === "splash-overlay") {
-// 				document.getElementById("splash-overlay").classList.add("none");
+// 				$("splash-overlay").classList.add("none");
 // 				init();
 // 			}
 // 		});
 
-// 		document.getElementById("leaf").classList.add("animate-pulse");
+// 		$("leaf").classList.add("animate-pulse");
 // 	}
 // };
 
@@ -652,8 +636,8 @@ document.onreadystatechange = function () {
 
 			if ($target.id && $target.id === "leaf") {
 				if (aname === "animate-pulse") {
-					// document.getElementById("leaf").classList.add("on");
-					let el = document.getElementById("splash-overlay");
+					// $("leaf").classList.add("on");
+					let el = $("splash-overlay");
 					el.classList.remove("opa1");
 					el.classList.add("opa0");
 				}
@@ -661,8 +645,8 @@ document.onreadystatechange = function () {
 
 			// if ($target.id && $target.id === "leaf") {
 			// 	if (aname === "animate-pulse") {
-			// 		document.getElementById("leaf").classList.add("on");
-			// 		let el = document.getElementById("splash-overlay");
+			// 		$("leaf").classList.add("on");
+			// 		let el = $("splash-overlay");
 			// 		el.classList.remove("opa1");
 			// 		el.classList.add("opa0");
 			// 	}
@@ -689,17 +673,17 @@ document.onreadystatechange = function () {
 					$target.classList.add("animate-pulse");
 				}
 			} else if ($target.id && $target.id === "splash-overlay") {
-				document.getElementById("splash-overlay").classList.add("none");
+				$("splash-overlay").classList.add("none");
 				init();
 			}
 
 			// if ($target.id && $target.id === "splash-overlay") {
-			// 	document.getElementById("splash-overlay").classList.add("none");
+			// 	$("splash-overlay").classList.add("none");
 			// 	init();
 			// }
 		});
 
-		document.getElementById("leaf").classList.add("off");
-		// document.getElementById("leaf").classList.add("animate-pulse");
+		$("leaf").classList.add("off");
+		// $("leaf").classList.add("animate-pulse");
 	}
 };

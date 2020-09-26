@@ -1,5 +1,8 @@
 "use strict";
 
+var d = document;
+var $ = (id) => d.getElementById(id);
+
 /**
  * Determines which animation[start|end|iteration] event the user's
  *     browser supports and returns it.
@@ -89,106 +92,50 @@ const init = function () {
 	let $cached_sb = null;
 	let $cached_pkg = null;
 	const { Interaction, Funnel } = window.app.libs;
+	API.loaded("API_LOADED");
 
-	window.api.setup_config = function (config) {
-		let [status, cache, debug, singletons] = config.split("");
-		status = status * 1;
-		cache = cache * 1;
-		debug = debug * 1;
-		singletons = singletons * 1;
+	API.setup_config = function (status, cache, debug, singletons) {
+		/**
+		 * Select/unselect settings action buttons.
+		 *
+		 * @param  {...[string]} names - The button action names.
+		 * @return {undefined} - Nothing is returned.
+		 */
+		const action = (...names) => {
+			for (let i = 0, l = names.length; i < l; i++) {
+				let name = names[i];
+				let select = !name.startsWith("!");
+				if (!select) name = name.slice(1);
+				let $e = $(`setting-action-btn-${name}`);
+				let prefix = select ? "" : "un";
+				let method = select ? "remove" : "add";
+				let classes = $e.classList;
+				classes.remove("noselect", "setting-action-btn-unselected");
+				classes.add(`setting-action-btn-${prefix}selected`);
+				$e.children[0].classList[method]("none");
+			}
+		};
 
-		if (status) {
-			document.getElementById("switch-status").checked = true;
-		} else {
-			document.getElementById("switch-status").checked = false;
-		}
+		$("switch-status").checked = !!status;
+		$("switch-single-flag-comp").checked = !!singletons;
 
 		if (cache) {
-			document.getElementById("switch-cache").checked = true;
-			if (cache === 1) {
-				let e;
-				e = document.getElementById("setting-action-btn-dynamic");
-				e.classList.remove("noselect", "setting-action-btn-unselected");
-				e.classList.add("setting-action-btn-selected");
-				e.children[0].classList.remove("none");
-				e = document.getElementById("setting-action-btn-all");
-				e.classList.remove("noselect", "setting-action-btn-unselected");
-				e.classList.add("setting-action-btn-unselected");
-				e.children[0].classList.add("none");
-			} else if (cache === 2) {
-				let e;
-				e = document.getElementById("setting-action-btn-dynamic");
-				e.classList.remove("noselect", "setting-action-btn-unselected");
-				e.classList.add("setting-action-btn-unselected");
-				e.children[0].classList.add("none");
-				e = document.getElementById("setting-action-btn-all");
-				e.classList.remove("noselect", "setting-action-btn-unselected");
-				e.classList.add("setting-action-btn-selected");
-				e.children[0].classList.remove("none");
-			}
+			$("switch-cache").checked = true;
+			if (cache === 1) action("dynamic", "!all");
+			else if (cache === 2) action("!dynamic", "all");
 		} else {
-			let e;
-			e = document.getElementById("setting-action-btn-dynamic");
-			e.classList.remove("setting-action-btn-selected");
-			e.classList.add("noselect", "setting-action-btn-unselected");
-			e.children[0].classList.add("none");
-
-			e = document.getElementById("setting-action-btn-all");
-			e.classList.remove("setting-action-btn-unselected");
-			e.classList.add("noselect", "setting-action-btn-unselected");
-			e.children[0].classList.add("none");
-
-			document.getElementById("switch-cache").checked = false;
+			$("switch-cache").checked = false;
+			action("!dynamic", "!all");
 		}
 
 		if (debug) {
-			document.getElementById("switch-debug").checked = true;
-
-			if (debug === 2) {
-				let e;
-				e = document.getElementById("setting-action-btn-nim");
-				e.classList.remove("noselect", "setting-action-btn-unselected");
-				e.classList.add("setting-action-btn-unselected");
-				e.children[0].classList.add("none");
-				e = document.getElementById("setting-action-btn-perl");
-				e.classList.remove("noselect", "setting-action-btn-unselected");
-				e.classList.add("setting-action-btn-selected");
-				e.children[0].classList.remove("none");
-			} else if (debug === 3) {
-				let e;
-				e = document.getElementById("setting-action-btn-nim");
-				e.classList.remove("noselect", "setting-action-btn-unselected");
-				e.classList.add("setting-action-btn-selected");
-				e.children[0].classList.remove("none");
-				e = document.getElementById("setting-action-btn-perl");
-				e.classList.remove("noselect", "setting-action-btn-unselected");
-				e.classList.add("setting-action-btn-unselected");
-				e.children[0].classList.add("none");
-			}
+			$("switch-debug").checked = true;
+			if (cache === 2) action("nim", "!perl");
+			else if (cache === 3) action("!nim", "perl");
 		} else {
-			let e;
-			e = document.getElementById("setting-action-btn-nim");
-			e.classList.remove("setting-action-btn-selected");
-			e.classList.add("noselect", "setting-action-btn-unselected");
-			e.children[0].classList.add("none");
-
-			e = document.getElementById("setting-action-btn-perl");
-			e.classList.remove("setting-action-btn-unselected");
-			e.classList.add("noselect", "setting-action-btn-unselected");
-			e.children[0].classList.add("none");
-
-			document.getElementById("switch-debug").checked = false;
+			$("switch-debug").checked = false;
+			action("!nim", "!perl");
 		}
-
-		if (singletons) {
-			document.getElementById("switch-single-flag-comp").checked = true;
-		} else {
-			document.getElementById("switch-single-flag-comp").checked = false;
-		}
-
-		// if (cache) {} else {}
-		// if (debug) {} else {}
-		// if (singletons) {} else {}
 	};
 
 	Interaction.addHandler("mousedown:main", function (e, targets, filter) {

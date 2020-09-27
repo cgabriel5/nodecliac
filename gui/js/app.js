@@ -1,7 +1,36 @@
 "use strict";
 
-var d = document;
-var $ = (id) => d.getElementById(id);
+const { Interaction, Funnel: f } = window.app.libs;
+const d = document;
+const $ = (...args) => {
+	if (args.length === 1) return d.getElementById(args[0]);
+	else {
+		let mode = args[0];
+		let method = "";
+		args.shift();
+		switch (mode) {
+			case "QUERY_ALL":
+				method = "querySelectorAll";
+				break;
+			case "QUERY":
+				method = "querySelector";
+				break;
+			case "CLASS_NAME":
+				method = "getElementsByClassName";
+				break;
+			case "NAME":
+				method = "getElementsByName";
+				break;
+			case "TAG_NAME":
+				method = "getElementsByTagName";
+				break;
+			case "TAG_NAME_NS":
+				method = "getElementsByTagNameNS";
+				break;
+		}
+		return d[method](args[0]);
+	}
+};
 
 /**
  * Determines which animation[start|end|iteration] event the user's
@@ -14,11 +43,10 @@ var $ = (id) => d.getElementById(id);
  * @resource [https://davidwalsh.name/css-animation-callback]
  * @resource [https://github.com/cgabriel5/snippets/blob/master/js/detection/which_animation_transition_event.js]
  */
-var which_transition_event = function (type) {
-	// Lowercase type.
+const which_transition_event = (type) => {
 	type = type.toLowerCase();
 
-	var $el = document.createElement("div"),
+	let $el = document.createElement("div"),
 		transitions = {
 			transition: "transition",
 			// Opera prefix info:
@@ -30,17 +58,15 @@ var which_transition_event = function (type) {
 			MSTransition: "MSTransition"
 		};
 
-	for (var transition in transitions) {
+	for (let transition in transitions) {
 		if ($el.style[transition] !== undefined) {
-			// Cache value.
-			var value = transitions[transition];
+			let value = transitions[transition];
 
 			// Determine if suffix needs to be capitalized.
-			var end = value.match(/[A-Z]/)
+			let end = value.match(/[A-Z]/)
 				? type.charAt(0).toUpperCase() + type.substring(1)
 				: type;
 
-			// Return prefixed event.
 			return value + end;
 		}
 	}
@@ -57,10 +83,9 @@ var which_transition_event = function (type) {
  * @resource [https://davidwalsh.name/css-animation-callback]
  * @resource [https://github.com/cgabriel5/snippets/blob/master/js/detection/which_animation_transition_event.js]
  */
-var which_animation_event = function (type) {
-	// Lowercase type.
+const which_animation_event = (type) => {
 	type = type.toLowerCase();
-	var $el = document.createElement("div"),
+	let $el = document.createElement("div"),
 		animations = {
 			animation: "animation",
 			OAnimation: "oAnimation",
@@ -69,51 +94,100 @@ var which_animation_event = function (type) {
 			WebkitAnimation: "webkitAnimation",
 			MSAnimation: "MSAnimation"
 		};
-	for (var animation in animations) {
+	for (let animation in animations) {
 		if ($el.style[animation] !== undefined) {
-			// Cache value.
-			var value = animations[animation];
+			let value = animations[animation];
 
 			// Determine if suffix needs to be capitalized.
-			var end = value.match(/[A-Z]/)
+			let end = value.match(/[A-Z]/)
 				? type.charAt(0).toUpperCase() + type.substring(1)
 				: type;
 
-			// Return prefixed event.
 			return value + end;
 		}
 	}
 };
 
-const init = function () {
-	let API = window.api;
+/**
+ * Select/unselect settings action buttons.
+ *
+ * @param  {...[string]} names - The button action names.
+ * @return {undefined} - Nothing is returned.
+ */
+const action = (...names) => {
+	for (let i = 0, l = names.length; i < l; i++) {
+		let name = names[i];
+		let select = !name.startsWith("!");
+		if (!select) name = name.slice(1);
+		let $el = $(`setting-action-btn-${name}`);
+		if (!$el) continue;
+		let prefix = select ? "" : "un";
+		let method = select ? "remove" : "add";
+		let classes = $el.classList;
+		classes.remove("noselect", "setting-action-btn-unselected");
+		classes.add(`setting-action-btn-${prefix}selected`);
+		let cname = "btn-setting-icon";
+		f($el).all().classes(cname).getElement().classList[method]("none");
+	}
+};
+
+// const get_sel_modifier = (b1, b2) => {
+// 	let res = 0;
+// 	let cname = "setting-action-btn-selected";
+
+// 	if ($(`setting-action-btn-${b1}`).classList.contains(cname)) res = 1;
+// 	else if ($(`setting-action-btn-${b2}`).classList.contains(cname)) res = 2;
+// 	if (b1 === "nim") res++;
+// 	return res;
+// };
+
+function check($el) {
+	let classes = $el.classList;
+	classes.remove("fa-square");
+	classes.add("fa-check-square", "pkg-entry-icon-selected");
+}
+function uncheck($el) {
+	let classes = $el.classList;
+	classes.remove("fa-check-square", "pkg-entry-icon-selected");
+	classes.add("fa-square");
+}
+const checked = ($el) => $el.classList.contains("fa-check-square");
+const toggle_pkg_sel_actions = (state) => {
+	let method = state ? "remove" : "add";
+	let $actions_cont = $("pkg-list-header-actions");
+	$actions_cont.classList[method]("pkg-list-header-actions-disabled");
+};
+const mass_toggle = (method) => {
+	// prettier-ignore
+	let list = f("#pkg-list-entries").all().classes("pkg-entry-icon").getStack();
+	for (let i = 0, l = list.length; i < l; i++) {
+		let $icon = f(list[i]).all().classes("fas").getElement();
+		window[method]($icon);
+	}
+};
+
+if (!window.api) window.api = {};
+let API = window.api;
+API.reset_pkg_info = () => {
+	// prettier-ignore
+	let ids = ["name", "description", "author", "repository", "location", "version", "license"];
+	// prettier-ignore
+	for (let i = 0, l = ids.length; i < l; i++) {
+		f("pkg-info-row-" + ids[i]).all().classes("pkg-info-value").getElement().textContent = "--";
+	}
+};
+// prettier-ignore
+API.set_pkg_info_row = (row, value) => {
+	f("pkg-info-row-" + row).all().classes("pkg-info-value").getElement().innerHTML = value;
+};
+
+const init = () => {
+	console.log(API);
 	let $cached_sb = null;
 	let $cached_pkg = null;
-	const { Interaction, Funnel } = window.app.libs;
 	API.loaded("API_LOADED");
 
-	API.setup_config = function (status, cache, debug, singletons) {
-		/**
-		 * Select/unselect settings action buttons.
-		 *
-		 * @param  {...[string]} names - The button action names.
-		 * @return {undefined} - Nothing is returned.
-		 */
-		const action = (...names) => {
-			for (let i = 0, l = names.length; i < l; i++) {
-				let name = names[i];
-				let select = !name.startsWith("!");
-				if (!select) name = name.slice(1);
-				let $e = $(`setting-action-btn-${name}`);
-				let prefix = select ? "" : "un";
-				let method = select ? "remove" : "add";
-				let classes = $e.classList;
-				classes.remove("noselect", "setting-action-btn-unselected");
-				classes.add(`setting-action-btn-${prefix}selected`);
-				$e.children[0].classList[method]("none");
-			}
-		};
-
+	API.setup_config = (status, cache, debug, singletons) => {
 		$("switch-status").checked = !!status;
 		$("switch-single-flag-comp").checked = !!singletons;
 
@@ -128,63 +202,54 @@ const init = function () {
 
 		if (debug) {
 			$("switch-debug").checked = true;
-			if (cache === 2) action("nim", "!perl");
-			else if (cache === 3) action("!nim", "perl");
+			if (debug === 1 || debug === 2) action("nim", "!perl");
+			else if (debug === 3) action("!nim", "perl");
 		} else {
 			$("switch-debug").checked = false;
 			action("!nim", "!perl");
 		}
 	};
 
-	Interaction.addHandler("mousedown:main", function (e, targets, filter) {
+	Interaction.addHandler("mousedown:main", (e, targets, filter) => {
 		if (e.which !== 1) return; // Only left button mousedowns.
+		let $delegate = targets.delegateTarget;
+		let id = $delegate.id;
 
 		switch (filter) {
-			case "row:pkg":
+			case "packages:entry":
 				{
 					if ($cached_pkg) {
 						$cached_pkg.classList.remove("pkg-entry-selected");
-
-						// prettier-ignore
-						let ids = ["name", "description", "author", "repository", "version", "location"];
-						// prettier-ignore
-						ids.forEach((id) => {$("pkg-info-row-" + id).children[1].textContent = "--";});
+						API.reset_pkg_info();
 					}
-					let delegate = targets.delegateTarget;
-					if ($cached_pkg === delegate) {
+					if ($cached_pkg === $delegate) {
 						$cached_pkg = null;
 						return;
 					}
-					if (delegate) {
-						delegate.classList.toggle("pkg-entry-selected");
-						$cached_pkg = delegate;
-						API.get_pkg_info(delegate.id.slice(10));
+					if ($delegate) {
+						$delegate.classList.toggle("pkg-entry-selected");
+						$cached_pkg = $delegate;
+						API.get_pkg_info(id.slice(10));
 					}
 				}
 
 				break;
-			case "row:sb":
+			case "sidebar:entry":
 				{
-					let delegate = targets.delegateTarget;
-					if ($cached_sb === delegate) return;
+					if ($cached_sb === $delegate) return;
 					if ($cached_sb) {
-						// $cached_sb.classList.toggle("none");
 						$cached_sb.classList.remove("sb-row-selected");
-						const dattr = $cached_sb.getAttribute("data-row");
-						const pname = dattr + "-cont";
-						const node = $(pname);
-						if (node) node.classList.add("none");
+						let dattr = $cached_sb.getAttribute("data-row");
+						let $node = $(dattr + "-cont");
+						if ($node) $node.classList.add("none");
 					}
-					if (delegate) {
-						document
-							.querySelector(".packages-cont")
-							.classList.add("none");
-						delegate.classList.toggle("sb-row-selected");
-						const dattr = delegate.getAttribute("data-row");
-						const pname = dattr + "-cont";
-						const node = $(pname);
-						if (node) node.classList.remove("none");
-						$cached_sb = delegate;
+					if ($delegate) {
+						$("QUERY", ".packages-cont").classList.add("none");
+						$delegate.classList.toggle("sb-row-selected");
+						let dattr = $delegate.getAttribute("data-row");
+						let $node = $(dattr + "-cont");
+						if ($node) $node.classList.remove("none");
+						$cached_sb = $delegate;
 
 						if (dattr === "packages") API.packages();
 						else if (dattr === "settings") API.config();
@@ -193,497 +258,235 @@ const init = function () {
 
 				break;
 
-			case "row:pkg-select-toggle":
+			case "packages:main-checkmark":
 				{
-					let delegate = targets.delegateTarget;
-					let icon = delegate.children[0];
-					if (icon.classList.contains("fa-square")) {
-						icon.classList.remove("fa-square");
-						icon.classList.add(
-							"fa-check-square",
-							"pkg-entry-icon-selected"
-						);
-
-						let actions_cont = $("pkg-list-header-actions");
-						actions_cont.classList.remove(
-							"pkg-list-header-actions-disabled"
-						);
-
-						// Select all package entries.
-						let list = document.querySelectorAll(".pkg-entry-icon");
-						for (let i = 0, l = list.length; i < l; i++) {
-							let item = list[i];
-							item.children[0].classList.remove("fa-square");
-							item.children[0].classList.add(
-								"fa-check-square",
-								"pkg-entry-icon-selected"
-							);
-						}
+					let $icon = f($delegate).all().classes("fas").getElement();
+					if (!checked($icon)) {
+						check($icon);
+						toggle_pkg_sel_actions(true);
+						mass_toggle("check");
 					} else {
-						icon.classList.remove(
-							"fa-check-square",
-							"pkg-entry-icon-selected"
-						);
-						icon.classList.add("fa-square");
-
-						let actions_cont = $("pkg-list-header-actions");
-						actions_cont.classList.add(
-							"pkg-list-header-actions-disabled"
-						);
-
-						// Select all package entries.
-						let list = document.querySelectorAll(".pkg-entry-icon");
-						for (let i = 0, l = list.length; i < l; i++) {
-							let item = list[i];
-							item.children[0].classList.remove(
-								"fa-check-square",
-								"pkg-entry-icon-selected"
-							);
-							item.children[0].classList.add("fa-square");
-						}
+						uncheck($icon);
+						toggle_pkg_sel_actions(false);
+						mass_toggle("uncheck");
 					}
 				}
 
 				break;
 
-			case "row:pkg-select-toggle-entry":
+			case "packages:entry-checkmark":
 				{
-					// let delegate = targets.delegateTarget;
+					// prettier-ignore
+					let $icon = f("#select-all-toggle").all().classes("fas").getElement();
+					uncheck($icon); // Untoggle main checkmark.
 
-					// untoggle main toggle
-					let main_toggle = $("select-all-toggle");
-					var icon = main_toggle.children[0];
-					icon.classList.remove(
-						"fa-check-square",
-						"pkg-entry-icon-selected"
-					);
-					icon.classList.add("fa-square");
+					let $dicon = f($delegate).all().classes("fas").getElement();
+					window[!checked($dicon) ? "check" : "uncheck"]($dicon);
 
-					let delegate = targets.delegateTarget;
-					var icon = delegate.children[0];
-					if (icon.classList.contains("fa-square")) {
-						icon.classList.remove("fa-square");
-						icon.classList.add(
-							"fa-check-square",
-							"pkg-entry-icon-selected"
-						);
-					} else {
-						icon.classList.remove(
-							"fa-check-square",
-							"pkg-entry-icon-selected"
-						);
-						icon.classList.add("fa-square");
-					}
-
-					if (
-						document.querySelectorAll(".pkg-entry-icon-selected")
-							.length
-					) {
-						let actions_cont = $("pkg-list-header-actions");
-						actions_cont.classList.remove(
-							"pkg-list-header-actions-disabled"
-						);
-					} else {
-						let actions_cont = $("pkg-list-header-actions");
-						actions_cont.classList.add(
-							"pkg-list-header-actions-disabled"
-						);
-					}
+					// prettier-ignore
+					let list = f("#pkg-list-entries").all().classes("pkg-entry-icon-selected").getStack();
+					toggle_pkg_sel_actions(!!list.length);
 				}
 
 				break;
 
-			case "action:setting":
+			case "settings:action":
 				{
-					let delegate = targets.delegateTarget;
-					let id = delegate.id;
-					if (id === "setting-action-btn-dynamic") {
-						let e;
-						e = delegate;
-						// if (
-						// 	!e.classList.contains("setting-action-btn-selected")
-						// ) {
-						e.classList.remove(
-							"noselect",
-							"setting-action-btn-unselected"
-						);
-						e.classList.add("setting-action-btn-selected");
-						e.children[0].classList.remove("none");
-						// } else {
-						// 	e.classList.remove("setting-action-btn-selected");
-						// 	e.classList.add(
-						// 		"setting-action-btn-unselected",
-						// 		"noselect"
-						// 	);
-						// 	e.children[0].classList.add("none");
-						// }
-
-						e = $("setting-action-btn-all");
-						e.classList.remove(
-							"noselect",
-							"setting-action-btn-unselected"
-						);
-						e.classList.add("setting-action-btn-unselected");
-						e.children[0].classList.add("none");
-					} else if (id === "setting-action-btn-all") {
-						let e;
-						e = $("setting-action-btn-dynamic");
-						e.classList.remove(
-							"noselect",
-							"setting-action-btn-unselected"
-						);
-						e.classList.add("setting-action-btn-unselected");
-						e.children[0].classList.add("none");
-						e = $("setting-action-btn-all");
-						e.classList.remove(
-							"noselect",
-							"setting-action-btn-unselected"
-						);
-						e.classList.add("setting-action-btn-selected");
-						e.children[0].classList.remove("none");
-					} else if (id === "setting-action-btn-nim") {
-						let e;
-						e = delegate;
-						// if (
-						// 	!e.classList.contains("setting-action-btn-selected")
-						// ) {
-						e.classList.remove(
-							"noselect",
-							"setting-action-btn-unselected"
-						);
-						e.classList.add("setting-action-btn-selected");
-						e.children[0].classList.remove("none");
-						// } else {
-						// 	e.classList.remove("setting-action-btn-selected");
-						// 	e.classList.add(
-						// 		"setting-action-btn-unselected",
-						// 		"noselect"
-						// 	);
-						// 	e.children[0].classList.add("none");
-						// }
-
-						e = $("setting-action-btn-perl");
-						e.classList.remove(
-							"noselect",
-							"setting-action-btn-unselected"
-						);
-						e.classList.add("setting-action-btn-unselected");
-						e.children[0].classList.add("none");
-					} else if (id === "setting-action-btn-perl") {
-						let e;
-						e = $("setting-action-btn-nim");
-						e.classList.remove(
-							"noselect",
-							"setting-action-btn-unselected"
-						);
-						e.classList.add("setting-action-btn-unselected");
-						e.children[0].classList.add("none");
-						e = $("setting-action-btn-perl");
-						e.classList.remove(
-							"noselect",
-							"setting-action-btn-unselected"
-						);
-						e.classList.add("setting-action-btn-selected");
-						e.children[0].classList.remove("none");
-					} else if (id === "setting-action-btn-clear-cache") {
-						API.clear_cache();
-					}
-
 					if (id.includes("dynamic") || id.includes("all")) {
 						$("switch-cache").checked = true;
 					} else if (id.includes("nim") || id.includes("perl")) {
 						$("switch-debug").checked = true;
 					}
+
+					switch (id) {
+						case "setting-action-btn-dynamic":
+							API.update_cache(1);
+							action("dynamic", "!all");
+							break;
+
+						case "setting-action-btn-all":
+							API.update_cache(2);
+							action("!dynamic", "all");
+							break;
+
+						case "setting-action-btn-nim":
+							API.update_debug(2);
+							action("nim", "!perl");
+							break;
+
+						case "setting-action-btn-perl":
+							API.update_debug(3);
+							action("!nim", "perl");
+							break;
+
+						case "setting-action-btn-clear-cache":
+							API.clear_cache();
+							break;
+					}
 				}
 
 				break;
 
-			case "switch:setting":
+			case "settings:switch":
 				{
-					let delegate = targets.delegateTarget;
-					let id = delegate.getAttribute("for");
+					let id = $delegate.getAttribute("for");
 					let toggle = $(id);
 					let state = !toggle.checked;
-					if (state) {
-						let b1 = "";
-						let b2 = "";
-						if (id === "switch-cache") {
-							b1 = "dynamic";
-							b2 = "all";
-						} else if (id === "switch-debug") {
-							b1 = "nim";
-							b2 = "perl";
-						}
+					let b1 = id === "switch-cache" ? "dynamic" : "nim";
+					let b2 = id === "switch-cache" ? "all" : "perl";
 
-						if (id === "switch-status") {
-							API.update_state(1);
-						}
+					switch (id) {
+						case "switch-status":
+							API.update_state(state | 0);
+							break;
 
-						let e;
-						e = $("setting-action-btn-" + b1);
-						if (!e) return;
-						e.classList.remove(
-							"setting-action-btn-unselected",
-							"noselect"
-						);
-						e.classList.add("setting-action-btn-selected");
-						e.children[0].classList.remove("none");
-						e = $("setting-action-btn-" + b2);
-						e.classList.remove("setting-action-btn-selected");
-						e.classList.add(
-							"setting-action-btn-unselected",
-							"noselect"
-						);
-						e.children[0].classList.add("none");
-					} else {
-						let b1 = "";
-						let b2 = "";
-						if (id === "switch-cache") {
-							b1 = "dynamic";
-							b2 = "all";
-						} else if (id === "switch-debug") {
-							b1 = "nim";
-							b2 = "perl";
-						}
+						case "switch-cache":
+						case "switch-debug":
+							{
+								// let mod = get_sel_modifier(b1, b2);
+								// API[method](Math.max(state | 0, mod));
+								if (state) action(b1, `!${b2}`);
+								else action(`!${b1}`, `!${b2}`);
+								let method = "update_cache";
+								// prettier-ignore
+								if (id.includes("debug")) method = "update_debug";
+								API[method](state | 0);
+							}
 
-						if (id === "switch-status") {
-							API.update_state(0);
-						}
+							break;
 
-						let e;
-						e = $("setting-action-btn-" + b1);
-						if (!e) return;
-						e.classList.remove("setting-action-btn-selected");
-						e.classList.add(
-							"setting-action-btn-unselected",
-							"noselect"
-						);
-						e.children[0].classList.add("none");
-						e = $("setting-action-btn-" + b2);
-						e.classList.remove("setting-action-btn-selected");
-						e.classList.add(
-							"setting-action-btn-unselected",
-							"noselect"
-						);
-						e.children[0].classList.add("none");
+						case "switch-single-flag-comp":
+							API.update_singletons(state | 0);
+							break;
 					}
 				}
 
 				break;
 		}
 	});
-	Interaction.addFilter("row:pkg-select-toggle-entry", function (e, targets) {
-		let parents = Funnel(targets.target).parents().getStack();
-		return Funnel(targets.target)
+	Interaction.addFilter("packages:entry-checkmark", (e, targets) => {
+		let parents = f(targets.target).parents().getStack();
+		return f(targets.target)
 			.concat(parents)
 			.classes("pkg-entry-icon")
 			.getElement();
 	});
-	Interaction.addFilter("row:pkg-select-toggle", function (e, targets) {
-		let parents = Funnel(targets.target).parents().getStack();
-		return Funnel(targets.target)
+	Interaction.addFilter("packages:main-checkmark", (e, targets) => {
+		let parents = f(targets.target).parents().getStack();
+		return f(targets.target)
 			.concat(parents)
 			.attrs("id")
 			.attrs("id=select-all-toggle")
 			.getElement();
 	});
-	Interaction.addFilter("row:pkg", function (e, targets) {
-		let parents = Funnel(targets.target).parents().getStack();
-		return Funnel(targets.target)
+	Interaction.addFilter("packages:entry", (e, targets) => {
+		let parents = f(targets.target).parents().getStack();
+		return f(targets.target)
 			.concat(parents)
 			.classes("pkg-entry")
 			.getElement();
 	});
-	Interaction.addFilter("row:sb", function (e, targets) {
-		let parents = Funnel(targets.target).parents().getStack();
-		return Funnel(targets.target)
-			.concat(parents)
-			.classes("sb-row")
-			.getElement();
+	Interaction.addFilter("sidebar:entry", (e, targets) => {
+		let parents = f(targets.target).parents().getStack();
+		return f(targets.target).concat(parents).classes("sb-row").getElement();
 	});
 
-	Interaction.addFilter("action:setting", function (e, targets) {
-		let parents = Funnel(targets.target).parents().getStack();
-		return Funnel(targets.target)
+	Interaction.addFilter("settings:action", (e, targets) => {
+		let parents = f(targets.target).parents().getStack();
+		return f(targets.target)
 			.concat(parents)
 			.classes("setting-action-btn")
 			.getElement();
 	});
 
-	Interaction.addFilter("switch:setting", function (e, targets) {
-		let parents = Funnel(targets.target).parents().getStack();
-		return Funnel(targets.target)
-			.concat(parents)
-			.classes("switch")
-			.getElement();
+	Interaction.addFilter("settings:switch", (e, targets) => {
+		let parents = f(targets.target).parents().getStack();
+		return f(targets.target).concat(parents).classes("switch").getElement();
 	});
 
-	new Interaction("Handle onChange events.")
+	new Interaction()
 		.on("mousedown")
 		.anchors(document)
 		.handler("mousedown:main")
-		.filters("action:setting")
-		.filters("switch:setting")
-		.filters("row:pkg-select-toggle")
-		.filters("row:pkg-select-toggle-entry")
-		.filters("row:pkg")
-		.filters("row:sb")
+		.filters("settings:action")
+		.filters("settings:switch")
+		.filters("packages:main-checkmark")
+		.filters("packages:entry-checkmark")
+		.filters("packages:entry")
+		.filters("sidebar:entry")
 		.capture(false)
 		.enable();
 
-	Interaction.addFilter("input:F", function (e, targets) {
-		return Funnel(targets.target).tags("input").getElement();
+	Interaction.addFilter("packages:input", (e, targets) => {
+		return f(targets.target).tags("input").getElement();
 	});
-	Interaction.addHandler("input:H", function (e, targets) {
+	Interaction.addHandler("input:main", (e, targets) => {
 		if (targets.delegateTarget) {
 			let target = targets.delegateTarget;
 			let value = target.value;
 			console.log(value);
 		}
 	});
-	var event = new Interaction("Handle onChange events.")
+	new Interaction()
 		.on("input")
 		.anchors(document)
-		.handler("input:H")
-		.filters("input:F")
+		.handler("input:main")
+		.filters("packages:input")
 		.capture(false)
 		.debounce(200)
 		.enable();
 
-	Interaction.addHandler("focus:H", function (e, targets) {
-		if (!$("settings-cont").classList.contains("none")) {
-			API.config();
-		}
+	Interaction.addHandler("focus:main", (e, targets) => {
+		if (!$("settings-cont").classList.contains("none")) API.config();
 	});
-	var event = new Interaction("Handle window focus events.")
+	new Interaction()
 		.on("focus")
 		.anchors(window)
-		.handler("focus:H")
+		.handler("focus:main")
 		.debounce(100)
-		// .capture(false)
 		.enable();
-
-	// Interaction.addFilter("toggle:F", function (e, targets) {
-	// 	return Funnel(targets.target).tags("input").getElement();
-	// });
-	// Interaction.addHandler("toggle:H", function (e, targets) {
-	// 	if (targets.delegateTarget) {
-	// 		let target = targets.delegateTarget;
-	// 		let value = target.value;
-	// 		console.log(value);
-	// 	}
-	// });
-	// var event = new Interaction("Handle onChange events.")
-	// 	.on("change")
-	// 	.anchors(document)
-	// 	.handler("toggles:H")
-	// 	.filters("toggles:F")
-	// 	.capture(false)
-	// 	.debounce(200)
-	// 	.enable();
 
 	// window.addEventListener("contextmenu", (event) => event.preventDefault());
 
 	/* Sniff: [https://stackoverflow.com/a/4702584] */
-	if (navigator.platform.includes("Mac")) {
-		document.body.classList.add("macosx-zoom");
-	}
+	if (navigator.platform.includes("Mac")) d.body.classList.add("macosx-zoom");
 };
 
-// // [https://stackoverflow.com/a/61839322]
-// document.onreadystatechange = function () {
-// 	// if (document.readyState == "complete") setTimeout(() => init(), 250);
-
-// 	if (document.readyState == "complete") {
-// 		document.addEventListener(which_animation_event("start"), function (e) {
-// 			var aname = e.animationName;
-// 			var $target = e.target;
-
-// 			if ($target.id && $target.id === "leaf") {
-// 				if (aname === "animate-pulse") {
-// 					$("leaf").classList.add("on");
-// 					let el = $("splash-overlay");
-// 					el.classList.remove("opa1");
-// 					el.classList.add("opa0");
-// 				}
-// 			}
-// 		});
-
-// 		document.addEventListener(which_transition_event("end"), function (e) {
-// 			var $target = e.target;
-// 			var pname = e.propertyName;
-
-// 			if ($target.id && $target.id === "splash-overlay") {
-// 				$("splash-overlay").classList.add("none");
-// 				init();
-// 			}
-// 		});
-
-// 		$("leaf").classList.add("animate-pulse");
-// 	}
-// };
-
 // [https://stackoverflow.com/a/61839322]
-document.onreadystatechange = function () {
-	// if (document.readyState == "complete") setTimeout(() => init(), 250);
+d.onreadystatechange = () => {
+	// if (d.readyState === "complete") setTimeout(() => init(), 250);
 
-	if (document.readyState == "complete") {
-		document.addEventListener(which_animation_event("start"), function (e) {
-			var $target = e.target;
-			var aname = e.animationName;
+	if (d.readyState === "complete") {
+		d.addEventListener(which_animation_event("start"), (e) => {
+			let $target = e.target;
+			let aname = e.animationName;
+			let id = $target.id;
 
-			// console.log("WHICH_ANIMATION_START", $target.id, aname);
-
-			if ($target.id && $target.id === "leaf") {
+			if (id && id === "leaf") {
 				if (aname === "animate-pulse") {
-					// $("leaf").classList.add("on");
-					let el = $("splash-overlay");
-					el.classList.remove("opa1");
-					el.classList.add("opa0");
+					let $el = $("splash-overlay");
+					let classes = $el.classList;
+					classes.remove("opa1");
+					classes.add("opa0");
 				}
 			}
-
-			// if ($target.id && $target.id === "leaf") {
-			// 	if (aname === "animate-pulse") {
-			// 		$("leaf").classList.add("on");
-			// 		let el = $("splash-overlay");
-			// 		el.classList.remove("opa1");
-			// 		el.classList.add("opa0");
-			// 	}
-			// }
 		});
 
-		document.addEventListener(which_animation_event("start"), function (e) {
-			var $target = e.target;
-			var aname = e.animationName;
+		d.addEventListener(which_transition_event("end"), (e) => {
+			let $target = e.target;
+			let id = $target.id;
+			// let pname = e.propertyName;
 
-			// console.log("WHICH_ANIMATION_END", $target.id, aname);
-		});
-
-		document.addEventListener(which_transition_event("end"), function (e) {
-			var $target = e.target;
-			var pname = e.propertyName;
-
-			// console.log("WHICH_TRANSITION_END", $target.id, pname);
-
-			if ($target.id && $target.id === "leaf") {
-				if (!$target.classList.contains("on")) {
-					$target.classList.add("on");
-				} else {
-					$target.classList.add("animate-pulse");
-				}
-			} else if ($target.id && $target.id === "splash-overlay") {
+			if (id && id === "leaf") {
+				let classes = $target.classList;
+				if (!classes.contains("on")) classes.add("on");
+				else classes.add("animate-pulse");
+			} else if (id && id === "splash-overlay") {
 				$("splash-overlay").classList.add("none");
 				init();
 			}
-
-			// if ($target.id && $target.id === "splash-overlay") {
-			// 	$("splash-overlay").classList.add("none");
-			// 	init();
-			// }
 		});
 
-		$("leaf").classList.add("off");
-		// $("leaf").classList.add("animate-pulse");
+		$("leaf").classList.add("off"); // Start splash animation.
 	}
 };

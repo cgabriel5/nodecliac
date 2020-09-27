@@ -1,4 +1,6 @@
-import os, algorithm, browsers, strutils, webgui, parsecfg, strformat, osproc
+import os, algorithm, browsers, webgui, parsecfg, strformat, osproc
+import strutils except escape
+from xmltree import escape
 
 when defined(linux):
     const width = 2000
@@ -21,23 +23,45 @@ let app = newWebView(currentHtmlPath("views/index.html"),
     cssPath=currentHtmlPath("css/empty.css") # [Bug] Line doesn't work on macOS?
 )
 
+proc config_update(setting: string, value: int) =
+    let p =  hdir & "/.nodecliac/.config"
+    var config = if fileExists(p): readFile(p) else: ""
+    var index = case setting
+        of "status": 0
+        of "cache": 1
+        of "debug": 2
+        else: 3
+
+    if config != "":
+        config[index] = ($(value))[0]
+        writeFile(p, config)
+
 proc setting_config_state(state: int) =
+    config_update("status", state)
 
-    # app.js(
-    #     "console.log(1111111, \"11111<<<<<\");document.body.classList.add(\"nointer\");" &
-    #     "document.getElementById(\"loader\").classList.remove(\"none\");" &
-    #     "setTimeout(function() { document.getElementById(\"loader\").classList.add(\"opa1\"); }, 10);"
-    # )
+    # # app.js(
+    # #     "console.log(1111111, \"11111<<<<<\");document.body.classList.add(\"nointer\");" &
+    # #     "document.getElementById(\"loader\").classList.remove(\"none\");" &
+    # #     "setTimeout(function() { document.getElementById(\"loader\").classList.add(\"opa1\"); }, 10);"
+    # # )
 
-    echo ">>>>>>>>>>>> [", state, "]"
-    let flag = if state == 1: "--enable" else: "--disable"
-    echo "=================== COMMAND: [", "nodecliac status " & flag, "]"
-    let res = execProcess("nodecliac status " & flag)
-    echo ">>>>>>>>>>>.RES [", res, "]"
+    # echo ">>>>>>>>>>>> [", state, "]"
+    # let flag = if state == 1: "--enable" else: "--disable"
+    # echo "=================== COMMAND: [", "nodecliac status " & flag, "]"
+    # let res = execProcess("nodecliac status " & flag)
+    # echo ">>>>>>>>>>>.RES [", res, "]"
 
-    # app.js(
-    #     "console.log(2222222, \"22222<<<<<\");setTimeout(function() { document.getElementById(\"loader\").classList.add(\"opa1\"); setTimeout(function() { document.getElementById(\"loader\").classList.add(\"none\"); document.body.classList.remove(\"nointer\"); }, 10); }, 250);")
+    # # app.js(
+    # #     "console.log(2222222, \"22222<<<<<\");setTimeout(function() { document.getElementById(\"loader\").classList.add(\"opa1\"); setTimeout(function() { document.getElementById(\"loader\").classList.add(\"none\"); document.body.classList.remove(\"nointer\"); }, 10); }, 250);")
 
+proc setting_config_cache(state: int) =
+    config_update("cache", state)
+
+proc setting_config_debug(state: int) =
+    config_update("debug", state)
+
+proc setting_config_singletons(state: int) =
+    config_update("singletons", state)
 
 proc settings_clear_cache() =
     # Use nodecliac CLI
@@ -64,7 +88,11 @@ proc get_config() =
     # if config != "":
         # app.js("setup_config(" & config & ")")
     if config != "":
-        app.js("window.api.setup_config(\"" & config & "\");")
+        let status = config[0]
+        let cache = config[1]
+        let debug = config[2]
+        let singletons = config[3]
+        app.js(fmt"window.api.setup_config({status},{cache},{debug},{singletons});")
         jsLog(config)
 
 proc get_packages() =
@@ -115,7 +143,6 @@ proc clink(url: string): string =
 </a>
 """.strip.unindent.multiReplace([("\n", " ")])
 
-
 proc flink(url: string): string =
     return fmt"""
 <a class=\"link\"
@@ -123,7 +150,6 @@ proc flink(url: string): string =
     {url}
 </a>
 """.strip.unindent.multiReplace([("\n", " ")])
-
 
 app.bindProcs("api"):
     # Open provided url in user's browser.
@@ -174,45 +200,24 @@ app.bindProcs("api"):
             # [https://www.reddit.com/r/nim/comments/8gszys/nim_day_5_writing_ini_parser/]
             # [https://github.com/xmonader/nim-configparser]
             # [https://nim-lang.org/docs/parsecfg.html]
-            # []
             let data = loadConfig(config)
-            let name = data.getSectionValue("Package", "name")
-            let version = data.getSectionValue("Package", "version")
-            let description = data.getSectionValue("Package", "description")
-            let license = data.getSectionValue("Package", "license")
-            let author = data.getSectionValue("Author", "name")
-            let github = data.getSectionValue("Author", "github")
-            let location = "~/.nodecliac/registry/" & name
+            let name = data.getSectionValue("Package", "name".escape)
+            let version = data.getSectionValue("Package", "version".escape)
+            let description = data.getSectionValue("Package", "description".escape)
+            let license = data.getSectionValue("Package", "license".escape)
+            let author = data.getSectionValue("Author", "name".escape)
+            let github = clink(data.getSectionValue("Author", "github").escape)
+            let location = flink("~/.nodecliac/registry/" & name)
 
-            echo "document.getElementById(\"pkg-info-row-name\").children[1].innerHTML = \"<span class=\"select\">" & name & "</span>\";"
-
-            app.js(
-                # app.setText("#pkg-info-row-name", name) & ";" &
-                # app.setText("#pkg-info-row-description", description) & ";" &
-                # app.setText("#pkg-info-row-author", author) & ";" &
-                # app.setText("#pkg-info-row-repository", github) & ";" &
-                # app.setText("#pkg-info-row-version", version)
-
-
-
-                "document.getElementById(\"pkg-info-row-name\").children[1].innerHTML = \"<span class='select'>" & name & "</span>\";" &
-                "document.getElementById(\"pkg-info-row-description\").children[1].innerHTML = \"<span class='select'>" & description & "</span>\";" &
-                "document.getElementById(\"pkg-info-row-author\").children[1].innerHTML = \"<span class='select'>" & author & "</span>\";" &
-                "document.getElementById(\"pkg-info-row-repository\").children[1].innerHTML = \"<span class='select'>" & clink(github) & "</span>\";" &
-                "document.getElementById(\"pkg-info-row-location\").children[1].innerHTML = \"<span class='select'>" & flink(location) & "</span>\";" &
-                "document.getElementById(\"pkg-info-row-version\").children[1].innerHTML = \"<span class='select'>" & version & "</span>\";" &
-                "document.getElementById(\"pkg-info-row-license\").children[1].innerHTML = \"<span class='select'>" & license & "</span>\";"
-            )
-        else:
-            app.js(
-                "document.getElementById(\"pkg-info-row-name\").children[1].textContent = \"--\";" &
-                "document.getElementById(\"pkg-info-row-description\").children[1].textContent = \"--\";" &
-                "document.getElementById(\"pkg-info-row-author\").children[1].textContent = \"--\";" &
-                "document.getElementById(\"pkg-info-row-repository\").children[1].textContent = \"--\";" &
-                "document.getElementById(\"pkg-info-row-location\").children[1].textContent = \"--\";" &
-                "document.getElementById(\"pkg-info-row-version\").children[1].textContent = \"--\";" &
-                "document.getElementById(\"pkg-info-row-license\").children[1].textContent = \"--\";"
-            )
+            app.js(fmt"""
+                window.api.set_pkg_info_row("name", "<span class='select'>{name}</span>");
+                window.api.set_pkg_info_row("description", "<span class='select'>{description}</span>");
+                window.api.set_pkg_info_row("author", "<span class='select'>{author}</span>");
+                window.api.set_pkg_info_row("repository", "<span class='select'>{github}</span>");
+                window.api.set_pkg_info_row("location", "<span class='select'>{location}</span>");
+                window.api.set_pkg_info_row("version", "<span class='select'>{version}</span>");
+                window.api.set_pkg_info_row("license", "<span class='select'>{license}</span>");
+            """);
 
     proc loaded(s: string) = jsLog(s)
     proc packages() = get_packages()
@@ -220,6 +225,9 @@ app.bindProcs("api"):
     proc clear_cache() = settings_clear_cache()
 
     proc update_state(state: int) = setting_config_state(state)
+    proc update_cache(state: int) = setting_config_cache(state)
+    proc update_debug(state: int) = setting_config_debug(state)
+    proc update_singletons(state: int) = setting_config_singletons(state)
 
 # import libfswatch
 # import libfswatch/fswatch

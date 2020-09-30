@@ -1,11 +1,6 @@
 /* Stick position + FlexBox + Overflow:; */
 /* [https://uxdesign.cc/position-stuck-96c9f55d9526] */
 
-.content {
-	width: 100%;
-	height: 100%;
-}
-
 .packages-cont {
 	display: flex;
 	flex-flow: column nowrap;
@@ -15,7 +10,7 @@
 	height: 100%;
 }
 
-.pkg-list {
+.packages-cont .pkg-list {
 	width: 100%;
 	height: 100%;
 	position: relative;
@@ -24,7 +19,7 @@
 }
 
 /* Improve this as it hinders window resize performance. */
-.pkg-list--disable::before {
+.packages-cont .pkg-list--disable::before {
 	width: 100%;
 	height: 100%;
 
@@ -42,60 +37,68 @@
 	opacity: 0.035;
 }
 
-.pkg-list-entries {
-	height: auto;
+.packages-cont .entries {
+	/*height: auto;*/
+	height: 100%;
 	bottom: 0;
 	overflow: auto;
 }
 
-.pkg-empty {
+.packages-cont .empty {
 	display: flex;
 	flex-flow: row nowrap;
 	justify-content: center;
 	align-items: center;
-	/* background: coral; */
 	height: 100%;
 	font-weight: bold;
 	color: #c6c6c6;
+	color: rgb(110, 110, 110);
 	font-size: 34px;
 }
 
-.pkg-entry {
+.packages-cont .entry {
 	display: flex;
 	flex-flow: row nowrap;
-	padding: 4px 20px;
+	padding: 4px 10px;
 	width: 100%;
 	border-bottom: 1px solid transparent;
 }
 
 /* [https://davidwalsh.name/css-tables-css3-alternate-row-colors] */
-.pkg-entry:nth-child(odd) {
+.packages-cont .entry:nth-child(odd) {
 	background-color: rgba(255, 255, 255, 0.05);
 }
-.pkg-entry:nth-child(even) {
+.packages-cont .entry:nth-child(even) {
 	background-color: rgba(0, 0, 0, 0.03);
 }
 
-.pkg-entry-icon-selected {
+.packages-cont .icon-selected {
 	color: rgb(16, 103, 222);
 }
 
-.pkg-entry-selected .pkg-entry-icon {
+.packages-cont .selected .icon-cont {
 	color: rgba(255, 255, 255, 1) !important;
 	opacity: 1;
 }
 
-.pkg-entry-selected .pkg-entry-icon-selected {
+.packages-cont .selected .icon-selected {
 	background: rgb(16, 103, 222) !important;
 	color: white;
 }
 
-.pkg-entry-selected {
+.packages-cont .selected {
 	background: rgb(16, 103, 222) !important;
 	color: white;
 }
 
-.pkg-list-header-cont {
+.packages-cont .sticky-cont {
+	height: 100%;
+	width: 100%;
+	display: flex;
+	flex-flow: column nowrap;
+}
+
+.packages-cont .header-cont {
 	position: -webkit-sticky;
 	position: sticky !important;
 	top: 0;
@@ -103,27 +106,35 @@
 	flex-flow: row nowrap;
 	justify-content: space-between;
 	background-color: rgba(247, 246, 248, 1);
-	padding: 2px 20px;
-	border-bottom: 2px solid #ececec;
+	padding: 2px 10px;
+	border-bottom: 1px solid #e5e5e5;
 
 	/* So that checkbox images display under. */
 	z-index: 1;
+
+	min-height: 45px;
+	position: relative;
 }
 
-.pkg-entry-icon {
+/*.packages-cont .header-cont:before {
+	content: " ";
+	position: absolute;
+
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	border-bottom: 1px solid white;
+}
+*/
+.packages-cont .icon-cont {
 	font-size: 24px;
 	/* opacity: 0.075; */
-	margin-right: 15px;
+	margin-right: 10px;
 	position: relative;
 	color: #dddddd;
 }
 
-.pkg-list-header-label {
-	/*font-weight: bold;*/ /* padding: 5px 5px 5px 0px; */
-	/*color: #777777;*/
-}
-
-.pkg-list-header-actions {
+.packages-cont .header-actions {
 	display: flex;
 	flex-flow: row nowrap;
 	justify-content: center;
@@ -135,7 +146,7 @@
 	color: rgb(85, 85, 85);
 }
 
-.pkg-list-header-actions-disabled {
+.packages-cont .header-actions.disabled {
 	opacity: 0;
 	color: rgb(155, 155, 155);
 	pointer-events: none;
@@ -144,7 +155,7 @@
 	transition-property: opacity, color;
 }
 
-.pkg-list-header-action {
+.packages-cont .btn-header {
 	/*height: 35px;*/
 	padding: 10px 12px;
 	/* font-size: 18px; */
@@ -161,38 +172,16 @@
 	box-shadow: 0 0px 0px 0px rgba(0, 0, 0, 0.04);
 }
 
-.pkg-list-header-action:hover {
+.packages-cont .btn-header:hover {
 	background: #e8e8e8;
 }
 
-.pkg-list-header-action:active {
+.packages-cont .btn-header:active {
 	background: #dddddd;
 	/*box-shadow: 0 0px 0px 0px rgba(0, 0, 0, 0.07);*/
 }
 
-.pkg-list-header-action-icon {
-	/*margin-right: 10px;*/
-}
-/*.pkg-list-header-action-left {
-	border-radius: 6px 0 0 6px;
-}
-
-.pkg-list-header-action-middle {
-	border-left: 0px;
-	border-radius: 0;
-}
-
-.pkg-list-header-action-middle-2 {
-	border-radius: 0;
-	border-left: none;
-	border-right: none;
-}
-
-.pkg-list-header-action-right {
-	border-radius: 0 6px 6px 0;
-}*/
-
-.pkg-header-input-cont {
+.packages-cont .input-cont {
 	border: 1px solid rgba(0, 0, 0, 0.2);
 	border-radius: 6px;
 	background: rgba(0, 0, 0, 0.01);
@@ -205,13 +194,13 @@
 	align-items: center;
 }
 
-.pkg-header-search {
+.packages-cont .search-icon {
 	padding: 0 0 0 10px;
 	margin-right: -5px;
 	color: #999;
 }
 
-.pkg-header-input {
+.packages-cont .header-input {
 	outline: none;
 	padding: 0px;
 	width: 200px;
@@ -221,49 +210,62 @@
 	border: none;
 	background: transparent;
 	border-radius: 6px;
-	transition: width 0.25s cubic-bezier(0.11, 0.38, 0.01, 0.99);
+	/*transition: width 0.25s cubic-bezier(0.11, 0.38, 0.01, 0.99);*/
 	font-size: 20px;
 }
 
-.pkg-header-input:active,
-.pkg-header-input:focus {
+/*.packages-cont .header-input:active,
+.packages-cont .header-input:focus {
 	width: 300px;
 	transition: width 0.2s cubic-bezier(0.11, 0.38, 0.01, 0.99);
-}
-.pkg-header-input-cont:focus-within {
+}*/
+.packages-cont .input-cont:focus-within {
 	background: white;
 	box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.7);
-	transition: width 0.2s cubic-bezier(0.11, 0.38, 0.01, 0.99);
+	/*transition: width 0.2s cubic-bezier(0.11, 0.38, 0.01, 0.99);*/
 	border: 1px solid transparent;
 }
-
-.pkg-header-input-cont:focus-within .pkg-header-search {
+.packages-cont .input-cont:focus-within .search-icon {
 	color: #444;
 }
 
-/* Package Information */
+/* PACKAGE INFORMATION */
 
 .pkg-info {
 	min-width: 100%;
 	min-height: 300px;
 	overflow: auto;
-	border-top: 2px solid rgba(0, 0, 0, 0.04);
+	border-top: 1px solid #e5e5e5;
 	background: #f7f6f8;
+	background: #fbfafc;
 	padding: 10px;
+	position: relative;
 }
 
-.pkg-info-row {
+.pkg-info:before {
+	content: " ";
+	position: absolute;
+	display: inline;
+
+	width: 100%;
+
+	top: 0;
+	left: 0;
+
+	border-top: 1px solid white;
+}
+.pkg-info .row {
 	display: flex;
 	flex-flow: row nowrap;
 	width: 100%;
 }
 
-.pkg-info-header {
+.pkg-info .header {
 	font-weight: bold;
 	color: #707982;
 }
 
-.pkg-info-label {
+.pkg-info .label {
 	color: #999999;
 
 	/*display: flex;*/
@@ -272,7 +274,7 @@
 	text-overflow: ellipsis;
 }
 
-.pkg-info-value {
+.pkg-info .value {
 	margin-left: 10px;
 	color: #333333;
 	display: flex;

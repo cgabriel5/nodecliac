@@ -10,26 +10,8 @@
 			content="width=device-width,initial-scale=1,shrink-to-fit=no"
 		/>
 		<link href="../css/main.css" rel="stylesheet" />
-		<!-- 		<link
-			href="../resources/fonts/fontawesome-pro-5.14.0-web/css/all.css"
-			rel="stylesheet"
-		/> -->
-
-		<!-- 		<link
-			href="../resources/fonts/google-webfonts/css/all.css"
-			rel="stylesheet"
-		/>
- -->
-		<!-- 		<link
-			href="https://fonts.googleapis.com/css2?family=Inter:wght@800&family=Hind:wght@300;400;600&family=Roboto:wght@700&family=Roboto+Mono:wght@700&display=swap"
-			rel="stylesheet"
-			async=""
-			defer=""
-		/> -->
-
 		<script src="../js/libs/interaction.js"></script>
 		<script src="../js/libs/funnel.js"></script>
-		<!-- <script src="../js/libs/monitor.js"></script> -->
 		<script async defer src="../js/app.js"></script>
 	</head>
 
@@ -44,13 +26,7 @@
 
 		<div id="app" class="app">
 			<div id="loader" class="loader none">
-				<div class="loader-cont">
-					<!-- <i class="fas fa-spinner-third fa-spin"></i> -->
-					<!-- [https://loading.io/css/] -->
-					<!--
-<div class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
- -->
-
+				<div class="inner">
 					<!-- [https://webdesign.tutsplus.com/tutorials/how-to-create-a-loader-icon-with-svg-animations--cms-31542] -->
 					<!-- [https://codepen.io/tutsplus/pen/mjOJma] -->
 					<svg
@@ -79,10 +55,9 @@
 			<div class="status">
 				<div class="left">
 					<div><span class="bold">nodecliac</span> v0.0.1</div>
-					<div class="button-light update-btn">
-						<span class="update-btn-icon">
+					<div class="btn-w btn-update none">
+						<span class="btn-icon">
 							<i class="fas fa-sync-alt"></i>
-							<!-- <img src="../resources/images/fontawesome/sync.svg"/> -->
 						</span>
 						Update nodecliac
 					</div>
@@ -105,14 +80,15 @@
 
 			<div id="main" class="main">
 				<div id="sidebar" class="sidebar">
-					<div class="sb-row" data-row="packages">
+					<div class="section">Packages</div>
+
+					<div class="row" data-row="packages">
 						<div class="left">
 							<div class="center">
-								<div class="sb-row-icon-cont">
-									<!-- <div class="sb-row-icon arrow-down"></div> -->
+								<div class="icon-cont">
 									<i class="fas fa-database"></i>
 								</div>
-								<div class="sb-label">Registry</div>
+								<div class="label">Registry</div>
 							</div>
 						</div>
 
@@ -120,216 +96,219 @@
 					</div>
 
 					<div class="entries">
-						<div class="entry-item">
+						<div class="item">
 							<div class="left">
-								<div class="entry-icon"></div>
-								<div class="entry-label">Installed</div>
+								<div class="icon"></div>
+								<div class="label">Installed</div>
 							</div>
 							<div class="right">
-								<div class="entry-count">14</div>
+								<div class="count">14</div>
 							</div>
 						</div>
-						<div class="entry-item">
+						<div class="item">
 							<div class="left">
-								<div class="entry-icon"></div>
-								<div class="entry-label">Outdated</div>
+								<div class="icon"></div>
+								<div class="label">Outdated</div>
 							</div>
 							<div class="right">
-								<div class="entry-count">1</div>
+								<div class="count">1</div>
 							</div>
 						</div>
-						<div class="entry-item">
+						<div class="item">
 							<div class="left">
-								<div class="entry-icon"></div>
-								<div class="entry-label">Available</div>
+								<div class="icon"></div>
+								<div class="label">Available</div>
 							</div>
 							<div class="right">
-								<div class="entry-count">1230</div>
+								<div class="count">1230</div>
 							</div>
 						</div>
 					</div>
 
-					<div class="sb-row" data-row="settings">
+					<div class="divider"></div>
+					<div class="section">Tools</div>
+
+					<div class="row" data-row="settings">
 						<div class="left">
 							<div class="center">
-								<div class="sb-row-icon-cont">
-									<i class="fas fa-sliders-h"></i>
-									<!-- <div class="sb-row-icon arrow-right"></div> -->
+								<div class="icon-cont">
+									<i class="fas fa-cog"></i>
 								</div>
-								<div class="sb-label">Settings</div>
+								<div class="label">Settings</div>
 							</div>
 						</div>
 						<div class="right"></div>
 					</div>
 
-					<div class="sb-row" data-row="about" id="about">
+					<div class="row" data-row="about" id="about">
 						<div class="left">
 							<div class="center">
-								<div class="sb-row-icon-cont">
+								<div class="icon-cont">
 									<i class="fas fa-info-circle"></i>
-									<!-- <div class="sb-row-icon arrow-right"></div> -->
 								</div>
-								<div class="sb-label">About</div>
+								<div class="label">About</div>
 							</div>
 						</div>
 						<div class="right"></div>
 					</div>
 
-					<div class="sb-row" data-row="update" id="update">
+					<div class="row" data-row="update" id="update">
 						<div class="left">
 							<div class="center">
-								<div class="sb-row-icon-cont">
+								<div class="icon-cont">
 									<i class="fas fa-sync-alt"></i>
-									<!-- <div class="sb-row-icon arrow-right"></div> -->
 								</div>
-								<div class="sb-label">Update</div>
+								<div class="label">Update</div>
 							</div>
 						</div>
 						<div class="right"></div>
 					</div>
 
-					<div class="sb-row" data-row="doctor" id="doctor">
+					<div class="row" data-row="doctor" id="doctor">
 						<div class="left">
 							<div class="center">
-								<div class="sb-row-icon-cont">
+								<div class="icon-cont">
 									<i class="fas fa-briefcase-medical"></i>
-									<!-- <div class="sb-row-icon arrow-right"></div> -->
 								</div>
-								<div class="sb-label">Doctor</div>
+								<div class="label">Doctor</div>
 							</div>
 						</div>
 						<div class="right"></div>
 					</div>
+
+					<div class="section"></div>
 				</div>
 
 				<div id="content" class="content">
 					<div id="settings-cont" class="settings-cont none">
-						<div class="setting-entry">
-							<div class="left">
-								<div class="setting-label">
-									Enable nodecliac
-								</div>
-							</div>
-							<div class="right">
-								<div>
-									<input
-										type="checkbox"
-										id="switch-status"
-										class="checkbox"
-									/>
-									<label
-										for="switch-status"
-										class="switch"
-									></label>
-								</div>
-							</div>
-						</div>
-
-						<div class="setting-entry">
-							<div class="left">
-								<div class="setting-label">Cache</div>
-							</div>
-							<div class="right">
-								<div class="setting-action-btns-cont">
-									<div
-										id="setting-action-btn-clear-cache"
-										class="setting-action-btn cache-clear-btn left"
-									>
-										clear
-									</div>
-
-									<div class="settings-divider"></div>
-
-									<div
-										id="setting-action-btn-dynamic"
-										class="setting-action-btn setting-action-btn-left setting-action-btn setting-action-btn-unselected"
-									>
-										<div class="btn-setting-icon none">
-											<i class="fas fa-check"></i>
-										</div>
-										dynamic
-									</div>
-									<div
-										id="setting-action-btn-all"
-										class="setting-action-btn setting-action-btn-right setting-action-btn-unselected"
-									>
-										<div class="btn-setting-icon none">
-											<i class="fas fa-check"></i>
-										</div>
-										all
-									</div>
-								</div>
+						<div class="settings-inner">
+							<div class="entry">
 								<div class="left">
-									<input
-										type="checkbox"
-										id="switch-cache"
-										class="checkbox"
-									/>
-									<label
-										for="switch-cache"
-										class="switch"
-									></label>
-								</div>
-							</div>
-						</div>
-
-						<div class="setting-entry">
-							<div class="left">
-								<div class="setting-label">Debug</div>
-							</div>
-							<div class="right">
-								<div class="setting-action-btns-cont">
-									<div
-										id="setting-action-btn-nim"
-										class="setting-action-btn setting-action-btn-left setting-action-btn-unselected"
-									>
-										<div class="btn-setting-icon none">
-											<i class="fas fa-check"></i>
-										</div>
-										nim
-									</div>
-									<div
-										id="setting-action-btn-perl"
-										class="setting-action-btn setting-action-btn-right setting-action-btn setting-action-btn-unselected"
-									>
-										<div class="btn-setting-icon none">
-											<i class="fas fa-check"></i>
-										</div>
-										perl
+									<div class="label">
+										Enable nodecliac
 									</div>
 								</div>
-								<div class="left">
-									<input
-										type="checkbox"
-										id="switch-debug"
-										class="checkbox"
-									/>
-									<label
-										for="switch-debug"
-										class="switch"
-									></label>
-								</div>
-							</div>
-						</div>
-
-						<div class="setting-entry">
-							<div class="left">
-								<div class="setting-label">
-									Complete Single Hyphen Flags
-								</div>
-							</div>
-							<div class="right">
-								<div>
+								<div class="right">
 									<div>
 										<input
 											type="checkbox"
-											id="switch-single-flag-comp"
+											id="switch-status"
 											class="checkbox"
 										/>
 										<label
-											for="switch-single-flag-comp"
+											for="switch-status"
 											class="switch"
 										></label>
+									</div>
+								</div>
+							</div>
+
+							<div class="entry">
+								<div class="left">
+									<div class="label">Cache</div>
+								</div>
+								<div class="right">
+									<div class="actions-cont">
+										<div
+											id="action-clear-cache"
+											class="btn-action clear-cache left"
+										>
+											clear
+										</div>
+
+										<div class="divider"></div>
+
+										<div
+											id="action-dynamic"
+											class="btn-action unselected"
+										>
+											<div class="icon-cont none">
+												<i class="fas fa-check"></i>
+											</div>
+											dynamic
+										</div>
+										<div
+											id="action-all"
+											class="btn-action unselected"
+										>
+											<div class="icon-cont none">
+												<i class="fas fa-check"></i>
+											</div>
+											all
+										</div>
+									</div>
+									<div class="left">
+										<input
+											type="checkbox"
+											id="switch-cache"
+											class="checkbox"
+										/>
+										<label
+											for="switch-cache"
+											class="switch"
+										></label>
+									</div>
+								</div>
+							</div>
+
+							<div class="entry">
+								<div class="left">
+									<div class="label">Debug</div>
+								</div>
+								<div class="right">
+									<div class="actions-cont">
+										<div
+											id="action-nim"
+											class="btn-action unselected"
+										>
+											<div class="icon-cont none">
+												<i class="fas fa-check"></i>
+											</div>
+											nim
+										</div>
+										<div
+											id="action-perl"
+											class="btn-action unselected"
+										>
+											<div class="icon-cont none">
+												<i class="fas fa-check"></i>
+											</div>
+											perl
+										</div>
+									</div>
+									<div class="left">
+										<input
+											type="checkbox"
+											id="switch-debug"
+											class="checkbox"
+										/>
+										<label
+											for="switch-debug"
+											class="switch"
+										></label>
+									</div>
+								</div>
+							</div>
+
+							<div class="entry">
+								<div class="left">
+									<div class="label">
+										Complete Single Hyphen Flags
+									</div>
+								</div>
+								<div class="right">
+									<div>
+										<div>
+											<input
+												type="checkbox"
+												id="switch-single-flag-comp"
+												class="checkbox"
+											/>
+											<label
+												for="switch-single-flag-comp"
+												class="switch"
+											></label>
+										</div>
 									</div>
 								</div>
 							</div>
@@ -338,63 +317,45 @@
 
 					<div id="packages-cont" class="packages-cont">
 						<div id="pkg-list" class="pkg-list">
-							<div>
-								<div class="pkg-list-header-cont">
+							<div class="sticky-cont">
+								<div id="header-cont" class="header-cont">
 									<div class="left">
 										<div class="center">
 											<div
-												id="select-all-toggle"
-												class="pkg-entry-icon"
+												id="main-toggle"
+												class="icon-cont"
 											>
 												<i class="fas fa-square"></i>
 											</div>
 
-											<div class="pkg-list-header-label">
-												Package
-											</div>
+											<div class="label">Package</div>
 										</div>
 
 										<div
-											id="pkg-list-header-actions"
-											class="pkg-list-header-actions pkg-list-header-actions-disabled"
+											id="header-actions"
+											class="header-actions disabled"
 										>
-											<div
-												class="pkg-list-header-action pkg-list-header-action-left"
-											>
-												<span
-													class="pkg-list-header-action-icon pkg-list-header-action-left"
-												>
+											<div class="btn-header">
+												<span>
 													<i
 														class="fas fa-sync-alt"
 													></i>
 												</span>
 											</div>
-											<div
-												class="pkg-list-header-action pkg-list-header-action-middle"
-											>
-												<span
-													class="pkg-list-header-action-icon"
-												>
+											<div class="btn-header">
+												<span>
 													<i class="fas fa-trash"></i>
 												</span>
 											</div>
-											<div
-												class="pkg-list-header-action pkg-list-header-action-middle-2"
-											>
-												<span
-													class="pkg-list-header-action-icon"
-												>
+											<div class="btn-header">
+												<span>
 													<i
 														class="fas fa-toggle-on"
 													></i>
 												</span>
 											</div>
-											<div
-												class="pkg-list-header-action pkg-list-header-action-right"
-											>
-												<span
-													class="pkg-list-header-action-icon"
-												>
+											<div class="btn-header">
+												<span>
 													<i
 														class="fas fa-toggle-off"
 													></i>
@@ -403,96 +364,77 @@
 										</div>
 									</div>
 									<div class="right">
-										<div class="pkg-header-input-cont">
-											<div class="pkg-header-search">
+										<div class="input-cont">
+											<div class="search-icon">
 												<i class="fas fa-search"></i>
 											</div>
 											<input
-												id="pkg-header-input"
-												class="pkg-header-input"
+												id="header-input"
+												class="header-input"
 												placeholder="Search..."
 											/>
 										</div>
 									</div>
 								</div>
-								<div
-									id="pkg-list-entries"
-									class="pkg-list-entries"
-								></div>
+								<div id="pkg-entries" class="entries"></div>
 							</div>
 						</div>
 
 						<div class="pkg-info">
-							<div class="pkg-info-row">
-								<div class="pkg-info-header">
+							<div class="row">
+								<div class="header">
 									Completion Package Information
 								</div>
 							</div>
-							<div id="pkg-info-row-name" class="pkg-info-row">
-								<div class="pkg-info-label">Name:</div>
-								<div class="pkg-info-value"></div>
+							<div id="pkg-i-name" class="row">
+								<div class="label">Name:</div>
+								<div class="value"></div>
 							</div>
-							<div
-								id="pkg-info-row-description"
-								class="pkg-info-row"
-							>
-								<div class="pkg-info-label">Description:</div>
-								<div class="pkg-info-value"></div>
+							<div id="pkg-i-description" class="row">
+								<div class="label">Description:</div>
+								<div class="value"></div>
 							</div>
-							<div id="pkg-info-row-author" class="pkg-info-row">
-								<div class="pkg-info-label">Author:</div>
-								<div class="pkg-info-value"></div>
+							<div id="pkg-i-author" class="row">
+								<div class="label">Author:</div>
+								<div class="value"></div>
 							</div>
-							<div
-								id="pkg-info-row-repository"
-								class="pkg-info-row"
-							>
-								<div class="pkg-info-label">Repository:</div>
-								<div class="pkg-info-value"></div>
+							<div id="pkg-i-repository" class="row">
+								<div class="label">Repository:</div>
+								<div class="value"></div>
 							</div>
-							<div
-								id="pkg-info-row-location"
-								class="pkg-info-row"
-							>
-								<div class="pkg-info-label">Location:</div>
-								<div class="pkg-info-value"></div>
+							<div id="pkg-i-location" class="row">
+								<div class="label">Location:</div>
+								<div class="value"></div>
 							</div>
-							<div id="pkg-info-row-version" class="pkg-info-row">
-								<div class="pkg-info-label">Version:</div>
-								<div class="pkg-info-value"></div>
+							<div id="pkg-i-version" class="row">
+								<div class="label">Version:</div>
+								<div class="value"></div>
 							</div>
-							<div id="pkg-info-row-license" class="pkg-info-row">
-								<div class="pkg-info-label">License:</div>
-								<div class="pkg-info-value"></div>
+							<div id="pkg-i-license" class="row">
+								<div class="label">License:</div>
+								<div class="value"></div>
 							</div>
 						</div>
 					</div>
 
 					<div id="about-cont" class="about-cont none">
-						<div class="about-logo-cont none">
-							<img
-								class="about-logo"
-								src="../resources/images/LOGO2.png"
-							/>
-						</div>
-
-						<div class="logo-wrapper">
-							<div class="logo-top-face-cont">
-								<div class="logo-top-face">
-									<div class="logo-top-face-text">
+						<div class="logo-cont">
+							<div class="top-face-cont">
+								<div class="top-face">
+									<div class="top-face-text">
 										$<span class="blink-caret">_</span>
 									</div>
 								</div>
 							</div>
-							<div class="logo-left-face"></div>
-							<div class="logo-right-face">
-								<div class="logo-right-face-text">
+							<div class="left-face"></div>
+							<div class="right-face">
+								<div class="right-face-text">
 									tab
 								</div>
 							</div>
 						</div>
 
-						<div class="about-title">nodecliac</div>
+						<div class="title">nodecliac</div>
 						<div>Copyright © 2019-2020</div>
 						<div>Carlos A. Gabriel</div>
 					</div>
@@ -501,8 +443,8 @@
 						<div class="top-cont">
 							<div class="left"></div>
 							<div class="right">
-								<div class="btn-update">clear log</div>
-								<div class="btn-update-b">update</div>
+								<div class="btn-w btn-update">clear log</div>
+								<div class="btn-b btn-update-b">update</div>
 							</div>
 						</div>
 						<div class="bottom-cont">
@@ -516,8 +458,8 @@
 						<div class="top-cont">
 							<div class="left"></div>
 							<div class="right">
-								<div class="btn-update">clear log</div>
-								<div class="btn-update-b">run</div>
+								<div class="btn-w btn-update">clear log</div>
+								<div class="btn-b btn-update-b">run</div>
 							</div>
 						</div>
 						<div class="bottom-cont">

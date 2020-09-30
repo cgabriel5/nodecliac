@@ -1,21 +1,38 @@
-.button-light {
-	height: 32px;
-	padding: 2px 20px;
-	font-size: 17px;
-	border-radius: 6px;
-	background: #ffffff;
+.btn-w {
 	font-weight: bold;
-	cursor: pointer;
+	border-radius: 6px;
+	background: #fff;
 	border: 1px solid rgba(27, 31, 35, 0.15);
 	box-shadow: 0 1px 0px 0px rgba(0, 0, 0, 0.04);
+	/*transition: 0.05s ease-in-out;*/
+	/*transition-property: background, box-shadow;*/
 }
 
-.button-light:active {
+.btn-w:active {
+	color: #444;
 	background: #f3f3f3;
-	box-shadow: 0 0px 0px 0px rgba(0, 0, 0, 0.04);
+	box-shadow: inset 0px 3px 6px -6px rgba(0, 0, 0, 0.3);
 }
 
-.update-btn {
-	margin-left: 10px;
-	margin-top: -1px;
+.btn-b {
+	color: white;
+	font-weight: bold;
+	border-radius: 6px;
+	background: rgb(16, 103, 222);
+	border: 1px solid rgb(16, 103, 222);
+	box-shadow: 0 1px 0px 0px rgba(0, 0, 0, 0.04);
+	/*transition: 0.05s ease-in-out;*/
+	/*transition-property: background, box-shadow;*/
+}
+
+.btn-b:active {
+	background: #3b86e8;
+	box-shadow: inset 0px 3px 6px -6px rgba(0, 0, 0, 0.3);
+}
+
+.btn-w:active,
+.btn-b:active {
+	box-shadow: 0 0 0 1px rgba(0, 123, 255, 0.2);
+	outline-width: 0;
+	outline: none;
 }

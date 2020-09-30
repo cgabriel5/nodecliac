@@ -2,12 +2,29 @@ body {
 	font-size: 20px;
 	font-family: Roboto, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica,
 		Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
-	zoom: 200%;
+	zoom: 100%;
+}
+
+@media (-webkit-min-device-pixel-ratio: 2) {
+	body {
+		font-size: 12;
+	}
+}
+
+/* Disable scrolling rubber-banding, yet still scroll overflow elements. */
+/* [https://stackoverflow.com/a/16327467] */
+/* [https://stackoverflow.com/a/29629214] */
+.macosx-no-rubberbanding {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	-webkit-overflow-scrolling: touch;
+	position: fixed;
 }
 
 /* [https://stackoverflow.com/a/26866503] */
 .macosx-zoom {
-	zoom: 65%;
+	zoom: 75%;
 }
 
 .fa-spin {
@@ -109,6 +126,6 @@ body::-webkit-scrollbar {
 }
 ::-webkit-scrollbar-corner {
 	background: #ffffff;
-	border-top: 1px solid #dddddd;
-	border-left: 1px solid #dddddd;
+	border-top: 0px solid #dddddd;
+	border-left: 0px solid #dddddd;
 }

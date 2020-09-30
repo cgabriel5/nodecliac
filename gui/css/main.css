@@ -11,8 +11,9 @@
 @import "../css/components/settings.css";
 @import "../css/components/about.css";
 @import "../css/components/update.css";
-@import "../css/classes.css";
 @import "../css/interfaces.css";
+@import "../css/retina.css";
+@import "../css/classes.css";
 
 /* Device Pixel Ratio */
 /* [https://stackoverflow.com/questions/28374359/media-queries-for-2x-3x-and-4x-images] */

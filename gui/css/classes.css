@@ -56,17 +56,17 @@
 }
 
 .bold {
-	font-weight: bold;
+	font-weight: bold !important;
 }
 
 .none {
-	display: none;
+	display: none !important;
 }
 
 .opa0 {
-	opacity: 0;
+	opacity: 0 !important;
 }
 
 .opa1 {
-	opacity: 1;
+	opacity: 1 !important;
 }

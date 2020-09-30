@@ -3,15 +3,15 @@ import strutils except escape
 from xmltree import escape
 
 when defined(linux):
-    const width = 2000
-    const height = 1200
-    const minWidth = 1000
+    const width = 1100
+    const height = 750
+    const minWidth = 950
     const minHeight = 600
 elif defined(macosx):
-    const width = 725
-    const height = 500
-    const minWidth = 300
-    const minHeight = 350
+    const width = 700
+    const height = 450
+    const minWidth = 650
+    const minHeight = 400
 
 let hdir = os.getEnv("HOME")
 let app = newWebView(currentHtmlPath("views/index.html"),
@@ -108,29 +108,24 @@ proc get_packages() =
     if empty:
         let a = 12
         echo "EMPTY"
-        let html = """<div class="pkg-empty"><div>No Packages</div></div>"""
+        let html = """<div class="empty"><div>No Packages</div></div>"""
         app.js(
-            app.setText("#pkg-list-entries", "") & ";" &
-            app.addHtml("#pkg-list-entries", html, position=afterbegin)
+            app.setText("#pkg-entries", "") & ";" &
+            app.addHtml("#pkg-entries", html, position=afterbegin)
         )
     else:
         names.sort()
         for n in names:
-            html &= "<div class=\"pkg-entry\" id=\"pkg-entry-" & n &  "\">"
+            html &= "<div class=\"entry\" id=\"pkg-entry-" & n &  "\">"
             html &= "<div class=\"center\">"
-            # html &= "<div class=\"pkg-entry-icon\"><i class=\"fas fa-check-square\"></i></div>"
-            # if n == "nodecliac":
-                # html &= "<div class=\"pkg-entry-icon\"><i class=\"fas fa-check-square\"></i></div>"
-            # else:
-            html &= "<div class=\"pkg-entry-icon\"><i class=\"fas fa-square\"></i></div>"
-            # html &= "<div class=\"pkg-entry-icon\"><i class=\"fal fa-square\"></i></div>"
-            html &= "<div class=\"pkg-entry-label\">" & n & "</div>"
+            html &= "<div class=\"icon-cont\"><i class=\"fas fa-square\"></i></div>"
+            html &= "<div class=\"label\">" & n & "</div>"
             html &= "</div>"
             html &= "</div>"
 
         app.js(
-            app.setText("#pkg-list-entries", "") & ";" &
-            app.addHtml("#pkg-list-entries", html, position=afterbegin)
+            app.setText("#pkg-entries", "") & ";" &
+            app.addHtml("#pkg-entries", html, position=afterbegin)
         )
 
 proc clink(url: string): string =

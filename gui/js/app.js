@@ -119,14 +119,14 @@ const action = (...names) => {
 		let name = names[i];
 		let select = !name.startsWith("!");
 		if (!select) name = name.slice(1);
-		let $el = $(`setting-action-btn-${name}`);
+		let $el = $(`action-${name}`);
 		if (!$el) continue;
 		let prefix = select ? "" : "un";
 		let method = select ? "remove" : "add";
 		let classes = $el.classList;
-		classes.remove("noselect", "setting-action-btn-unselected");
-		classes.add(`setting-action-btn-${prefix}selected`);
-		let cname = "btn-setting-icon";
+		classes.remove("noselect", "unselected");
+		classes.add(`${prefix}selected`);
+		let cname = "icon-cont";
 		f($el).all().classes(cname).getElement().classList[method]("none");
 	}
 };
@@ -144,22 +144,22 @@ const action = (...names) => {
 function check($el) {
 	let classes = $el.classList;
 	classes.remove("fa-square");
-	classes.add("fa-check-square", "pkg-entry-icon-selected");
+	classes.add("fa-check-square", "icon-selected");
 }
 function uncheck($el) {
 	let classes = $el.classList;
-	classes.remove("fa-check-square", "pkg-entry-icon-selected");
+	classes.remove("fa-check-square", "icon-selected");
 	classes.add("fa-square");
 }
 const checked = ($el) => $el.classList.contains("fa-check-square");
 const toggle_pkg_sel_actions = (state) => {
 	let method = state ? "remove" : "add";
-	let $actions_cont = $("pkg-list-header-actions");
-	$actions_cont.classList[method]("pkg-list-header-actions-disabled");
+	let $actions_cont = $("header-actions");
+	$actions_cont.classList[method]("disabled");
 };
 const mass_toggle = (method) => {
 	// prettier-ignore
-	let list = f("#pkg-list-entries").all().classes("pkg-entry-icon").getStack();
+	let list = f("#pkg-entries").all().classes("icon-cont").getStack();
 	for (let i = 0, l = list.length; i < l; i++) {
 		let $icon = f(list[i]).all().classes("fas").getElement();
 		window[method]($icon);
@@ -173,12 +173,12 @@ API.reset_pkg_info = () => {
 	let ids = ["name", "description", "author", "repository", "location", "version", "license"];
 	// prettier-ignore
 	for (let i = 0, l = ids.length; i < l; i++) {
-		f("pkg-info-row-" + ids[i]).all().classes("pkg-info-value").getElement().textContent = "--";
+		f("pkg-i-" + ids[i]).all().classes("value").getElement().textContent = "--";
 	}
 };
 // prettier-ignore
 API.set_pkg_info_row = (row, value) => {
-	f("pkg-info-row-" + row).all().classes("pkg-info-value").getElement().innerHTML = value;
+	f("pkg-i-" + row).all().classes("value").getElement().innerHTML = value;
 };
 
 const init = () => {
@@ -219,7 +219,7 @@ const init = () => {
 			case "packages:entry":
 				{
 					if ($cached_pkg) {
-						$cached_pkg.classList.remove("pkg-entry-selected");
+						$cached_pkg.classList.remove("selected");
 						API.reset_pkg_info();
 					}
 					if ($cached_pkg === $delegate) {
@@ -227,7 +227,7 @@ const init = () => {
 						return;
 					}
 					if ($delegate) {
-						$delegate.classList.toggle("pkg-entry-selected");
+						$delegate.classList.toggle("selected");
 						$cached_pkg = $delegate;
 						API.get_pkg_info(id.slice(10));
 					}
@@ -238,14 +238,14 @@ const init = () => {
 				{
 					if ($cached_sb === $delegate) return;
 					if ($cached_sb) {
-						$cached_sb.classList.remove("sb-row-selected");
+						$cached_sb.classList.remove("selected");
 						let dattr = $cached_sb.getAttribute("data-row");
 						let $node = $(dattr + "-cont");
 						if ($node) $node.classList.add("none");
 					}
 					if ($delegate) {
 						$("QUERY", ".packages-cont").classList.add("none");
-						$delegate.classList.toggle("sb-row-selected");
+						$delegate.classList.toggle("selected");
 						let dattr = $delegate.getAttribute("data-row");
 						let $node = $(dattr + "-cont");
 						if ($node) $node.classList.remove("none");
@@ -277,14 +277,14 @@ const init = () => {
 			case "packages:entry-checkmark":
 				{
 					// prettier-ignore
-					let $icon = f("#select-all-toggle").all().classes("fas").getElement();
+					let $icon = f("#main-toggle").all().classes("fas").getElement();
 					uncheck($icon); // Untoggle main checkmark.
 
 					let $dicon = f($delegate).all().classes("fas").getElement();
 					window[!checked($dicon) ? "check" : "uncheck"]($dicon);
 
 					// prettier-ignore
-					let list = f("#pkg-list-entries").all().classes("pkg-entry-icon-selected").getStack();
+					let list = f("#pkg-entries").all().classes("icon-selected").getStack();
 					toggle_pkg_sel_actions(!!list.length);
 				}
 
@@ -299,27 +299,27 @@ const init = () => {
 					}
 
 					switch (id) {
-						case "setting-action-btn-dynamic":
+						case "action-dynamic":
 							API.update_cache(1);
 							action("dynamic", "!all");
 							break;
 
-						case "setting-action-btn-all":
+						case "action-all":
 							API.update_cache(2);
 							action("!dynamic", "all");
 							break;
 
-						case "setting-action-btn-nim":
+						case "action-nim":
 							API.update_debug(2);
 							action("nim", "!perl");
 							break;
 
-						case "setting-action-btn-perl":
+						case "action-perl":
 							API.update_debug(3);
 							action("!nim", "perl");
 							break;
 
-						case "setting-action-btn-clear-cache":
+						case "action-clear-cache":
 							API.clear_cache();
 							break;
 					}
@@ -364,44 +364,52 @@ const init = () => {
 				break;
 		}
 	});
-	Interaction.addFilter("packages:entry-checkmark", (e, targets) => {
-		let parents = f(targets.target).parents().getStack();
-		return f(targets.target)
-			.concat(parents)
-			.classes("pkg-entry-icon")
-			.getElement();
-	});
+	const $sidebar = $("sidebar");
+	const $entries = $("pkg-entries");
+	const $pkgheader = $("header-cont");
+	const $settings = $("settings-cont");
 	Interaction.addFilter("packages:main-checkmark", (e, targets) => {
-		let parents = f(targets.target).parents().getStack();
-		return f(targets.target)
-			.concat(parents)
+		let $target = targets.target;
+		let $parents = f($target).parents().getStack();
+		let $el = f(targets.target)
+			.concat($parents)
 			.attrs("id")
-			.attrs("id=select-all-toggle")
+			.attrs("id=main-toggle")
 			.getElement();
+		if ($pkgheader.contains($el)) return $el;
+	});
+	Interaction.addFilter("packages:entry-checkmark", (e, targets) => {
+		let $target = targets.target;
+		let $parents = f($target).parents().getStack();
+		let $el = f($target).concat($parents).classes("icon-cont").getElement();
+		if ($entries.contains($el)) return $el;
 	});
 	Interaction.addFilter("packages:entry", (e, targets) => {
-		let parents = f(targets.target).parents().getStack();
-		return f(targets.target)
-			.concat(parents)
-			.classes("pkg-entry")
-			.getElement();
+		let $target = targets.target;
+		let $parents = f($target).parents().getStack();
+		let $el = f($target).concat($parents).classes("entry").getElement();
+		if ($entries.contains($el)) return $el;
 	});
 	Interaction.addFilter("sidebar:entry", (e, targets) => {
-		let parents = f(targets.target).parents().getStack();
-		return f(targets.target).concat(parents).classes("sb-row").getElement();
+		let $target = targets.target;
+		let $parents = f($target).parents().getStack();
+		let $el = f($target).concat($parents).classes("row").getElement();
+		if ($sidebar.contains($el)) return $el;
 	});
-
 	Interaction.addFilter("settings:action", (e, targets) => {
-		let parents = f(targets.target).parents().getStack();
-		return f(targets.target)
-			.concat(parents)
-			.classes("setting-action-btn")
+		let $target = targets.target;
+		let $parents = f($target).parents().getStack();
+		let $el = f($target)
+			.concat($parents)
+			.classes("btn-action")
 			.getElement();
+		if ($settings.contains($el)) return $el;
 	});
-
 	Interaction.addFilter("settings:switch", (e, targets) => {
-		let parents = f(targets.target).parents().getStack();
-		return f(targets.target).concat(parents).classes("switch").getElement();
+		let $target = targets.target;
+		let $parents = f($target).parents().getStack();
+		let $el = f($target).concat($parents).classes("switch").getElement();
+		if ($settings.contains($el)) return $el;
 	});
 
 	new Interaction()
@@ -447,14 +455,16 @@ const init = () => {
 		.enable();
 
 	// window.addEventListener("contextmenu", (event) => event.preventDefault());
-
-	/* Sniff: [https://stackoverflow.com/a/4702584] */
-	if (navigator.platform.includes("Mac")) d.body.classList.add("macosx-zoom");
 };
 
 // [https://stackoverflow.com/a/61839322]
 d.onreadystatechange = () => {
 	// if (d.readyState === "complete") setTimeout(() => init(), 250);
+
+	/* Sniff: [https://stackoverflow.com/a/4702584] */
+	if (navigator.platform.includes("Mac")) {
+		d.body.classList.add("macosx-no-rubberbanding", "macosx-zoom");
+	}
 
 	if (d.readyState === "complete") {
 		d.addEventListener(which_animation_event("start"), (e) => {

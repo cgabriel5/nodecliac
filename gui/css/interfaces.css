@@ -1,9 +1,9 @@
 .btn-w {
-	font-weight: bold;
 	border-radius: 6px;
 	background: #fff;
 	border: 1px solid rgba(27, 31, 35, 0.15);
-	box-shadow: 0 1px 0px 0px rgba(0, 0, 0, 0.04);
+	border-bottom: 1px solid rgba(27, 31, 35, 0.25);
+	box-shadow: 0 1px 0px 0px rgba(0, 0, 0, 0.02);
 	/*transition: 0.05s ease-in-out;*/
 	/*transition-property: background, box-shadow;*/
 }
@@ -16,13 +16,32 @@
 
 .btn-b {
 	color: white;
-	font-weight: bold;
 	border-radius: 6px;
-	background: rgb(16, 103, 222);
-	border: 1px solid rgb(16, 103, 222);
-	box-shadow: 0 1px 0px 0px rgba(0, 0, 0, 0.04);
+	background: rgb(35, 118, 249);
+	height: 32px;
+	border: 1px solid rgba(25, 90, 179, 0.9);
+	border-top: 1px solid rgba(0, 0, 0, 0.1);
+	box-shadow: 0 1px 0px 0px rgba(0, 0, 0, 0.1);
 	/*transition: 0.05s ease-in-out;*/
 	/*transition-property: background, box-shadow;*/
+	position: relative;
+}
+
+.btn-b:before {
+	content: " ";
+	position: absolute;
+
+	border-top: 1px solid rgba(255, 255, 255, 0.1);
+	width: 100%;
+	height: 26px;
+
+	color: white;
+	font-weight: bold;
+	border-radius: 6px;
+
+	top: 0;
+	left: 0;
+	margin-top: 0px;
 }
 
 .btn-b:active {
@@ -32,7 +51,7 @@
 
 .btn-w:active,
 .btn-b:active {
-	box-shadow: 0 0 0 1px rgba(0, 123, 255, 0.2);
+	box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.3);
 	outline-width: 0;
 	outline: none;
 }

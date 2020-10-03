@@ -36,23 +36,13 @@ proc config_update(setting: string, value: int) =
         config[index] = ($(value))[0]
         writeFile(p, config)
 
+proc settings_reset() =
+    echo "RESET FILE"
+    writeFile(hdir & "/.nodecliac/.config", "1001")
+    app.js(fmt"window.api.setup_config(1,0,0,1);")
+
 proc setting_config_state(state: int) =
     config_update("status", state)
-
-    # # app.js(
-    # #     "console.log(1111111, \"11111<<<<<\");document.body.classList.add(\"nointer\");" &
-    # #     "document.getElementById(\"loader\").classList.remove(\"none\");" &
-    # #     "setTimeout(function() { document.getElementById(\"loader\").classList.add(\"opa1\"); }, 10);"
-    # # )
-
-    # echo ">>>>>>>>>>>> [", state, "]"
-    # let flag = if state == 1: "--enable" else: "--disable"
-    # echo "=================== COMMAND: [", "nodecliac status " & flag, "]"
-    # let res = execProcess("nodecliac status " & flag)
-    # echo ">>>>>>>>>>>.RES [", res, "]"
-
-    # # app.js(
-    # #     "console.log(2222222, \"22222<<<<<\");setTimeout(function() { document.getElementById(\"loader\").classList.add(\"opa1\"); setTimeout(function() { document.getElementById(\"loader\").classList.add(\"none\"); document.body.classList.remove(\"nointer\"); }, 10); }, 250);")
 
 proc setting_config_cache(state: int) =
     config_update("cache", state)
@@ -95,6 +85,82 @@ proc get_config() =
         app.js(fmt"window.api.setup_config({status},{cache},{debug},{singletons});")
         jsLog(config)
 
+var names: seq[string] = @[]
+for kind, path in walkDir(hdir & "/.nodecliac/registry"):
+    let parts = splitPath(path)
+    names.add(parts.tail)
+names.sort()
+
+proc filter_pkgs(s: string) =
+    # Remove nodes: [https://stackoverflow.com/a/3955238]
+    # Fragment: [https://howchoo.com/code/learn-the-slow-and-fast-way-to-append-elements-to-the-dom]
+    # Fuzzy search:
+    # [https://github.com/nim-lang/Nim/issues/13955]
+    # [https://github.com/nim-lang/Nim/blob/devel/tools/dochack/dochack.nim]
+    # [https://github.com/nim-lang/Nim/blob/devel/tools/dochack/fuzzysearch.nim]
+    # [https://www.forrestthewoods.com/blog/reverse_engineering_sublime_texts_fuzzy_match/]
+
+    # var names: seq[string] = @[]
+    # for kind, path in walkDir(hdir & "/.nodecliac/registry"):
+    #     let parts = splitPath(path)
+    #     names.add(parts.tail)
+    # names.sort()
+
+    var command = fmt"""
+var $pkg_cont = document.getElementById("pkg-entries");
+while ($pkg_cont.firstChild) $pkg_cont.removeChild($pkg_cont.lastChild);
+var $fragment = document.createDocumentFragment();
+"""
+
+    var empty = true
+
+    for name in names:
+        if s in name:
+            empty = false
+            let name_escaped = name.escape
+            command &= fmt"""
+var $entry = document.createElement("div");
+$entry.className = "entry";
+$entry.id = "pkg-entry-{name_escaped}";
+
+var $inner = document.createElement("div");
+$inner.className = "center";
+
+var $icon_cont = document.createElement("div");
+$icon_cont.className = "icon-cont";
+var $icon = document.createElement("i");
+$icon.className = "fas fa-square";
+$icon_cont.appendChild($icon);
+
+var $label = document.createElement("div");
+$label.className = "label";
+$label.textContent = "{name_escaped}";
+
+$inner.appendChild($icon_cont);
+$inner.appendChild($label);
+$entry.appendChild($inner);
+$fragment.appendChild($entry);
+"""
+
+    if empty:
+        command &= """
+        var $entry = document.createElement("div");
+        $entry.className = "empty";
+
+        var $child = document.createElement("div");
+        $child.textContent = "No Packages";
+
+        $entry.appendChild($child);
+        $fragment.appendChild($entry);
+        """
+
+    command &= """
+$pkg_cont.appendChild($fragment);
+document.getElementById("search-spinner").classList.add("none");
+"""
+
+    app.js(command)
+
 proc get_packages() =
     var html = ""
     var names: seq[string] = @[]
@@ -106,8 +172,6 @@ proc get_packages() =
         names.add(parts.tail)
 
     if empty:
-        let a = 12
-        echo "EMPTY"
         let html = """<div class="empty"><div>No Packages</div></div>"""
         app.js(
             app.setText("#pkg-entries", "") & ";" &
@@ -215,6 +279,7 @@ app.bindProcs("api"):
             """);
 
     proc loaded(s: string) = jsLog(s)
+    proc filter(s: string) = filter_pkgs(s)
     proc packages() = get_packages()
     proc config() = get_config()
     proc clear_cache() = settings_clear_cache()
@@ -223,6 +288,7 @@ app.bindProcs("api"):
     proc update_cache(state: int) = setting_config_cache(state)
     proc update_debug(state: int) = setting_config_debug(state)
     proc update_singletons(state: int) = setting_config_singletons(state)
+    proc reset_settings() = settings_reset()
 
 # import libfswatch
 # import libfswatch/fswatch

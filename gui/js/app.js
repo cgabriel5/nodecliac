@@ -156,6 +156,8 @@ const toggle_pkg_sel_actions = (state) => {
 	let method = state ? "remove" : "add";
 	let $actions_cont = $("header-actions");
 	$actions_cont.classList[method]("disabled");
+	// let $btns = f($actions_cont).all().classes("btn-header").getStack();
+	// $btns.forEach(($btn) => $btn.classList[method]("none"));
 };
 const mass_toggle = (method) => {
 	// prettier-ignore
@@ -216,6 +218,22 @@ const init = () => {
 		let id = $delegate.id;
 
 		switch (filter) {
+			case "packages:input-cont":
+				{
+					// If the clear icon is clicked...
+					if (id === "search-icon-clear") {
+						let $input = $("header-input");
+						$input.value = "";
+						let opts = { targets: { target: $input } };
+						Interaction.trigger("search-input", opts);
+					}
+
+					$delegate.focus();
+					e.preventDefault();
+				}
+
+				break;
+
 			case "packages:entry":
 				{
 					if ($cached_pkg) {
@@ -362,6 +380,13 @@ const init = () => {
 				}
 
 				break;
+
+			case "settings:reset":
+				{
+					API.reset_settings();
+				}
+
+				break;
 		}
 	});
 	const $sidebar = $("sidebar");
@@ -411,6 +436,27 @@ const init = () => {
 		let $el = f($target).concat($parents).classes("switch").getElement();
 		if ($settings.contains($el)) return $el;
 	});
+	Interaction.addFilter("settings:reset", (e, targets) => {
+		let $target = targets.target;
+		let $parents = f($target).parents().getStack();
+		let $el = f($target).concat($parents).classes("reset").getElement();
+		if ($settings.contains($el)) return $el;
+	});
+
+	Interaction.addFilter("packages:input-cont", (e, targets) => {
+		let $target = targets.target;
+		let $parents = f($target).parents().getStack();
+		let $el = f($target)
+			.concat($parents)
+			.classes("input-cont")
+			.getElement();
+		let $clear = f($target)
+			.concat($parents)
+			.classes("search-icon-clear")
+			.getElement();
+
+		return $clear || ($el ? $("header-input") : undefined);
+	});
 
 	new Interaction()
 		.on("mousedown")
@@ -418,9 +464,11 @@ const init = () => {
 		.handler("mousedown:main")
 		.filters("settings:action")
 		.filters("settings:switch")
+		.filters("settings:reset")
 		.filters("packages:main-checkmark")
 		.filters("packages:entry-checkmark")
 		.filters("packages:entry")
+		.filters("packages:input-cont")
 		.filters("sidebar:entry")
 		.capture(false)
 		.enable();
@@ -428,20 +476,30 @@ const init = () => {
 	Interaction.addFilter("packages:input", (e, targets) => {
 		return f(targets.target).tags("input").getElement();
 	});
+
+	let $clear = $("search-icon-clear");
+	let $spinner = $("search-spinner");
 	Interaction.addHandler("input:main", (e, targets) => {
 		if (targets.delegateTarget) {
-			let target = targets.delegateTarget;
-			let value = target.value;
-			console.log(value);
+			let $target = targets.delegateTarget;
+			let value = $target.value;
+
+			if (value.length) $clear.classList.remove("opa0", "nointer");
+			else $clear.classList.add("opa0", "nointer");
+
+			$spinner.classList.remove("none");
+			API.filter(value);
+			// $spinner.classList.add("none");
 		}
 	});
 	new Interaction()
+		.id("search-input")
 		.on("input")
 		.anchors(document)
 		.handler("input:main")
 		.filters("packages:input")
 		.capture(false)
-		.debounce(200)
+		// .debounce(150)
 		.enable();
 
 	Interaction.addHandler("focus:main", (e, targets) => {

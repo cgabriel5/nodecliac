@@ -15,10 +15,10 @@
 }
 
 .center {
-	display: flex;
-	flex-flow: row nowrap;
-	justify-content: center;
-	align-items: center;
+	display: flex !important;
+	flex-flow: row nowrap !important;
+	justify-content: center !important;
+	align-items: center !important;
 }
 
 .noselect {

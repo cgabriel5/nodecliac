@@ -59,9 +59,9 @@
 .packages-cont .entry {
 	display: flex;
 	flex-flow: row nowrap;
-	padding: 4px 10px;
+	padding: 3px 10px;
 	width: 100%;
-	border-bottom: 1px solid transparent;
+	/*border-bottom: 1px solid transparent;*/
 }
 
 /* [https://davidwalsh.name/css-tables-css3-alternate-row-colors] */
@@ -127,7 +127,7 @@
 }
 */
 .packages-cont .icon-cont {
-	font-size: 24px;
+	font-size: 22px;
 	/* opacity: 0.075; */
 	margin-right: 10px;
 	position: relative;
@@ -170,6 +170,38 @@
 	/* color: #444; */
 	color: rgb(85, 85, 85);
 	box-shadow: 0 0px 0px 0px rgba(0, 0, 0, 0.04);
+	animation: btn-header-fadein--disable 0.15s linear;
+	animation-fill-mode: both;
+}
+
+/* [https://stackoverflow.com/a/8294491] */
+
+@keyframes btn-header-fadein {
+	0% {
+		opacity: 0;
+		transform: scale(0.1);
+	}
+
+	85% {
+		opacity: 1;
+		transform: scale(1.1);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+
+.packages-cont .btn-header:nth-child(1) {
+	animation-delay: 0.01s;
+}
+.packages-cont .btn-header:nth-child(2) {
+	animation-delay: 0.05s;
+}
+.packages-cont .btn-header:nth-child(3) {
+	animation-delay: 0.1s;
+}
+.packages-cont .btn-header:nth-child(4) {
+	animation-delay: 0.15s;
 }
 
 .packages-cont .btn-header:hover {
@@ -179,6 +211,11 @@
 .packages-cont .btn-header:active {
 	background: #dddddd;
 	/*box-shadow: 0 0px 0px 0px rgba(0, 0, 0, 0.07);*/
+}
+
+.packages-cont .spinner {
+	max-height: 0;
+	margin: -8px 0 0 0;
 }
 
 .packages-cont .input-cont {
@@ -195,21 +232,29 @@
 }
 
 .packages-cont .search-icon {
-	padding: 0 0 0 10px;
+	padding: 0 0 0 7px;
 	margin-right: -5px;
 	color: #999;
 }
 
+.packages-cont .search-icon-clear {
+	padding: 0 0 0 10px;
+	margin-right: 5px;
+	color: #999;
+	font-size: 20px;
+}
+
+.packages-cont .search-icon-clear:active {
+	color: #555;
+}
+
 .packages-cont .header-input {
 	outline: none;
-	padding: 0px;
 	width: 200px;
 	height: 33px;
-	/*box-shadow: 0 1px 0px 0px rgba(0, 0, 0, 0.04);*/
-	padding: 4px 15px;
+	padding: 4px 0px 4 15px;
 	border: none;
 	background: transparent;
-	border-radius: 6px;
 	/*transition: width 0.25s cubic-bezier(0.11, 0.38, 0.01, 0.99);*/
 	font-size: 20px;
 }
@@ -225,7 +270,8 @@
 	/*transition: width 0.2s cubic-bezier(0.11, 0.38, 0.01, 0.99);*/
 	border: 1px solid transparent;
 }
-.packages-cont .input-cont:focus-within .search-icon {
+.packages-cont .input-cont:focus-within .search-icon,
+.packages-cont .input-cont:focus-within .search-icon-clear {
 	color: #444;
 }
 

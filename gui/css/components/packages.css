@@ -66,10 +66,14 @@
 
 /* [https://davidwalsh.name/css-tables-css3-alternate-row-colors] */
 .packages-cont .entry:nth-child(odd) {
-	background-color: rgba(255, 255, 255, 0.05);
+	background-color: rgba(0, 0, 0, 0.03);
 }
 .packages-cont .entry:nth-child(even) {
-	background-color: rgba(0, 0, 0, 0.03);
+	background-color: rgba(255, 255, 255, 0.05);
+}
+
+.packages-cont .entry:first-of-type {
+	margin-top: 1px;
 }
 
 .packages-cont .icon-selected {
@@ -126,12 +130,20 @@
 	border-bottom: 1px solid white;
 }
 */
+
 .packages-cont .icon-cont {
-	font-size: 22px;
+	font-size: 20px;
 	/* opacity: 0.075; */
 	margin-right: 10px;
 	position: relative;
-	color: #dddddd;
+	/*color: #cacaca;*/
+	color: rgb(204, 204, 204);
+	background: white;
+}
+
+.packages-cont .icon-cont i {
+	line-height: 0.8;
+	box-shadow: inset 0px 1px 1px 0px rgba(0, 0, 0, 0.1);
 }
 
 .packages-cont .header-actions {
@@ -241,7 +253,7 @@
 	padding: 0 0 0 10px;
 	margin-right: 5px;
 	color: #999;
-	font-size: 20px;
+	font-size: 18px;
 }
 
 .packages-cont .search-icon-clear:active {
@@ -279,7 +291,7 @@
 
 .pkg-info {
 	min-width: 100%;
-	min-height: 300px;
+	min-height: 275px;
 	overflow: auto;
 	border-top: 1px solid #e5e5e5;
 	background: #f7f6f8;

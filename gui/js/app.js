@@ -143,13 +143,13 @@ const action = (...names) => {
 
 function check($el) {
 	let classes = $el.classList;
-	classes.remove("fa-square");
-	classes.add("fa-check-square", "icon-selected");
+	classes.remove("fal", "fa-square");
+	classes.add("fas", "fa-check-square", "icon-selected");
 }
 function uncheck($el) {
 	let classes = $el.classList;
-	classes.remove("fa-check-square", "icon-selected");
-	classes.add("fa-square");
+	classes.remove("fas", "fa-check-square", "icon-selected");
+	classes.add("fal", "fa-square");
 }
 const checked = ($el) => $el.classList.contains("fa-check-square");
 const toggle_pkg_sel_actions = (state) => {
@@ -163,7 +163,7 @@ const mass_toggle = (method) => {
 	// prettier-ignore
 	let list = f("#pkg-entries").all().classes("icon-cont").getStack();
 	for (let i = 0, l = list.length; i < l; i++) {
-		let $icon = f(list[i]).all().classes("fas").getElement();
+		let $icon = f(list[i]).all().classes("checkmark").getElement();
 		window[method]($icon);
 	}
 };
@@ -278,7 +278,7 @@ const init = () => {
 
 			case "packages:main-checkmark":
 				{
-					let $icon = f($delegate).all().classes("fas").getElement();
+					let $icon = f($delegate).all().classes("checkmark").getElement();
 					if (!checked($icon)) {
 						check($icon);
 						toggle_pkg_sel_actions(true);
@@ -295,10 +295,10 @@ const init = () => {
 			case "packages:entry-checkmark":
 				{
 					// prettier-ignore
-					let $icon = f("#main-toggle").all().classes("fas").getElement();
+					let $icon = f("#main-toggle").all().classes("checkmark").getElement();
 					uncheck($icon); // Untoggle main checkmark.
 
-					let $dicon = f($delegate).all().classes("fas").getElement();
+					let $dicon = f($delegate).all().classes("checkmark").getElement();
 					window[!checked($dicon) ? "check" : "uncheck"]($dicon);
 
 					// prettier-ignore

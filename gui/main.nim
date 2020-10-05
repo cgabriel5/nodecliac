@@ -127,9 +127,9 @@ var $inner = document.createElement("div");
 $inner.className = "center";
 
 var $icon_cont = document.createElement("div");
-$icon_cont.className = "icon-cont";
+$icon_cont.className = "checkmark";
 var $icon = document.createElement("i");
-$icon.className = "fal fa-square checkmark";
+$icon.className = "none";
 $icon_cont.appendChild($icon);
 
 var $label = document.createElement("div");
@@ -182,7 +182,7 @@ proc get_packages() =
         for n in names:
             html &= "<div class=\"entry\" id=\"pkg-entry-" & n &  "\">"
             html &= "<div class=\"center\">"
-            html &= "<div class=\"icon-cont\"><i class=\"fal fa-square checkmark\"></i></div>"
+            html &= "<div class=\"checkmark\"><i class=\"fas fa-check none\"></i></div>"
             html &= "<div class=\"label\">" & n & "</div>"
             html &= "</div>"
             html &= "</div>"

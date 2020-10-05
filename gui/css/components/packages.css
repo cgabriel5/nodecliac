@@ -62,6 +62,18 @@
 	padding: 3px 10px;
 	width: 100%;
 	/*border-bottom: 1px solid transparent;*/
+	position: relative;
+}
+
+.packages-cont .selected.entry:not(:last-child):after {
+	content: " ";
+	position: absolute;
+
+	left: 0px;
+	bottom: -1px;
+
+	border-top: 2px solid white;
+	width: 100%;
 }
 
 /* [https://davidwalsh.name/css-tables-css3-alternate-row-colors] */
@@ -83,6 +95,10 @@
 .packages-cont .selected .icon-cont {
 	color: rgba(255, 255, 255, 1) !important;
 	opacity: 1;
+}
+
+.packages-cont .selected .icon-cont i {
+	background: rgba(255, 255, 255, 0.7);
 }
 
 .packages-cont .selected .icon-selected {
@@ -169,21 +185,30 @@
 
 .packages-cont .btn-header {
 	/*height: 35px;*/
-	padding: 10px 12px;
-	/* font-size: 18px; */
+	padding: 8px 12px;
+	padding: 8px 8px;
 	border-radius: 6px;
+	width: 33px;
 	/* font-weight: bold; */
 	/*cursor: pointer;*/
-	/* border: 1px solid rgba(27, 31, 35, 0.15); */ /* margin-right: 5px; */
+	/* border: 1px solid rgba(27, 31, 35, 0.15); */
+	margin-right: 5px;
 	display: flex;
 	flex-flow: row nowrap;
 	justify-content: center;
 	align-items: center;
 	/* color: #444; */
 	color: rgb(85, 85, 85);
-	box-shadow: 0 0px 0px 0px rgba(0, 0, 0, 0.04);
+	/*box-shadow: 0 0px 0px 0px rgba(0, 0, 0, 0.04);*/
 	animation: btn-header-fadein--disable 0.15s linear;
 	animation-fill-mode: both;
+	font-size: 17px;
+}
+
+.packages-cont .btn-header:active {
+	/*box-shadow: 0 0 0 1px transparent inset, 0 0 0 1px transparent, 0 0 0 4px rgba(10, 132, 255, 0.3);*/
+	/*box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.3);*/
+	/*box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);*/
 }
 
 /* [https://stackoverflow.com/a/8294491] */
@@ -278,7 +303,8 @@
 }*/
 .packages-cont .input-cont:focus-within {
 	background: white;
-	box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.7);
+	box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.45);
+	/*box-shadow: 0 0 0 1px #0a84ff inset, 0 0 0 1px #0a84ff,0 0 0 4px rgba(10, 132, 255, 0.3);*/
 	/*transition: width 0.2s cubic-bezier(0.11, 0.38, 0.01, 0.99);*/
 	border: 1px solid transparent;
 }
@@ -346,4 +372,47 @@
 	position: relative;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+}
+
+/* Inspiration: [https://design.firefox.com/photon/components/checkboxes.html] */
+
+.packages-cont .checkmark {
+	border: 1px solid #cacaca;
+	border-radius: 3px;
+	padding: 2px;
+	background: white;
+	width: 18px;
+	min-width: 18px;
+	height: 18px;
+	min-height: 18px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: relative;
+	font-size: 12px;
+	margin-right: 10px;
+}
+
+.packages-cont .selected.checkmark {
+	color: white;
+	background: rgb(16, 103, 222);
+	border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.packages-cont .entry.selected .checkmark {
+	color: rgb(16, 103, 222);
+	background: white !important;
+	border: 1px solid rgba(0, 0, 0, 0);
+}
+
+.packages-cont .checkmark:active {
+	/*box-shadow: 0 0 0 1px #0a84ff inset, 0 0 0 1px #0a84ff, 0 0 0 4px rgba(10, 132, 255, 0.3);*/
+	/*box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.3);*/
+	box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+}
+
+.packages-cont .selected.checkmark:active {
+	/*box-shadow: 0 0 0 1px transparent inset, 0 0 0 1px transparent, 0 0 0 4px rgba(10, 132, 255, 0.3);*/
+	/*box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.3);*/
+	box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
 }

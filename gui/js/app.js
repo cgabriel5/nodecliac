@@ -142,16 +142,14 @@ const action = (...names) => {
 // };
 
 function check($el) {
-	let classes = $el.classList;
-	classes.remove("fal", "fa-square");
-	classes.add("fas", "fa-check-square", "icon-selected");
+	$el.classList.remove("none");
+	$el.parentNode.classList.add("selected");
 }
 function uncheck($el) {
-	let classes = $el.classList;
-	classes.remove("fas", "fa-check-square", "icon-selected");
-	classes.add("fal", "fa-square");
+	$el.classList.add("none");
+	$el.parentNode.classList.remove("selected");
 }
-const checked = ($el) => $el.classList.contains("fa-check-square");
+const checked = ($el) => !$el.classList.contains("none");
 const toggle_pkg_sel_actions = (state) => {
 	let method = state ? "remove" : "add";
 	let $actions_cont = $("header-actions");
@@ -161,9 +159,9 @@ const toggle_pkg_sel_actions = (state) => {
 };
 const mass_toggle = (method) => {
 	// prettier-ignore
-	let list = f("#pkg-entries").all().classes("icon-cont").getStack();
+	let list = f("#pkg-entries").all().classes("checkmark").getStack();
 	for (let i = 0, l = list.length; i < l; i++) {
-		let $icon = f(list[i]).all().classes("checkmark").getElement();
+		let $icon = f(list[i]).all().classes("fa-check").getElement();
 		window[method]($icon);
 	}
 };
@@ -276,9 +274,132 @@ const init = () => {
 
 				break;
 
+			// case "packages:main-checkmark":
+			// 	{
+			// 		// prettier-ignore
+			// 		let $icon = f($delegate).all().classes("fa-check").getElement();
+			// 		if (!checked($icon)) {
+			// 			check($icon);
+			// 			toggle_pkg_sel_actions(true);
+			// 			mass_toggle("check");
+			// 		} else {
+			// 			uncheck($icon);
+			// 			toggle_pkg_sel_actions(false);
+			// 			mass_toggle("uncheck");
+			// 		}
+			// 	}
+
+			// 	break;
+
+			// case "packages:entry-checkmark":
+			// 	{
+			// 		// prettier-ignore
+			// 		let $icon = f("#main-toggle").all().classes("fa-check").getElement();
+			// 		uncheck($icon); // Untoggle main checkmark.
+
+			// 		// prettier-ignore
+			// 		let $dicon = f($delegate).all().classes("fa-check").getElement();
+			// 		window[!checked($dicon) ? "check" : "uncheck"]($dicon);
+
+			// 		// prettier-ignore
+			// 		let list = f("#pkg-entries").all().classes("checkmark", "selected").getStack();
+			// 		toggle_pkg_sel_actions(!!list.length);
+			// 	}
+
+			// 	break;
+
+			// case "settings:action":
+			// 	{
+			// 		if (id.includes("dynamic") || id.includes("all")) {
+			// 			$("switch-cache").checked = true;
+			// 		} else if (id.includes("nim") || id.includes("perl")) {
+			// 			$("switch-debug").checked = true;
+			// 		}
+
+			// 		switch (id) {
+			// 			case "action-dynamic":
+			// 				API.update_cache(1);
+			// 				action("dynamic", "!all");
+			// 				break;
+
+			// 			case "action-all":
+			// 				API.update_cache(2);
+			// 				action("!dynamic", "all");
+			// 				break;
+
+			// 			case "action-nim":
+			// 				API.update_debug(2);
+			// 				action("nim", "!perl");
+			// 				break;
+
+			// 			case "action-perl":
+			// 				API.update_debug(3);
+			// 				action("!nim", "perl");
+			// 				break;
+
+			// 			case "action-clear-cache":
+			// 				API.clear_cache();
+			// 				break;
+			// 		}
+			// 	}
+
+			// 	break;
+
+			// case "settings:switch":
+			// 	{
+			// 		let id = $delegate.getAttribute("for");
+			// 		let toggle = $(id);
+			// 		let state = !toggle.checked;
+			// 		let b1 = id === "switch-cache" ? "dynamic" : "nim";
+			// 		let b2 = id === "switch-cache" ? "all" : "perl";
+
+			// 		switch (id) {
+			// 			case "switch-status":
+			// 				API.update_state(state | 0);
+			// 				break;
+
+			// 			case "switch-cache":
+			// 			case "switch-debug":
+			// 				{
+			// 					// let mod = get_sel_modifier(b1, b2);
+			// 					// API[method](Math.max(state | 0, mod));
+			// 					if (state) action(b1, `!${b2}`);
+			// 					else action(`!${b1}`, `!${b2}`);
+			// 					let method = "update_cache";
+			// 					// prettier-ignore
+			// 					if (id.includes("debug")) method = "update_debug";
+			// 					API[method](state | 0);
+			// 				}
+
+			// 				break;
+
+			// 			case "switch-single-flag-comp":
+			// 				API.update_singletons(state | 0);
+			// 				break;
+			// 		}
+			// 	}
+
+			// 	break;
+
+			// case "settings:reset":
+			// 	{
+			// 		API.reset_settings();
+			// 	}
+
+			// 	break;
+		}
+	});
+
+	Interaction.addHandler("click:main", (e, targets, filter) => {
+		if (e.which !== 1) return; // Only left button mousedowns.
+		let $delegate = targets.delegateTarget;
+		let id = $delegate.id;
+
+		switch (filter) {
 			case "packages:main-checkmark":
 				{
-					let $icon = f($delegate).all().classes("checkmark").getElement();
+					// prettier-ignore
+					let $icon = f($delegate).all().classes("fa-check").getElement();
 					if (!checked($icon)) {
 						check($icon);
 						toggle_pkg_sel_actions(true);
@@ -295,14 +416,15 @@ const init = () => {
 			case "packages:entry-checkmark":
 				{
 					// prettier-ignore
-					let $icon = f("#main-toggle").all().classes("checkmark").getElement();
+					let $icon = f("#main-toggle").all().classes("fa-check").getElement();
 					uncheck($icon); // Untoggle main checkmark.
 
-					let $dicon = f($delegate).all().classes("checkmark").getElement();
+					// prettier-ignore
+					let $dicon = f($delegate).all().classes("fa-check").getElement();
 					window[!checked($dicon) ? "check" : "uncheck"]($dicon);
 
 					// prettier-ignore
-					let list = f("#pkg-entries").all().classes("icon-selected").getStack();
+					let list = f("#pkg-entries").all().classes("checkmark", "selected").getStack();
 					toggle_pkg_sel_actions(!!list.length);
 				}
 
@@ -389,6 +511,7 @@ const init = () => {
 				break;
 		}
 	});
+
 	const $sidebar = $("sidebar");
 	const $entries = $("pkg-entries");
 	const $pkgheader = $("header-cont");
@@ -406,14 +529,15 @@ const init = () => {
 	Interaction.addFilter("packages:entry-checkmark", (e, targets) => {
 		let $target = targets.target;
 		let $parents = f($target).parents().getStack();
-		let $el = f($target).concat($parents).classes("icon-cont").getElement();
+		let $el = f($target).concat($parents).classes("checkmark").getElement();
 		if ($entries.contains($el)) return $el;
 	});
 	Interaction.addFilter("packages:entry", (e, targets) => {
 		let $target = targets.target;
 		let $parents = f($target).parents().getStack();
 		let $el = f($target).concat($parents).classes("entry").getElement();
-		if ($entries.contains($el)) return $el;
+		let $cm = f($target).concat($parents).classes("checkmark").getElement();
+		if (!$cm && $entries.contains($el)) return $el;
 	});
 	Interaction.addFilter("sidebar:entry", (e, targets) => {
 		let $target = targets.target;
@@ -462,14 +586,26 @@ const init = () => {
 		.on("mousedown")
 		.anchors(document)
 		.handler("mousedown:main")
+		// .filters("settings:action")
+		// .filters("settings:switch")
+		// .filters("settings:reset")
+		// .filters("packages:main-checkmark")
+		// .filters("packages:entry-checkmark")
+		.filters("packages:entry")
+		.filters("packages:input-cont")
+		.filters("sidebar:entry")
+		.capture(false)
+		.enable();
+
+	new Interaction()
+		.on("click")
+		.anchors(document)
+		.handler("click:main")
 		.filters("settings:action")
 		.filters("settings:switch")
 		.filters("settings:reset")
 		.filters("packages:main-checkmark")
 		.filters("packages:entry-checkmark")
-		.filters("packages:entry")
-		.filters("packages:input-cont")
-		.filters("sidebar:entry")
 		.capture(false)
 		.enable();
 

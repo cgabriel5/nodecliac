@@ -42,7 +42,7 @@
 	/*color: #333333;*/
 	justify-content: space-between;
 	align-items: center;
-	padding: 3px 7px 3px 40px;
+	padding: 3px 7px 3px 35px;
 }
 
 .sidebar .selected,
@@ -62,10 +62,13 @@
 }
 
 .sidebar .icon-cont {
-	display: block;
+	/* display: block; */
 	margin-right: 5px;
 	width: 30px;
 	/* color: rgb(135, 135, 135); */
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 
 .sidebar .icon-cont i {
@@ -79,8 +82,15 @@
 	display: flex;
 	flex-flow: row nowrap;
 	justify-content: space-between;
-	padding: 2px 0 2px 77px;
+	padding: 2px 0 2px 65px;
 	width: 100%;
+}
+
+.sidebar .entries .icon {
+	display: block;
+	margin-right: 5px;
+	width: 30px;
+	/* color: rgb(135, 135, 135); */
 }
 
 .sidebar .entries .count {

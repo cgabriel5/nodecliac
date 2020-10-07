@@ -1,7 +1,7 @@
 .app {
 	display: flex;
 	flex-flow: column nowrap;
-	background: #f7f6f8;
+	/*background: #f7f6f8;*/
 	width: 100%;
 	min-width: 700px;
 	height: 100%;

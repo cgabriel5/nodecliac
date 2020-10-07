@@ -1,11 +1,12 @@
 .btn-w {
 	border-radius: 6px;
 	background: #fff;
-	border: 1px solid rgba(27, 31, 35, 0.15);
-	border-bottom: 1px solid rgba(27, 31, 35, 0.25);
-	box-shadow: 0 1px 0px 0px rgba(0, 0, 0, 0.02);
+	border: 1px solid rgba(27, 31, 35, 0.25);
+	border-bottom: 1px solid rgba(27, 31, 35, 0.3);
+	box-shadow: 0 1px 0px 0px rgba(0, 0, 0, 0.04);
 	/*transition: 0.05s ease-in-out;*/
 	/*transition-property: background, box-shadow;*/
+	min-width: 130px;
 }
 
 .btn-w:active {
@@ -18,13 +19,14 @@
 	color: white;
 	border-radius: 6px;
 	background: rgb(35, 118, 249);
-	height: 32px;
-	border: 1px solid rgba(25, 90, 179, 0.9);
-	border-top: 1px solid rgba(0, 0, 0, 0.1);
+	height: 33px;
+	border: 1px solid rgba(25, 90, 179, 1);
+	border-top: 1px solid rgba(0, 0, 0, 0.4);
 	box-shadow: 0 1px 0px 0px rgba(0, 0, 0, 0.1);
 	/*transition: 0.05s ease-in-out;*/
 	/*transition-property: background, box-shadow;*/
 	position: relative;
+	min-width: 130px;
 }
 
 .btn-b:before {

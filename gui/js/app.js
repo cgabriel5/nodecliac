@@ -252,15 +252,31 @@ const init = () => {
 				break;
 			case "sidebar:entry":
 				{
-					if ($cached_sb === $delegate) return;
+					if ($cached_sb === $delegate) {
+						$cached_sb.classList.remove("selected");
+						let dattr = $cached_sb.getAttribute("data-row");
+						let $node = $(dattr + "-cont");
+						if ($node) $node.classList.add("none");
+						$cached_sb = null;
+
+						$("default-cont").classList.remove("none");
+
+						return;
+					}
 					if ($cached_sb) {
 						$cached_sb.classList.remove("selected");
 						let dattr = $cached_sb.getAttribute("data-row");
 						let $node = $(dattr + "-cont");
 						if ($node) $node.classList.add("none");
 					}
+
 					if ($delegate) {
-						$("QUERY", ".packages-cont").classList.add("none");
+						let $default = $("default-cont");
+						if (!$default.classList.contains("none")) {
+							$default.classList.add("none");
+						}
+
+						// $("QUERY", ".packages-cont").classList.add("none");
 						$delegate.classList.toggle("selected");
 						let dattr = $delegate.getAttribute("data-row");
 						let $node = $(dattr + "-cont");
@@ -269,6 +285,7 @@ const init = () => {
 
 						if (dattr === "packages") API.packages();
 						else if (dattr === "settings") API.config();
+						// else if (dattr === "doctor") API.doctor();
 					}
 				}
 
@@ -509,6 +526,21 @@ const init = () => {
 				}
 
 				break;
+
+			case "doctor:actions":
+				{
+					let action = $delegate.getAttribute("data-action");
+					if (action === "run") {
+						API.doctor();
+					} else if (action === "clear") {
+						let $cont = $("doctor-output");
+						while ($cont.firstChild) {
+							$cont.removeChild($cont.lastChild);
+						}
+					}
+				}
+
+				break;
 		}
 	});
 
@@ -516,6 +548,7 @@ const init = () => {
 	const $entries = $("pkg-entries");
 	const $pkgheader = $("header-cont");
 	const $settings = $("settings-cont");
+	const $doctor = $("doctor-cont");
 	Interaction.addFilter("packages:main-checkmark", (e, targets) => {
 		let $target = targets.target;
 		let $parents = f($target).parents().getStack();
@@ -567,19 +600,23 @@ const init = () => {
 		if ($settings.contains($el)) return $el;
 	});
 
+	Interaction.addFilter("doctor:actions", (e, targets) => {
+		let $target = targets.target;
+		let $parents = f($target).parents().getStack();
+		let $el = f($target).concat($parents).classes("btn").getElement();
+		if ($doctor.contains($el)) return $el;
+	});
+
 	Interaction.addFilter("packages:input-cont", (e, targets) => {
 		let $target = targets.target;
 		let $parents = f($target).parents().getStack();
-		let $el = f($target)
-			.concat($parents)
-			.classes("input-cont")
-			.getElement();
-		let $clear = f($target)
-			.concat($parents)
-			.classes("search-icon-clear")
-			.getElement();
-
-		return $clear || ($el ? $("header-input") : undefined);
+		// prettier-ignore
+		let $el = f($target).concat($parents).classes("input-cont").getElement();
+		// prettier-ignore
+		let $clear = f($target).concat($parents).classes("search-icon-clear").getElement();
+		// prettier-ignore
+		let $input = f($target).concat($parents).classes("header-input").getElement();
+		return $clear || (!$input && $el ? $("header-input") : undefined);
 	});
 
 	new Interaction()
@@ -606,6 +643,7 @@ const init = () => {
 		.filters("settings:reset")
 		.filters("packages:main-checkmark")
 		.filters("packages:entry-checkmark")
+		.filters("doctor:actions")
 		.capture(false)
 		.enable();
 

@@ -23,6 +23,68 @@ let app = newWebView(currentHtmlPath("views/index.html"),
     cssPath=currentHtmlPath("css/empty.css") # [Bug] Line doesn't work on macOS?
 )
 
+proc checkup() =
+
+    app.js("""
+        document.getElementById("doctor-spinner").classList.remove("none");
+        document.getElementById("doctor-run").classList.add("nointer", "disabled");
+        """)
+
+    # app.js(
+    #     "document.body.classList.add(\"nointer\");" &
+    #     "document.getElementById(\"loader\").classList.remove(\"none\");" &
+    #     "setTimeout(function() { document.getElementById(\"loader\").classList.add(\"opa1\"); }, 10);"
+    # )
+
+
+    let status = execProcess("nodecliac").strip(trailing=true)
+    let ping =
+        if status.len == 0:
+            "<div class=\"value\">OK</div>"
+        else:
+            "<div class=\"value error\">ERROR</div>"
+    let version = execProcess("nodecliac --version").strip(trailing=true)
+    let binary = execProcess("command -v nodecliac").strip(trailing=true)
+    let binloc =
+        if binary.startsWith(hdir):
+            binary.replace(hdir, "~")
+        else:
+            binary
+
+    var html = """"""
+    html &= fmt"""
+<div class=\"header\">Log</div>
+<div class=\"row\">
+    <div class=\"label\">nodecliac ping:</div>
+    {ping}
+</div>
+<div class=\"row\">
+    <div class=\"label\">nodecliac -v:</div>
+    <div class=\"value\">v{version}</div>
+</div>
+<div class=\"row\">
+    <div class=\"label\">bin:</div>
+    <div class=\"value\">{binloc}</div>
+</div>
+"""
+
+    let command = fmt"""
+document.getElementById("doctor-output").innerHTML = `{html}`;
+document.getElementById("doctor-run").classList.remove("nointer", "disabled");
+document.getElementById("doctor-spinner").classList.add("none");
+"""
+
+    # document.getElementById("doctor-spinner").classList.add("none");
+    # echo ">>>>>> [", command, "]"
+
+    # app.js(
+    #     "setTimeout(function() { document.getElementById(\"loader\").classList.add(\"opa1\"); setTimeout(function() { document.getElementById(\"loader\").classList.add(\"none\"); document.body.classList.remove(\"nointer\"); }, 10); }, 250);")
+
+
+
+    app.js(command)
+
+
 proc config_update(setting: string, value: int) =
     let p =  hdir & "/.nodecliac/.config"
     var config = if fileExists(p): readFile(p) else: ""
@@ -37,7 +99,6 @@ proc config_update(setting: string, value: int) =
         writeFile(p, config)
 
 proc settings_reset() =
-    echo "RESET FILE"
     writeFile(hdir & "/.nodecliac/.config", "1001")
     app.js(fmt"window.api.setup_config(1,0,0,1);")
 
@@ -83,7 +144,7 @@ proc get_config() =
         let debug = config[2]
         let singletons = config[3]
         app.js(fmt"window.api.setup_config({status},{cache},{debug},{singletons});")
-        jsLog(config)
+        # jsLog(config)
 
 var names: seq[string] = @[]
 for kind, path in walkDir(hdir & "/.nodecliac/registry"):
@@ -129,7 +190,7 @@ $inner.className = "center";
 var $icon_cont = document.createElement("div");
 $icon_cont.className = "checkmark";
 var $icon = document.createElement("i");
-$icon.className = "none";
+$icon.className = "fas fa-check none";
 $icon_cont.appendChild($icon);
 
 var $label = document.createElement("div");
@@ -289,6 +350,7 @@ app.bindProcs("api"):
     proc update_debug(state: int) = setting_config_debug(state)
     proc update_singletons(state: int) = setting_config_singletons(state)
     proc reset_settings() = settings_reset()
+    proc doctor() = checkup()
 
 # import libfswatch
 # import libfswatch/fswatch

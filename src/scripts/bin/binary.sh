@@ -254,7 +254,7 @@ case "$command" in
 		# Count items in directory: [https://stackoverflow.com/a/33891876]
 		count="$(trim "$(ls 2>/dev/null -Ubd1 -- ~/.nodecliac/registry/* | wc -l)")"
 		echo -e "${BOLD}$registrypath${NC} ($count)" # Print header.
-		[[ $count -gt 0 ]] && count="$((count - 1))" # Account for 0 base index.
+		[[ $count -gt 0 && $count != 1 ]] && count="$((count - 1))" # Account for 0 base index.
 		counter=0
 
 		# Exit if directory is empty.
@@ -320,7 +320,7 @@ case "$command" in
 				rcommand="${BRED}$command${NC}"
 
 				# Row declaration.
-				decor="├── "; if [[ "$counter" == "$count" ]]; then decor="└── "; fi
+				decor="├── "; if [[ "$counter" == "$count" || "$count" == 1 ]]; then decor="└── "; fi
 
 				if [[ "$issymlink" == 0 ]]; then
 					if [[ "$isdir" == 1 ]]; then

@@ -13,20 +13,16 @@ const prompt = require("prompt-sync")({ sigint: true });
 const { fmt, exit, paths, read, write, strip_comments, chmod } = toolbox;
 
 module.exports = async (args) => {
-	let { force, rcfile, commands, yes, jsInstall } = args;
+	let { force, update, rcfile, packages, yes, jsInstall } = args;
 	let err, res;
 	let tstring = "";
-
-	if (commands && typeof commands !== "string") {
-		exit([`${chalk.bold("--commands")} needs to be a string list.`]);
-	}
 
 	let { ncliacdir, bashrcpath, mainscriptname, registrypath } = paths;
 	let { acmapssource, resourcespath, resourcessrcs, setupfilepath } = paths;
 	let { testsrcpath } = paths;
 	if (rcfile) bashrcpath = rcfile; // Use provided path.
 
-	if ((await de(ncliacdir)) && !force) {
+	if ((await de(ncliacdir)) && !(force || update)) {
 		tstring = "? exists. Setup with ? to overwrite directory.";
 		exit([fmt(tstring, chalk.bold(ncliacdir), chalk.bold("--force"))]);
 	}
@@ -109,6 +105,11 @@ module.exports = async (args) => {
 		if (/\.(sh|pl|nim)$/.test(p)) await chmod(p, 0o775);
 	};
 
+	// If flag isn't provided don't install packages except nodecliac.
+	if (!packages) {
+		resourcespath = path.join(resourcespath, "nodecliac");
+		registrypath = path.join(registrypath, "nodecliac");
+	}
 	await Promise.all([
 		// Copy completion packages.
 		copydir(resourcessrcs, acmapssource, {

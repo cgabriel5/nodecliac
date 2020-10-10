@@ -267,7 +267,7 @@ if [[ " binary manual " == *" $installer "* ]]; then
 	mkdir -p ~/.nodecliac/{registry,src}
 	mkdir -p "$dest"/{bin,main}
 	mkdir -p "$dest"/ac/utils
-	cp -pr "$acpath"/ac.pl "$dest/ac"
+	cp -pr "$acpath"/{ac,ac_debug}.pl "$dest/ac"
 	cp -pr "$acpath"/utils/LCP.pm "$dest/ac/utils"
 	cp -pr "$mainpath"/init.sh "$dest/main"
 	cp -pr "$mainpath"/config.pl "$dest/main"

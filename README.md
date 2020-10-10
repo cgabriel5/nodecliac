@@ -67,7 +67,7 @@ $ bash <(wget -qO- git.io/nodecliac) && source ~/.bashrc
 
 **Checksum Install**: If desired, the install script file's integrity can be verified before running.
 
-[install.sh](https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install.sh) `sha256sum` checksum: `3b168fd5736f649854fb1010e16d3367b1bd98332428aba7467685ebd27fd3b8`
+[install.sh](https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install.sh) `sha256sum` checksum: `d796e8ba39337a5770ed31f975e9d41c9de1ba6c7587f7a0e7f48b694d822175`
 
 Create an executable shell file called `install.sh`, add the following, and run it.
 
@@ -82,7 +82,7 @@ install() {
     url="git.io/nodecliac"
     is="$([[ "$(command -v curl)" ]] && sudo curl -Ls "$url" || sudo wget -qO- "$url")"
     x=($([[ "$OSTYPE" == "darwin"* ]] && shasum -a 256 <<< "$is" || sha256sum <<< "$is"))
-    c="3b168fd5736f649854fb1010e16d3367b1bd98332428aba7467685ebd27fd3b8"
+    c="d796e8ba39337a5770ed31f975e9d41c9de1ba6c7587f7a0e7f48b694d822175"
     err="\033[1;31mError\033[0m: Verification failed: checksums don't match."
     [[ "$c" == "$x" ]] && bash <(echo "$is") \
         --installer= \
@@ -113,6 +113,9 @@ install() {
 - `--branch`: An _existing_ nodecliac branch name to install. (default: `master`)
 - `--rcfile`: `bashrc` file to install nodecliac to. (default: `~/.bashrc`)
 - `--yes`: Automate install by saying yes to any prompt(s).
+- `--packages`: Install [collection](https://github.com/cgabriel5/nodecliac/tree/master/resources/packages) of pre-made completion packages.
+- `--manual`: Let's install script to take manual install route.
+- `--update`: Let's install script to take update router over fresh install route.
 
 </details>
 

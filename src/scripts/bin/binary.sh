@@ -253,12 +253,19 @@ case "$command" in
 
 		# Count items in directory: [https://stackoverflow.com/a/33891876]
 		count="$(trim "$(ls 2>/dev/null -Ubd1 -- ~/.nodecliac/registry/* | wc -l)")"
-		echo -e "${BOLD}$registrypath${NC} ($count)" # Print header.
+		echo -e "${BBLUE}$registrypath/${NC}" # Print header.
 		[[ $count -gt 0 && $count != 1 ]] && count="$((count - 1))" # Account for 0 base index.
 		counter=0
 
 		# Exit if directory is empty.
-		if [[ "$count" == "0" ]]; then exit; fi
+		if [[ "$count" == "0" ]]; then
+			if [[ "$counter" == 1 ]]; then
+				echo -e "\n$counter package"
+			else
+				echo -e "\n$counter packages"
+			fi
+			exit
+		fi
 
 		for f in ~/.nodecliac/registry/*; do
 			filename=$(basename "$f")
@@ -342,6 +349,12 @@ case "$command" in
 				((counter=counter+1)) # Increment counter.
 
 		done
+
+		if [[ "$counter" == 1 ]]; then
+			echo -e "\n$counter package"
+		else
+			echo -e "\n$counter packages"
+		fi
 
 		# # Remove trailing newline: [https://unix.stackexchange.com/a/140738]
 		# echo -e "$(echo -e "$header$output" | perl -0 -pe 's/\n\Z//')"

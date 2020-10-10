@@ -19,9 +19,14 @@ module.exports = async () => {
 	let commands = await readdir(registrypath);
 	let count = commands.length;
 
-	console.log(`${chalk.bold(registrypath)} (${count})`); // Print header.
+	console.log(`${chalk.bold.blue(registrypath)}`); // Print header.
 
-	if (!count) process.exit(); // Exit if directory is empty.
+	// Exit if directory is empty.
+	if (!count) {
+		if (count === 1) console.log(`\n${count} package`);
+		else console.log(`\n${count} packages`);
+		process.exit();
+	}
 
 	// Loop over folders to get .acdef files.
 	for (let i = 0, l = count; i < l; i++) {
@@ -111,4 +116,7 @@ module.exports = async () => {
 				}
 			});
 	}
+
+	if (count === 1) console.log(`\n${count} package`);
+	else console.log(`\n${count} packages`);
 };

@@ -253,7 +253,8 @@ case "$command" in
 
 		# Count items in directory: [https://stackoverflow.com/a/33891876]
 		count="$(trim "$(ls 2>/dev/null -Ubd1 -- ~/.nodecliac/registry/* | wc -l)")"
-		echo -e "${BBLUE}$registrypath/${NC}" # Print header.
+		rdir="${registrypath/#$HOME/\~}" # Un-expand tilde:
+		echo -e "${BBLUE}$rdir/${NC}" # Print header.
 		[[ $count -gt 0 && $count != 1 ]] && count="$((count - 1))" # Account for 0 base index.
 		counter=0
 

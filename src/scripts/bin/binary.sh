@@ -195,11 +195,18 @@ if [[ -z "$command" && "$version" == "1" && -f "$setupfilepath" ]]; then
 fi
 
 # Allowed commands.
-commands=" make format print registry setup status uninstall add remove link unlink enable disable cache test debug "
+commands=" bin make format print registry setup status uninstall add remove link unlink enable disable cache test debug "
 
 if [[ "$commands" != *"$command"* ]]; then exit; fi # Exit if invalid command.
 
 case "$command" in
+
+	bin)
+
+		echo "$(command -v nodecliac)"
+
+		;;
+
 	make|format)
 
 		# Run Nim binary if it exists.

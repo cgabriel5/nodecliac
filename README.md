@@ -218,6 +218,7 @@ _Complete details/events are oversimplified and condensed to get the main points
   - [`make`](#cli-command-make)
   - [`format`](#cli-command-format)
 - Helper:
+  - [`bin`](#cli-command-bin)
   - [`cache`](#cli-command-cache)
   - [`setup`](#cli-command-setup)
   - [`status`](#cli-command-status)
@@ -285,6 +286,22 @@ $ nodecliac format --source path/to/program.acmap --print --indent "s:2"
 - `--test`: Log output without file headers (_for tests_).
 
 </details>
+
+---
+
+<a name="cli-command-bin"></a>
+
+<b><i>bin</i></b>
+
+> Prints nodecliac's bin location.
+
+- _No arguments_
+
+###### Usage
+
+```sh
+$ nodecliac bin # Binary location.
+```
 
 ---
 

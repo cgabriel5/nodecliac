@@ -12,6 +12,7 @@ const { fmt, rtp } = require("./strings.js");
 const fs = require("./filesystem.js");
 const tilde = require("./tilde.js");
 const prompt = require("./prompt.js");
+const download = require("./download.js");
 const { realpath, readdir, lstats, remove } = fs;
 const { write, info, read, copy, rmrf, ispath_abs, exists } = fs;
 const { fexists, dexists, lexists, access, chmod } = fs;
@@ -22,6 +23,7 @@ module.exports = {
 	expand,
 	prompt,
 	aexec,
+	download,
 	exists,
 	fexists,
 	dexists,

@@ -9,11 +9,15 @@ const { strip_comments, strip_trailing_slash } = require("./text.js");
 const { hasProp } = require("./objects.js");
 const { fmt, rtp } = require("./strings.js");
 const fs = require("./filesystem.js");
+const tilde = require("./tilde.js");
 const { realpath, readdir, lstats, remove } = fs;
 const { write, info, read, copy, rmrf, ispath_abs, exists } = fs;
 const { fexists, dexists, lexists, access, chmod } = fs;
+const { shrink, expand } = tilde;
 
 module.exports = {
+	shrink,
+	expand,
 	exists,
 	fexists,
 	dexists,

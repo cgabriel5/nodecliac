@@ -11,6 +11,7 @@ const { hasProp } = require("./objects.js");
 const { fmt, rtp } = require("./strings.js");
 const fs = require("./filesystem.js");
 const tilde = require("./tilde.js");
+const prompt = require("./prompt.js");
 const { realpath, readdir, lstats, remove } = fs;
 const { write, info, read, copy, rmrf, ispath_abs, exists } = fs;
 const { fexists, dexists, lexists, access, chmod } = fs;
@@ -19,6 +20,7 @@ const { shrink, expand } = tilde;
 module.exports = {
 	shrink,
 	expand,
+	prompt,
 	aexec,
 	exists,
 	fexists,

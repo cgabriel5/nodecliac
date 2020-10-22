@@ -1,6 +1,7 @@
 "use strict";
 
 const md5 = require("./md5.js");
+const aexec = require("./aexec.js");
 const { concat } = require("./sets.js");
 const { checksum } = require("./checksum.js");
 const { exit } = require("./exit.js");
@@ -18,6 +19,7 @@ const { shrink, expand } = tilde;
 module.exports = {
 	shrink,
 	expand,
+	aexec,
 	exists,
 	fexists,
 	dexists,

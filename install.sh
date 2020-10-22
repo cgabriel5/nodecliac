@@ -135,6 +135,13 @@ if [[ -z "$installer" ]]; then
 	else installer="binary"; fi
 fi
 
+# If updating get current install method.
+if [[ -n "$update" ]]; then
+	if [[ "$(exists yarn)" ]]; then installer="yarn"
+	elif [[ "$(exists npm)" ]]; then installer="npm"
+	else installer="binary"; fi
+fi
+
 # Create default rcfile if needed.
 if [[ -n "$rcfile" && ! -f "$rcfile" || -z "$rcfile" ]]; then
 	rcfile=~/.bashrc; [[ ! -f "$rcfile" ]] && touch "$rcfile"

@@ -5,7 +5,7 @@ const { concat } = require("./sets.js");
 const { checksum } = require("./checksum.js");
 const { exit } = require("./exit.js");
 const { paths } = require("./paths.js");
-const { strip_comments } = require("./text.js");
+const { strip_comments, strip_trailing_slash } = require("./text.js");
 const { hasProp } = require("./objects.js");
 const { fmt, rtp } = require("./strings.js");
 const fs = require("./filesystem.js");
@@ -22,6 +22,7 @@ module.exports = {
 	chmod,
 	hasProp,
 	strip_comments,
+	strip_trailing_slash,
 	checksum,
 	concat,
 	paths,

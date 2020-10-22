@@ -210,7 +210,7 @@ _Complete details/events are oversimplified and condensed to get the main points
 ## CLI
 
 <details>
-  <summary>CLI options</summary>
+  <summary>CLI commands/flags</summary>
 
 ###### Commands:
 
@@ -218,6 +218,7 @@ _Complete details/events are oversimplified and condensed to get the main points
   - [`make`](#cli-command-make)
   - [`format`](#cli-command-format)
 - Helper:
+  - [`init`](#cli-command-init)
   - [`bin`](#cli-command-bin)
   - [`cache`](#cli-command-cache)
   - [`setup`](#cli-command-setup)
@@ -286,6 +287,23 @@ $ nodecliac format --source path/to/program.acmap --print --indent "s:2"
 - `--test`: Log output without file headers (_for tests_).
 
 </details>
+
+---
+
+
+<a name="cli-command-init"></a>
+
+<b><i>init</i></b>
+
+> Starts nodecliac's completion package generator to easily scaffold a completion package.
+
+- `--force`: Overwrites existing folder of the same name.
+
+###### Usage
+
+```sh
+$ nodecliac init
+```
 
 ---
 
@@ -422,13 +440,23 @@ $ nodecliac registry # Print packages in registry.
 
 > Adds package to registry.
 
-- _No arguments_
-- **Note**: Must be run in package root.
-
+- `--path`: Path to completion package.
+- `--repo`: GitHub repo to install completion package from.
+  -  Repo only: `<username>/<repo_name>`
+  -  Repo sub-directory: `<username>/<repo_name>/trunk/<sub_directory_path>`
+- `--skip-val`: Skips package validation (caution: not recommended, for dev purposes).
+- `--force`: If local completion package is more than `10MB` this flag is needed to install.
+  - Meant as a safeguard to prevent accidentally copying large folders.
+ 
 ###### Usage
 
 ```sh
 $ nodecliac add # Copies cwd folder (completion package) to registry.
+$ nodecliac add --force # Copies cwd folder and forces install if package is over 10MB.
+$ nodecliac add --path ~/Desktop/subl # Installs completion package at specified path.
+$ nodecliac add --repo cgabriel5/nodecliac # Install completion package from a GitHub repo.
+# Install completion package from a specific directory in a GitHub repo.
+$ nodecliac add --repo cgabriel5/nodecliac/trunk/resources/packages/yarn
 ```
 
 ---
@@ -457,14 +485,13 @@ $ nodecliac remove --all # Removes all packages from registry.
 
 > Creates soft [symbolic](https://linuxize.com/post/how-to-create-symbolic-links-in-linux-using-the-ln-command/) link of package in registry.
 
-- _No arguments_
-- **Note**: Must be run in package root.
-- For use when developing a completion package.
+- `--path`: Path to completion package.
 
 ###### Usage
 
 ```sh
 $ nodecliac link # Symlinks cwd folder (completion package) to registry.
+$ nodecliac link --path ~/Desktop/subl # Symlinks completion package at specified path.
 ```
 
 ---

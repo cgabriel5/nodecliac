@@ -18,6 +18,51 @@ function platform() {
 	esac
 }
 
+# Takes a relative path and returns its absolute path.
+#
+# @return {string} - The relative path.
+#
+# @resource [https://stackoverflow.com/a/31605674]
+# @resource [https://stackoverflow.com/a/20500246]
+# @resource [https://stackoverflow.com/a/21188136]
+# @resource [https://stackoverflow.com/a/25880707]
+function resolve {
+	local a=""
+	local p="$1"
+
+	# Return on empty path.
+	[[ -z "$p" ]] && echo ""
+
+	# Try readlink if installed.
+	if [[ "$(command -v readlink)" ]]; then
+		# Resolve symlink: [https://stackoverflow.com/a/42918]
+		# Using Python: [https://apple.stackexchange.com/a/4822]
+		if [[ "$(platform)" == "macosx" ]]; then
+			a="$(readlink "$p")"
+		else
+			a="$(readlink -f "$p")"
+		fi
+
+	# Else use fallback.
+	else
+
+		# Remove trailing slash.
+		[[ "$p" == *"/" ]] && p="${p::-1}"
+
+		case "$p" in
+			".") a="$(pwd)" ;;
+			"..") a="$(dirname "$(pwd)")" ;;
+			*)
+				head="$(dirname "$p")"
+				[[ -e "$head" ]] && a="$(cd "$head" && pwd)/$(basename "$p")"
+				;;
+		esac
+	fi
+
+	# Ensure that path exists.
+	[[ -e "$a" ]] && echo "$a" || echo ""
+}
+
 # Create config file if it's empty or does not exist yet.
 #
 # @return {undefined} - Nothing is returned.
@@ -70,15 +115,61 @@ function setsetting() {
 	echo "$cstring" > "$config"
 }
 
+# Collapse starting home dir in a path to '~'.
+#
+# @param  {string} p - The path.
+# @return {undefined} - Nothing is returned.
+function shrink() {
+	p="$1"
+	if [[ "$p" == "$HOME" ]]; then
+		echo "~"
+	elif [[ "$p" == "$HOME"* ]]; then
+		hlen="${#HOME}"
+		echo "~${p:$hlen}"
+	else
+		echo "$1"
+	fi
+}
+
+# Trim string whitespace.
+#
+# @return {string} - Trimmed string.
+#
+# @resource [https://stackoverflow.com/a/3352015]
+function trim() {
+	local arg="$*"
+	arg="${arg#"${arg%%[![:space:]]*}"}" # Remove leading ws.
+	arg="${arg%"${arg##*[![:space:]]}"}" # Remove trailing ws.
+	printf '%s' "$arg"
+}
+
+# Download webpage contents.
+#
+# @return {string} - The webpage's URL.
+#
+# @resource [https://stackoverflow.com/a/3742990]
+function download {
+	if [[ "$(command -v curl)" ]]; then
+		echo "$(curl -s -L "$1")"
+	elif [[ "$(command -v wget)" ]]; then
+		echo "$(wget -q -O - "$1")"
+	fi
+}
+
 # ANSI colors: [https://stackoverflow.com/a/5947802]
 # [https://misc.flogisoft.com/bash/tip_colors_and_formatting]
 RED="\033[0;31m"
 GREEN="\033[0;32m"
+YELLOW="\033[0;33m"
+MAGENTA="\033[0;35m"
 # Bold colors.
 BOLD="\033[1m"
+ITALIC="\033[3m"
 BRED="\033[1;31m"
 BBLUE="\033[1;34m"
+BMAGENTA="\033[1;35m"
 BTURQ="\033[1;36m"
+BGREEN="\033[1;32m"
 NC="\033[0m"
 
 rcfile=""
@@ -95,6 +186,9 @@ level=""
 force=""
 setlevel=0
 all=""
+path=""
+skipval=""
+repo=""
 
 # [https://medium.com/@Drew_Stokes/bash-argument-parsing-54f3b81a6a8f]
 # [http://tldp.org/LDP/Bash-Beginners-Guide/html/sect_09_07.html]
@@ -162,8 +256,21 @@ while (( "$#" )); do
 		# `remove|unlink|enable|disable` command flags.
 		--all) all="1"; shift ;;
 
+		# `add|link` command flags.
+		--path=*)
+			flag="${1%%=*}"; value="${1#*=}"
+			if [[ -n "$value" ]]; then path="$value"; fi; shift ;;
+		--path)
+			if [[ -n "$2" && "$2" != *"-" ]]; then path="$2"; fi; shift ;;
+
 		# `add` command flags.
 		--force) force="1"; shift ;;
+		--skip-val) skipval="1"; shift ;;
+		--repo=*)
+			flag="${1%%=*}"; value="${1#*=}"
+			if [[ -n "$value" ]]; then repo="$value"; fi; shift ;;
+		--repo)
+			if [[ -n "$2" && "$2" != *"-" ]]; then repo="$2"; fi; shift ;;
 
 		--) shift; break ;; # End argument parsing.
 		-*|--*=)
@@ -195,11 +302,157 @@ if [[ -z "$command" && "$version" == "1" && -f "$setupfilepath" ]]; then
 fi
 
 # Allowed commands.
-commands=" bin make format print registry setup status uninstall add remove link unlink enable disable cache test debug "
+commands=" bin init make format print registry setup status uninstall add remove link unlink enable disable cache test debug "
 
 if [[ "$commands" != *"$command"* ]]; then exit; fi # Exit if invalid command.
 
 case "$command" in
+
+	init)
+
+		cwd="$PWD"
+
+		function init() {
+			restart="$1"
+			[[ "$restart" == 1 ]] && echo ""
+
+			echo -e "${BBLUE}Info:${NC} nodecliac completion package initialization." >&2
+
+			local command=""
+			local padding=""
+			local def="${BTURQ}${ITALIC}default${NC}"
+			local pprefix="$padding${BMAGENTA}Prompt:${NC}"
+			local aprefix="$padding${BGREEN}Answer:${NC}"
+
+			# Print reply/response.
+			#
+			# @param  {string} reply - The provided reply.
+			# @return {undefined} - Nothing is returned.
+			function preply() {
+				reply="$1"
+				echo -e "$aprefix ${BOLD}$reply${NC}" >&2
+			}
+
+			while [[ -z "$command" ]]; do
+				echo -en "$pprefix [1/6] Completion package command (${YELLOW}required${NC}): "
+				read command
+				# Clear line on empty response.
+				[[ -z "$command" ]] && tput cuu 1 && tput el
+			done
+			command="$(trim "$command")"
+
+			# Check for existing same name completion package.
+			local pkgpath="$cwd/$command"
+			local spkgpath="$(shrink "$pkgpath")"
+			if [[ -z "$force" && -d "$pkgpath" ]]; then
+				echo -e "${BRED}Error:${NC} Directory ${BOLD}$command${NC} already exists at:"
+				echo -e "... $spkgpath"
+				echo -e "${BBLUE}Tip:${NC} Run with --force flag to overwrite existing folder."
+				exit
+			fi
+
+			preply "$command"
+			local author=""; echo -en "$pprefix [2/6] Author (GitHub username or real name): "
+			read author
+			preply "$author"
+			local version=""; echo -en "$pprefix [3/6] Version [${def} 0.0.1]: "
+			read version
+			version="${version:-0.0.1}"
+			preply "$version"
+			local des_def="Completion package for $command"
+			local description=""; echo -en "$pprefix [4/6] Description [${def} ${des_def}]: "
+			read description
+			description="${description:-$des_def}"
+			preply "$description"
+			local license=""; echo -en "$pprefix [5/6] Project license [${def} MIT]: "
+			read license
+			license="${license:-MIT}"
+			preply "$license"
+			local repo=""; echo -en "$pprefix [6/6] Github repo: (i.e. username/repository) "
+			read repo
+			preply "$repo"
+
+			local content=$(cat <<-END
+	${MAGENTA}[Package]${NC}
+	name = "$command"
+	version = "$version"
+	description = "$description"
+	license = "$license"
+
+	${MAGENTA}[Author]${NC}
+	name = "$author"
+	repo = "$repo"
+END
+)
+
+			echo ""
+			echo -e "${BBLUE}Info:${NC} package.ini will contain the following:"
+			echo ""
+			echo -e "$content"
+
+			echo ""
+			echo -e "${BBLUE}Info:${NC} Completion package base structure:"
+			echo ""
+
+			local tree=$(cat <<-END
+	$spkgpath
+	├── $command.acmap
+	├── $command.acdef
+	├── .$command.config.acmap
+	└── package.ini
+END
+)
+
+			echo -e "$tree"
+			echo ""
+
+			local confirmation=""
+			local allowed=" y yes c cancel n no r restart "
+			while [[ "$allowed" != *" ${confirmation,,} "* ]]; do
+				echo -e -n "$pprefix Looks good, create package? [${BTURQ}${ITALIC}default${NC} ${BTURQ}y${NC}]es, [c]ancel, [r]estart: "
+				read confirmation
+				confirmation="${confirmation:-y}"
+				# Clear line on empty response.
+				[[ "$allowed" != *" ${confirmation,,} "* ]] && tput cuu 1 && tput el
+			done
+
+			local fchar="${confirmation:0:1}"
+			confirmation="${fchar,,}"
+			preply "$confirmation"
+			case "$confirmation" in
+				"y")
+					# Create basic completion package for command.
+					mkdir -p "$pkgpath"
+					local pkginipath="$pkgpath/package.ini"
+					local acmappath="$pkgpath/$command.acmap"
+					local acdefpath="$pkgpath/$command.acdef"
+					local configpath="$pkgpath/.$command.config.acmap"
+					# Strip ansi colors: [https://superuser.com/a/561105]
+					# [https://superuser.com/a/380776]
+					# content="$(perl -pe 's/\\x1b\[[0-9;]*[mG]//g' <<< "$content")"
+					content="$(perl -pe 's/\\033\[\d*(;\d*)*m//g' <<< "$content")"
+					# [https://unix.stackexchange.com/a/573371]
+					install -m 775 <(echo "$content") "$pkginipath"
+					# [https://unix.stackexchange.com/a/47182]
+					install -m 775 /dev/null "$acmappath"
+					install -m 775 /dev/null "$acdefpath"
+					install -m 775 /dev/null "$configpath"
+					echo ""
+					echo -e "${BBLUE}Info:${NC} completion packaged created at:"
+					echo -e "... $spkgpath"
+					;;
+				"c")
+					echo ""
+					echo -e "${BBLUE}Info:${NC} Completion package initialization cancelled."
+					exit
+					;;
+				"r") init "1" ;;
+			esac
+		}
+
+		init
+
+		;;
 
 	bin)
 
@@ -245,18 +498,6 @@ case "$command" in
 		# Build acdef file paths string. [https://unix.stackexchange.com/a/96904]
 		# for f in ~/.nodecliac/registry/*/*.acdef ~/.nodecliac/registry/*/.*.acdef; do
 		# for f in ~/.nodecliac/registry/*/*.acdef; do
-
-		# Trim string whitespace.
-		#
-		# @return {string} - Trimmed string.
-		#
-		# @resource [https://stackoverflow.com/a/3352015]
-		function trim() {
-			local arg="$*"
-			arg="${arg#"${arg%%[![:space:]]*}"}" # Remove leading ws.
-			arg="${arg%"${arg##*[![:space:]]}"}" # Remove trailing ws.
-			printf '%s' "$arg"
-		}
 
 		# Count items in directory: [https://stackoverflow.com/a/33891876]
 		count="$(trim "$(ls 2>/dev/null -Ubd1 -- ~/.nodecliac/registry/* | wc -l)")"
@@ -305,20 +546,14 @@ case "$command" in
 			if [[ -L "$pkgpath" ]]; then
 				issymlink=1
 
-				# Resolve symlink: [https://stackoverflow.com/a/42918]
-				# Using Python: [https://apple.stackexchange.com/a/4822]
-				if [[ "$(platform)" == "macosx" ]]; then
-					resolved_path=$(readlink "$pkgpath")
-				else
-					resolved_path=$(readlink -f "$pkgpath")
-				fi
-				realpath="$resolved_path"
+				resolved=$(resolve "$pkgpath")
+				realpath="$resolved"
 
-				if [[ -d "$resolved_path" ]]; then issymlinkdir=1; isdir=1; fi
+				if [[ -d "$resolved" ]]; then issymlinkdir=1; isdir=1; fi
 
 				# Confirm symlink directory contain needed .acdefs.
-				sympath="$resolved_path/$command/$filename"
-				sympathconf="$resolved_path/$command/$configfilename"
+				sympath="$resolved/$command/$filename"
+				sympathconf="$resolved/$command/$configfilename"
 
 				check=0
 				if [[ -f "$sympath" ]]; then check=1; fi # Check for .acdef.
@@ -443,7 +678,7 @@ case "$command" in
 		if [[ -n "$(grep -o "ncliac=~/.nodecliac/src/main/init.sh" "$rcfile")" ]]; then
 			# [https://stackoverflow.com/a/57813295]
 			perl -0pi -e 's/([# \t]*)\bncliac.*"\$ncliac";?\n?//g;s/\n+(\n)$/\1/gs' ~/.bashrc
-			# perl -pi -e "s/ncliac=~\/.nodecliac\/src\/main\/init.sh;if \[ -f \"\\\$ncliac\" \];then source \"\\\$ncliac\";fi;// if /^ncliac/" "$rcfile"
+			perl -pi -e "s/ncliac=~\/.nodecliac\/src\/main\/init.sh;if \[ -f \"\\\$ncliac\" \];then source \"\\\$ncliac\";fi;if /^ncliac/" "$rcfile"
 			echo -e "${GREEN}success${NC} reverted ${BOLD}"$rcfile"${NC} changes."
 		fi
 
@@ -461,37 +696,173 @@ case "$command" in
 
 	add)
 
-		# Needed paths.
-		cwd="$PWD"
-		dirname=$(basename "$cwd") # Get package name.
-		destination="$registrypath/$dirname"
+			# Checks whether completion package has a valid base structure.
+			#
+			# @param  {string} command - The completion package command.
+			# @param  {string} dir     - The directory path of package.
+			# @return {boolean} - The validation check result.
+			function check() {
+				local err="", res="", result=1, re=""
 
-		# If folder exists give error.
-		if [[ -d "$destination" ]]; then
-			# Check if folder is a symlink.
-			type=$([ -L "$destination" ] && echo "Symlink " || echo "")
-			echo -e "$type${BOLD}$dirname${NC}/ exists. First remove and try again."
-			exit
-		fi
+				local prefix="${RED}Error:${NC} Package missing ./"
+				function perror() {
+					file="$1"
+					result=0
+					echo -e "$prefix${BOLD}$file${NC}" >&2
+				}
 
-		# Skip size check when --force is provided.
-		if [[ -z "$force" ]]; then
-			if [[ "$(platform)" == "macosx" ]]; then
-				# [https://serverfault.com/a/913506]
-				size=$(du -skL "$cwd" | grep -oE '[0-9]+' | head -n1)
-			else
-				# [https://stackoverflow.com/a/22295129]
-				size=$(du --apparent-size -skL "$cwd" | grep -oE '[0-9]+' | head -n1)
+				# If a single item is provided a folder contents
+				# check is performed.
+				if [[ "${#@}" == 2 ]]; then
+					local command="$1"
+					local dir="$2"
+					# Validate repo's basic package structure: Must
+					# contain: acmap, acdef, and config.acdef root files.
+					local ini="package.ini"
+					local acmap="$command.acmap"
+					local acdef="$command.acdef"
+					local config=".$command.config.acdef"
+					local inipath="$dir/$ini"
+					local acmappath="$dir/$acmap"
+					local acdefpath="$dir/$acdef"
+					local configpath="$dir/$config"
+					[[ ! -f "$acmappath" ]] && perror "$acmap"
+					[[ ! -f "$acdefpath" ]] && perror "$acdef"
+					[[ ! -f "$configpath" ]] && perror "$config"
+					[[ ! -f "$inipath" ]] && perror "$ini"
+				else
+					local command="$1"
+					local contents="$2"
+					contents="$(trim "$contents")"
+
+					re="svn: E[[:digit:]]{6}:" # [https://stackoverflow.com/a/32607896]
+					[[ "$res" =~ $re ]] && echo "Provided URL does not exist." >&2
+
+					local ini="package.ini"
+					local acmap="$command.acmap"
+					local acdef="$command.acdef"
+					local config=".$command.config.acdef"
+
+					re="^$ini$"; [[ ! "$contents" =~ $re ]] && perror "$ini"
+					re="^$acmap$"; [[ ! "$contents" =~ $re ]] && perror "$acmap"
+					re="^$acdef$"; [[ ! "$contents" =~ $re ]] && perror "$acdef"
+					re="^$config$"; [[ ! "$contents" =~ $re ]] && perror "$config"
+				fi
+
+				echo "$result"
+			}
+
+		[[ -n "$path" && "$path" != /* ]] && path="$(resolve "$path")"
+
+		sub=""
+		if [[ -n "$repo" && -z "$p" ]]; then
+			if [[ "$repo" == *"/trunk/"* ]]; then
+				# [https://superuser.com/a/1001979]
+				needle="/trunk/"
+				nlen="${#needle}"
+				rest=${repo#*$needle}
+				index=$(( ${#repo} - ${#rest} - $nlen ))
+				repo="${repo:0:$index}"
+				sub="${repo:$(( index + nlen ))}"
 			fi
-			# Anything larger than 10MB must be force added.
-			[[ -n "$(perl -e 'print int('"$size"') > 10000')" ]] &&
-			echo -e "${BOLD}$dirname${NC}/ exceeds 10MB. Use --force to add package anyway." && exit
 		fi
 
-		mkdir -p "$destination" # Create needed parent directories.
+		[[ "$sub" == *"/" ]] && sub="${sub::-1}"
+		[[ "$repo" == *"/" ]] && repo="${repo::-1}"
 
-		# [https://stackoverflow.com/a/14922600]
-		cp -r "$cwd" "$registrypath" # Copy folder to nodecliac registry.
+		if [[ -z "$repo" ]]; then
+			cwd=$([ -n "$path" ] && echo "$path" || echo "$PWD")
+			dirname=$(basename "$cwd") # Get package name.
+			pkgpath="$registrypath/$dirname"
+
+			# If package exists error.
+			if [[ -d "$pkgpath" ]]; then
+				# Check if folder is a symlink.
+				type=$([ -L "$pkgpath" ] && echo "Symlink " || echo "")
+				echo -e "$type${BOLD}$dirname${NC}/ exists. Remove it and try again."
+				exit
+			fi
+
+			# Validate package base structure.
+			[[ -z "$skipval" && "$(check "$dirname" "$cwd")" == 0 ]] && exit
+
+			# Skip size check when --force is provided.
+			if [[ -z "$force" ]]; then
+				if [[ "$(platform)" == "macosx" ]]; then
+					# [https://serverfault.com/a/913506]
+					size=$(du -skL "$cwd" | grep -oE '[0-9]+' | head -n1)
+				else
+					# [https://stackoverflow.com/a/22295129]
+					size=$(du --apparent-size -skL "$cwd" | grep -oE '[0-9]+' | head -n1)
+				fi
+				# Anything larger than 10MB must be force added.
+				[[ -n "$(perl -e 'print int('"$size"') > 10000')" ]] &&
+				echo -e "${BOLD}$dirname${NC}/ exceeds 10MB. Use --force to add package anyway." && exit
+			fi
+
+			mkdir -p "$pkgpath"
+			cp -r "$cwd" "$registrypath" # [https://stackoverflow.com/a/14922600]
+
+		else
+
+			uri=""; cmd=""; err=""; res=""
+			rname="${repo#*/}"
+			timestamp="$(perl -MTime::HiRes=time -e 'print int(time() * 1000);')"
+			output="$HOME/Downloads/$rname-$timestamp"
+
+			# Reset rname if subdirectory is provided.
+			[[ -n "$sub" ]] && rname="${repo##*/}"
+
+			# If package exists error.
+			pkgpath="$registrypath/$rname"
+			if [[ -d "$pkgpath" ]]; then
+				# Check if folder is a symlink.
+				type=$([ -L "$pkgpath" ] && echo "Symlink " || echo "")
+				echo -e "$type${BOLD}$rname${NC}/ exists. First remove and try again."
+				exit
+			fi
+
+			# Use git: [https://stackoverflow.com/a/60254704]
+			if [[ -z "$sub" ]]; then
+				# Ensure repo exists by checking master branch.
+				uri="https://api.github.com/repos/$repo/branches/master"
+				res="$(download "$uri")"
+				[[ -z "$res" ]] && echo "Provided URL does not exist." && exit
+
+				# Download repo with git.
+				uri="git@github.com:$repo.git"
+				# [https://stackoverflow.com/a/42932348]
+				git clone "$uri" "$output" >/dev/null 2>&1
+			else
+				# Use svn: [https://stackoverflow.com/a/18194523]
+
+				# First check that svn is installed.
+				[[ -z "$(command -v svn)" ]] && echo "\`svn' is not installed." && exit
+
+				# Check that repo exists.
+				uri="https://github.com/$repo/trunk/$sub"
+				res="$(svn ls "$uri")"
+
+				# Use `svn ls` output here to validate package base structure.
+				[[ -z "$skipval" && "$(check "$rname" "$res" "0")" == 0 ]] && exit
+
+				re="svn: E[[:digit:]]{6}:" # [https://stackoverflow.com/a/32607896]
+				[[ "$res" =~ $re ]] && echo "Provided URL does not exist."
+
+				# Use svn to download provided sub directory.
+				svn export "$uri" "$output"
+			fi
+
+			# Validate package base structure.
+			[[ -z "$skipval" && "$(check "$rname" "$output")" == 0 ]] && exit
+
+			# Move repo to registry.
+			[[ ! -d "$registrypath" ]] && "nodecliac registry ${BOLD}$registrypath${NC} doesn't exist."
+			# Delete existing registry package if it exists.
+			[[ -d "$pkgpath" ]] && rm -rf "$pkgpath"
+			mv "$output" "$pkgpath"
+
+		fi
 
 		;;
 
@@ -539,8 +910,9 @@ case "$command" in
 
 	link)
 
-		# Needed paths.
-		cwd="$PWD"
+		[[ -n "$path" && "$path" != /* ]] && path="$(resolve "$path")"
+
+		cwd=$([ -n "$path" ] && echo "$path" || echo "$PWD")
 		dirname=$(basename "$cwd") # Get package name.
 		destination="$registrypath/$dirname"
 
@@ -577,19 +949,13 @@ case "$command" in
 			# Needed paths.
 			filepath="$registrypath/$pkg/.$pkg.config.acdef"
 
-			# Resolve symlink: [https://stackoverflow.com/a/42918]
-			# Using Python: [https://apple.stackexchange.com/a/4822]
-			if [[ "$(platform)" == "macosx" ]]; then
-				resolved_path=$(readlink "$filepath")
-			else
-				resolved_path=$(readlink -f "$filepath")
-			fi
+			resolved=$(resolve "$filepath")
 
 			# Ensure file exists before anything.
-			if [[ ! -f "$resolved_path" ]]; then continue; fi
+			if [[ ! -f "$resolved" ]]; then continue; fi
 
 			# Remove current value from config.
-			contents="$(<"$resolved_path")" # Get config file contents.
+			contents="$(<"$resolved")" # Get config file contents.
 
 			contents=$(perl -pe 's/^\@disable.*?$//gm' <<< "$contents")
 			# Append newline to eof: [https://stackoverflow.com/a/15791595]
@@ -597,7 +963,7 @@ case "$command" in
 
 			# Cleanup contents.
 			contents=$(perl -pe 's!^\s+?$!!' <<< "$contents") # Remove newlines.
-			# # Add newline after header.: [https://stackoverflow.com/a/549261]
+			# Add newline after header.: [https://stackoverflow.com/a/549261]
 			contents=$(perl -pe 's/^(.*)$/$1\n/ if 1 .. 1' <<< "$contents")
 
 			echo "$contents" > "$filepath" # Save changes.

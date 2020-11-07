@@ -850,7 +850,7 @@ END
 				[[ "$res" =~ $re ]] && echo "Provided URL does not exist."
 
 				# Use svn to download provided sub directory.
-				svn export "$uri" "$output"
+				svn export "$uri" "$output" > /dev/null 2>&1
 			fi
 
 			# Validate package base structure.

@@ -59,6 +59,12 @@ function _nodecliac() {
 
 	local config="$root/.config"
 	if ! command -v "$name" > /dev/null || [ ! -e "$config" ]; then return; fi
+
+	# Skip if disabled. [https://stackoverflow.com/a/43343358]
+	local sstring="@disable = true"
+	local aconfig="$root/registry/$command/.$command.config.acdef"
+	if grep -Fxq "$sstring" "$aconfig"; then return; fi
+
 	local cstring
 	read -n 4 cstring < "$config"
 	local status="${cstring:0:1}"

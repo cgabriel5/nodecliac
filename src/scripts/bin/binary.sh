@@ -818,7 +818,7 @@ END
 			if [[ -d "$pkgpath" ]]; then
 				# Check if folder is a symlink.
 				type=$([ -L "$pkgpath" ] && echo "Symlink " || echo "")
-				echo -e "$type${BOLD}$rname${NC}/ exists. First remove and try again."
+				echo -e "$type${BOLD}$rname${NC}/ exists. Remove it and try again."
 				exit
 			fi
 
@@ -923,7 +923,7 @@ END
 		if [[ -d "$destination" || -L "$destination" ]]; then
 			# Check if folder is a symlink.
 			type=$([ -L "$destination" ] && echo "Symlink " || echo "")
-			echo -e "$type${BOLD}$dirname${NC}/ exists. First remove and try again."
+			echo -e "$type${BOLD}$dirname${NC}/ exists. Remove it and try again."
 			exit
 		fi
 

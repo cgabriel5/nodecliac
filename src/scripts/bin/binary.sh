@@ -316,7 +316,7 @@ case "$command" in
 			restart="$1"
 			[[ "$restart" == 1 ]] && echo ""
 
-			echo -e "${BBLUE}Info:${NC} nodecliac completion package initialization." >&2
+			echo -e "${BBLUE}Info:${NC} nodecliac completion package initialization." > /dev/tty
 
 			local command=""
 			local padding=""
@@ -330,7 +330,7 @@ case "$command" in
 			# @return {undefined} - Nothing is returned.
 			function preply() {
 				reply="$1"
-				echo -e "$aprefix ${BOLD}$reply${NC}" >&2
+				echo -e "$aprefix ${BOLD}$reply${NC}" > /dev/tty
 			}
 
 			while [[ -z "$command" ]]; do
@@ -708,7 +708,7 @@ END
 				function perror() {
 					file="$1"
 					result=0
-					echo -e "$prefix${BOLD}$file${NC}" >&2
+					echo -e "$prefix${BOLD}$file${NC}" > /dev/tty
 				}
 
 				# If a single item is provided a folder contents
@@ -736,7 +736,7 @@ END
 					contents="$(trim "$contents")"
 
 					re="svn: E[[:digit:]]{6}:" # [https://stackoverflow.com/a/32607896]
-					[[ "$res" =~ $re ]] && echo "Provided URL does not exist." >&2
+					[[ "$res" =~ $re ]] && echo "Provided URL does not exist." > /dev/tty
 
 					local ini="package.ini"
 					local acmap="$command.acmap"

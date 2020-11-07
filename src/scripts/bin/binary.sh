@@ -743,10 +743,10 @@ END
 					local acdef="$command.acdef"
 					local config=".$command.config.acdef"
 
-					re="^$ini$"; [[ ! "$contents" =~ $re ]] && perror "$ini"
-					re="^$acmap$"; [[ ! "$contents" =~ $re ]] && perror "$acmap"
-					re="^$acdef$"; [[ ! "$contents" =~ $re ]] && perror "$acdef"
-					re="^$config$"; [[ ! "$contents" =~ $re ]] && perror "$config"
+					[[ ! "$(grep -o "^$ini$" <<< "$contents")" ]] && perror "$ini"
+					[[ ! "$(grep -o "^$acmap$" <<< "$contents")" ]] && perror "$acmap"
+					[[ ! "$(grep -o "^$acdef$" <<< "$contents")" ]] && perror "$acdef"
+					[[ ! "$(grep -o "^$config$" <<< "$contents")" ]] && perror "$config"
 				fi
 
 				echo "$result"

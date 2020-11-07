@@ -755,15 +755,17 @@ END
 		[[ -n "$path" && "$path" != /* ]] && path="$(resolve "$path")"
 
 		sub=""
-		if [[ -n "$repo" && -z "$p" ]]; then
+		if [[ -n "$repo" && -z "$path" ]]; then
 			if [[ "$repo" == *"/trunk/"* ]]; then
 				# [https://superuser.com/a/1001979]
+				# [https://stackoverflow.com/a/20348190]
 				needle="/trunk/"
 				nlen="${#needle}"
-				rest=${repo#*$needle}
-				index=$(( ${#repo} - ${#rest} - $nlen ))
-				repo="${repo:0:$index}"
-				sub="${repo:$(( index + nlen ))}"
+				sub=${repo#*$needle}
+				repo="${repo%%$needle*}"
+				# index=$(( ${#repo} - ${#rest} - $nlen ))
+				# repo="${repo:0:$index}"
+				# sub="${repo:$(( index + nlen ))}"
 			fi
 		fi
 
@@ -811,7 +813,7 @@ END
 			output="$HOME/Downloads/$rname-$timestamp"
 
 			# Reset rname if subdirectory is provided.
-			[[ -n "$sub" ]] && rname="${repo##*/}"
+			[[ -n "$sub" ]] && rname="${sub##*/}"
 
 			# If package exists error.
 			pkgpath="$registrypath/$rname"

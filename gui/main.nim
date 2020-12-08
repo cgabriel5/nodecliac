@@ -33,27 +33,6 @@ type
 # [https://github.com/nim-lang/Nim/issues/13936]
 # [https://github.com/nim-lang/RFCs/issues/183]
 # [https://forum.nim-lang.org/t/1572#9868]
-var thread_t_update: Thread[void]
-var chan_update: Channel[ChannelMsg]
-chan_update.open()
-#
-var thread_t_doctor: Thread[void]
-var chan_doctor: Channel[ChannelMsg]
-chan_doctor.open()
-#
-var thread_t_ccache: Thread[void]
-var chan_ccache: Channel[ChannelMsg]
-chan_ccache.open()
-#
-var thread_t_actions: Thread[void]
-var chan_actions: Channel[ChannelMsg]
-chan_actions.open()
-#
-
-# addTimer(1000,false, proc(fd: AsyncFD) : bool =
-#     echo "timer fired!"
-#     return false
-# )
 
 when defined(linux):
     const width = 900 + 1100
@@ -76,7 +55,6 @@ let app = newWebView(currentHtmlPath("views/index.html"),
     resizable=true,
     cssPath=currentHtmlPath("css/empty.css") # [Bug] Line doesn't work on macOS?
 )
-
 
 # import ./nevents
 # import ./observable
@@ -229,11 +207,14 @@ let app = newWebView(currentHtmlPath("views/index.html"),
 
 # Run package manager actions (i.e. updating/remove/adding packages)
 # on its own thread to prevent blocking main UI/WebView event loop.
-proc thread_a_update() {.thread.} =
+proc thread_a_update(chan: ptr Channel[ChannelMsg]) {.thread.} =
     # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
     while true:
-        let incoming = chan_update.recv()
+        var incoming = chan[].recv()
         if not incoming.future[].finished:
+            var response: Response
+            response = Response(code: -1)
+
             # Get user name: [https://stackoverflow.com/a/23931327]
             let uname = execProcess("id -u -n").strip(trailing=true)
 
@@ -246,8 +227,6 @@ proc thread_a_update() {.thread.} =
             )
 
             # If password provided validate it's correct.
-            var response: Response
-            response = Response(code: -1)
             if input.len != 0:
                 # [https://askubuntu.com/a/622419]
                 # [http://www.yourownlinux.com/2015/08/how-to-check-if-username-and-password-are-valid-using-bash-script.html]
@@ -266,19 +245,16 @@ fi"""
 
                 if code == 1: response.resp = "val:fail"
                 response.code = code
-            incoming.future[].complete(response)
 
-        # else:
-        #     # [https://github.com/nim-lang/Nim/issues/3687]
-        #     sleep 3000
-        #     echo "SLEEPING..."
+            incoming.future[].complete(response)
+            # sleep 3000 # [https://github.com/nim-lang/Nim/issues/3687]
 
 # Run package manager actions (i.e. updating/remove/adding packages)
 # on its own thread to prevent blocking main UI/WebView event loop.
-proc thread_a_doctor() {.thread.} =
+proc thread_a_doctor(chan: ptr Channel[ChannelMsg]) {.thread.} =
     # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
     while true:
-        let incoming = chan_doctor.recv()
+        var incoming = chan[].recv()
         if not incoming.future[].finished:
             var response: Response
             response = Response(code: -1)
@@ -314,10 +290,10 @@ proc thread_a_doctor() {.thread.} =
 
 # Run package manager actions (i.e. updating/remove/adding packages)
 # on its own thread to prevent blocking main UI/WebView event loop.
-proc thread_a_ccache() {.thread.} =
+proc thread_a_ccache(chan: ptr Channel[ChannelMsg]) {.thread.} =
     # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
     while true:
-        let incoming = chan_ccache.recv()
+        var incoming = chan[].recv()
         if not incoming.future[].finished:
             var response: Response
             response = Response(code: -1)
@@ -334,11 +310,9 @@ proc thread_a_ccache() {.thread.} =
 
             incoming.future[].complete(response)
 
-
 # Run package manager actions (i.e. updating/remove/adding packages)
 # on its own thread to prevent blocking main UI/WebView event loop.
 proc thread_a_actions1(chan: ptr Channel[ChannelMsg]) {.thread.} =
-    echo "$%$%$%$%$%$%"
     # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
     while true:
         var incoming = chan[].recv()
@@ -350,8 +324,6 @@ proc thread_a_actions1(chan: ptr Channel[ChannelMsg]) {.thread.} =
             let all = incoming.all
             case action:
                 of "get-packages":
-
-                    echo "----- [1]"
 
                     # var empty = true
                     let hdir = os.getEnv("HOME")
@@ -385,8 +357,6 @@ proc thread_a_actions1(chan: ptr Channel[ChannelMsg]) {.thread.} =
                         item = (name: command, version: version, disabled: disabled)
                         items.add(item)
 
-                    echo "----- [2]"
-
                      # [https://stackoverflow.com/a/6712058]
                     proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
                         let aname = a.name.toLower()
@@ -396,24 +366,15 @@ proc thread_a_actions1(chan: ptr Channel[ChannelMsg]) {.thread.} =
                         else: result = 0 # Default return value (no sorting).
                     items.sort(alphasort)
 
-                    echo "----- [3]"
-                    # echo ".....................", items
-
                     response.names = addr items
 
                 else: discard
 
             incoming.future[].complete(response)
-            echo "----- [4]"
-
-
-
-
 
 # Run package manager actions (i.e. updating/remove/adding packages)
 # on its own thread to prevent blocking main UI/WebView event loop.
 proc thread_a_actions2(chan: ptr Channel[ChannelMsg]) {.thread.} =
-    echo "-----------------$%$%$%$%$%$%"
     # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
     while true:
         var incoming = chan[].recv()
@@ -426,17 +387,10 @@ proc thread_a_actions2(chan: ptr Channel[ChannelMsg]) {.thread.} =
             case action:
                 of "get-packages-avai":
 
-                    echo "----- [1]"
-
                     let pkg = readFile(currentSourcePath().splitPath.head / "packages.json")
                     let jdata = parseJSON(pkg)
-                    # echo "[", pkg, "]"
-                    # echo name(type(jdata))
                     var items: seq[tuple[name, version: string, disabled: bool]] = @[]
                     for item in items(jdata):
-                        # echo item
-                        # echo name(type(item))
-                        # echo $(item.kind)
                         let pname = item["name"].getStr()
                         let prepo = item["repo"].getStr()
                         let pmethod = item["method"].getStr()
@@ -444,16 +398,9 @@ proc thread_a_actions2(chan: ptr Channel[ChannelMsg]) {.thread.} =
                         let plicense = item["license"].getStr()
                         if item.hasKey("tags"):
                             let ptags = item["tags"]
-                            # let ptags = item{"tags"}
-                            # echo name(type(ptags))
                             for t in items(ptags):
                                 let t = t.getStr()
-                                # echo t.getStr()
-                            # echo ptags.getStr()
-                            # echo ptags.kind
-                            # echo name(type(ptags))
 
-                        # echo prepo
                         # https://raw.githubusercontent.com/cgabriel5/nodecliac/master/package.json
                         # https://raw.githubusercontent.com/nim-lang/nimble/master/packages.json
                         # https://github.com/nim-lang/nimble
@@ -461,8 +408,6 @@ proc thread_a_actions2(chan: ptr Channel[ChannelMsg]) {.thread.} =
                         var item: tuple[name, version: string, disabled: bool]
                         item = (name: pname, version: "", disabled: false)
                         items.add(item)
-
-                    echo "----- [2]"
 
                     # [https://stackoverflow.com/a/6712058]
                     proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
@@ -473,14 +418,7 @@ proc thread_a_actions2(chan: ptr Channel[ChannelMsg]) {.thread.} =
                         else: result = 0 # Default return value (no sorting).
                     items.sort(alphasort)
 
-                    echo "----- [3]"
-                    # echo ".....................", items
-
                     response.names = addr items
-
-
-
-                    # echo "----- [1]"
 
                     # # var empty = true
                     # let hdir = os.getEnv("HOME")
@@ -514,8 +452,6 @@ proc thread_a_actions2(chan: ptr Channel[ChannelMsg]) {.thread.} =
                     #     item = (name: command, version: version, disabled: disabled)
                     #     items.add(item)
 
-                    # echo "----- [2]"
-
                     #  # [https://stackoverflow.com/a/6712058]
                     # proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
                     #     let aname = a.name.toLower()
@@ -525,26 +461,15 @@ proc thread_a_actions2(chan: ptr Channel[ChannelMsg]) {.thread.} =
                     #     else: result = 0 # Default return value (no sorting).
                     # items.sort(alphasort)
 
-                    # echo "----- [3]"
-                    # # echo ".....................", items
-
                     # response.names = addr items
 
                 else: discard
 
             incoming.future[].complete(response)
-            echo "----- [4]"
-
-
-
-
-
-
 
 # Run package manager actions (i.e. updating/remove/adding packages)
 # on its own thread to prevent blocking main UI/WebView event loop.
 proc thread_a_actions3(chan: ptr Channel[ChannelMsg]) {.thread.} =
-    echo "__________________________ $%$%$%$%$%$%"
     # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
     while true:
         var incoming = chan[].recv()
@@ -555,362 +480,6 @@ proc thread_a_actions3(chan: ptr Channel[ChannelMsg]) {.thread.} =
             let action = incoming.action
             let all = incoming.all
             case action:
-                of "get-packages-out":
-
-                    echo "----- [1]"
-
- # get commands
-                    # get each packages repo url information
-                    #   - make repo url for each command
-                    # make http reqs to compare remote version
-                    #   ... with local version
-
-                    # var urls: seq[string] = @[]
-                    # let urls = array[items.len, string]
-                    var urls = initTable[string, string]()
-
-                    # var empty = true
-                    let hdir = os.getEnv("HOME")
-                    var items: seq[tuple[name, version: string, disabled: bool]] = @[]
-                    let dirtypes = {pcDir, pcLinkToDir}
-                    for kind, path in walkDir(hdir & "/.nodecliac/registry"):
-                        # [https://nim-lang.org/docs/os.html#PathComponent]
-                        # Only get dirs/links to dirs
-                        if kind notin dirtypes: continue
-
-                        # empty = false
-                        let parts = splitPath(path)
-                        let command = parts.tail
-                        var version = "0.0.1"
-                        var disabled = false
-
-                        var url = ""
-
-                        # Get version.
-                        let config = joinPath(path, "package.ini")
-                        if fileExists(config):
-                            let data = loadConfig(config)
-                            version = data.getSectionValue("Package", "version")
-
-                            var repo = data.getSectionValue("Author", "repo")
-                            repo.removePrefix({'/'})
-                            var sub = data.getSectionValue("Author", "sub", "")
-                            sub.removePrefix({'/'})
-                            sub.removeSuffix({'/'})
-
-                            if repo != "":
-                                let uparts = parseUri(repo)
-                                var path = uparts.path
-                                path.removePrefix({'/'})
-                                let parts = splitPath(path)
-                                let username = parts[0]
-                                let reponame = parts[1]
-
-                                url = fmt"https://raw.githubusercontent.com/{username}/{reponame}/master"
-                                if sub != "": url &= fmt"/{sub}"
-                                # url &= "/package.ini"
-                                url &= fmt"/{command}.acmap"
-
-                        urls[command] = url
-
-                        # # Get disabled state.
-                        # let dconfig = joinPath(path, fmt".{command}.config.acdef")
-                        # if fileExists(dconfig):
-                        #     let contents = readFile(dconfig)
-                        #     if find(contents, re("@disable\\s=\\strue")) > -1:
-                        #         disabled = true
-
-                        var item: tuple[name, version: string, disabled: bool]
-                        item = (name: command, version: version, disabled: disabled)
-                        items.add(item)
-
-                     # [https://stackoverflow.com/a/6712058]
-                    proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
-                        let aname = a.name.toLower()
-                        let bname = b.name.toLower()
-                        if aname < bname: result = -1 # Sort string ascending.
-                        elif aname > bname: result = 1
-                        else: result = 0 # Default return value (no sorting).
-                    items.sort(alphasort)
-
-                    response.names = addr items
-
-                    # ==========================================================
-                    # ==========================================================
-                    # ==========================================================
-
-                    # [https://nim-lang.org/docs/tut2.html#exceptions-try-statement]
-                    proc fetchfile(url: string): Future[string] {.async.} =
-                        let client = newAsyncHttpClient()
-                        let resp = await get(client, url)
-
-                        if not resp.code.is2xx:
-                            let f = newFuture[string]("fetchfile.nodecliac")
-                            f.complete("[ERR: " & $(resp.code) & "]")
-                            return await f
-                        else:
-                            return await resp.bodyStream.readAll()
-
-                    var outdated: seq[tuple[name, local_version, remote_version: string, config: OrderedTableRef[string, OrderedTableRef[string, string]]]] = @[]
-
-                    proc testhttp {.async.} =
-                        # var reqs: array[urls.len, Future[string]]
-                        var reqs: seq[Future[string]]
-                        # for i, url in urls: reqs[i] = fetchfile(url)
-                        # for url in urls: reqs.add(fetchfile(url))
-                        # for command, url in urls.pairs:
-                            # reqs.add(fetchfile(url))
-                        for item in items:
-                            reqs.add(fetchfile(urls[item.name]))
-                        let reponses = await all(reqs)
-                        for i, response in reponses:
-                            # let strm = newStringStream(fmt"""{response}""")
-                            let strm = newStringStream(fmt"""[Package]
-version = "0.0.2"
-""")
-                            let data = loadConfig(strm)
-                            let remote_version = data.getSectionValue("Package", "version")
-                            let local_version = items[i].version;
-
-                            if  local_version != remote_version:
-                                var item: tuple[name, local_version, remote_version: string, config: OrderedTableRef[string, OrderedTableRef[string, string]]]
-                                item = (
-                                    name: items[i].name,
-                                    local_version: local_version,
-                                    remote_version: remote_version,
-                                    config: data
-                                )
-                                outdated.add(item)
-
-                        response.outdated = addr outdated
-                        incoming.future[].complete(response)
-
-                    waitFor testhttp()
-
-
-
-                    # echo "----- [1]"
-
-                    # # var empty = true
-                    # let hdir = os.getEnv("HOME")
-                    # var items: seq[tuple[name, version: string, disabled: bool]] = @[]
-                    # let dirtypes = {pcDir, pcLinkToDir}
-                    # for kind, path in walkDir(hdir & "/.nodecliac/registry"):
-                    #     # [https://nim-lang.org/docs/os.html#PathComponent]
-                    #     # Only get dirs/links to dirs
-                    #     if kind notin dirtypes: continue
-
-                    #     # empty = false
-                    #     let parts = splitPath(path)
-                    #     let command = parts.tail
-                    #     var version = "0.0.1"
-                    #     var disabled = false
-
-                    #     # Get version.
-                    #     let config = joinPath(path, "package.ini")
-                    #     if fileExists(config):
-                    #         let data = loadConfig(config)
-                    #         version = data.getSectionValue("Package", "version")
-
-                    #     # Get disabled state.
-                    #     let dconfig = joinPath(path, fmt".{command}.config.acdef")
-                    #     if fileExists(dconfig):
-                    #         let contents = readFile(dconfig)
-                    #         if find(contents, re("@disable\\s=\\strue")) > -1:
-                    #             disabled = true
-
-                    #     var item: tuple[name, version: string, disabled: bool]
-                    #     item = (name: command, version: version, disabled: disabled)
-                    #     items.add(item)
-
-                    # echo "----- [2]"
-
-                    #  # [https://stackoverflow.com/a/6712058]
-                    # proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
-                    #     let aname = a.name.toLower()
-                    #     let bname = b.name.toLower()
-                    #     if aname < bname: result = -1 # Sort string ascending.
-                    #     elif aname > bname: result = 1
-                    #     else: result = 0 # Default return value (no sorting).
-                    # items.sort(alphasort)
-
-                    # echo "----- [3]"
-                    # # echo ".....................", items
-
-                    # response.names = addr items
-
-                else: discard
-
-            incoming.future[].complete(response)
-            echo "----- [4]"
-
-
-
-
-
-# Run package manager actions (i.e. updating/remove/adding packages)
-# on its own thread to prevent blocking main UI/WebView event loop.
-proc thread_a_actions() {.thread.} =
-    # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
-    while true:
-        let incoming = chan_actions.recv()
-        if not incoming.future[].finished:
-            var response: Response
-            response = Response(code: -1)
-
-            let action = incoming.action
-            let all = incoming.all
-            case action:
-                of "remove":
-                    # Use nodecliac CLI.
-                    # let names = incoming.list[]
-                    # var cmd = fmt"""nodecliac remove"""
-                    # for name in names: cmd &= " " & name
-                    # discard execProcess(cmd)
-
-                    let hdir = os.getEnv("HOME")
-                    let names = incoming.list[]
-                    for name in names:
-                        let p = hdir & "/.nodecliac/registry/" & name
-                        # if dirExists(p): removeDir(p)
-                of "enable":
-                    # echo "INSIDE ................. [enable]"
-                    # Use nodecliac CLI.
-                    # [https://forum.nim-lang.org/t/6122]
-                    let names = (
-                        if not all:
-                            incoming.list[]
-                        else:
-                            # If all flag is set, get all registry package names.
-                            var names: seq[string] = @[]
-                            let hdir = os.getEnv("HOME")
-                            for kind, path in walkDir(hdir & "/.nodecliac/registry"):
-                                let parts = splitPath(path)
-                                names.add(parts.tail)
-                            names.sort()
-                            names
-                    )
-                    var cmd = fmt"""nodecliac enable"""
-                    for name in names: cmd &= " " & name
-                    discard execProcess(cmd)
-                of "disable":
-                    # echo "INSIDE ................. [disable]"
-                    # Use nodecliac CLI.
-                    let names = (
-                        if not all:
-                            incoming.list[]
-                        else:
-                            # If all flag is set, get all registry package names.
-                            var names: seq[string] = @[]
-                            let hdir = os.getEnv("HOME")
-                            for kind, path in walkDir(hdir & "/.nodecliac/registry"):
-                                let parts = splitPath(path)
-                                names.add(parts.tail)
-                            names.sort()
-                            names
-                    )
-                    var cmd = fmt"""nodecliac disable"""
-                    for name in names: cmd &= " " & name
-                    discard execProcess(cmd)
-                of "get-packages":
-
-                    echo "----- [1]"
-
-                    # var empty = true
-                    let hdir = os.getEnv("HOME")
-                    var items: seq[tuple[name, version: string, disabled: bool]] = @[]
-                    let dirtypes = {pcDir, pcLinkToDir}
-                    for kind, path in walkDir(hdir & "/.nodecliac/registry"):
-                        # [https://nim-lang.org/docs/os.html#PathComponent]
-                        # Only get dirs/links to dirs
-                        if kind notin dirtypes: continue
-
-                        # empty = false
-                        let parts = splitPath(path)
-                        let command = parts.tail
-                        var version = "0.0.1"
-                        var disabled = false
-
-                        # Get version.
-                        let config = joinPath(path, "package.ini")
-                        if fileExists(config):
-                            let data = loadConfig(config)
-                            version = data.getSectionValue("Package", "version")
-
-                        # Get disabled state.
-                        let dconfig = joinPath(path, fmt".{command}.config.acdef")
-                        if fileExists(dconfig):
-                            let contents = readFile(dconfig)
-                            if find(contents, re("@disable\\s=\\strue")) > -1:
-                                disabled = true
-
-                        var item: tuple[name, version: string, disabled: bool]
-                        item = (name: command, version: version, disabled: disabled)
-                        items.add(item)
-
-                    echo "----- [2]"
-
-                     # [https://stackoverflow.com/a/6712058]
-                    proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
-                        let aname = a.name.toLower()
-                        let bname = b.name.toLower()
-                        if aname < bname: result = -1 # Sort string ascending.
-                        elif aname > bname: result = 1
-                        else: result = 0 # Default return value (no sorting).
-                    items.sort(alphasort)
-
-                    echo "----- [3]"
-                    # echo ".....................", items
-
-                    response.names = addr items
-
-                of "get-packages-avai":
-
-                    let pkg = readFile(currentSourcePath().splitPath.head / "packages.json")
-                    let jdata = parseJSON(pkg)
-                    # echo "[", pkg, "]"
-                    # echo name(type(jdata))
-                    var items: seq[tuple[name, version: string, disabled: bool]] = @[]
-                    for item in items(jdata):
-                        # echo item
-                        # echo name(type(item))
-                        # echo $(item.kind)
-                        let pname = item["name"].getStr()
-                        let prepo = item["repo"].getStr()
-                        let pmethod = item["method"].getStr()
-                        let pdescription = item["description"].getStr()
-                        let plicense = item["license"].getStr()
-                        if item.hasKey("tags"):
-                            let ptags = item["tags"]
-                            # let ptags = item{"tags"}
-                            # echo name(type(ptags))
-                            for t in items(ptags):
-                                let t = t.getStr()
-                                # echo t.getStr()
-                            # echo ptags.getStr()
-                            # echo ptags.kind
-                            # echo name(type(ptags))
-
-                        # echo prepo
-                        # https://raw.githubusercontent.com/cgabriel5/nodecliac/master/package.json
-                        # https://raw.githubusercontent.com/nim-lang/nimble/master/packages.json
-                        # https://github.com/nim-lang/nimble
-
-                        var item: tuple[name, version: string, disabled: bool]
-                        item = (name: pname, version: "", disabled: false)
-                        items.add(item)
-
-                     # [https://stackoverflow.com/a/6712058]
-                    proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
-                        let aname = a.name.toLower()
-                        let bname = b.name.toLower()
-                        if aname < bname: result = -1 # Sort string ascending.
-                        elif aname > bname: result = 1
-                        else: result = 0 # Default return value (no sorting).
-                    items.sort(alphasort)
-
-                    response.names = addr items
-
                 of "get-packages-out":
 
                     # get commands
@@ -1041,15 +610,120 @@ version = "0.0.2"
 
                     waitFor testhttp()
 
+                    # # var empty = true
+                    # let hdir = os.getEnv("HOME")
+                    # var items: seq[tuple[name, version: string, disabled: bool]] = @[]
+                    # let dirtypes = {pcDir, pcLinkToDir}
+                    # for kind, path in walkDir(hdir & "/.nodecliac/registry"):
+                    #     # [https://nim-lang.org/docs/os.html#PathComponent]
+                    #     # Only get dirs/links to dirs
+                    #     if kind notin dirtypes: continue
+
+                    #     # empty = false
+                    #     let parts = splitPath(path)
+                    #     let command = parts.tail
+                    #     var version = "0.0.1"
+                    #     var disabled = false
+
+                    #     # Get version.
+                    #     let config = joinPath(path, "package.ini")
+                    #     if fileExists(config):
+                    #         let data = loadConfig(config)
+                    #         version = data.getSectionValue("Package", "version")
+
+                    #     # Get disabled state.
+                    #     let dconfig = joinPath(path, fmt".{command}.config.acdef")
+                    #     if fileExists(dconfig):
+                    #         let contents = readFile(dconfig)
+                    #         if find(contents, re("@disable\\s=\\strue")) > -1:
+                    #             disabled = true
+
+                    #     var item: tuple[name, version: string, disabled: bool]
+                    #     item = (name: command, version: version, disabled: disabled)
+                    #     items.add(item)
+
+                    #  # [https://stackoverflow.com/a/6712058]
+                    # proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
+                    #     let aname = a.name.toLower()
+                    #     let bname = b.name.toLower()
+                    #     if aname < bname: result = -1 # Sort string ascending.
+                    #     elif aname > bname: result = 1
+                    #     else: result = 0 # Default return value (no sorting).
+                    # items.sort(alphasort)
+
+                    # response.names = addr items
+
                 else: discard
 
             incoming.future[].complete(response)
-            echo "----- [4]"
 
-proc mkthreads() {.async.} = createThread(thread_t_update, thread_a_update)
-proc mkthread_doctor() {.async.} = createThread(thread_t_doctor, thread_a_doctor)
-proc mkthread_ccache() {.async.} = createThread(thread_t_ccache, thread_a_ccache)
-proc mkthread_actions() {.async.} = createThread(thread_t_actions, thread_a_actions)
+# Run package manager actions (i.e. updating/remove/adding packages)
+# on its own thread to prevent blocking main UI/WebView event loop.
+proc thread_a_actions(chan: ptr Channel[ChannelMsg]) {.thread.} =
+    # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
+    while true:
+        var incoming = chan[].recv()
+        if not incoming.future[].finished:
+            var response: Response
+            response = Response(code: -1)
+
+            let action = incoming.action
+            let all = incoming.all
+
+            case action:
+                of "remove":
+                    # Use nodecliac CLI.
+                    # let names = incoming.list[]
+                    # var cmd = fmt"""nodecliac remove"""
+                    # for name in names: cmd &= " " & name
+                    # discard execProcess(cmd)
+
+                    let hdir = os.getEnv("HOME")
+                    let names = incoming.list[]
+                    for name in names:
+                        let p = hdir & "/.nodecliac/registry/" & name
+                        # if dirExists(p): removeDir(p)
+                of "enable":
+                    # Use nodecliac CLI.
+                    # [https://forum.nim-lang.org/t/6122]
+                    let names = (
+                        if not all:
+                            incoming.list[]
+                        else:
+                            # If all flag is set, get all registry package names.
+                            var names: seq[string] = @[]
+                            let hdir = os.getEnv("HOME")
+                            for kind, path in walkDir(hdir & "/.nodecliac/registry"):
+                                let parts = splitPath(path)
+                                names.add(parts.tail)
+                            names.sort()
+                            names
+                    )
+                    var cmd = fmt"""nodecliac enable"""
+                    for name in names: cmd &= " " & name
+                    discard execProcess(cmd)
+                of "disable":
+                    # Use nodecliac CLI.
+                    let names = (
+                        if not all:
+                            incoming.list[]
+                        else:
+                            # If all flag is set, get all registry package names.
+                            var names: seq[string] = @[]
+                            let hdir = os.getEnv("HOME")
+                            for kind, path in walkDir(hdir & "/.nodecliac/registry"):
+                                let parts = splitPath(path)
+                                names.add(parts.tail)
+                            names.sort()
+                            names
+                    )
+                    var cmd = fmt"""nodecliac disable"""
+                    for name in names: cmd &= " " & name
+                    discard execProcess(cmd)
+
+                else: discard
+
+            incoming.future[].complete(response)
 
 proc main() =
 
@@ -1076,8 +750,6 @@ proc main() =
 
     proc updater() {.async.} =
 
-        asyncCheck mkthreads()
-
         app.js("""
             document.getElementById("update-spinner").classList.remove("none");
             document.getElementById("update-update").classList.add("nointer", "disabled");
@@ -1090,12 +762,17 @@ proc main() =
         # let cmd = fmt"""bash -c '{script}'"""
         let cmd = script
 
+        var chan: Channel[ChannelMsg]
+        chan.open()
+        var thread: Thread[ptr Channel[ChannelMsg]]
+        createThread(thread, thread_a_update, addr chan)
+
         var fut = newFuture[Response]("update.nodecliac")
         let data = ChannelMsg(future: addr fut, cmd: cmd, action: "update")
-        chan_update.send(data)
-        let r = await fut # Wait for update logic to complete.
+        chan.send(data)
+        let r = await fut
+        chan.close()
 
-        # if r.code != -1:
         let date = getTime()
         # [https://nim-lang.org/docs/times.html#parsing-and-formatting-dates]
         let datestring = date.format("MMM'.' d, yyyy (h:mm tt)")
@@ -1167,19 +844,22 @@ proc main() =
 
     proc checkup() {.async.} =
 
-        asyncCheck mkthread_doctor()
-
         app.js("""
             document.getElementById("doctor-spinner").classList.remove("none");
             document.getElementById("doctor-run").classList.add("nointer", "disabled");
             """)
 
+        var chan: Channel[ChannelMsg]
+        chan.open()
+        var thread: Thread[ptr Channel[ChannelMsg]]
+        createThread(thread, thread_a_doctor, addr chan)
 
         var fut = newFuture[Response]("doctor.nodecliac")
         let data = ChannelMsg(future: addr fut, action: "doctor")
-        chan_doctor.send(data)
-        let r = await fut # Wait for update logic to complete.
+        chan.send(data)
+        let r = await fut
         let html = r.resp
+        chan.close()
 
         app.dispatch(
             proc () =
@@ -1189,184 +869,6 @@ proc main() =
                 document.getElementById("doctor-spinner").classList.add("none");
                 """)
         )
-
-
-
-
-#     proc checkup() {.async.} =
-
-#         app.js("""
-#             document.getElementById("doctor-spinner").classList.remove("none");
-#             document.getElementById("doctor-run").classList.add("nointer", "disabled");
-#             """)
-
-
-
-#         # var thread: Thread[void]
-#         # var ffut {.threadvar.}: Future[string]
-#         # ffut = newFuture[string]("checkup.nodecliac")
-#         # var ffut {.threadvar.}: Future[Response]
-#         # var chan_update: Channel[ChannelMsg]
-#         # chan_update.open()
-
-
-# # proc worker(channel: ptr Channel[string]) =
-# #   let greeting = channel[].recv()
-# #   echo greeting
-
-# # proc localChannelExample() =
-# #   # Use allocShared0 to allocate some shared-heap memory and zero it.
-# #   # The usual warnings about dealing with raw pointers apply. Exercise caution.
-# #   var channel = cast[ptr Channel[string]](
-# #     allocShared0(sizeof(Channel[string]))
-# #   )
-# #   channel[].open()
-# #   # Create a thread which will receive the channel as an argument.
-# #   var thread: Thread[ptr Channel[string]]
-# #   createThread(thread, worker, channel)
-# #   channel[].send("Hello from the main thread!")
-# #   # Clean up resources.
-# #   thread.joinThread()
-# #   channel[].close()
-# #   deallocShared(channel)
-
-# # localChannelExample() # "Hello from the main thread!"
-
-
-#         # var thread: Thread[void]
-#         # var thread: Thread[ptr Channel[string]]
-#         var t: Thread[ptr Future[string]]
-#         # proc controller(channel: ptr Channel[ptr Future[string]]) {.thread.} =
-#         proc controller(f: ptr Future[string]) {.thread.} =
-#             # let incoming = channel[].recv()
-#             # var response: Response
-#             # response = Response(code: -1)
-
-#             let hdir = os.getEnv("HOME")
-#             let status = execProcess("nodecliac").strip(trailing=true)
-#             let ping =
-#                 if status.len == 0: "<div class=\"value\">OK</div>"
-#                 else: "<div class=\"value error\">ERROR</div>"
-#             let version = execProcess("nodecliac --version").strip(trailing=true)
-#             let binary = execProcess("command -v nodecliac").strip(trailing=true)
-#             let binloc =
-#                 if binary.startsWith(hdir): binary.replace(hdir, "~")
-#                 else: binary
-
-#         # <div class=\"header\">Log</div>
-#             let html = fmt"""
-#         <div class=\"row\">
-#             <div class=\"label\">nodecliac ping:</div>
-#             {ping}
-#         </div>
-#         <div class=\"row\">
-#             <div class=\"label\">nodecliac -v:</div>
-#             <div class=\"value\">v{version}</div>
-#         </div>
-#         <div class=\"row\">
-#             <div class=\"label\">bin:</div>
-#             <div class=\"value\">{binloc}</div>
-#         </div>
-#         """.strip.unindent.multiReplace([("\n", " ")])
-
-#             # ffut.complete(html)
-#             # incoming.future[].complete(html)
-#             f[].complete(html)
-
-#         # onThreadDestruction(
-#         #     proc () =
-#         #         echo "????????????"
-#         #         echo "????????????"
-#         #         echo "????????????"
-#         # )
-
-
-#             # app.dispatch(
-#             #     proc () =
-#             #         app.js(fmt"""
-#             #         document.getElementById("doctor-output").innerHTML = `{html}`;
-#             #         document.getElementById("doctor-run").classList.remove("nointer", "disabled");
-#             #         document.getElementById("doctor-spinner").classList.add("none");
-#             #         """)
-#             # )
-
-
-#         echo "DONE"
-
-#         var ffut = newFuture[string]("checkup.nodecliac")
-#         createThread(t, controller, addr ffut)
-
-
-
-#         # let data = ChannelMsg(future: addr fut, cmd: cmd, action: "update")
-#         # chan_update.send(data)
-
-#         # discard await ffut
-
-#         # var ffut: Future[string]
-#         # var fut = newFuture[Response]("update.nodecliac")
-#         # ffut.complete("sdsfsd")
-#         let r = await ffut
-
-
-#         proc ttt(s: string) =
-#            app.dispatch(
-#                 proc () =
-#                     app.js(fmt"""
-#                     document.getElementById("doctor-output").innerHTML = `html`;
-#                     document.getElementById("doctor-run").classList.remove("nointer", "disabled");
-#                     document.getElementById("doctor-spinner").classList.add("none");
-#                     """)
-#             )
-#         ttt(r)
-
-#         # ffut.addCallback(
-#         #     proc () =
-#         #         echo "-------------------"
-#         #         echo "-------------------"
-#         #         echo "-------------------"
-#         #         echo "-------------------"
-
-#         #         # let html = ffut.read
-#         #         echo ffut.read
-#         #         echo r
-
-#         #         app.dispatch(
-#         #             proc () =
-#         #                 app.js(fmt"""
-#         #                 document.getElementById("doctor-output").innerHTML = `{r}`;
-#         #                 document.getElementById("doctor-run").classList.remove("nointer", "disabled");
-#         #                 document.getElementById("doctor-spinner").classList.add("none");
-#         #                 """)
-#         #         )
-
-
-#         # )
-
-#         # echo name(type(r))
-#         echo "=================="
-
-#         # let html = r.read
-
-
-
-
-#         # fut = newFuture[Response]("doctor.nodecliac")
-#         # let data = ChannelMsg(future: addr fut, action: "doctor")
-#         # chan_update.send(data)
-#         # let r = await fut # Wait for update logic to complete.
-#         # let html = r.resp
-
-#         # app.dispatch(
-#         #     proc () =
-#         #         app.js(fmt"""
-#         #         document.getElementById("doctor-output").innerHTML = `html`;
-#         #         document.getElementById("doctor-run").classList.remove("nointer", "disabled");
-#         #         document.getElementById("doctor-spinner").classList.add("none");
-#         #         """)
-#         # )
-
-
 
     proc enapkgs(s: string) {.async.} =
         let jdata = parseJSON(s)
@@ -1378,18 +880,22 @@ proc main() =
             get_panel_by_name("{panel}").$tb_loader.classList.remove("none");
             """)
 
-        asyncCheck mkthread_actions()
-
         var names: seq[string] = @[]
         for item in items(jdata["names"]):
             let name = item.getStr()
             if name != "nodecliac": names.add(name)
 
+        var chan: Channel[ChannelMsg]
+        chan.open()
+        var thread: Thread[ptr Channel[ChannelMsg]]
+        createThread(thread, thread_a_actions, addr chan)
+
         var fut = newFuture[Response]("enapkgs.nodecliac")
         let data = ChannelMsg(future: addr fut, action: "enable", list: addr names, all: all)
-        chan_actions.send(data)
-        let r = await fut # Wait for update logic to complete.
+        chan.send(data)
+        let r = await fut
         let html = r.resp
+        chan.close()
 
         var remcmd = ""
         for name in names:
@@ -1432,18 +938,22 @@ classes.add("on");"""
             get_panel_by_name("{panel}").$tb_loader.classList.remove("none");
             """)
 
-        asyncCheck mkthread_actions()
-
         var names: seq[string] = @[]
         for item in items(jdata["names"]):
             let name = item.getStr()
             if name != "nodecliac": names.add(name)
 
+        var chan: Channel[ChannelMsg]
+        chan.open()
+        var thread: Thread[ptr Channel[ChannelMsg]]
+        createThread(thread, thread_a_actions, addr chan)
+
         var fut = newFuture[Response]("dispkgs.nodecliac")
         let data = ChannelMsg(future: addr fut, action: "disable", list: addr names, all: all)
-        chan_actions.send(data)
-        let r = await fut # Wait for update logic to complete.
+        chan.send(data)
+        let r = await fut
         let html = r.resp
+        chan.close()
 
         var remcmd = ""
         for name in names:
@@ -1485,18 +995,22 @@ classes.add("off");"""
             get_panel_by_name("{panel}").$tb_loader.classList.remove("none");
             """)
 
-        asyncCheck mkthread_actions()
-
         var names: seq[string] = @[]
         for item in items(jdata["names"]):
             let name = item.getStr()
             if name != "nodecliac": names.add(name)
 
+        var chan: Channel[ChannelMsg]
+        chan.open()
+        var thread: Thread[ptr Channel[ChannelMsg]]
+        createThread(thread, thread_a_actions, addr chan)
+
         var fut = newFuture[Response]("rempkgs.nodecliac")
         let data = ChannelMsg(future: addr fut, action: "remove", list: addr names)
-        chan_actions.send(data)
-        let r = await fut # Wait for update logic to complete.
+        chan.send(data)
+        let r = await fut
         let html = r.resp
+        chan.close()
 
         var remcmd = """var $parent = document.getElementById("pkg-entries");
         """
@@ -1540,8 +1054,6 @@ $parent.removeChild($child);"""
 
     proc settings_clear_cache() {.async.} =
 
-        asyncCheck mkthread_ccache()
-
         app.js("""
             document.body.classList.add("nointer");
             document.getElementById("loader").classList.remove("none");
@@ -1550,10 +1062,16 @@ $parent.removeChild($child);"""
             }, 10);
         """)
 
+        var chan: Channel[ChannelMsg]
+        chan.open()
+        var thread: Thread[ptr Channel[ChannelMsg]]
+        createThread(thread, thread_a_ccache, addr chan)
+
         var fut = newFuture[Response]("clear-cache.nodecliac")
         let data = ChannelMsg(future: addr fut)
-        chan_ccache.send(data)
+        chan.send(data)
         let r = await fut
+        chan.close()
 
         app.dispatch(
             proc () =
@@ -1672,108 +1190,28 @@ $parent.removeChild($child);"""
 
         app.js(command)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     proc get_packages_outd(j: string) {.async.} =
-
-
-
-
-
-        echo "........................[get_packages_outd]"
-
         let jdata = parseJSON(j)
         let s = jdata["input"].getStr()
         let panel = jdata["panel"].getStr()
-
-        echo ">> 1"
 
         app.js(fmt"""
             var PANEL = get_panel_by_name("{panel}");
             PANEL.$sbentry.classList.remove("none");
         """)
 
-        echo ">> 2"
-
-        # asyncCheck mkthread_actions()
-
-
-
-        var chan_actions1: Channel[ChannelMsg]
-        chan_actions1.open()
-        var thread_t_actions1: Thread[ptr Channel[ChannelMsg]]
-        # proc mkthread_actions() =
-        createThread(thread_t_actions1, thread_a_actions3, addr chan_actions1)
-
-
-        echo ">> 3"
+        var chan: Channel[ChannelMsg]
+        chan.open()
+        var thread: Thread[ptr Channel[ChannelMsg]]
+        createThread(thread, thread_a_actions3, addr chan)
 
         var fut = newFuture[Response]("get-packages-out.nodecliac")
         let data = ChannelMsg(future: addr fut, action: "get-packages-out")
-        chan_actions1.send(data)
-        # let r = await fut
-        # var items = r.names[]
-        # names = r.names[]
+        chan.send(data)
         let r = await fut
-        # var items = r.names[]
         var items = r.outdated[]
         names = r.names[]
-        chan_actions1.close()
-
-
-
-
-        echo ">> 4"
-        echo names
-        echo "<< 4"
-
-
-
-
-
-
-
-
-
-
-
-
-        # echo "........................[get_packages_outd]"
-
-        # let jdata = parseJSON(j)
-        # let s = jdata["input"].getStr()
-        # let panel = jdata["panel"].getStr()
-
-        # app.js(fmt"""
-        #     var PANEL = get_panel_by_name("{panel}");
-        #     PANEL.$sbentry.classList.remove("none");
-        # """)
-
-        # asyncCheck mkthread_actions()
-
-        # var fut = newFuture[Response]("get-packages-out.nodecliac")
-        # let data = ChannelMsg(future: addr fut, action: "get-packages-out")
-        # chan_actions.send(data)
-        # let r = await fut
-
-        # # var items = r.names[]
-        # var items = r.outdated[]
-        # names = r.names[]
+        chan.close()
 
         var html = ""
         if items.len == 0:
@@ -1818,7 +1256,6 @@ $parent.removeChild($child);"""
         app.dispatch(
             proc () =
                 app.js(fmt"""
-                    console.log("DONE", "{panel}");
                     var PANEL = get_panel_by_name("{panel}");
                     PANEL.$sbentry.classList.add("none");
                     processes.packages["{panel}"] = false;
@@ -1826,124 +1263,27 @@ $parent.removeChild($child);"""
         )
 
     proc get_packages_avai(j: string) {.async.} =
-
-
-
-
-
-
-        echo "........................[get_packages_avai]"
-
         let jdata = parseJSON(j)
         let s = jdata["input"].getStr()
         let panel = jdata["panel"].getStr()
-
-        echo ">> 1"
 
         app.js(fmt"""
             var PANEL = get_panel_by_name("{panel}");
             PANEL.$sbentry.classList.remove("none");
         """)
 
-        echo ">> 2"
-
-        # asyncCheck mkthread_actions()
-
-
-
-        var chan_actions1: Channel[ChannelMsg]
-        chan_actions1.open()
-        var thread_t_actions1: Thread[ptr Channel[ChannelMsg]]
-        # proc mkthread_actions() =
-        createThread(thread_t_actions1, thread_a_actions2, addr chan_actions1)
-
-
-        echo ">> 3"
+        var chan: Channel[ChannelMsg]
+        chan.open()
+        var thread: Thread[ptr Channel[ChannelMsg]]
+        createThread(thread, thread_a_actions2, addr chan)
 
         var fut = newFuture[Response]("get-packages-avai.nodecliac")
         let data = ChannelMsg(future: addr fut, action: "get-packages-avai")
-        chan_actions1.send(data)
+        chan.send(data)
         let r = await fut
         var items = r.names[]
         names = r.names[]
-        chan_actions1.close()
-
-        echo ">> 4"
-        echo names
-        echo "<< 4"
-
-
-
-
-
-
-
-
-
-
-
-
-        # echo "........................[get_packages_avai]"
-
-        # let jdata = parseJSON(j)
-        # let s = jdata["input"].getStr()
-        # let panel = jdata["panel"].getStr()
-
-        # app.js(fmt"""
-        #     var PANEL = get_panel_by_name("{panel}");
-        #     PANEL.$sbentry.classList.remove("none");
-        # """)
-
-        # asyncCheck mkthread_actions()
-
-        # var fut = newFuture[Response]("get-packages-avai.nodecliac")
-        # let data = ChannelMsg(future: addr fut, action: "get-packages-avai")
-        # chan_actions.send(data)
-        # let r = await fut
-        # var items = r.names[]
-        # names = r.names[]
-
-        # var client = newHttpClient()
-        # let pkg = client.getContent("https://raw.githubusercontent.com/cgabriel5/nodecliac/master/package.json").strip(trailing=true)
-
-        # echo currentSourcePath()
-        # echo currentSourcePath().splitPath.head / "package.json"
-        # echo currentSourcePath().splitPath.tail
-
-        # let pkg = readFile(currentSourcePath().splitPath.head / "packages.json")
-        # let jdata = parseJSON(pkg)
-        # # echo "[", pkg, "]"
-        # # echo name(type(jdata))
-        # var items: seq[tuple[name, version: string, disabled: bool]] = @[]
-        # for item in items(jdata):
-        #     # echo item
-        #     # echo name(type(item))
-        #     # echo $(item.kind)
-        #     let pname = item["name"].getStr()
-        #     let prepo = item["repo"].getStr()
-        #     let pmethod = item["method"].getStr()
-        #     let pdescription = item["description"].getStr()
-        #     let plicense = item["license"].getStr()
-        #     if item.hasKey("tags"):
-        #         let ptags = item["tags"]
-        #         # let ptags = item{"tags"}
-        #         # echo name(type(ptags))
-        #         for t in items(ptags):
-        #             echo t.getStr()
-        #         # echo ptags.getStr()
-        #         # echo ptags.kind
-        #         # echo name(type(ptags))
-
-        #     # echo prepo
-        #     # https://raw.githubusercontent.com/cgabriel5/nodecliac/master/package.json
-        #     # https://raw.githubusercontent.com/nim-lang/nimble/master/packages.json
-        #     # https://github.com/nim-lang/nimble
-
-        #     var item: tuple[name, version: string, disabled: bool]
-        #     item = (name: pname, version: "", disabled: false)
-        #     items.add(item)
-
-        # echo items
+        chan.close()
 
         var html = ""
         if items.len == 0:
@@ -1992,58 +1332,34 @@ $parent.removeChild($child);"""
         app.dispatch(
             proc () =
                 app.js(fmt"""
-                    console.log("DONE", "{panel}");
                     var PANEL = get_panel_by_name("{panel}");
                     PANEL.$sbentry.classList.add("none");
                     processes.packages["{panel}"] = false;
                 """)
         )
 
-
-
-
-
     proc get_packages(j: string) {.async.} =
-
-        echo "........................[get_packages]"
-
         let jdata = parseJSON(j)
         let s = jdata["input"].getStr()
         let panel = jdata["panel"].getStr()
-
-        echo ">> 1"
 
         app.js(fmt"""
             var PANEL = get_panel_by_name("{panel}");
             PANEL.$sbentry.classList.remove("none");
         """)
 
-        echo ">> 2"
-
-        # asyncCheck mkthread_actions()
-
-
-
-        var chan_actions1: Channel[ChannelMsg]
-        chan_actions1.open()
-        var thread_t_actions1: Thread[ptr Channel[ChannelMsg]]
-        # proc mkthread_actions() =
-        createThread(thread_t_actions1, thread_a_actions1, addr chan_actions1)
-
-
-        echo ">> 3"
+        var chan: Channel[ChannelMsg]
+        chan.open()
+        var thread: Thread[ptr Channel[ChannelMsg]]
+        createThread(thread, thread_a_actions1, addr chan)
 
         var fut = newFuture[Response]("get-packages.nodecliac")
         let data = ChannelMsg(future: addr fut, action: "get-packages")
-        chan_actions1.send(data)
+        chan.send(data)
         let r = await fut
         var items = r.names[]
         names = r.names[]
-        chan_actions1.close()
-
-        echo ">> 4"
-        echo names
-        echo "<< 4"
+        chan.close()
 
         var html = ""
         if items.len == 0:
@@ -2076,8 +1392,6 @@ $parent.removeChild($child);"""
                 </div>""".strip.unindent.multiReplace([("\n", " ")])
                         # <div class="version">{item.version}</div>
 
-            echo ">> 5"
-
             app.dispatch(
                 proc () =
                     app.js(
@@ -2091,12 +1405,9 @@ $parent.removeChild($child);"""
                     )
             )
 
-        echo ">> 6"
-
         app.dispatch(
             proc () =
                 app.js(fmt"""
-                    console.log("DONE", "{panel}");
                     var PANEL = get_panel_by_name("{panel}");
                     PANEL.$sbentry.classList.add("none");
                     processes.packages.{panel} = false;
@@ -2215,20 +1526,16 @@ $parent.removeChild($child);"""
         # proc ready() = app.js("main();")
 
     # Once Webview has loaded, run callback to start splash animation.
-    `externalInvokeCB=`(app, proc (w: Webview; arg: string) = w.js("console.log('123');main();"))
+    `externalInvokeCB=`(app, proc (w: Webview; arg: string) = w.js("main();"))
     # [https://github.com/juancarlospaco/borapp/blob/master/src/borapp.nim#L52]
     # app.run(
     #     (
     #         proc () {.noconv.} = # Normal close.
-    #             chan_update.close()
-    #             chan_doctor.close()
-    #             chan_ccache.close()
+    #             # Do something...
     #     ),
     #     (
     #         proc () {.noconv.} = # CTRL+C close.
-    #             chan_update.close()
-    #             chan_doctor.close()
-    #             chan_ccache.close()
+    #             # Do something...
     #     )
     # )
     app.run()

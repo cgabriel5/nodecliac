@@ -122,9 +122,10 @@ elif [[ -n "$COMPILE_PROD" ]]; then
 	--cpu:"$CPU_ARCHITECTURE" \
 	--os:"$USER_OS" \
 	--debugger:off \
+	--debuginfo:off \
 	--opt:speed \
 	--checks:off \
-	--threads:on \
+	--threads:off \
 	--assertions:off \
 	--hints:off \
 	--showAllMismatches:off \

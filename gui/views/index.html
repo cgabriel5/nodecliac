@@ -5,18 +5,16 @@
 		<meta charset="utf-8" />
 		<meta name="description" content="nodecliac GUI" />
 		<meta http-equiv="x-ua-compatible" content="ie=edge" />
-		<meta
-			name="viewport"
-			content="width=device-width,initial-scale=1,shrink-to-fit=no"
-		/>
+		<meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no" />
 		<link href="../css/main.css" rel="stylesheet" />
 		<script src="../js/libs/fastclick.js"></script>
 		<script src="../js/libs/interaction.js"></script>
 		<script src="../js/libs/funnel.js"></script>
+		<script src="../js/libs/tippy-popper.js"></script>
+		<script src="../js/libs/tippy.js"></script>
 		<script async defer src="../js/app.js"></script>
 	</head>
 
-	<body class="noselect">
 		<div id="splash-overlay" class="splash-overlay opa1">
 			<div class="splash">
 				<div class="icon">
@@ -25,17 +23,16 @@
 			</div>
 		</div>
 
+
+
+	<body class="noselect">
+
 		<div id="app" class="app">
 			<div id="loader" class="loader none">
 				<div class="inner">
 					<!-- [https://webdesign.tutsplus.com/tutorials/how-to-create-a-loader-icon-with-svg-animations--cms-31542] -->
 					<!-- [https://codepen.io/tutsplus/pen/mjOJma] -->
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="50"
-						height="50"
-						viewBox="0 0 50 50"
-					>
+					<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 50 50">
 						<path
 							fill="#ffffff"
 							d="M25,5A20.14,20.14,0,0,1,45,22.88a2.51,2.51,0,0,0,2.49,2.26h0A2.52,2.52,0,0,0,50,22.33a25.14,25.14,0,0,0-50,0,2.52,2.52,0,0,0,2.5,2.81h0A2.51,2.51,0,0,0,5,22.88,20.14,20.14,0,0,1,25,5Z"
@@ -71,8 +68,7 @@
 								target="_blank"
 								onclick="api.open(this.href)"
 								href="https://github.com/cgabriel5/nodecliac"
-								><span><i class="fab fa-github"></i></span>
-								GitHub</a
+								><span><i class="fab fa-github"></i></span> GitHub</a
 							></span
 						>
 					</div>
@@ -81,7 +77,7 @@
 
 			<div id="main" class="main">
 				<div id="sidebar" class="sidebar">
-					<div class="section">Packages</div>
+					<div class="section">Registry</div>
 
 					<div class="row" data-row="packages">
 						<div class="left">
@@ -89,14 +85,61 @@
 								<div class="icon-cont">
 									<i class="fas fa-database"></i>
 								</div>
-								<div class="label">Registry</div>
+								<div class="label">Installed</div>
 							</div>
 						</div>
 
-						<div class="right"><div class="left"></div></div>
+						<div class="right">
+							<div class="center left">
+								<div class="loader-cont none">
+									<div class="svg-loader s-loader"></div>
+								</div>
+								<div class="count">1</div>
+							</div>
+						</div>
 					</div>
 
-					<div class="entries">
+					<div class="row" data-row="packages-outdated">
+						<div class="left">
+							<div class="center">
+								<div class="icon-cont">
+									<i class="fas fa-clock"></i>
+								</div>
+								<div class="label">Outdated</div>
+							</div>
+						</div>
+
+						<div class="right">
+							<div class="center left">
+								<div class="loader-cont none">
+									<div class="svg-loader s-loader"></div>
+								</div>
+								<div class="count">10</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="row" data-row="packages-available">
+						<div class="left">
+							<div class="center">
+								<div class="icon-cont">
+									<i class="fas fa-cloud-download-alt"></i>
+								</div>
+								<div class="label">Available</div>
+							</div>
+						</div>
+
+						<div class="right">
+							<div class="center left">
+								<div class="loader-cont none">
+									<div class="svg-loader s-s-loader"></div>
+								</div>
+								<div class="count">100</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- 					<div class="entries">
 						<div class="item">
 							<div class="left">
 								<div class="center">
@@ -127,9 +170,7 @@
 							<div class="left">
 								<div class="center">
 									<div class="icon-cont">
-										<i
-											class="fas fa-cloud-download-alt"
-										></i>
+										<i class="fas fa-cloud-download-alt"></i>
 									</div>
 									<div class="label">Available</div>
 								</div>
@@ -138,7 +179,7 @@
 								<div class="count">1230</div>
 							</div>
 						</div>
-					</div>
+					</div> -->
 
 					<div class="divider"></div>
 					<div class="section">Tools</div>
@@ -199,9 +240,7 @@
 						<div class="logo-cont">
 							<div class="top-face-cont">
 								<div class="top-face">
-									<div class="top-face-text">
-										$<span>_</span>
-									</div>
+									<div class="top-face-text">$<span>_</span></div>
 								</div>
 							</div>
 							<div class="left-face"></div>
@@ -223,15 +262,8 @@
 								</div>
 								<div class="right">
 									<div>
-										<input
-											type="checkbox"
-											id="switch-status"
-											class="checkbox"
-										/>
-										<label
-											for="switch-status"
-											class="switch"
-										></label>
+										<input type="checkbox" id="switch-status" class="checkbox" />
+										<label for="switch-status" class="switch"></label>
 									</div>
 								</div>
 							</div>
@@ -242,28 +274,19 @@
 								</div>
 								<div class="right">
 									<div class="actions-cont">
-										<div
-											id="action-clear-cache"
-											class="btn-action clear-cache left"
-										>
+										<div id="action-clear-cache" class="btn-action clear-cache left">
 											Clear
 										</div>
 
 										<div class="divider"></div>
 
-										<div
-											id="action-dynamic"
-											class="btn-action unselected"
-										>
+										<div id="action-dynamic" class="btn-action unselected">
 											<div class="icon-cont none">
 												<i class="far fa-check"></i>
 											</div>
 											Dynamic
 										</div>
-										<div
-											id="action-all"
-											class="btn-action unselected"
-										>
+										<div id="action-all" class="btn-action unselected">
 											<div class="icon-cont none">
 												<i class="far fa-check"></i>
 											</div>
@@ -271,15 +294,8 @@
 										</div>
 									</div>
 									<div class="left">
-										<input
-											type="checkbox"
-											id="switch-cache"
-											class="checkbox"
-										/>
-										<label
-											for="switch-cache"
-											class="switch"
-										></label>
+										<input type="checkbox" id="switch-cache" class="checkbox" />
+										<label for="switch-cache" class="switch"></label>
 									</div>
 								</div>
 							</div>
@@ -290,19 +306,13 @@
 								</div>
 								<div class="right">
 									<div class="actions-cont">
-										<div
-											id="action-nim"
-											class="btn-action unselected"
-										>
+										<div id="action-nim" class="btn-action unselected">
 											<div class="icon-cont none">
 												<i class="far fa-check"></i>
 											</div>
 											Nim
 										</div>
-										<div
-											id="action-perl"
-											class="btn-action unselected"
-										>
+										<div id="action-perl" class="btn-action unselected">
 											<div class="icon-cont none">
 												<i class="far fa-check"></i>
 											</div>
@@ -310,15 +320,8 @@
 										</div>
 									</div>
 									<div class="left">
-										<input
-											type="checkbox"
-											id="switch-debug"
-											class="checkbox"
-										/>
-										<label
-											for="switch-debug"
-											class="switch"
-										></label>
+										<input type="checkbox" id="switch-debug" class="checkbox" />
+										<label for="switch-debug" class="switch"></label>
 									</div>
 								</div>
 							</div>
@@ -332,15 +335,8 @@
 								<div class="right">
 									<div>
 										<div>
-											<input
-												type="checkbox"
-												id="switch-single-flag-comp"
-												class="checkbox"
-											/>
-											<label
-												for="switch-single-flag-comp"
-												class="switch"
-											></label>
+											<input type="checkbox" id="switch-single-flag-comp" class="checkbox" />
+											<label for="switch-single-flag-comp" class="switch"></label>
 										</div>
 									</div>
 								</div>
@@ -353,105 +349,77 @@
 					</div>
 
 					<div id="packages-cont" class="packages-cont none">
-						<div id="pkg-list" class="pkg-list">
+						<div class="pkg-section">
 							<div class="sticky-cont">
-								<div id="header-cont" class="header-cont">
+								<div class="pkg-toolbar">
 									<div class="left">
 										<div class="center">
-											<div
-												id="main-toggle"
-												class="checkmark"
-											>
-												<i
-													class="fas fa-check none"
-												></i>
+											<div class="main-check checkmark">
+												<i class="fas fa-check none"></i>
 											</div>
 
-											<div class="label">Package</div>
+											<div class="label none">
+												Package
+											</div>
 										</div>
 
-										<div
-											id="header-actions"
-											class="header-actions disabled"
-										>
-											<div class="btn-header">
+										<div class="tb-action tb-action-first" data-tippy-content="Sync">
+											<span>
+												<i class="fas fa-redo-alt"></i>
+											</span>
+										</div>
+
+										<div class="tb-actions disabled">
+											<div class="tb-action tb-action-first none" data-tippy-content="Refresh">
 												<span>
-													<i
-														class="fas fa-sync-alt"
-													></i>
+													<i class="fas fa-sync-alt"></i>
 												</span>
 											</div>
-											<div class="btn-header">
+
+											<div class="tb-action-sep"></div>
+
+											<div class="tb-action" data-tippy-content="Enable">
+												<span>
+													<i class="fas fa-toggle-on"></i>
+												</span>
+											</div>
+											<div class="tb-action" data-tippy-content="Disable">
+												<span>
+													<i class="fas fa-toggle-off"></i>
+												</span>
+											</div>
+
+											<div class="tb-action-sep"></div>
+
+											<div class="tb-action" data-tippy-content="Remove">
 												<span>
 													<i class="fas fa-trash"></i>
 												</span>
 											</div>
-											<div class="btn-header">
-												<span>
-													<i
-														class="fas fa-toggle-on"
-													></i>
-												</span>
-											</div>
-											<div class="btn-header">
-												<span>
-													<i
-														class="fas fa-toggle-off"
-													></i>
-												</span>
-											</div>
+										</div>
+
+										<!-- prettier-ignore -->
+										<div class="tb-spinner spinner none">
+											<div class="svg-loader"></div>
 										</div>
 									</div>
 									<div class="right">
 										<!-- prettier-ignore -->
-										<div id="search-spinner" class="spinner none" > <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style=" margin: auto; background: rgba( 255, 255, 255, 0 ); display: block; " width="50px" height="50px" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" > <g transform="rotate(0 50 50)"> <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.9166666666666666s" repeatCount="indefinite" ></animate> </rect> </g> <g transform="rotate(30 50 50)"> <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.8333333333333334s" repeatCount="indefinite" ></animate> </rect> </g> <g transform="rotate(60 50 50)"> <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.75s" repeatCount="indefinite" ></animate> </rect> </g> <g transform="rotate(90 50 50)"> <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.6666666666666666s" repeatCount="indefinite" ></animate> </rect> </g> <g transform="rotate(120 50 50)" > <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.5833333333333334s" repeatCount="indefinite" ></animate> </rect> </g> <g transform="rotate(150 50 50)" > <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.5s" repeatCount="indefinite" ></animate> </rect> </g> <g transform="rotate(180 50 50)" > <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.4166666666666667s" repeatCount="indefinite" ></animate> </rect> </g> <g transform="rotate(210 50 50)" > <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.3333333333333333s" repeatCount="indefinite" ></animate> </rect> </g> <g transform="rotate(240 50 50)" > <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.25s" repeatCount="indefinite" ></animate> </rect> </g> <g transform="rotate(270 50 50)" > <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.16666666666666666s" repeatCount="indefinite" ></animate> </rect> </g> <g transform="rotate(300 50 50)" > <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.08333333333333333s" repeatCount="indefinite" ></animate> </rect> </g> <g transform="rotate(330 50 50)" > <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="0s" repeatCount="indefinite" ></animate> </rect> </g> </svg></div>
-
-										<div
-											id="search-loader"
-											class="search-loader none"
-										>
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												width="50"
-												height="50"
-												viewBox="0 0 25 25"
-											>
-												<path
-													fill="#999999"
-													d="M25,5A20.14,20.14,0,0,1,45,22.88a2.51,2.51,0,0,0,2.49,2.26h0A2.52,2.52,0,0,0,50,22.33a25.14,25.14,0,0,0-50,0,2.52,2.52,0,0,0,2.5,2.81h0A2.51,2.51,0,0,0,5,22.88,20.14,20.14,0,0,1,25,5Z"
-												>
-													<animateTransform
-														attributeName="transform"
-														type="rotate"
-														from="0 25 25"
-														to="360 25 25"
-														dur="0.65s"
-														repeatCount="indefinite"
-													/>
-												</path>
-											</svg>
+										<div class="search-loader center none">
+											<div class="svg-loader"></div>
 										</div>
 										<div class="input-cont">
 											<div class="search-icon">
 												<i class="fas fa-search"></i>
 											</div>
-											<input
-												id="header-input"
-												class="header-input"
-												placeholder="Search..."
-											/>
-											<div
-												id="search-icon-clear"
-												class="search-icon-clear opa0 nointer"
-											>
-												<i
-													class="fas fa-times-circle"
-												></i>
+											<input class="header-input" placeholder="Search..." />
+											<div class="search-icon-clear opa0 nointer">
+												<i class="fas fa-times-circle"></i>
 											</div>
 										</div>
 									</div>
 								</div>
-								<div id="pkg-entries" class="entries"></div>
+								<div class="entries"></div>
 							</div>
 						</div>
 
@@ -461,31 +429,229 @@
 									Completion Package Information
 								</div>
 							</div>
-							<div id="pkg-i-name" class="row">
+							<div class="row i-name">
 								<div class="label">Name:</div>
 								<div class="value">--</div>
 							</div>
-							<div id="pkg-i-description" class="row">
+							<div class="row i-description">
 								<div class="label">Description:</div>
 								<div class="value">--</div>
 							</div>
-							<div id="pkg-i-author" class="row">
+							<div class="row i-author">
 								<div class="label">Author:</div>
 								<div class="value">--</div>
 							</div>
-							<div id="pkg-i-repository" class="row">
+							<div class="row i-repository">
 								<div class="label">Repository:</div>
 								<div class="value">--</div>
 							</div>
-							<div id="pkg-i-location" class="row">
+							<div class="row i-location">
 								<div class="label">Location:</div>
 								<div class="value">--</div>
 							</div>
-							<div id="pkg-i-version" class="row">
+							<div class="row i-version">
 								<div class="label">Version:</div>
 								<div class="value">--</div>
 							</div>
-							<div id="pkg-i-license" class="row">
+							<div class="row i-license">
+								<div class="label">License:</div>
+								<div class="value">--</div>
+							</div>
+						</div>
+					</div>
+
+					<div id="packages-outdated-cont" class="packages-outdated-cont none">
+						<div class="pkg-section">
+							<div class="sticky-cont">
+								<div class="pkg-toolbar">
+									<div class="left">
+										<div class="center">
+											<div class="main-check checkmark">
+												<i class="fas fa-check none"></i>
+											</div>
+
+											<div class="label none">
+												Package
+											</div>
+										</div>
+
+										<div class="tb-action tb-action-first" data-tippy-content="Refresh List">
+											<span>
+												<i class="fas fa-redo-alt"></i>
+											</span>
+										</div>
+
+										<div class="tb-actions disabled">
+											<div class="tb-action tb-action-first none" data-tippy-content="Refresh">
+												<span>
+													<i class="fas fa-sync-alt"></i>
+												</span>
+											</div>
+
+											<div class="tb-action-sep"></div>
+
+											<div class="tb-action" data-tippy-content="Update">
+												<span>
+													<i class="fas fa-history"></i>
+												</span>
+											</div>
+										</div>
+
+										<!-- prettier-ignore -->
+										<div class="tb-spinner spinner none">
+											<div class="svg-loader"></div>
+										</div>
+									</div>
+									<div class="right">
+										<!-- prettier-ignore -->
+										<div class="search-loader center none">
+											<div class="svg-loader"></div>
+										</div>
+										<div class="input-cont">
+											<div class="search-icon">
+												<i class="fas fa-search"></i>
+											</div>
+											<input class="header-input" placeholder="Search..." />
+											<div class="search-icon-clear opa0 nointer">
+												<i class="fas fa-times-circle"></i>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="entries"></div>
+							</div>
+						</div>
+
+						<div class="pkg-info">
+							<div class="row">
+								<div class="header">
+									Completion Package Information
+								</div>
+							</div>
+							<div class="row i-name">
+								<div class="label">Name:</div>
+								<div class="value">--</div>
+							</div>
+							<div class="row i-description">
+								<div class="label">Description:</div>
+								<div class="value">--</div>
+							</div>
+							<div class="row i-author">
+								<div class="label">Author:</div>
+								<div class="value">--</div>
+							</div>
+							<div class="row i-repository">
+								<div class="label">Repository:</div>
+								<div class="value">--</div>
+							</div>
+							<div class="row i-location">
+								<div class="label">Location:</div>
+								<div class="value">--</div>
+							</div>
+							<div class="row i-version">
+								<div class="label">Version:</div>
+								<div class="value">--</div>
+							</div>
+							<div class="row i-license">
+								<div class="label">License:</div>
+								<div class="value">--</div>
+							</div>
+						</div>
+					</div>
+
+					<div id="packages-available-cont" class="packages-available-cont none">
+						<div class="pkg-section">
+							<div class="sticky-cont">
+								<div class="pkg-toolbar">
+									<div class="left">
+										<div class="center">
+											<div class="main-check checkmark">
+												<i class="fas fa-check none"></i>
+											</div>
+
+											<div class="label none">
+												Package
+											</div>
+										</div>
+
+										<div class="tb-action tb-action-first" data-tippy-content="Refresh List">
+											<span>
+												<i class="fas fa-redo-alt"></i>
+											</span>
+										</div>
+
+										<div class="tb-actions disabled">
+											<div class="tb-action tb-action-first none" data-tippy-content="Refresh">
+												<span>
+													<i class="fas fa-sync-alt"></i>
+												</span>
+											</div>
+
+											<div class="tb-action-sep"></div>
+
+											<div class="tb-action" data-tippy-content="Install">
+												<span>
+													<i class="fas fa-download"></i>
+												</span>
+											</div>
+										</div>
+
+										<!-- prettier-ignore -->
+										<div class="tb-spinner spinner none">
+											<div class="svg-loader"></div>
+										</div>
+									</div>
+									<div class="right">
+										<!-- prettier-ignore -->
+										<div class="search-loader center none">
+											<div class="svg-loader"></div>
+										</div>
+										<div class="input-cont">
+											<div class="search-icon">
+												<i class="fas fa-search"></i>
+											</div>
+											<input class="header-input" placeholder="Search..." />
+											<div class="search-icon-clear opa0 nointer">
+												<i class="fas fa-times-circle"></i>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="entries"></div>
+							</div>
+						</div>
+
+						<div class="pkg-info">
+							<div class="row">
+								<div class="header">
+									Completion Package Information
+								</div>
+							</div>
+							<div class="row i-name">
+								<div class="label">Name:</div>
+								<div class="value">--</div>
+							</div>
+							<div class="row i-description">
+								<div class="label">Description:</div>
+								<div class="value">--</div>
+							</div>
+							<div class="row i-author">
+								<div class="label">Author:</div>
+								<div class="value">--</div>
+							</div>
+							<div class="row i-repository">
+								<div class="label">Repository:</div>
+								<div class="value">--</div>
+							</div>
+							<div class="row i-location">
+								<div class="label">Location:</div>
+								<div class="value">--</div>
+							</div>
+							<div class="row i-version">
+								<div class="label">Version:</div>
+								<div class="value">--</div>
+							</div>
+							<div class="row i-license">
 								<div class="label">License:</div>
 								<div class="value">--</div>
 							</div>
@@ -496,9 +662,7 @@
 						<div class="logo-cont">
 							<div class="top-face-cont">
 								<div class="top-face">
-									<div class="top-face-text">
-										$<span class="blink-caret">_</span>
-									</div>
+									<div class="top-face-text">$<span class="blink-caret">_</span></div>
 								</div>
 							</div>
 							<div class="left-face"></div>
@@ -514,7 +678,7 @@
 						<div>Carlos A. Gabriel</div>
 					</div>
 
-					<div id="update-cont" class="update-cont none">
+					<!-- 					<div id="update-cont" class="update-cont none">
 						<div class="top-cont">
 							<div class="left"></div>
 							<div class="right">
@@ -539,36 +703,49 @@
 								nodecliac update --installer=nim...
 							</div>
 						</div>
-					</div>
+					</div> -->
 
-					<div id="doctor-cont" class="update-cont none">
+					<div id="update-cont" class="update-cont none">
 						<div class="top-cont">
 							<div class="left">
 								<!-- prettier-ignore -->
-								<div id="doctor-spinner" class="none" > <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style=" margin: auto; background: rgba( 255, 255, 255, 0 ); display: block; " width="50px" height="50px" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" > <g transform="rotate(0 50 50)"> <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.9166666666666666s" repeatCount="indefinite" ></animate> </rect> </g> <g transform="rotate(30 50 50)"> <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.8333333333333334s" repeatCount="indefinite" ></animate> </rect> </g> <g transform="rotate(60 50 50)"> <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.75s" repeatCount="indefinite" ></animate> </rect> </g> <g transform="rotate(90 50 50)"> <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.6666666666666666s" repeatCount="indefinite" ></animate> </rect> </g> <g transform="rotate(120 50 50)" > <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.5833333333333334s" repeatCount="indefinite" ></animate> </rect> </g> <g transform="rotate(150 50 50)" > <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.5s" repeatCount="indefinite" ></animate> </rect> </g> <g transform="rotate(180 50 50)" > <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.4166666666666667s" repeatCount="indefinite" ></animate> </rect> </g> <g transform="rotate(210 50 50)" > <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.3333333333333333s" repeatCount="indefinite" ></animate> </rect> </g> <g transform="rotate(240 50 50)" > <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.25s" repeatCount="indefinite" ></animate> </rect> </g> <g transform="rotate(270 50 50)" > <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.16666666666666666s" repeatCount="indefinite" ></animate> </rect> </g> <g transform="rotate(300 50 50)" > <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.08333333333333333s" repeatCount="indefinite" ></animate> </rect> </g> <g transform="rotate(330 50 50)" > <rect x="47" y="27" rx="1.8" ry="1.8" width="6" height="12" fill="#999999" > <animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="0s" repeatCount="indefinite" ></animate> </rect> </g> </svg></div>
+								<div id="update-spinner" class="none">
+									<div class="svg-loader"></div>
+								</div>
 							</div>
 							<div class="right">
-								<div
-									id="doctor-clear"
-									class="btn btn-w btn-update"
-									data-action="clear"
-								>
+								<div id="update-clear" class="btn btn-w btn-update" data-action="clear-update">
 									Clear Log
 								</div>
-								<div
-									id="doctor-run"
-									class="btn btn-b btn-update-b"
-									data-action="run"
-								>
+								<div id="update-update" class="btn btn-b btn-update-b" data-action="update">
+									Update
+								</div>
+							</div>
+						</div>
+						<div class="bottom-cont">
+							<div id="update-output" class="update-output select"></div>
+						</div>
+					</div>
+
+					<div id="doctor-cont" class="doctor-cont none">
+						<div class="top-cont">
+							<div class="left">
+								<!-- prettier-ignore -->
+								<div id="doctor-spinner" class="none">
+									<div class="svg-loader"></div>
+								</div>
+							</div>
+							<div class="right">
+								<div id="doctor-clear" class="btn btn-w btn-update" data-action="clear-doctor">
+									Clear Log
+								</div>
+								<div id="doctor-run" class="btn btn-b btn-update-b" data-action="run">
 									Run
 								</div>
 							</div>
 						</div>
 						<div class="bottom-cont">
-							<div
-								id="doctor-output"
-								class="update-output select"
-							></div>
+							<div id="doctor-output" class="doctor-output select"></div>
 						</div>
 					</div>
 				</div>

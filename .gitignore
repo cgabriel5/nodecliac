@@ -436,3 +436,6 @@ markdown/previews/
 .env.test.local
 .env.production.local
 *.cache
+
+# Ignore GUI fonts.
+gui/resources/fonts/

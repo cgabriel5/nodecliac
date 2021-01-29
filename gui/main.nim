@@ -35,10 +35,10 @@ type
 # [https://forum.nim-lang.org/t/1572#9868]
 
 when defined(linux):
-    const width = 900 + 1100
-    const height = 900 + 750
-    const minWidth = 950
-    const minHeight = 600
+    const width = 1100  # + 1100
+    const height = 660 # + 750
+    const minWidth = width
+    const minHeight = height
 elif defined(macosx):
     const width = 700
     const height = 450

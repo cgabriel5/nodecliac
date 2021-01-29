@@ -2,13 +2,25 @@ body {
 	font-size: 20px;
 	font-family: Roboto, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica,
 		Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
-	zoom: 200%;
+	zoom: 100%;
 }
 
 @media (-webkit-min-device-pixel-ratio: 2) {
 	body {
 		font-size: 12;
 	}
+}
+
+.tippy-box > .tippy-arrow::before {
+	transform: scale(0.6);
+}
+
+.tippy-box {
+	font-size: 11px;
+	font-weight: bold;
+    border: 1px solid white;
+    border-radius: 3px;
+    border-radius: 0px;
 }
 
 /* Disable scrolling rubber-banding, yet still scroll overflow elements. */

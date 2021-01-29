@@ -1,5 +1,48 @@
 "use strict";
 
+let $ACTIVE_PANE;
+let $dummy = document.createElement("div");
+let DUMMY = {
+	name: "DUMMY",
+	$cont: $dummy,
+	$tb: $dummy,
+	$mcheck: $dummy,
+	$tb_loader: $dummy,
+	$input: $dummy,
+	$input_loader: $dummy,
+	$entries: $dummy,
+	$sbentry: $dummy,
+	//
+	$pname: $dummy,
+	$pdescription: $dummy,
+	$pauthor: $dummy,
+	$prepository: $dummy,
+	$plocation: $dummy,
+	$pversion: $dummy,
+	$plicense: $dummy
+};
+let PKG_PANES_REFS = DUMMY;
+// prettier-ignore
+let PKG_MAIN_REFS = {}, PKG_AVAI_REFS = {}, PKG_OUTD_REFS = {};
+
+let get_active_panel_name = (i) => {
+	if (!PKG_PANES_REFS) return "";
+	return PKG_PANES_REFS.hasOwnProperty("name") ? PKG_PANES_REFS.name : "";
+	// return PKG_PANES_REFS.name || "";
+};
+let get_panel_by_name = (name) => {
+	switch (name) {
+		case "packages":
+			return PKG_MAIN_REFS;
+		case "packages-available":
+			return PKG_AVAI_REFS;
+		case "packages-outdated":
+			return PKG_OUTD_REFS;
+		default:
+			return {};
+	}
+};
+
 const { Interaction, Funnel: f } = window.app.libs;
 const d = document;
 const $ = (...args) => {
@@ -63,9 +106,7 @@ const which_transition_event = (type) => {
 			let value = transitions[transition];
 
 			// Determine if suffix needs to be capitalized.
-			let end = value.match(/[A-Z]/)
-				? type.charAt(0).toUpperCase() + type.substring(1)
-				: type;
+			let end = value.match(/[A-Z]/) ? type.charAt(0).toUpperCase() + type.substring(1) : type;
 
 			return value + end;
 		}
@@ -99,9 +140,7 @@ const which_animation_event = (type) => {
 			let value = animations[animation];
 
 			// Determine if suffix needs to be capitalized.
-			let end = value.match(/[A-Z]/)
-				? type.charAt(0).toUpperCase() + type.substring(1)
-				: type;
+			let end = value.match(/[A-Z]/) ? type.charAt(0).toUpperCase() + type.substring(1) : type;
 
 			return value + end;
 		}
@@ -152,14 +191,16 @@ function uncheck($el) {
 const checked = ($el) => !$el.classList.contains("none");
 const toggle_pkg_sel_actions = (state) => {
 	let method = state ? "remove" : "add";
-	let $actions_cont = $("header-actions");
+	// pkg-toolbar
+	// PKG_PANES_REFS.$tb.classList[method]("disabled");
+	let $actions_cont = f(PKG_PANES_REFS.$tb).all().classes("tb-actions").getElement();
 	$actions_cont.classList[method]("disabled");
-	// let $btns = f($actions_cont).all().classes("btn-header").getStack();
+	// let $btns = f($actions_cont).all().classes("tb-action").getStack();
 	// $btns.forEach(($btn) => $btn.classList[method]("none"));
 };
 const mass_toggle = (method) => {
 	// prettier-ignore
-	let list = f("#pkg-entries").all().classes("checkmark").getStack();
+	let list = f(PKG_PANES_REFS.$entries).all().classes("checkmark").getStack();
 	for (let i = 0, l = list.length; i < l; i++) {
 		let $icon = f(list[i]).all().classes("fa-check").getElement();
 		window[method]($icon);
@@ -171,21 +212,49 @@ let API = window.api;
 API.reset_pkg_info = () => {
 	// prettier-ignore
 	let ids = ["name", "description", "author", "repository", "location", "version", "license"];
+
+	let PANEL = get_panel_by_name(get_active_panel_name());
 	// prettier-ignore
 	for (let i = 0, l = ids.length; i < l; i++) {
-		f("pkg-i-" + ids[i]).all().classes("value").getElement().textContent = "--";
+		// f("pkg-i-" + ids[i]).all().classes("value").getElement().textContent = "--";
+		// prettier-ignore
+		f(PANEL["$p" + ids[i]]).all().classes("value").getElement().innerHTML = "--";
 	}
 };
 // prettier-ignore
-API.set_pkg_info_row = (row, value) => {
-	f("pkg-i-" + row).all().classes("value").getElement().innerHTML = value;
+API.set_pkg_info_row = (panel, row, value) => {
+
+	let PANEL = get_panel_by_name(panel);
+	f(PANEL["$p" + row]).all().classes("value").getElement().innerHTML = value;
+	// f("pkg-i-" + row).all().classes("value").getElement().innerHTML = value;
 };
 
-const init = () => {
-	console.log(API);
+let processes = { packages: {} };
+function block_panel(name = "") {
+	processes.packages[name || $ACTIVE_PANE.getAttribute("data-row")] = false;
+}
+function unblock_panel(name) {
+	processes.packages[name] = false;
+}
+let is_panel_blocked = (name) => processes.packages[name];
+
+const init = async () => {
 	let $cached_sb = null;
 	let $cached_pkg = null;
-	API.loaded("API_LOADED");
+
+	let selected_pkgs = new Set();
+
+	// Setup tippy.
+	// let $btnheaders = f("#tb-actions").children().getStack();
+	// tippy($btnheaders, {
+	tippy("[data-tippy-content]", {
+		placement: "bottom",
+		delay: 100,
+		duration: 0,
+		// arrow: false,
+		// theme: "light",
+		offset: [0, 0]
+	});
 
 	API.setup_config = (status, cache, debug, singletons) => {
 		$("switch-status").checked = !!status;
@@ -219,8 +288,8 @@ const init = () => {
 			case "packages:input-cont":
 				{
 					// If the clear icon is clicked...
-					if (id === "search-icon-clear") {
-						let $input = $("header-input");
+					if ($delegate.classList.contains("search-icon-clear")) {
+						let $input = PKG_PANES_REFS.$input;
 						$input.value = "";
 						let opts = { targets: { target: $input } };
 						Interaction.trigger("search-input", opts);
@@ -245,7 +314,12 @@ const init = () => {
 					if ($delegate) {
 						$delegate.classList.toggle("selected");
 						$cached_pkg = $delegate;
-						API.get_pkg_info(id.slice(10));
+
+						let obj = {
+							name: id.slice(10),
+							panel: get_active_panel_name()
+						};
+						API.get_pkg_info(JSON.stringify(obj));
 					}
 				}
 
@@ -260,6 +334,9 @@ const init = () => {
 						$cached_sb = null;
 
 						$("default-cont").classList.remove("none");
+
+						$ACTIVE_PANE = null; // Clear active pane.
+						// PKG_PANES_REFS = {};
 
 						return;
 					}
@@ -283,131 +360,67 @@ const init = () => {
 						if ($node) $node.classList.remove("none");
 						$cached_sb = $delegate;
 
-						if (dattr === "packages") API.packages();
-						else if (dattr === "settings") API.config();
+						if (dattr === "packages" && !is_panel_blocked(dattr)) {
+							set_active_pkg_pane(dattr);
+							block_panel(dattr);
+							let $icon = PKG_PANES_REFS.$mcheck;
+							//
+
+							uncheck($icon);
+							toggle_pkg_sel_actions(false);
+							mass_toggle("uncheck");
+							selected_pkgs.clear();
+
+							let obj = {
+								input: PKG_PANES_REFS.$input.value.trim(),
+								panel: dattr
+							};
+
+							API.packages(JSON.stringify(obj));
+						} else if (dattr === "packages-available" && !is_panel_blocked(dattr)) {
+							set_active_pkg_pane(dattr);
+							block_panel(dattr);
+							let $icon = PKG_PANES_REFS.$mcheck;
+							//
+
+							uncheck($icon);
+							toggle_pkg_sel_actions(false);
+							mass_toggle("uncheck");
+							selected_pkgs.clear();
+
+							let obj = {
+								input: PKG_PANES_REFS.$input.value.trim(),
+								panel: dattr
+							};
+
+							API.packages_avai(JSON.stringify(obj));
+						} else if (dattr === "packages-outdated" && !is_panel_blocked(dattr)) {
+							set_active_pkg_pane(dattr);
+							block_panel(dattr);
+							let $icon = PKG_PANES_REFS.$mcheck;
+							//
+
+							uncheck($icon);
+							toggle_pkg_sel_actions(false);
+							mass_toggle("uncheck");
+							selected_pkgs.clear();
+
+							let obj = {
+								input: PKG_PANES_REFS.$input.value.trim(),
+								panel: dattr
+							};
+
+							API.packages_outd(JSON.stringify(obj));
+						} else if (dattr === "settings") API.config();
 						// else if (dattr === "doctor") API.doctor();
 					}
 				}
 
 				break;
-
-			// case "packages:main-checkmark":
-			// 	{
-			// 		// prettier-ignore
-			// 		let $icon = f($delegate).all().classes("fa-check").getElement();
-			// 		if (!checked($icon)) {
-			// 			check($icon);
-			// 			toggle_pkg_sel_actions(true);
-			// 			mass_toggle("check");
-			// 		} else {
-			// 			uncheck($icon);
-			// 			toggle_pkg_sel_actions(false);
-			// 			mass_toggle("uncheck");
-			// 		}
-			// 	}
-
-			// 	break;
-
-			// case "packages:entry-checkmark":
-			// 	{
-			// 		// prettier-ignore
-			// 		let $icon = f("#main-toggle").all().classes("fa-check").getElement();
-			// 		uncheck($icon); // Untoggle main checkmark.
-
-			// 		// prettier-ignore
-			// 		let $dicon = f($delegate).all().classes("fa-check").getElement();
-			// 		window[!checked($dicon) ? "check" : "uncheck"]($dicon);
-
-			// 		// prettier-ignore
-			// 		let list = f("#pkg-entries").all().classes("checkmark", "selected").getStack();
-			// 		toggle_pkg_sel_actions(!!list.length);
-			// 	}
-
-			// 	break;
-
-			// case "settings:action":
-			// 	{
-			// 		if (id.includes("dynamic") || id.includes("all")) {
-			// 			$("switch-cache").checked = true;
-			// 		} else if (id.includes("nim") || id.includes("perl")) {
-			// 			$("switch-debug").checked = true;
-			// 		}
-
-			// 		switch (id) {
-			// 			case "action-dynamic":
-			// 				API.update_cache(1);
-			// 				action("dynamic", "!all");
-			// 				break;
-
-			// 			case "action-all":
-			// 				API.update_cache(2);
-			// 				action("!dynamic", "all");
-			// 				break;
-
-			// 			case "action-nim":
-			// 				API.update_debug(2);
-			// 				action("nim", "!perl");
-			// 				break;
-
-			// 			case "action-perl":
-			// 				API.update_debug(3);
-			// 				action("!nim", "perl");
-			// 				break;
-
-			// 			case "action-clear-cache":
-			// 				API.clear_cache();
-			// 				break;
-			// 		}
-			// 	}
-
-			// 	break;
-
-			// case "settings:switch":
-			// 	{
-			// 		let id = $delegate.getAttribute("for");
-			// 		let toggle = $(id);
-			// 		let state = !toggle.checked;
-			// 		let b1 = id === "switch-cache" ? "dynamic" : "nim";
-			// 		let b2 = id === "switch-cache" ? "all" : "perl";
-
-			// 		switch (id) {
-			// 			case "switch-status":
-			// 				API.update_state(state | 0);
-			// 				break;
-
-			// 			case "switch-cache":
-			// 			case "switch-debug":
-			// 				{
-			// 					// let mod = get_sel_modifier(b1, b2);
-			// 					// API[method](Math.max(state | 0, mod));
-			// 					if (state) action(b1, `!${b2}`);
-			// 					else action(`!${b1}`, `!${b2}`);
-			// 					let method = "update_cache";
-			// 					// prettier-ignore
-			// 					if (id.includes("debug")) method = "update_debug";
-			// 					API[method](state | 0);
-			// 				}
-
-			// 				break;
-
-			// 			case "switch-single-flag-comp":
-			// 				API.update_singletons(state | 0);
-			// 				break;
-			// 		}
-			// 	}
-
-			// 	break;
-
-			// case "settings:reset":
-			// 	{
-			// 		API.reset_settings();
-			// 	}
-
-			// 	break;
 		}
 	});
 
-	Interaction.addHandler("click:main", (e, targets, filter) => {
+	Interaction.addHandler("click:main", async (e, targets, filter) => {
 		if (e.which !== 1) return; // Only left button mousedowns.
 		let $delegate = targets.delegateTarget;
 		let id = $delegate.id;
@@ -425,6 +438,7 @@ const init = () => {
 						uncheck($icon);
 						toggle_pkg_sel_actions(false);
 						mass_toggle("uncheck");
+						selected_pkgs.clear();
 					}
 				}
 
@@ -432,17 +446,107 @@ const init = () => {
 
 			case "packages:entry-checkmark":
 				{
+					let name = $delegate.getAttribute("data-name");
 					// prettier-ignore
-					let $icon = f("#main-toggle").all().classes("fa-check").getElement();
+					let $icon = PKG_PANES_REFS.$mcheck;
+
 					uncheck($icon); // Untoggle main checkmark.
 
 					// prettier-ignore
 					let $dicon = f($delegate).all().classes("fa-check").getElement();
-					window[!checked($dicon) ? "check" : "uncheck"]($dicon);
+					let ischecked = !checked($dicon);
+					window[ischecked ? "check" : "uncheck"]($dicon);
+					ischecked ? selected_pkgs.add(name) : selected_pkgs.delete(name);
 
 					// prettier-ignore
-					let list = f("#pkg-entries").all().classes("checkmark", "selected").getStack();
+					let list = f(PKG_PANES_REFS.$entries).all().classes("checkmark", "selected").getStack();
 					toggle_pkg_sel_actions(!!list.length);
+				}
+
+				break;
+
+			case "packages:actions":
+				{
+					let panel = get_active_panel_name();
+					if (is_panel_blocked(panel)) return;
+					else block_panel(panel);
+
+					let isall_checked = f(PKG_PANES_REFS.$mcheck).classes("!none").getElement();
+
+					// Uncheck everything.
+					let $icon = PKG_PANES_REFS.$mcheck;
+
+					uncheck($icon);
+					mass_toggle("uncheck");
+					toggle_pkg_sel_actions(false);
+
+					let action = $delegate.getAttribute("data-tippy-content").toLowerCase();
+					// let panel = get_active_panel_name();
+					switch (action) {
+						case "remove":
+							{
+								// Get selected_pkgs.
+								let obj = { all: false, names: [], panel };
+								if (isall_checked) {
+									obj.all = true;
+								} else {
+									obj.names = Array.from(selected_pkgs);
+									// prettier-ignore
+									selected_pkgs.clear();
+								}
+								API.rpkgs(JSON.stringify(obj));
+							}
+
+							break;
+
+						case "refresh":
+							{
+							}
+							break;
+						case "enable":
+							{
+								// Get selected_pkgs.
+								let obj = { all: false, names: [], panel };
+								if (isall_checked) {
+									obj.all = true;
+								} else {
+									obj.names = Array.from(selected_pkgs);
+									selected_pkgs.clear();
+								}
+								API.epkgs(JSON.stringify(obj));
+							}
+
+							break;
+
+						case "disable":
+							{
+								// Get selected_pkgs.
+								let obj = { all: false, names: [], panel };
+								if (isall_checked) {
+									obj.all = true;
+								} else {
+									obj.names = Array.from(selected_pkgs);
+									selected_pkgs.clear();
+								}
+								API.dpkgs(JSON.stringify(obj));
+							}
+
+							break;
+
+						case "sync":
+							{
+								let panel = get_active_panel_name();
+								block_panel(panel);
+
+								let obj = {
+									input: PKG_PANES_REFS.$input.value.trim(),
+									panel: panel
+								};
+
+								API.packages(JSON.stringify(obj));
+							}
+							break;
+					}
 				}
 
 				break;
@@ -532,7 +636,14 @@ const init = () => {
 					let action = $delegate.getAttribute("data-action");
 					if (action === "run") {
 						API.doctor();
-					} else if (action === "clear") {
+					} else if (action === "update") {
+						API.update();
+					} else if (action === "clear-update") {
+						let $cont = $("update-output");
+						while ($cont.firstChild) {
+							$cont.removeChild($cont.lastChild);
+						}
+					} else if (action === "clear-doctor") {
 						let $cont = $("doctor-output");
 						while ($cont.firstChild) {
 							$cont.removeChild($cont.lastChild);
@@ -545,46 +656,98 @@ const init = () => {
 	});
 
 	const $sidebar = $("sidebar");
-	const $entries = $("pkg-entries");
-	const $pkgheader = $("header-cont");
+
+	let PKG_CONT_NAMES = ["packages", "packages-available", "packages-outdated"];
+	// prettier-ignore
+	// let PKG_MAIN_REFS = {}, PKG_AVAI_REFS = {}, PKG_OUTD_REFS = {};
+	let PKG_OBJS = [PKG_MAIN_REFS, PKG_AVAI_REFS, PKG_OUTD_REFS];
+	for (let i = 0, l = PKG_CONT_NAMES.length; i < l; i++) {
+		let name = PKG_CONT_NAMES[i];
+		let obj = PKG_OBJS[i];
+
+		obj.name = name;
+		let $cont = $(`${name}-cont`);
+		obj.$cont = $cont;
+		obj.$tb = f($cont).all().classes("pkg-toolbar").getElement();
+		obj.$mcheck = f($cont).all().classes("main-check").all().classes("fa-check").getElement();
+		obj.$tb_loader = f($cont).all().classes("tb-spinner").getElement();
+		obj.$input = f($cont).all().classes("header-input").getElement();
+		obj.$input_loader = f($cont).all().classes("search-loader").getElement();
+		obj.$entries = f($cont).all().classes("entries").getElement();
+		obj.$sbentry = f("#sidebar").all().attrs(`[data-row=${name}]`).all().classes("loader-cont").getElement();
+		//
+		obj.$pname = f($cont).all().classes("i-name").getElement();
+		obj.$pdescription = f($cont).all().classes("i-description").getElement();
+		obj.$pauthor = f($cont).all().classes("i-author").getElement();
+		obj.$prepository = f($cont).all().classes("i-repository").getElement();
+		obj.$plocation = f($cont).all().classes("i-location").getElement();
+		obj.$pversion = f($cont).all().classes("i-version").getElement();
+		obj.$plicense = f($cont).all().classes("i-license").getElement();
+	}
+
 	const $settings = $("settings-cont");
+	const $update = $("update-cont");
 	const $doctor = $("doctor-cont");
+
+	function set_active_pkg_pane(name) {
+		switch (name) {
+			case "packages":
+				PKG_PANES_REFS = PKG_MAIN_REFS;
+				break;
+
+			case "packages-available":
+				PKG_PANES_REFS = PKG_AVAI_REFS;
+				break;
+
+			case "packages-outdated":
+				PKG_PANES_REFS = PKG_OUTD_REFS;
+				break;
+		}
+	}
+
 	Interaction.addFilter("packages:main-checkmark", (e, targets) => {
+		if (is_panel_blocked(get_active_panel_name())) return;
 		let $target = targets.target;
 		let $parents = f($target).parents().getStack();
-		let $el = f(targets.target)
-			.concat($parents)
-			.attrs("id")
-			.attrs("id=main-toggle")
-			.getElement();
-		if ($pkgheader.contains($el)) return $el;
+		// [FIX/BUG]: Funnel has a bug: gets document element when it should not.
+		// let $el = f(targets.target).concat($parents).attrs("id").attrs("id=main-toggle").getElement();
+		let $el = f(targets.target).concat($parents).classes("main-check").getElement();
+		if (PKG_PANES_REFS.$tb.contains($el)) return $el;
 	});
 	Interaction.addFilter("packages:entry-checkmark", (e, targets) => {
+		if (is_panel_blocked(get_active_panel_name())) return;
 		let $target = targets.target;
 		let $parents = f($target).parents().getStack();
 		let $el = f($target).concat($parents).classes("checkmark").getElement();
-		if ($entries.contains($el)) return $el;
+		if (PKG_PANES_REFS.$entries.contains($el)) return $el;
 	});
 	Interaction.addFilter("packages:entry", (e, targets) => {
 		let $target = targets.target;
 		let $parents = f($target).parents().getStack();
 		let $el = f($target).concat($parents).classes("entry").getElement();
 		let $cm = f($target).concat($parents).classes("checkmark").getElement();
-		if (!$cm && $entries.contains($el)) return $el;
+		if (is_panel_blocked(get_active_panel_name()) && $cm) return;
+		if (!$cm && PKG_PANES_REFS.$entries.contains($el)) return $el;
 	});
+	Interaction.addFilter("packages:actions", (e, targets) => {
+		let $target = targets.target;
+		let $parents = f($target).parents().getStack();
+		let $el = f($target).concat($parents).classes("tb-action").getElement();
+		if (PKG_PANES_REFS.$tb.contains($el)) return $el;
+	});
+
 	Interaction.addFilter("sidebar:entry", (e, targets) => {
 		let $target = targets.target;
 		let $parents = f($target).parents().getStack();
 		let $el = f($target).concat($parents).classes("row").getElement();
-		if ($sidebar.contains($el)) return $el;
+		if ($sidebar.contains($el)) {
+			return ($ACTIVE_PANE = $el);
+		}
 	});
 	Interaction.addFilter("settings:action", (e, targets) => {
 		let $target = targets.target;
 		let $parents = f($target).parents().getStack();
-		let $el = f($target)
-			.concat($parents)
-			.classes("btn-action")
-			.getElement();
+		let $el = f($target).concat($parents).classes("btn-action").getElement();
 		if ($settings.contains($el)) return $el;
 	});
 	Interaction.addFilter("settings:switch", (e, targets) => {
@@ -604,7 +767,7 @@ const init = () => {
 		let $target = targets.target;
 		let $parents = f($target).parents().getStack();
 		let $el = f($target).concat($parents).classes("btn").getElement();
-		if ($doctor.contains($el)) return $el;
+		if ($doctor.contains($el) || $update.contains($el)) return $el;
 	});
 
 	Interaction.addFilter("packages:input-cont", (e, targets) => {
@@ -616,21 +779,16 @@ const init = () => {
 		let $clear = f($target).concat($parents).classes("search-icon-clear").getElement();
 		// prettier-ignore
 		let $input = f($target).concat($parents).classes("header-input").getElement();
-		return $clear || (!$input && $el ? $("header-input") : undefined);
+		return $clear || (!$input && $el ? PKG_PANES_REFS.$input : undefined);
 	});
 
 	new Interaction()
 		.on("mousedown")
 		.anchors(document)
 		.handler("mousedown:main")
-		// .filters("settings:action")
-		// .filters("settings:switch")
-		// .filters("settings:reset")
-		// .filters("packages:main-checkmark")
-		// .filters("packages:entry-checkmark")
+		.filters("sidebar:entry")
 		.filters("packages:entry")
 		.filters("packages:input-cont")
-		.filters("sidebar:entry")
 		.capture(false)
 		.enable();
 
@@ -643,6 +801,7 @@ const init = () => {
 		.filters("settings:reset")
 		.filters("packages:main-checkmark")
 		.filters("packages:entry-checkmark")
+		.filters("packages:actions")
 		.filters("doctor:actions")
 		.capture(false)
 		.enable();
@@ -651,16 +810,24 @@ const init = () => {
 		return f(targets.target).tags("input").getElement();
 	});
 
-	let $clear = $("search-icon-clear");
-	let $spinner = $("search-spinner");
 	Interaction.addHandler("input:main", (e, targets) => {
 		if (targets.delegateTarget) {
+			// Reset actions.
+			let $icon = PKG_PANES_REFS.$mcheck;
+
+			uncheck($icon);
+			toggle_pkg_sel_actions(false);
+			mass_toggle("uncheck");
+			selected_pkgs.clear();
+
 			let $target = targets.delegateTarget;
 			let value = $target.value;
 
+			let $clear = f(PKG_PANES_REFS.$cont).all().classes("search-icon-clear").getElement();
 			if (value.length) $clear.classList.remove("opa0", "nointer");
 			else $clear.classList.add("opa0", "nointer");
 
+			let $spinner = f(PKG_PANES_REFS.$cont).all().classes("search-loader").getElement();
 			$spinner.classList.remove("none");
 			API.filter(value);
 			// $spinner.classList.add("none");
@@ -679,18 +846,14 @@ const init = () => {
 	Interaction.addHandler("focus:main", (e, targets) => {
 		if (!$("settings-cont").classList.contains("none")) API.config();
 	});
-	new Interaction()
-		.on("focus")
-		.anchors(window)
-		.handler("focus:main")
-		.debounce(100)
-		.enable();
+	new Interaction().on("focus").anchors(window).handler("focus:main").debounce(100).enable();
 
 	// window.addEventListener("contextmenu", (event) => event.preventDefault());
 };
 
-// [https://stackoverflow.com/a/61839322]
-d.onreadystatechange = () => {
+let main = async function () {
+	// [https://stackoverflow.com/a/61839322]
+	// d.onreadystatechange = () => {
 	// if (d.readyState === "complete") setTimeout(() => init(), 250);
 
 	/* Sniff: [https://stackoverflow.com/a/4702584] */
@@ -699,7 +862,9 @@ d.onreadystatechange = () => {
 	}
 
 	if (d.readyState === "complete") {
-		d.addEventListener(which_animation_event("start"), (e) => {
+		// FastClick.attach(document.body);
+
+		let handler1 = (e) => {
 			let $target = e.target;
 			let aname = e.animationName;
 			let id = $target.id;
@@ -712,23 +877,49 @@ d.onreadystatechange = () => {
 					classes.add("opa0");
 				}
 			}
-		});
+		};
 
-		d.addEventListener(which_transition_event("end"), (e) => {
+		let handler2 = (e) => {
+			let $target = e.target;
+			let aname = e.animationName;
+			let id = $target.id;
+
+			if ($target.classList.contains("logitem") && aname === "new-highlight") {
+				$target.classList.remove("new-highlight");
+			}
+		};
+
+		let handler3 = (e) => {
 			let $target = e.target;
 			let id = $target.id;
-			// let pname = e.propertyName;
+			let pname = e.propertyName;
 
 			if (id && id === "leaf") {
 				let classes = $target.classList;
-				if (!classes.contains("on")) classes.add("on");
-				else classes.add("animate-pulse");
+				if (!classes.contains("on")) {
+					classes.remove("off");
+					classes.add("on");
+				} else {
+					classes.add("animate-pulse");
+				}
 			} else if (id && id === "splash-overlay") {
-				$("splash-overlay").classList.add("none");
+				let $so = $("splash-overlay");
+				$so.classList.add("none");
+				$so.parentNode.removeChild($so);
+
+				d.removeEventListener(which_animation_event("start"), handler1);
+				d.removeEventListener(which_animation_event("end"), handler2);
+				d.removeEventListener(which_transition_event("end"), handler3);
+
 				init();
 			}
-		});
+		};
+
+		d.addEventListener(which_animation_event("start"), handler1);
+		d.addEventListener(which_animation_event("end"), handler2);
+		d.addEventListener(which_transition_event("end"), handler3);
 
 		$("leaf").classList.add("off"); // Start splash animation.
 	}
+	// };
 };

@@ -14,6 +14,12 @@
 				"tabWidth": 2,
 				"useTabs": false
 			}
+		},
+		{
+			"files": "*.{js,html}",
+			"options": {
+				"printWidth": 120
+			}
 		}
 	]
 }

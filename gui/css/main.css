@@ -7,14 +7,19 @@
 @import "../css/components/loader.css";
 @import "../css/components/sidebar.css";
 @import "../css/components/packages.css";
+@import "../css/components/packages-available.css";
+@import "../css/components/packages-outdated.css";
 @import "../css/components/statusbar.css";
 @import "../css/components/settings.css";
 @import "../css/components/about.css";
 @import "../css/components/update.css";
+@import "../css/components/doctor.css";
 @import "../css/components/default.css";
 @import "../css/interfaces.css";
 @import "../css/retina.css";
 @import "../css/classes.css";
+@import "../css/animations.css";
+@import "../css/loader.css";
 
 /* Device Pixel Ratio */
 /* [https://stackoverflow.com/questions/28374359/media-queries-for-2x-3x-and-4x-images] */

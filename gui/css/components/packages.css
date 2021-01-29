@@ -10,7 +10,7 @@
 	height: 100%;
 }
 
-.packages-cont .pkg-list {
+.packages-cont .pkg-section {
 	width: 100%;
 	height: 100%;
 	position: relative;
@@ -19,7 +19,7 @@
 }
 
 /* Improve this as it hinders window resize performance. */
-.packages-cont .pkg-list--disable::before {
+.packages-cont .pkg-section--disable::before {
 	width: 100%;
 	height: 100%;
 
@@ -118,13 +118,45 @@
 	flex-flow: column nowrap;
 }
 
-.packages-cont .pkg-list .label {
+.packages-cont .pkg-section .pstatus {
+	border-radius: 100px;
+	background: #e3e3e4;
+	width: 12px;
+	height: 12px;
+	margin-right: 7px;
+	/* [https://cubic-bezier.com/] */
+	/*transition: background 0.2s cubic-bezier(0.63, 0.04, 0.55, 1.02);*/
+	transition: background 0.16s ease-out;
+	/*transition: background 0.2s cubic-bezier(1, 0.01, 0.55, 1.02);*/
+	/*transition: background 0.2s cubic-bezier(0, 1.46, 0.95, 1);*/
+	/*transition: background 0.1s cubic-bezier(0.98, 0.12, 0.69, 0.92);*/
+}
+
+.packages-cont .pkg-section .pstatus.on {
+	background: #95d64a;
+}
+
+.packages-cont .pkg-section .pstatus.off {
+	background: #ed5565;
+}
+
+.packages-cont .pkg-section .label {
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
-.packages-cont .header-cont {
+.packages-cont .pkg-section .version {
+	font-size: 11px;
+	/*border: 1px solid rgba(0, 0, 0, 0.6);*/
+	border-radius: 4px;
+	padding: 0px 4px;
+	margin-right: 7px;
+	color: #444;
+	background: #f6f6f6;
+}
+
+.packages-cont .pkg-toolbar {
 	position: -webkit-sticky;
 	position: sticky !important;
 	top: 0;
@@ -142,7 +174,7 @@
 	position: relative;
 }
 
-/*.packages-cont .header-cont:before {
+/*.packages-cont .pkg-toolbar:before {
 	content: " ";
 	position: absolute;
 
@@ -168,19 +200,19 @@
 	box-shadow: inset 0px 1px 1px 0px rgba(0, 0, 0, 0.1);
 }
 
-.packages-cont .header-actions {
+.packages-cont .tb-actions {
 	display: flex;
 	flex-flow: row nowrap;
 	justify-content: center;
 	align-items: center;
-	margin-left: 20px;
+	/*margin-left: 10px;*/
 	transition: all 0.1s ease-in-out;
 
 	transition-property: opacity, color;
 	color: rgb(85, 85, 85);
 }
 
-.packages-cont .header-actions.disabled {
+.packages-cont .tb-actions.disabled {
 	opacity: 0;
 	color: rgb(155, 155, 155);
 	pointer-events: none;
@@ -189,7 +221,14 @@
 	transition-property: opacity, color;
 }
 
-.packages-cont .btn-header {
+.packages-cont .tb-action-sep {
+	width: 1px;
+	height: 20px;
+	margin: 0 5px;
+	background: rgba(85, 85, 85, 0.23);
+}
+
+.packages-cont .tb-action {
 	/*height: 35px;*/
 	padding: 8px 12px;
 	padding: 8px 8px;
@@ -206,12 +245,17 @@
 	/* color: #444; */
 	color: rgb(85, 85, 85);
 	/*box-shadow: 0 0px 0px 0px rgba(0, 0, 0, 0.04);*/
-	animation: btn-header-fadein--disable 0.15s linear;
+	animation: tb-action-fadein--disable 0.15s linear;
 	animation-fill-mode: both;
 	font-size: 17px;
 }
 
-.packages-cont .btn-header:active {
+.packages-cont .tb-action-first {
+	margin-left: 5px;
+	margin-right: 0;
+}
+
+.packages-cont .tb-action:active {
 	/*box-shadow: 0 0 0 1px transparent inset, 0 0 0 1px transparent, 0 0 0 4px rgba(10, 132, 255, 0.3);*/
 	/*box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.3);*/
 	/*box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);*/
@@ -219,7 +263,7 @@
 
 /* [https://stackoverflow.com/a/8294491] */
 
-@keyframes btn-header-fadein {
+@keyframes tb-action-fadein {
 	0% {
 		opacity: 0;
 		transform: scale(0.1);
@@ -234,35 +278,35 @@
 	}
 }
 
-.packages-cont .btn-header:nth-child(1) {
+.packages-cont .tb-action:nth-child(1) {
 	animation-delay: 0.01s;
 }
-.packages-cont .btn-header:nth-child(2) {
+.packages-cont .tb-action:nth-child(2) {
 	animation-delay: 0.05s;
 }
-.packages-cont .btn-header:nth-child(3) {
+.packages-cont .tb-action:nth-child(3) {
 	animation-delay: 0.1s;
 }
-.packages-cont .btn-header:nth-child(4) {
+.packages-cont .tb-action:nth-child(4) {
 	animation-delay: 0.15s;
 }
 
-.packages-cont .btn-header:hover {
+.packages-cont .tb-action:hover {
 	background: #e8e8e8;
 }
 
-.packages-cont .btn-header:active {
+.packages-cont .tb-action:active {
 	background: #dddddd;
 	/*box-shadow: 0 0px 0px 0px rgba(0, 0, 0, 0.07);*/
 }
 
-.packages-cont .spinner {
+/*.packages-cont .spinner {
 	max-height: 0;
 	margin: -8px 0 0 0;
 }
-
+*/
 .packages-cont .input-cont {
-	border: 1px solid rgba(0, 0, 0, 0.2);
+    border: 1px solid #e1e1e1;
 	border-radius: 6px;
 	background: rgba(0, 0, 0, 0.01);
 	transition: width 0.25s cubic-bezier(0.11, 0.38, 0.01, 0.99);
@@ -309,7 +353,10 @@
 }*/
 .packages-cont .input-cont:focus-within {
 	background: white;
-	box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.45);
+	/*box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.45);*/
+	/*box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.45), 0 0 0px 1px #0366d6;*/
+	box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.35),
+		0 0 0px 1px rgba(0, 123, 255, 0.45);
 	/*box-shadow: 0 0 0 1px #0a84ff inset, 0 0 0 1px #0a84ff,0 0 0 4px rgba(10, 132, 255, 0.3);*/
 	/*transition: width 0.2s cubic-bezier(0.11, 0.38, 0.01, 0.99);*/
 	border: 1px solid transparent;
@@ -317,6 +364,10 @@
 .packages-cont .input-cont:focus-within .search-icon,
 .packages-cont .input-cont:focus-within .search-icon-clear {
 	color: #444;
+}
+
+.packages-cont .search-loader {
+	margin-right: 5px;
 }
 
 /* PACKAGE INFORMATION */
@@ -383,8 +434,9 @@
 /* Inspiration: [https://design.firefox.com/photon/components/checkboxes.html] */
 
 .packages-cont .checkmark {
-	border: 1px solid #cacaca;
-	border: 1px solid rgba(0, 0, 0, 0.2);
+	/*border: 1px solid #cacaca;*/
+	/*border: 1px solid rgba(0, 0, 0, 0.2);*/
+	border: 1px solid #e1e1e1;
 	border-radius: 3px;
 	padding: 2px;
 	background: white;
@@ -416,6 +468,7 @@
 	/*box-shadow: 0 0 0 1px #0a84ff inset, 0 0 0 1px #0a84ff, 0 0 0 4px rgba(10, 132, 255, 0.3);*/
 	/*box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.3);*/
 	box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+	border: 1px solid rgba(16, 103, 222, 0.7);
 }
 
 .packages-cont .selected.checkmark:active {

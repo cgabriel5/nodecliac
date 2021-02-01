@@ -769,6 +769,13 @@ END
 			fi
 		fi
 
+		# Extract possibly provided branch name.
+		r_branch="master"
+		if [[ "$repo" == *"#"* ]]; then
+			r_branch="${repo#*#}"
+			repo="${repo%%#*}"
+		fi
+
 		[[ "$sub" == *"/" ]] && sub="${sub::-1}"
 		[[ "$repo" == *"/" ]] && repo="${repo::-1}"
 
@@ -826,8 +833,8 @@ END
 
 			# Use git: [https://stackoverflow.com/a/60254704]
 			if [[ -z "$sub" ]]; then
-				# Ensure repo exists by checking master branch.
-				uri="https://api.github.com/repos/$repo/branches/master"
+				# Ensure repo exists.
+				uri="https://api.github.com/repos/$repo/branches/${r_branch}"
 				res="$(download "$uri")"
 				[[ -z "$res" ]] && echo "Provided URL does not exist." && exit
 
@@ -843,13 +850,14 @@ END
 
 				# Check that repo exists.
 				uri="https://github.com/$repo/trunk/$sub"
+				if [[ "$branch" != "master" ]]; uri="https://github.com/${repo}/branches/${r_branch}/${sub}"
 				res="$(svn ls "$uri")"
 
 				# Use `svn ls` output here to validate package base structure.
 				[[ -z "$skipval" && "$(check "$rname" "$res" "0")" == 0 ]] && exit
 
 				re="svn: E[[:digit:]]{6}:" # [https://stackoverflow.com/a/32607896]
-				[[ "$res" =~ $re ]] && echo "Provided URL does not exist."
+				[[ "$res" =~ $re ]] && echo "Provided repo URL does not exist."
 
 				# Use svn to download provided sub directory.
 				svn export "$uri" "$output" > /dev/null 2>&1

@@ -17,7 +17,7 @@ const hdir = require("os").homedir();
 
 module.exports = async (args) => {
 	let { registrypath } = paths;
-	let { force, validate, "skip-val": skipval, path: p, repo } = args;
+	let { force, validate, "skip-val": skipval, path: p, repo = "" } = args;
 
 	if (p) if (!ispath_abs(p)) p = path.resolve(p);
 
@@ -31,6 +31,14 @@ module.exports = async (args) => {
 				sub = parts.join(path.sep);
 			}
 		}
+	}
+
+	// Extract possibly provided branch name.
+	let ht_index = repo.indexOf("#");
+	let branch = "master";
+	if (-~ht_index) {
+		branch = repo.substr(ht_index + 1);
+		repo = repo.substr(0, ht_index);
 	}
 
 	sub = strip_trailing_slash(sub);
@@ -93,8 +101,8 @@ module.exports = async (args) => {
 
 		// Use git: [https://stackoverflow.com/a/60254704]
 		if (!sub) {
-			// Ensure repo exists by checking master branch.
-			uri = `https://api.github.com/repos/${repo}/branches/master`;
+			// Ensure repo exists.
+			uri = `https://api.github.com/repos/${repo}/branches/${branch}`;
 			[err, res] = await flatry(download.str(uri));
 			if (err || res.err) exit(["Provided URL does not exist."]);
 
@@ -113,6 +121,8 @@ module.exports = async (args) => {
 
 			// Check that repo exists.
 			uri = `https://github.com/${repo}/trunk/${sub}`;
+			// prettier-ignore
+			if (branch != "master") uri = `https://github.com/${repo}/branches/${branch}/${sub}`;
 			cmd = `svn ls ${uri}`;
 			[err, res] = await flatry(aexec(cmd, opts));
 

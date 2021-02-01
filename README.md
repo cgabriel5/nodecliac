@@ -290,7 +290,6 @@ $ nodecliac format --source path/to/program.acmap --print --indent "s:2"
 
 ---
 
-
 <a name="cli-command-init"></a>
 
 <b><i>init</i></b>
@@ -442,12 +441,14 @@ $ nodecliac registry # Print packages in registry.
 
 - `--path`: Path to completion package.
 - `--repo`: GitHub repo to install completion package from.
-  -  Repo only: `<username>/<repo_name>`
-  -  Repo sub-directory: `<username>/<repo_name>/trunk/<sub_directory_path>`
+  - Repo only (`master`): `<username>/<repo_name>`
+  - Repo branch (default: `master`): `<username>/<repo_name><#branch_name>`
+  - Repo sub-directory: `<username>/<repo_name>/trunk/<sub_directory_path>`
+  - Repo branch + sub-directory: `<username>/<repo_name><#branch_name>/trunk/<sub_directory_path>`
 - `--skip-val`: Skips package validation (caution: not recommended, for dev purposes).
 - `--force`: If local completion package is more than `10MB` this flag is needed to install.
   - Meant as a safeguard to prevent accidentally copying large folders.
- 
+
 ###### Usage
 
 ```sh
@@ -457,6 +458,10 @@ $ nodecliac add --path ~/Desktop/subl # Installs completion package at specified
 $ nodecliac add --repo cgabriel5/nodecliac # Install completion package from a GitHub repo.
 # Install completion package from a specific directory in a GitHub repo.
 $ nodecliac add --repo cgabriel5/nodecliac/trunk/resources/packages/yarn
+# Install completion package from a specific branch (defaults to master branch).
+$ nodecliac add --repo cgabriel5/nodecliac#master
+# Install completion package from a specific directory + branch (defaults to master branch).
+$ nodecliac add --repo cgabriel5/nodecliac#dev/trunk/resources/packages/yarn
 ```
 
 ---

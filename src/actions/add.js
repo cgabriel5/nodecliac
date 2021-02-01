@@ -46,7 +46,7 @@ module.exports = async (args) => {
 		if (err) process.exit();
 		if (res) {
 			let type = (await lstats(pkgpath)).is.symlink ? "Symlink " : "";
-			let msg = `${type}?/ exists. Remove it and try again.`;
+			let msg = `${type}?/ exists in registry. Remove it and try again.`;
 			exit([fmt(msg, chalk.bold(dirname))]);
 		}
 
@@ -87,7 +87,7 @@ module.exports = async (args) => {
 		if (err) exit([]);
 		if (res) {
 			let type = (await lstats(pkgpath)).is.symlink ? "Symlink " : "";
-			let msg = `${type}?/ exists. Remove it and try again.`;
+			let msg = `${type}?/ exists in registry. Remove it and try again.`;
 			exit([fmt(msg, chalk.bold(rname))]);
 		}
 

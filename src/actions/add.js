@@ -116,11 +116,11 @@ module.exports = async (args) => {
 			cmd = `svn ls ${uri}`;
 			[err, res] = await flatry(aexec(cmd, opts));
 
+			// prettier-ignore
+			if (/svn: E\d{6}:/.test(err)) exit([`${chalk.red("Error:")} Provided repo URL does not exist.`]);
+
 			// Use `svn ls` output here to validate package base structure.
 			if (!skipval && !(await check(rname, res, true))) exit([]);
-
-			// prettier-ignore
-			if (/svn: E\d{6}:/.test(err)) exit(["Provided URL does not exist."]);
 
 			// Use svn to download provided sub directory.
 			cmd = `svn export ${uri} ${output}`;

@@ -21,10 +21,13 @@ for c in BackgroundColor.low..BackgroundColor.high:
 
 # Simple colored logging inspired by: [https://www.npmjs.com/package/chalk]
 #
-# @return {string} - The highlighted string.
-proc chalk*(s: string, styles: varargs[string]): string =
-    var starting = "\e[" # [https://forum.nim-lang.org/t/3556#25477]
-    let closing = "\e[0m"
+# @param  {array} styles - List of styles to apply.
+# @param  {bool} debug - Returns the actual ANSI escape string.
+# @return {string} - The highlighted string or ANSI escaped string.
+proc chalk*(s: string, styles: varargs[string], debug = false): string =
+    # [https://forum.nim-lang.org/t/3556#25477]
+    var starting = if not debug: "\e[" else: "\\e["
+    var closing = if not debug: "\e[0m" else: "\\e[0m"
     let l = styles.len
     var i = 0
     var str = s

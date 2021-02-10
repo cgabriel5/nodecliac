@@ -355,7 +355,6 @@ const init = async () => {
 						$("default-cont").classList.remove("none");
 
 						$ACTIVE_PANE = null; // Clear active pane.
-						// PKG_PANES_REFS = {};
 
 						return;
 					}
@@ -372,7 +371,6 @@ const init = async () => {
 							$default.classList.add("none");
 						}
 
-						// $("QUERY", ".packages-cont").classList.add("none");
 						$delegate.classList.toggle("selected");
 						let dattr = $delegate.getAttribute("data-row");
 						let $node = $(dattr + "-cont");
@@ -383,7 +381,6 @@ const init = async () => {
 							set_active_pkg_pane(dattr);
 							block_panel(dattr);
 							let $icon = PKG_PANES_REFS.$mcheck;
-							//
 
 							uncheck($icon);
 							toggle_pkg_sel_actions(false);
@@ -406,7 +403,6 @@ const init = async () => {
 							set_active_pkg_pane(dattr);
 							block_panel(dattr);
 							let $icon = PKG_PANES_REFS.$mcheck;
-							//
 
 							uncheck($icon);
 							toggle_pkg_sel_actions(false);
@@ -423,7 +419,6 @@ const init = async () => {
 							set_active_pkg_pane(dattr);
 							block_panel(dattr);
 							let $icon = PKG_PANES_REFS.$mcheck;
-							//
 
 							uncheck($icon);
 							toggle_pkg_sel_actions(false);

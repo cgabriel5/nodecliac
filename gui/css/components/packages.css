@@ -306,7 +306,7 @@
 }
 */
 .packages-cont .input-cont {
-    border: 1px solid #e1e1e1;
+    border: 1px solid #ccc;
 	border-radius: 6px;
 	background: rgba(0, 0, 0, 0.01);
 	transition: width 0.25s cubic-bezier(0.11, 0.38, 0.01, 0.99);
@@ -436,7 +436,7 @@
 .packages-cont .checkmark {
 	/*border: 1px solid #cacaca;*/
 	/*border: 1px solid rgba(0, 0, 0, 0.2);*/
-	border: 1px solid #e1e1e1;
+	border: 1px solid #ccc;
 	border-radius: 3px;
 	padding: 2px;
 	background: white;

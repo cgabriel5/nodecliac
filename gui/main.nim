@@ -3,7 +3,7 @@ from times import format, getTime, toUnix
 import strutils except escape
 from xmltree import escape
 import uri
-import json
+import json, marshal
 import httpclient
 import tables
 import streams
@@ -19,6 +19,7 @@ type
         # outdated: ptr seq[tuple[name, version: string]]
         outdated: ptr seq[tuple[name, local_version, remote_version: string, config: OrderedTableRef[string, OrderedTableRef[string, string]]]]
         avai_db: ptr Table[string, JsonNode]
+        avai_db_json: string
         err: string
     ChannelMsg = object
         action, cmd: string
@@ -394,7 +395,7 @@ proc thread_a_actions2(chan: ptr Channel[ChannelMsg]) {.thread.} =
             let hdir = os.getEnv("HOME")
             case action:
                 of "get-packages-avai":
-
+                    let cached_avai = hdir & "/.nodecliac/.cached_avai"
                     let url = "https://raw.githubusercontent.com/cgabriel5/nodecliac-packages/master/packages.json"
                     # proc fetchfile(url: string): Future[string] {.async.} =
                     proc fetchfile(url: string) {.async.} =
@@ -467,11 +468,36 @@ proc thread_a_actions2(chan: ptr Channel[ChannelMsg]) {.thread.} =
                         # response.names = addr items
                         response.jdata = addr jdata
                         response.avai_db = addr avai_db
+                        var sjson = $jjdata
+                        response.avai_db_json = sjson
+
+                        # echo "SAVED FILE [" & cached_avai & "]"
+                        if sjson != "": sjson.delete(0, 0)
+                        writeFile(cached_avai, sjson)
+
                         # response.outdated = addr outdated
 
                         incoming.future[].complete(response)
 
-                    waitFor fetchfile(url)
+                    if not fileExists(cached_avai):
+                        # echo "11111"
+                        waitFor fetchfile(url)
+                    else:
+                        # echo "22222"
+                        # Read cached file.
+                        echo "................." & cached_avai
+                        let contents = readFile(cached_avai)
+                        var jdata = parseJSON(contents)
+
+                        for item in items(jdata):
+                            let name = item["name"].getStr()
+                            avai_db[name] = item
+
+                        response.jdata = addr jdata
+                        response.avai_db = addr avai_db
+
+                        incoming.future[].complete(response)
+
 
                     # # var empty = true
                     # let hdir = os.getEnv("HOME")
@@ -1572,6 +1598,8 @@ $status.innerText = "Error: {error_m}";
         # var items = r.names[]
         # names = r.names[]
         var items = r.jdata[].elems
+        var cached_json = r.avai_db_json
+        echo "CACHED_JSON [" & cached_json & "]"
         AVAI_PKGS = r.avai_db[]
 
         chan.close()

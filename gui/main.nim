@@ -7,22 +7,28 @@ import json
 import httpclient
 import tables
 import streams
-# from typetraits import name
+from typetraits import name
 
 # [https://forum.nim-lang.org/t/6474#39947]
 type
     Response = ref object
         code: int
         resp: string
+        jdata: ptr JsonNode
         names: ptr seq[tuple[name, version: string, disabled: bool]]
         # outdated: ptr seq[tuple[name, version: string]]
         outdated: ptr seq[tuple[name, local_version, remote_version: string, config: OrderedTableRef[string, OrderedTableRef[string, string]]]]
+        avai_db: ptr Table[string, JsonNode]
+        err: string
     ChannelMsg = object
         action, cmd: string
         future: ptr Future[Response]
         list: ptr seq[string]
         # jdata: ptr jsonNode
         all: bool
+        avai_db: ptr Table[string, JsonNode]
+var AVAI_PKGS = initTable[string, JsonNode]()
+
 #
 # [https://forum.nim-lang.org/t/3640]
 # var fut {.threadvar.}: Future[Response]
@@ -384,41 +390,88 @@ proc thread_a_actions2(chan: ptr Channel[ChannelMsg]) {.thread.} =
 
             let action = incoming.action
             let all = incoming.all
+            var avai_db = incoming.avai_db[]
+            let hdir = os.getEnv("HOME")
             case action:
                 of "get-packages-avai":
 
-                    let pkg = readFile(currentSourcePath().splitPath.head / "packages.json")
-                    let jdata = parseJSON(pkg)
-                    var items: seq[tuple[name, version: string, disabled: bool]] = @[]
-                    for item in items(jdata):
-                        let pname = item["name"].getStr()
-                        let prepo = item["repo"].getStr()
-                        let pmethod = item["method"].getStr()
-                        let pdescription = item["description"].getStr()
-                        let plicense = item["license"].getStr()
-                        if item.hasKey("tags"):
-                            let ptags = item["tags"]
-                            for t in items(ptags):
-                                let t = t.getStr()
+                    let url = "https://raw.githubusercontent.com/cgabriel5/nodecliac-packages/master/packages.json"
+                    # proc fetchfile(url: string): Future[string] {.async.} =
+                    proc fetchfile(url: string) {.async.} =
+                        var client = newAsyncHttpClient()
+                        # return await client.getContent(url)
+                        let contents = await client.getContent(url)
+                        # echo waitFor asyncProc()
+                        # let packages = waitFor fetchfile(url)
 
-                        # https://raw.githubusercontent.com/cgabriel5/nodecliac/master/package.json
-                        # https://raw.githubusercontent.com/nim-lang/nimble/master/packages.json
-                        # https://github.com/nim-lang/nimble
+                        # var client = newHttpClient()
+                        # let contents = client.getContent(url)
+                        var jdata: JsonNode
+                        jdata = parseJSON(contents)
+                        let registry = hdir & "/.nodecliac/registry"
 
-                        var item: tuple[name, version: string, disabled: bool]
-                        item = (name: pname, version: "", disabled: false)
-                        items.add(item)
+                        # [https://stackoverflow.com/a/6712058]
+                        # Nim Json sorting: [https://forum.nim-lang.org/t/6332#39027]
+                        proc alphasort(a, b: JsonNode): int =
+                            # result = 0
+                            let aname = a{"name"}.getStr().toLower()
+                            let bname = b{"name"}.getStr().toLower()
+                            if aname < bname: result = -1 # Sort string ascending.
+                            elif aname > bname: result = 1
+                            else: result = 0 # Default return value (no sorting).
 
-                    # [https://stackoverflow.com/a/6712058]
-                    proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
-                        let aname = a.name.toLower()
-                        let bname = b.name.toLower()
-                        if aname < bname: result = -1 # Sort string ascending.
-                        elif aname > bname: result = 1
-                        else: result = 0 # Default return value (no sorting).
-                    items.sort(alphasort)
+                        var jjdata: seq[JsonNode] = @[]
+                        jjdata = jdata.getElems.sorted(alphasort)
 
-                    response.names = addr items
+                        for item in items(jjdata):
+                            let name = item["name"].getStr()
+                            avai_db[name] = item
+
+                        # # let pkg = readFile(currentSourcePath().splitPath.head / "packages.json")
+                        # # let jdata = parseJSON(pkg)
+                        # var items: seq[tuple[name, version: string, disabled: bool]] = @[]
+                        # for item in items(jdata):
+                        #     let pname = item["name"].getStr()
+
+                        #     # Skip if same name package already exists in registry.
+                        #     # if dirExists(registry & DirSep & pname):
+                        #     #     echo "package already exists " & pname
+                        #     #     continue
+
+                        #     let prepo = item["repo"].getStr()
+                        #     let pmethod = item["method"].getStr()
+                        #     let pdescription = item["description"].getStr()
+                        #     let plicense = item["license"].getStr()
+                        #     if item.hasKey("tags"):
+                        #         let ptags = item["tags"]
+                        #         for t in items(ptags):
+                        #             let t = t.getStr()
+
+                        #     # https://raw.githubusercontent.com/cgabriel5/nodecliac/master/package.json
+                        #     # https://raw.githubusercontent.com/nim-lang/nimble/master/packages.json
+                        #     # https://github.com/nim-lang/nimble
+
+                        #     var item: tuple[name, version: string, disabled: bool]
+                        #     item = (name: pname, version: "", disabled: false)
+                        #     items.add(item)
+
+                        # # [https://stackoverflow.com/a/6712058]
+                        # proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
+                        #     let aname = a.name.toLower()
+                        #     let bname = b.name.toLower()
+                        #     if aname < bname: result = -1 # Sort string ascending.
+                        #     elif aname > bname: result = 1
+                        #     else: result = 0 # Default return value (no sorting).
+                        # items.sort(alphasort)
+
+                        # response.names = addr items
+                        response.jdata = addr jdata
+                        response.avai_db = addr avai_db
+                        # response.outdated = addr outdated
+
+                        incoming.future[].complete(response)
+
+                    waitFor fetchfile(url)
 
                     # # var empty = true
                     # let hdir = os.getEnv("HOME")
@@ -720,6 +773,59 @@ proc thread_a_actions(chan: ptr Channel[ChannelMsg]) {.thread.} =
                     var cmd = fmt"""nodecliac disable"""
                     for name in names: cmd &= " " & name
                     discard execProcess(cmd)
+
+                else: discard
+
+            incoming.future[].complete(response)
+
+# Run package manager actions (i.e. updating/remove/adding packages)
+# on its own thread to prevent blocking main UI/WebView event loop.
+proc thread_a_actions4(chan: ptr Channel[ChannelMsg]) {.thread.} =
+    # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
+    while true:
+        var incoming = chan[].recv()
+        if not incoming.future[].finished:
+            var response: Response
+            response = Response(code: -1)
+
+            let action = incoming.action
+            let all = incoming.all
+            let avai_db = incoming.avai_db[]
+
+            case action:
+                of "install":
+                    echo "Running......"
+                    # sleep 1000
+                    # Use nodecliac CLI.
+                    # [https://forum.nim-lang.org/t/6122]
+                    let names = (
+                        if not all:
+                            incoming.list[]
+                        else:
+                            # If all flag is set, get all registry package names.
+                            var names: seq[string] = @[]
+                            let hdir = os.getEnv("HOME")
+                            for kind, path in walkDir(hdir & "/.nodecliac/registry"):
+                                let parts = splitPath(path)
+                                names.add(parts.tail)
+                            names.sort()
+                            names
+                    )
+                    # echo names
+                    var cmds: seq[string] = @[]
+                    for name in names:
+                        if avai_db.hasKey(name):
+                            let scheme = avai_db[name]{"scheme"}.getStr()
+                            cmds.add(fmt"""nodecliac add --repo "{scheme}" --skip-val""")
+                    let cmd = cmds.join(";")
+                    # echo ">>>>>>>>>>>>>>>>>>>>>>>>> [" & cmd & "]"
+                    # discard execProcess(cmd)
+                    let rr = execProcess(cmd).strip(trailing=true)
+                    echo "OUTPUT: [" & rr & "]"
+                    if "exists" in rr:
+                        echo "**************"
+                        response.err = $rr
+                    # let (res, code) = execCmdEx(cmd)
 
                 else: discard
 
@@ -1031,6 +1137,186 @@ $parent.removeChild($child);"""
                 # document.getElementById("doctor-output").innerHTML = `{html}`;
                 # document.getElementById("doctor-run").classList.remove("nointer", "disabled");
 
+    proc installpkgs(s: string) {.async.}
+
+    var install_queue: seq[string] = @[]
+    proc installpkg(s: string, force: bool = false) {.async.} =
+        # echo "3333333333333333"
+        # echo "function: [1] installpkg: [" & s & "]"
+        # echo s
+        let jdata = parseJSON(s)
+        # let all = jdata["all"].getBool()
+        # let panel = jdata["panel"].getStr()
+        let name = jdata["name"].getStr()
+        # echo "::::::::::::::: [" & name & "]"
+
+        if install_queue.len == 0 or force:
+            # echo "================= 1111 <><><>"
+            # Install package.
+            # echo "111 RUNNING...."
+            if not force: install_queue.add(name)
+            asyncCheck installpkgs(fmt"""{{"all": false, "panel": "packages-available", "names": ["{name}"]}}""")
+            # echo "222 RUNNING...."
+        else: # Add to queue.
+            # echo "================= 2222 <><><>"
+            install_queue.add(name)
+
+        # let names = jdata["names"].getStr()
+
+
+
+    proc installpkgs(s: string) {.async.} =
+        # echo "function: [2] installpkgs: [" & s & "]"
+
+        # echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
+        # echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
+        # echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
+        # echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"
+
+
+        let jdata = parseJSON(s)
+        let all = jdata["all"].getBool()
+        let panel = jdata["panel"].getStr()
+        # let names = jdata["names"].getStr()
+
+        var names: seq[string] = @[]
+        for item in items(jdata["names"]):
+            let name = item.getStr()
+            # if name != "nodecliac": names.add(name)
+            names.add(name)
+
+            # document.getElementById("doctor-run").classList.add("nointer", "disabled");
+            # document.getElementById("pkg-action-spinner").classList.remove("none");
+        app.js(fmt"""
+            get_panel_by_name("{panel}").$tb_loader.classList.remove("none");
+            """)
+
+        var chan: Channel[ChannelMsg]
+        chan.open()
+        var thread: Thread[ptr Channel[ChannelMsg]]
+        createThread(thread, thread_a_actions4, addr chan)
+
+        var fut = newFuture[Response]("installpkgs.nodecliac")
+        let data = ChannelMsg(future: addr fut, action: "install", list: addr names, all: all, avai_db: addr AVAI_PKGS)
+        chan.send(data)
+        let r = await fut
+        let html = r.resp
+        let error_m = r.err
+        echo "ERROR:::: [" & error_m & "]"
+        chan.close()
+
+
+
+        var remcmd = ""
+        for name in names:
+            remcmd &= fmt"""var $status = f("#pkg-entry-{name}").all().classes("pstatus").getElement();
+var classes = $status.classList;
+console.log(classes);
+classes.remove("clear");
+classes.add("on");"""
+
+
+
+        if error_m != "":
+            echo "Error message: " & error_m
+            let lastn = names[0]
+            remcmd &= fmt"""var $status = f("#pkg-entry-{lastn}").all().classes("istatus").getElement();
+var classes = $status.classList;
+classes.remove("none");
+classes.add("on");
+$status.innerText = "Error: {error_m}";
+"""
+
+        echo "======================"
+        echo remcmd
+        echo "======================"
+
+        # if all:
+        #     remcmd = fmt"""
+        #     var PANEL = get_panel_by_name("{panel}");
+        #     var $statuses = f(PANEL.$entries).all().classes("pstatus").getStack();
+        #     $statuses.forEach(function(x, i) {{
+        #         let classes = x.classList;
+        #         classes.remove("on");
+        #         classes.add("clear");
+        #     }});
+        #     """
+
+        # app.dispatch(
+        #     proc () =
+        #         app.js(fmt"""
+        #         {remcmd}
+        #         get_panel_by_name("{panel}").$tb_loader.classList.add("none");
+        #         processes.packages.{panel} = false;
+        #         """)
+        # )
+
+
+
+
+        for name in names:
+            if AVAI_PKGS.hasKey(name):
+                let item = AVAI_PKGS[name]
+                let scheme = item{"scheme"}.getStr()
+
+#         var remcmd = ""
+#         for name in names:
+#             remcmd &= fmt"""var $status = f("#pkg-entry-{name}").all().classes("pstatus").getElement();
+# var classes = $status.classList;
+# classes.remove("on");
+# classes.add("off");"""
+
+#         if all:
+#             remcmd = fmt"""
+#             var PANEL = get_panel_by_name("{panel}");
+#             var $statuses = f(PANEL.$entries).all().classes("pstatus").getStack();
+#             $statuses.forEach(function(x, i) {{
+#                 let classes = x.classList;
+#                 classes.remove("on");
+#                 classes.add("off");
+#             }});
+#             """
+
+        app.dispatch(
+            proc () =
+                # {remcmd}
+                app.js(fmt"""
+                get_panel_by_name("{panel}").$tb_loader.classList.add("none");
+                processes.packages["{panel}"] = false;
+                console.log("DONE...")
+                {remcmd}
+                """)
+
+
+                # Remove name from queue.
+                # echo ">>>>>>>>>>>>>>>>>>>>>>>>>"
+                # echo install_queue
+                install_queue.delete(0)
+                # echo install_queue
+                if install_queue.len != 0:
+                    # echo "+++++++++++++++++++ 11111"
+                    # echo "More packages exist...."
+                    # echo install_queue
+                    let name = install_queue[0]
+                    # echo "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& [" & name & "]"
+                    # installpkgs(fmt"""{{"all": false, "panel": "packages-available", "names": ["{name}"]}}""")
+                    # echo fmt"""{{"name":"{name}"}}"""
+                    asyncCheck installpkg(fmt"""{{"name":"{name}"}}""", true)
+                else:
+                    # echo "+++++++++++++++++++ 22222"
+                    var a = 12
+                    # echo "NO MORE_PACKAGES//////////////"
+        )
+
+                # document.getElementById("doctor-output").innerHTML = `{html}`;
+                # document.getElementById("doctor-run").classList.remove("nointer", "disabled");
+
+
+
+
+
+
+
     proc config_update(setting: string, value: int) =
         let p =  hdir & "/.nodecliac/.config"
         var config = if fileExists(p): readFile(p) else: ""
@@ -1263,6 +1549,8 @@ $parent.removeChild($child);"""
         )
 
     proc get_packages_avai(j: string) {.async.} =
+        # AVAI_PKGS.clear() # Clear table.
+
         let jdata = parseJSON(j)
         let s = jdata["input"].getStr()
         let panel = jdata["panel"].getStr()
@@ -1278,11 +1566,14 @@ $parent.removeChild($child);"""
         createThread(thread, thread_a_actions2, addr chan)
 
         var fut = newFuture[Response]("get-packages-avai.nodecliac")
-        let data = ChannelMsg(future: addr fut, action: "get-packages-avai")
+        let data = ChannelMsg(future: addr fut, action: "get-packages-avai", avai_db: addr AVAI_PKGS)
         chan.send(data)
         let r = await fut
-        var items = r.names[]
-        names = r.names[]
+        # var items = r.names[]
+        # names = r.names[]
+        var items = r.jdata[].elems
+        AVAI_PKGS = r.avai_db[]
+
         chan.close()
 
         var html = ""
@@ -1302,24 +1593,33 @@ $parent.removeChild($child);"""
             )
         else:
             for item in items:
+                let name = item{"name"}.getStr()
+                let scheme = item{"scheme"}.getStr()
                 if s != "":
-                    if s notin item.name: continue
-                let classname = if item.disabled: "off" else: "on"
-                html &= fmt"""<div class=entry id=pkg-entry-{item.name}>
+                    if s notin name: continue
+                let p = hdir & "/.nodecliac/registry/" & name
+                let classname = if dirExists(p): "on" else: "clear"
+                        # <div class="label-install">installed</div>
+                html &= fmt"""<div class=entry id=pkg-entry-{name}>
                     <div class="center">
-                        <div class="checkmark" data-name="{item.name}">
+                        <div class="checkmark" data-name="{name}">
                             <i class="fas fa-check none"></i>
                         </div>
-                        <div class="label">{item.name}</div>
+                        <div class="pstatus {classname}"></div>
+                        <div class="label">{name}</div>
+                        <div class="loader-cont none">
+                            <div class="svg-loader s-loader"></div>
+                        </div>
+                        <div class="istatus none"></div>
                     </div>
                 </div>""".strip.unindent.multiReplace([("\n", " ")])
-                        # <div class="pstatus {classname}"></div>
                         # <div class="version">{item.version}</div>
 
             app.dispatch(
                 proc () =
                     app.js(
                         fmt"""
+                        JDATA.PKG_AVAI_REFS = true;
                         var PANEL = get_panel_by_name("{panel}");
                         PANEL.$entries.textContent = "";
                         PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
@@ -1335,6 +1635,8 @@ $parent.removeChild($child);"""
                     var PANEL = get_panel_by_name("{panel}");
                     PANEL.$sbentry.classList.add("none");
                     processes.packages["{panel}"] = false;
+                    console.log("-=-=-=")
+                    toggle_pkg_sel_action_refresh(true);
                 """)
         )
 
@@ -1476,7 +1778,8 @@ $parent.removeChild($child);"""
 
             let jdata = parseJSON(s)
             let name = jdata["name"].getStr()
-            let panel = jdata["panel"].getStr()
+            let panel = jdata["panel"].getStr("")
+            let exclude = jdata{"exclude"}.getStr("").split(',')
 
             # Check that package ini file exists.
             let config = hdir & "/.nodecliac/registry/" & name & "/package.ini"
@@ -1487,23 +1790,23 @@ $parent.removeChild($child);"""
                 # [https://github.com/xmonader/nim-configparser]
                 # [https://nim-lang.org/docs/parsecfg.html]
                 let data = loadConfig(config)
-                let name = data.getSectionValue("Package", "name".escape)
-                let version = data.getSectionValue("Package", "version".escape)
-                let description = data.getSectionValue("Package", "description".escape)
-                let license = data.getSectionValue("Package", "license".escape)
-                let author = data.getSectionValue("Author", "name".escape)
-                let repo = clink(data.getSectionValue("Author", "repo").escape)
-                let location = flink("~/.nodecliac/registry/" & name)
 
-                app.js(fmt"""
-                    window.api.set_pkg_info_row("{panel}", "name", "<span class='select'>{name}</span>");
-                    window.api.set_pkg_info_row("{panel}", "description", "<span class='select'>{description}</span>");
-                    window.api.set_pkg_info_row("{panel}", "author", "<span class='select'>{author}</span>");
-                    window.api.set_pkg_info_row("{panel}", "repository", "<span class='select'>{repo}</span>");
-                    window.api.set_pkg_info_row("{panel}", "location", "<span class='select'>{location}</span>");
-                    window.api.set_pkg_info_row("{panel}", "version", "<span class='select'>{version}</span>");
-                    window.api.set_pkg_info_row("{panel}", "license", "<span class='select'>{license}</span>");
-                """);
+                var jstr = ""
+                const fields = ["name", "description", "author", "repository", "location", "version", "license"]
+                for field in fields:
+                    if field notin exclude:
+                        var dt = ""
+                        case field:
+                        of "name": dt = data.getSectionValue("Package", "name".escape)
+                        of "version": dt = data.getSectionValue("Package", "version".escape)
+                        of "description": dt = data.getSectionValue("Package", "description".escape)
+                        of "license": dt = data.getSectionValue("Package", "license".escape)
+                        of "author": dt = data.getSectionValue("Author", "name".escape)
+                        of "repository": dt = clink(data.getSectionValue("Author", "repo").escape)
+                        of "location": dt = flink("~/.nodecliac/registry/" & name)
+                        else: discard
+                        jstr &= fmt"""window.api.set_pkg_info_row("{panel}", "{field}", "<span class='select'>{dt}</span>");"""
+                app.js(fmt"""{jstr}""");
 
         # proc loaded(s: string) = jsLog(s)
         proc filter(s: string) = filter_pkgs(s)
@@ -1523,6 +1826,8 @@ $parent.removeChild($child);"""
         proc rpkgs(s: string) = asyncCheck rempkgs(s)
         proc epkgs(s: string) = asyncCheck enapkgs(s)
         proc dpkgs(s: string) = asyncCheck dispkgs(s)
+        # proc install_packages(s: string) = asyncCheck installpkgs(s)
+        proc ipkg(s: string) = asyncCheck installpkg(s)
         # proc ready() = app.js("main();")
 
     # Once Webview has loaded, run callback to start splash animation.

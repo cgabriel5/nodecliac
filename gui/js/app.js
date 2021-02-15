@@ -5,11 +5,13 @@ let $dummy = document.createElement("div");
 let DUMMY = {
 	name: "DUMMY",
 	$cont: $dummy,
+	$count: $dummy,
 	$tb: $dummy,
 	$mcheck: $dummy,
 	$tb_loader: $dummy,
 	$input: $dummy,
 	$input_loader: $dummy,
+	$clear: $dummy,
 	$entries: $dummy,
 	$sbentry: $dummy,
 	//
@@ -19,16 +21,27 @@ let DUMMY = {
 	$prepository: $dummy,
 	$plocation: $dummy,
 	$pversion: $dummy,
-	$plicense: $dummy
+	$plicense: $dummy,
+	//
+	jdata: "",
+	checked: [],
+	checked_all: false,
+	jdata_names: [],
+	jdata_filtered: [],
 };
 let PKG_PANES_REFS = DUMMY;
 // prettier-ignore
-let PKG_MAIN_REFS = {}, PKG_AVAI_REFS = {}, PKG_OUTD_REFS = {};
-let JDATA = {
-	PKG_MAIN_REFS: false,
-	PKG_AVAI_REFS: false,
-	PKG_OUTD_REFS: false
-};
+let PKG_INST_REFS = {}, PKG_AVAI_REFS = {}, PKG_OUTD_REFS = {};
+// let JDATA = {
+// 	PKG_INST_REFS: false,
+// 	PKG_AVAI_REFS: false,
+// 	PKG_OUTD_REFS: false
+// };
+// let CHECKED = {
+// 	PKG_INST_REFS: [],
+// 	PKG_AVAI_REFS: [],
+// 	PKG_OUTD_REFS: []
+// };
 
 let get_active_panel_name = (i) => {
 	if (!PKG_PANES_REFS) return "";
@@ -37,8 +50,8 @@ let get_active_panel_name = (i) => {
 };
 let get_panel_by_name = (name) => {
 	switch (name) {
-		case "packages":
-			return PKG_MAIN_REFS;
+		case "packages-installed":
+			return PKG_INST_REFS;
 		case "packages-available":
 			return PKG_AVAI_REFS;
 		case "packages-outdated":
@@ -201,8 +214,8 @@ const toggle_pkg_sel_actions = (state) => {
 	// let $maincheck = f(PKG_PANES_REFS.$tb).all().classes("main-check").getElement();
 	// $maincheck.classList[method]("disabled");
 
-	let $firstaction = f(PKG_PANES_REFS.$tb).all().classes("tb-action-first").getElement();
-	$firstaction.classList[method]("disabled");
+	// let $firstaction = f(PKG_PANES_REFS.$tb).all().classes("tb-action-first").getElement();
+	// $firstaction.classList[method]("disabled");
 
 	let $actions_cont = f(PKG_PANES_REFS.$tb).all().classes("tb-actions").getElement();
 	$actions_cont.classList[method]("disabled");
@@ -211,7 +224,6 @@ const toggle_pkg_sel_actions = (state) => {
 };
 const toggle_pkg_sel_action_refresh = (state) => {
 	let method = state ? "remove" : "add";
-	console.log("????????????", state, method);
 	let $firstaction = f(PKG_PANES_REFS.$tb).all().classes("tb-action-first").getElement();
 	$firstaction.classList[method]("disabled");
 };
@@ -260,7 +272,7 @@ const init = async () => {
 	let $cached_sb = null;
 	let $cached_pkg = null;
 
-	let selected_pkgs = new Set();
+	// let selected_pkgs = new Set();
 
 	// Setup tippy.
 	// let $btnheaders = f("#tb-actions").children().getStack();
@@ -303,21 +315,21 @@ const init = async () => {
 		let id = $delegate.id;
 
 		switch (filter) {
-			case "packages:input-cont":
-				{
-					// If the clear icon is clicked...
-					if ($delegate.classList.contains("search-icon-clear")) {
-						let $input = PKG_PANES_REFS.$input;
-						$input.value = "";
-						let opts = { targets: { target: $input } };
-						Interaction.trigger("search-input", opts);
-					}
+			// case "packages:input-cont":
+			// 	{
+			// 		// If the clear icon is clicked...
+			// 		if ($delegate.classList.contains("search-icon-clear")) {
+			// 			let $input = PKG_PANES_REFS.$input;
+			// 			$input.value = "";
+			// 			let opts = { targets: { target: $input } };
+			// 			Interaction.trigger("search-input", opts);
+			// 		}
 
-					$delegate.focus();
-					e.preventDefault();
-				}
+			// 		$delegate.focus();
+			// 		e.preventDefault();
+			// 	}
 
-				break;
+			// 	break;
 
 			case "packages:entry":
 				{
@@ -347,8 +359,8 @@ const init = async () => {
 				{
 					if ($cached_sb === $delegate) {
 						$cached_sb.classList.remove("selected");
-						let dattr = $cached_sb.getAttribute("data-row");
-						let $node = $(dattr + "-cont");
+						let panel = $cached_sb.getAttribute("data-row");
+						let $node = $(panel + "-cont");
 						if ($node) $node.classList.add("none");
 						$cached_sb = null;
 
@@ -360,8 +372,8 @@ const init = async () => {
 					}
 					if ($cached_sb) {
 						$cached_sb.classList.remove("selected");
-						let dattr = $cached_sb.getAttribute("data-row");
-						let $node = $(dattr + "-cont");
+						let panel = $cached_sb.getAttribute("data-row");
+						let $node = $(panel + "-cont");
 						if ($node) $node.classList.add("none");
 					}
 
@@ -372,67 +384,67 @@ const init = async () => {
 						}
 
 						$delegate.classList.toggle("selected");
-						let dattr = $delegate.getAttribute("data-row");
-						let $node = $(dattr + "-cont");
+						let panel = $delegate.getAttribute("data-row");
+						let $node = $(panel + "-cont");
 						if ($node) $node.classList.remove("none");
 						$cached_sb = $delegate;
 
-						if (dattr === "packages" && !is_panel_blocked(dattr)) {
-							set_active_pkg_pane(dattr);
-							block_panel(dattr);
+						if (panel === "packages-installed" && !is_panel_blocked(panel)) {
+							set_active_pkg_pane(panel);
+							// block_panel(panel);
 							let $icon = PKG_PANES_REFS.$mcheck;
 
 							uncheck($icon);
 							toggle_pkg_sel_actions(false);
 							mass_toggle("uncheck");
-							selected_pkgs.clear();
+							// selected_pkgs.clear();
 
 							let obj = {
 								input: PKG_PANES_REFS.$input.value.trim(),
-								panel: dattr
+								panel: panel
 							};
 
-							API.packages(JSON.stringify(obj));
-						} else if (dattr === "packages-available" && !is_panel_blocked(dattr)) {
+							// API.packages(JSON.stringify(obj));
+						} else if (panel === "packages-available" && !is_panel_blocked(panel)) {
 
-							if (JDATA.PKG_AVAI_REFS) {
-								toggle_pkg_sel_action_refresh(true);
-								return;
-							}
+							// if (JDATA.PKG_AVAI_REFS) {
+							// 	toggle_pkg_sel_action_refresh(true);
+							// 	return;
+							// }
 
-							set_active_pkg_pane(dattr);
-							block_panel(dattr);
+							set_active_pkg_pane(panel);
+							// block_panel(panel);
 							let $icon = PKG_PANES_REFS.$mcheck;
 
-							uncheck($icon);
-							toggle_pkg_sel_actions(false);
-							mass_toggle("uncheck");
-							selected_pkgs.clear();
+							// uncheck($icon);
+							// toggle_pkg_sel_actions(false);
+							// mass_toggle("uncheck");
+							// selected_pkgs.clear();
 
 							let obj = {
 								input: PKG_PANES_REFS.$input.value.trim(),
-								panel: dattr
+								panel: panel
 							};
 
 							API.packages_avai(JSON.stringify(obj));
-						} else if (dattr === "packages-outdated" && !is_panel_blocked(dattr)) {
-							set_active_pkg_pane(dattr);
-							block_panel(dattr);
+						} else if (panel === "packages-outdated" && !is_panel_blocked(panel)) {
+							set_active_pkg_pane(panel);
+							// block_panel(panel);
 							let $icon = PKG_PANES_REFS.$mcheck;
 
 							uncheck($icon);
 							toggle_pkg_sel_actions(false);
 							mass_toggle("uncheck");
-							selected_pkgs.clear();
+							// selected_pkgs.clear();
 
 							let obj = {
 								input: PKG_PANES_REFS.$input.value.trim(),
-								panel: dattr
+								panel: panel
 							};
 
-							API.packages_outd(JSON.stringify(obj));
-						} else if (dattr === "settings") API.config();
-						// else if (dattr === "doctor") API.doctor();
+							// API.packages_outd(JSON.stringify(obj));
+						} else if (panel === "settings") API.config();
+						// else if (panel === "doctor") API.doctor();
 					}
 				}
 
@@ -446,19 +458,45 @@ const init = async () => {
 		let id = $delegate.id;
 
 		switch (filter) {
+			case "packages:input-cont":
+				{
+					// If the clear icon is clicked...
+					if ($delegate.classList.contains("search-icon-clear")) {
+						let $input = PKG_PANES_REFS.$input;
+						$input.value = "";
+						PKG_PANES_REFS.checked_all = false;
+						PKG_PANES_REFS.checked.length = 0;
+						PKG_PANES_REFS.jdata_filtered.length = 0;
+
+
+						let opts = { targets: { target: $input } };
+						Interaction.trigger("search-input", opts);
+					}
+
+					$delegate.focus();
+					e.preventDefault();
+				}
+
+				break;
+
+
 			case "packages:main-checkmark":
 				{
+					let panel = get_active_panel_name();
+					let PANEL = get_panel_by_name(panel);
 					// prettier-ignore
 					let $icon = f($delegate).all().classes("fa-check").getElement();
 					if (!checked($icon)) {
 						check($icon);
 						toggle_pkg_sel_actions(true);
 						mass_toggle("check");
+						PANEL.checked_all = true;
 					} else {
 						uncheck($icon);
 						toggle_pkg_sel_actions(false);
 						mass_toggle("uncheck");
-						selected_pkgs.clear();
+						// selected_pkgs.clear();
+						PANEL.checked_all = false;
 					}
 				}
 
@@ -466,6 +504,7 @@ const init = async () => {
 
 			case "packages:entry-checkmark":
 				{
+					let panel = get_active_panel_name()
 					let name = $delegate.getAttribute("data-name");
 					// prettier-ignore
 					let $icon = PKG_PANES_REFS.$mcheck;
@@ -476,7 +515,18 @@ const init = async () => {
 					let $dicon = f($delegate).all().classes("fa-check").getElement();
 					let ischecked = !checked($dicon);
 					window[ischecked ? "check" : "uncheck"]($dicon);
-					ischecked ? selected_pkgs.add(name) : selected_pkgs.delete(name);
+
+					let PANEL = get_panel_by_name(panel);
+					if (PANEL.checked_all && !ischecked) {
+						PANEL.checked = PANEL.jdata_names;
+						PANEL.checked_all = false;
+					}
+					if (ischecked) PANEL.checked.push(name);
+					else {
+						let list = PANEL.checked;
+						let index = list.indexOf(name);
+						if (-~index) list.splice(index, 1)
+					}
 
 					// prettier-ignore
 					let list = f(PKG_PANES_REFS.$entries).all().classes("checkmark", "selected").getStack();
@@ -488,8 +538,8 @@ const init = async () => {
 			case "packages:actions":
 				{
 					let panel = get_active_panel_name();
-					if (is_panel_blocked(panel)) return;
-					else block_panel(panel);
+					// if (is_panel_blocked(panel)) return;
+					// else block_panel(panel);
 
 					let isall_checked = f(PKG_PANES_REFS.$mcheck).classes("!none").getElement();
 
@@ -503,8 +553,6 @@ const init = async () => {
 					let action = $delegate.getAttribute("data-tippy-content").toLowerCase();
 					// let panel = get_active_panel_name();
 
-					console.log("..............[" + action + "]");
-
 					switch (action) {
 						case "remove":
 							{
@@ -513,9 +561,9 @@ const init = async () => {
 								if (isall_checked) {
 									obj.all = true;
 								} else {
-									obj.names = Array.from(selected_pkgs);
-									// prettier-ignore
-									selected_pkgs.clear();
+									// obj.names = Array.from(selected_pkgs);
+									// // prettier-ignore
+									// selected_pkgs.clear();
 								}
 								API.rpkgs(JSON.stringify(obj));
 							}
@@ -533,8 +581,8 @@ const init = async () => {
 								if (isall_checked) {
 									obj.all = true;
 								} else {
-									obj.names = Array.from(selected_pkgs);
-									selected_pkgs.clear();
+									// obj.names = Array.from(selected_pkgs);
+									// selected_pkgs.clear();
 								}
 								API.epkgs(JSON.stringify(obj));
 							}
@@ -548,8 +596,8 @@ const init = async () => {
 								if (isall_checked) {
 									obj.all = true;
 								} else {
-									obj.names = Array.from(selected_pkgs);
-									selected_pkgs.clear();
+									// obj.names = Array.from(selected_pkgs);
+									// selected_pkgs.clear();
 								}
 								API.dpkgs(JSON.stringify(obj));
 							}
@@ -559,7 +607,7 @@ const init = async () => {
 						case "sync":
 							{
 								let panel = get_active_panel_name();
-								block_panel(panel);
+								// block_panel(panel);
 
 								let obj = {
 									input: PKG_PANES_REFS.$input.value.trim(),
@@ -572,34 +620,21 @@ const init = async () => {
 
 						case "install":
 							{
-
-
 								let panel = get_active_panel_name();
-								block_panel(panel);
+								// block_panel(panel);
 
-								// // Get selected_pkgs.
-								// let obj = { all: false, names: [], panel };
-								// if (isall_checked) {
-								// 	console.log("-----------11111");
-								// 	obj.all = true;
-								// } else {
-								// 	console.log("-----------22222");
-								// 	obj.names = Array.from(selected_pkgs);
-								// 	selected_pkgs.clear();
-								// }
-
-								let packages = Array.from(selected_pkgs);
-								selected_pkgs.clear();
-								if (packages.length) {
-									for (let i = 0, l = packages.length; i < l; i++) {
-										let p = packages[i];
-										let obj = { name: p }
-										API.ipkg(JSON.stringify(obj));
-									}
+								// let packages = Array.from(selected_pkgs);
+								// selected_pkgs.clear();
+								let PANEL = get_panel_by_name(panel);
+								let packages = PANEL.checked;
+								let obj = { name: "", panel };
+								if (PANEL.checked_all) packages = PANEL.jdata_names;
+								for (let i = 0, l = packages.length; i < l; i++) {
+									obj.name = packages[i];
+									API.ipkg(JSON.stringify(obj));
 								}
-
-
-								// API.install_packages(JSON.stringify(obj));
+								PANEL.checked.length = 0;
+								PANEL.checked_all = false;
 							}
 							break;
 
@@ -615,10 +650,7 @@ const init = async () => {
 
 
 							let panel = get_active_panel_name();
-							block_panel(panel);
-
-							console.log("INSINDE MANE?????", panel);
-
+							// block_panel(panel);
 
 							// if (JDATA.PKG_AVAI_REFS) {
 							// 	toggle_pkg_sel_action_refresh(true);
@@ -626,19 +658,24 @@ const init = async () => {
 							// }
 
 							set_active_pkg_pane(panel);
-							block_panel(panel);
+							// block_panel(panel);
 							let $icon = PKG_PANES_REFS.$mcheck;
 							//
 
 							uncheck($icon);
 							toggle_pkg_sel_actions(false);
-							mass_toggle("uncheck");
-							selected_pkgs.clear();
+							// mass_toggle("uncheck");
+							// selected_pkgs.clear();
 
 							let obj = {
 								input: PKG_PANES_REFS.$input.value.trim(),
-								panel: panel
+								panel: panel,
+								force: true
 							};
+
+
+							let PANEL = get_panel_by_name(panel);
+							PANEL.jdata_names.length = 0;
 
 							API.packages_avai(JSON.stringify(obj));
 
@@ -761,10 +798,10 @@ const init = async () => {
 
 	const $sidebar = $("sidebar");
 
-	let PKG_CONT_NAMES = ["packages", "packages-available", "packages-outdated"];
+	let PKG_CONT_NAMES = ["packages-installed", "packages-available", "packages-outdated"];
 	// prettier-ignore
-	// let PKG_MAIN_REFS = {}, PKG_AVAI_REFS = {}, PKG_OUTD_REFS = {};
-	let PKG_OBJS = [PKG_MAIN_REFS, PKG_AVAI_REFS, PKG_OUTD_REFS];
+	// let PKG_INST_REFS = {}, PKG_AVAI_REFS = {}, PKG_OUTD_REFS = {};
+	let PKG_OBJS = [PKG_INST_REFS, PKG_AVAI_REFS, PKG_OUTD_REFS];
 	for (let i = 0, l = PKG_CONT_NAMES.length; i < l; i++) {
 		let name = PKG_CONT_NAMES[i];
 		let obj = PKG_OBJS[i];
@@ -772,11 +809,13 @@ const init = async () => {
 		obj.name = name;
 		let $cont = $(`${name}-cont`);
 		obj.$cont = $cont;
+		obj.$count = f($sidebar).all().attrs(`[data-row=${name}]`).all().classes("count").getElement()
 		obj.$tb = f($cont).all().classes("pkg-toolbar").getElement();
 		obj.$mcheck = f($cont).all().classes("main-check").all().classes("fa-check").getElement();
 		obj.$tb_loader = f($cont).all().classes("tb-spinner").getElement();
 		obj.$input = f($cont).all().classes("header-input").getElement();
 		obj.$input_loader = f($cont).all().classes("search-loader").getElement();
+		obj.$clear = f($cont).all().classes("search-icon-clear").getElement();
 		obj.$entries = f($cont).all().classes("entries").getElement();
 		obj.$sbentry = f("#sidebar").all().attrs(`[data-row=${name}]`).all().classes("loader-cont").getElement();
 		//
@@ -787,6 +826,12 @@ const init = async () => {
 		obj.$plocation = f($cont).all().classes("i-location").getElement();
 		obj.$pversion = f($cont).all().classes("i-version").getElement();
 		obj.$plicense = f($cont).all().classes("i-license").getElement();
+		//
+		obj.jdata = "";
+		obj.checked = [];
+		obj.checked_all = false;
+		obj.jdata_names = [];
+		obj.jdata_filtered = [];
 	}
 
 	const $settings = $("settings-cont");
@@ -795,8 +840,8 @@ const init = async () => {
 
 	function set_active_pkg_pane(name) {
 		switch (name) {
-			case "packages":
-				PKG_PANES_REFS = PKG_MAIN_REFS;
+			case "packages-installed":
+				PKG_PANES_REFS = PKG_INST_REFS;
 				break;
 
 			case "packages-available":
@@ -892,7 +937,7 @@ const init = async () => {
 		.handler("mousedown:main")
 		.filters("sidebar:entry")
 		.filters("packages:entry")
-		.filters("packages:input-cont")
+		// .filters("packages:input-cont")
 		.capture(false)
 		.enable();
 
@@ -906,6 +951,7 @@ const init = async () => {
 		.filters("packages:main-checkmark")
 		.filters("packages:entry-checkmark")
 		.filters("packages:actions")
+		.filters("packages:input-cont")
 		.filters("doctor:actions")
 		.capture(false)
 		.enable();
@@ -921,19 +967,41 @@ const init = async () => {
 
 			uncheck($icon);
 			toggle_pkg_sel_actions(false);
-			mass_toggle("uncheck");
-			selected_pkgs.clear();
+			// mass_toggle("uncheck");
+			// selected_pkgs.clear();
+
+			PKG_PANES_REFS.checked_all = false;
+			PKG_PANES_REFS.checked.length = 0;
+			PKG_PANES_REFS.jdata_filtered.length = 0;
 
 			let $target = targets.delegateTarget;
 			let value = $target.value;
 
-			let $clear = f(PKG_PANES_REFS.$cont).all().classes("search-icon-clear").getElement();
+			// let $clear = f(PKG_PANES_REFS.$cont).all().classes("search-icon-clear").getElement();
+			let $clear = PKG_PANES_REFS.$clear;
 			if (value.length) $clear.classList.remove("opa0", "nointer");
 			else $clear.classList.add("opa0", "nointer");
 
-			let $spinner = f(PKG_PANES_REFS.$cont).all().classes("search-loader").getElement();
-			$spinner.classList.remove("none");
-			API.filter(value);
+			// let $spinner = f(PKG_PANES_REFS.$cont).all().classes("search-loader").getElement();
+			// let $spinner = $input_loader;
+			PKG_PANES_REFS.$input_loader.classList.remove("none");
+
+			// let panel = get_active_panel_name();
+			// var filterfn = "";
+			switch (PKG_PANES_REFS.name) {
+				case "packages-installed":
+					// API.filter_inst(value);
+					break;
+				case "packages-available":
+					API.filter_avai(value);
+					break;
+				case "packages-outdated":
+					// API.filter_outd(value);
+					break;
+			}
+
+
+			// API.filter_avai(value);
 			// $spinner.classList.add("none");
 		}
 	});

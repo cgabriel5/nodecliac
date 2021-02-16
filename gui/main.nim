@@ -3,24 +3,23 @@ from times import format, getTime, toUnix
 import strutils except escape
 from xmltree import escape
 import uri
-import json, marshal
+import json #, marshal
 import httpclient
 import tables
 import streams
-from typetraits import name
+# from typetraits import name
 
 # [https://forum.nim-lang.org/t/6474#39947]
 type
     Response = ref object
         code: int
         resp: string
-        jdata: ptr JsonNode
+        jdata: ptr seq[JsonNode]
         names: ptr seq[tuple[name, version: string, disabled: bool]]
         # outdated: ptr seq[tuple[name, version: string]]
         outdated: ptr seq[tuple[name, local_version, remote_version: string, config: OrderedTableRef[string, OrderedTableRef[string, string]]]]
 
         avai_db: ptr Table[string, JsonNode]
-        avai_db_json: string
         avai_names: ptr seq[string]
         avai_pname: string
 
@@ -392,168 +391,67 @@ proc thread_a_actions2(chan: ptr Channel[ChannelMsg]) {.thread.} =
     while true:
         var incoming = chan[].recv()
         if not incoming.future[].finished:
-            var response: Response
-            response = Response(code: -1)
+            var response = Response(code: -1)
 
-            let action = incoming.action
-            let all = incoming.all
-            var avai_db = incoming.avai_db[]
+            # [https://stackoverflow.com/a/6712058]
+            # Nim Json sorting: [https://forum.nim-lang.org/t/6332#39027]
+            proc alphasort(a, b: JsonNode): int =
+                let aname = a{"name"}.getStr().toLower()
+                let bname = b{"name"}.getStr().toLower()
+                if aname < bname: result = -1 # Sort string ascending.
+                elif aname > bname: result = 1
+                else: result = 0 # Default return value (no sorting).
+
             let hdir = os.getEnv("HOME")
+            var avai_db = incoming.avai_db[]
             var avai_names: seq[string] = @[]
-            case action:
-                of "get-packages-avai":
-                    let cached_avai = hdir & "/.nodecliac/.cached_avai"
-                    let url = "https://raw.githubusercontent.com/cgabriel5/nodecliac-packages/master/packages.json"
-                    # proc fetchfile(url: string): Future[string] {.async.} =
-                    proc fetchfile(url: string) {.async.} =
-                        var client = newAsyncHttpClient()
-                        # return await client.getContent(url)
-                        let contents = await client.getContent(url)
-                        # echo waitFor asyncProc()
-                        # let packages = waitFor fetchfile(url)
+            let cached_avai = hdir & "/.nodecliac/.cached_avai"
+            let url = "https://raw.githubusercontent.com/cgabriel5/nodecliac-packages/master/packages.json"
+            # proc fetchfile(url: string): Future[string] {.async.} =
+            proc fetchfile(url: string) {.async.} =
+                let client = newAsyncHttpClient()
+                let contents = await client.getContent(url)
+                var jdata = parseJSON(contents).getElems.sorted(alphasort)
 
-                        # var client = newHttpClient()
-                        # let contents = client.getContent(url)
-                        var jdata: JsonNode
-                        jdata = parseJSON(contents)
-                        let registry = hdir & "/.nodecliac/registry"
+                for item in items(jdata):
+                    let name = item["name"].getStr()
+                    avai_db[name] = item
+                    avai_names.add(name)
 
-                        # [https://stackoverflow.com/a/6712058]
-                        # Nim Json sorting: [https://forum.nim-lang.org/t/6332#39027]
-                        proc alphasort(a, b: JsonNode): int =
-                            # result = 0
-                            let aname = a{"name"}.getStr().toLower()
-                            let bname = b{"name"}.getStr().toLower()
-                            if aname < bname: result = -1 # Sort string ascending.
-                            elif aname > bname: result = 1
-                            else: result = 0 # Default return value (no sorting).
+                response.jdata = addr jdata
+                response.avai_db = addr avai_db
+                response.avai_names = addr avai_names
 
-                        var jjdata: seq[JsonNode] = @[]
-                        jjdata = jdata.getElems.sorted(alphasort)
+                var sjson = $jdata
+                if sjson != "": sjson.delete(0, 0)
+                writeFile(cached_avai, sjson)
 
-                        for item in items(jjdata):
-                            let name = item["name"].getStr()
-                            avai_db[name] = item
-                            avai_names.add(name)
+                incoming.future[].complete(response)
 
-                        # # let pkg = readFile(currentSourcePath().splitPath.head / "packages.json")
-                        # # let jdata = parseJSON(pkg)
-                        # var items: seq[tuple[name, version: string, disabled: bool]] = @[]
-                        # for item in items(jdata):
-                        #     let pname = item["name"].getStr()
+            let cache_exists = fileExists(cached_avai)
+            let cache_fresh = (
+                if cache_exists:
+                    let mtime = getLastModificationTime(cached_avai).toUnix()
+                    let ctime = getTime().toUnix()
+                    not (ctime - mtime > 60)
+                else: true
+            )
 
-                        #     # Skip if same name package already exists in registry.
-                        #     # if dirExists(registry & DirSep & pname):
-                        #     #     echo "package already exists " & pname
-                        #     #     continue
+            if cache_exists and cache_fresh:
+                let contents = readFile(cached_avai)
+                var jdata = parseJSON(contents).getElems.sorted(alphasort)
 
-                        #     let prepo = item["repo"].getStr()
-                        #     let pmethod = item["method"].getStr()
-                        #     let pdescription = item["description"].getStr()
-                        #     let plicense = item["license"].getStr()
-                        #     if item.hasKey("tags"):
-                        #         let ptags = item["tags"]
-                        #         for t in items(ptags):
-                        #             let t = t.getStr()
+                for item in items(jdata):
+                    let name = item["name"].getStr()
+                    avai_db[name] = item
+                    avai_names.add(name)
 
-                        #     # https://raw.githubusercontent.com/cgabriel5/nodecliac/master/package.json
-                        #     # https://raw.githubusercontent.com/nim-lang/nimble/master/packages.json
-                        #     # https://github.com/nim-lang/nimble
+                response.jdata = addr jdata
+                response.avai_db = addr avai_db
+                response.avai_names = addr avai_names
 
-                        #     var item: tuple[name, version: string, disabled: bool]
-                        #     item = (name: pname, version: "", disabled: false)
-                        #     items.add(item)
-
-                        # # [https://stackoverflow.com/a/6712058]
-                        # proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
-                        #     let aname = a.name.toLower()
-                        #     let bname = b.name.toLower()
-                        #     if aname < bname: result = -1 # Sort string ascending.
-                        #     elif aname > bname: result = 1
-                        #     else: result = 0 # Default return value (no sorting).
-                        # items.sort(alphasort)
-
-                        # response.names = addr items
-                        response.avai_names = addr avai_names
-                        response.jdata = addr jdata
-                        response.avai_db = addr avai_db
-                        var sjson = $jjdata
-                        response.avai_db_json = sjson
-
-                        # echo "SAVED FILE [" & cached_avai & "]"
-                        if sjson != "": sjson.delete(0, 0)
-                        writeFile(cached_avai, sjson)
-
-                        # response.outdated = addr outdated
-
-                        incoming.future[].complete(response)
-
-                    if not fileExists(cached_avai):
-                        # echo "11111"
-                        waitFor fetchfile(url)
-                    else:
-                        # echo "22222"
-                        # Read cached file.
-                        # echo "................." & cached_avai
-                        let contents = readFile(cached_avai)
-                        var jdata = parseJSON(contents)
-
-                        for item in items(jdata):
-                            let name = item["name"].getStr()
-                            avai_db[name] = item
-                            avai_names.add(name)
-
-                        response.avai_names = addr avai_names
-                        response.jdata = addr jdata
-                        response.avai_db = addr avai_db
-
-                        incoming.future[].complete(response)
-
-
-                    # # var empty = true
-                    # let hdir = os.getEnv("HOME")
-                    # var items: seq[tuple[name, version: string, disabled: bool]] = @[]
-                    # let dirtypes = {pcDir, pcLinkToDir}
-                    # for kind, path in walkDir(hdir & "/.nodecliac/registry"):
-                    #     # [https://nim-lang.org/docs/os.html#PathComponent]
-                    #     # Only get dirs/links to dirs
-                    #     if kind notin dirtypes: continue
-
-                    #     # empty = false
-                    #     let parts = splitPath(path)
-                    #     let command = parts.tail
-                    #     var version = "0.0.1"
-                    #     var disabled = false
-
-                    #     # Get version.
-                    #     let config = joinPath(path, "package.ini")
-                    #     if fileExists(config):
-                    #         let data = loadConfig(config)
-                    #         version = data.getSectionValue("Package", "version")
-
-                    #     # Get disabled state.
-                    #     let dconfig = joinPath(path, fmt".{command}.config.acdef")
-                    #     if fileExists(dconfig):
-                    #         let contents = readFile(dconfig)
-                    #         if find(contents, re("@disable\\s=\\strue")) > -1:
-                    #             disabled = true
-
-                    #     var item: tuple[name, version: string, disabled: bool]
-                    #     item = (name: command, version: version, disabled: disabled)
-                    #     items.add(item)
-
-                    #  # [https://stackoverflow.com/a/6712058]
-                    # proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
-                    #     let aname = a.name.toLower()
-                    #     let bname = b.name.toLower()
-                    #     if aname < bname: result = -1 # Sort string ascending.
-                    #     elif aname > bname: result = 1
-                    #     else: result = 0 # Default return value (no sorting).
-                    # items.sort(alphasort)
-
-                    # response.names = addr items
-
-                else: discard
+                incoming.future[].complete(response)
+            else: waitFor fetchfile(url)
 
             incoming.future[].complete(response)
 
@@ -1654,8 +1552,6 @@ $status.innerText = "Error: {error_m}";
 
     var UPDATE_AVAI_PKGS = false
     proc get_packages_avai(j: string) {.async.} =
-        # AVAI_PKGS.clear() # Clear table.
-
         let jdata = parseJSON(j)
         let s = jdata["input"].getStr()
         let panel = jdata["panel"].getStr()
@@ -1664,10 +1560,7 @@ $status.innerText = "Error: {error_m}";
         if UPDATE_AVAI_PKGS and not force: return
         UPDATE_AVAI_PKGS = true
 
-        app.js(fmt"""
-            var PANEL = get_panel_by_name("{panel}");
-            PANEL.$sbentry.classList.remove("none");
-        """)
+        app.js(fmt"""get_panel_by_name("{panel}").$sbentry.classList.remove("none");""")
 
         var chan: Channel[ChannelMsg]
         chan.open()
@@ -1675,16 +1568,14 @@ $status.innerText = "Error: {error_m}";
         createThread(thread, thread_a_actions2, addr chan)
 
         var fut = newFuture[Response]("get-packages-avai.nodecliac")
-        let data = ChannelMsg(future: addr fut, action: "get-packages-avai", avai_db: addr AVAI_PKGS)
+        let data = ChannelMsg(future: addr fut, avai_db: addr AVAI_PKGS)
         chan.send(data)
         let r = await fut
-        var items = r.jdata[].elems
-        var cached_json = r.avai_db_json
-        var avai_names = r.avai_names[]
+        chan.close()
+
+        var items = r.jdata[]
         AVAI_PKGS = r.avai_db[]
         AVAI_PKGS_NAMES = r.avai_names[]
-
-        chan.close()
 
         var html = ""
         if items.len == 0:
@@ -1703,7 +1594,6 @@ $status.innerText = "Error: {error_m}";
             var add_names = ""
             for item in items:
                 let name = item{"name"}.getStr()
-                let scheme = item{"scheme"}.getStr()
 
                 add_names &= fmt"""PANEL.jdata_names.push("{name}");"""
 

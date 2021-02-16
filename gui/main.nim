@@ -1550,15 +1550,15 @@ $status.innerText = "Error: {error_m}";
                 """)
         )
 
-    var UPDATE_AVAI_PKGS = false
-    proc get_packages_avai(j: string) {.async.} =
-        let jdata = parseJSON(j)
-        let s = jdata["input"].getStr()
+    var avai_first_run_done = false
+    proc get_packages_avai(s: string) {.async.} =
+        let jdata = parseJSON(s)
+        let input = jdata["input"].getStr()
         let panel = jdata["panel"].getStr()
         let force = jdata{"force"}.getBool()
 
-        if UPDATE_AVAI_PKGS and not force: return
-        UPDATE_AVAI_PKGS = true
+        if avai_first_run_done and not force: return
+        avai_first_run_done = true
 
         app.js(fmt"""get_panel_by_name("{panel}").$sbentry.classList.remove("none");""")
 
@@ -1573,12 +1573,12 @@ $status.innerText = "Error: {error_m}";
         let r = await fut
         chan.close()
 
-        var items = r.jdata[]
+        var objects = r.jdata[]
         AVAI_PKGS = r.avai_db[]
         AVAI_PKGS_NAMES = r.avai_names[]
 
         var html = ""
-        if items.len == 0:
+        if objects.len == 0:
             html &= """<div class="empty"><div>No Packages</div></div>"""
             app.dispatch(
                 proc () =
@@ -1592,13 +1592,13 @@ $status.innerText = "Error: {error_m}";
             )
         else:
             var add_names = ""
-            for item in items:
-                let name = item{"name"}.getStr()
+            for obj in objects:
+                let name = obj{"name"}.getStr()
 
                 add_names &= fmt"""PANEL.jdata_names.push("{name}");"""
 
-                if s != "":
-                    if s notin name: continue
+                if input != "":
+                    if input notin name: continue
                 let p = hdir & "/.nodecliac/registry/" & name
                 let classname = if dirExists(p): "on" else: "clear"
                 html &= fmt"""<div class=entry id=pkg-entry-{name}>

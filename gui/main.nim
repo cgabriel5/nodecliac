@@ -708,28 +708,22 @@ proc thread_a_actions(chan: ptr Channel[ChannelMsg]) {.thread.} =
 
 # Run package manager actions (i.e. updating/remove/adding packages)
 # on its own thread to prevent blocking main UI/WebView event loop.
-proc thread_a_actions4(chan: ptr Channel[ChannelMsg]) {.thread.} =
+proc t_installpkg(chan: ptr Channel[ChannelMsg]) {.thread.} =
     # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
     while true:
         var incoming = chan[].recv()
         if not incoming.future[].finished:
-            var response: Response
-            response = Response(code: -1)
+            var response = Response(code: -1)
 
-            let action = incoming.action
             let name = incoming.avai_pname
             let all = incoming.all
             let avai_db = incoming.avai_db[]
 
-            case action:
-                of "install":
-                    if avai_db.hasKey(name):
-                        let scheme = avai_db[name]{"scheme"}.getStr()
-                        let cmd = fmt"""nodecliac add --repo "{scheme}" --skip-val;"""
-                        let res = execProcess(cmd).strip(trailing=true)
-                        if "exists" in res: response.err = $res
-
-                else: discard
+            if avai_db.hasKey(name):
+                let scheme = avai_db[name]{"scheme"}.getStr()
+                let cmd = fmt"""nodecliac add --repo "{scheme}" --skip-val;"""
+                let res = execProcess(cmd).strip(trailing=true)
+                if "exists" in res: response.err = $res
 
             incoming.future[].complete(response)
 
@@ -1058,15 +1052,10 @@ $parent.removeChild($child);"""
         var chan: Channel[ChannelMsg]
         chan.open()
         var thread: Thread[ptr Channel[ChannelMsg]]
-        createThread(thread, thread_a_actions4, addr chan)
+        createThread(thread, t_installpkg, addr chan)
 
         var fut = newFuture[Response]("installpkgs.nodecliac")
-        let data = ChannelMsg(
-            future: addr fut,
-            action: "install",
-            avai_db: addr AVAI_PKGS,
-            avai_pname: name
-        )
+        let data = ChannelMsg(future: addr fut, avai_db: addr AVAI_PKGS, avai_pname: name)
         chan.send(data)
         let r = await fut
         let html = r.resp
@@ -1086,10 +1075,6 @@ classes.remove("none");
 classes.add("on");
 $status.innerText = "Error: {error_m}";
 """
-
-        # if AVAI_PKGS.hasKey(name):
-            # let item = AVAI_PKGS[name]
-            # let scheme = item{"scheme"}.getStr()
 
         app.dispatch(
             proc () =

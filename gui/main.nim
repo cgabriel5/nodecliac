@@ -58,6 +58,7 @@ elif defined(macosx):
     const minHeight = 400
 
 let hdir = os.getEnv("HOME")
+let registrypath = hdir & "/.nodecliac/registry"
 # var app {.threadvar.}: Webview
 let app = newWebView(currentHtmlPath("views/index.html"),
     debug=true,
@@ -386,12 +387,17 @@ proc thread_a_actions1(chan: ptr Channel[ChannelMsg]) {.thread.} =
 
 # Run package manager actions (i.e. updating/remove/adding packages)
 # on its own thread to prevent blocking main UI/WebView event loop.
-proc thread_a_actions2(chan: ptr Channel[ChannelMsg]) {.thread.} =
+proc t_get_packages_avai(chan: ptr Channel[ChannelMsg]) {.thread.} =
     # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
     while true:
         var incoming = chan[].recv()
         if not incoming.future[].finished:
             var response = Response(code: -1)
+            let hdir = os.getEnv("HOME")
+            var avai_db = incoming.avai_db[]
+            var avai_names: seq[string] = @[]
+            let cached_avai = hdir & "/.nodecliac/.cached_avai"
+            let url = "https://raw.githubusercontent.com/cgabriel5/nodecliac-packages/master/packages.json"
 
             # [https://stackoverflow.com/a/6712058]
             # Nim Json sorting: [https://forum.nim-lang.org/t/6332#39027]
@@ -402,15 +408,23 @@ proc thread_a_actions2(chan: ptr Channel[ChannelMsg]) {.thread.} =
                 elif aname > bname: result = 1
                 else: result = 0 # Default return value (no sorting).
 
-            let hdir = os.getEnv("HOME")
-            var avai_db = incoming.avai_db[]
-            var avai_names: seq[string] = @[]
-            let cached_avai = hdir & "/.nodecliac/.cached_avai"
-            let url = "https://raw.githubusercontent.com/cgabriel5/nodecliac-packages/master/packages.json"
-            # proc fetchfile(url: string): Future[string] {.async.} =
-            proc fetchfile(url: string) {.async.} =
+            proc fetchjson(url: string): Future[string] {.async.} =
                 let client = newAsyncHttpClient()
                 let contents = await client.getContent(url)
+                return contents
+
+            proc getpkgs() {.async.} =
+                let cache_exists = fileExists(cached_avai)
+                let cache_fresh = (
+                    if cache_exists:
+                        let mtime = getLastModificationTime(cached_avai).toUnix()
+                        let ctime = getTime().toUnix()
+                        not (ctime - mtime > 60)
+                    else: true
+                )
+                let usecache = cache_exists and cache_fresh
+
+                let contents = if usecache: readFile(cached_avai) else: await fetchjson(url)
                 var jdata = parseJSON(contents).getElems.sorted(alphasort)
 
                 for item in items(jdata):
@@ -418,42 +432,18 @@ proc thread_a_actions2(chan: ptr Channel[ChannelMsg]) {.thread.} =
                     avai_db[name] = item
                     avai_names.add(name)
 
-                response.jdata = addr jdata
-                response.avai_db = addr avai_db
-                response.avai_names = addr avai_names
-
-                var sjson = $jdata
-                if sjson != "": sjson.delete(0, 0)
-                writeFile(cached_avai, sjson)
-
-                incoming.future[].complete(response)
-
-            let cache_exists = fileExists(cached_avai)
-            let cache_fresh = (
-                if cache_exists:
-                    let mtime = getLastModificationTime(cached_avai).toUnix()
-                    let ctime = getTime().toUnix()
-                    not (ctime - mtime > 60)
-                else: true
-            )
-
-            if cache_exists and cache_fresh:
-                let contents = readFile(cached_avai)
-                var jdata = parseJSON(contents).getElems.sorted(alphasort)
-
-                for item in items(jdata):
-                    let name = item["name"].getStr()
-                    avai_db[name] = item
-                    avai_names.add(name)
+                if not usecache:
+                    var sjson = $jdata
+                    if sjson != "": sjson.delete(0, 0)
+                    writeFile(cached_avai, sjson)
 
                 response.jdata = addr jdata
                 response.avai_db = addr avai_db
                 response.avai_names = addr avai_names
 
                 incoming.future[].complete(response)
-            else: waitFor fetchfile(url)
 
-            incoming.future[].complete(response)
+            waitFor getpkgs()
 
 # Run package manager actions (i.e. updating/remove/adding packages)
 # on its own thread to prevent blocking main UI/WebView event loop.
@@ -1187,15 +1177,11 @@ $status.innerText = "Error: {error_m}";
             app.js(fmt"window.api.setup_config({status},{cache},{debug},{singletons});")
             # jsLog(config)
 
-    # var names: seq[string] = @[]
-    # for kind, path in walkDir(hdir & "/.nodecliac/registry"):
-    #     let parts = splitPath(path)
-    #     names.add(parts.tail)
-    # names.sort()
+    proc collapse_html(html: string): string =
+        return html.strip.unindent.multiReplace([("\n", " ")])
 
     var names: seq[tuple[name, version: string, disabled: bool]] = @[]
-
-    proc filter_avai_pkgs(s: string) =
+    proc filter_avai_pkgs(input: string) =
         # Remove nodes: [https://stackoverflow.com/a/3955238]
         # Fragment: [https://howchoo.com/code/learn-the-slow-and-fast-way-to-append-elements-to-the-dom]
         # Fuzzy search:
@@ -1204,134 +1190,21 @@ $status.innerText = "Error: {error_m}";
         # [https://github.com/nim-lang/Nim/blob/devel/tools/dochack/fuzzysearch.nim]
         # [https://www.forrestthewoods.com/blog/reverse_engineering_sublime_texts_fuzzy_match/]
 
-        # var names: seq[string] = @[]
-        # for kind, path in walkDir(hdir & "/.nodecliac/registry"):
-        #     let parts = splitPath(path)
-        #     names.add(parts.tail)
-        # names.sort()
-
-    #     var command = fmt"""
-    # // var $pkg_cont = document.getElementById("pkg-entries");
-    # var $pkg_cont = PKG_PANES_REFS.$entries;
-    # while ($pkg_cont.firstChild) $pkg_cont.removeChild($pkg_cont.lastChild);
-    # var $fragment = document.createDocumentFragment();
-
-    # PKG_PANES_REFS.jdata_filtered.length = 0;
-    # """
-
-    #     var empty = true
-
-    #     # for name in AVAI_PKGS.keys:
-    #     # for item in names:
-    #     for name in AVAI_PKGS_NAMES:
-    #         # if s in item.name:
-    #         if s in name:
-    #             empty = false
-    #             let name_escaped = name.escape()
-    #             # let classname = if item.disabled: "off" else: "on"
-    #             let classname = "on"
-
-    #             if s != "":
-    #                 command &= fmt"""
-    #                     // var PANEL = get_panel_by_name("packages-available");
-    #                     // PANEL.jdata_filtered.push("{name}");
-    #                     PKG_PANES_REFS.jdata_filtered.push("{name}");
-    #                 """
-
-
-    #             command &= fmt"""
-    # var $entry = document.createElement("div");
-    # $entry.className = "entry";
-    # $entry.id = "pkg-entry-{name_escaped}";
-
-    # var $inner = document.createElement("div");
-    # $inner.className = "center";
-
-    # var $icon_cont = document.createElement("div");
-    # $icon_cont.className = "checkmark";
-    # $icon_cont.setAttribute("data-name", "{name_escaped}");
-    # var $icon = document.createElement("i");
-    # $icon.className = "fas fa-check none";
-    # $icon_cont.appendChild($icon);
-
-    # var $pstatus = document.createElement("div");
-    # $pstatus.className = "pstatus {classname}";
-
-    # // var $version = document.createElement("div");
-    # // $version.className = "version";
-    # // $version.textContent = "{{item.version}}";
-
-    # var $label = document.createElement("div");
-    # $label.className = "label";
-    # $label.textContent = "{name_escaped}";
-
-    # $inner.appendChild($icon_cont);
-    # $inner.appendChild($pstatus);
-    # // $inner.appendChild($version);
-    # $inner.appendChild($label);
-    # $entry.appendChild($inner);
-    # $fragment.appendChild($entry);
-    # """
-
-    #     if empty:
-    #         command &= """
-    #         var $entry = document.createElement("div");
-    #         $entry.className = "empty";
-
-    #         var $child = document.createElement("div");
-    #         $child.textContent = "No Packages";
-
-    #         $entry.appendChild($child);
-    #         $fragment.appendChild($entry);
-    #         """
-
-    #     command &= """
-    # $pkg_cont.appendChild($fragment);
-    # f(PKG_PANES_REFS.$cont).all().classes("search-loader").getElement().classList.add("none");
-    # // document.getElementById("search-loader").classList.add("none");
-    # """
-
-    #     app.js(command)
-
-
-        var empty = true
         var html = ""
 
-
+        var empty = true
         var command = fmt"""
-        // var $pkg_cont = document.getElementById("pkg-entries");
-        // var $pkg_cont = PKG_PANES_REFS.$entries;
-        // while ($pkg_cont.firstChild) $pkg_cont.removeChild($pkg_cont.lastChild);
-        // var $fragment = document.createDocumentFragment();
+            var PANEL = get_panel_by_name("packages-available");
+            PANEL.jdata_filtered.length = 0;
+            """
 
-        PKG_PANES_REFS.jdata_filtered.length = 0;
-        """
-
-        # app.js(command)
-
-        # else:
-        # var add_names = ""
         for name in AVAI_PKGS_NAMES:
-        # for item in AVAI_PKGS_NAMES:
-            # let name = item{"name"}.getStr()
-            # let scheme = item{"scheme"}.getStr()
-
-            # add_names &= fmt"""PANEL.jdata_names.push("{name}");"""
-
-            if s in name:
+            if input in name:
                 empty = false
-                # if s != "":
-                    # if s notin name: continue
-                let p = hdir & "/.nodecliac/registry/" & name
+                let p = registrypath & DirSep & name
                 let classname = if dirExists(p): "on" else: "clear"
 
-                command &=
-                    fmt"""
-                    // var PANEL = get_panel_by_name("packages-available");
-                    // PANEL.jdata_filtered.push("{name}");
-                    PKG_PANES_REFS.jdata_filtered.push("{name}");
-                    """
-
+                command &= fmt"""PANEL.jdata_filtered.push("{name}");"""
                 html &= fmt"""<div class=entry id=pkg-entry-{name}>
                     <div class="center">
                         <div class="checkmark" data-name="{name}">
@@ -1344,56 +1217,16 @@ $status.innerText = "Error: {error_m}";
                         </div>
                         <div class="istatus none"></div>
                     </div>
-                </div>""".strip.unindent.multiReplace([("\n", " ")])
+                </div>""".collapse_html
 
-        if not empty:
-            command &=
-            # app.dispatch(
-                # proc () =
-                    # app.js(
-                fmt"""
-                // JDATA.PKG_AVAI_REFS = true;
-                var PANEL = get_panel_by_name("packages-available");
-                PANEL.$entries.textContent = "";
-                PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
-                """
-                    # )
-                        # {add_names}
-            # )
-        else:
-            html &= """<div class="empty"><div>No Packages</div></div>"""
-            # app.dispatch(
-                # proc () =
-                    # app.js(
-            command &=
-                fmt"""
-                var PANEL = get_panel_by_name("packages-available");
-                PANEL.$entries.textContent = "";
-                PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
-                """
-                    # )
-            # )
-
-        # app.js("""PKG_PANES_REFS.$input_loader.classList.add("none");""")
-        command &= """PKG_PANES_REFS.$input_loader.classList.add("none");"""
-
-
+        if empty: html &= """<div class="empty"><div>No Packages</div></div>"""
+        command &= fmt"""
+            PANEL.$entries.textContent = "";
+            PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
+            PKG_PANES_REFS.$input_loader.classList.add("none");
+        """
 
         app.js(command)
-
-
-        # app.dispatch(
-        #     proc () =
-        #         app.js(fmt"""
-        #             var PANEL = get_panel_by_name("{panel}");
-        #             PANEL.$sbentry.classList.add("none");
-        #             processes.packages["{panel}"] = false;
-        #             toggle_pkg_sel_action_refresh(true);
-        #         """)
-        # )
-
-
-
 
     proc filter_pkgs(s: string) =
         # Remove nodes: [https://stackoverflow.com/a/3955238]
@@ -1565,7 +1398,7 @@ $status.innerText = "Error: {error_m}";
         var chan: Channel[ChannelMsg]
         chan.open()
         var thread: Thread[ptr Channel[ChannelMsg]]
-        createThread(thread, thread_a_actions2, addr chan)
+        createThread(thread, t_get_packages_avai, addr chan)
 
         var fut = newFuture[Response]("get-packages-avai.nodecliac")
         let data = ChannelMsg(future: addr fut, avai_db: addr AVAI_PKGS)
@@ -1619,7 +1452,6 @@ $status.innerText = "Error: {error_m}";
                 proc () =
                     app.js(
                         fmt"""
-                        // JDATA.PKG_AVAI_REFS = true;
                         var PANEL = get_panel_by_name("{panel}");
                         PANEL.$entries.textContent = "";
                         PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);

@@ -216,6 +216,9 @@ let app = newWebView(currentHtmlPath("views/index.html"),
 #     mon.setCallback(callback)
 #     mon.start()
 
+proc collapse_html(html: string): string =
+    return html.strip.unindent.multiReplace([("\n", " ")])
+
 # createThread(thread_t_watcher, thread_a_watcher)
 
 # Run package manager actions (i.e. updating/remove/adding packages)
@@ -297,7 +300,7 @@ proc thread_a_doctor(chan: ptr Channel[ChannelMsg]) {.thread.} =
             <div class=\"label\">bin:</div>
             <div class=\"value\">{binloc}</div>
         </div>
-        """.strip.unindent.multiReplace([("\n", " ")])
+        """.collapse_html
 
             incoming.future[].complete(response)
 
@@ -814,7 +817,7 @@ proc main() =
     </div>
 </div>
 <div>{message}</div>
-</div>""".strip.unindent.multiReplace([("\n", " ")])
+</div>""".collapse_html
         app.dispatch(
             proc () =
                 app.js(fmt"""document.getElementById('update-output').insertAdjacentHTML('afterbegin', `{logrow}`);""")
@@ -1177,9 +1180,6 @@ $status.innerText = "Error: {error_m}";
             app.js(fmt"window.api.setup_config({status},{cache},{debug},{singletons});")
             # jsLog(config)
 
-    proc collapse_html(html: string): string =
-        return html.strip.unindent.multiReplace([("\n", " ")])
-
     var names: seq[tuple[name, version: string, disabled: bool]] = @[]
     proc filter_avai_pkgs(input: string) =
         # Remove nodes: [https://stackoverflow.com/a/3955238]
@@ -1359,7 +1359,7 @@ $status.innerText = "Error: {error_m}";
                         </div>
                         <div class="label">{item.name}</div>
                     </div>
-                </div>""".strip.unindent.multiReplace([("\n", " ")])
+                </div>""".collapse_html
                         # <div class="pstatus {classname}"></div>
                         # <div class="version">{item.version}</div>
 
@@ -1446,7 +1446,7 @@ $status.innerText = "Error: {error_m}";
                         </div>
                         <div class="istatus none"></div>
                     </div>
-                </div>""".strip.unindent.multiReplace([("\n", " ")])
+                </div>""".collapse_html
 
             app.dispatch(
                 proc () =
@@ -1521,7 +1521,7 @@ $status.innerText = "Error: {error_m}";
                         <div class="pstatus {classname}"></div>
                         <div class="label">{item.name}</div>
                     </div>
-                </div>""".strip.unindent.multiReplace([("\n", " ")])
+                </div>""".collapse_html
                         # <div class="version">{item.version}</div>
 
             app.dispatch(
@@ -1554,7 +1554,7 @@ $status.innerText = "Error: {error_m}";
         href=\"{url}\">
         {url}
     </a>
-    """.strip.unindent.multiReplace([("\n", " ")])
+    """.collapse_html
 
     proc flink(url: string): string =
         return fmt"""
@@ -1562,7 +1562,7 @@ $status.innerText = "Error: {error_m}";
         onclick=\"api.fopen(this.textContent)\">
         {url}
     </a>
-    """.strip.unindent.multiReplace([("\n", " ")])
+    """.collapse_html
 
     app.bindProcs("api"):
         # Open provided url in user's browser.

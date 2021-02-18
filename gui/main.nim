@@ -231,7 +231,6 @@ proc main() =
                 var response = Response(code: -1)
 
                 let name = incoming.avai_pname
-                let all = incoming.all
                 let avai_db = incoming.avai_db[]
 
                 if avai_db.hasKey(name):

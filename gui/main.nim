@@ -134,6 +134,93 @@ proc main() =
 
                 waitFor getpkgs()
 
+    var avai_first_run_done = false
+    proc get_packages_avai(s: string) {.async.} =
+        let jdata = parseJSON(s)
+        let input = jdata["input"].getStr()
+        let panel = jdata["panel"].getStr()
+        let force = jdata{"force"}.getBool()
+
+        if avai_first_run_done and not force: return
+        avai_first_run_done = true
+
+        app.js(fmt"""get_panel_by_name("{panel}").$sbentry.classList.remove("none");""")
+
+        var chan: Channel[ChannelMsg]
+        chan.open()
+        var thread: Thread[ptr Channel[ChannelMsg]]
+        createThread(thread, t_get_packages_avai, addr chan)
+
+        var fut = newFuture[Response]("get-packages-avai.nodecliac")
+        let data = ChannelMsg(future: addr fut, avai_db: addr AVAI_PKGS)
+        chan.send(data)
+        let r = await fut
+        chan.close()
+
+        var objects = r.jdata[]
+        AVAI_PKGS = r.avai_db[]
+        AVAI_PKGS_NAMES = r.avai_names[]
+
+        var html = ""
+        if objects.len == 0:
+            html &= """<div class="empty"><div>No Packages</div></div>"""
+            app.dispatch(
+                proc () =
+                    app.js(
+                        fmt"""
+                        var PANEL = get_panel_by_name("{panel}");
+                        PANEL.$entries.textContent = "";
+                        PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
+                        """
+                    )
+            )
+        else:
+            var add_names = ""
+            for obj in objects:
+                let name = obj{"name"}.getStr()
+
+                add_names &= fmt"""PANEL.jdata_names.push("{name}");"""
+
+                if input != "":
+                    if input notin name: continue
+                let p = hdir & "/.nodecliac/registry/" & name
+                let classname = if dirExists(p): "on" else: "clear"
+                html &= fmt"""<div class=entry id=pkg-entry-{name}>
+                    <div class="center">
+                        <div class="checkmark" data-name="{name}">
+                            <i class="fas fa-check none"></i>
+                        </div>
+                        <div class="pstatus {classname}"></div>
+                        <div class="label">{name}</div>
+                        <div class="loader-cont none">
+                            <div class="svg-loader s-loader"></div>
+                        </div>
+                        <div class="istatus none"></div>
+                    </div>
+                </div>""".collapse_html
+
+            app.dispatch(
+                proc () =
+                    app.js(
+                        fmt"""
+                        var PANEL = get_panel_by_name("{panel}");
+                        PANEL.$entries.textContent = "";
+                        PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
+                        {add_names}
+                        """
+                    )
+            )
+
+        app.dispatch(
+            proc () =
+                app.js(fmt"""
+                    var PANEL = get_panel_by_name("{panel}");
+                    PANEL.$sbentry.classList.add("none");
+                    processes.packages["{panel}"] = false;
+                    toggle_pkg_sel_action_refresh(true);
+                """)
+        )
+
     # Run package manager actions (i.e. updating/remove/adding packages)
     # on its own thread to prevent blocking main UI/WebView event loop.
     proc t_installpkg(chan: ptr Channel[ChannelMsg]) {.thread.} =
@@ -154,6 +241,116 @@ proc main() =
                     if "exists" in res: response.err = $res
 
                 incoming.future[].complete(response)
+
+    var install_queue: seq[string] = @[]
+    proc installpkg(s: string, stop: bool = false) {.async.} =
+        let jdata = parseJSON(s)
+        let name = jdata["name"].getStr()
+        let panel = jdata["panel"].getStr()
+
+        # Queue logic.
+        if not stop: install_queue.add(name)
+        if install_queue.len > 1 and not stop: return
+
+        app.js(fmt"""
+            var PANEL = get_panel_by_name("{panel}");
+            PANEL.$tb_loader.classList.remove("none");
+            f(PANEL.$tb).all().classes("tb-action-first").getElement().classList.add("disabled");
+            """)
+
+        var chan: Channel[ChannelMsg]
+        chan.open()
+        var thread: Thread[ptr Channel[ChannelMsg]]
+        createThread(thread, t_installpkg, addr chan)
+
+        var fut = newFuture[Response]("installpkgs.nodecliac")
+        let data = ChannelMsg(future: addr fut, avai_db: addr AVAI_PKGS, avai_pname: name)
+        chan.send(data)
+        let r = await fut
+        let html = r.resp
+        let error_m = r.err
+        chan.close()
+
+        var remcmd = ""
+        remcmd &= fmt"""var $status = f("#pkg-entry-{name}").all().classes("pstatus").getElement();
+var classes = $status.classList;
+classes.remove("clear");
+classes.add("on");"""
+
+        if error_m != "":
+            remcmd &= fmt"""var $status = f("#pkg-entry-{name}").all().classes("istatus").getElement();
+var classes = $status.classList;
+classes.remove("none");
+classes.add("on");
+$status.innerText = "Error: {error_m}";
+"""
+
+        app.dispatch(
+            proc () =
+                var hide_loader = ""
+                if install_queue.len <= 1:
+                    echo "HIDDEN"
+                    hide_loader &= fmt"""get_panel_by_name("{panel}").$tb_loader.classList.add("none");"""
+
+                app.js(fmt"""
+                {hide_loader}
+                f(PANEL.$tb).all().classes("tb-action-first").getElement().classList.remove("disabled");
+                processes.packages["{panel}"] = false;
+                {remcmd}
+                """)
+
+                # Remove name from queue.
+                install_queue.delete(0)
+                if install_queue.len != 0:
+                    let name = install_queue[0]
+                    asyncCheck installpkg(fmt"""{{"name":"{name}", "panel": "{panel}"}}""", true)
+        )
+
+    proc filter_avai_pkgs(input: string) =
+        # Remove nodes: [https://stackoverflow.com/a/3955238]
+        # Fragment: [https://howchoo.com/code/learn-the-slow-and-fast-way-to-append-elements-to-the-dom]
+        # Fuzzy search:
+        # [https://github.com/nim-lang/Nim/issues/13955]
+        # [https://github.com/nim-lang/Nim/blob/devel/tools/dochack/dochack.nim]
+        # [https://github.com/nim-lang/Nim/blob/devel/tools/dochack/fuzzysearch.nim]
+        # [https://www.forrestthewoods.com/blog/reverse_engineering_sublime_texts_fuzzy_match/]
+
+        var html = ""
+        var empty = true
+        var command = fmt"""
+            var PANEL = get_panel_by_name("packages-available");
+            PANEL.jdata_filtered.length = 0;
+            """
+
+        for name in AVAI_PKGS_NAMES:
+            if input in name:
+                empty = false
+                let p = registrypath & DirSep & name
+                let classname = if dirExists(p): "on" else: "clear"
+
+                command &= fmt"""PANEL.jdata_filtered.push("{name}");"""
+                html &= fmt"""<div class=entry id=pkg-entry-{name}>
+                    <div class="center">
+                        <div class="checkmark" data-name="{name}">
+                            <i class="fas fa-check none"></i>
+                        </div>
+                        <div class="pstatus {classname}"></div>
+                        <div class="label">{name}</div>
+                        <div class="loader-cont none">
+                            <div class="svg-loader s-loader"></div>
+                        </div>
+                        <div class="istatus none"></div>
+                    </div>
+                </div>""".collapse_html
+
+        if empty: html &= """<div class="empty"><div>No Packages</div></div>"""
+        command &= fmt"""
+            PANEL.$entries.textContent = "";
+            PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
+            PKG_PANES_REFS.$input_loader.classList.add("none");
+        """
+
+        app.js(command)
 
     # Run package manager actions (i.e. updating/remove/adding packages)
     # on its own thread to prevent blocking main UI/WebView event loop.
@@ -580,9 +777,6 @@ proc main() =
 
                 incoming.future[].complete(response)
 
-
-
-
     proc updater() {.async.} =
 
         app.js("""
@@ -866,70 +1060,6 @@ $parent.removeChild($child);"""
                 # document.getElementById("doctor-output").innerHTML = `{html}`;
                 # document.getElementById("doctor-run").classList.remove("nointer", "disabled");
 
-    var install_queue: seq[string] = @[]
-    proc installpkg(s: string, stop: bool = false) {.async.} =
-        let jdata = parseJSON(s)
-        let name = jdata["name"].getStr()
-        let panel = jdata["panel"].getStr()
-
-        # Queue logic.
-        if not stop: install_queue.add(name)
-        if install_queue.len > 1 and not stop: return
-
-        app.js(fmt"""
-            var PANEL = get_panel_by_name("{panel}");
-            PANEL.$tb_loader.classList.remove("none");
-            f(PANEL.$tb).all().classes("tb-action-first").getElement().classList.add("disabled");
-            """)
-
-        var chan: Channel[ChannelMsg]
-        chan.open()
-        var thread: Thread[ptr Channel[ChannelMsg]]
-        createThread(thread, t_installpkg, addr chan)
-
-        var fut = newFuture[Response]("installpkgs.nodecliac")
-        let data = ChannelMsg(future: addr fut, avai_db: addr AVAI_PKGS, avai_pname: name)
-        chan.send(data)
-        let r = await fut
-        let html = r.resp
-        let error_m = r.err
-        chan.close()
-
-        var remcmd = ""
-        remcmd &= fmt"""var $status = f("#pkg-entry-{name}").all().classes("pstatus").getElement();
-var classes = $status.classList;
-classes.remove("clear");
-classes.add("on");"""
-
-        if error_m != "":
-            remcmd &= fmt"""var $status = f("#pkg-entry-{name}").all().classes("istatus").getElement();
-var classes = $status.classList;
-classes.remove("none");
-classes.add("on");
-$status.innerText = "Error: {error_m}";
-"""
-
-        app.dispatch(
-            proc () =
-                var hide_loader = ""
-                if install_queue.len <= 1:
-                    echo "HIDDEN"
-                    hide_loader &= fmt"""get_panel_by_name("{panel}").$tb_loader.classList.add("none");"""
-
-                app.js(fmt"""
-                {hide_loader}
-                f(PANEL.$tb).all().classes("tb-action-first").getElement().classList.remove("disabled");
-                processes.packages["{panel}"] = false;
-                {remcmd}
-                """)
-
-                # Remove name from queue.
-                install_queue.delete(0)
-                if install_queue.len != 0:
-                    let name = install_queue[0]
-                    asyncCheck installpkg(fmt"""{{"name":"{name}", "panel": "{panel}"}}""", true)
-        )
-
     proc config_update(setting: string, value: int) =
         let p =  hdir & "/.nodecliac/.config"
         var config = if fileExists(p): readFile(p) else: ""
@@ -999,53 +1129,6 @@ $status.innerText = "Error: {error_m}";
             # jsLog(config)
 
     var names: seq[tuple[name, version: string, disabled: bool]] = @[]
-    proc filter_avai_pkgs(input: string) =
-        # Remove nodes: [https://stackoverflow.com/a/3955238]
-        # Fragment: [https://howchoo.com/code/learn-the-slow-and-fast-way-to-append-elements-to-the-dom]
-        # Fuzzy search:
-        # [https://github.com/nim-lang/Nim/issues/13955]
-        # [https://github.com/nim-lang/Nim/blob/devel/tools/dochack/dochack.nim]
-        # [https://github.com/nim-lang/Nim/blob/devel/tools/dochack/fuzzysearch.nim]
-        # [https://www.forrestthewoods.com/blog/reverse_engineering_sublime_texts_fuzzy_match/]
-
-        var html = ""
-
-        var empty = true
-        var command = fmt"""
-            var PANEL = get_panel_by_name("packages-available");
-            PANEL.jdata_filtered.length = 0;
-            """
-
-        for name in AVAI_PKGS_NAMES:
-            if input in name:
-                empty = false
-                let p = registrypath & DirSep & name
-                let classname = if dirExists(p): "on" else: "clear"
-
-                command &= fmt"""PANEL.jdata_filtered.push("{name}");"""
-                html &= fmt"""<div class=entry id=pkg-entry-{name}>
-                    <div class="center">
-                        <div class="checkmark" data-name="{name}">
-                            <i class="fas fa-check none"></i>
-                        </div>
-                        <div class="pstatus {classname}"></div>
-                        <div class="label">{name}</div>
-                        <div class="loader-cont none">
-                            <div class="svg-loader s-loader"></div>
-                        </div>
-                        <div class="istatus none"></div>
-                    </div>
-                </div>""".collapse_html
-
-        if empty: html &= """<div class="empty"><div>No Packages</div></div>"""
-        command &= fmt"""
-            PANEL.$entries.textContent = "";
-            PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
-            PKG_PANES_REFS.$input_loader.classList.add("none");
-        """
-
-        app.js(command)
-
     proc filter_pkgs(s: string) =
         # Remove nodes: [https://stackoverflow.com/a/3955238]
         # Fragment: [https://howchoo.com/code/learn-the-slow-and-fast-way-to-append-elements-to-the-dom]
@@ -1198,93 +1281,6 @@ $status.innerText = "Error: {error_m}";
                     var PANEL = get_panel_by_name("{panel}");
                     PANEL.$sbentry.classList.add("none");
                     processes.packages["{panel}"] = false;
-                """)
-        )
-
-    var avai_first_run_done = false
-    proc get_packages_avai(s: string) {.async.} =
-        let jdata = parseJSON(s)
-        let input = jdata["input"].getStr()
-        let panel = jdata["panel"].getStr()
-        let force = jdata{"force"}.getBool()
-
-        if avai_first_run_done and not force: return
-        avai_first_run_done = true
-
-        app.js(fmt"""get_panel_by_name("{panel}").$sbentry.classList.remove("none");""")
-
-        var chan: Channel[ChannelMsg]
-        chan.open()
-        var thread: Thread[ptr Channel[ChannelMsg]]
-        createThread(thread, t_get_packages_avai, addr chan)
-
-        var fut = newFuture[Response]("get-packages-avai.nodecliac")
-        let data = ChannelMsg(future: addr fut, avai_db: addr AVAI_PKGS)
-        chan.send(data)
-        let r = await fut
-        chan.close()
-
-        var objects = r.jdata[]
-        AVAI_PKGS = r.avai_db[]
-        AVAI_PKGS_NAMES = r.avai_names[]
-
-        var html = ""
-        if objects.len == 0:
-            html &= """<div class="empty"><div>No Packages</div></div>"""
-            app.dispatch(
-                proc () =
-                    app.js(
-                        fmt"""
-                        var PANEL = get_panel_by_name("{panel}");
-                        PANEL.$entries.textContent = "";
-                        PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
-                        """
-                    )
-            )
-        else:
-            var add_names = ""
-            for obj in objects:
-                let name = obj{"name"}.getStr()
-
-                add_names &= fmt"""PANEL.jdata_names.push("{name}");"""
-
-                if input != "":
-                    if input notin name: continue
-                let p = hdir & "/.nodecliac/registry/" & name
-                let classname = if dirExists(p): "on" else: "clear"
-                html &= fmt"""<div class=entry id=pkg-entry-{name}>
-                    <div class="center">
-                        <div class="checkmark" data-name="{name}">
-                            <i class="fas fa-check none"></i>
-                        </div>
-                        <div class="pstatus {classname}"></div>
-                        <div class="label">{name}</div>
-                        <div class="loader-cont none">
-                            <div class="svg-loader s-loader"></div>
-                        </div>
-                        <div class="istatus none"></div>
-                    </div>
-                </div>""".collapse_html
-
-            app.dispatch(
-                proc () =
-                    app.js(
-                        fmt"""
-                        var PANEL = get_panel_by_name("{panel}");
-                        PANEL.$entries.textContent = "";
-                        PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
-                        {add_names}
-                        """
-                    )
-            )
-
-        app.dispatch(
-            proc () =
-                app.js(fmt"""
-                    var PANEL = get_panel_by_name("{panel}");
-                    PANEL.$sbentry.classList.add("none");
-                    processes.packages["{panel}"] = false;
-                    toggle_pkg_sel_action_refresh(true);
                 """)
         )
 

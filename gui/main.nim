@@ -9,599 +9,579 @@ import tables
 import streams
 # from typetraits import name
 
-# [https://forum.nim-lang.org/t/6474#39947]
-type
-    Response = ref object
-        code: int
-        resp: string
-        jdata: ptr seq[JsonNode]
-        names: ptr seq[tuple[name, version: string, disabled: bool]]
-        # outdated: ptr seq[tuple[name, version: string]]
-        outdated: ptr seq[tuple[name, local_version, remote_version: string, config: OrderedTableRef[string, OrderedTableRef[string, string]]]]
+proc main() =
 
-        avai_db: ptr Table[string, JsonNode]
-        avai_names: ptr seq[string]
-        avai_pname: string
+    # [https://forum.nim-lang.org/t/6474#39947]
+    type
+        Response = ref object
+            code: int
+            resp: string
+            jdata: ptr seq[JsonNode]
+            names: ptr seq[tuple[name, version: string, disabled: bool]]
+            # outdated: ptr seq[tuple[name, version: string]]
+            outdated: ptr seq[tuple[name, local_version, remote_version: string, config: OrderedTableRef[string, OrderedTableRef[string, string]]]]
 
-        err: string
-    ChannelMsg = object
-        action, cmd: string
-        future: ptr Future[Response]
-        list: ptr seq[string]
-        # jdata: ptr jsonNode
-        all: bool
-        avai_db: ptr Table[string, JsonNode]
-        avai_pname: string
-var AVAI_PKGS = initTable[string, JsonNode]()
-var AVAI_PKGS_NAMES: seq[string] = @[]
+            avai_db: ptr Table[string, JsonNode]
+            avai_names: ptr seq[string]
+            avai_pname: string
 
-#
-# [https://forum.nim-lang.org/t/3640]
-# var fut {.threadvar.}: Future[Response]
-#
-# [https://nim-lang.org/docs/channels.html]
-# [https://nim-lang.org/docs/threads.html]
-# [https://nim-lang.org/docs/locks.html]
-# [https://github.com/nim-lang/Nim/issues/13936]
-# [https://github.com/nim-lang/RFCs/issues/183]
-# [https://forum.nim-lang.org/t/1572#9868]
+            err: string
+        ChannelMsg = object
+            action, cmd: string
+            future: ptr Future[Response]
+            list: ptr seq[string]
+            # jdata: ptr jsonNode
+            all: bool
+            avai_db: ptr Table[string, JsonNode]
+            avai_pname: string
+    var AVAI_PKGS = initTable[string, JsonNode]()
+    var AVAI_PKGS_NAMES: seq[string] = @[]
 
-when defined(linux):
-    const width = 1100  # + 1100
-    const height = 660 # + 750
-    const minWidth = width
-    const minHeight = height
-elif defined(macosx):
-    const width = 700
-    const height = 450
-    const minWidth = 650
-    const minHeight = 400
+    #
+    # [https://forum.nim-lang.org/t/3640]
+    # var fut {.threadvar.}: Future[Response]
+    #
+    # [https://nim-lang.org/docs/channels.html]
+    # [https://nim-lang.org/docs/threads.html]
+    # [https://nim-lang.org/docs/locks.html]
+    # [https://github.com/nim-lang/Nim/issues/13936]
+    # [https://github.com/nim-lang/RFCs/issues/183]
+    # [https://forum.nim-lang.org/t/1572#9868]
 
-let hdir = os.getEnv("HOME")
-let registrypath = hdir & "/.nodecliac/registry"
-# var app {.threadvar.}: Webview
-let app = newWebView(currentHtmlPath("views/index.html"),
-    debug=true,
-    title="nodecliac GUI",
-    width=width, height=height,
-    minWidth=minWidth, minHeight=minHeight,
-    resizable=true,
-    cssPath=currentHtmlPath("css/empty.css") # [Bug] Line doesn't work on macOS?
-)
+    when defined(linux):
+        const width = 1100  # + 1100
+        const height = 660 # + 750
+        const minWidth = width
+        const minHeight = height
+    elif defined(macosx):
+        const width = 700
+        const height = 450
+        const minWidth = 650
+        const minHeight = 400
 
-proc collapse_html(html: string): string =
-    return html.strip.unindent.multiReplace([("\n", " ")])
+    let hdir = os.getEnv("HOME")
+    let registrypath = hdir & "/.nodecliac/registry"
+    # var app {.threadvar.}: Webview
+    let app = newWebView(currentHtmlPath("views/index.html"),
+        debug=true,
+        title="nodecliac GUI",
+        width=width, height=height,
+        minWidth=minWidth, minHeight=minHeight,
+        resizable=true,
+        cssPath=currentHtmlPath("css/empty.css") # [Bug] Line doesn't work on macOS?
+    )
 
-# createThread(thread_t_watcher, thread_a_watcher)
+    proc collapse_html(html: string): string =
+        return html.strip.unindent.multiReplace([("\n", " ")])
 
-# Run package manager actions (i.e. updating/remove/adding packages)
-# on its own thread to prevent blocking main UI/WebView event loop.
-proc thread_a_update(chan: ptr Channel[ChannelMsg]) {.thread.} =
-    # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
-    while true:
-        var incoming = chan[].recv()
-        if not incoming.future[].finished:
-            var response: Response
-            response = Response(code: -1)
+    # Run package manager actions (i.e. updating/remove/adding packages)
+    # on its own thread to prevent blocking main UI/WebView event loop.
+    proc t_get_packages_avai(chan: ptr Channel[ChannelMsg]) {.thread.} =
+        # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
+        while true:
+            var incoming = chan[].recv()
+            if not incoming.future[].finished:
+                var response = Response(code: -1)
+                let hdir = os.getEnv("HOME")
+                var avai_db = incoming.avai_db[]
+                var avai_names: seq[string] = @[]
+                let cached_avai = hdir & "/.nodecliac/.cached_avai"
+                let url = "https://raw.githubusercontent.com/cgabriel5/nodecliac-packages/master/packages.json"
 
-            # Get user name: [https://stackoverflow.com/a/23931327]
-            let uname = execProcess("id -u -n").strip(trailing=true)
+                # [https://stackoverflow.com/a/6712058]
+                # Nim Json sorting: [https://forum.nim-lang.org/t/6332#39027]
+                proc alphasort(a, b: JsonNode): int =
+                    let aname = a{"name"}.getStr().toLower()
+                    let bname = b{"name"}.getStr().toLower()
+                    if aname < bname: result = -1 # Sort string ascending.
+                    elif aname > bname: result = 1
+                    else: result = 0 # Default return value (no sorting).
 
-            # Ask user for password.
-            let input = dialogInput(
-                aTitle = "Authentication Required",
-                aMessage = fmt"Authentication required to update nodecliac, please enter your password.\n\nPassword for {uname}:",
-                aDefaultInput = nil,
-                aIconType = "info"
-            )
+                proc fetchjson(url: string): Future[string] {.async.} =
+                    let client = newAsyncHttpClient()
+                    let contents = await client.getContent(url)
+                    return contents
 
-            # If password provided validate it's correct.
-            if input.len != 0:
-                # [https://askubuntu.com/a/622419]
-                # [http://www.yourownlinux.com/2015/08/how-to-check-if-username-and-password-are-valid-using-bash-script.html]
-                let script = fmt"""#! /bin/bash
-sudo -k
-if sudo -lS &> /dev/null << EOF
-{input}
-EOF
-then
-{incoming.cmd}
-else
-exit 1
-fi"""
-                let cmd = fmt"""bash -c '{script}'"""
-                let (res, code) = execCmdEx(cmd)
+                proc getpkgs() {.async.} =
+                    let cache_exists = fileExists(cached_avai)
+                    let cache_fresh = (
+                        if cache_exists:
+                            let mtime = getLastModificationTime(cached_avai).toUnix()
+                            let ctime = getTime().toUnix()
+                            not (ctime - mtime > 60)
+                        else: true
+                    )
+                    let usecache = cache_exists and cache_fresh
 
-                if code == 1: response.resp = "val:fail"
-                response.code = code
+                    let contents = if usecache: readFile(cached_avai) else: await fetchjson(url)
+                    var jdata = parseJSON(contents).getElems.sorted(alphasort)
 
-            incoming.future[].complete(response)
-            # sleep 3000 # [https://github.com/nim-lang/Nim/issues/3687]
+                    for item in items(jdata):
+                        let name = item["name"].getStr()
+                        avai_db[name] = item
+                        avai_names.add(name)
 
-# Run package manager actions (i.e. updating/remove/adding packages)
-# on its own thread to prevent blocking main UI/WebView event loop.
-proc thread_a_doctor(chan: ptr Channel[ChannelMsg]) {.thread.} =
-    # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
-    while true:
-        var incoming = chan[].recv()
-        if not incoming.future[].finished:
-            var response: Response
-            response = Response(code: -1)
+                    if not usecache:
+                        var sjson = $jdata
+                        if sjson != "": sjson.delete(0, 0)
+                        writeFile(cached_avai, sjson)
 
-            let hdir = os.getEnv("HOME")
-            let status = execProcess("nodecliac").strip(trailing=true)
-            let ping =
-                if status.len == 0: "<div class=\"value\">OK</div>"
-                else: "<div class=\"value error\">ERROR</div>"
-            let version = execProcess("nodecliac --version").strip(trailing=true)
-            let binary = execProcess("command -v nodecliac").strip(trailing=true)
-            let binloc =
-                if binary.startsWith(hdir): binary.replace(hdir, "~")
-                else: binary
+                    response.jdata = addr jdata
+                    response.avai_db = addr avai_db
+                    response.avai_names = addr avai_names
 
-        # <div class=\"header\">Log</div>
-            response.resp = fmt"""
-        <div class=\"row\">
-            <div class=\"label\">nodecliac ping:</div>
-            {ping}
-        </div>
-        <div class=\"row\">
-            <div class=\"label\">nodecliac -v:</div>
-            <div class=\"value\">v{version}</div>
-        </div>
-        <div class=\"row\">
-            <div class=\"label\">bin:</div>
-            <div class=\"value\">{binloc}</div>
-        </div>
-        """.collapse_html
+                    incoming.future[].complete(response)
 
-            incoming.future[].complete(response)
+                waitFor getpkgs()
 
-# Run package manager actions (i.e. updating/remove/adding packages)
-# on its own thread to prevent blocking main UI/WebView event loop.
-proc thread_a_ccache(chan: ptr Channel[ChannelMsg]) {.thread.} =
-    # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
-    while true:
-        var incoming = chan[].recv()
-        if not incoming.future[].finished:
-            var response: Response
-            response = Response(code: -1)
+    # Run package manager actions (i.e. updating/remove/adding packages)
+    # on its own thread to prevent blocking main UI/WebView event loop.
+    proc t_installpkg(chan: ptr Channel[ChannelMsg]) {.thread.} =
+        # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
+        while true:
+            var incoming = chan[].recv()
+            if not incoming.future[].finished:
+                var response = Response(code: -1)
 
-            # Use nodecliac CLI.
-            # discard execProcess("nodecliac cache --clear")
+                let name = incoming.avai_pname
+                let all = incoming.all
+                let avai_db = incoming.avai_db[]
 
-            # Nim native `nodecliac cache --clear` equivalent...
-            let hdir = os.getEnv("HOME")
-            let cp = hdir & "/.nodecliac/.cache"
-            if dirExists(cp):
-                for kind, path in walkDir(cp):
-                    if kind == pcFile: discard tryRemoveFile(path)
-
-            incoming.future[].complete(response)
-
-# Run package manager actions (i.e. updating/remove/adding packages)
-# on its own thread to prevent blocking main UI/WebView event loop.
-proc thread_a_actions1(chan: ptr Channel[ChannelMsg]) {.thread.} =
-    # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
-    while true:
-        var incoming = chan[].recv()
-        if not incoming.future[].finished:
-            var response: Response
-            response = Response(code: -1)
-
-            let action = incoming.action
-            let all = incoming.all
-            case action:
-                of "get-packages":
-
-                    # var empty = true
-                    let hdir = os.getEnv("HOME")
-                    var items: seq[tuple[name, version: string, disabled: bool]] = @[]
-                    let dirtypes = {pcDir, pcLinkToDir}
-                    for kind, path in walkDir(hdir & "/.nodecliac/registry"):
-                        # [https://nim-lang.org/docs/os.html#PathComponent]
-                        # Only get dirs/links to dirs
-                        if kind notin dirtypes: continue
-
-                        # empty = false
-                        let parts = splitPath(path)
-                        let command = parts.tail
-                        var version = "0.0.1"
-                        var disabled = false
-
-                        # Get version.
-                        let config = joinPath(path, "package.ini")
-                        if fileExists(config):
-                            let data = loadConfig(config)
-                            version = data.getSectionValue("Package", "version")
-
-                        # Get disabled state.
-                        let dconfig = joinPath(path, fmt".{command}.config.acdef")
-                        if fileExists(dconfig):
-                            let contents = readFile(dconfig)
-                            if find(contents, re("@disable\\s=\\strue")) > -1:
-                                disabled = true
-
-                        var item: tuple[name, version: string, disabled: bool]
-                        item = (name: command, version: version, disabled: disabled)
-                        items.add(item)
-
-                     # [https://stackoverflow.com/a/6712058]
-                    proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
-                        let aname = a.name.toLower()
-                        let bname = b.name.toLower()
-                        if aname < bname: result = -1 # Sort string ascending.
-                        elif aname > bname: result = 1
-                        else: result = 0 # Default return value (no sorting).
-                    items.sort(alphasort)
-
-                    response.names = addr items
-
-                else: discard
-
-            incoming.future[].complete(response)
-
-# Run package manager actions (i.e. updating/remove/adding packages)
-# on its own thread to prevent blocking main UI/WebView event loop.
-proc t_get_packages_avai(chan: ptr Channel[ChannelMsg]) {.thread.} =
-    # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
-    while true:
-        var incoming = chan[].recv()
-        if not incoming.future[].finished:
-            var response = Response(code: -1)
-            let hdir = os.getEnv("HOME")
-            var avai_db = incoming.avai_db[]
-            var avai_names: seq[string] = @[]
-            let cached_avai = hdir & "/.nodecliac/.cached_avai"
-            let url = "https://raw.githubusercontent.com/cgabriel5/nodecliac-packages/master/packages.json"
-
-            # [https://stackoverflow.com/a/6712058]
-            # Nim Json sorting: [https://forum.nim-lang.org/t/6332#39027]
-            proc alphasort(a, b: JsonNode): int =
-                let aname = a{"name"}.getStr().toLower()
-                let bname = b{"name"}.getStr().toLower()
-                if aname < bname: result = -1 # Sort string ascending.
-                elif aname > bname: result = 1
-                else: result = 0 # Default return value (no sorting).
-
-            proc fetchjson(url: string): Future[string] {.async.} =
-                let client = newAsyncHttpClient()
-                let contents = await client.getContent(url)
-                return contents
-
-            proc getpkgs() {.async.} =
-                let cache_exists = fileExists(cached_avai)
-                let cache_fresh = (
-                    if cache_exists:
-                        let mtime = getLastModificationTime(cached_avai).toUnix()
-                        let ctime = getTime().toUnix()
-                        not (ctime - mtime > 60)
-                    else: true
-                )
-                let usecache = cache_exists and cache_fresh
-
-                let contents = if usecache: readFile(cached_avai) else: await fetchjson(url)
-                var jdata = parseJSON(contents).getElems.sorted(alphasort)
-
-                for item in items(jdata):
-                    let name = item["name"].getStr()
-                    avai_db[name] = item
-                    avai_names.add(name)
-
-                if not usecache:
-                    var sjson = $jdata
-                    if sjson != "": sjson.delete(0, 0)
-                    writeFile(cached_avai, sjson)
-
-                response.jdata = addr jdata
-                response.avai_db = addr avai_db
-                response.avai_names = addr avai_names
+                if avai_db.hasKey(name):
+                    let scheme = avai_db[name]{"scheme"}.getStr()
+                    let cmd = fmt"""nodecliac add --repo "{scheme}" --skip-val;"""
+                    let res = execProcess(cmd).strip(trailing=true)
+                    if "exists" in res: response.err = $res
 
                 incoming.future[].complete(response)
 
-            waitFor getpkgs()
+    # Run package manager actions (i.e. updating/remove/adding packages)
+    # on its own thread to prevent blocking main UI/WebView event loop.
+    proc thread_a_update(chan: ptr Channel[ChannelMsg]) {.thread.} =
+        # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
+        while true:
+            var incoming = chan[].recv()
+            if not incoming.future[].finished:
+                var response: Response
+                response = Response(code: -1)
 
-# Run package manager actions (i.e. updating/remove/adding packages)
-# on its own thread to prevent blocking main UI/WebView event loop.
-proc thread_a_actions3(chan: ptr Channel[ChannelMsg]) {.thread.} =
-    # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
-    while true:
-        var incoming = chan[].recv()
-        if not incoming.future[].finished:
-            var response: Response
-            response = Response(code: -1)
+                # Get user name: [https://stackoverflow.com/a/23931327]
+                let uname = execProcess("id -u -n").strip(trailing=true)
 
-            let action = incoming.action
-            let all = incoming.all
-            case action:
-                of "get-packages-out":
+                # Ask user for password.
+                let input = dialogInput(
+                    aTitle = "Authentication Required",
+                    aMessage = fmt"Authentication required to update nodecliac, please enter your password.\n\nPassword for {uname}:",
+                    aDefaultInput = nil,
+                    aIconType = "info"
+                )
 
-                    # get commands
-                    # get each packages repo url information
-                    #   - make repo url for each command
-                    # make http reqs to compare remote version
-                    #   ... with local version
+                # If password provided validate it's correct.
+                if input.len != 0:
+                    # [https://askubuntu.com/a/622419]
+                    # [http://www.yourownlinux.com/2015/08/how-to-check-if-username-and-password-are-valid-using-bash-script.html]
+                    let script = fmt"""#! /bin/bash
+    sudo -k
+    if sudo -lS &> /dev/null << EOF
+    {input}
+    EOF
+    then
+    {incoming.cmd}
+    else
+    exit 1
+    fi"""
+                    let cmd = fmt"""bash -c '{script}'"""
+                    let (res, code) = execCmdEx(cmd)
 
-                    # var urls: seq[string] = @[]
-                    # let urls = array[items.len, string]
-                    var urls = initTable[string, string]()
+                    if code == 1: response.resp = "val:fail"
+                    response.code = code
 
-                    # var empty = true
-                    let hdir = os.getEnv("HOME")
-                    var items: seq[tuple[name, version: string, disabled: bool]] = @[]
-                    let dirtypes = {pcDir, pcLinkToDir}
-                    for kind, path in walkDir(hdir & "/.nodecliac/registry"):
-                        # [https://nim-lang.org/docs/os.html#PathComponent]
-                        # Only get dirs/links to dirs
-                        if kind notin dirtypes: continue
+                incoming.future[].complete(response)
+                # sleep 3000 # [https://github.com/nim-lang/Nim/issues/3687]
 
-                        # empty = false
-                        let parts = splitPath(path)
-                        let command = parts.tail
-                        var version = "0.0.1"
-                        var disabled = false
+    # Run package manager actions (i.e. updating/remove/adding packages)
+    # on its own thread to prevent blocking main UI/WebView event loop.
+    proc thread_a_doctor(chan: ptr Channel[ChannelMsg]) {.thread.} =
+        # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
+        while true:
+            var incoming = chan[].recv()
+            if not incoming.future[].finished:
+                var response: Response
+                response = Response(code: -1)
 
-                        var url = ""
+                let hdir = os.getEnv("HOME")
+                let status = execProcess("nodecliac").strip(trailing=true)
+                let ping =
+                    if status.len == 0: "<div class=\"value\">OK</div>"
+                    else: "<div class=\"value error\">ERROR</div>"
+                let version = execProcess("nodecliac --version").strip(trailing=true)
+                let binary = execProcess("command -v nodecliac").strip(trailing=true)
+                let binloc =
+                    if binary.startsWith(hdir): binary.replace(hdir, "~")
+                    else: binary
 
-                        # Get version.
-                        let config = joinPath(path, "package.ini")
-                        if fileExists(config):
-                            let data = loadConfig(config)
-                            version = data.getSectionValue("Package", "version")
+            # <div class=\"header\">Log</div>
+                response.resp = fmt"""
+            <div class=\"row\">
+                <div class=\"label\">nodecliac ping:</div>
+                {ping}
+            </div>
+            <div class=\"row\">
+                <div class=\"label\">nodecliac -v:</div>
+                <div class=\"value\">v{version}</div>
+            </div>
+            <div class=\"row\">
+                <div class=\"label\">bin:</div>
+                <div class=\"value\">{binloc}</div>
+            </div>
+            """.collapse_html
 
-                            var repo = data.getSectionValue("Author", "repo")
-                            repo.removePrefix({'/'})
-                            var sub = data.getSectionValue("Author", "sub", "")
-                            sub.removePrefix({'/'})
-                            sub.removeSuffix({'/'})
+                incoming.future[].complete(response)
 
-                            if repo != "":
-                                let uparts = parseUri(repo)
-                                var path = uparts.path
-                                path.removePrefix({'/'})
-                                let parts = splitPath(path)
-                                let username = parts[0]
-                                let reponame = parts[1]
+    # Run package manager actions (i.e. updating/remove/adding packages)
+    # on its own thread to prevent blocking main UI/WebView event loop.
+    proc thread_a_ccache(chan: ptr Channel[ChannelMsg]) {.thread.} =
+        # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
+        while true:
+            var incoming = chan[].recv()
+            if not incoming.future[].finished:
+                var response: Response
+                response = Response(code: -1)
 
-                                url = fmt"https://raw.githubusercontent.com/{username}/{reponame}/master"
-                                if sub != "": url &= fmt"/{sub}"
-                                # url &= "/package.ini"
-                                url &= fmt"/{command}.acmap"
+                # Use nodecliac CLI.
+                # discard execProcess("nodecliac cache --clear")
 
-                        urls[command] = url
+                # Nim native `nodecliac cache --clear` equivalent...
+                let hdir = os.getEnv("HOME")
+                let cp = hdir & "/.nodecliac/.cache"
+                if dirExists(cp):
+                    for kind, path in walkDir(cp):
+                        if kind == pcFile: discard tryRemoveFile(path)
 
-                        # # Get disabled state.
-                        # let dconfig = joinPath(path, fmt".{command}.config.acdef")
-                        # if fileExists(dconfig):
-                        #     let contents = readFile(dconfig)
-                        #     if find(contents, re("@disable\\s=\\strue")) > -1:
-                        #         disabled = true
+                incoming.future[].complete(response)
 
-                        var item: tuple[name, version: string, disabled: bool]
-                        item = (name: command, version: version, disabled: disabled)
-                        items.add(item)
+    # Run package manager actions (i.e. updating/remove/adding packages)
+    # on its own thread to prevent blocking main UI/WebView event loop.
+    proc thread_a_actions1(chan: ptr Channel[ChannelMsg]) {.thread.} =
+        # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
+        while true:
+            var incoming = chan[].recv()
+            if not incoming.future[].finished:
+                var response: Response
+                response = Response(code: -1)
 
-                     # [https://stackoverflow.com/a/6712058]
-                    proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
-                        let aname = a.name.toLower()
-                        let bname = b.name.toLower()
-                        if aname < bname: result = -1 # Sort string ascending.
-                        elif aname > bname: result = 1
-                        else: result = 0 # Default return value (no sorting).
-                    items.sort(alphasort)
+                let action = incoming.action
+                let all = incoming.all
+                case action:
+                    of "get-packages":
 
-                    response.names = addr items
+                        # var empty = true
+                        let hdir = os.getEnv("HOME")
+                        var items: seq[tuple[name, version: string, disabled: bool]] = @[]
+                        let dirtypes = {pcDir, pcLinkToDir}
+                        for kind, path in walkDir(hdir & "/.nodecliac/registry"):
+                            # [https://nim-lang.org/docs/os.html#PathComponent]
+                            # Only get dirs/links to dirs
+                            if kind notin dirtypes: continue
 
-                    # ==========================================================
-                    # ==========================================================
-                    # ==========================================================
+                            # empty = false
+                            let parts = splitPath(path)
+                            let command = parts.tail
+                            var version = "0.0.1"
+                            var disabled = false
 
-                    # [https://nim-lang.org/docs/tut2.html#exceptions-try-statement]
-                    proc fetchfile(url: string): Future[string] {.async.} =
-                        let client = newAsyncHttpClient()
-                        let resp = await get(client, url)
+                            # Get version.
+                            let config = joinPath(path, "package.ini")
+                            if fileExists(config):
+                                let data = loadConfig(config)
+                                version = data.getSectionValue("Package", "version")
 
-                        if not resp.code.is2xx:
-                            let f = newFuture[string]("fetchfile.nodecliac")
-                            f.complete("[ERR: " & $(resp.code) & "]")
-                            return await f
-                        else:
-                            return await resp.bodyStream.readAll()
+                            # Get disabled state.
+                            let dconfig = joinPath(path, fmt".{command}.config.acdef")
+                            if fileExists(dconfig):
+                                let contents = readFile(dconfig)
+                                if find(contents, re("@disable\\s=\\strue")) > -1:
+                                    disabled = true
 
-                    var outdated: seq[tuple[name, local_version, remote_version: string, config: OrderedTableRef[string, OrderedTableRef[string, string]]]] = @[]
+                            var item: tuple[name, version: string, disabled: bool]
+                            item = (name: command, version: version, disabled: disabled)
+                            items.add(item)
 
-                    proc testhttp {.async.} =
-                        # var reqs: array[urls.len, Future[string]]
-                        var reqs: seq[Future[string]]
-                        # for i, url in urls: reqs[i] = fetchfile(url)
-                        # for url in urls: reqs.add(fetchfile(url))
-                        # for command, url in urls.pairs:
-                            # reqs.add(fetchfile(url))
-                        for item in items:
-                            reqs.add(fetchfile(urls[item.name]))
-                        let reponses = await all(reqs)
-                        for i, response in reponses:
-                            # let strm = newStringStream(fmt"""{response}""")
-                            let strm = newStringStream(fmt"""[Package]
-version = "0.0.2"
-""")
-                            let data = loadConfig(strm)
-                            let remote_version = data.getSectionValue("Package", "version")
-                            let local_version = items[i].version;
+                         # [https://stackoverflow.com/a/6712058]
+                        proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
+                            let aname = a.name.toLower()
+                            let bname = b.name.toLower()
+                            if aname < bname: result = -1 # Sort string ascending.
+                            elif aname > bname: result = 1
+                            else: result = 0 # Default return value (no sorting).
+                        items.sort(alphasort)
 
-                            if  local_version != remote_version:
-                                var item: tuple[name, local_version, remote_version: string, config: OrderedTableRef[string, OrderedTableRef[string, string]]]
-                                item = (
-                                    name: items[i].name,
-                                    local_version: local_version,
-                                    remote_version: remote_version,
-                                    config: data
-                                )
-                                outdated.add(item)
+                        response.names = addr items
 
-                        response.outdated = addr outdated
-                        incoming.future[].complete(response)
+                    else: discard
 
-                    waitFor testhttp()
+                incoming.future[].complete(response)
 
-                    # # var empty = true
-                    # let hdir = os.getEnv("HOME")
-                    # var items: seq[tuple[name, version: string, disabled: bool]] = @[]
-                    # let dirtypes = {pcDir, pcLinkToDir}
-                    # for kind, path in walkDir(hdir & "/.nodecliac/registry"):
-                    #     # [https://nim-lang.org/docs/os.html#PathComponent]
-                    #     # Only get dirs/links to dirs
-                    #     if kind notin dirtypes: continue
+    # Run package manager actions (i.e. updating/remove/adding packages)
+    # on its own thread to prevent blocking main UI/WebView event loop.
+    proc thread_a_actions3(chan: ptr Channel[ChannelMsg]) {.thread.} =
+        # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
+        while true:
+            var incoming = chan[].recv()
+            if not incoming.future[].finished:
+                var response: Response
+                response = Response(code: -1)
 
-                    #     # empty = false
-                    #     let parts = splitPath(path)
-                    #     let command = parts.tail
-                    #     var version = "0.0.1"
-                    #     var disabled = false
+                let action = incoming.action
+                let all = incoming.all
+                case action:
+                    of "get-packages-out":
 
-                    #     # Get version.
-                    #     let config = joinPath(path, "package.ini")
-                    #     if fileExists(config):
-                    #         let data = loadConfig(config)
-                    #         version = data.getSectionValue("Package", "version")
+                        # get commands
+                        # get each packages repo url information
+                        #   - make repo url for each command
+                        # make http reqs to compare remote version
+                        #   ... with local version
 
-                    #     # Get disabled state.
-                    #     let dconfig = joinPath(path, fmt".{command}.config.acdef")
-                    #     if fileExists(dconfig):
-                    #         let contents = readFile(dconfig)
-                    #         if find(contents, re("@disable\\s=\\strue")) > -1:
-                    #             disabled = true
+                        # var urls: seq[string] = @[]
+                        # let urls = array[items.len, string]
+                        var urls = initTable[string, string]()
 
-                    #     var item: tuple[name, version: string, disabled: bool]
-                    #     item = (name: command, version: version, disabled: disabled)
-                    #     items.add(item)
+                        # var empty = true
+                        let hdir = os.getEnv("HOME")
+                        var items: seq[tuple[name, version: string, disabled: bool]] = @[]
+                        let dirtypes = {pcDir, pcLinkToDir}
+                        for kind, path in walkDir(hdir & "/.nodecliac/registry"):
+                            # [https://nim-lang.org/docs/os.html#PathComponent]
+                            # Only get dirs/links to dirs
+                            if kind notin dirtypes: continue
 
-                    #  # [https://stackoverflow.com/a/6712058]
-                    # proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
-                    #     let aname = a.name.toLower()
-                    #     let bname = b.name.toLower()
-                    #     if aname < bname: result = -1 # Sort string ascending.
-                    #     elif aname > bname: result = 1
-                    #     else: result = 0 # Default return value (no sorting).
-                    # items.sort(alphasort)
+                            # empty = false
+                            let parts = splitPath(path)
+                            let command = parts.tail
+                            var version = "0.0.1"
+                            var disabled = false
 
-                    # response.names = addr items
+                            var url = ""
 
-                else: discard
+                            # Get version.
+                            let config = joinPath(path, "package.ini")
+                            if fileExists(config):
+                                let data = loadConfig(config)
+                                version = data.getSectionValue("Package", "version")
 
-            incoming.future[].complete(response)
+                                var repo = data.getSectionValue("Author", "repo")
+                                repo.removePrefix({'/'})
+                                var sub = data.getSectionValue("Author", "sub", "")
+                                sub.removePrefix({'/'})
+                                sub.removeSuffix({'/'})
 
-# Run package manager actions (i.e. updating/remove/adding packages)
-# on its own thread to prevent blocking main UI/WebView event loop.
-proc thread_a_actions(chan: ptr Channel[ChannelMsg]) {.thread.} =
-    # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
-    while true:
-        var incoming = chan[].recv()
-        if not incoming.future[].finished:
-            var response: Response
-            response = Response(code: -1)
+                                if repo != "":
+                                    let uparts = parseUri(repo)
+                                    var path = uparts.path
+                                    path.removePrefix({'/'})
+                                    let parts = splitPath(path)
+                                    let username = parts[0]
+                                    let reponame = parts[1]
 
-            let action = incoming.action
-            let all = incoming.all
+                                    url = fmt"https://raw.githubusercontent.com/{username}/{reponame}/master"
+                                    if sub != "": url &= fmt"/{sub}"
+                                    # url &= "/package.ini"
+                                    url &= fmt"/{command}.acmap"
 
-            case action:
-                of "remove":
-                    # Use nodecliac CLI.
-                    # let names = incoming.list[]
-                    # var cmd = fmt"""nodecliac remove"""
-                    # for name in names: cmd &= " " & name
-                    # discard execProcess(cmd)
+                            urls[command] = url
 
-                    let hdir = os.getEnv("HOME")
-                    let names = incoming.list[]
-                    for name in names:
-                        let p = hdir & "/.nodecliac/registry/" & name
-                        # if dirExists(p): removeDir(p)
-                of "enable":
-                    # Use nodecliac CLI.
-                    # [https://forum.nim-lang.org/t/6122]
-                    let names = (
-                        if not all:
-                            incoming.list[]
-                        else:
-                            # If all flag is set, get all registry package names.
-                            var names: seq[string] = @[]
-                            let hdir = os.getEnv("HOME")
-                            for kind, path in walkDir(hdir & "/.nodecliac/registry"):
-                                let parts = splitPath(path)
-                                names.add(parts.tail)
-                            names.sort()
-                            names
-                    )
-                    var cmd = fmt"""nodecliac enable"""
-                    for name in names: cmd &= " " & name
-                    discard execProcess(cmd)
-                of "disable":
-                    # Use nodecliac CLI.
-                    let names = (
-                        if not all:
-                            incoming.list[]
-                        else:
-                            # If all flag is set, get all registry package names.
-                            var names: seq[string] = @[]
-                            let hdir = os.getEnv("HOME")
-                            for kind, path in walkDir(hdir & "/.nodecliac/registry"):
-                                let parts = splitPath(path)
-                                names.add(parts.tail)
-                            names.sort()
-                            names
-                    )
-                    var cmd = fmt"""nodecliac disable"""
-                    for name in names: cmd &= " " & name
-                    discard execProcess(cmd)
+                            # # Get disabled state.
+                            # let dconfig = joinPath(path, fmt".{command}.config.acdef")
+                            # if fileExists(dconfig):
+                            #     let contents = readFile(dconfig)
+                            #     if find(contents, re("@disable\\s=\\strue")) > -1:
+                            #         disabled = true
 
-                else: discard
+                            var item: tuple[name, version: string, disabled: bool]
+                            item = (name: command, version: version, disabled: disabled)
+                            items.add(item)
 
-            incoming.future[].complete(response)
+                         # [https://stackoverflow.com/a/6712058]
+                        proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
+                            let aname = a.name.toLower()
+                            let bname = b.name.toLower()
+                            if aname < bname: result = -1 # Sort string ascending.
+                            elif aname > bname: result = 1
+                            else: result = 0 # Default return value (no sorting).
+                        items.sort(alphasort)
 
-# Run package manager actions (i.e. updating/remove/adding packages)
-# on its own thread to prevent blocking main UI/WebView event loop.
-proc t_installpkg(chan: ptr Channel[ChannelMsg]) {.thread.} =
-    # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
-    while true:
-        var incoming = chan[].recv()
-        if not incoming.future[].finished:
-            var response = Response(code: -1)
+                        response.names = addr items
 
-            let name = incoming.avai_pname
-            let all = incoming.all
-            let avai_db = incoming.avai_db[]
+                        # ==========================================================
+                        # ==========================================================
+                        # ==========================================================
 
-            if avai_db.hasKey(name):
-                let scheme = avai_db[name]{"scheme"}.getStr()
-                let cmd = fmt"""nodecliac add --repo "{scheme}" --skip-val;"""
-                let res = execProcess(cmd).strip(trailing=true)
-                if "exists" in res: response.err = $res
+                        # [https://nim-lang.org/docs/tut2.html#exceptions-try-statement]
+                        proc fetchfile(url: string): Future[string] {.async.} =
+                            let client = newAsyncHttpClient()
+                            let resp = await get(client, url)
 
-            incoming.future[].complete(response)
+                            if not resp.code.is2xx:
+                                let f = newFuture[string]("fetchfile.nodecliac")
+                                f.complete("[ERR: " & $(resp.code) & "]")
+                                return await f
+                            else:
+                                return await resp.bodyStream.readAll()
 
-proc main() =
+                        var outdated: seq[tuple[name, local_version, remote_version: string, config: OrderedTableRef[string, OrderedTableRef[string, string]]]] = @[]
 
-    # when defined(linux):
-    #     const width = 1100
-    #     const height = 750
-    #     const minWidth = 950
-    #     const minHeight = 600
-    # elif defined(macosx):
-    #     const width = 700
-    #     const height = 450
-    #     const minWidth = 650
-    #     const minHeight = 400
+                        proc testhttp {.async.} =
+                            # var reqs: array[urls.len, Future[string]]
+                            var reqs: seq[Future[string]]
+                            # for i, url in urls: reqs[i] = fetchfile(url)
+                            # for url in urls: reqs.add(fetchfile(url))
+                            # for command, url in urls.pairs:
+                                # reqs.add(fetchfile(url))
+                            for item in items:
+                                reqs.add(fetchfile(urls[item.name]))
+                            let reponses = await all(reqs)
+                            for i, response in reponses:
+                                # let strm = newStringStream(fmt"""{response}""")
+                                let strm = newStringStream(fmt"""[Package]
+    version = "0.0.2"
+    """)
+                                let data = loadConfig(strm)
+                                let remote_version = data.getSectionValue("Package", "version")
+                                let local_version = items[i].version;
 
-    # let hdir = os.getEnv("HOME")
-    # let app = newWebView(currentHtmlPath("views/index.html"),
-    #     debug=true,
-    #     title="nodecliac GUI",
-    #     width=width, height=height,
-    #     minWidth=minWidth, minHeight=minHeight,
-    #     resizable=true,
-    #     cssPath=currentHtmlPath("css/empty.css") # [Bug] Line doesn't work on macOS?
-    # )
+                                if  local_version != remote_version:
+                                    var item: tuple[name, local_version, remote_version: string, config: OrderedTableRef[string, OrderedTableRef[string, string]]]
+                                    item = (
+                                        name: items[i].name,
+                                        local_version: local_version,
+                                        remote_version: remote_version,
+                                        config: data
+                                    )
+                                    outdated.add(item)
+
+                            response.outdated = addr outdated
+                            incoming.future[].complete(response)
+
+                        waitFor testhttp()
+
+                        # # var empty = true
+                        # let hdir = os.getEnv("HOME")
+                        # var items: seq[tuple[name, version: string, disabled: bool]] = @[]
+                        # let dirtypes = {pcDir, pcLinkToDir}
+                        # for kind, path in walkDir(hdir & "/.nodecliac/registry"):
+                        #     # [https://nim-lang.org/docs/os.html#PathComponent]
+                        #     # Only get dirs/links to dirs
+                        #     if kind notin dirtypes: continue
+
+                        #     # empty = false
+                        #     let parts = splitPath(path)
+                        #     let command = parts.tail
+                        #     var version = "0.0.1"
+                        #     var disabled = false
+
+                        #     # Get version.
+                        #     let config = joinPath(path, "package.ini")
+                        #     if fileExists(config):
+                        #         let data = loadConfig(config)
+                        #         version = data.getSectionValue("Package", "version")
+
+                        #     # Get disabled state.
+                        #     let dconfig = joinPath(path, fmt".{command}.config.acdef")
+                        #     if fileExists(dconfig):
+                        #         let contents = readFile(dconfig)
+                        #         if find(contents, re("@disable\\s=\\strue")) > -1:
+                        #             disabled = true
+
+                        #     var item: tuple[name, version: string, disabled: bool]
+                        #     item = (name: command, version: version, disabled: disabled)
+                        #     items.add(item)
+
+                        #  # [https://stackoverflow.com/a/6712058]
+                        # proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
+                        #     let aname = a.name.toLower()
+                        #     let bname = b.name.toLower()
+                        #     if aname < bname: result = -1 # Sort string ascending.
+                        #     elif aname > bname: result = 1
+                        #     else: result = 0 # Default return value (no sorting).
+                        # items.sort(alphasort)
+
+                        # response.names = addr items
+
+                    else: discard
+
+                incoming.future[].complete(response)
+
+    # Run package manager actions (i.e. updating/remove/adding packages)
+    # on its own thread to prevent blocking main UI/WebView event loop.
+    proc thread_a_actions(chan: ptr Channel[ChannelMsg]) {.thread.} =
+        # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
+        while true:
+            var incoming = chan[].recv()
+            if not incoming.future[].finished:
+                var response: Response
+                response = Response(code: -1)
+
+                let action = incoming.action
+                let all = incoming.all
+
+                case action:
+                    of "remove":
+                        # Use nodecliac CLI.
+                        # let names = incoming.list[]
+                        # var cmd = fmt"""nodecliac remove"""
+                        # for name in names: cmd &= " " & name
+                        # discard execProcess(cmd)
+
+                        let hdir = os.getEnv("HOME")
+                        let names = incoming.list[]
+                        for name in names:
+                            let p = hdir & "/.nodecliac/registry/" & name
+                            # if dirExists(p): removeDir(p)
+                    of "enable":
+                        # Use nodecliac CLI.
+                        # [https://forum.nim-lang.org/t/6122]
+                        let names = (
+                            if not all:
+                                incoming.list[]
+                            else:
+                                # If all flag is set, get all registry package names.
+                                var names: seq[string] = @[]
+                                let hdir = os.getEnv("HOME")
+                                for kind, path in walkDir(hdir & "/.nodecliac/registry"):
+                                    let parts = splitPath(path)
+                                    names.add(parts.tail)
+                                names.sort()
+                                names
+                        )
+                        var cmd = fmt"""nodecliac enable"""
+                        for name in names: cmd &= " " & name
+                        discard execProcess(cmd)
+                    of "disable":
+                        # Use nodecliac CLI.
+                        let names = (
+                            if not all:
+                                incoming.list[]
+                            else:
+                                # If all flag is set, get all registry package names.
+                                var names: seq[string] = @[]
+                                let hdir = os.getEnv("HOME")
+                                for kind, path in walkDir(hdir & "/.nodecliac/registry"):
+                                    let parts = splitPath(path)
+                                    names.add(parts.tail)
+                                names.sort()
+                                names
+                        )
+                        var cmd = fmt"""nodecliac disable"""
+                        for name in names: cmd &= " " & name
+                        discard execProcess(cmd)
+
+                    else: discard
+
+                incoming.future[].complete(response)
+
+
+
 
     proc updater() {.async.} =
 

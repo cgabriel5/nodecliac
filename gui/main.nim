@@ -244,7 +244,7 @@ proc main() =
 
     var install_queue: seq[string] = @[]
     proc installpkg(s: string, stop: bool = false) {.async.} =
-        let jdata = parseJSON(s)
+        var jdata = parseJSON(s)
         let name = jdata["name"].getStr()
         let panel = jdata["panel"].getStr()
 
@@ -252,11 +252,13 @@ proc main() =
         if not stop: install_queue.add(name)
         if install_queue.len > 1 and not stop: return
 
-        app.js(fmt"""
+        app.js(
+            fmt"""
             var PANEL = get_panel_by_name("{panel}");
             PANEL.$tb_loader.classList.remove("none");
             f(PANEL.$tb).all().classes("tb-action-first").getElement().classList.add("disabled");
-            """)
+            """
+        )
 
         var chan: Channel[ChannelMsg]
         chan.open()
@@ -267,43 +269,41 @@ proc main() =
         let data = ChannelMsg(future: addr fut, avai_db: addr AVAI_PKGS, avai_pname: name)
         chan.send(data)
         let r = await fut
-        let html = r.resp
-        let error_m = r.err
         chan.close()
+        let err = r.err
 
-        var remcmd = ""
-        remcmd &= fmt"""var $status = f("#pkg-entry-{name}").all().classes("pstatus").getElement();
-var classes = $status.classList;
-classes.remove("clear");
-classes.add("on");"""
+        var cmd = fmt"""
+            var PANEL = get_panel_by_name("{panel}");
+            var $status = f("#pkg-entry-{name}").all().classes("pstatus").getElement();
+            var classes = $status.classList;
+            classes.remove("clear");
+            classes.add("on");"""
 
-        if error_m != "":
-            remcmd &= fmt"""var $status = f("#pkg-entry-{name}").all().classes("istatus").getElement();
-var classes = $status.classList;
-classes.remove("none");
-classes.add("on");
-$status.innerText = "Error: {error_m}";
-"""
+        if err != "":
+            cmd &= fmt"""var $status = f("#pkg-entry-{name}").all().classes("istatus").getElement();
+            var classes = $status.classList;
+            classes.remove("none");
+            classes.add("on");
+            $status.innerText = "Err: {err}";
+            """
 
         app.dispatch(
             proc () =
-                var hide_loader = ""
                 if install_queue.len <= 1:
-                    echo "HIDDEN"
-                    hide_loader &= fmt"""get_panel_by_name("{panel}").$tb_loader.classList.add("none");"""
+                    cmd &= fmt"""get_panel_by_name("{panel}").$tb_loader.classList.add("none");"""
 
-                app.js(fmt"""
-                {hide_loader}
-                f(PANEL.$tb).all().classes("tb-action-first").getElement().classList.remove("disabled");
-                processes.packages["{panel}"] = false;
-                {remcmd}
-                """)
+                app.js(
+                    fmt"""
+                    {cmd}
+                    f(PANEL.$tb).all().classes("tb-action-first").getElement().classList.remove("disabled");
+                    """
+                )
 
-                # Remove name from queue.
+                # Finally, remove name from queue and continue queue.
                 install_queue.delete(0)
                 if install_queue.len != 0:
-                    let name = install_queue[0]
-                    asyncCheck installpkg(fmt"""{{"name":"{name}", "panel": "{panel}"}}""", true)
+                    jdata["name"] = %* install_queue[0]
+                    asyncCheck installpkg($jdata, true)
         )
 
     proc filter_avai_pkgs(input: string) =

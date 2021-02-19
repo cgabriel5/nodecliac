@@ -30,18 +30,7 @@ let DUMMY = {
 	jdata_filtered: [],
 };
 let PKG_PANES_REFS = DUMMY;
-// prettier-ignore
 let PKG_INST_REFS = {}, PKG_AVAI_REFS = {}, PKG_OUTD_REFS = {};
-// let JDATA = {
-// 	PKG_INST_REFS: false,
-// 	PKG_AVAI_REFS: false,
-// 	PKG_OUTD_REFS: false
-// };
-// let CHECKED = {
-// 	PKG_INST_REFS: [],
-// 	PKG_AVAI_REFS: [],
-// 	PKG_OUTD_REFS: []
-// };
 
 let get_active_panel_name = (i) => {
 	if (!PKG_PANES_REFS) return "";

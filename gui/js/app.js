@@ -378,62 +378,56 @@ const init = async () => {
 						if ($node) $node.classList.remove("none");
 						$cached_sb = $delegate;
 
-						if (panel === "packages-installed" && !is_panel_blocked(panel)) {
-							set_active_pkg_pane(panel);
-							// block_panel(panel);
-							let $icon = PKG_PANES_REFS.$mcheck;
-
-							uncheck($icon);
-							toggle_pkg_sel_actions(false);
-							mass_toggle("uncheck");
-							// selected_pkgs.clear();
-
-							let obj = {
-								input: PKG_PANES_REFS.$input.value.trim(),
-								panel: panel
-							};
-
-							// API.packages(JSON.stringify(obj));
-						} else if (panel === "packages-available" && !is_panel_blocked(panel)) {
-
-							// if (JDATA.PKG_AVAI_REFS) {
-							// 	toggle_pkg_sel_action_refresh(true);
-							// 	return;
-							// }
+						// if (!is_panel_blocked(panel)) {
 
 							set_active_pkg_pane(panel);
 							// block_panel(panel);
 							let $icon = PKG_PANES_REFS.$mcheck;
 
-							// uncheck($icon);
-							// toggle_pkg_sel_actions(false);
-							// mass_toggle("uncheck");
-							// selected_pkgs.clear();
+							switch (panel) {
+								case "packages-installed": {
+									let obj = {
+										input: PKG_PANES_REFS.$input.value.trim(),
+										panel: panel
+									};
+									API.packages_ints(JSON.stringify(obj));
 
-							let obj = {
-								input: PKG_PANES_REFS.$input.value.trim(),
-								panel: panel
-							};
+									break;
+								}
+								case "packages-available": {
+									let obj = {
+										input: PKG_PANES_REFS.$input.value.trim(),
+										panel: panel
+									};
+									API.packages_avai(JSON.stringify(obj));
 
-							API.packages_avai(JSON.stringify(obj));
-						} else if (panel === "packages-outdated" && !is_panel_blocked(panel)) {
-							set_active_pkg_pane(panel);
-							// block_panel(panel);
-							let $icon = PKG_PANES_REFS.$mcheck;
+									break;
+								}
+								// case "packages-outdated": {
+								// 	set_active_pkg_pane(panel);
+								// 	// block_panel(panel);
+								// 	let $icon = PKG_PANES_REFS.$mcheck;
 
-							uncheck($icon);
-							toggle_pkg_sel_actions(false);
-							mass_toggle("uncheck");
-							// selected_pkgs.clear();
+								// 	uncheck($icon);
+								// 	toggle_pkg_sel_actions(false);
+								// 	mass_toggle("uncheck");
+								// 	// selected_pkgs.clear();
 
-							let obj = {
-								input: PKG_PANES_REFS.$input.value.trim(),
-								panel: panel
-							};
+								// 	let obj = {
+								// 		input: PKG_PANES_REFS.$input.value.trim(),
+								// 		panel: panel
+								// 	};
 
-							// API.packages_outd(JSON.stringify(obj));
-						} else if (panel === "settings") API.config();
-						// else if (panel === "doctor") API.doctor();
+								// 	break;
+								// }
+
+									// API.packages_outd(JSON.stringify(obj));
+								case "settings":
+									API.config();
+									break;
+								// else if (panel === "doctor") API.doctor();
+							}
+						// }
 					}
 				}
 

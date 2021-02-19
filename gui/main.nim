@@ -226,6 +226,56 @@ proc main() =
                 """)
         )
 
+# ------------------------------------------------------------------------------
+
+    proc filter_avai_pkgs(input: string) =
+        # Remove nodes: [https://stackoverflow.com/a/3955238]
+        # Fragment: [https://howchoo.com/code/learn-the-slow-and-fast-way-to-append-elements-to-the-dom]
+        # Fuzzy search:
+        # [https://github.com/nim-lang/Nim/issues/13955]
+        # [https://github.com/nim-lang/Nim/blob/devel/tools/dochack/dochack.nim]
+        # [https://github.com/nim-lang/Nim/blob/devel/tools/dochack/fuzzysearch.nim]
+        # [https://www.forrestthewoods.com/blog/reverse_engineering_sublime_texts_fuzzy_match/]
+
+        var html = ""
+        var empty = true
+        var command = fmt"""
+            var PANEL = get_panel_by_name("packages-available");
+            PANEL.jdata_filtered.length = 0;
+            """
+
+        for name in AVAI_PKGS_NAMES:
+            if input in name:
+                empty = false
+                let p = registrypath & DirSep & name
+                let classname = if dirExists(p): "on" else: "clear"
+
+                command &= fmt"""PANEL.jdata_filtered.push("{name}");"""
+                html &= fmt"""<div class=entry id=pkg-entry-{name}>
+                    <div class="center">
+                        <div class="checkmark" data-name="{name}">
+                            <i class="fas fa-check none"></i>
+                        </div>
+                        <div class="pstatus {classname}"></div>
+                        <div class="label">{name}</div>
+                        <div class="loader-cont none">
+                            <div class="svg-loader s-loader"></div>
+                        </div>
+                        <div class="istatus none"></div>
+                    </div>
+                </div>""".collapse_html
+
+        if empty: html &= """<div class="empty"><div>No Packages</div></div>"""
+        command &= fmt"""
+            PANEL.$entries.textContent = "";
+            PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
+            PKG_PANES_REFS.$input_loader.classList.add("none");
+        """
+
+        app.js(command)
+
+# ------------------------------------------------------------------------------
+
     # Run package manager actions (i.e. updating/remove/adding packages)
     # on its own thread to prevent blocking main UI/WebView event loop.
     proc t_installpkg(chan: ptr Channel[ChannelMsg]) {.thread.} =
@@ -309,52 +359,6 @@ proc main() =
                     jdata["name"] = %* install_queue[0]
                     asyncCheck installpkg($jdata, true)
         )
-
-    proc filter_avai_pkgs(input: string) =
-        # Remove nodes: [https://stackoverflow.com/a/3955238]
-        # Fragment: [https://howchoo.com/code/learn-the-slow-and-fast-way-to-append-elements-to-the-dom]
-        # Fuzzy search:
-        # [https://github.com/nim-lang/Nim/issues/13955]
-        # [https://github.com/nim-lang/Nim/blob/devel/tools/dochack/dochack.nim]
-        # [https://github.com/nim-lang/Nim/blob/devel/tools/dochack/fuzzysearch.nim]
-        # [https://www.forrestthewoods.com/blog/reverse_engineering_sublime_texts_fuzzy_match/]
-
-        var html = ""
-        var empty = true
-        var command = fmt"""
-            var PANEL = get_panel_by_name("packages-available");
-            PANEL.jdata_filtered.length = 0;
-            """
-
-        for name in AVAI_PKGS_NAMES:
-            if input in name:
-                empty = false
-                let p = registrypath & DirSep & name
-                let classname = if dirExists(p): "on" else: "clear"
-
-                command &= fmt"""PANEL.jdata_filtered.push("{name}");"""
-                html &= fmt"""<div class=entry id=pkg-entry-{name}>
-                    <div class="center">
-                        <div class="checkmark" data-name="{name}">
-                            <i class="fas fa-check none"></i>
-                        </div>
-                        <div class="pstatus {classname}"></div>
-                        <div class="label">{name}</div>
-                        <div class="loader-cont none">
-                            <div class="svg-loader s-loader"></div>
-                        </div>
-                        <div class="istatus none"></div>
-                    </div>
-                </div>""".collapse_html
-
-        if empty: html &= """<div class="empty"><div>No Packages</div></div>"""
-        command &= fmt"""
-            PANEL.$entries.textContent = "";
-            PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
-            PKG_PANES_REFS.$input_loader.classList.add("none");
-        """
-
-        app.js(command)
 
 # ==============================================================================
 
@@ -469,6 +473,8 @@ proc main() =
             proc () =
                 app.js(fmt"""get_panel_by_name("{panel}").$sbentry.classList.add("none");""")
         )
+
+# ------------------------------------------------------------------------------
 
     var names: seq[tuple[name, version: string, disabled: bool]] = @[]
     proc filter_inst_pkgs(input: string) =

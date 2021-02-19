@@ -21,6 +21,8 @@ proc main() =
             # outdated: ptr seq[tuple[name, version: string]]
             outdated: ptr seq[tuple[name, local_version, remote_version: string, config: OrderedTableRef[string, OrderedTableRef[string, string]]]]
 
+            inst_pkgs: ptr seq[tuple[name, version: string, disabled: bool]]
+
             avai_db: ptr Table[string, JsonNode]
             avai_names: ptr seq[string]
             avai_pname: string
@@ -36,6 +38,7 @@ proc main() =
             avai_pname: string
     var AVAI_PKGS = initTable[string, JsonNode]()
     var AVAI_PKGS_NAMES: seq[string] = @[]
+    var INST_PKGS: seq[tuple[name, version: string, disabled: bool]] = @[]
 
     #
     # [https://forum.nim-lang.org/t/3640]
@@ -458,63 +461,50 @@ proc main() =
 
     # Run package manager actions (i.e. updating/remove/adding packages)
     # on its own thread to prevent blocking main UI/WebView event loop.
-    proc thread_a_actions1(chan: ptr Channel[ChannelMsg]) {.thread.} =
+    proc t_get_packages_inst(chan: ptr Channel[ChannelMsg]) {.thread.} =
         # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
         while true:
             var incoming = chan[].recv()
             if not incoming.future[].finished:
-                var response: Response
-                response = Response(code: -1)
+                var response = Response(code: -1)
 
-                let action = incoming.action
-                let all = incoming.all
-                case action:
-                    of "get-packages":
+                type
+                    Package = tuple[name, version: string, disabled: bool]
 
-                        # var empty = true
-                        let hdir = os.getEnv("HOME")
-                        var items: seq[tuple[name, version: string, disabled: bool]] = @[]
-                        let dirtypes = {pcDir, pcLinkToDir}
-                        for kind, path in walkDir(hdir & "/.nodecliac/registry"):
-                            # [https://nim-lang.org/docs/os.html#PathComponent]
-                            # Only get dirs/links to dirs
-                            if kind notin dirtypes: continue
+                 # [https://stackoverflow.com/a/6712058]
+                proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
+                    let aname = a.name.toLower()
+                    let bname = b.name.toLower()
+                    if aname < bname: result = -1 # Sort string ascending.
+                    elif aname > bname: result = 1
+                    else: result = 0 # Default return value (no sorting).
 
-                            # empty = false
-                            let parts = splitPath(path)
-                            let command = parts.tail
-                            var version = "0.0.1"
-                            var disabled = false
+                let hdir = os.getEnv("HOME")
+                let r = re"@disable\\s=\\strue"
+                var packages: seq[tuple[name, version: string, disabled: bool]] = @[]
+                let dirtypes = {pcDir, pcLinkToDir}
+                for kind, path in walkDir(hdir & "/.nodecliac/registry"):
+                    # [https://nim-lang.org/docs/os.html#PathComponent]
+                    # Only get dirs/links to dirs
+                    if kind notin dirtypes: continue
 
-                            # Get version.
-                            let config = joinPath(path, "package.ini")
-                            if fileExists(config):
-                                let data = loadConfig(config)
-                                version = data.getSectionValue("Package", "version")
+                    let (path, command) = splitPath(path)
+                    var version = "0.0.1"
+                    var disabled = false
 
-                            # Get disabled state.
-                            let dconfig = joinPath(path, fmt".{command}.config.acdef")
-                            if fileExists(dconfig):
-                                let contents = readFile(dconfig)
-                                if find(contents, re("@disable\\s=\\strue")) > -1:
-                                    disabled = true
+                    let config = joinPath(path, "package.ini")
+                    if fileExists(config):
+                        version = loadConfig(config).getSectionValue("Package", "version")
 
-                            var item: tuple[name, version: string, disabled: bool]
-                            item = (name: command, version: version, disabled: disabled)
-                            items.add(item)
+                    let dconfig = joinPath(path, fmt".{command}.config.acdef")
+                    if fileExists(dconfig):
+                        if find(readFile(dconfig), r) > -1: disabled = true
 
-                         # [https://stackoverflow.com/a/6712058]
-                        proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
-                            let aname = a.name.toLower()
-                            let bname = b.name.toLower()
-                            if aname < bname: result = -1 # Sort string ascending.
-                            elif aname > bname: result = 1
-                            else: result = 0 # Default return value (no sorting).
-                        items.sort(alphasort)
+                    var pkg: Package = (command, version, disabled)
+                    packages.add(pkg)
 
-                        response.names = addr items
-
-                    else: discard
+                packages.sort(alphasort)
+                response.inst_pkgs = addr packages
 
                 incoming.future[].complete(response)
 
@@ -1283,31 +1273,27 @@ $parent.removeChild($child);"""
                 """)
         )
 
-    proc get_packages(j: string) {.async.} =
-        let jdata = parseJSON(j)
-        let s = jdata["input"].getStr()
+    proc get_packages_inst(s: string) {.async.} =
+        let jdata = parseJSON(s)
+        let input = jdata["input"].getStr()
         let panel = jdata["panel"].getStr()
 
-        app.js(fmt"""
-            var PANEL = get_panel_by_name("{panel}");
-            PANEL.$sbentry.classList.remove("none");
-        """)
+        app.js(fmt"""get_panel_by_name("{panel}").$sbentry.classList.remove("none");""")
 
         var chan: Channel[ChannelMsg]
         chan.open()
         var thread: Thread[ptr Channel[ChannelMsg]]
-        createThread(thread, thread_a_actions1, addr chan)
+        createThread(thread, t_get_packages_inst, addr chan)
 
-        var fut = newFuture[Response]("get-packages.nodecliac")
-        let data = ChannelMsg(future: addr fut, action: "get-packages")
+        var fut = newFuture[Response]("get-packages-inst.nodecliac")
+        let data = ChannelMsg(future: addr fut)
         chan.send(data)
         let r = await fut
-        var items = r.names[]
-        names = r.names[]
+        INST_PKGS = r.inst_pkgs[]
         chan.close()
 
         var html = ""
-        if items.len == 0:
+        if INST_PKGS.len == 0:
             html &= """<div class="empty"><div>No Packages</div></div>"""
             app.dispatch(
                 proc () =
@@ -1317,14 +1303,12 @@ $parent.removeChild($child);"""
                         PANEL.$entries.textContent = "";
                         PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
                         """
-                        # app.setText("#pkg-entries", "") & ";" &
-                        # app.addHtml("#pkg-entries", html, position=afterbegin)
                     )
             )
         else:
-            for item in items:
-                if s != "":
-                    if s notin item.name: continue
+            for item in INST_PKGS:
+                if input != "":
+                    if input notin item.name: continue
                 let classname = if item.disabled: "off" else: "on"
                 html &= fmt"""<div class=entry id=pkg-entry-{item.name}>
                     <div class="center">
@@ -1335,7 +1319,6 @@ $parent.removeChild($child);"""
                         <div class="label">{item.name}</div>
                     </div>
                 </div>""".collapse_html
-                        # <div class="version">{item.version}</div>
 
             app.dispatch(
                 proc () =
@@ -1345,18 +1328,12 @@ $parent.removeChild($child);"""
                         PANEL.$entries.textContent = "";
                         PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
                         """
-                        # app.setText("#pkg-entries", "") & ";" &
-                        # app.addHtml("#pkg-entries", html, position=afterbegin)
                     )
             )
 
         app.dispatch(
             proc () =
-                app.js(fmt"""
-                    var PANEL = get_panel_by_name("{panel}");
-                    PANEL.$sbentry.classList.add("none");
-                    processes.packages.{panel} = false;
-                """)
+                app.js(fmt"""get_panel_by_name("{panel}").$sbentry.classList.add("none");""")
         )
 
     proc clink(url: string): string =
@@ -1454,7 +1431,7 @@ $parent.removeChild($child);"""
         # proc loaded(s: string) = jsLog(s)
         proc filter(s: string) = filter_pkgs(s)
         proc filter_avai(s: string) = filter_avai_pkgs(s)
-        proc packages(s: string) = asyncCheck get_packages(s)
+        proc packages_ints(s: string) = asyncCheck get_packages_inst(s)
         proc packages_outd(s: string) = asyncCheck get_packages_outd(s)
         proc packages_avai(s: string) = asyncCheck get_packages_avai(s)
         proc config() = get_config()

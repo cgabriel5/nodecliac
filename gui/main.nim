@@ -77,6 +77,8 @@ proc main() =
     proc collapse_html(html: string): string =
         return html.strip.unindent.multiReplace([("\n", " ")])
 
+# ==============================================================================
+
     # Run package manager actions (i.e. updating/remove/adding packages)
     # on its own thread to prevent blocking main UI/WebView event loop.
     proc t_get_packages_avai(chan: ptr Channel[ChannelMsg]) {.thread.} =
@@ -354,6 +356,8 @@ proc main() =
 
         app.js(command)
 
+# ==============================================================================
+
     # Run package manager actions (i.e. updating/remove/adding packages)
     # on its own thread to prevent blocking main UI/WebView event loop.
     proc t_get_packages_inst(chan: ptr Channel[ChannelMsg]) {.thread.} =
@@ -508,6 +512,9 @@ proc main() =
         """
 
         app.js(command)
+
+# ==============================================================================
+
     # Run package manager actions (i.e. updating/remove/adding packages)
     # on its own thread to prevent blocking main UI/WebView event loop.
     proc thread_a_update(chan: ptr Channel[ChannelMsg]) {.thread.} =

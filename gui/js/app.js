@@ -973,7 +973,7 @@ const init = async () => {
 			// var filterfn = "";
 			switch (PKG_PANES_REFS.name) {
 				case "packages-installed":
-					// API.filter_inst(value);
+					API.filter_inst(value);
 					break;
 				case "packages-available":
 					API.filter_avai(value);

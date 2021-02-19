@@ -356,6 +356,160 @@ proc main() =
 
     # Run package manager actions (i.e. updating/remove/adding packages)
     # on its own thread to prevent blocking main UI/WebView event loop.
+    proc t_get_packages_inst(chan: ptr Channel[ChannelMsg]) {.thread.} =
+        # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
+        while true:
+            var incoming = chan[].recv()
+            if not incoming.future[].finished:
+                var response = Response(code: -1)
+
+                type
+                    Package = tuple[name, version: string, disabled: bool]
+
+                 # [https://stackoverflow.com/a/6712058]
+                proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
+                    let aname = a.name.toLower()
+                    let bname = b.name.toLower()
+                    if aname < bname: result = -1 # Sort string ascending.
+                    elif aname > bname: result = 1
+                    else: result = 0 # Default return value (no sorting).
+
+                let hdir = os.getEnv("HOME")
+                let r = re"@disable\\s=\\strue"
+                var packages: seq[tuple[name, version: string, disabled: bool]] = @[]
+                let dirtypes = {pcDir, pcLinkToDir}
+                for kind, path in walkDir(hdir & "/.nodecliac/registry"):
+                    # [https://nim-lang.org/docs/os.html#PathComponent]
+                    # Only get dirs/links to dirs
+                    if kind notin dirtypes: continue
+
+                    let (path, command) = splitPath(path)
+                    var version = "0.0.1"
+                    var disabled = false
+
+                    let config = joinPath(path, "package.ini")
+                    if fileExists(config):
+                        version = loadConfig(config).getSectionValue("Package", "version")
+
+                    let dconfig = joinPath(path, fmt".{command}.config.acdef")
+                    if fileExists(dconfig):
+                        if find(readFile(dconfig), r) > -1: disabled = true
+
+                    var pkg: Package = (command, version, disabled)
+                    packages.add(pkg)
+
+                packages.sort(alphasort)
+                response.inst_pkgs = addr packages
+
+                incoming.future[].complete(response)
+
+    proc get_packages_inst(s: string) {.async.} =
+        let jdata = parseJSON(s)
+        let input = jdata["input"].getStr()
+        let panel = jdata["panel"].getStr()
+
+        app.js(fmt"""get_panel_by_name("{panel}").$sbentry.classList.remove("none");""")
+
+        var chan: Channel[ChannelMsg]
+        chan.open()
+        var thread: Thread[ptr Channel[ChannelMsg]]
+        createThread(thread, t_get_packages_inst, addr chan)
+
+        var fut = newFuture[Response]("get-packages-inst.nodecliac")
+        let data = ChannelMsg(future: addr fut)
+        chan.send(data)
+        let r = await fut
+        INST_PKGS = r.inst_pkgs[]
+        chan.close()
+
+        var html = ""
+        if INST_PKGS.len == 0:
+            html &= """<div class="empty"><div>No Packages</div></div>"""
+            app.dispatch(
+                proc () =
+                    app.js(
+                        fmt"""
+                        var PANEL = get_panel_by_name("{panel}");
+                        PANEL.$entries.textContent = "";
+                        PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
+                        """
+                    )
+            )
+        else:
+            for item in INST_PKGS:
+                if input != "":
+                    if input notin item.name: continue
+                let classname = if item.disabled: "off" else: "on"
+                html &= fmt"""<div class=entry id=pkg-entry-{item.name}>
+                    <div class="center">
+                        <div class="checkmark" data-name="{item.name}">
+                            <i class="fas fa-check none"></i>
+                        </div>
+                        <div class="pstatus {classname}"></div>
+                        <div class="label">{item.name}</div>
+                    </div>
+                </div>""".collapse_html
+
+            app.dispatch(
+                proc () =
+                    app.js(
+                        fmt"""
+                        var PANEL = get_panel_by_name("{panel}");
+                        PANEL.$entries.textContent = "";
+                        PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
+                        """
+                    )
+            )
+
+        app.dispatch(
+            proc () =
+                app.js(fmt"""get_panel_by_name("{panel}").$sbentry.classList.add("none");""")
+        )
+
+    var names: seq[tuple[name, version: string, disabled: bool]] = @[]
+    proc filter_inst_pkgs(input: string) =
+        # Remove nodes: [https://stackoverflow.com/a/3955238]
+        # Fragment: [https://howchoo.com/code/learn-the-slow-and-fast-way-to-append-elements-to-the-dom]
+        # Fuzzy search:
+        # [https://github.com/nim-lang/Nim/issues/13955]
+        # [https://github.com/nim-lang/Nim/blob/devel/tools/dochack/dochack.nim]
+        # [https://github.com/nim-lang/Nim/blob/devel/tools/dochack/fuzzysearch.nim]
+        # [https://www.forrestthewoods.com/blog/reverse_engineering_sublime_texts_fuzzy_match/]
+
+        var html = ""
+        var empty = true
+        var command = fmt"""
+            var PANEL = get_panel_by_name("packages-installed");
+            PANEL.jdata_filtered.length = 0;
+            """
+
+        for item in INST_PKGS:
+            if input in item.name:
+                empty = false
+                let name_escaped = item.name.escape
+                let classname = if item.disabled: "off" else: "on"
+
+                command &= fmt"""PANEL.jdata_filtered.push("{item.name}");"""
+                html &= fmt"""<div class=entry id=pkg-entry-{item.name}>
+                    <div class="center">
+                        <div class="checkmark" data-name="{item.name}">
+                            <i class="fas fa-check none"></i>
+                        </div>
+                        <div class="pstatus {classname}"></div>
+                        <div class="label">{item.name}</div>
+                    </div>
+                </div>""".collapse_html
+
+        if empty: html &= """<div class="empty"><div>No Packages</div></div>"""
+        command &= fmt"""
+            PANEL.$entries.textContent = "";
+            PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
+            PKG_PANES_REFS.$input_loader.classList.add("none");
+        """
+
+        app.js(command)
+    # Run package manager actions (i.e. updating/remove/adding packages)
+    # on its own thread to prevent blocking main UI/WebView event loop.
     proc thread_a_update(chan: ptr Channel[ChannelMsg]) {.thread.} =
         # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
         while true:
@@ -456,55 +610,6 @@ proc main() =
                 if dirExists(cp):
                     for kind, path in walkDir(cp):
                         if kind == pcFile: discard tryRemoveFile(path)
-
-                incoming.future[].complete(response)
-
-    # Run package manager actions (i.e. updating/remove/adding packages)
-    # on its own thread to prevent blocking main UI/WebView event loop.
-    proc t_get_packages_inst(chan: ptr Channel[ChannelMsg]) {.thread.} =
-        # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
-        while true:
-            var incoming = chan[].recv()
-            if not incoming.future[].finished:
-                var response = Response(code: -1)
-
-                type
-                    Package = tuple[name, version: string, disabled: bool]
-
-                 # [https://stackoverflow.com/a/6712058]
-                proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
-                    let aname = a.name.toLower()
-                    let bname = b.name.toLower()
-                    if aname < bname: result = -1 # Sort string ascending.
-                    elif aname > bname: result = 1
-                    else: result = 0 # Default return value (no sorting).
-
-                let hdir = os.getEnv("HOME")
-                let r = re"@disable\\s=\\strue"
-                var packages: seq[tuple[name, version: string, disabled: bool]] = @[]
-                let dirtypes = {pcDir, pcLinkToDir}
-                for kind, path in walkDir(hdir & "/.nodecliac/registry"):
-                    # [https://nim-lang.org/docs/os.html#PathComponent]
-                    # Only get dirs/links to dirs
-                    if kind notin dirtypes: continue
-
-                    let (path, command) = splitPath(path)
-                    var version = "0.0.1"
-                    var disabled = false
-
-                    let config = joinPath(path, "package.ini")
-                    if fileExists(config):
-                        version = loadConfig(config).getSectionValue("Package", "version")
-
-                    let dconfig = joinPath(path, fmt".{command}.config.acdef")
-                    if fileExists(dconfig):
-                        if find(readFile(dconfig), r) > -1: disabled = true
-
-                    var pkg: Package = (command, version, disabled)
-                    packages.add(pkg)
-
-                packages.sort(alphasort)
-                response.inst_pkgs = addr packages
 
                 incoming.future[].complete(response)
 
@@ -1117,90 +1222,6 @@ $parent.removeChild($child);"""
             app.js(fmt"window.api.setup_config({status},{cache},{debug},{singletons});")
             # jsLog(config)
 
-    var names: seq[tuple[name, version: string, disabled: bool]] = @[]
-    proc filter_pkgs(s: string) =
-        # Remove nodes: [https://stackoverflow.com/a/3955238]
-        # Fragment: [https://howchoo.com/code/learn-the-slow-and-fast-way-to-append-elements-to-the-dom]
-        # Fuzzy search:
-        # [https://github.com/nim-lang/Nim/issues/13955]
-        # [https://github.com/nim-lang/Nim/blob/devel/tools/dochack/dochack.nim]
-        # [https://github.com/nim-lang/Nim/blob/devel/tools/dochack/fuzzysearch.nim]
-        # [https://www.forrestthewoods.com/blog/reverse_engineering_sublime_texts_fuzzy_match/]
-
-        # var names: seq[string] = @[]
-        # for kind, path in walkDir(hdir & "/.nodecliac/registry"):
-        #     let parts = splitPath(path)
-        #     names.add(parts.tail)
-        # names.sort()
-
-        var command = fmt"""
-    // var $pkg_cont = document.getElementById("pkg-entries");
-    var $pkg_cont = PKG_PANES_REFS.$entries;
-    while ($pkg_cont.firstChild) $pkg_cont.removeChild($pkg_cont.lastChild);
-    var $fragment = document.createDocumentFragment();
-    """
-
-        var empty = true
-
-        for item in names:
-            if s in item.name:
-                empty = false
-                let name_escaped = item.name.escape
-                let classname = if item.disabled: "off" else: "on"
-                command &= fmt"""
-    var $entry = document.createElement("div");
-    $entry.className = "entry";
-    $entry.id = "pkg-entry-{name_escaped}";
-
-    var $inner = document.createElement("div");
-    $inner.className = "center";
-
-    var $icon_cont = document.createElement("div");
-    $icon_cont.className = "checkmark";
-    $icon_cont.setAttribute("data-name", "{name_escaped}");
-    var $icon = document.createElement("i");
-    $icon.className = "fas fa-check none";
-    $icon_cont.appendChild($icon);
-
-    var $pstatus = document.createElement("div");
-    $pstatus.className = "pstatus {classname}";
-
-    // var $version = document.createElement("div");
-    // $version.className = "version";
-    // $version.textContent = "{item.version}";
-
-    var $label = document.createElement("div");
-    $label.className = "label";
-    $label.textContent = "{name_escaped}";
-
-    $inner.appendChild($icon_cont);
-    $inner.appendChild($pstatus);
-    // $inner.appendChild($version);
-    $inner.appendChild($label);
-    $entry.appendChild($inner);
-    $fragment.appendChild($entry);
-    """
-
-        if empty:
-            command &= """
-            var $entry = document.createElement("div");
-            $entry.className = "empty";
-
-            var $child = document.createElement("div");
-            $child.textContent = "No Packages";
-
-            $entry.appendChild($child);
-            $fragment.appendChild($entry);
-            """
-
-        command &= """
-    $pkg_cont.appendChild($fragment);
-    f(PKG_PANES_REFS.$cont).all().classes("search-loader").getElement().classList.add("none");
-    // document.getElementById("search-loader").classList.add("none");
-    """
-
-        app.js(command)
-
     proc get_packages_outd(j: string) {.async.} =
         let jdata = parseJSON(j)
         let s = jdata["input"].getStr()
@@ -1271,69 +1292,6 @@ $parent.removeChild($child);"""
                     PANEL.$sbentry.classList.add("none");
                     processes.packages["{panel}"] = false;
                 """)
-        )
-
-    proc get_packages_inst(s: string) {.async.} =
-        let jdata = parseJSON(s)
-        let input = jdata["input"].getStr()
-        let panel = jdata["panel"].getStr()
-
-        app.js(fmt"""get_panel_by_name("{panel}").$sbentry.classList.remove("none");""")
-
-        var chan: Channel[ChannelMsg]
-        chan.open()
-        var thread: Thread[ptr Channel[ChannelMsg]]
-        createThread(thread, t_get_packages_inst, addr chan)
-
-        var fut = newFuture[Response]("get-packages-inst.nodecliac")
-        let data = ChannelMsg(future: addr fut)
-        chan.send(data)
-        let r = await fut
-        INST_PKGS = r.inst_pkgs[]
-        chan.close()
-
-        var html = ""
-        if INST_PKGS.len == 0:
-            html &= """<div class="empty"><div>No Packages</div></div>"""
-            app.dispatch(
-                proc () =
-                    app.js(
-                        fmt"""
-                        var PANEL = get_panel_by_name("{panel}");
-                        PANEL.$entries.textContent = "";
-                        PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
-                        """
-                    )
-            )
-        else:
-            for item in INST_PKGS:
-                if input != "":
-                    if input notin item.name: continue
-                let classname = if item.disabled: "off" else: "on"
-                html &= fmt"""<div class=entry id=pkg-entry-{item.name}>
-                    <div class="center">
-                        <div class="checkmark" data-name="{item.name}">
-                            <i class="fas fa-check none"></i>
-                        </div>
-                        <div class="pstatus {classname}"></div>
-                        <div class="label">{item.name}</div>
-                    </div>
-                </div>""".collapse_html
-
-            app.dispatch(
-                proc () =
-                    app.js(
-                        fmt"""
-                        var PANEL = get_panel_by_name("{panel}");
-                        PANEL.$entries.textContent = "";
-                        PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
-                        """
-                    )
-            )
-
-        app.dispatch(
-            proc () =
-                app.js(fmt"""get_panel_by_name("{panel}").$sbentry.classList.add("none");""")
         )
 
     proc clink(url: string): string =
@@ -1429,7 +1387,7 @@ $parent.removeChild($child);"""
                 app.js(fmt"""{jstr}""");
 
         # proc loaded(s: string) = jsLog(s)
-        proc filter(s: string) = filter_pkgs(s)
+        proc filter_inst(s: string) = filter_inst_pkgs(s)
         proc filter_avai(s: string) = filter_avai_pkgs(s)
         proc packages_ints(s: string) = asyncCheck get_packages_inst(s)
         proc packages_outd(s: string) = asyncCheck get_packages_outd(s)

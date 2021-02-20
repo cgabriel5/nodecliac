@@ -385,7 +385,7 @@ proc main() =
                 let hdir = os.getEnv("HOME")
                 let r = re"@disable\\s=\\strue"
                 var packages: seq[tuple[name, version: string, disabled: bool]] = @[]
-                let dirtypes = {pcDir, pcLinkToDir}
+                const dirtypes = {pcDir, pcLinkToDir}
                 for kind, path in walkDir(hdir & "/.nodecliac/registry"):
                     # [https://nim-lang.org/docs/os.html#PathComponent]
                     # Only get dirs/links to dirs
@@ -654,7 +654,7 @@ proc main() =
                         # var empty = true
                         let hdir = os.getEnv("HOME")
                         var items: seq[tuple[name, version: string, disabled: bool]] = @[]
-                        let dirtypes = {pcDir, pcLinkToDir}
+                        const dirtypes = {pcDir, pcLinkToDir}
                         for kind, path in walkDir(hdir & "/.nodecliac/registry"):
                             # [https://nim-lang.org/docs/os.html#PathComponent]
                             # Only get dirs/links to dirs

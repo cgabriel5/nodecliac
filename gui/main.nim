@@ -247,7 +247,7 @@ proc main() =
         for name in AVAI_PKGS_NAMES:
             if input in name:
                 empty = false
-                let p = registrypath & DirSep & name
+                let p = joinPath(registrypath, name)
                 let classname = if dirExists(p): "on" else: "clear"
 
                 command &= fmt"""PANEL.jdata_filtered.push("{name}");"""

@@ -383,7 +383,7 @@ proc main() =
                     else: result = 0 # Default return value (no sorting).
 
                 let hdir = os.getEnv("HOME")
-                let r = re"@disable\\s=\\strue"
+                let r = re"@disable\s=\strue"
                 var packages: seq[tuple[name, version: string, disabled: bool]] = @[]
                 const dirtypes = {pcDir, pcLinkToDir}
                 for kind, path in walkDir(hdir & "/.nodecliac/registry"):

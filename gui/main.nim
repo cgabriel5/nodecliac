@@ -735,15 +735,14 @@ proc main() =
 
     # Run package manager actions (i.e. updating/remove/adding packages)
     # on its own thread to prevent blocking main UI/WebView event loop.
-    proc thread_a_update(chan: ptr Channel[ChannelMsg]) {.thread.} =
+    proc t_update(chan: ptr Channel[ChannelMsg]) {.thread.} =
         # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
         while true:
             var incoming = chan[].recv()
             if not incoming.future[].finished:
-                var response: Response
-                response = Response(code: -1)
+                var response = Response(code: -1)
 
-                # Get user name: [https://stackoverflow.com/a/23931327]
+                # [https://stackoverflow.com/a/23931327]
                 let uname = execProcess("id -u -n").strip(trailing=true)
 
                 # Ask user for password.
@@ -754,28 +753,25 @@ proc main() =
                     aIconType = "info"
                 )
 
-                # If password provided validate it's correct.
+                # Validate user password: [https://askubuntu.com/a/622419]
                 if input.len != 0:
-                    # [https://askubuntu.com/a/622419]
-                    # [http://www.yourownlinux.com/2015/08/how-to-check-if-username-and-password-are-valid-using-bash-script.html]
                     let script = fmt"""#! /bin/bash
-    sudo -k
-    if sudo -lS &> /dev/null << EOF
-    {input}
-    EOF
-    then
-    {incoming.cmd}
-    else
-    exit 1
-    fi"""
+                        sudo -k
+                        if sudo -lS &> /dev/null << EOF
+                        {input}
+                        EOF
+                        then
+                        {incoming.cmd}
+                        else
+                        exit 1
+                        fi
+                    """
                     let cmd = fmt"""bash -c '{script}'"""
                     let (res, code) = execCmdEx(cmd)
-
                     if code == 1: response.resp = "val:fail"
                     response.code = code
 
                 incoming.future[].complete(response)
-                # sleep 3000 # [https://github.com/nim-lang/Nim/issues/3687]
 
     # Run package manager actions (i.e. updating/remove/adding packages)
     # on its own thread to prevent blocking main UI/WebView event loop.
@@ -1037,27 +1033,28 @@ proc main() =
 
         let filename = currentSourcePath()
         let cwd = parentDir(filename)
-        # let prev = parentDir(parentDir(filename))
         let script = joinPath(cwd, "updater.sh")
-        # let cmd = fmt"""bash -c '{script}'"""
-        let cmd = script
 
         var chan: Channel[ChannelMsg]
         chan.open()
         var thread: Thread[ptr Channel[ChannelMsg]]
-        createThread(thread, thread_a_update, addr chan)
+        createThread(thread, t_update, addr chan)
 
         var fut = newFuture[Response]("update.nodecliac")
-        let data = ChannelMsg(future: addr fut, cmd: cmd, action: "update")
+        let data = ChannelMsg(
+            future: addr fut,
+            cmd: script,
+            action: "update"
+        )
         chan.send(data)
         let r = await fut
+        let code = r.code
         chan.close()
 
-        let date = getTime()
         # [https://nim-lang.org/docs/times.html#parsing-and-formatting-dates]
-        let datestring = date.format("MMM'.' d, yyyy (h:mm tt)")
+        let datestring = getTime().format("MMM'.' d, yyyy (h:mm tt)")
         var title, message, icon, class: string
-        case r.code
+        case code
             of 1:
                 title = "Error"
                 message = "Authentication attempt failed (incorrect password provided)."
@@ -1073,37 +1070,32 @@ proc main() =
                 message = "nodecliac updated successfully."
                 icon = "fas fa-check-circle"
                 class = "success"
-        let logrow = fmt"""
-<div class="logitem row new-highlight {class}">
-<div class="logitem-top">
-    <div class="left center">
-        <div class="icon">
-            <i class="{icon}"></i>
-        </div>
-        <div class="title">{title}</div>
-    </div>
-    <div class="right">
-        <div class="time">
-            {datestring}
-        </div>
-    </div>
-</div>
-<div>{message}</div>
-</div>""".collapse_html
-        app.dispatch(
-            proc () =
-                app.js(fmt"""document.getElementById('update-output').insertAdjacentHTML('afterbegin', `{logrow}`);""")
-        )
 
-        # [https://bugs.webkit.org/show_bug.cgi?id=175855]
+        let logentry = fmt"""
+                <div class="logitem row new-highlight {class}">
+                <div class="logitem-top">
+                    <div class="left center">
+                        <div class="icon">
+                            <i class="{icon}"></i>
+                        </div>
+                        <div class="title">{title}</div>
+                    </div>
+                    <div class="right">
+                        <div class="time">
+                            {datestring}
+                        </div>
+                    </div>
+                </div>
+                <div>{message}</div>
+                </div>""".collapse_html
+
         app.dispatch(
             proc () =
-                # echo "[FutureValue] [", fut[].code.read, "]"
-                # echo "[FutureValue] [", fut[].resp.read, "]"
                 app.js(fmt"""
-            document.getElementById("update-update").classList.remove("nointer", "disabled");
-            document.getElementById("update-spinner").classList.add("none");
-            """)
+                    document.getElementById('update-output').insertAdjacentHTML('afterbegin', `{logentry}`);
+                    document.getElementById("update-update").classList.remove("nointer", "disabled");
+                    document.getElementById("update-spinner").classList.add("none");
+                    """)
         )
 
     proc checkup() {.async.} =

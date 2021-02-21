@@ -95,8 +95,7 @@ proc main() =
 # ==============================================================================
 
     proc t_get_packages_avai(chan: ptr Channel[ChannelMsg]) {.thread.} =
-        # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
-        while true:
+        while true: # [https://git.io/JtHvI]
             var incoming = chan[].recv()
             if not incoming.future[].finished:
                 var response = Response(code: -1)
@@ -290,8 +289,7 @@ proc main() =
 # ------------------------------------------------------------------------------
 
     proc t_installpkg(chan: ptr Channel[ChannelMsg]) {.thread.} =
-        # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
-        while true:
+        while true: # [https://git.io/JtHvI]
             var incoming = chan[].recv()
             if not incoming.future[].finished:
                 var response = Response(code: -1)
@@ -374,8 +372,7 @@ proc main() =
 # ==============================================================================
 
     proc t_get_packages_inst(chan: ptr Channel[ChannelMsg]) {.thread.} =
-        # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
-        while true:
+        while true: # [https://git.io/JtHvI]
             var incoming = chan[].recv()
             if not incoming.future[].finished:
                 var response = Response(code: -1)
@@ -531,8 +528,7 @@ proc main() =
 # ------------------------------------------------------------------------------
 
     proc t_inst_actions(chan: ptr Channel[ChannelMsg]) {.thread.} =
-        # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
-        while true:
+        while true: # [https://git.io/JtHvI]
             var incoming = chan[].recv()
             if not incoming.future[].finished:
                 var response = Response(code: -1)
@@ -726,8 +722,7 @@ proc main() =
 # ==============================================================================
 
     proc t_update(chan: ptr Channel[ChannelMsg]) {.thread.} =
-        # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
-        while true:
+        while true: # [https://git.io/JtHvI]
             var incoming = chan[].recv()
             if not incoming.future[].finished:
                 var response = Response(code: -1)
@@ -840,8 +835,7 @@ proc main() =
 # ==============================================================================
 
     proc thread_a_doctor(chan: ptr Channel[ChannelMsg]) {.thread.} =
-        # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
-        while true:
+        while true: # [https://git.io/JtHvI]
             var incoming = chan[].recv()
             if not incoming.future[].finished:
                 var response: Response
@@ -877,8 +871,7 @@ proc main() =
                 incoming.future[].complete(response)
 
     proc thread_a_ccache(chan: ptr Channel[ChannelMsg]) {.thread.} =
-        # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
-        while true:
+        while true: # [https://git.io/JtHvI]
             var incoming = chan[].recv()
             if not incoming.future[].finished:
                 var response: Response
@@ -897,8 +890,7 @@ proc main() =
                 incoming.future[].complete(response)
 
     proc thread_a_actions3(chan: ptr Channel[ChannelMsg]) {.thread.} =
-        # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
-        while true:
+        while true: # [https://git.io/JtHvI]
             var incoming = chan[].recv()
             if not incoming.future[].finished:
                 var response: Response

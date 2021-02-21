@@ -94,8 +94,6 @@ proc main() =
 
 # ==============================================================================
 
-    # Run package manager actions (i.e. updating/remove/adding packages)
-    # on its own thread to prevent blocking main UI/WebView event loop.
     proc t_get_packages_avai(chan: ptr Channel[ChannelMsg]) {.thread.} =
         # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
         while true:
@@ -291,8 +289,6 @@ proc main() =
 
 # ------------------------------------------------------------------------------
 
-    # Run package manager actions (i.e. updating/remove/adding packages)
-    # on its own thread to prevent blocking main UI/WebView event loop.
     proc t_installpkg(chan: ptr Channel[ChannelMsg]) {.thread.} =
         # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
         while true:
@@ -377,8 +373,6 @@ proc main() =
 
 # ==============================================================================
 
-    # Run package manager actions (i.e. updating/remove/adding packages)
-    # on its own thread to prevent blocking main UI/WebView event loop.
     proc t_get_packages_inst(chan: ptr Channel[ChannelMsg]) {.thread.} =
         # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
         while true:
@@ -536,8 +530,6 @@ proc main() =
 
 # ------------------------------------------------------------------------------
 
-    # Run package manager actions (i.e. updating/remove/adding packages)
-    # on its own thread to prevent blocking main UI/WebView event loop.
     proc t_inst_actions(chan: ptr Channel[ChannelMsg]) {.thread.} =
         # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
         while true:
@@ -733,8 +725,6 @@ proc main() =
 
 # ==============================================================================
 
-    # Run package manager actions (i.e. updating/remove/adding packages)
-    # on its own thread to prevent blocking main UI/WebView event loop.
     proc t_update(chan: ptr Channel[ChannelMsg]) {.thread.} =
         # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
         while true:
@@ -849,8 +839,6 @@ proc main() =
 
 # ==============================================================================
 
-    # Run package manager actions (i.e. updating/remove/adding packages)
-    # on its own thread to prevent blocking main UI/WebView event loop.
     proc thread_a_doctor(chan: ptr Channel[ChannelMsg]) {.thread.} =
         # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
         while true:
@@ -888,8 +876,6 @@ proc main() =
 
                 incoming.future[].complete(response)
 
-    # Run package manager actions (i.e. updating/remove/adding packages)
-    # on its own thread to prevent blocking main UI/WebView event loop.
     proc thread_a_ccache(chan: ptr Channel[ChannelMsg]) {.thread.} =
         # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
         while true:
@@ -910,8 +896,6 @@ proc main() =
 
                 incoming.future[].complete(response)
 
-    # Run package manager actions (i.e. updating/remove/adding packages)
-    # on its own thread to prevent blocking main UI/WebView event loop.
     proc thread_a_actions3(chan: ptr Channel[ChannelMsg]) {.thread.} =
         # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
         while true:

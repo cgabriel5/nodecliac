@@ -399,7 +399,7 @@ proc main() =
                     if fileExists(config):
                         version = loadConfig(config).getSectionValue("Package", "version")
 
-                    let dconfig = joinPath(path, fmt".{command}.config.acdef")
+                    let dconfig = joinPath(path, command, fmt".{command}.config.acdef")
                     if fileExists(dconfig):
                         if find(readFile(dconfig), r) > -1: disabled = true
 

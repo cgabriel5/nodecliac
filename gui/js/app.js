@@ -521,10 +521,18 @@ const init = async () => {
 			case "packages:actions":
 				{
 					let panel = get_active_panel_name();
+					// block_panel(panel);
+
+					// let packages = Array.from(selected_pkgs);
+					// selected_pkgs.clear();
+					let PANEL = get_panel_by_name(panel);
+
 					// if (is_panel_blocked(panel)) return;
 					// else block_panel(panel);
 
-					let isall_checked = f(PKG_PANES_REFS.$mcheck).classes("!none").getElement();
+					// let isall_checked = f(PKG_PANES_REFS.$mcheck).classes("!none").getElement();
+					let isall_checked = PANEL.checked_all;
+					let obj = { all: PANEL.checked_all, names: PANEL.checked, panel };
 
 					// Uncheck everything.
 					let $icon = PKG_PANES_REFS.$mcheck;
@@ -537,52 +545,34 @@ const init = async () => {
 					// let panel = get_active_panel_name();
 
 					switch (action) {
+						case "refresh":
+							{}
+
+							break;
+
 						case "remove":
 							{
-								// Get selected_pkgs.
-								let obj = { all: false, names: [], panel };
-								if (isall_checked) {
-									obj.all = true;
-								} else {
-									// obj.names = Array.from(selected_pkgs);
-									// // prettier-ignore
-									// selected_pkgs.clear();
-								}
 								API.rpkgs(JSON.stringify(obj));
+								PANEL.checked.length = 0;
+								PANEL.checked_all = false;
 							}
 
 							break;
 
-						case "refresh":
-							{
-							}
-							break;
 						case "enable":
 							{
-								// Get selected_pkgs.
-								let obj = { all: false, names: [], panel };
-								if (isall_checked) {
-									obj.all = true;
-								} else {
-									// obj.names = Array.from(selected_pkgs);
-									// selected_pkgs.clear();
-								}
 								API.epkgs(JSON.stringify(obj));
+								PANEL.checked.length = 0;
+								PANEL.checked_all = false;
 							}
 
 							break;
 
 						case "disable":
 							{
-								// Get selected_pkgs.
-								let obj = { all: false, names: [], panel };
-								if (isall_checked) {
-									obj.all = true;
-								} else {
-									// obj.names = Array.from(selected_pkgs);
-									// selected_pkgs.clear();
-								}
 								API.dpkgs(JSON.stringify(obj));
+								PANEL.checked.length = 0;
+								PANEL.checked_all = false;
 							}
 
 							break;

@@ -18,8 +18,17 @@ proc main() =
             resp: string
             jdata: ptr seq[JsonNode]
             names: ptr seq[tuple[name, version: string, disabled: bool]]
-            # outdated: ptr seq[tuple[name, version: string]]
-            outdated: ptr seq[tuple[name, local_version, remote_version: string, config: OrderedTableRef[string, OrderedTableRef[string, string]]]]
+            outdated: ptr seq[
+                            tuple[
+                                name,
+                                local_version,
+                                remote_version: string,
+                                config: OrderedTableRef[
+                                    string,
+                                    OrderedTableRef[string, string]
+                                ]
+                            ]
+                        ]
 
             inst_pkgs: ptr seq[tuple[name, version: string, disabled: bool]]
             inst_a_names: ptr seq[string]

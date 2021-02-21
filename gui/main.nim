@@ -22,20 +22,26 @@ proc main() =
             outdated: ptr seq[tuple[name, local_version, remote_version: string, config: OrderedTableRef[string, OrderedTableRef[string, string]]]]
 
             inst_pkgs: ptr seq[tuple[name, version: string, disabled: bool]]
+            inst_a_names: ptr seq[string]
 
             avai_db: ptr Table[string, JsonNode]
             avai_names: ptr seq[string]
             avai_pname: string
 
             err: string
+
         ChannelMsg = object
             action, cmd: string
             future: ptr Future[Response]
             list: ptr seq[string]
             # jdata: ptr jsonNode
             all: bool
+
             avai_db: ptr Table[string, JsonNode]
             avai_pname: string
+
+            inst_a_names: ptr seq[string]
+
     var AVAI_PKGS = initTable[string, JsonNode]()
     var AVAI_PKGS_NAMES: seq[string] = @[]
     var INST_PKGS: seq[tuple[name, version: string, disabled: bool]] = @[]
@@ -519,6 +525,203 @@ proc main() =
 
         app.js(command)
 
+# ------------------------------------------------------------------------------
+
+    # Run package manager actions (i.e. updating/remove/adding packages)
+    # on its own thread to prevent blocking main UI/WebView event loop.
+    proc t_inst_actions(chan: ptr Channel[ChannelMsg]) {.thread.} =
+        # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
+        while true:
+            var incoming = chan[].recv()
+            if not incoming.future[].finished:
+                var response = Response(code: -1)
+
+                let all = incoming.all
+                let action = incoming.action
+                let hdir = os.getEnv("HOME")
+                let registrypath = hdir & "/.nodecliac/registry"
+                var names = (
+                    if not all: incoming.inst_a_names[]
+                    else:
+                        var names: seq[string] = @[]
+                        const dirtypes = {pcDir, pcLinkToDir}
+                        for kind, path in walkDir(registrypath):
+                            if kind notin dirtypes: continue
+                            let parts = splitPath(path)
+                            names.add(parts.tail)
+                        names.sort()
+                        names
+                )
+
+                case action:
+                    of "disable", "enable":
+                        var cmd = "nodecliac " & action
+                        for name in names: cmd &= " " & name
+                        discard execProcess(cmd)
+                    of "remove":
+                        for name in names:
+                            let p = joinPath(registrypath, name)
+                            if dirExists(p): removeDir(p)
+                    else: discard
+
+                # response.inst_a_names = addr names
+
+                incoming.future[].complete(response)
+
+    proc enapkgs(s: string) {.async.} =
+        let jdata = parseJSON(s)
+        let all = jdata["all"].getBool()
+        let panel = jdata["panel"].getStr()
+
+        app.js(fmt"""get_panel_by_name("{panel}").$tb_loader.classList.remove("none");""")
+
+        var names: seq[string] = @[]
+        for item in items(jdata["names"]):
+            let name = item.getStr()
+            if name != "nodecliac": names.add(name)
+
+        var chan: Channel[ChannelMsg]
+        chan.open()
+        var thread: Thread[ptr Channel[ChannelMsg]]
+        createThread(thread, t_inst_actions, addr chan)
+
+        var fut = newFuture[Response]("enapkgs.nodecliac")
+        let data = ChannelMsg(
+            future: addr fut,
+            action: "enable",
+            inst_a_names: addr names,
+            all: all
+        )
+        chan.send(data)
+        discard await fut
+        chan.close()
+
+        var command = ""
+        for name in names:
+            command &= fmt"""var $status = f("#pkg-entry-{name}").all().classes("pstatus").getElement();
+                var classes = $status.classList;
+                classes.remove("off");
+                classes.add("on");
+                """
+
+        if all:
+            command = fmt"""
+                var PANEL = get_panel_by_name("{panel}");
+                var $statuses = f(PANEL.$entries).all().classes("pstatus").getStack();
+                $statuses.forEach(function(x, i) {{
+                    let classes = x.classList;
+                    classes.remove("off");
+                    classes.add("on");
+                }});
+                """
+
+        app.dispatch(
+            proc () =
+                app.js(fmt"""
+                {command}
+                get_panel_by_name("{panel}").$tb_loader.classList.add("none");
+                """)
+        )
+
+    proc dispkgs(s: string) {.async.} =
+        let jdata = parseJSON(s)
+        let all = jdata["all"].getBool()
+        let panel = jdata["panel"].getStr()
+
+        app.js(fmt"""get_panel_by_name("{panel}").$tb_loader.classList.remove("none");""")
+
+        var names: seq[string] = @[]
+        for item in items(jdata["names"]):
+            let name = item.getStr()
+            if name != "nodecliac": names.add(name)
+
+        var chan: Channel[ChannelMsg]
+        chan.open()
+        var thread: Thread[ptr Channel[ChannelMsg]]
+        createThread(thread, t_inst_actions, addr chan)
+
+        var fut = newFuture[Response]("dispkgs.nodecliac")
+        let data = ChannelMsg(
+            future: addr fut,
+            action: "disable",
+            inst_a_names: addr names,
+            all: all
+        )
+        chan.send(data)
+        discard await fut
+        chan.close()
+
+        var command = ""
+        for name in names:
+            command &= fmt"""var $status = f("#pkg-entry-{name}").all().classes("pstatus").getElement();
+                var classes = $status.classList;
+                classes.remove("on");
+                classes.add("off");
+                """
+
+        if all:
+            command = fmt"""
+                var PANEL = get_panel_by_name("{panel}");
+                var $statuses = f(PANEL.$entries).all().classes("pstatus").getStack();
+                $statuses.forEach(function(x, i) {{
+                    let classes = x.classList;
+                    classes.remove("on");
+                    classes.add("off");
+                }});
+                """
+
+        app.dispatch(
+            proc () =
+                app.js(fmt"""
+                {command}
+                get_panel_by_name("{panel}").$tb_loader.classList.add("none");
+                """)
+        )
+
+    proc rempkgs(s: string) {.async.} =
+        let jdata = parseJSON(s)
+        let all = jdata["all"].getBool()
+        let panel = jdata["panel"].getStr()
+
+        app.js(fmt"""get_panel_by_name("{panel}").$tb_loader.classList.remove("none");""")
+
+        var names: seq[string] = @[]
+        for item in items(jdata["names"]):
+            let name = item.getStr()
+            if name != "nodecliac": names.add(name)
+
+        var chan: Channel[ChannelMsg]
+        chan.open()
+        var thread: Thread[ptr Channel[ChannelMsg]]
+        createThread(thread, t_inst_actions, addr chan)
+
+        var fut = newFuture[Response]("rempkgs.nodecliac")
+        let data = ChannelMsg(
+            future: addr fut,
+            action: "remove",
+            all: all,
+            inst_a_names: addr names
+        )
+        chan.send(data)
+        discard await fut
+        chan.close()
+
+        var command = ""
+        for name in names:
+            command &= fmt"""
+                var $child = document.getElementById("pkg-entry-{name}");
+                $child.parentElement.removeChild($child);
+                """
+        if all: command &= fmt"""get_panel_by_name("{panel}").$entries.innerHTML = "";"""
+
+        app.dispatch(
+            proc () =
+                app.js(fmt"""
+                {command}
+                get_panel_by_name("{panel}").$tb_loader.classList.add("none");
+                """)
+        )
+
 # ==============================================================================
 
     # Run package manager actions (i.e. updating/remove/adding packages)
@@ -816,74 +1019,6 @@ proc main() =
 
                 incoming.future[].complete(response)
 
-    # Run package manager actions (i.e. updating/remove/adding packages)
-    # on its own thread to prevent blocking main UI/WebView event loop.
-    proc thread_a_actions(chan: ptr Channel[ChannelMsg]) {.thread.} =
-        # [https://github.com/dom96/nim-in-action-code/blob/master/Chapter3/ChatApp/src/client.nim#L42-L50]
-        while true:
-            var incoming = chan[].recv()
-            if not incoming.future[].finished:
-                var response: Response
-                response = Response(code: -1)
-
-                let action = incoming.action
-                let all = incoming.all
-
-                case action:
-                    of "remove":
-                        # Use nodecliac CLI.
-                        # let names = incoming.list[]
-                        # var cmd = fmt"""nodecliac remove"""
-                        # for name in names: cmd &= " " & name
-                        # discard execProcess(cmd)
-
-                        let hdir = os.getEnv("HOME")
-                        let names = incoming.list[]
-                        for name in names:
-                            let p = hdir & "/.nodecliac/registry/" & name
-                            # if dirExists(p): removeDir(p)
-                    of "enable":
-                        # Use nodecliac CLI.
-                        # [https://forum.nim-lang.org/t/6122]
-                        let names = (
-                            if not all:
-                                incoming.list[]
-                            else:
-                                # If all flag is set, get all registry package names.
-                                var names: seq[string] = @[]
-                                let hdir = os.getEnv("HOME")
-                                for kind, path in walkDir(hdir & "/.nodecliac/registry"):
-                                    let parts = splitPath(path)
-                                    names.add(parts.tail)
-                                names.sort()
-                                names
-                        )
-                        var cmd = fmt"""nodecliac enable"""
-                        for name in names: cmd &= " " & name
-                        discard execProcess(cmd)
-                    of "disable":
-                        # Use nodecliac CLI.
-                        let names = (
-                            if not all:
-                                incoming.list[]
-                            else:
-                                # If all flag is set, get all registry package names.
-                                var names: seq[string] = @[]
-                                let hdir = os.getEnv("HOME")
-                                for kind, path in walkDir(hdir & "/.nodecliac/registry"):
-                                    let parts = splitPath(path)
-                                    names.add(parts.tail)
-                                names.sort()
-                                names
-                        )
-                        var cmd = fmt"""nodecliac disable"""
-                        for name in names: cmd &= " " & name
-                        discard execProcess(cmd)
-
-                    else: discard
-
-                incoming.future[].complete(response)
-
     proc updater() {.async.} =
 
         app.js("""
@@ -1005,167 +1140,6 @@ proc main() =
                 document.getElementById("doctor-spinner").classList.add("none");
                 """)
         )
-
-    proc enapkgs(s: string) {.async.} =
-        let jdata = parseJSON(s)
-        let all = jdata["all"].getBool()
-        let panel = jdata["panel"].getStr()
-
-            # document.getElementById("doctor-run").classList.add("nointer", "disabled");
-        app.js(fmt"""
-            get_panel_by_name("{panel}").$tb_loader.classList.remove("none");
-            """)
-
-        var names: seq[string] = @[]
-        for item in items(jdata["names"]):
-            let name = item.getStr()
-            if name != "nodecliac": names.add(name)
-
-        var chan: Channel[ChannelMsg]
-        chan.open()
-        var thread: Thread[ptr Channel[ChannelMsg]]
-        createThread(thread, thread_a_actions, addr chan)
-
-        var fut = newFuture[Response]("enapkgs.nodecliac")
-        let data = ChannelMsg(future: addr fut, action: "enable", list: addr names, all: all)
-        chan.send(data)
-        let r = await fut
-        let html = r.resp
-        chan.close()
-
-        var remcmd = ""
-        for name in names:
-            remcmd &= fmt"""var $status = f("#pkg-entry-{name}").all().classes("pstatus").getElement();
-var classes = $status.classList;
-classes.remove("off");
-classes.add("on");"""
-
-        if all:
-            remcmd = fmt"""
-            var PANEL = get_panel_by_name("{panel}");
-            var $statuses = f(PANEL.$entries).all().classes("pstatus").getStack();
-            $statuses.forEach(function(x, i) {{
-                let classes = x.classList;
-                classes.remove("off");
-                classes.add("on");
-            }});
-            """
-
-        app.dispatch(
-            proc () =
-                app.js(fmt"""
-                {remcmd}
-                get_panel_by_name("{panel}").$tb_loader.classList.add("none");
-                processes.packages.{panel} = false;
-                """)
-        )
-
-                # document.getElementById("doctor-output").innerHTML = `{html}`;
-                # document.getElementById("doctor-run").classList.remove("nointer", "disabled");
-
-    proc dispkgs(s: string) {.async.} =
-        let jdata = parseJSON(s)
-        let all = jdata["all"].getBool()
-        let panel = jdata["panel"].getStr()
-
-            # document.getElementById("doctor-run").classList.add("nointer", "disabled");
-            # document.getElementById("pkg-action-spinner").classList.remove("none");
-        app.js(fmt"""
-            get_panel_by_name("{panel}").$tb_loader.classList.remove("none");
-            """)
-
-        var names: seq[string] = @[]
-        for item in items(jdata["names"]):
-            let name = item.getStr()
-            if name != "nodecliac": names.add(name)
-
-        var chan: Channel[ChannelMsg]
-        chan.open()
-        var thread: Thread[ptr Channel[ChannelMsg]]
-        createThread(thread, thread_a_actions, addr chan)
-
-        var fut = newFuture[Response]("dispkgs.nodecliac")
-        let data = ChannelMsg(future: addr fut, action: "disable", list: addr names, all: all)
-        chan.send(data)
-        let r = await fut
-        let html = r.resp
-        chan.close()
-
-        var remcmd = ""
-        for name in names:
-            remcmd &= fmt"""var $status = f("#pkg-entry-{name}").all().classes("pstatus").getElement();
-var classes = $status.classList;
-classes.remove("on");
-classes.add("off");"""
-
-        if all:
-            remcmd = fmt"""
-            var PANEL = get_panel_by_name("{panel}");
-            var $statuses = f(PANEL.$entries).all().classes("pstatus").getStack();
-            $statuses.forEach(function(x, i) {{
-                let classes = x.classList;
-                classes.remove("on");
-                classes.add("off");
-            }});
-            """
-
-        app.dispatch(
-            proc () =
-                app.js(fmt"""
-                {remcmd}
-                get_panel_by_name("{panel}").$tb_loader.classList.add("none");
-                processes.packages.{panel} = false;
-                """)
-        )
-
-                # document.getElementById("doctor-output").innerHTML = `{html}`;
-                # document.getElementById("doctor-run").classList.remove("nointer", "disabled");
-
-    proc rempkgs(s: string) {.async.} =
-        let jdata = parseJSON(s)
-        let panel = jdata["panel"].getStr()
-
-            # document.getElementById("doctor-run").classList.add("nointer", "disabled");
-            # document.getElementById("tb-actions").classList.add("disabled");
-        app.js(fmt"""
-            get_panel_by_name("{panel}").$tb_loader.classList.remove("none");
-            """)
-
-        var names: seq[string] = @[]
-        for item in items(jdata["names"]):
-            let name = item.getStr()
-            if name != "nodecliac": names.add(name)
-
-        var chan: Channel[ChannelMsg]
-        chan.open()
-        var thread: Thread[ptr Channel[ChannelMsg]]
-        createThread(thread, thread_a_actions, addr chan)
-
-        var fut = newFuture[Response]("rempkgs.nodecliac")
-        let data = ChannelMsg(future: addr fut, action: "remove", list: addr names)
-        chan.send(data)
-        let r = await fut
-        let html = r.resp
-        chan.close()
-
-        var remcmd = """var $parent = document.getElementById("pkg-entries");
-        """
-        for name in names:
-            remcmd &= fmt"""var $child = document.getElementById("pkg-entry-{name}");
-$parent.removeChild($child);"""
-
-        app.dispatch(
-            proc () =
-                app.js(fmt"""
-                {remcmd}
-                get_panel_by_name("{panel}").$tb_loader.classList.add("none");
-                processes.packages.{panel} = false;
-                """)
-        )
-                # document.getElementById("tb-actions").classList.remove("disabled");
-
-                # document.getElementById("doctor-output").innerHTML = `{html}`;
-                # document.getElementById("doctor-run").classList.remove("nointer", "disabled");
 
     proc config_update(setting: string, value: int) =
         let p =  hdir & "/.nodecliac/.config"

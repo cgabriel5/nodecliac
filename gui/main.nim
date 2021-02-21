@@ -1106,21 +1106,21 @@ proc main() =
             """)
         )
 
-        # let filename = currentSourcePath()
-        # let cwd = parentDir(filename)
-        # let prev = parentDir(parentDir(filename))
-        # let script = joinPath(cwd, "updater.sh")
-        # when defined(linux):
-        #     # [https://askubuntu.com/a/1105741]
-        #     # [https://stackoverflow.com/a/29689199]
-        #     # [https://stackoverflow.com/a/3980713]
-        #     # let cmd = fmt"""bash -c 'echo "nodecliac\ updater:";sudo sh -c "" > /dev/null 2>&1; bash <(cat "{script}") --update --packages --yes; $SHELL'"""
-        #     let cmd = fmt"""gnome-terminal --command="bash -c '{script}; $SHELL'""""
-        # elif defined(macosx):
-        #     let ascript = joinPath(cwd, "updater.scpt")
-        #     # osascript /opt/lampp/htdocs/projects/nodecliac/gui/updater.scpt /opt/lampp/htdocs/projects/nodecliac/install.sh
-        #     let cmd = fmt"""osascript {ascript} {script} --macosx"""
-        # discard execCmdEx(cmd)
+        let filename = currentSourcePath()
+        let cwd = parentDir(filename)
+        let prev = parentDir(parentDir(filename))
+        let script = joinPath(cwd, "updater.sh")
+        when defined(linux):
+            # [https://askubuntu.com/a/1105741]
+            # [https://stackoverflow.com/a/29689199]
+            # [https://stackoverflow.com/a/3980713]
+            # let cmd = fmt"""bash -c 'echo "nodecliac\ updater:";sudo sh -c "" > /dev/null 2>&1; bash <(cat "{script}") --update --packages --yes; $SHELL'"""
+            let cmd = fmt"""gnome-terminal --command="bash -c '{script}; $SHELL'""""
+        elif defined(macosx):
+            let ascript = joinPath(cwd, "updater.scpt")
+            # osascript /opt/lampp/htdocs/projects/nodecliac/gui/updater.scpt /opt/lampp/htdocs/projects/nodecliac/install.sh
+            let cmd = fmt"""osascript {ascript} {script} --macosx"""
+        discard execCmdEx(cmd)
 
     proc checkup() {.async.} =
 

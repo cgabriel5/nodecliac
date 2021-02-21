@@ -773,6 +773,82 @@ proc main() =
 
                 incoming.future[].complete(response)
 
+    proc updater() {.async.} =
+
+        app.js("""
+            document.getElementById("update-spinner").classList.remove("none");
+            document.getElementById("update-update").classList.add("nointer", "disabled");
+            """)
+
+        let filename = currentSourcePath()
+        let cwd = parentDir(filename)
+        let script = joinPath(cwd, "updater.sh")
+
+        var chan: Channel[ChannelMsg]
+        chan.open()
+        var thread: Thread[ptr Channel[ChannelMsg]]
+        createThread(thread, t_update, addr chan)
+
+        var fut = newFuture[Response]("update.nodecliac")
+        let data = ChannelMsg(
+            future: addr fut,
+            cmd: script,
+            action: "update"
+        )
+        chan.send(data)
+        let r = await fut
+        let code = r.code
+        chan.close()
+
+        # [https://nim-lang.org/docs/times.html#parsing-and-formatting-dates]
+        let datestring = getTime().format("MMM'.' d, yyyy (h:mm tt)")
+        var title, message, icon, class: string
+        case code
+            of 1:
+                title = "Error"
+                message = "Authentication attempt failed (incorrect password provided)."
+                icon = "fas fa-times-circle"
+                class = "error"
+            of -1:
+                title = "Aborted"
+                message = "nodecliac update aborted."
+                icon = "fas fa-exclamation-circle"
+                class = "aborted"
+            else:
+                title = "Success"
+                message = "nodecliac updated successfully."
+                icon = "fas fa-check-circle"
+                class = "success"
+
+        let logentry = fmt"""
+                <div class="logitem row new-highlight {class}">
+                <div class="logitem-top">
+                    <div class="left center">
+                        <div class="icon">
+                            <i class="{icon}"></i>
+                        </div>
+                        <div class="title">{title}</div>
+                    </div>
+                    <div class="right">
+                        <div class="time">
+                            {datestring}
+                        </div>
+                    </div>
+                </div>
+                <div>{message}</div>
+                </div>""".collapse_html
+
+        app.dispatch(
+            proc () =
+                app.js(fmt"""
+                    document.getElementById('update-output').insertAdjacentHTML('afterbegin', `{logentry}`);
+                    document.getElementById("update-update").classList.remove("nointer", "disabled");
+                    document.getElementById("update-spinner").classList.add("none");
+                    """)
+        )
+
+# ==============================================================================
+
     # Run package manager actions (i.e. updating/remove/adding packages)
     # on its own thread to prevent blocking main UI/WebView event loop.
     proc thread_a_doctor(chan: ptr Channel[ChannelMsg]) {.thread.} =
@@ -1023,80 +1099,6 @@ proc main() =
                     else: discard
 
                 incoming.future[].complete(response)
-
-    proc updater() {.async.} =
-
-        app.js("""
-            document.getElementById("update-spinner").classList.remove("none");
-            document.getElementById("update-update").classList.add("nointer", "disabled");
-            """)
-
-        let filename = currentSourcePath()
-        let cwd = parentDir(filename)
-        let script = joinPath(cwd, "updater.sh")
-
-        var chan: Channel[ChannelMsg]
-        chan.open()
-        var thread: Thread[ptr Channel[ChannelMsg]]
-        createThread(thread, t_update, addr chan)
-
-        var fut = newFuture[Response]("update.nodecliac")
-        let data = ChannelMsg(
-            future: addr fut,
-            cmd: script,
-            action: "update"
-        )
-        chan.send(data)
-        let r = await fut
-        let code = r.code
-        chan.close()
-
-        # [https://nim-lang.org/docs/times.html#parsing-and-formatting-dates]
-        let datestring = getTime().format("MMM'.' d, yyyy (h:mm tt)")
-        var title, message, icon, class: string
-        case code
-            of 1:
-                title = "Error"
-                message = "Authentication attempt failed (incorrect password provided)."
-                icon = "fas fa-times-circle"
-                class = "error"
-            of -1:
-                title = "Aborted"
-                message = "nodecliac update aborted."
-                icon = "fas fa-exclamation-circle"
-                class = "aborted"
-            else:
-                title = "Success"
-                message = "nodecliac updated successfully."
-                icon = "fas fa-check-circle"
-                class = "success"
-
-        let logentry = fmt"""
-                <div class="logitem row new-highlight {class}">
-                <div class="logitem-top">
-                    <div class="left center">
-                        <div class="icon">
-                            <i class="{icon}"></i>
-                        </div>
-                        <div class="title">{title}</div>
-                    </div>
-                    <div class="right">
-                        <div class="time">
-                            {datestring}
-                        </div>
-                    </div>
-                </div>
-                <div>{message}</div>
-                </div>""".collapse_html
-
-        app.dispatch(
-            proc () =
-                app.js(fmt"""
-                    document.getElementById('update-output').insertAdjacentHTML('afterbegin', `{logentry}`);
-                    document.getElementById("update-update").classList.remove("nointer", "disabled");
-                    document.getElementById("update-spinner").classList.add("none");
-                    """)
-        )
 
     proc checkup() {.async.} =
 

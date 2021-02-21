@@ -21,9 +21,11 @@ module.exports = async (args) => {
 		let pkg = packages[i];
 
 		let filepath = `${registrypath}/${pkg}/.${pkg}.config.acdef`;
-		let resolved_path = await realpath(filepath);
+		let [err, res] = await flatry(realpath(filepath));
+		if (err) continue;
+		let resolved_path = res;
 
-		let [err, res] = await flatry(fe(resolved_path));
+		[err, res] = await flatry(fe(resolved_path));
 		if (err || !res) continue;
 		[err, res] = await flatry(read(resolved_path));
 		if (err) continue;

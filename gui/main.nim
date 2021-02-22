@@ -81,7 +81,7 @@ proc main() =
         const minHeight = 400
 
     let hdir = os.getEnv("HOME")
-    let registrypath = hdir & "/.nodecliac/registry"
+    let registrypath = joinPath(hdir, "/.nodecliac/registry")
     # var app {.threadvar.}: Webview
     let app = newWebView(currentHtmlPath("views/index.html"),
         debug=true,
@@ -105,7 +105,7 @@ proc main() =
                 let hdir = os.getEnv("HOME")
                 var avai_db = incoming.avai_db[]
                 var avai_names: seq[string] = @[]
-                let cached_avai = hdir & "/.nodecliac/.cached_avai"
+                let cached_avai = joinPath(hdir, "/.nodecliac/.cached_avai")
                 let url = "https://raw.githubusercontent.com/cgabriel5/nodecliac-packages/master/packages.json"
 
                 # [https://stackoverflow.com/a/6712058]
@@ -203,7 +203,7 @@ proc main() =
 
                 if input != "":
                     if input notin name: continue
-                let p = hdir & "/.nodecliac/registry/" & name
+                let p = joinPath(hdir, "/.nodecliac/registry/", name)
                 let classname = if dirExists(p): "on" else: "clear"
                 html &= fmt"""<div class=entry id=pkg-entry-{name}>
                     <div class="center">
@@ -395,7 +395,7 @@ proc main() =
                 let r = re"@disable\s=\strue"
                 var packages: seq[tuple[name, version: string, disabled: bool]] = @[]
                 const dirtypes = {pcDir, pcLinkToDir}
-                for kind, path in walkDir(hdir & "/.nodecliac/registry"):
+                for kind, path in walkDir(joinPath(hdir, "/.nodecliac/registry")):
                     # [https://nim-lang.org/docs/os.html#PathComponent]
                     # Only get dirs/links to dirs
                     if kind notin dirtypes: continue
@@ -538,7 +538,7 @@ proc main() =
                 let all = incoming.all
                 let action = incoming.action
                 let hdir = os.getEnv("HOME")
-                let registrypath = hdir & "/.nodecliac/registry"
+                let registrypath = joinPath(hdir, "/.nodecliac/registry")
                 var names = (
                     if not all: incoming.inst_a_names[]
                     else:
@@ -932,7 +932,7 @@ proc main() =
                         let hdir = os.getEnv("HOME")
                         var items: seq[tuple[name, version: string, disabled: bool]] = @[]
                         const dirtypes = {pcDir, pcLinkToDir}
-                        for kind, path in walkDir(hdir & "/.nodecliac/registry"):
+                        for kind, path in walkDir(joinPath(hdir, "/.nodecliac/registry")):
                             # [https://nim-lang.org/docs/os.html#PathComponent]
                             # Only get dirs/links to dirs
                             if kind notin dirtypes: continue
@@ -1050,7 +1050,7 @@ proc main() =
                         # let hdir = os.getEnv("HOME")
                         # var items: seq[tuple[name, version: string, disabled: bool]] = @[]
                         # let dirtypes = {pcDir, pcLinkToDir}
-                        # for kind, path in walkDir(hdir & "/.nodecliac/registry"):
+                        # for kind, path in walkDir(joinPath(hdir, "/.nodecliac/registry")):
                         #     # [https://nim-lang.org/docs/os.html#PathComponent]
                         #     # Only get dirs/links to dirs
                         #     if kind notin dirtypes: continue
@@ -1184,7 +1184,7 @@ proc main() =
 
     proc settings_reset() =
         const value = "1001"
-        writeFile(hdir & "/.nodecliac/.config", value)
+        writeFile(joinPath(hdir, "/.nodecliac/.config"), value)
         # [https://stackoverflow.com/a/62563753]
         app.js("window.api.setup_config(" & cast[seq[char]](value).join(",") & ");")
 
@@ -1213,7 +1213,7 @@ proc main() =
 
                 # Nim native `nodecliac cache --clear` equivalent...
                 let hdir = os.getEnv("HOME")
-                let cp = hdir & "/.nodecliac/.cache"
+                let cp = joinPath(hdir, "/.nodecliac/.cache")
                 if dirExists(cp):
                     for kind, path in walkDir(cp):
                         if kind == pcFile: discard tryRemoveFile(path)
@@ -1290,7 +1290,7 @@ proc main() =
         proc fopen(path: string) =
             # [https://nim-lang.org/docs/osproc.html#execCmd%2Cstring]
             var path = path.strip(trailing=true)
-            let p = hdir & "/.nodecliac/registry/" & splitPath(path).tail
+            let p = joinPath(hdir, "/.nodecliac/registry/", splitPath(path).tail)
             if path.startsWith('~'):
                 path.removePrefix('~')
                 path = hdir & path
@@ -1322,7 +1322,7 @@ proc main() =
             let exclude = jdata{"exclude"}.getStr("").split(',')
 
             # Check that package ini file exists.
-            let config = hdir & "/.nodecliac/registry/" & name & "/package.ini"
+            let config = joinPath(hdir, "/.nodecliac/registry/", name, "/package.ini")
             if fileExists(config):
                 # Read the config file and get the needed data points.
                 # [https://github.com/coffeepots/niminifiles]

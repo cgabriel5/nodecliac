@@ -13,22 +13,22 @@ proc main() =
 
     # [https://forum.nim-lang.org/t/6474#39947]
     type
+        Outdated = tuple[
+            name,
+            local_version,
+            remote_version: string,
+            config: OrderedTableRef[
+                string,
+                OrderedTableRef[string, string]
+            ]
+        ]
+
         Response = ref object
             code: int
             resp: string
             jdata: ptr seq[JsonNode]
             names: ptr seq[tuple[name, version: string, disabled: bool]]
-            outdated: ptr seq[
-                            tuple[
-                                name,
-                                local_version,
-                                remote_version: string,
-                                config: OrderedTableRef[
-                                    string,
-                                    OrderedTableRef[string, string]
-                                ]
-                            ]
-                        ]
+            outdated: ptr seq[Outdated]
 
             inst_pkgs: ptr seq[tuple[name, version: string, disabled: bool]]
             inst_a_names: ptr seq[string]

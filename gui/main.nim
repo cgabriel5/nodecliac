@@ -92,285 +92,28 @@ proc main() =
         cssPath=currentHtmlPath("css/empty.css") # [Bug] Line doesn't work on macOS?
     )
 
-    proc collapse_html(html: string): string =
-        return html.strip.unindent.multiReplace([("\n", " ")])
-
 # ==============================================================================
 
-    proc t_get_packages_avai(chan: ptr Channel[ChannelMsg]) {.thread.} =
-        while true: # [https://git.io/JtHvI]
-            var incoming = chan[].recv()
-            if not incoming.future[].finished:
-                var response = Response(code: -1)
-                let hdir = os.getEnv("HOME")
-                var avai_db = incoming.avai_db[]
-                var avai_names: seq[string] = @[]
-                let cached_avai = joinPath(hdir, "/.nodecliac/.cached_avai")
-                let url = "https://raw.githubusercontent.com/cgabriel5/nodecliac-packages/master/packages.json"
+    proc collapse_html(html: string): string =
+        return html.strip().unindent().multiReplace([("\n", " ")])
 
-                # [https://stackoverflow.com/a/6712058]
-                # Nim Json sorting: [https://forum.nim-lang.org/t/6332#39027]
-                proc alphasort(a, b: JsonNode): int =
-                    let aname = a{"name"}.getStr().toLower()
-                    let bname = b{"name"}.getStr().toLower()
-                    if aname < bname: result = -1 # Sort string ascending.
-                    elif aname > bname: result = 1
-                    else: result = 0 # Default return value (no sorting).
+    proc clink(url: string): string =
+        return fmt"""
+            <a class=\"link\"
+                target=\"_blank\"
+                onclick=\"api.open(this.href)\"
+                href=\"{url}\">
+                {url}
+            </a>
+            """.collapse_html
 
-                proc fetchjson(url: string): Future[string] {.async.} =
-                    let client = newAsyncHttpClient()
-                    let contents = await client.getContent(url)
-                    return contents
-
-                proc getpkgs() {.async.} =
-                    let cache_exists = fileExists(cached_avai)
-                    let cache_fresh = (
-                        if cache_exists:
-                            let mtime = getLastModificationTime(cached_avai).toUnix()
-                            let ctime = getTime().toUnix()
-                            not (ctime - mtime > 60)
-                        else: true
-                    )
-                    let usecache = cache_exists and cache_fresh
-
-                    let contents = if usecache: readFile(cached_avai) else: await fetchjson(url)
-                    var jdata = parseJSON(contents).getElems.sorted(alphasort)
-
-                    for item in items(jdata):
-                        let name = item["name"].getStr()
-                        avai_db[name] = item
-                        avai_names.add(name)
-
-                    if not usecache:
-                        var sjson = $jdata
-                        if sjson != "": sjson.delete(0, 0)
-                        writeFile(cached_avai, sjson)
-
-                    response.jdata = addr jdata
-                    response.avai_db = addr avai_db
-                    response.avai_names = addr avai_names
-
-                    incoming.future[].complete(response)
-
-                waitFor getpkgs()
-
-    var avai_first_run_done = false
-    proc get_packages_avai(s: string) {.async.} =
-        let jdata = parseJSON(s)
-        let input = jdata["input"].getStr()
-        let panel = jdata["panel"].getStr()
-        let force = jdata{"force"}.getBool()
-
-        if avai_first_run_done and not force: return
-        avai_first_run_done = true
-
-        app.js(fmt"""get_panel_by_name("{panel}").$sbentry.classList.remove("none");""")
-
-        var chan: Channel[ChannelMsg]
-        chan.open()
-        var thread: Thread[ptr Channel[ChannelMsg]]
-        createThread(thread, t_get_packages_avai, addr chan)
-
-        var fut = newFuture[Response]("get-packages-avai.nodecliac")
-        let data = ChannelMsg(future: addr fut, avai_db: addr AVAI_PKGS)
-        chan.send(data)
-        let r = await fut
-        chan.close()
-
-        var objects = r.jdata[]
-        AVAI_PKGS = r.avai_db[]
-        AVAI_PKGS_NAMES = r.avai_names[]
-
-        var html = ""
-        if objects.len == 0:
-            html &= """<div class="empty"><div>No Packages</div></div>"""
-            app.dispatch(
-                proc () =
-                    app.js(
-                        fmt"""
-                        var PANEL = get_panel_by_name("{panel}");
-                        PANEL.$entries.textContent = "";
-                        PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
-                        """
-                    )
-            )
-        else:
-            var add_names = ""
-            for obj in objects:
-                let name = obj{"name"}.getStr()
-
-                add_names &= fmt"""PANEL.jdata_names.push("{name}");"""
-
-                if input != "":
-                    if input notin name: continue
-                let p = joinPath(hdir, "/.nodecliac/registry/", name)
-                let classname = if dirExists(p): "on" else: "clear"
-                html &= fmt"""<div class=entry id=pkg-entry-{name}>
-                    <div class="center">
-                        <div class="checkmark" data-name="{name}">
-                            <i class="fas fa-check none"></i>
-                        </div>
-                        <div class="pstatus {classname}"></div>
-                        <div class="label">{name}</div>
-                        <div class="loader-cont none">
-                            <div class="svg-loader s-loader"></div>
-                        </div>
-                        <div class="istatus none"></div>
-                    </div>
-                </div>""".collapse_html
-
-            app.dispatch(
-                proc () =
-                    app.js(
-                        fmt"""
-                        var PANEL = get_panel_by_name("{panel}");
-                        PANEL.$entries.textContent = "";
-                        PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
-                        {add_names}
-                        """
-                    )
-            )
-
-        app.dispatch(
-            proc () =
-                app.js(fmt"""
-                    var PANEL = get_panel_by_name("{panel}");
-                    PANEL.$sbentry.classList.add("none");
-                    processes.packages["{panel}"] = false;
-                    toggle_pkg_sel_action_refresh(true);
-                """)
-        )
-
-# ------------------------------------------------------------------------------
-
-    proc filter_avai_pkgs(input: string) =
-        # Remove nodes: [https://stackoverflow.com/a/3955238]
-        # Fragment: [https://howchoo.com/code/learn-the-slow-and-fast-way-to-append-elements-to-the-dom]
-        # Fuzzy search:
-        # [https://github.com/nim-lang/Nim/issues/13955]
-        # [https://github.com/nim-lang/Nim/blob/devel/tools/dochack/dochack.nim]
-        # [https://github.com/nim-lang/Nim/blob/devel/tools/dochack/fuzzysearch.nim]
-        # [https://www.forrestthewoods.com/blog/reverse_engineering_sublime_texts_fuzzy_match/]
-
-        var html = ""
-        var empty = true
-        var command = fmt"""
-            var PANEL = get_panel_by_name("packages-available");
-            PANEL.jdata_filtered.length = 0;
-            """
-
-        for name in AVAI_PKGS_NAMES:
-            if input in name:
-                empty = false
-                let p = joinPath(registrypath, name)
-                let classname = if dirExists(p): "on" else: "clear"
-
-                command &= fmt"""PANEL.jdata_filtered.push("{name}");"""
-                html &= fmt"""<div class=entry id=pkg-entry-{name}>
-                    <div class="center">
-                        <div class="checkmark" data-name="{name}">
-                            <i class="fas fa-check none"></i>
-                        </div>
-                        <div class="pstatus {classname}"></div>
-                        <div class="label">{name}</div>
-                        <div class="loader-cont none">
-                            <div class="svg-loader s-loader"></div>
-                        </div>
-                        <div class="istatus none"></div>
-                    </div>
-                </div>""".collapse_html
-
-        if empty: html &= """<div class="empty"><div>No Packages</div></div>"""
-        command &= fmt"""
-            PANEL.$entries.textContent = "";
-            PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
-            PKG_PANES_REFS.$input_loader.classList.add("none");
-        """
-
-        app.js(command)
-
-# ------------------------------------------------------------------------------
-
-    proc t_installpkg(chan: ptr Channel[ChannelMsg]) {.thread.} =
-        while true: # [https://git.io/JtHvI]
-            var incoming = chan[].recv()
-            if not incoming.future[].finished:
-                var response = Response(code: -1)
-
-                let name = incoming.avai_pname
-                let avai_db = incoming.avai_db[]
-
-                if avai_db.hasKey(name):
-                    let scheme = avai_db[name]{"scheme"}.getStr()
-                    let cmd = fmt"""nodecliac add --repo "{scheme}" --skip-val;"""
-                    let res = execProcess(cmd).strip(trailing=true)
-                    if "exists" in res: response.err = $res
-
-                incoming.future[].complete(response)
-
-    var install_queue: seq[string] = @[]
-    proc installpkg(s: string, stop: bool = false) {.async.} =
-        var jdata = parseJSON(s)
-        let name = jdata["name"].getStr()
-        let panel = jdata["panel"].getStr()
-
-        # Queue logic.
-        if not stop: install_queue.add(name)
-        if install_queue.len > 1 and not stop: return
-
-        app.js(
-            fmt"""
-            var PANEL = get_panel_by_name("{panel}");
-            PANEL.$tb_loader.classList.remove("none");
-            f(PANEL.$tb).all().classes("tb-action-first").getElement().classList.add("disabled");
-            """
-        )
-
-        var chan: Channel[ChannelMsg]
-        chan.open()
-        var thread: Thread[ptr Channel[ChannelMsg]]
-        createThread(thread, t_installpkg, addr chan)
-
-        var fut = newFuture[Response]("installpkgs.nodecliac")
-        let data = ChannelMsg(future: addr fut, avai_db: addr AVAI_PKGS, avai_pname: name)
-        chan.send(data)
-        let r = await fut
-        chan.close()
-        let err = r.err
-
-        var cmd = fmt"""
-            var PANEL = get_panel_by_name("{panel}");
-            var $status = f("#pkg-entry-{name}").all().classes("pstatus").getElement();
-            var classes = $status.classList;
-            classes.remove("clear");
-            classes.add("on");"""
-
-        if err != "":
-            cmd &= fmt"""var $status = f("#pkg-entry-{name}").all().classes("istatus").getElement();
-            var classes = $status.classList;
-            classes.remove("none");
-            classes.add("on");
-            $status.innerText = "Err: {err}";
-            """
-
-        app.dispatch(
-            proc () =
-                if install_queue.len <= 1:
-                    cmd &= fmt"""get_panel_by_name("{panel}").$tb_loader.classList.add("none");"""
-
-                app.js(
-                    fmt"""
-                    {cmd}
-                    f(PANEL.$tb).all().classes("tb-action-first").getElement().classList.remove("disabled");
-                    """
-                )
-
-                # Finally, remove name from queue and continue queue.
-                install_queue.delete(0)
-                if install_queue.len != 0:
-                    jdata["name"] = %* install_queue[0]
-                    asyncCheck installpkg($jdata, true)
-        )
+    proc flink(url: string): string =
+        return fmt"""
+            <a class=\"link\"
+                onclick=\"api.fopen(this.textContent)\">
+                {url}
+            </a>
+            """.collapse_html
 
 # ==============================================================================
 
@@ -723,6 +466,633 @@ proc main() =
 
 # ==============================================================================
 
+    proc t_get_packages_avai(chan: ptr Channel[ChannelMsg]) {.thread.} =
+        while true: # [https://git.io/JtHvI]
+            var incoming = chan[].recv()
+            if not incoming.future[].finished:
+                var response = Response(code: -1)
+                let hdir = os.getEnv("HOME")
+                var avai_db = incoming.avai_db[]
+                var avai_names: seq[string] = @[]
+                let cached_avai = joinPath(hdir, "/.nodecliac/.cached_avai")
+                let url = "https://raw.githubusercontent.com/cgabriel5/nodecliac-packages/master/packages.json"
+
+                # [https://stackoverflow.com/a/6712058]
+                # Nim Json sorting: [https://forum.nim-lang.org/t/6332#39027]
+                proc alphasort(a, b: JsonNode): int =
+                    let aname = a{"name"}.getStr().toLower()
+                    let bname = b{"name"}.getStr().toLower()
+                    if aname < bname: result = -1 # Sort string ascending.
+                    elif aname > bname: result = 1
+                    else: result = 0 # Default return value (no sorting).
+
+                proc fetchjson(url: string): Future[string] {.async.} =
+                    let client = newAsyncHttpClient()
+                    let contents = await client.getContent(url)
+                    return contents
+
+                proc getpkgs() {.async.} =
+                    let cache_exists = fileExists(cached_avai)
+                    let cache_fresh = (
+                        if cache_exists:
+                            let mtime = getLastModificationTime(cached_avai).toUnix()
+                            let ctime = getTime().toUnix()
+                            not (ctime - mtime > 60)
+                        else: true
+                    )
+                    let usecache = cache_exists and cache_fresh
+
+                    let contents = if usecache: readFile(cached_avai) else: await fetchjson(url)
+                    var jdata = parseJSON(contents).getElems.sorted(alphasort)
+
+                    for item in items(jdata):
+                        let name = item["name"].getStr()
+                        avai_db[name] = item
+                        avai_names.add(name)
+
+                    if not usecache:
+                        var sjson = $jdata
+                        if sjson != "": sjson.delete(0, 0)
+                        writeFile(cached_avai, sjson)
+
+                    response.jdata = addr jdata
+                    response.avai_db = addr avai_db
+                    response.avai_names = addr avai_names
+
+                    incoming.future[].complete(response)
+
+                waitFor getpkgs()
+
+    var avai_first_run_done = false
+    proc get_packages_avai(s: string) {.async.} =
+        let jdata = parseJSON(s)
+        let input = jdata["input"].getStr()
+        let panel = jdata["panel"].getStr()
+        let force = jdata{"force"}.getBool()
+
+        if avai_first_run_done and not force: return
+        avai_first_run_done = true
+
+        app.js(fmt"""get_panel_by_name("{panel}").$sbentry.classList.remove("none");""")
+
+        var chan: Channel[ChannelMsg]
+        chan.open()
+        var thread: Thread[ptr Channel[ChannelMsg]]
+        createThread(thread, t_get_packages_avai, addr chan)
+
+        var fut = newFuture[Response]("get-packages-avai.nodecliac")
+        let data = ChannelMsg(future: addr fut, avai_db: addr AVAI_PKGS)
+        chan.send(data)
+        let r = await fut
+        chan.close()
+
+        var objects = r.jdata[]
+        AVAI_PKGS = r.avai_db[]
+        AVAI_PKGS_NAMES = r.avai_names[]
+
+        var html = ""
+        if objects.len == 0:
+            html &= """<div class="empty"><div>No Packages</div></div>"""
+            app.dispatch(
+                proc () =
+                    app.js(
+                        fmt"""
+                        var PANEL = get_panel_by_name("{panel}");
+                        PANEL.$entries.textContent = "";
+                        PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
+                        """
+                    )
+            )
+        else:
+            var add_names = ""
+            for obj in objects:
+                let name = obj{"name"}.getStr()
+
+                add_names &= fmt"""PANEL.jdata_names.push("{name}");"""
+
+                if input != "":
+                    if input notin name: continue
+                let p = joinPath(hdir, "/.nodecliac/registry/", name)
+                let classname = if dirExists(p): "on" else: "clear"
+                html &= fmt"""<div class=entry id=pkg-entry-{name}>
+                    <div class="center">
+                        <div class="checkmark" data-name="{name}">
+                            <i class="fas fa-check none"></i>
+                        </div>
+                        <div class="pstatus {classname}"></div>
+                        <div class="label">{name}</div>
+                        <div class="loader-cont none">
+                            <div class="svg-loader s-loader"></div>
+                        </div>
+                        <div class="istatus none"></div>
+                    </div>
+                </div>""".collapse_html
+
+            app.dispatch(
+                proc () =
+                    app.js(
+                        fmt"""
+                        var PANEL = get_panel_by_name("{panel}");
+                        PANEL.$entries.textContent = "";
+                        PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
+                        {add_names}
+                        """
+                    )
+            )
+
+        app.dispatch(
+            proc () =
+                app.js(fmt"""
+                    var PANEL = get_panel_by_name("{panel}");
+                    PANEL.$sbentry.classList.add("none");
+                    processes.packages["{panel}"] = false;
+                    toggle_pkg_sel_action_refresh(true);
+                """)
+        )
+
+# ------------------------------------------------------------------------------
+
+    proc filter_avai_pkgs(input: string) =
+        # Remove nodes: [https://stackoverflow.com/a/3955238]
+        # Fragment: [https://howchoo.com/code/learn-the-slow-and-fast-way-to-append-elements-to-the-dom]
+        # Fuzzy search:
+        # [https://github.com/nim-lang/Nim/issues/13955]
+        # [https://github.com/nim-lang/Nim/blob/devel/tools/dochack/dochack.nim]
+        # [https://github.com/nim-lang/Nim/blob/devel/tools/dochack/fuzzysearch.nim]
+        # [https://www.forrestthewoods.com/blog/reverse_engineering_sublime_texts_fuzzy_match/]
+
+        var html = ""
+        var empty = true
+        var command = fmt"""
+            var PANEL = get_panel_by_name("packages-available");
+            PANEL.jdata_filtered.length = 0;
+            """
+
+        for name in AVAI_PKGS_NAMES:
+            if input in name:
+                empty = false
+                let p = joinPath(registrypath, name)
+                let classname = if dirExists(p): "on" else: "clear"
+
+                command &= fmt"""PANEL.jdata_filtered.push("{name}");"""
+                html &= fmt"""<div class=entry id=pkg-entry-{name}>
+                    <div class="center">
+                        <div class="checkmark" data-name="{name}">
+                            <i class="fas fa-check none"></i>
+                        </div>
+                        <div class="pstatus {classname}"></div>
+                        <div class="label">{name}</div>
+                        <div class="loader-cont none">
+                            <div class="svg-loader s-loader"></div>
+                        </div>
+                        <div class="istatus none"></div>
+                    </div>
+                </div>""".collapse_html
+
+        if empty: html &= """<div class="empty"><div>No Packages</div></div>"""
+        command &= fmt"""
+            PANEL.$entries.textContent = "";
+            PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
+            PKG_PANES_REFS.$input_loader.classList.add("none");
+        """
+
+        app.js(command)
+
+# ------------------------------------------------------------------------------
+
+    proc t_installpkg(chan: ptr Channel[ChannelMsg]) {.thread.} =
+        while true: # [https://git.io/JtHvI]
+            var incoming = chan[].recv()
+            if not incoming.future[].finished:
+                var response = Response(code: -1)
+
+                let name = incoming.avai_pname
+                let avai_db = incoming.avai_db[]
+
+                if avai_db.hasKey(name):
+                    let scheme = avai_db[name]{"scheme"}.getStr()
+                    let cmd = fmt"""nodecliac add --repo "{scheme}" --skip-val;"""
+                    let res = execProcess(cmd).strip(trailing=true)
+                    if "exists" in res: response.err = $res
+
+                incoming.future[].complete(response)
+
+    var install_queue: seq[string] = @[]
+    proc installpkg(s: string, stop: bool = false) {.async.} =
+        var jdata = parseJSON(s)
+        let name = jdata["name"].getStr()
+        let panel = jdata["panel"].getStr()
+
+        # Queue logic.
+        if not stop: install_queue.add(name)
+        if install_queue.len > 1 and not stop: return
+
+        app.js(
+            fmt"""
+            var PANEL = get_panel_by_name("{panel}");
+            PANEL.$tb_loader.classList.remove("none");
+            f(PANEL.$tb).all().classes("tb-action-first").getElement().classList.add("disabled");
+            """
+        )
+
+        var chan: Channel[ChannelMsg]
+        chan.open()
+        var thread: Thread[ptr Channel[ChannelMsg]]
+        createThread(thread, t_installpkg, addr chan)
+
+        var fut = newFuture[Response]("installpkgs.nodecliac")
+        let data = ChannelMsg(future: addr fut, avai_db: addr AVAI_PKGS, avai_pname: name)
+        chan.send(data)
+        let r = await fut
+        chan.close()
+        let err = r.err
+
+        var cmd = fmt"""
+            var PANEL = get_panel_by_name("{panel}");
+            var $status = f("#pkg-entry-{name}").all().classes("pstatus").getElement();
+            var classes = $status.classList;
+            classes.remove("clear");
+            classes.add("on");"""
+
+        if err != "":
+            cmd &= fmt"""var $status = f("#pkg-entry-{name}").all().classes("istatus").getElement();
+            var classes = $status.classList;
+            classes.remove("none");
+            classes.add("on");
+            $status.innerText = "Err: {err}";
+            """
+
+        app.dispatch(
+            proc () =
+                if install_queue.len <= 1:
+                    cmd &= fmt"""get_panel_by_name("{panel}").$tb_loader.classList.add("none");"""
+
+                app.js(
+                    fmt"""
+                    {cmd}
+                    f(PANEL.$tb).all().classes("tb-action-first").getElement().classList.remove("disabled");
+                    """
+                )
+
+                # Finally, remove name from queue and continue queue.
+                install_queue.delete(0)
+                if install_queue.len != 0:
+                    jdata["name"] = %* install_queue[0]
+                    asyncCheck installpkg($jdata, true)
+        )
+
+# ==============================================================================
+
+    proc t_get_packages_outd(chan: ptr Channel[ChannelMsg]) {.thread.} =
+        while true: # [https://git.io/JtHvI]
+            var incoming = chan[].recv()
+            if not incoming.future[].finished:
+                var response: Response
+                response = Response(code: -1)
+
+                let action = incoming.action
+                let all = incoming.all
+                case action:
+                    of "get-packages-out":
+
+                        # get commands
+                        # get each packages repo url information
+                        #   - make repo url for each command
+                        # make http reqs to compare remote version
+                        #   ... with local version
+
+                        # var urls: seq[string] = @[]
+                        # let urls = array[items.len, string]
+                        var urls = initTable[string, string]()
+
+                        # var empty = true
+                        let hdir = os.getEnv("HOME")
+                        var items: seq[tuple[name, version: string, disabled: bool]] = @[]
+                        const dirtypes = {pcDir, pcLinkToDir}
+                        for kind, path in walkDir(joinPath(hdir, "/.nodecliac/registry")):
+                            # [https://nim-lang.org/docs/os.html#PathComponent]
+                            # Only get dirs/links to dirs
+                            if kind notin dirtypes: continue
+
+                            # empty = false
+                            let parts = splitPath(path)
+                            let command = parts.tail
+                            var version = "0.0.1"
+                            var disabled = false
+
+                            var url = ""
+
+                            # Get version.
+                            let config = joinPath(path, "package.ini")
+                            if fileExists(config):
+                                let data = loadConfig(config)
+                                version = data.getSectionValue("Package", "version")
+
+                                var repo = data.getSectionValue("Author", "repo")
+                                repo.removePrefix({'/'})
+                                var sub = data.getSectionValue("Author", "sub", "")
+                                sub.removePrefix({'/'})
+                                sub.removeSuffix({'/'})
+
+                                if repo != "":
+                                    let uparts = parseUri(repo)
+                                    var path = uparts.path
+                                    path.removePrefix({'/'})
+                                    let parts = splitPath(path)
+                                    let username = parts[0]
+                                    let reponame = parts[1]
+
+                                    url = fmt"https://raw.githubusercontent.com/{username}/{reponame}/master"
+                                    if sub != "": url &= fmt"/{sub}"
+                                    # url &= "/package.ini"
+                                    url &= fmt"/{command}.acmap"
+
+                            urls[command] = url
+
+                            # # Get disabled state.
+                            # let dconfig = joinPath(path, fmt".{command}.config.acdef")
+                            # if fileExists(dconfig):
+                            #     let contents = readFile(dconfig)
+                            #     if find(contents, re("@disable\\s=\\strue")) > -1:
+                            #         disabled = true
+
+                            var item: tuple[name, version: string, disabled: bool]
+                            item = (name: command, version: version, disabled: disabled)
+                            items.add(item)
+
+                         # [https://stackoverflow.com/a/6712058]
+                        proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
+                            let aname = a.name.toLower()
+                            let bname = b.name.toLower()
+                            if aname < bname: result = -1 # Sort string ascending.
+                            elif aname > bname: result = 1
+                            else: result = 0 # Default return value (no sorting).
+                        items.sort(alphasort)
+
+                        response.names = addr items
+
+                        # ==========================================================
+                        # ==========================================================
+                        # ==========================================================
+
+                        # [https://nim-lang.org/docs/tut2.html#exceptions-try-statement]
+                        proc fetchfile(url: string): Future[string] {.async.} =
+                            let client = newAsyncHttpClient()
+                            let resp = await get(client, url)
+
+                            if not resp.code.is2xx:
+                                let f = newFuture[string]("fetchfile.nodecliac")
+                                f.complete("[ERR: " & $(resp.code) & "]")
+                                return await f
+                            else:
+                                return await resp.bodyStream.readAll()
+
+                        var outdated: seq[tuple[name, local_version, remote_version: string, config: OrderedTableRef[string, OrderedTableRef[string, string]]]] = @[]
+
+                        proc testhttp {.async.} =
+                            # var reqs: array[urls.len, Future[string]]
+                            var reqs: seq[Future[string]]
+                            # for i, url in urls: reqs[i] = fetchfile(url)
+                            # for url in urls: reqs.add(fetchfile(url))
+                            # for command, url in urls.pairs:
+                                # reqs.add(fetchfile(url))
+                            for item in items:
+                                reqs.add(fetchfile(urls[item.name]))
+                            let reponses = await all(reqs)
+                            for i, response in reponses:
+                                # let strm = newStringStream(fmt"""{response}""")
+                                let strm = newStringStream(fmt"""[Package]
+                                    version = "0.0.2"
+                                    """)
+                                let data = loadConfig(strm)
+                                let remote_version = data.getSectionValue("Package", "version")
+                                let local_version = items[i].version;
+
+                                if  local_version != remote_version:
+                                    var item: tuple[name, local_version, remote_version: string, config: OrderedTableRef[string, OrderedTableRef[string, string]]]
+                                    item = (
+                                        name: items[i].name,
+                                        local_version: local_version,
+                                        remote_version: remote_version,
+                                        config: data
+                                    )
+                                    outdated.add(item)
+
+                            response.outdated = addr outdated
+                            incoming.future[].complete(response)
+
+                        waitFor testhttp()
+
+                        # # var empty = true
+                        # let hdir = os.getEnv("HOME")
+                        # var items: seq[tuple[name, version: string, disabled: bool]] = @[]
+                        # let dirtypes = {pcDir, pcLinkToDir}
+                        # for kind, path in walkDir(joinPath(hdir, "/.nodecliac/registry")):
+                        #     # [https://nim-lang.org/docs/os.html#PathComponent]
+                        #     # Only get dirs/links to dirs
+                        #     if kind notin dirtypes: continue
+
+                        #     # empty = false
+                        #     let parts = splitPath(path)
+                        #     let command = parts.tail
+                        #     var version = "0.0.1"
+                        #     var disabled = false
+
+                        #     # Get version.
+                        #     let config = joinPath(path, "package.ini")
+                        #     if fileExists(config):
+                        #         let data = loadConfig(config)
+                        #         version = data.getSectionValue("Package", "version")
+
+                        #     # Get disabled state.
+                        #     let dconfig = joinPath(path, fmt".{command}.config.acdef")
+                        #     if fileExists(dconfig):
+                        #         let contents = readFile(dconfig)
+                        #         if find(contents, re("@disable\\s=\\strue")) > -1:
+                        #             disabled = true
+
+                        #     var item: tuple[name, version: string, disabled: bool]
+                        #     item = (name: command, version: version, disabled: disabled)
+                        #     items.add(item)
+
+                        #  # [https://stackoverflow.com/a/6712058]
+                        # proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
+                        #     let aname = a.name.toLower()
+                        #     let bname = b.name.toLower()
+                        #     if aname < bname: result = -1 # Sort string ascending.
+                        #     elif aname > bname: result = 1
+                        #     else: result = 0 # Default return value (no sorting).
+                        # items.sort(alphasort)
+
+                        # response.names = addr items
+
+                    else: discard
+
+                incoming.future[].complete(response)
+
+    proc get_packages_outd(j: string) {.async.} =
+        let jdata = parseJSON(j)
+        let s = jdata["input"].getStr()
+        let panel = jdata["panel"].getStr()
+
+        app.js(fmt"""
+            var PANEL = get_panel_by_name("{panel}");
+            PANEL.$sbentry.classList.remove("none");
+        """)
+
+        var chan: Channel[ChannelMsg]
+        chan.open()
+        var thread: Thread[ptr Channel[ChannelMsg]]
+        createThread(thread, t_get_packages_outd, addr chan)
+
+        var fut = newFuture[Response]("get-packages-out.nodecliac")
+        let data = ChannelMsg(future: addr fut, action: "get-packages-out")
+        chan.send(data)
+        let r = await fut
+        OUTD_PKGS = r.outdated[]
+        chan.close()
+
+        var html = ""
+        if OUTD_PKGS.len == 0:
+            html &= """<div class="empty"><div>No Packages</div></div>"""
+            app.dispatch(
+                proc () =
+                    app.js(
+                        fmt"""
+                        var PANEL = get_panel_by_name("{panel}");
+                        PANEL.$entries.textContent = "";
+                        PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
+                        """
+                    )
+            )
+        else:
+            for item in OUTD_PKGS:
+                if s != "":
+                    if s notin item.name: continue
+                html &= fmt"""<div class=entry id=pkg-entry-{item.name}>
+                    <div class="center">
+                        <div class="checkmark" data-name="{item.name}">
+                            <i class="fas fa-check none"></i>
+                        </div>
+                        <div class="label">{item.name}</div>
+                    </div>
+                </div>""".collapse_html
+
+            app.dispatch(
+                proc () =
+                    app.js(
+                        fmt"""
+                        var PANEL = get_panel_by_name("{panel}");
+                        PANEL.$entries.textContent = "";
+                        PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
+                        """
+                    )
+            )
+
+        app.dispatch(
+            proc () =
+                app.js(fmt"""
+                    var PANEL = get_panel_by_name("{panel}");
+                    PANEL.$sbentry.classList.add("none");
+                    processes.packages["{panel}"] = false;
+                """)
+        )
+
+# ==============================================================================
+
+    proc config_update(setting: string, value: int) =
+        let p = joinPath(hdir, "/.nodecliac/.config")
+        var config = if fileExists(p): readFile(p) else: ""
+        let index = (case setting
+            of "status": 0
+            of "cache": 1
+            of "debug": 2
+            else: 3
+        )
+
+        if config != "":
+            config[index] = ($(value))[0]
+            writeFile(p, config)
+
+    proc setting_config_state(state: int) = config_update("status", state)
+    proc setting_config_cache(state: int) = config_update("cache", state)
+    proc setting_config_debug(state: int) = config_update("debug", state)
+    proc setting_config_singletons(state: int) = config_update("singletons", state)
+
+    proc settings_reset() =
+        const value = "1001"
+        writeFile(joinPath(hdir, "/.nodecliac/.config"), value)
+        # [https://stackoverflow.com/a/62563753]
+        app.js("window.api.setup_config(" & cast[seq[char]](value).join(",") & ");")
+
+# ------------------------------------------------------------------------------
+
+    proc get_config() =
+        let p = joinPath(hdir, "/.nodecliac/.config")
+        let config = if fileExists(p): readFile(p) else: ""
+        if config != "":
+            let status = config[0]
+            let cache = config[1]
+            let debug = config[2]
+            let singletons = config[3]
+            app.js(fmt"window.api.setup_config({status},{cache},{debug},{singletons});")
+
+# ==============================================================================
+
+    proc t_cache(chan: ptr Channel[ChannelMsg]) {.thread.} =
+        while true: # [https://git.io/JtHvI]
+            var incoming = chan[].recv()
+            if not incoming.future[].finished:
+                var response = Response(code: -1)
+
+                # Use nodecliac CLI.
+                # discard execProcess("nodecliac cache --clear")
+
+                # Nim native `nodecliac cache --clear` equivalent...
+                let hdir = os.getEnv("HOME")
+                let cp = joinPath(hdir, "/.nodecliac/.cache")
+                if dirExists(cp):
+                    for kind, path in walkDir(cp):
+                        if kind == pcFile: discard tryRemoveFile(path)
+
+                incoming.future[].complete(response)
+
+    proc settings_clear_cache() {.async.} =
+
+        app.js("""
+                document.body.classList.add("nointer");
+                document.getElementById("loader").classList.remove("none");
+                setTimeout(function() {
+                    document.getElementById("loader").classList.add("opa1");
+                }, 10);
+            """)
+
+        var chan: Channel[ChannelMsg]
+        chan.open()
+        var thread: Thread[ptr Channel[ChannelMsg]]
+        createThread(thread, t_cache, addr chan)
+
+        var fut = newFuture[Response]("clear-cache.nodecliac")
+        let data = ChannelMsg(future: addr fut)
+        chan.send(data)
+        discard await fut
+        chan.close()
+
+        app.dispatch(
+            proc () =
+                app.js("""
+                    setTimeout(function() {
+                        document.getElementById("loader").classList.add("opa1");
+                        setTimeout(function() {
+                            document.getElementById("loader").classList.add("none");
+                            document.body.classList.remove("nointer");
+                        }, 10);
+                    }, 250);
+                """)
+        )
+
+# ==============================================================================
+
     proc t_update(chan: ptr Channel[ChannelMsg]) {.thread.} =
         while true: # [https://git.io/JtHvI]
             var incoming = chan[].recv()
@@ -905,374 +1275,6 @@ proc main() =
         )
 
 # ==============================================================================
-
-    proc t_get_packages_outd(chan: ptr Channel[ChannelMsg]) {.thread.} =
-        while true: # [https://git.io/JtHvI]
-            var incoming = chan[].recv()
-            if not incoming.future[].finished:
-                var response: Response
-                response = Response(code: -1)
-
-                let action = incoming.action
-                let all = incoming.all
-                case action:
-                    of "get-packages-out":
-
-                        # get commands
-                        # get each packages repo url information
-                        #   - make repo url for each command
-                        # make http reqs to compare remote version
-                        #   ... with local version
-
-                        # var urls: seq[string] = @[]
-                        # let urls = array[items.len, string]
-                        var urls = initTable[string, string]()
-
-                        # var empty = true
-                        let hdir = os.getEnv("HOME")
-                        var items: seq[tuple[name, version: string, disabled: bool]] = @[]
-                        const dirtypes = {pcDir, pcLinkToDir}
-                        for kind, path in walkDir(joinPath(hdir, "/.nodecliac/registry")):
-                            # [https://nim-lang.org/docs/os.html#PathComponent]
-                            # Only get dirs/links to dirs
-                            if kind notin dirtypes: continue
-
-                            # empty = false
-                            let parts = splitPath(path)
-                            let command = parts.tail
-                            var version = "0.0.1"
-                            var disabled = false
-
-                            var url = ""
-
-                            # Get version.
-                            let config = joinPath(path, "package.ini")
-                            if fileExists(config):
-                                let data = loadConfig(config)
-                                version = data.getSectionValue("Package", "version")
-
-                                var repo = data.getSectionValue("Author", "repo")
-                                repo.removePrefix({'/'})
-                                var sub = data.getSectionValue("Author", "sub", "")
-                                sub.removePrefix({'/'})
-                                sub.removeSuffix({'/'})
-
-                                if repo != "":
-                                    let uparts = parseUri(repo)
-                                    var path = uparts.path
-                                    path.removePrefix({'/'})
-                                    let parts = splitPath(path)
-                                    let username = parts[0]
-                                    let reponame = parts[1]
-
-                                    url = fmt"https://raw.githubusercontent.com/{username}/{reponame}/master"
-                                    if sub != "": url &= fmt"/{sub}"
-                                    # url &= "/package.ini"
-                                    url &= fmt"/{command}.acmap"
-
-                            urls[command] = url
-
-                            # # Get disabled state.
-                            # let dconfig = joinPath(path, fmt".{command}.config.acdef")
-                            # if fileExists(dconfig):
-                            #     let contents = readFile(dconfig)
-                            #     if find(contents, re("@disable\\s=\\strue")) > -1:
-                            #         disabled = true
-
-                            var item: tuple[name, version: string, disabled: bool]
-                            item = (name: command, version: version, disabled: disabled)
-                            items.add(item)
-
-                         # [https://stackoverflow.com/a/6712058]
-                        proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
-                            let aname = a.name.toLower()
-                            let bname = b.name.toLower()
-                            if aname < bname: result = -1 # Sort string ascending.
-                            elif aname > bname: result = 1
-                            else: result = 0 # Default return value (no sorting).
-                        items.sort(alphasort)
-
-                        response.names = addr items
-
-                        # ==========================================================
-                        # ==========================================================
-                        # ==========================================================
-
-                        # [https://nim-lang.org/docs/tut2.html#exceptions-try-statement]
-                        proc fetchfile(url: string): Future[string] {.async.} =
-                            let client = newAsyncHttpClient()
-                            let resp = await get(client, url)
-
-                            if not resp.code.is2xx:
-                                let f = newFuture[string]("fetchfile.nodecliac")
-                                f.complete("[ERR: " & $(resp.code) & "]")
-                                return await f
-                            else:
-                                return await resp.bodyStream.readAll()
-
-                        var outdated: seq[tuple[name, local_version, remote_version: string, config: OrderedTableRef[string, OrderedTableRef[string, string]]]] = @[]
-
-                        proc testhttp {.async.} =
-                            # var reqs: array[urls.len, Future[string]]
-                            var reqs: seq[Future[string]]
-                            # for i, url in urls: reqs[i] = fetchfile(url)
-                            # for url in urls: reqs.add(fetchfile(url))
-                            # for command, url in urls.pairs:
-                                # reqs.add(fetchfile(url))
-                            for item in items:
-                                reqs.add(fetchfile(urls[item.name]))
-                            let reponses = await all(reqs)
-                            for i, response in reponses:
-                                # let strm = newStringStream(fmt"""{response}""")
-                                let strm = newStringStream(fmt"""[Package]
-    version = "0.0.2"
-    """)
-                                let data = loadConfig(strm)
-                                let remote_version = data.getSectionValue("Package", "version")
-                                let local_version = items[i].version;
-
-                                if  local_version != remote_version:
-                                    var item: tuple[name, local_version, remote_version: string, config: OrderedTableRef[string, OrderedTableRef[string, string]]]
-                                    item = (
-                                        name: items[i].name,
-                                        local_version: local_version,
-                                        remote_version: remote_version,
-                                        config: data
-                                    )
-                                    outdated.add(item)
-
-                            response.outdated = addr outdated
-                            incoming.future[].complete(response)
-
-                        waitFor testhttp()
-
-                        # # var empty = true
-                        # let hdir = os.getEnv("HOME")
-                        # var items: seq[tuple[name, version: string, disabled: bool]] = @[]
-                        # let dirtypes = {pcDir, pcLinkToDir}
-                        # for kind, path in walkDir(joinPath(hdir, "/.nodecliac/registry")):
-                        #     # [https://nim-lang.org/docs/os.html#PathComponent]
-                        #     # Only get dirs/links to dirs
-                        #     if kind notin dirtypes: continue
-
-                        #     # empty = false
-                        #     let parts = splitPath(path)
-                        #     let command = parts.tail
-                        #     var version = "0.0.1"
-                        #     var disabled = false
-
-                        #     # Get version.
-                        #     let config = joinPath(path, "package.ini")
-                        #     if fileExists(config):
-                        #         let data = loadConfig(config)
-                        #         version = data.getSectionValue("Package", "version")
-
-                        #     # Get disabled state.
-                        #     let dconfig = joinPath(path, fmt".{command}.config.acdef")
-                        #     if fileExists(dconfig):
-                        #         let contents = readFile(dconfig)
-                        #         if find(contents, re("@disable\\s=\\strue")) > -1:
-                        #             disabled = true
-
-                        #     var item: tuple[name, version: string, disabled: bool]
-                        #     item = (name: command, version: version, disabled: disabled)
-                        #     items.add(item)
-
-                        #  # [https://stackoverflow.com/a/6712058]
-                        # proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
-                        #     let aname = a.name.toLower()
-                        #     let bname = b.name.toLower()
-                        #     if aname < bname: result = -1 # Sort string ascending.
-                        #     elif aname > bname: result = 1
-                        #     else: result = 0 # Default return value (no sorting).
-                        # items.sort(alphasort)
-
-                        # response.names = addr items
-
-                    else: discard
-
-                incoming.future[].complete(response)
-
-    proc get_packages_outd(j: string) {.async.} =
-        let jdata = parseJSON(j)
-        let s = jdata["input"].getStr()
-        let panel = jdata["panel"].getStr()
-
-        app.js(fmt"""
-            var PANEL = get_panel_by_name("{panel}");
-            PANEL.$sbentry.classList.remove("none");
-        """)
-
-        var chan: Channel[ChannelMsg]
-        chan.open()
-        var thread: Thread[ptr Channel[ChannelMsg]]
-        createThread(thread, thread_a_actions3, addr chan)
-
-        var fut = newFuture[Response]("get-packages-out.nodecliac")
-        let data = ChannelMsg(future: addr fut, action: "get-packages-out")
-        chan.send(data)
-        let r = await fut
-        OUTD_PKGS = r.outdated[]
-        chan.close()
-
-        var html = ""
-        if OUTD_PKGS.len == 0:
-            html &= """<div class="empty"><div>No Packages</div></div>"""
-            app.dispatch(
-                proc () =
-                    app.js(
-                        fmt"""
-                        var PANEL = get_panel_by_name("{panel}");
-                        PANEL.$entries.textContent = "";
-                        PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
-                        """
-                    )
-            )
-        else:
-            for item in OUTD_PKGS:
-                if s != "":
-                    if s notin item.name: continue
-                html &= fmt"""<div class=entry id=pkg-entry-{item.name}>
-                    <div class="center">
-                        <div class="checkmark" data-name="{item.name}">
-                            <i class="fas fa-check none"></i>
-                        </div>
-                        <div class="label">{item.name}</div>
-                    </div>
-                </div>""".collapse_html
-
-            app.dispatch(
-                proc () =
-                    app.js(
-                        fmt"""
-                        var PANEL = get_panel_by_name("{panel}");
-                        PANEL.$entries.textContent = "";
-                        PANEL.$entries.insertAdjacentHTML("afterbegin", `{html}`);
-                        """
-                    )
-            )
-
-        app.dispatch(
-            proc () =
-                app.js(fmt"""
-                    var PANEL = get_panel_by_name("{panel}");
-                    PANEL.$sbentry.classList.add("none");
-                    processes.packages["{panel}"] = false;
-                """)
-        )
-
-# ==============================================================================
-
-    proc config_update(setting: string, value: int) =
-        let p = joinPath(hdir, "/.nodecliac/.config")
-        var config = if fileExists(p): readFile(p) else: ""
-        let index = (case setting
-            of "status": 0
-            of "cache": 1
-            of "debug": 2
-            else: 3
-        )
-
-        if config != "":
-            config[index] = ($(value))[0]
-            writeFile(p, config)
-
-    proc setting_config_state(state: int) = config_update("status", state)
-    proc setting_config_cache(state: int) = config_update("cache", state)
-    proc setting_config_debug(state: int) = config_update("debug", state)
-    proc setting_config_singletons(state: int) = config_update("singletons", state)
-
-    proc settings_reset() =
-        const value = "1001"
-        writeFile(joinPath(hdir, "/.nodecliac/.config"), value)
-        # [https://stackoverflow.com/a/62563753]
-        app.js("window.api.setup_config(" & cast[seq[char]](value).join(",") & ");")
-
-# ------------------------------------------------------------------------------
-
-    proc get_config() =
-        let p = joinPath(hdir, "/.nodecliac/.config")
-        let config = if fileExists(p): readFile(p) else: ""
-        if config != "":
-            let status = config[0]
-            let cache = config[1]
-            let debug = config[2]
-            let singletons = config[3]
-            app.js(fmt"window.api.setup_config({status},{cache},{debug},{singletons});")
-
-# ==============================================================================
-
-    proc t_cache(chan: ptr Channel[ChannelMsg]) {.thread.} =
-        while true: # [https://git.io/JtHvI]
-            var incoming = chan[].recv()
-            if not incoming.future[].finished:
-                var response = Response(code: -1)
-
-                # Use nodecliac CLI.
-                # discard execProcess("nodecliac cache --clear")
-
-                # Nim native `nodecliac cache --clear` equivalent...
-                let hdir = os.getEnv("HOME")
-                let cp = joinPath(hdir, "/.nodecliac/.cache")
-                if dirExists(cp):
-                    for kind, path in walkDir(cp):
-                        if kind == pcFile: discard tryRemoveFile(path)
-
-                incoming.future[].complete(response)
-
-    proc settings_clear_cache() {.async.} =
-
-        app.js("""
-                document.body.classList.add("nointer");
-                document.getElementById("loader").classList.remove("none");
-                setTimeout(function() {
-                    document.getElementById("loader").classList.add("opa1");
-                }, 10);
-            """)
-
-        var chan: Channel[ChannelMsg]
-        chan.open()
-        var thread: Thread[ptr Channel[ChannelMsg]]
-        createThread(thread, t_cache, addr chan)
-
-        var fut = newFuture[Response]("clear-cache.nodecliac")
-        let data = ChannelMsg(future: addr fut)
-        chan.send(data)
-        discard await fut
-        chan.close()
-
-        app.dispatch(
-            proc () =
-                app.js("""
-                    setTimeout(function() {
-                        document.getElementById("loader").classList.add("opa1");
-                        setTimeout(function() {
-                            document.getElementById("loader").classList.add("none");
-                            document.body.classList.remove("nointer");
-                        }, 10);
-                    }, 250);
-                """)
-        )
-
-# ==============================================================================
-
-    proc clink(url: string): string =
-        return fmt"""
-    <a class=\"link\"
-        target=\"_blank\"
-        onclick=\"api.open(this.href)\"
-        href=\"{url}\">
-        {url}
-    </a>
-    """.collapse_html
-
-    proc flink(url: string): string =
-        return fmt"""
-    <a class=\"link\"
-        onclick=\"api.fopen(this.textContent)\">
-        {url}
-    </a>
-    """.collapse_html
 
     app.bindProcs("api"):
         # Open provided url in user's browser.

@@ -906,26 +906,7 @@ proc main() =
 
 # ==============================================================================
 
-    proc thread_a_ccache(chan: ptr Channel[ChannelMsg]) {.thread.} =
-        while true: # [https://git.io/JtHvI]
-            var incoming = chan[].recv()
-            if not incoming.future[].finished:
-                var response: Response
-                response = Response(code: -1)
-
-                # Use nodecliac CLI.
-                # discard execProcess("nodecliac cache --clear")
-
-                # Nim native `nodecliac cache --clear` equivalent...
-                let hdir = os.getEnv("HOME")
-                let cp = hdir & "/.nodecliac/.cache"
-                if dirExists(cp):
-                    for kind, path in walkDir(cp):
-                        if kind == pcFile: discard tryRemoveFile(path)
-
-                incoming.future[].complete(response)
-
-    proc thread_a_actions3(chan: ptr Channel[ChannelMsg]) {.thread.} =
+    proc t_get_packages_outd(chan: ptr Channel[ChannelMsg]) {.thread.} =
         while true: # [https://git.io/JtHvI]
             var incoming = chan[].recv()
             if not incoming.future[].finished:
@@ -1133,39 +1114,6 @@ proc main() =
     proc setting_config_debug(state: int) = config_update("debug", state)
     proc setting_config_singletons(state: int) = config_update("singletons", state)
 
-    proc settings_clear_cache() {.async.} =
-
-        app.js("""
-            document.body.classList.add("nointer");
-            document.getElementById("loader").classList.remove("none");
-            setTimeout(function() {
-                document.getElementById("loader").classList.add("opa1");
-            }, 10);
-        """)
-
-        var chan: Channel[ChannelMsg]
-        chan.open()
-        var thread: Thread[ptr Channel[ChannelMsg]]
-        createThread(thread, thread_a_ccache, addr chan)
-
-        var fut = newFuture[Response]("clear-cache.nodecliac")
-        let data = ChannelMsg(future: addr fut)
-        chan.send(data)
-        let r = await fut
-        chan.close()
-
-        app.dispatch(
-            proc () =
-                app.js("""
-                    setTimeout(function() {
-                        document.getElementById("loader").classList.add("opa1");
-                        setTimeout(function() {
-                            document.getElementById("loader").classList.add("none");
-                            document.body.classList.remove("nointer");
-                        }, 10);
-                    }, 250);
-                """)
-        )
 
     proc get_config() =
         let p =  hdir & "/.nodecliac/.config"
@@ -1251,6 +1199,60 @@ proc main() =
                     processes.packages["{panel}"] = false;
                 """)
         )
+
+    proc t_cache(chan: ptr Channel[ChannelMsg]) {.thread.} =
+        while true: # [https://git.io/JtHvI]
+            var incoming = chan[].recv()
+            if not incoming.future[].finished:
+                var response = Response(code: -1)
+
+                # Use nodecliac CLI.
+                # discard execProcess("nodecliac cache --clear")
+
+                # Nim native `nodecliac cache --clear` equivalent...
+                let hdir = os.getEnv("HOME")
+                let cp = hdir & "/.nodecliac/.cache"
+                if dirExists(cp):
+                    for kind, path in walkDir(cp):
+                        if kind == pcFile: discard tryRemoveFile(path)
+
+                incoming.future[].complete(response)
+
+    proc settings_clear_cache() {.async.} =
+
+        app.js("""
+                document.body.classList.add("nointer");
+                document.getElementById("loader").classList.remove("none");
+                setTimeout(function() {
+                    document.getElementById("loader").classList.add("opa1");
+                }, 10);
+            """)
+
+        var chan: Channel[ChannelMsg]
+        chan.open()
+        var thread: Thread[ptr Channel[ChannelMsg]]
+        createThread(thread, t_cache, addr chan)
+
+        var fut = newFuture[Response]("clear-cache.nodecliac")
+        let data = ChannelMsg(future: addr fut)
+        chan.send(data)
+        discard await fut
+        chan.close()
+
+        app.dispatch(
+            proc () =
+                app.js("""
+                    setTimeout(function() {
+                        document.getElementById("loader").classList.add("opa1");
+                        setTimeout(function() {
+                            document.getElementById("loader").classList.add("none");
+                            document.body.classList.remove("nointer");
+                        }, 10);
+                    }, 250);
+                """)
+        )
+
+# ==============================================================================
 
     proc clink(url: string): string =
         return fmt"""

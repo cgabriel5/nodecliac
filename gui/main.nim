@@ -1167,7 +1167,6 @@ proc main() =
             for item in OUTD_PKGS:
                 if s != "":
                     if s notin item.name: continue
-                # let classname = if item.disabled: "off" else: "on"
                 html &= fmt"""<div class=entry id=pkg-entry-{item.name}>
                     <div class="center">
                         <div class="checkmark" data-name="{item.name}">
@@ -1176,8 +1175,6 @@ proc main() =
                         <div class="label">{item.name}</div>
                     </div>
                 </div>""".collapse_html
-                        # <div class="pstatus {classname}"></div>
-                        # <div class="version">{item.version}</div>
 
             app.dispatch(
                 proc () =

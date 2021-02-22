@@ -1093,41 +1093,6 @@ proc main() =
 
                 incoming.future[].complete(response)
 
-    proc config_update(setting: string, value: int) =
-        let p =  hdir & "/.nodecliac/.config"
-        var config = if fileExists(p): readFile(p) else: ""
-        var index = case setting
-            of "status": 0
-            of "cache": 1
-            of "debug": 2
-            else: 3
-
-        if config != "":
-            config[index] = ($(value))[0]
-            writeFile(p, config)
-
-    proc settings_reset() =
-        writeFile(hdir & "/.nodecliac/.config", "1001")
-        app.js(fmt"window.api.setup_config(1,0,0,1);")
-    proc setting_config_state(state: int) = config_update("status", state)
-    proc setting_config_cache(state: int) = config_update("cache", state)
-    proc setting_config_debug(state: int) = config_update("debug", state)
-    proc setting_config_singletons(state: int) = config_update("singletons", state)
-
-
-    proc get_config() =
-        let p =  hdir & "/.nodecliac/.config"
-        let config = if fileExists(p): readFile(p) else: ""
-        # if config != "":
-            # app.js("setup_config(" & config & ")")
-        if config != "":
-            let status = config[0]
-            let cache = config[1]
-            let debug = config[2]
-            let singletons = config[3]
-            app.js(fmt"window.api.setup_config({status},{cache},{debug},{singletons});")
-            # jsLog(config)
-
     proc get_packages_outd(j: string) {.async.} =
         let jdata = parseJSON(j)
         let s = jdata["input"].getStr()
@@ -1195,6 +1160,47 @@ proc main() =
                     processes.packages["{panel}"] = false;
                 """)
         )
+
+# ==============================================================================
+
+    proc config_update(setting: string, value: int) =
+        let p = joinPath(hdir, "/.nodecliac/.config")
+        var config = if fileExists(p): readFile(p) else: ""
+        let index = (case setting
+            of "status": 0
+            of "cache": 1
+            of "debug": 2
+            else: 3
+        )
+
+        if config != "":
+            config[index] = ($(value))[0]
+            writeFile(p, config)
+
+    proc setting_config_state(state: int) = config_update("status", state)
+    proc setting_config_cache(state: int) = config_update("cache", state)
+    proc setting_config_debug(state: int) = config_update("debug", state)
+    proc setting_config_singletons(state: int) = config_update("singletons", state)
+
+    proc settings_reset() =
+        const value = "1001"
+        writeFile(hdir & "/.nodecliac/.config", value)
+        # [https://stackoverflow.com/a/62563753]
+        app.js("window.api.setup_config(" & cast[seq[char]](value).join(",") & ");")
+
+# ------------------------------------------------------------------------------
+
+    proc get_config() =
+        let p = joinPath(hdir, "/.nodecliac/.config")
+        let config = if fileExists(p): readFile(p) else: ""
+        if config != "":
+            let status = config[0]
+            let cache = config[1]
+            let debug = config[2]
+            let singletons = config[3]
+            app.js(fmt"window.api.setup_config({status},{cache},{debug},{singletons});")
+
+# ==============================================================================
 
     proc t_cache(chan: ptr Channel[ChannelMsg]) {.thread.} =
         while true: # [https://git.io/JtHvI]

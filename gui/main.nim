@@ -37,6 +37,8 @@ proc main() =
             avai_names: ptr seq[string]
             avai_pname: string
 
+            checkup: ptr tuple[status, version, binary: string]
+
             err: string
 
         ChannelMsg = object
@@ -834,26 +836,51 @@ proc main() =
 
 # ==============================================================================
 
-    proc thread_a_doctor(chan: ptr Channel[ChannelMsg]) {.thread.} =
+    proc t_doctor(chan: ptr Channel[ChannelMsg]) {.thread.} =
         while true: # [https://git.io/JtHvI]
             var incoming = chan[].recv()
             if not incoming.future[].finished:
-                var response: Response
-                response = Response(code: -1)
+                var response = Response(code: -1)
 
-                let hdir = os.getEnv("HOME")
                 let status = execProcess("nodecliac").strip(trailing=true)
-                let ping =
-                    if status.len == 0: "<div class=\"value\">OK</div>"
-                    else: "<div class=\"value error\">ERROR</div>"
                 let version = execProcess("nodecliac --version").strip(trailing=true)
                 let binary = execProcess("command -v nodecliac").strip(trailing=true)
-                let binloc =
-                    if binary.startsWith(hdir): binary.replace(hdir, "~")
-                    else: binary
 
-            # <div class=\"header\">Log</div>
-                response.resp = fmt"""
+                var checkup: tuple[status, version, binary: string]
+                checkup = (status, version, binary)
+
+                response.checkup = addr checkup
+
+                incoming.future[].complete(response)
+
+    proc checkup() {.async.} =
+
+        app.js("""
+            document.getElementById("doctor-spinner").classList.remove("none");
+            document.getElementById("doctor-run").classList.add("nointer", "disabled");
+            """)
+
+        var chan: Channel[ChannelMsg]
+        chan.open()
+        var thread: Thread[ptr Channel[ChannelMsg]]
+        createThread(thread, t_doctor, addr chan)
+
+        var fut = newFuture[Response]("doctor.nodecliac")
+        let data = ChannelMsg(future: addr fut, action: "doctor")
+        chan.send(data)
+        let r = await fut
+        let (status, version, binary) = r.checkup[]
+        chan.close()
+
+        let binloc =
+            if binary.startsWith(hdir): binary.replace(hdir, "~")
+            else: binary
+        let ping =
+            if status.len == 0: "<div class=\"value\">OK</div>"
+            else: "<div class=\"value error\">ERROR</div>"
+
+        let html = fmt"""
+            <div class=\"header none\">Log</div>
             <div class=\"row\">
                 <div class=\"label\">nodecliac ping:</div>
                 {ping}
@@ -868,7 +895,16 @@ proc main() =
             </div>
             """.collapse_html
 
-                incoming.future[].complete(response)
+        app.dispatch(
+            proc () =
+                app.js(fmt"""
+                document.getElementById("doctor-output").innerHTML = `{html}`;
+                document.getElementById("doctor-run").classList.remove("nointer", "disabled");
+                document.getElementById("doctor-spinner").classList.add("none");
+                """)
+        )
+
+# ==============================================================================
 
     proc thread_a_ccache(chan: ptr Channel[ChannelMsg]) {.thread.} =
         while true: # [https://git.io/JtHvI]
@@ -1075,34 +1111,6 @@ proc main() =
                     else: discard
 
                 incoming.future[].complete(response)
-
-    proc checkup() {.async.} =
-
-        app.js("""
-            document.getElementById("doctor-spinner").classList.remove("none");
-            document.getElementById("doctor-run").classList.add("nointer", "disabled");
-            """)
-
-        var chan: Channel[ChannelMsg]
-        chan.open()
-        var thread: Thread[ptr Channel[ChannelMsg]]
-        createThread(thread, thread_a_doctor, addr chan)
-
-        var fut = newFuture[Response]("doctor.nodecliac")
-        let data = ChannelMsg(future: addr fut, action: "doctor")
-        chan.send(data)
-        let r = await fut
-        let html = r.resp
-        chan.close()
-
-        app.dispatch(
-            proc () =
-                app.js(fmt"""
-                document.getElementById("doctor-output").innerHTML = `{html}`;
-                document.getElementById("doctor-run").classList.remove("nointer", "disabled");
-                document.getElementById("doctor-spinner").classList.add("none");
-                """)
-        )
 
     proc config_update(setting: string, value: int) =
         let p =  hdir & "/.nodecliac/.config"

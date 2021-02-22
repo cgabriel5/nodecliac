@@ -56,6 +56,7 @@ proc main() =
     var AVAI_PKGS = initTable[string, JsonNode]()
     var AVAI_PKGS_NAMES: seq[string] = @[]
     var INST_PKGS: seq[tuple[name, version: string, disabled: bool]] = @[]
+    var OUTD_PKGS: seq[Outdated]
 
     #
     # [https://forum.nim-lang.org/t/3640]
@@ -484,7 +485,6 @@ proc main() =
 
 # ------------------------------------------------------------------------------
 
-    var names: seq[tuple[name, version: string, disabled: bool]] = @[]
     proc filter_inst_pkgs(input: string) =
         # Remove nodes: [https://stackoverflow.com/a/3955238]
         # Fragment: [https://howchoo.com/code/learn-the-slow-and-fast-way-to-append-elements-to-the-dom]
@@ -1147,12 +1147,11 @@ proc main() =
         let data = ChannelMsg(future: addr fut, action: "get-packages-out")
         chan.send(data)
         let r = await fut
-        var items = r.outdated[]
-        names = r.names[]
+        OUTD_PKGS = r.outdated[]
         chan.close()
 
         var html = ""
-        if items.len == 0:
+        if OUTD_PKGS.len == 0:
             html &= """<div class="empty"><div>No Packages</div></div>"""
             app.dispatch(
                 proc () =
@@ -1165,7 +1164,7 @@ proc main() =
                     )
             )
         else:
-            for item in items:
+            for item in OUTD_PKGS:
                 if s != "":
                     if s notin item.name: continue
                 # let classname = if item.disabled: "off" else: "on"

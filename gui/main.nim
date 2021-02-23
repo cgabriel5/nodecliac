@@ -107,16 +107,14 @@ proc main() =
                 onclick=\"api.open(this.href)\"
                 href=\"{url}\">
                 {url}
-            </a>
-            """.collapse_html
+            </a>""".collapse_html()
 
     proc flink(url: string): string =
         return fmt"""
             <a class=\"link\"
                 onclick=\"api.fopen(this.textContent)\">
                 {url}
-            </a>
-            """.collapse_html
+            </a>""".collapse_html()
 
 # ==============================================================================
 

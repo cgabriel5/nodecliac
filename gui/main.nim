@@ -97,7 +97,7 @@ proc main() =
 # ==============================================================================
 
     proc collapse_html(html: string): string =
-        return html.strip().unindent().multiReplace([("\n", " ")])
+        return html.strip().unindent().multiReplace([("\n", "")])
         # return html.strip().multiReplace([(re("^ \\s*", {reMultiLine}), ""), (re("\n"), "")])
 
     proc clink(url: string): string =

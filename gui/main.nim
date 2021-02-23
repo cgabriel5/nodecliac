@@ -774,7 +774,7 @@ proc main() =
                 for kind, path in walkDir(joinPath(hdir, "/.nodecliac/registry")):
                     if kind notin dirtypes: continue
 
-                    let (head, command) = splitPath(path)
+                    let command #[(head, command)]# = splitPath(path).tail
                     var version = "0.0.1"
                     var disabled = false
                     var url = ""
@@ -1050,7 +1050,7 @@ proc main() =
                         fi
                     """
                     let cmd = fmt"""bash -c '{script}'"""
-                    let (res, code) = execCmdEx(cmd)
+                    let code #[(res, code)]# = execCmdEx(cmd).exitCode
                     if code == 1: response.resp = "val:fail"
                     response.code = code
 

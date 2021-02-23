@@ -23,14 +23,16 @@ proc main() =
             ]
         ]
 
+        Package = tuple[name, version: string, disabled: bool]
+
         Response = ref object
             code: int
             resp: string
             jdata: ptr seq[JsonNode]
-            names: ptr seq[tuple[name, version: string, disabled: bool]]
+            names: ptr seq[Package]
             outdated: ptr seq[Outdated]
 
-            inst_pkgs: ptr seq[tuple[name, version: string, disabled: bool]]
+            inst_pkgs: ptr seq[Package]
             inst_a_names: ptr seq[string]
 
             avai_db: ptr Table[string, JsonNode]
@@ -55,7 +57,7 @@ proc main() =
 
     var AVAI_PKGS = initTable[string, JsonNode]()
     var AVAI_PKGS_NAMES: seq[string] = @[]
-    var INST_PKGS: seq[tuple[name, version: string, disabled: bool]] = @[]
+    var INST_PKGS: seq[Package] = @[]
     var OUTD_PKGS: seq[Outdated]
 
     #
@@ -123,11 +125,8 @@ proc main() =
             if not incoming.future[].finished:
                 var response = Response(code: -1)
 
-                type
-                    Package = tuple[name, version: string, disabled: bool]
-
                  # [https://stackoverflow.com/a/6712058]
-                proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
+                proc alphasort(a, b: Package): int =
                     let aname = a.name.toLower()
                     let bname = b.name.toLower()
                     if aname < bname: result = -1 # Sort string ascending.
@@ -136,7 +135,7 @@ proc main() =
 
                 let hdir = os.getEnv("HOME")
                 let r = re"@disable\s=\strue"
-                var packages: seq[tuple[name, version: string, disabled: bool]] = @[]
+                var packages: seq[Package] = @[]
                 const dirtypes = {pcDir, pcLinkToDir}
                 for kind, path in walkDir(joinPath(hdir, "/.nodecliac/registry")):
                     # [https://nim-lang.org/docs/os.html#PathComponent]

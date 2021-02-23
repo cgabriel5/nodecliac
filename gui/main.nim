@@ -257,7 +257,7 @@ proc main() =
         for item in INST_PKGS:
             if input in item.name:
                 empty = false
-                let name_escaped = item.name.escape
+                # let name_escaped = item.name.escape
                 let classname = if item.disabled: "off" else: "on"
 
                 command &= fmt"""PANEL.jdata_filtered.push("{item.name}");"""
@@ -766,7 +766,7 @@ proc main() =
                     else: result = 0 # Default return value (no sorting).
 
                 let hdir = os.getEnv("HOME")
-                let r = re"@disable\s=\strue"
+                # let r = re"@disable\s=\strue"
                 var urls = initTable[string, string]()
                 var packages: seq[Package] = @[]
                 var urltemp = "https://raw.githubusercontent.com/$1/$2/master"

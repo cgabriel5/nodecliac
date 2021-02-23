@@ -746,188 +746,103 @@ proc main() =
         while true: # [https://git.io/JtHvI]
             var incoming = chan[].recv()
             if not incoming.future[].finished:
-                var response: Response
-                response = Response(code: -1)
+                var response = Response(code: -1)
 
-                let action = incoming.action
-                let all = incoming.all
-                case action:
-                    of "get-packages-out":
+                 # [https://stackoverflow.com/a/6712058]
+                proc alphasort(a, b: Package): int =
+                    let aname = a.name.toLower()
+                    let bname = b.name.toLower()
+                    if aname < bname: result = -1 # Sort string ascending.
+                    elif aname > bname: result = 1
+                    else: result = 0 # Default return value (no sorting).
 
-                        # get commands
-                        # get each packages repo url information
-                        #   - make repo url for each command
-                        # make http reqs to compare remote version
-                        #   ... with local version
+                let hdir = os.getEnv("HOME")
+                let r = re"@disable\s=\strue"
+                var urls = initTable[string, string]()
+                var packages: seq[Package] = @[]
+                var urltemp = "https://raw.githubusercontent.com/$1/$2/master"
+                const dirtypes = {pcDir, pcLinkToDir}
+                for kind, path in walkDir(joinPath(hdir, "/.nodecliac/registry")):
+                    if kind notin dirtypes: continue
 
-                        # var urls: seq[string] = @[]
-                        # let urls = array[items.len, string]
-                        var urls = initTable[string, string]()
+                    let (head, command) = splitPath(path)
+                    var version = "0.0.1"
+                    var disabled = false
+                    var url = ""
 
-                        # var empty = true
-                        let hdir = os.getEnv("HOME")
-                        var items: seq[tuple[name, version: string, disabled: bool]] = @[]
-                        const dirtypes = {pcDir, pcLinkToDir}
-                        for kind, path in walkDir(joinPath(hdir, "/.nodecliac/registry")):
-                            # [https://nim-lang.org/docs/os.html#PathComponent]
-                            # Only get dirs/links to dirs
-                            if kind notin dirtypes: continue
+                    let config = joinPath(path, "package.ini")
+                    if fileExists(config):
+                        let data = loadConfig(config)
+                        version = data.getSectionValue("Package", "version")
 
-                            # empty = false
-                            let parts = splitPath(path)
-                            let command = parts.tail
-                            var version = "0.0.1"
-                            var disabled = false
+                        var repo = data.getSectionValue("Author", "repo")
+                        repo.removePrefix({'/'})
+                        var sub = data.getSectionValue("Author", "sub", "")
+                        sub.removePrefix({'/'})
+                        sub.removeSuffix({'/'})
 
-                            var url = ""
+                        if repo != "":
+                            var path = parseUri(repo).path
+                            path.removePrefix({'/'})
+                            let (username, reponame) = splitPath(path)
+                            # [https://stackoverflow.com/a/58742269]
+                            # [https://stackoverflow.com/a/42484886]
+                            url = urltemp % [username, reponame]
+                            if sub != "": url &= fmt"/{sub}"
+                            url &= "/package.ini"
+                            # url &= fmt"/{command}.acmap"
 
-                            # Get version.
-                            let config = joinPath(path, "package.ini")
-                            if fileExists(config):
-                                let data = loadConfig(config)
-                                version = data.getSectionValue("Package", "version")
+                    urls[command] = url
 
-                                var repo = data.getSectionValue("Author", "repo")
-                                repo.removePrefix({'/'})
-                                var sub = data.getSectionValue("Author", "sub", "")
-                                sub.removePrefix({'/'})
-                                sub.removeSuffix({'/'})
+                    # let dconfig = joinPath(path, command, fmt".{command}.config.acdef")
+                    # if fileExists(dconfig):
+                    #     if find(readFile(dconfig), r) > -1: disabled = true
 
-                                if repo != "":
-                                    let uparts = parseUri(repo)
-                                    var path = uparts.path
-                                    path.removePrefix({'/'})
-                                    let parts = splitPath(path)
-                                    let username = parts[0]
-                                    let reponame = parts[1]
+                    var pkg: Package = (command, version, disabled)
+                    packages.add(pkg)
 
-                                    url = fmt"https://raw.githubusercontent.com/{username}/{reponame}/master"
-                                    if sub != "": url &= fmt"/{sub}"
-                                    # url &= "/package.ini"
-                                    url &= fmt"/{command}.acmap"
+                packages.sort(alphasort)
+                # response.names = addr packages
 
-                            urls[command] = url
+                # ------------------------------------------------------
 
-                            # # Get disabled state.
-                            # let dconfig = joinPath(path, fmt".{command}.config.acdef")
-                            # if fileExists(dconfig):
-                            #     let contents = readFile(dconfig)
-                            #     if find(contents, re("@disable\\s=\\strue")) > -1:
-                            #         disabled = true
+                var outdated: seq[Outdated] = @[]
 
-                            var item: tuple[name, version: string, disabled: bool]
-                            item = (name: command, version: version, disabled: disabled)
-                            items.add(item)
+                # [https://nim-lang.org/docs/tut2.html#exceptions-try-statement]
+                proc fetchfile(url: string): Future[string] {.async.} =
+                    let client = newAsyncHttpClient()
+                    let resp = await get(client, url)
 
-                         # [https://stackoverflow.com/a/6712058]
-                        proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
-                            let aname = a.name.toLower()
-                            let bname = b.name.toLower()
-                            if aname < bname: result = -1 # Sort string ascending.
-                            elif aname > bname: result = 1
-                            else: result = 0 # Default return value (no sorting).
-                        items.sort(alphasort)
+                    if not resp.code.is2xx:
+                        let f = newFuture[string]("fetchfile.nodecliac")
+                        f.complete("[ERR: " & $(resp.code) & "]")
+                        return await f
+                    else:
+                        return await resp.bodyStream.readAll()
 
-                        response.names = addr items
+                proc testhttp {.async.} =
+                    var reqs: seq[Future[string]]
+                    for item in packages:
+                        reqs.add(fetchfile(urls[item.name]))
+                    let reponses = await all(reqs)
+                    for i, response in reponses:
+                        let data = loadConfig(newStringStream(fmt"""{response}"""))
+                        let remote_version = data.getSectionValue("Package", "version")
+                        let local_version = packages[i].version;
 
-                        # ==========================================================
-                        # ==========================================================
-                        # ==========================================================
+                        if  local_version != remote_version:
+                            var item: Outdated = (
+                                name: packages[i].name,
+                                local_version: local_version,
+                                remote_version: remote_version,
+                                config: data
+                            )
+                            outdated.add(item)
 
-                        # [https://nim-lang.org/docs/tut2.html#exceptions-try-statement]
-                        proc fetchfile(url: string): Future[string] {.async.} =
-                            let client = newAsyncHttpClient()
-                            let resp = await get(client, url)
+                    response.outdated = addr outdated
+                    incoming.future[].complete(response)
 
-                            if not resp.code.is2xx:
-                                let f = newFuture[string]("fetchfile.nodecliac")
-                                f.complete("[ERR: " & $(resp.code) & "]")
-                                return await f
-                            else:
-                                return await resp.bodyStream.readAll()
-
-                        var outdated: seq[tuple[name, local_version, remote_version: string, config: OrderedTableRef[string, OrderedTableRef[string, string]]]] = @[]
-
-                        proc testhttp {.async.} =
-                            # var reqs: array[urls.len, Future[string]]
-                            var reqs: seq[Future[string]]
-                            # for i, url in urls: reqs[i] = fetchfile(url)
-                            # for url in urls: reqs.add(fetchfile(url))
-                            # for command, url in urls.pairs:
-                                # reqs.add(fetchfile(url))
-                            for item in items:
-                                reqs.add(fetchfile(urls[item.name]))
-                            let reponses = await all(reqs)
-                            for i, response in reponses:
-                                # let strm = newStringStream(fmt"""{response}""")
-                                let strm = newStringStream(fmt"""[Package]
-                                    version = "0.0.2"
-                                    """)
-                                let data = loadConfig(strm)
-                                let remote_version = data.getSectionValue("Package", "version")
-                                let local_version = items[i].version;
-
-                                if  local_version != remote_version:
-                                    var item: tuple[name, local_version, remote_version: string, config: OrderedTableRef[string, OrderedTableRef[string, string]]]
-                                    item = (
-                                        name: items[i].name,
-                                        local_version: local_version,
-                                        remote_version: remote_version,
-                                        config: data
-                                    )
-                                    outdated.add(item)
-
-                            response.outdated = addr outdated
-                            incoming.future[].complete(response)
-
-                        waitFor testhttp()
-
-                        # # var empty = true
-                        # let hdir = os.getEnv("HOME")
-                        # var items: seq[tuple[name, version: string, disabled: bool]] = @[]
-                        # let dirtypes = {pcDir, pcLinkToDir}
-                        # for kind, path in walkDir(joinPath(hdir, "/.nodecliac/registry")):
-                        #     # [https://nim-lang.org/docs/os.html#PathComponent]
-                        #     # Only get dirs/links to dirs
-                        #     if kind notin dirtypes: continue
-
-                        #     # empty = false
-                        #     let parts = splitPath(path)
-                        #     let command = parts.tail
-                        #     var version = "0.0.1"
-                        #     var disabled = false
-
-                        #     # Get version.
-                        #     let config = joinPath(path, "package.ini")
-                        #     if fileExists(config):
-                        #         let data = loadConfig(config)
-                        #         version = data.getSectionValue("Package", "version")
-
-                        #     # Get disabled state.
-                        #     let dconfig = joinPath(path, fmt".{command}.config.acdef")
-                        #     if fileExists(dconfig):
-                        #         let contents = readFile(dconfig)
-                        #         if find(contents, re("@disable\\s=\\strue")) > -1:
-                        #             disabled = true
-
-                        #     var item: tuple[name, version: string, disabled: bool]
-                        #     item = (name: command, version: version, disabled: disabled)
-                        #     items.add(item)
-
-                        #  # [https://stackoverflow.com/a/6712058]
-                        # proc alphasort(a, b: tuple[name, version: string, disabled: bool]): int =
-                        #     let aname = a.name.toLower()
-                        #     let bname = b.name.toLower()
-                        #     if aname < bname: result = -1 # Sort string ascending.
-                        #     elif aname > bname: result = 1
-                        #     else: result = 0 # Default return value (no sorting).
-                        # items.sort(alphasort)
-
-                        # response.names = addr items
-
-                    else: discard
-
-                incoming.future[].complete(response)
+                waitFor testhttp()
 
     proc get_packages_outd(j: string) {.async.} =
         let jdata = parseJSON(j)
@@ -945,7 +860,7 @@ proc main() =
         createThread(thread, t_get_packages_outd, addr chan)
 
         var fut = newFuture[Response]("get-packages-out.nodecliac")
-        let data = ChannelMsg(future: addr fut, action: "get-packages-out")
+        let data = ChannelMsg(future: addr fut)
         chan.send(data)
         let r = await fut
         OUTD_PKGS = r.outdated[]

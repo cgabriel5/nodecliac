@@ -138,8 +138,6 @@ proc main() =
                 var packages: seq[Package] = @[]
                 const dirtypes = {pcDir, pcLinkToDir}
                 for kind, path in walkDir(joinPath(hdir, "/.nodecliac/registry")):
-                    # [https://nim-lang.org/docs/os.html#PathComponent]
-                    # Only get dirs/links to dirs
                     if kind notin dirtypes: continue
 
                     let (path, command) = splitPath(path)

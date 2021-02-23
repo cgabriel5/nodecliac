@@ -175,6 +175,8 @@ proc main() =
             </div>
         </div>""".collapse_html()
 
+        app.js(fmt"""get_panel_by_name("{panel}").$sbentry.classList.remove("none");""")
+
         var chan: Channel[ChannelMsg]
         chan.open()
         var thread: Thread[ptr Channel[ChannelMsg]]

@@ -151,8 +151,8 @@ proc main() =
                     if fileExists(dconfig):
                         if find(readFile(dconfig), r) > -1: disabled = true
 
-                    var pkg: Package = (command, version, disabled)
-                    packages.add(pkg)
+                    var pkg: Package = (command, move(version), disabled)
+                    packages.add(move(pkg))
 
                 packages.sort(alphasort)
                 response.inst_pkgs = addr packages
@@ -793,7 +793,7 @@ proc main() =
                         if repo != "":
                             var path = parseUri(repo).path
                             path.removePrefix({'/'})
-                            let (username, reponame) = splitPath(path)
+                            let (username, reponame) = splitPath(move(path))
                             # [https://stackoverflow.com/a/58742269]
                             # [https://stackoverflow.com/a/42484886]
                             url = urltemp % [username, reponame]
@@ -801,14 +801,14 @@ proc main() =
                             url &= "/package.ini"
                             # url &= fmt"/{command}.acmap"
 
-                    urls[command] = url
+                    urls[command] = move(url)
 
                     # let dconfig = joinPath(path, command, fmt".{command}.config.acdef")
                     # if fileExists(dconfig):
                     #     if find(readFile(dconfig), r) > -1: disabled = true
 
-                    var pkg: Package = (command, version, disabled)
-                    packages.add(pkg)
+                    var pkg: Package = (command, move(version), disabled)
+                    packages.add(move(pkg))
 
                 packages.sort(alphasort)
                 # response.names = addr packages
@@ -1221,17 +1221,17 @@ proc main() =
         # @return {nil} - Nothing is returned.
         proc fopen(path: string) =
             # [https://nim-lang.org/docs/osproc.html#execCmd%2Cstring]
-            var path = path.strip(trailing=true)
-            let p = joinPath(hdir, "/.nodecliac/registry/", splitPath(path).tail)
-            if path.startsWith('~'):
-                path.removePrefix('~')
-                path = hdir & path
+            var cpath = path.strip(trailing=true)
+            let rpath = joinPath(hdir, "/.nodecliac/registry/", splitPath(path).tail)
+            if cpath.startsWith('~'):
+                cpath.removePrefix('~')
+                cpath = hdir & cpath
             when defined(linux):
                 const explorer = "xdg-open" # [https://superuser.com/a/465542]
             elif defined(macosx):
                 const explorer = "open"
             # Ensure path matches registry path before running command.
-            if path == p and dirExists(p): discard execCmd(explorer & " " & p)
+            if cpath == rpath and dirExists(rpath): discard execCmd(explorer & " " & rpath)
 
         # Create a smaller window to show application about info.
         #

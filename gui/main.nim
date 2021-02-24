@@ -835,7 +835,7 @@ proc main() =
                         reqs.add(fetchfile(urls[item.name]))
                     let reponses = await all(reqs)
                     for i, response in reponses:
-                        let data = loadConfig(newStringStream(fmt"""{response}"""))
+                        let data = loadConfig(newStringStream(response))
                         let remote_version = data.getSectionValue("Package", "version")
                         let local_version = packages[i].version;
 

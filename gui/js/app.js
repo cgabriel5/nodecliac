@@ -403,25 +403,16 @@ const init = async () => {
 
 									break;
 								}
-								// case "packages-outdated": {
-								// 	set_active_pkg_pane(panel);
-								// 	// block_panel(panel);
-								// 	let $icon = PKG_PANES_REFS.$mcheck;
+								case "packages-outdated": {
+									let obj = {
+										input: PKG_PANES_REFS.$input.value.trim(),
+										panel: panel
+									};
+									API.packages_outd(JSON.stringify(obj));
 
-								// 	uncheck($icon);
-								// 	toggle_pkg_sel_actions(false);
-								// 	mass_toggle("uncheck");
-								// 	// selected_pkgs.clear();
+									break;
 
-								// 	let obj = {
-								// 		input: PKG_PANES_REFS.$input.value.trim(),
-								// 		panel: panel
-								// 	};
-
-								// 	break;
-								// }
-
-									// API.packages_outd(JSON.stringify(obj));
+								}
 								case "settings":
 									API.config();
 									break;

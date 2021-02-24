@@ -1159,18 +1159,18 @@ proc main() =
             """)
 
         const `template` = """
-        <div class=\"header none\">Log</div>
-        <div class=\"row\">
-            <div class=\"label\">nodecliac ping:</div>
-            {ping}
+        <div class="header none">Log</div>
+        <div class="row">
+            <div class="label">nodecliac ping:</div>
+            $1
         </div>
-        <div class=\"row\">
-            <div class=\"label\">nodecliac -v:</div>
-            <div class=\"value\">v{version}</div>
+        <div class="row">
+            <div class="label">nodecliac -v:</div>
+            <div class="value">v$2</div>
         </div>
-        <div class=\"row\">
-            <div class=\"label\">bin:</div>
-            <div class=\"value\">{binloc}</div>
+        <div class="row">
+            <div class="label">bin:</div>
+            <div class="value">$3</div>
         </div>
         """.collapse_html()
 

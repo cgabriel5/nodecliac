@@ -7,9 +7,11 @@
 
 # --app:gui [https://stackoverflow.com/a/36346102]
 
+# [https://nim-lang.org/docs/gc.html]
 # --gc:orc \
 # -d:useMalloc \
 nim compile \
+--gc:arc \
 --app:gui \
 -d:ssl \
 -d:release \

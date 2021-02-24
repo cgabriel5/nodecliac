@@ -334,11 +334,9 @@ const init = async () => {
 						$delegate.classList.toggle("selected");
 						$cached_pkg = $delegate;
 
-						let obj = {
-							name: id.slice(10),
-							panel: get_active_panel_name(),
-							exclude: "location"
-						};
+						let panel = get_active_panel_name();
+						let exclude = -~panel.indexOf("available") ? "location" : "";
+						let obj = {name: id.slice(10), panel, exclude };
 						API.get_pkg_info(JSON.stringify(obj));
 					}
 				}

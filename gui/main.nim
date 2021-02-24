@@ -116,6 +116,23 @@ proc main() =
                 {url}
             </a>""".collapse_html()
 
+     # [https://stackoverflow.com/a/6712058]
+    proc palphasort(a, b: Package): int =
+        let aname = a.name.toLower()
+        let bname = b.name.toLower()
+        if aname < bname: result = -1 # Sort string ascending.
+        elif aname > bname: result = 1
+        else: result = 0 # Default return value (no sorting).
+
+    # [https://stackoverflow.com/a/6712058]
+    # Nim Json sorting: [https://forum.nim-lang.org/t/6332#39027]
+    proc jalphasort(a, b: JsonNode): int =
+        let aname = a{"name"}.getStr().toLower()
+        let bname = b{"name"}.getStr().toLower()
+        if aname < bname: result = -1 # Sort string ascending.
+        elif aname > bname: result = 1
+        else: result = 0 # Default return value (no sorting).
+
 # ==============================================================================
 
     proc t_get_packages_inst(chan: ptr Channel[ChannelMsg]) {.thread.} =
@@ -123,14 +140,6 @@ proc main() =
             var incoming = chan[].recv()
             if not incoming.future[].finished:
                 var response = Response(code: -1)
-
-                 # [https://stackoverflow.com/a/6712058]
-                proc alphasort(a, b: Package): int =
-                    let aname = a.name.toLower()
-                    let bname = b.name.toLower()
-                    if aname < bname: result = -1 # Sort string ascending.
-                    elif aname > bname: result = 1
-                    else: result = 0 # Default return value (no sorting).
 
                 let hdir = os.getEnv("HOME")
                 let r = re"@disable\s=\strue"
@@ -154,7 +163,7 @@ proc main() =
                     var pkg: Package = (command, move(version), disabled)
                     packages.add(move(pkg))
 
-                packages.sort(alphasort)
+                packages.sort(palphasort)
                 response.inst_pkgs = addr packages
 
                 incoming.future[].complete(response)
@@ -479,15 +488,6 @@ proc main() =
                 let cached_avai = joinPath(hdir, "/.nodecliac/.cached_avai")
                 let url = "https://raw.githubusercontent.com/cgabriel5/nodecliac-packages/master/packages.json"
 
-                # [https://stackoverflow.com/a/6712058]
-                # Nim Json sorting: [https://forum.nim-lang.org/t/6332#39027]
-                proc alphasort(a, b: JsonNode): int =
-                    let aname = a{"name"}.getStr().toLower()
-                    let bname = b{"name"}.getStr().toLower()
-                    if aname < bname: result = -1 # Sort string ascending.
-                    elif aname > bname: result = 1
-                    else: result = 0 # Default return value (no sorting).
-
                 proc fetchjson(url: string): Future[string] {.async.} =
                     let client = newAsyncHttpClient()
                     let contents = await client.getContent(url)
@@ -505,7 +505,7 @@ proc main() =
                     let usecache = cache_exists and cache_fresh
 
                     let contents = if usecache: readFile(cached_avai) else: await fetchjson(url)
-                    var jdata = parseJSON(contents).getElems.sorted(alphasort)
+                    var jdata = parseJSON(contents).getElems.sorted(jalphasort)
 
                     for item in items(jdata):
                         let name = item["name"].getStr()
@@ -757,14 +757,6 @@ proc main() =
             if not incoming.future[].finished:
                 var response = Response(code: -1)
 
-                 # [https://stackoverflow.com/a/6712058]
-                proc alphasort(a, b: Package): int =
-                    let aname = a.name.toLower()
-                    let bname = b.name.toLower()
-                    if aname < bname: result = -1 # Sort string ascending.
-                    elif aname > bname: result = 1
-                    else: result = 0 # Default return value (no sorting).
-
                 let hdir = os.getEnv("HOME")
                 # let r = re"@disable\s=\strue"
                 var urls = initTable[string, string]()
@@ -810,7 +802,7 @@ proc main() =
                     var pkg: Package = (command, move(version), disabled)
                     packages.add(move(pkg))
 
-                packages.sort(alphasort)
+                packages.sort(palphasort)
                 # response.names = addr packages
 
                 # ------------------------------------------------------

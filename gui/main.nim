@@ -610,7 +610,6 @@ proc main() =
                 app.js(fmt"""
                     var PANEL = get_panel_by_name("{panel}");
                     PANEL.$sbentry.classList.add("none");
-                    processes.packages["{panel}"] = false;
                     toggle_pkg_sel_action_refresh(true);
                 """)
         )
@@ -912,7 +911,6 @@ proc main() =
                 app.js(fmt"""
                     var PANEL = get_panel_by_name("{panel}");
                     PANEL.$sbentry.classList.add("none");
-                    processes.packages["{panel}"] = false;
                 """)
         )
 

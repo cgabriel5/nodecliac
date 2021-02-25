@@ -248,15 +248,6 @@ API.set_pkg_info_row = (panel, row, value) => {
 	// f("pkg-i-" + row).all().classes("value").getElement().innerHTML = value;
 };
 
-let processes = { packages: {} };
-function block_panel(name = "") {
-	processes.packages[name || $ACTIVE_PANE.getAttribute("data-row")] = true;
-}
-function unblock_panel(name) {
-	processes.packages[name] = false;
-}
-let is_panel_blocked = (name) => processes.packages[name];
-
 const init = async () => {
 	let $cached_sb = null;
 	let $cached_pkg = null;
@@ -376,47 +367,43 @@ const init = async () => {
 						if ($node) $node.classList.remove("none");
 						$cached_sb = $delegate;
 
-						// if (!is_panel_blocked(panel)) {
+						set_active_pkg_pane(panel);
+						let $icon = PKG_PANES_REFS.$mcheck;
 
-							set_active_pkg_pane(panel);
-							// block_panel(panel);
-							let $icon = PKG_PANES_REFS.$mcheck;
+						switch (panel) {
+							case "packages-installed": {
+								let obj = {
+									input: PKG_PANES_REFS.$input.value.trim(),
+									panel: panel
+								};
+								API.packages_ints(JSON.stringify(obj));
 
-							switch (panel) {
-								case "packages-installed": {
-									let obj = {
-										input: PKG_PANES_REFS.$input.value.trim(),
-										panel: panel
-									};
-									API.packages_ints(JSON.stringify(obj));
-
-									break;
-								}
-								case "packages-available": {
-									let obj = {
-										input: PKG_PANES_REFS.$input.value.trim(),
-										panel: panel
-									};
-									API.packages_avai(JSON.stringify(obj));
-
-									break;
-								}
-								case "packages-outdated": {
-									let obj = {
-										input: PKG_PANES_REFS.$input.value.trim(),
-										panel: panel
-									};
-									API.packages_outd(JSON.stringify(obj));
-
-									break;
-
-								}
-								case "settings":
-									API.config();
-									break;
-								// else if (panel === "doctor") API.doctor();
+								break;
 							}
-						// }
+							case "packages-available": {
+								let obj = {
+									input: PKG_PANES_REFS.$input.value.trim(),
+									panel: panel
+								};
+								API.packages_avai(JSON.stringify(obj));
+
+								break;
+							}
+							case "packages-outdated": {
+								let obj = {
+									input: PKG_PANES_REFS.$input.value.trim(),
+									panel: panel
+								};
+								API.packages_outd(JSON.stringify(obj));
+
+								break;
+
+							}
+							case "settings":
+								API.config();
+								break;
+							// else if (panel === "doctor") API.doctor();
+						}
 					}
 				}
 
@@ -510,14 +497,11 @@ const init = async () => {
 			case "packages:actions":
 				{
 					let panel = get_active_panel_name();
-					// block_panel(panel);
 
 					// let packages = Array.from(selected_pkgs);
 					// selected_pkgs.clear();
 					let PANEL = get_panel_by_name(panel);
 
-					// if (is_panel_blocked(panel)) return;
-					// else block_panel(panel);
 
 					// let isall_checked = f(PKG_PANES_REFS.$mcheck).classes("!none").getElement();
 					let isall_checked = PANEL.checked_all;
@@ -569,8 +553,6 @@ const init = async () => {
 						case "sync":
 							{
 								let panel = get_active_panel_name();
-								// block_panel(panel);
-
 								let obj = {
 									input: PKG_PANES_REFS.$input.value.trim(),
 									panel: panel
@@ -583,7 +565,6 @@ const init = async () => {
 						case "install":
 							{
 								let panel = get_active_panel_name();
-								// block_panel(panel);
 
 								// let packages = Array.from(selected_pkgs);
 								// selected_pkgs.clear();
@@ -612,7 +593,6 @@ const init = async () => {
 
 
 							let panel = get_active_panel_name();
-							// block_panel(panel);
 
 							// if (JDATA.PKG_AVAI_REFS) {
 							// 	toggle_pkg_sel_action_refresh(true);
@@ -620,7 +600,6 @@ const init = async () => {
 							// }
 
 							set_active_pkg_pane(panel);
-							// block_panel(panel);
 							let $icon = PKG_PANES_REFS.$mcheck;
 							//
 
@@ -817,7 +796,6 @@ const init = async () => {
 	}
 
 	Interaction.addFilter("packages:main-checkmark", (e, targets) => {
-		if (is_panel_blocked(get_active_panel_name())) return;
 		let $target = targets.target;
 		let $parents = f($target).parents().getStack();
 		// [FIX/BUG]: Funnel has a bug: gets document element when it should not.
@@ -826,7 +804,6 @@ const init = async () => {
 		if (PKG_PANES_REFS.$tb.contains($el)) return $el;
 	});
 	Interaction.addFilter("packages:entry-checkmark", (e, targets) => {
-		if (is_panel_blocked(get_active_panel_name())) return;
 		let $target = targets.target;
 		let $parents = f($target).parents().getStack();
 		let $el = f($target).concat($parents).classes("checkmark").getElement();
@@ -837,7 +814,6 @@ const init = async () => {
 		let $parents = f($target).parents().getStack();
 		let $el = f($target).concat($parents).classes("entry").getElement();
 		let $cm = f($target).concat($parents).classes("checkmark").getElement();
-		if (is_panel_blocked(get_active_panel_name()) && $cm) return;
 		if (!$cm && PKG_PANES_REFS.$entries.contains($el)) return $el;
 	});
 	Interaction.addFilter("packages:actions", (e, targets) => {

@@ -135,6 +135,75 @@ proc main() =
 
 # ==============================================================================
 
+    const templates = {
+        "inst": """
+        <div class=entry id=pkg-entry-$1>
+            <div class="center">
+                <div class="checkmark" data-name="$1">
+                    <i class="fas fa-check none"></i>
+                </div>
+                <div class="pstatus $2"></div>
+                <div class="label">$1</div>
+            </div>
+        </div>""".collapse_html(),
+        "avai": """
+        <div class=entry id=pkg-entry-$1>
+            <div class="center">
+                <div class="checkmark" data-name="$1">
+                    <i class="fas fa-check none"></i>
+                </div>
+                <div class="pstatus $2"></div>
+                <div class="label">$1</div>
+                <div class="loader-cont none">
+                    <div class="svg-loader s-loader"></div>
+                </div>
+                <div class="istatus none"></div>
+            </div>
+        </div>""".collapse_html(),
+        "outd": """
+        <div class=entry id=pkg-entry-$1>
+            <div class="center">
+                <div class="checkmark" data-name="$1">
+                    <i class="fas fa-check none"></i>
+                </div>
+                <div class="label">$1</div>
+            </div>
+        </div>""".collapse_html(),
+        "update": """
+        <div class="logitem row new-highlight $1">
+            <div class="logitem-top">
+                <div class="left center">
+                    <div class="icon">
+                        <i class="$2"></i>
+                    </div>
+                    <div class="title">$3</div>
+                </div>
+                <div class="right">
+                    <div class="time">
+                        $4
+                    </div>
+                </div>
+            </div>
+            <div>$5</div>
+        </div>""".collapse_html(),
+        "doctor": """
+        <div class="header none">Log</div>
+        <div class="row">
+            <div class="label">nodecliac ping:</div>
+            $1
+        </div>
+        <div class="row">
+            <div class="label">nodecliac -v:</div>
+            <div class="value">v$2</div>
+        </div>
+        <div class="row">
+            <div class="label">bin:</div>
+            <div class="value">$3</div>
+        </div>""".collapse_html()
+    }.toTable
+
+# ==============================================================================
+
     proc t_get_packages_inst(chan: ptr Channel[ChannelMsg]) {.thread.} =
         while true: # [https://git.io/JtHvI]
             var incoming = chan[].recv()
@@ -173,17 +242,6 @@ proc main() =
         let input = jdata["input"].getStr()
         let panel = jdata["panel"].getStr()
 
-        const `template` = """
-        <div class=entry id=pkg-entry-$1>
-            <div class="center">
-                <div class="checkmark" data-name="$1">
-                    <i class="fas fa-check none"></i>
-                </div>
-                <div class="pstatus $2"></div>
-                <div class="label">$1</div>
-            </div>
-        </div>""".collapse_html()
-
         app.js(fmt"""get_panel_by_name("{panel}").$sbentry.classList.remove("none");""")
 
         var chan: Channel[ChannelMsg]
@@ -216,7 +274,7 @@ proc main() =
                 if input != "":
                     if input notin item.name: continue
                 let classname = if item.disabled: "off" else: "on"
-                html &= `template` % [item.name, classname]
+                html &= templates["inst"] % [item.name, classname]
 
             app.dispatch(
                 proc () =
@@ -252,17 +310,6 @@ proc main() =
             PANEL.jdata_filtered.length = 0;
             """
 
-        const `template` = """
-        <div class=entry id=pkg-entry-$1>
-            <div class="center">
-                <div class="checkmark" data-name="$1">
-                    <i class="fas fa-check none"></i>
-                </div>
-                <div class="pstatus $2"></div>
-                <div class="label">$1</div>
-            </div>
-        </div>""".collapse_html()
-
         for item in INST_PKGS:
             if input in item.name:
                 empty = false
@@ -270,7 +317,7 @@ proc main() =
                 let classname = if item.disabled: "off" else: "on"
 
                 command &= fmt"""PANEL.jdata_filtered.push("{item.name}");"""
-                html &= `template` % [item.name, classname]
+                html &= templates["inst"] % [item.name, classname]
 
         if empty: html &= """<div class="empty"><div>No Packages</div></div>"""
         command &= fmt"""
@@ -532,21 +579,6 @@ proc main() =
         let panel = jdata["panel"].getStr()
         let force = jdata{"force"}.getBool()
 
-        const `template` = """
-        <div class=entry id=pkg-entry-$1>
-            <div class="center">
-                <div class="checkmark" data-name="$1">
-                    <i class="fas fa-check none"></i>
-                </div>
-                <div class="pstatus $2"></div>
-                <div class="label">$1</div>
-                <div class="loader-cont none">
-                    <div class="svg-loader s-loader"></div>
-                </div>
-                <div class="istatus none"></div>
-            </div>
-        </div>""".collapse_html()
-
         if avai_first_run_done and not force: return
         avai_first_run_done = true
 
@@ -591,7 +623,7 @@ proc main() =
                     if input notin name: continue
                 let p = joinPath(hdir, "/.nodecliac/registry/", name)
                 let classname = if dirExists(p): "on" else: "clear"
-                html &= `template` % [name, classname]
+                html &= templates["avai"] % [name, classname]
 
             app.dispatch(
                 proc () =
@@ -632,21 +664,6 @@ proc main() =
             PANEL.jdata_filtered.length = 0;
             """
 
-        const `template` = """
-        <div class=entry id=pkg-entry-$1>
-            <div class="center">
-                <div class="checkmark" data-name="$1">
-                    <i class="fas fa-check none"></i>
-                </div>
-                <div class="pstatus $2"></div>
-                <div class="label">$1</div>
-                <div class="loader-cont none">
-                    <div class="svg-loader s-loader"></div>
-                </div>
-                <div class="istatus none"></div>
-            </div>
-        </div>""".collapse_html()
-
         for name in AVAI_PKGS_NAMES:
             if input in name:
                 empty = false
@@ -654,7 +671,7 @@ proc main() =
                 let classname = if dirExists(p): "on" else: "clear"
 
                 command &= fmt"""PANEL.jdata_filtered.push("{name}");"""
-                html &= `template` % [name, classname]
+                html &= templates["avai"] % [name, classname]
 
         if empty: html &= """<div class="empty"><div>No Packages</div></div>"""
         command &= fmt"""
@@ -849,16 +866,6 @@ proc main() =
         let s = jdata["input"].getStr()
         let panel = jdata["panel"].getStr()
 
-        const `template` = """
-        <div class=entry id=pkg-entry-$1>
-            <div class="center">
-                <div class="checkmark" data-name="$1">
-                    <i class="fas fa-check none"></i>
-                </div>
-                <div class="label">$1</div>
-            </div>
-        </div>""".collapse_html()
-
         app.js(fmt"""
             var PANEL = get_panel_by_name("{panel}");
             PANEL.$sbentry.classList.remove("none");
@@ -893,7 +900,7 @@ proc main() =
             for item in OUTD_PKGS:
                 if s != "":
                     if s notin item.name: continue
-                html &= `template` % [item.name]
+                html &= templates["outd"] % [item.name]
 
             app.dispatch(
                 proc () =
@@ -1057,24 +1064,6 @@ proc main() =
         let cwd = parentDir(filename)
         let script = joinPath(cwd, "updater.sh")
 
-        const `template` = """
-        <div class="logitem row new-highlight $1">
-            <div class="logitem-top">
-                <div class="left center">
-                    <div class="icon">
-                        <i class="$2"></i>
-                    </div>
-                    <div class="title">$3</div>
-                </div>
-                <div class="right">
-                    <div class="time">
-                        $4
-                    </div>
-                </div>
-            </div>
-            <div>$5</div>
-        </div>""".collapse_html()
-
         var chan: Channel[ChannelMsg]
         chan.open()
         var thread: Thread[ptr Channel[ChannelMsg]]
@@ -1111,7 +1100,7 @@ proc main() =
                 icon = "fas fa-check-circle"
                 class = "success"
 
-        let logentry = `template` % [class, icon, title, datestring, message]
+        let logentry = templates["update"] % [class, icon, title, datestring, message]
 
         app.dispatch(
             proc () =
@@ -1148,22 +1137,6 @@ proc main() =
             document.getElementById("doctor-run").classList.add("nointer", "disabled");
             """)
 
-        const `template` = """
-        <div class="header none">Log</div>
-        <div class="row">
-            <div class="label">nodecliac ping:</div>
-            $1
-        </div>
-        <div class="row">
-            <div class="label">nodecliac -v:</div>
-            <div class="value">v$2</div>
-        </div>
-        <div class="row">
-            <div class="label">bin:</div>
-            <div class="value">$3</div>
-        </div>
-        """.collapse_html()
-
         var chan: Channel[ChannelMsg]
         chan.open()
         var thread: Thread[ptr Channel[ChannelMsg]]
@@ -1183,7 +1156,7 @@ proc main() =
             if status.len == 0: "<div class=\"value\">OK</div>"
             else: "<div class=\"value error\">ERROR</div>"
 
-        let html = `template` % [ping, version, binloc]
+        let html = templates["doctor"] % [ping, version, binloc]
 
         app.dispatch(
             proc () =

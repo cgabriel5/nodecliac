@@ -49,9 +49,9 @@ proc main() =
             config: OrderedTableRef[string, OrderedTableRef[string, string]]
         ]
 
-    var AVAI_PKGS = initTable[string, JsonNode]()
-    var AVAI_PKGS_NAMES: seq[string] = @[]
     var INST_PKGS: seq[Package] = @[]
+    var AVAI_PKGS_NAMES: seq[string] = @[]
+    var AVAI_PKGS = initTable[string, JsonNode]()
     var OUTD_PKGS: seq[Outdated]
     var FIRST_RUNS = {"INST": false, "AVAI": false, "OUTD": false}.toTable
 

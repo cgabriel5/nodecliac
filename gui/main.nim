@@ -53,6 +53,7 @@ proc main() =
     var AVAI_PKGS_NAMES: seq[string] = @[]
     var INST_PKGS: seq[Package] = @[]
     var OUTD_PKGS: seq[Outdated]
+    var FIRST_RUNS = {"INST": false, "AVAI": false, "OUTD": false}.toTable
 
     #
     # [https://forum.nim-lang.org/t/3640]
@@ -235,6 +236,10 @@ proc main() =
         let jdata = parseJSON(s)
         let input = jdata["input"].getStr()
         let panel = jdata["panel"].getStr()
+        let force = jdata{"force"}.getBool()
+
+        if FIRST_RUNS["INST"] and not force: return
+        FIRST_RUNS["INST"] = true
 
         app.js(fmt"""get_panel_by_name("{panel}").$sbentry.classList.remove("none");""")
 
@@ -564,15 +569,14 @@ proc main() =
 
                 waitFor getpkgs()
 
-    var avai_first_run_done = false
     proc get_packages_avai(s: string) {.async.} =
         let jdata = parseJSON(s)
         let input = jdata["input"].getStr()
         let panel = jdata["panel"].getStr()
         let force = jdata{"force"}.getBool()
 
-        if avai_first_run_done and not force: return
-        avai_first_run_done = true
+        if FIRST_RUNS["AVAI"] and not force: return
+        FIRST_RUNS["AVAI"] = true
 
         app.js(fmt"""get_panel_by_name("{panel}").$sbentry.classList.remove("none");""")
 
@@ -856,6 +860,10 @@ proc main() =
         let jdata = parseJSON(j)
         let s = jdata["input"].getStr()
         let panel = jdata["panel"].getStr()
+        let force = jdata{"force"}.getBool()
+
+        if FIRST_RUNS["OUTD"] and not force: return
+        FIRST_RUNS["OUTD"] = true
 
         app.js(fmt"""
             var PANEL = get_panel_by_name("{panel}");

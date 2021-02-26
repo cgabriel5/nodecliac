@@ -57,6 +57,7 @@ proc main() =
 
     #
     # [https://forum.nim-lang.org/t/3640]
+    # [https://forum.nim-lang.org/t/5635#35003]
     # var fut {.threadvar.}: Future[Response]
     #
     # [https://nim-lang.org/docs/channels.html]

@@ -289,7 +289,11 @@ proc main() =
 
         app.dispatch(
             proc () =
-                app.js(fmt"""get_panel_by_name("{panel}").$sbentry.classList.add("none");""")
+                app.js(fmt"""
+                    get_panel_by_name("{panel}").$sbentry.classList.add("none");
+                    PANEL.$count.textContent = "{INST_PKGS.len}";
+                    PANEL.$count.classList.remove("none");
+                    """)
         )
 
 # ------------------------------------------------------------------------------
@@ -641,6 +645,8 @@ proc main() =
                     var PANEL = get_panel_by_name("{panel}");
                     PANEL.$sbentry.classList.add("none");
                     toggle_pkg_sel_action_refresh(true);
+                    PANEL.$count.textContent = "{objects.len}";
+                    PANEL.$count.classList.remove("none");
                 """)
         )
 
@@ -919,6 +925,8 @@ proc main() =
                 app.js(fmt"""
                     var PANEL = get_panel_by_name("{panel}");
                     PANEL.$sbentry.classList.add("none");
+                    PANEL.$count.textContent = "{OUTD_PKGS.len}";
+                    PANEL.$count.classList.remove("none");
                 """)
         )
 

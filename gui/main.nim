@@ -13,7 +13,7 @@ proc main() =
     # [https://forum.nim-lang.org/t/6474#39947]
     type
         ChannelMsg = ref object of RootObj
-            action: string
+            action, rpath: string
             future: ptr Future[Response]
 
             inst_all: bool
@@ -205,11 +205,11 @@ proc main() =
             if not incoming.future[].finished:
                 var response = Response(update_code: -1)
 
-                let hdir = os.getEnv("HOME")
                 let r = re"@disable\s=\strue"
                 var packages: seq[Package] = @[]
+                let registrypath = incoming.rpath
                 const dirtypes = {pcDir, pcLinkToDir}
-                for kind, path in walkDir(joinPath(hdir, "/.nodecliac/registry")):
+                for kind, path in walkDir(registrypath):
                     if kind notin dirtypes: continue
 
                     let (path, command) = splitPath(path)
@@ -249,7 +249,7 @@ proc main() =
         createThread(thread, t_get_packages_inst, addr chan)
 
         var fut = newFuture[Response]("get-packages-inst.nodecliac")
-        let data = ChannelMsg(future: addr fut)
+        let data = ChannelMsg(future: addr fut, rpath: registrypath)
         chan.send(data)
         let r = await fut
         INST_PKGS = r.inst_pkgs[]
@@ -337,8 +337,7 @@ proc main() =
 
                 let all = incoming.inst_all
                 let action = incoming.action
-                let hdir = os.getEnv("HOME")
-                let registrypath = joinPath(hdir, "/.nodecliac/registry")
+                let registrypath = incoming.rpath
                 var names = (
                     if not all: incoming.inst_a_names[]
                     else:
@@ -386,6 +385,7 @@ proc main() =
         let data = ChannelMsg(
             future: addr fut,
             action: "enable",
+            rpath: registrypath,
             inst_a_names: addr names,
             inst_all: all
         )
@@ -441,6 +441,7 @@ proc main() =
         let data = ChannelMsg(
             future: addr fut,
             action: "disable",
+            rpath: registrypath,
             inst_a_names: addr names,
             inst_all: all
         )
@@ -496,8 +497,9 @@ proc main() =
         let data = ChannelMsg(
             future: addr fut,
             action: "remove",
-            inst_all: all,
-            inst_a_names: addr names
+            rpath: registrypath,
+            inst_a_names: addr names,
+            inst_all: all
         )
         chan.send(data)
         discard await fut
@@ -526,10 +528,9 @@ proc main() =
             var incoming = chan[].recv()
             if not incoming.future[].finished:
                 var response = Response()
-                let hdir = os.getEnv("HOME")
                 var avai_db = incoming.avai_db[]
                 var avai_names: seq[string] = @[]
-                let cached_avai = joinPath(hdir, "/.nodecliac/.cached_avai")
+                let cached_avai = joinPath(os.getEnv("HOME"), "/.nodecliac/.cached_avai")
                 let url = "https://raw.githubusercontent.com/cgabriel5/nodecliac-packages/master/packages.json"
 
                 proc fetchjson(url: string): Future[string] {.async.} =
@@ -617,7 +618,7 @@ proc main() =
 
                 if input != "":
                     if input notin name: continue
-                let p = joinPath(hdir, "/.nodecliac/registry/", name)
+                let p = joinPath(registrypath, name)
                 let classname = if dirExists(p): "on" else: "clear"
                 html &= templates["avai"] % [name, classname]
 
@@ -769,13 +770,13 @@ proc main() =
             if not incoming.future[].finished:
                 var response = Response()
 
-                let hdir = os.getEnv("HOME")
                 # let r = re"@disable\s=\strue"
+                let registrypath = incoming.rpath
                 var urls = initTable[string, string]()
                 var packages: seq[Package] = @[]
                 var urltemp = "https://raw.githubusercontent.com/$1/$2/master"
                 const dirtypes = {pcDir, pcLinkToDir}
-                for kind, path in walkDir(joinPath(hdir, "/.nodecliac/registry")):
+                for kind, path in walkDir(registrypath):
                     if kind notin dirtypes: continue
 
                     let command #[(head, command)]# = splitPath(path).tail
@@ -876,7 +877,7 @@ proc main() =
         createThread(thread, t_get_packages_outd, addr chan)
 
         var fut = newFuture[Response]("get-packages-out.nodecliac")
-        let data = ChannelMsg(future: addr fut)
+        let data = ChannelMsg(future: addr fut, rpath: registrypath)
         chan.send(data)
         let r = await fut
         OUTD_PKGS = r.outd_pkgs[]
@@ -922,9 +923,9 @@ proc main() =
 
 # ==============================================================================
 
+    let configpath = joinPath(hdir, "/.nodecliac/.config")
     proc config_update(setting: string, value: int) =
-        let p = joinPath(hdir, "/.nodecliac/.config")
-        var config = if fileExists(p): readFile(p) else: ""
+        var config = if fileExists(configpath): readFile(configpath) else: ""
         let index = (case setting
             of "status": 0
             of "cache": 1
@@ -934,7 +935,7 @@ proc main() =
 
         if config != "":
             config[index] = ($(value))[0]
-            writeFile(p, config)
+            writeFile(configpath, config)
 
     proc setting_config_state(state: int) = config_update("status", state)
     proc setting_config_cache(state: int) = config_update("cache", state)
@@ -943,15 +944,14 @@ proc main() =
 
     proc settings_reset() =
         const value = "1001"
-        writeFile(joinPath(hdir, "/.nodecliac/.config"), value)
+        writeFile(configpath, value)
         # [https://stackoverflow.com/a/62563753]
         app.js("window.api.setup_config(" & cast[seq[char]](value).join(",") & ");")
 
 # ------------------------------------------------------------------------------
 
     proc get_config() =
-        let p = joinPath(hdir, "/.nodecliac/.config")
-        let config = if fileExists(p): readFile(p) else: ""
+        let config = if fileExists(configpath): readFile(configpath) else: ""
         if config != "":
             let status = config[0]
             let cache = config[1]
@@ -971,8 +971,7 @@ proc main() =
                 # discard execProcess("nodecliac cache --clear")
 
                 # Nim native `nodecliac cache --clear` equivalent...
-                let hdir = os.getEnv("HOME")
-                let cp = joinPath(hdir, "/.nodecliac/.cache")
+                let cp = joinPath(os.getEnv("HOME"), "/.nodecliac/.cache")
                 if dirExists(cp):
                     for kind, path in walkDir(cp):
                         if kind == pcFile: discard tryRemoveFile(path)
@@ -1183,7 +1182,7 @@ proc main() =
         proc fopen(path: string) =
             # [https://nim-lang.org/docs/osproc.html#execCmd%2Cstring]
             var cpath = path.strip(trailing=true)
-            let rpath = joinPath(hdir, "/.nodecliac/registry/", splitPath(path).tail)
+            let rpath = joinPath(registrypath, splitPath(path).tail)
             if cpath.startsWith('~'):
                 cpath.removePrefix('~')
                 cpath = hdir & cpath
@@ -1215,7 +1214,7 @@ proc main() =
             let exclude = jdata{"exclude"}.getStr("").split(',')
 
             # Check that package ini file exists.
-            let config = joinPath(hdir, "/.nodecliac/registry/", name, "/package.ini")
+            let config = joinPath(registrypath, name, "/package.ini")
             if fileExists(config):
                 # Read the config file and get the needed data points.
                 # [https://github.com/coffeepots/niminifiles]

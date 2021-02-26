@@ -13,47 +13,42 @@ proc main() =
 
     # [https://forum.nim-lang.org/t/6474#39947]
     type
+        ChannelMsg = ref object of RootObj
+            action: string
+            future: ptr Future[Response]
+
+            inst_all: bool
+            inst_a_names: ptr seq[string]
+
+            avai_pname: string
+            avai_db: ptr Table[string, JsonNode]
+
+            updater_cmd: string
+
+        Response = ref object of RootObj
+            inst_err: string
+            inst_pkgs: ptr seq[Package]
+            inst_a_names: ptr seq[string]
+
+            avai_pname: string
+            avai_names: ptr seq[string]
+            avai_jdata: ptr seq[JsonNode]
+            avai_db: ptr Table[string, JsonNode]
+
+            outd_pkgs: ptr seq[Outdated]
+
+            checkup: ptr tuple[status, version, binary: string]
+
+            update_code: int
+
+        Package = tuple[name, version: string, disabled: bool]
+
         Outdated = tuple[
             name,
             local_version,
             remote_version: string,
-            config: OrderedTableRef[
-                string,
-                OrderedTableRef[string, string]
-            ]
+            config: OrderedTableRef[string, OrderedTableRef[string, string]]
         ]
-
-        Package = tuple[name, version: string, disabled: bool]
-
-        Response = ref object
-            code: int
-            resp: string
-            jdata: ptr seq[JsonNode]
-            names: ptr seq[Package]
-            outdated: ptr seq[Outdated]
-
-            inst_pkgs: ptr seq[Package]
-            inst_a_names: ptr seq[string]
-
-            avai_db: ptr Table[string, JsonNode]
-            avai_names: ptr seq[string]
-            avai_pname: string
-
-            checkup: ptr tuple[status, version, binary: string]
-
-            err: string
-
-        ChannelMsg = object
-            action, cmd: string
-            future: ptr Future[Response]
-            list: ptr seq[string]
-            # jdata: ptr jsonNode
-            all: bool
-
-            avai_db: ptr Table[string, JsonNode]
-            avai_pname: string
-
-            inst_a_names: ptr seq[string]
 
     var AVAI_PKGS = initTable[string, JsonNode]()
     var AVAI_PKGS_NAMES: seq[string] = @[]
@@ -208,7 +203,7 @@ proc main() =
         while true: # [https://git.io/JtHvI]
             var incoming = chan[].recv()
             if not incoming.future[].finished:
-                var response = Response(code: -1)
+                var response = Response(update_code: -1)
 
                 let hdir = os.getEnv("HOME")
                 let r = re"@disable\s=\strue"
@@ -334,9 +329,9 @@ proc main() =
         while true: # [https://git.io/JtHvI]
             var incoming = chan[].recv()
             if not incoming.future[].finished:
-                var response = Response(code: -1)
+                var response = Response()
 
-                let all = incoming.all
+                let all = incoming.inst_all
                 let action = incoming.action
                 let hdir = os.getEnv("HOME")
                 let registrypath = joinPath(hdir, "/.nodecliac/registry")
@@ -364,8 +359,6 @@ proc main() =
                             if dirExists(p): removeDir(p)
                     else: discard
 
-                # response.inst_a_names = addr names
-
                 incoming.future[].complete(response)
 
     proc enapkgs(s: string) {.async.} =
@@ -390,7 +383,7 @@ proc main() =
             future: addr fut,
             action: "enable",
             inst_a_names: addr names,
-            all: all
+            inst_all: all
         )
         chan.send(data)
         discard await fut
@@ -445,7 +438,7 @@ proc main() =
             future: addr fut,
             action: "disable",
             inst_a_names: addr names,
-            all: all
+            inst_all: all
         )
         chan.send(data)
         discard await fut
@@ -499,7 +492,7 @@ proc main() =
         let data = ChannelMsg(
             future: addr fut,
             action: "remove",
-            all: all,
+            inst_all: all,
             inst_a_names: addr names
         )
         chan.send(data)
@@ -528,7 +521,7 @@ proc main() =
         while true: # [https://git.io/JtHvI]
             var incoming = chan[].recv()
             if not incoming.future[].finished:
-                var response = Response(code: -1)
+                var response = Response()
                 let hdir = os.getEnv("HOME")
                 var avai_db = incoming.avai_db[]
                 var avai_names: seq[string] = @[]
@@ -564,8 +557,8 @@ proc main() =
                         if sjson != "": sjson.delete(0, 0)
                         writeFile(cached_avai, sjson)
 
-                    response.jdata = addr jdata
                     response.avai_db = addr avai_db
+                    response.avai_jdata = addr jdata
                     response.avai_names = addr avai_names
 
                     incoming.future[].complete(response)
@@ -595,7 +588,7 @@ proc main() =
         let r = await fut
         chan.close()
 
-        var objects = r.jdata[]
+        var objects = r.avai_jdata[]
         AVAI_PKGS = r.avai_db[]
         AVAI_PKGS_NAMES = r.avai_names[]
 
@@ -688,7 +681,7 @@ proc main() =
         while true: # [https://git.io/JtHvI]
             var incoming = chan[].recv()
             if not incoming.future[].finished:
-                var response = Response(code: -1)
+                var response = Response()
 
                 let name = incoming.avai_pname
                 let avai_db = incoming.avai_db[]
@@ -697,7 +690,7 @@ proc main() =
                     let scheme = avai_db[name]{"scheme"}.getStr()
                     let cmd = fmt"""nodecliac add --repo "{scheme}" --skip-val;"""
                     let res = execProcess(cmd).strip(trailing=true)
-                    if "exists" in res: response.err = $res
+                    if "exists" in res: response.inst_err = $res
 
                 incoming.future[].complete(response)
 
@@ -729,7 +722,7 @@ proc main() =
         chan.send(data)
         let r = await fut
         chan.close()
-        let err = r.err
+        let err = r.inst_err
 
         var cmd = fmt"""
             var PANEL = get_panel_by_name("{panel}");
@@ -771,7 +764,7 @@ proc main() =
         while true: # [https://git.io/JtHvI]
             var incoming = chan[].recv()
             if not incoming.future[].finished:
-                var response = Response(code: -1)
+                var response = Response()
 
                 let hdir = os.getEnv("HOME")
                 # let r = re"@disable\s=\strue"
@@ -819,7 +812,6 @@ proc main() =
                     packages.add(move(pkg))
 
                 packages.sort(palphasort)
-                # response.names = addr packages
 
                 # ------------------------------------------------------
 
@@ -856,7 +848,7 @@ proc main() =
                             )
                             outdated.add(item)
 
-                    response.outdated = addr outdated
+                    response.outd_pkgs = addr outdated
                     incoming.future[].complete(response)
 
                 waitFor testhttp()
@@ -880,7 +872,7 @@ proc main() =
         let data = ChannelMsg(future: addr fut)
         chan.send(data)
         let r = await fut
-        OUTD_PKGS = r.outdated[]
+        OUTD_PKGS = r.outd_pkgs[]
         chan.close()
 
         var html = ""
@@ -966,7 +958,7 @@ proc main() =
         while true: # [https://git.io/JtHvI]
             var incoming = chan[].recv()
             if not incoming.future[].finished:
-                var response = Response(code: -1)
+                var response = Response()
 
                 # Use nodecliac CLI.
                 # discard execProcess("nodecliac cache --clear")
@@ -1020,7 +1012,7 @@ proc main() =
         while true: # [https://git.io/JtHvI]
             var incoming = chan[].recv()
             if not incoming.future[].finished:
-                var response = Response(code: -1)
+                var response = Response(update_code: -1)
 
                 # [https://stackoverflow.com/a/23931327]
                 let uname = execProcess("id -u -n").strip(trailing=true)
@@ -1041,15 +1033,14 @@ proc main() =
                         {input}
                         EOF
                         then
-                        {incoming.cmd}
+                        {incoming.updater_cmd}
                         else
                         exit 1
                         fi
                     """
                     let cmd = fmt"""bash -c '{script}'"""
                     let code #[(res, code)]# = execCmdEx(cmd).exitCode
-                    if code == 1: response.resp = "val:fail"
-                    response.code = code
+                    response.update_code = code
 
                 incoming.future[].complete(response)
 
@@ -1072,12 +1063,12 @@ proc main() =
         var fut = newFuture[Response]("update.nodecliac")
         let data = ChannelMsg(
             future: addr fut,
-            cmd: script,
+            updater_cmd: script,
             action: "update"
         )
         chan.send(data)
         let r = await fut
-        let code = r.code
+        let code = r.update_code
         chan.close()
 
         # [https://nim-lang.org/docs/times.html#parsing-and-formatting-dates]
@@ -1117,7 +1108,7 @@ proc main() =
         while true: # [https://git.io/JtHvI]
             var incoming = chan[].recv()
             if not incoming.future[].finished:
-                var response = Response(code: -1)
+                var response = Response()
 
                 let status = execProcess("nodecliac").strip(trailing=true)
                 let version = execProcess("nodecliac --version").strip(trailing=true)

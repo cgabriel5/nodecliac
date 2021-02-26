@@ -3,11 +3,10 @@ from times import format, getTime, toUnix
 import strutils except escape
 from xmltree import escape
 import uri
-import json #, marshal
+import json
 import httpclient
 import tables
 import streams
-# from typetraits import name
 
 proc main() =
 

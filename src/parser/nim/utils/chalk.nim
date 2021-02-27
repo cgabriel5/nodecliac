@@ -3,6 +3,10 @@ from unicode import toLower
 from tables import `$`, `[]`, `[]=`, hasKey, initTable
 from terminal import Style, ForegroundColor, BackgroundColor
 
+# [https://nim-lang.org/docs/manual.html#modules-export-statement]
+# [https://github.com/nim-lang/Nim/issues/11155]
+export tables.`$`
+
 var lookup = initTable[string, int]()
 # Build lookup table: { style:code }.
 # [https://forum.nim-lang.org/t/5052#31708]

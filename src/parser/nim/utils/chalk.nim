@@ -23,19 +23,40 @@ for c in ForegroundColor.low..ForegroundColor.high:
 for c in BackgroundColor.low..BackgroundColor.high:
     lookup[($c).toLower()] = ord(c)
 
+let r = re"\x1b\[[0-9;]*[mG]" # [https://superuser.com/a/561105]
+
 # Simple colored logging inspired by: [https://www.npmjs.com/package/chalk]
 #
 # @param  {array} styles - List of styles to apply.
 # @param  {bool} debug - Returns the actual ANSI escape string.
 # @return {string} - The highlighted string or ANSI escaped string.
-proc chalk*(s: string, styles: varargs[string], debug = false): string =
-    # [https://forum.nim-lang.org/t/3556#25477]
-    var starting = if not debug: "\e[" else: "\\e["
-    var closing = if not debug: "\e[0m" else: "\\e[0m"
+proc chalk*(s: string, styles: varargs[string]): string =
+    var starting = "\e[" # [https://forum.nim-lang.org/t/3556#25477]
+    let closing = "\e[0m"
     let l = styles.len
     var i = 0
     var str = s
-    let r = re"\x1b\[[0-9;]*[mG]" # [https://superuser.com/a/561105]
+    for style in styles:
+        if style == "strip": str = str.replace(r)
+        elif lookup.hasKey(style):
+            starting &= $lookup[style]
+            if i != l - 1: starting &= ";"
+        inc(i)
+    return starting & "m" & str & closing
+
+# Overload chalk function to have a debuggable version which prints outs
+#     ASCI color escape representation.
+#
+# @param  {array} styles - List of styles to apply.
+# @param  {bool} debug - Returns the actual ANSI escape string.
+# @return {string} - The highlighted string or ANSI escaped string.
+proc chalk*(s: string, debug: bool, styles: varargs[string]): string =
+    # [https://forum.nim-lang.org/t/3556#25477]
+    var starting = "\\e[" # [https://forum.nim-lang.org/t/3556#25477]
+    let closing = "\\e[0m"
+    let l = styles.len
+    var i = 0
+    var str = s
     for style in styles:
         if style == "strip": str = str.replace(r)
         elif lookup.hasKey(style):

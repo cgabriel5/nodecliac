@@ -41,6 +41,7 @@ module.exports = async (...args) => {
 		if (!(await flatry(fe(configpath)))[1]) perror(config);
 		if (!(await flatry(fe(inipath)))[1]) perror(ini);
 	} else {
+		// Check for multiple lines individually.
 		let [command, contents] = args;
 		contents = contents.trim();
 		let files = contents.split("\n");

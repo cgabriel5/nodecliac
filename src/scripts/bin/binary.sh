@@ -731,6 +731,7 @@ END
 					[[ ! -f "$configpath" ]] && perror "$config"
 					[[ ! -f "$inipath" ]] && perror "$ini"
 				else
+					# Check for multiple lines individually.
 					local command="$1"
 					local contents="$2"
 					contents="$(trim "$contents")"

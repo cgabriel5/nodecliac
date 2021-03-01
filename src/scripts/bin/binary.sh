@@ -304,7 +304,11 @@ fi
 # Allowed commands.
 commands=" bin init make format print registry setup status uninstall add remove link unlink enable disable cache test debug "
 
-if [[ "$commands" != *"$command"* ]]; then exit; fi # Exit if invalid command.
+# Exit if invalid command.
+if [[ "$commands" != *"$command"* ]]; then
+	echo -e "Unknown command ${BOLD}$command${NC}"
+	exit
+fi
 
 case "$command" in
 

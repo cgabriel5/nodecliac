@@ -775,9 +775,9 @@ END
 		fi
 
 		# Extract possibly provided branch name.
-		r_branch="master"
+		branch="master"
 		if [[ "$repo" == *"#"* ]]; then
-			r_branch="${repo#*#}"
+			branch="${repo#*#}"
 			repo="${repo%%#*}"
 		fi
 
@@ -839,7 +839,7 @@ END
 			# Use git: [https://stackoverflow.com/a/60254704]
 			if [[ -z "$sub" ]]; then
 				# Ensure repo exists.
-				uri="https://api.github.com/repos/$repo/branches/${r_branch}"
+				uri="https://api.github.com/repos/$repo/branches/${branch}"
 				res="$(download "$uri")"
 				[[ -z "$res" ]] && echo "Provided URL does not exist." && exit
 
@@ -855,7 +855,7 @@ END
 
 				# Check that repo exists.
 				uri="https://github.com/$repo/trunk/$sub"
-				if [[ "$branch" != "master" ]]; uri="https://github.com/${repo}/branches/${r_branch}/${sub}"
+				if [[ "$branch" != "master" ]]; uri="https://github.com/${repo}/branches/${branch}/${sub}"
 				res="$(svn ls "$uri")"
 
 				# Use `svn ls` output here to validate package base structure.

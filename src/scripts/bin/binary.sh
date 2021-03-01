@@ -741,7 +741,7 @@ END
 					contents="$(trim "$contents")"
 
 					re="svn: E[[:digit:]]{6}:" # [https://stackoverflow.com/a/32607896]
-					[[ "$res" =~ $re ]] && echo "Provided URL does not exist." > /dev/tty
+					[[ "$contents" =~ $re ]] && echo "Provided URL does not exist." > /dev/tty
 
 					local ini="package.ini"
 					local acmap="$command.acmap"

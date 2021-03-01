@@ -872,7 +872,7 @@ END
 			[[ -z "$skipval" && "$(check "$rname" "$output")" == 0 ]] && exit
 
 			# Move repo to registry.
-			[[ ! -d "$registrypath" ]] && "nodecliac registry ${BOLD}$registrypath${NC} doesn't exist."
+			[[ ! -d "$registrypath" ]] && echo -e "nodecliac registry ${BOLD}$registrypath${NC} doesn't exist." && exit
 			# Delete existing registry package if it exists.
 			[[ -d "$pkgpath" ]] && rm -rf "$pkgpath"
 			mv "$output" "$pkgpath"

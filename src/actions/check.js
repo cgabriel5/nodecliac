@@ -14,7 +14,7 @@ const { exit, aexec, hasProp } = require("../utils/toolbox.js");
  * @return {boolean} - The validation check result.
  */
 module.exports = async (...args) => {
-	let err, res, result = true;
+	let result = true;
 
 	let prefix = `${chalk.red("Error:")} Package missing ./`;
 	let perror = function(file) {

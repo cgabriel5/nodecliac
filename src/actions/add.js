@@ -23,8 +23,7 @@ module.exports = async (args) => {
 
 	let sub = "";
 	if (repo && !p) {
-		let trunk = repo.indexOf("/trunk/");
-		if (repo.includes("/trunk/")) {
+		if (-~repo.indexOf("/trunk/")) {
 			let parts = repo.split(/\/trunk\//);
 			if (parts.length > 1) {
 				repo = parts.shift();

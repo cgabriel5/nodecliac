@@ -706,7 +706,7 @@ END
 			# @param  {string} dir     - The directory path of package.
 			# @return {boolean} - The validation check result.
 			function check() {
-				local err="", res="", result=1, re=""
+				local result=1, re=""
 
 				local prefix="${RED}Error:${NC} Package missing ./"
 				function perror() {

@@ -846,7 +846,7 @@ END
 				# Download repo with git.
 				uri="git@github.com:$repo.git"
 				# [https://stackoverflow.com/a/42932348]
-				git clone "$uri" "$output" >/dev/null 2>&1
+				git clone "$uri" "$output" > /dev/null 2>&1
 			else
 				# Use svn: [https://stackoverflow.com/a/18194523]
 

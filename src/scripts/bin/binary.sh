@@ -862,7 +862,7 @@ END
 				[[ -z "$skipval" && "$(check "$rname" "$res" "0")" == 0 ]] && exit
 
 				re="svn: E[[:digit:]]{6}:" # [https://stackoverflow.com/a/32607896]
-				[[ "$res" =~ $re ]] && echo "Provided repo URL does not exist."
+				[[ "$res" =~ $re ]] && echo "Provided repo URL does not exist." && exit
 
 				# Use svn to download provided sub directory.
 				svn export "$uri" "$output" > /dev/null 2>&1

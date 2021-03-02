@@ -1,4 +1,4 @@
-from re import re, replace
+from re import re, replace, reMultiLine
 from unicode import toLower
 from tables import `$`, `[]`, `[]=`, hasKey, initTable
 from terminal import Style, ForegroundColor, BackgroundColor

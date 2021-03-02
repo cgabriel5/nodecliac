@@ -64,3 +64,14 @@ proc chalk*(s: string, debug: bool, styles: varargs[string]): string =
             if i != l - 1: starting &= ";"
         inc(i)
     return starting & "m" & str & closing
+
+const pattern = # [https://github.com/chalk/ansi-regex/blob/main/index.js]
+    "[\\\u001B\\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\\u0007)" & "|" &
+    "(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))"
+
+proc stripansi*(s: string): string =
+    runnableExamples:
+      doAssert stripansi("\u001B[4mName\u001B[0m") == "Name"
+      doAssert stripansi("\u001b[31mHello\u001B[0m \u001b[31mWorld\u001B[0m!") == "Hello World!"
+
+    s.replace(re(pattern, {reMultiLine}))

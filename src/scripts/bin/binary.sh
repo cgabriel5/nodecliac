@@ -614,22 +614,22 @@ END
 		initconfig
 
 		# If no flag is supplied then only print the status.
-		if [[ -z "$enable" && -z "$disable" ]]; then
+		if [[ -z "$enablencliac" && -z "$disablencliac" ]]; then
 			status="$(getsetting status)"
 			message="nodecliac: ${RED}off${NC}"
 			[[ "$status" == 1 ]] && message="nodecliac: ${GREEN}on${NC}"
 			echo -e "$message"
 		else
-			if [[ -n "$enable" && -n "$disable" ]]; then
+			if [[ -n "$enablencliac" && -n "$disablencliac" ]]; then
 				varg1="${BOLD}--enable${NC}"
 				varg2="${BOLD}--disable${NC}"
 				echo -e "$varg1 and $varg2 given when only one can be provided." && exit 1
 			fi
 
-			if [[ -n "$enable" ]]; then
+			if [[ -n "$enablencliac" ]]; then
 				setsetting status 1 # perl -pi -e 's/^./1/' "$config"
 				echo -e "${GREEN}off${NC}"
-			elif [[ -n "$disable" ]]; then
+			elif [[ -n "$disablencliac" ]]; then
 				# timestamp="$(perl -MTime::HiRes=time -e 'print int(time() * 1000);')"
 				# [https://www.tutorialspoint.com/perl/perl_date_time.htm]
 				# date="$(perl -e 'use POSIX qw(strftime); $datestring = strftime "%a %b %d %Y %H:%M:%S %z (%Z)", localtime; print "$datestring"')"

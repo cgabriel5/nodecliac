@@ -1,17 +1,6 @@
 from strutils import split
-from os import getEnv, paramStr, paramCount, splitFile, DirSep
+from os import paramStr, paramCount, splitFile, DirSep
 from streams import close, readAll, write, newFileStream, openFileStream
-
-# Expands starting tilde ('~') in path.
-#
-# @param {string} 1) - Path to expand.
-# @return {string} - The expanded path.
-#
-# @resource: [https://nim-lang.org/docs/os.html#expandTilde%2Cstring]
-proc expand_tilde*(p: string): string =
-    result = p
-    if p.len == 0: result = ""
-    elif p[0] == '~': result = os.getEnv("HOME") & p[1 .. p.high]
 
 type FileInfo = ref object
     name*, dirname*, ext*, path*: string

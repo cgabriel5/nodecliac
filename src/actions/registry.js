@@ -46,9 +46,8 @@ module.exports = async () => {
 			realpath: "",
 			issymlink_valid: false
 		};
-		let check;
+		let check = false
 
-		check = false;
 		if (await fe(acdefpath)) check = true;
 		if ((await fe(configpath)) && check) data.hasacdefs = true;
 

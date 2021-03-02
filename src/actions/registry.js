@@ -107,7 +107,7 @@ module.exports = async () => {
 				} else {
 					if (issymlinkdir) {
 						let color = issymlink_valid ? "blue" : "red";
-						let linkdir = `${chalk.bold[color](realpath)}`;
+						let linkdir = chalk.bold[color](realpath);
 						console.log(`${decor}${ccommand} -> ${linkdir}/`);
 					} else {
 						console.log(`${decor}${ccommand} -> ${realpath}`);

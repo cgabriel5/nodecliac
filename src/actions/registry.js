@@ -19,7 +19,7 @@ module.exports = async () => {
 	let commands = await readdir(registrypath);
 	let count = commands.length;
 
-	console.log(`${chalk.bold.blue(registrypath)}`); // Print header.
+	console.log(chalk.bold.blue(registrypath)); // Print header.
 
 	// Exit if directory is empty.
 	if (!count) {

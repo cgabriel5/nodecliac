@@ -11,7 +11,7 @@ import algorithm
 import asyncdispatch
 import strutils except escape
 
-import utils/[chalk, osutils, argvparse2, paths, config]
+import utils/[chalk, osutils, argvparse2, paths, config, text]
 
 var rcfile = ""
 var prcommand = ""
@@ -30,6 +30,8 @@ var all: bool
 var path = ""
 var skipval: bool
 var repo = ""
+var update: bool
+var yes: bool
 
 var paramsargs: seq[string] = @[]
 var arguments: seq[string] = @[]
@@ -74,6 +76,8 @@ for index, arg in args:
         of "force": force = true
         of "skip-val": skipval = true
         of "repo": repo = val
+        of "update": update = true
+        of "yes": yes = true
         else: discard
 
     if `type` == "positional":
@@ -108,6 +112,6 @@ if command notin actions: quit(tstring % [command.chalk("bold")])
 
 include actions/[
             make, format, test, debug, bin, init,
-            print, #[setup,]# status, registry, uninstall, cache,
+            print, setup, status, registry, uninstall, cache,
             add, remove, link, unlink, enable, disable
         ]

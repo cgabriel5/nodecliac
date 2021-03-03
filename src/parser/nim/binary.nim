@@ -1,9 +1,17 @@
 #!/usr/bin/env nim
 
-import json, sequtils, tables, os
+import re
+import os
+import json
+import osproc
+import tables
+import sequtils
+import strformat
+import algorithm
+import asyncdispatch
 import strutils except escape
 
-import utils/[chalk, argvparse2, paths, config]
+import utils/[chalk, osutils, argvparse2, paths, config]
 
 var rcfile = ""
 var prcommand = ""
@@ -24,6 +32,7 @@ var skipval: bool
 var repo = ""
 
 var paramsargs: seq[string] = @[]
+var arguments: seq[string] = @[]
 
 let args = argvparse()
 if args.len == 0: quit()
@@ -32,6 +41,7 @@ for index, arg in args:
     let arg = arg[]
     let key = arg.key
     let val = arg.val
+    let hyphens = arg.hyphens
     let `type` = arg.`type`
 
     if index == 0: command = key
@@ -66,7 +76,14 @@ for index, arg in args:
         of "repo": repo = val
         else: discard
 
-    if `type` == "positional": paramsargs.add(key)
+    if `type` == "positional":
+        paramsargs.add(key)
+        arguments.add(key)
+    else:
+        arguments.add(
+            if val.len != 0: fmt"""{hyphens}{key}="{val}""""
+            else: fmt"{hyphens}{key}"
+        )
 
 # If no command given but '--version' flag supplied show version.
 if command.len == 0 and version:
@@ -89,7 +106,8 @@ let cwd = paths["cwd"]
 let tstring = "Unknown command $1."
 if command notin actions: quit(tstring % [command.chalk("bold")])
 
-include actions/[add, bin, cache]
-
-# include actions/[add]
-
+include actions/[
+            make, format, test, debug, bin, init,
+            print, #[setup,]# status, registry, uninstall, cache,
+            add, remove, link, unlink, enable, disable
+        ]

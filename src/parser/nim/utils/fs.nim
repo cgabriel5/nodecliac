@@ -83,9 +83,11 @@ proc read*(p: string): string =
 #
 # @param  {string} p - The path of file to read.
 # @param  {contents} contents - The data to write to file.
+# @param  {number} mode - The file's mode (permission) value.
 # @return {string} - The file contents.
-proc write*(p: string, contents: string) =
+proc write*(p: string, contents: string, mode: int = 0) =
     var strm = newFileStream(p, fmWrite)
     if not isNil(strm):
         strm.write(contents)
         strm.close()
+        if mode != 0: chmod(p, mode)

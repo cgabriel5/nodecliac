@@ -1,6 +1,7 @@
 import os, strformat, tables
 
-let cwd = parentDir(parentDir(currentSourcePath()))
+let DIRNAME = splitPath(currentSourcePath()).head
+let cwd = parentDir(parentDir(parentDir(parentDir(DIRNAME))))
 let homedir = os.getEnv("HOME")
 const projectname = "nodecliac"
 let ncliacdir = joinPath(homedir, fmt".{projectname}")

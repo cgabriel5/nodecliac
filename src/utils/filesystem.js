@@ -24,7 +24,7 @@ let read = (p) => {
  *
  * @param  {string} p - The path of file to read.
  * @param  {string} data - The file's contents.
- * @param  {string} mode - The script's mode (chmod) value.
+ * @param  {number} mode - The file's mode (permission) value.
  * @return {promise} - Promise is returned.
  */
 let write = (p, data, mode) => {
@@ -86,7 +86,7 @@ let remove = (p) => {
  * Wrapper chmod method. Returns a Promise.
  *
  * @param  {string} p - The path of file to change mode.
- * @param  {number} mode - The files mode.
+ * @param  {number} mode - The file's mode (permission) value.
  * @return {promise} - Promise is returned.
  */
 let chmod = (p, mode) => {

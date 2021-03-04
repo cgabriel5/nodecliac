@@ -1,6 +1,6 @@
 import ../utils/tilde
 
-proc init() {.async.} =
+proc xinit() {.async.} =
     proc main(restart: bool = false) {.async.} =
         if restart: echo ""
 

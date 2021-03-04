@@ -3,7 +3,7 @@ import re, osproc, strutils, times
 
 import ../utils/[chalk, osutils]
 
-proc add() {.async.} =
+proc xadd() {.async.} =
     # Checks whether completion package has a valid base structure.
     #
     # @param  {string} command - The completion package command.

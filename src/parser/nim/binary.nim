@@ -113,5 +113,5 @@ if command notin actions: quit(tstring % [command.chalk("bold")])
 include actions/[
             make, format, test, debug, bin, init,
             print, setup, status, registry, uninstall, cache,
-            add, remove, link, unlink, enable, disable
+            add, remove, link, unlink, enable, disable, tablify
         ]

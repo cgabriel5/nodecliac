@@ -1,0 +1,20 @@
+const funcs = {
+    "make": make,
+    "format": format,
+    "test": test,
+    "debug": debug,
+    "bin": bin,
+    "xinit": xinit,
+    "print": print,
+    "setup": setup,
+    "status": status,
+    "registry": registry,
+    "uninstall": uninstall,
+    "cache": cache,
+    "xadd": xadd,
+    "remove": remove,
+    "link": link,
+    "unlink": unlink,
+    "enable": enable,
+    "disable": disable
+}.toTable

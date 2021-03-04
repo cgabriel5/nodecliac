@@ -11,11 +11,11 @@ proc add() {.async.} =
     # @param  {boolean} _ - Provide when checking multiple lines.
     # @return {boolean} - The validation check result.
     proc check(command, dir: string, _: bool = false): int =
-        result = 1
+        var r = 1
 
         let prefix = "Error".chalk("red") & " Package missing ./"
         proc perror(file: string) =
-            result = 0
+            r = 0
             echo  prefix & file.chalk("bold")
 
         # If a single item is provided a folder contents
@@ -53,6 +53,8 @@ proc add() {.async.} =
             if contents.find(re(t % [acmap], {REM})) == -1: perror(acmap)
             if contents.find(re(t % [acdef], {REM})) == -1: perror(acdef)
             if contents.find(re(t % [config], {REM})) == -1: perror(config)
+
+        return r
 
     let p = (
         if path.len != 0 and not isAbsolute(path):

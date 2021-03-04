@@ -1,5 +1,15 @@
 #!/usr/bin/env nim
 
+# Compile with '-no-pie' to generated an executable and not shared library:
+# [https://forum.openframeworks.cc/t/ubuntu-18-04-mistaking-executable-as-shared-library/30873]
+# [https://askubuntu.com/q/1071374]
+# [https://stackoverflow.com/a/45332687]
+# [https://askubuntu.com/a/960212]
+# [https://stackoverflow.com/a/50615370]
+# [https://github.com/nim-lang/Nim/issues/506]
+# [https://nim-lang.org/docs/manual.html#implementation-specific-pragmas-passl-pragma]
+{.passL: "-no-pie".}
+
 import re
 import os
 import json

@@ -105,8 +105,18 @@ fi
 CPU_ARCHITECTURE="i386" # Default to 32 bit. [https://askubuntu.com/a/93196]
 if [[ "$(uname -m)" == "x86_64" ]]; then CPU_ARCHITECTURE="amd64"; fi
 
+# Compile with '-no-pie' to generated an executable and not shared library:
+# [https://forum.openframeworks.cc/t/ubuntu-18-04-mistaking-executable-as-shared-library/30873]
+# [https://askubuntu.com/q/1071374]
+# [https://stackoverflow.com/a/45332687]
+# [https://askubuntu.com/a/960212]
+# [https://stackoverflow.com/a/50615370]
+# [https://github.com/nim-lang/Nim/issues/506]
+# [https://nim-lang.org/docs/manual.html#implementation-specific-pragmas-passl-pragma]
+
 if [[ -n "$COMPILE_DEV" ]]; then
 	nim c --run \
+	--passL:"-no-pie" \
 	--cpu:"$CPU_ARCHITECTURE" \
 	--os:"$USER_OS" \
 	--hints:on \
@@ -118,6 +128,7 @@ if [[ -n "$COMPILE_DEV" ]]; then
 	"$INPUT_PATH"
 elif [[ -n "$COMPILE_PROD" ]]; then
 	nim c \
+	--passL:"-no-pie" \
 	-d:release \
 	--cpu:"$CPU_ARCHITECTURE" \
 	--os:"$USER_OS" \

@@ -11,6 +11,7 @@
 # --gc:orc \
 # -d:useMalloc \
 nim compile \
+--passL:"-no-pie" \
 --gc:arc \
 --app:gui \
 -d:ssl \

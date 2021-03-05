@@ -17,6 +17,19 @@
 # Build development binary:
 # 	$ ./compile -i ~/Desktop/file.nim -o ~/Desktop/ -d
 
+# Trim string whitespace.
+#
+# @return {string} - Trimmed string.
+#
+# @resource [https://stackoverflow.com/a/3352015]
+function trim() {
+	local arg="$*"
+	arg="${arg#"${arg%%[![:space:]]*}"}" # Remove leading ws.
+	arg="${arg%"${arg##*[![:space:]]}"}" # Remove trailing ws.
+	printf '%s' "$arg"
+}
+
+
 # Nim has to be intalled to proceed.
 if [[ -z "$(command -v nim)" ]]; then
 	echo "[ABORTED] Nim is not installed."
@@ -33,6 +46,7 @@ if [[ "$USER_OS" == "darwin" ]]; then USER_OS="macosx"; fi
 # ANSI colors: [https://stackoverflow.com/a/5947802]
 # [https://misc.flogisoft.com/bash/tip_colors_and_formatting]
 BOLD="\033[1m"
+GREEN="\033[0;32m"
 NC="\033[0m"
 
 # Get passed flags.
@@ -40,10 +54,20 @@ INPUT_PATH=""
 OUTPUT_PATH=""
 COMPILE_DEV="true" # Default.
 COMPILE_PROD=""
+COMPILE_TYPE=""
 file=""
 ext=""
 name=""
 oname=""
+
+# Parse any provided compiler flags via CFLAGS env.
+coptions=()
+ while IFS=';' read -ra COPTIONS; do
+	for i in "${COPTIONS[@]}"; do
+		coptions+=("$i")
+	done
+ done <<< "$(trim "$CFLAGS")"
+
 while getopts ':i:o:n:dp' flag; do
 	case "$flag" in
 		i) INPUT_PATH="$OPTARG" ;;
@@ -114,38 +138,66 @@ if [[ "$(uname -m)" == "x86_64" ]]; then CPU_ARCHITECTURE="amd64"; fi
 # [https://github.com/nim-lang/Nim/issues/506]
 # [https://nim-lang.org/docs/manual.html#implementation-specific-pragmas-passl-pragma]
 
-if [[ -n "$COMPILE_DEV" ]]; then
-	nim c --run \
-	--passL:"-no-pie" \
-	--cpu:"$CPU_ARCHITECTURE" \
-	--os:"$USER_OS" \
-	--hints:on \
-	--showAllMismatches:on \
-	--forceBuild:on \
-	--profiler:on \
-	--stacktrace:on \
-	--out:"$OUTPUT_PATH" \
-	"$INPUT_PATH"
+args=(
+	"--passL:\"-no-pie\""
+	"--cpu:$CPU_ARCHITECTURE"
+	"--os:$USER_OS"
+	# "--forceBuild:on"
+)
+
+if [[ "$INPUT_PATH" == *"/gui/"* ]]; then
+	COMPILE_TYPE="GUI"
+	args+=(
+		"--gc:arc"
+		"--app:gui"
+		"-d:ssl"
+		"-d:release"
+		"-d:danger"
+		"--tlsEmulation:off"
+		"--passL:\"-s\""
+		"--threads:on"
+		"--verbosity:0"
+		"--opt:speed"
+		"--checks:off"
+		"--assertions:off"
+		"--hints:on"
+		"--showAllMismatches:off"
+		# "--forceBuild:off"
+		"--stackTrace:off"
+		"--lineTrace:off"
+		"--deadCodeElim:on"
+		"--linedir:off"
+		"--profiler:off"
+		"--panics:off"
+		"-d:nimDebugDlOpen"
+		"-d:noSignalHandler"
+		# "--debuginfo"
+	)
+elif [[ -n "$COMPILE_DEV" ]]; then
+	COMPILE_TYPE="DEV"
+	args+=(
+		"--hints:on"
+		"--profiler:on"
+		"--stacktrace:on"
+		"--showAllMismatches:on"
+	)
 elif [[ -n "$COMPILE_PROD" ]]; then
-	nim c \
-	--passL:"-no-pie" \
-	-d:release \
-	--cpu:"$CPU_ARCHITECTURE" \
-	--os:"$USER_OS" \
-	--debugger:off \
-	--debuginfo:off \
-	--opt:speed \
-	--checks:off \
-	--threads:off \
-	--assertions:off \
-	--hints:off \
-	--showAllMismatches:off \
-	--forceBuild:on \
-	--stackTrace:off \
-	--lineTrace:off \
-	--deadCodeElim:on \
-	--out:"$OUTPUT_PATH" \
-	"$INPUT_PATH"
+	COMPILE_TYPE="PROD"
+	args+=(
+		"-d:release"
+		"-d:danger"
+		"--opt:speed"
+		"--hints:off"
+		"--checks:off"
+		"--threads:off"
+		"--debugger:off"
+		"--debuginfo:off"
+		"--lineTrace:off"
+		"--assertions:off"
+		"--stackTrace:off"
+		"--deadCodeElim:on"
+		"--showAllMismatches:off"
+	)
 
 	# Packing greatly reduces binary size, but also adds a little overhead
 	# at the cost of execution speed. Therefore, disable packing for now.
@@ -153,4 +205,24 @@ elif [[ -n "$COMPILE_PROD" ]]; then
 	# if [[ -n "$(command -v upx)" ]]; then upx --best "$OUTPUT_PATH"; fi
 fi
 
-chmod +x "$OUTPUT_PATH"
+# Add any explicitly provided compiler options.
+[[ "${#coptions[@]}" -gt 0 ]] && args+=("${coptions[@]}")
+
+args+=(
+	"--out:$OUTPUT_PATH"
+	"$INPUT_PATH"
+)
+
+echo -e "nim compile / ${GREEN}${BOLD}[${COMPILE_TYPE}]${NC}"
+count="${#args[@]}"
+index=0
+for x in "${args[@]}"; do
+	decor=$([ $index == $((count-1))  ] && echo "└──" || echo "├──")
+	spacing=" "
+	[[ "${x:1:1}" != "-" ]] && spacing="  "
+	echo " ${decor}${spacing}${x}"
+	index=$((index+1))
+done
+
+nim compile "${args[@]}"
+[[ -f "$OUTPUT_PATH" ]] && chmod +x "$OUTPUT_PATH"

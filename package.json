@@ -26,7 +26,8 @@
 		"files": "bash -c \"find . -not -path \\\"*/node_modules/*\\\" -type f -name \\\"*.\\$0\\\" -not -path '*/\\\\.*'\"",
 		"install:local": "sudo echo > /dev/null 2>&1 && bash -c \"bash <(cat ./install.sh) --installer=\\$0 --branch=\\$1 && source ~/.bashrc\"",
 		"install:remote": "sudo echo > /dev/null 2>&1 && bash -c \"bash <(curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/\\$1/install.sh) --installer=\\$0 --branch=\\$1 && source ~/.bashrc\"",
-		"checksum": "./src/scripts/main/checksum.sh"
+		"checksum": "./src/scripts/main/checksum.sh",
+		"build": "./src/scripts/main/build.sh"
 	},
 	"dependencies": {
 		"chalk": "^4.1.0",

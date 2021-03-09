@@ -1,5 +1,7 @@
 import os, strformat, tables
 
+export tables.`[]`
+
 let DIRNAME = splitPath(currentSourcePath()).head
 let cwd = parentDir(parentDir(parentDir(parentDir(DIRNAME))))
 let homedir = os.getEnv("HOME")

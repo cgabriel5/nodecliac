@@ -71,7 +71,7 @@ const pattern = # [https://github.com/chalk/ansi-regex/blob/main/index.js]
 
 proc stripansi*(s: string): string =
     runnableExamples:
-      doAssert stripansi("\u001B[4mName\u001B[0m") == "Name"
-      doAssert stripansi("\u001b[31mHello\u001B[0m \u001b[31mWorld\u001B[0m!") == "Hello World!"
+        doAssert stripansi("\u001B[4mName\u001B[0m") == "Name"
+        doAssert stripansi("\u001b[31mHello\u001B[0m \u001b[31mWorld\u001B[0m!") == "Hello World!"
 
     s.replace(re(pattern, {reMultiLine}))

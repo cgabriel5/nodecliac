@@ -138,15 +138,3 @@ proc argvparse*(): tuple[ args: seq[Argument], json: string,
     result.json = $data
     result.usedf = usedflags
     result.positional = positional
-
-# import ./chalk
-
-# # $ nim c argvparse.nim && ./argvparse --flag value --flag2=value2 --foo bar -f=b -x y -a="str" -b "cstr" --left --debug=3 -l -r=2 ARG1
-# let args = argvparse()
-# for arg in args.args: echo arg[]
-# echo args.json
-# echo "SOME".chalk("red")
-# echo ">>> [" & "||||".chalk(["magenta", "bold", "underline"])
-# echo "))".chalk("underline", "bold") & ":"
-# echo "Please provide a " &  "--source".chalk("bold") & " path."
-# echo "Please provide a " &  "--source".chalk(true, "bold") & " path."

@@ -2,6 +2,13 @@ import os, memfiles, streams
 
 import ./vla
 
+# String, StringBuiler, newStringOfCap, shallowCopy/shallow
+# [https://github.com/nim-lang/Nim/issues/8317]
+# [https://forum.nim-lang.org/t/4182]
+# [https://gist.github.com/Varriount/c3ba438533497bc636da]
+# [https://forum.nim-lang.org/t/1793]
+# [https://nim-lang.org/docs/system.html#newStringOfCap%2CNatural]
+
 # Unicode length:
 # [https://hsivonen.fi/string-length/]
 # [https://github.com/nim-lang/Nim/issues/10911]

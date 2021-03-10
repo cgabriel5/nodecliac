@@ -17,7 +17,7 @@ const hdir = require("os").homedir();
 
 module.exports = async (args) => {
 	let { registrypath } = paths;
-	let { force, validate, "skip-val": skipval, path: p, repo = "" } = args;
+	let { force, "skip-val": skipval, path: p, repo = "" } = args;
 
 	if (p) if (!ispath_abs(p)) p = path.resolve(p);
 

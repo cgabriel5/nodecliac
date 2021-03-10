@@ -1,3 +1,3 @@
-import osproc, strutils
+import osproc, strutils, asyncdispatch
 
-proc bin() {.async.} = stdout.write(execProcess("command -v nodecliac").strip())
+proc nlcli_bin*(s: string = "{}") {.async.} = stdout.write(execProcess("command -v nodecliac").strip())

@@ -1,8 +1,16 @@
-import os
+import json
+from strutils import strip
+import os, osproc, strformat, asyncdispatch
 
-proc make() {.async.} =
+from ../utils/osutils import platform
+
+proc nlcli_make*(s: string = "{}") {.async.} =
+    let jdata = parseJSON(s)
+    let input = jdata["__input"].getStr()
+
     # Run Nim binary if it exists.
-    let hdir = os.getEnv("HOME")
+    let hdir = getEnv("HOME")
     let binfilepath = fmt"{hdir}/.nodecliac/src/bin/nodecliac.{platform()}"
     if fileExists(binfilepath):
-        discard execProcess(binfilepath & " " & arguments.join(" "))
+        let res = execProcess(binfilepath & " " & input).strip()
+        if res.len != 0: echo res

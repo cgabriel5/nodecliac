@@ -1,6 +1,15 @@
-import ../utils/tilde
+import os, osproc, strutils, asyncdispatch, json, strformat
 
-proc xinit() {.async.} =
+import ../utils/[chalk, paths, tilde]
+
+proc nlcli_init*(s: string = "{}") {.async.} =
+    let cwd = paths["cwd"]
+
+    let jdata = parseJSON(s)
+    let force = jdata{"force"}.getStr()
+    # let disable = jdata{"disable"}.getStr()
+    # var script = jdata{"script"}.getStr()
+
     proc main(restart: bool = false) {.async.} =
         if restart: echo ""
 
@@ -33,23 +42,23 @@ proc xinit() {.async.} =
         # Check for existing same name completion package.
         let pkgpath = joinPath(cwd, command)
         let spkgpath = shrink(pkgpath)
-        if not force and dirExists(pkgpath):
+        if force.len == 0 and dirExists(pkgpath):
             echo "Error:".chalk("bold", "red") & " Directory ${chalk.bold(command)} already exists at:"
             echo fmt"... {spkgpath}"
             echo "(\"Tip:\")".chalk("bold", "blue") & " Run with --force flag to overwrite existing folder."
             quit()
 
         preply(command)
-        let author = input("{pprefix} [2/6] Author (GitHub username or real name): ", "")
+        let author = input(fmt"{pprefix} [2/6] Author (GitHub username or real name): ", "")
         preply(author)
-        let version = input("{pprefix} [3/6] Version [{def} 0.0.1]: ", "0.0.1")
+        let version = input(fmt"{pprefix} [3/6] Version [{def} 0.0.1]: ", "0.0.1")
         preply(version)
         let des_def = "Completion package for {command}"
-        let description = input("{pprefix} [4/6] Description [{def} {des_def}]: ", des_def)
+        let description = input(fmt"{pprefix} [4/6] Description [{def} {des_def}]: ", des_def)
         preply(description)
-        let license = input("{pprefix} [5/6] Project license [{def} MIT]: ", "MIT")
+        let license = input(fmt"{pprefix} [5/6] Project license [{def} MIT]: ", "MIT")
         preply(license)
-        let repo = input("{pprefix} [6/6] Github repo: (i.e. username/repository) ", "")
+        let repo = input(fmt"{pprefix} [6/6] Github repo: (i.e. username/repository) ", "")
         preply(repo)
 
         let content = "[Package]".chalk("magenta") & fmt"""

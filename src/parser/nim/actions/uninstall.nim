@@ -1,9 +1,14 @@
-import json
+import os, osproc, asyncdispatch, json, strformat, re, strutils
 
-proc uninstall() {.async.} =
+import ../utils/[chalk, paths]
+
+proc nlcli_uninstall*(s: string = "{}") {.async.} =
     let ncliacdir = paths["ncliacdir"]
     var bashrcpath = paths["bashrcpath"]
     let setupfilepath = paths["setupfilepath"]
+
+    let jdata = parseJSON(s)
+    let rcfile = jdata{"rcfile"}.getStr()
 
     # [https://stackoverflow.com/a/84899]
     discard execProcess("sudo sh -c '' > /dev/null 2>&1") # Prompt password.

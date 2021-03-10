@@ -1,4 +1,13 @@
-proc link() {.async.} =
+import os, asyncdispatch, json, strformat
+
+import ../utils/[chalk, paths]
+
+proc nlcli_link*(s: string = "{}") {.async.} =
+    let registrypath = paths["registrypath"]
+
+    let jdata = parseJSON(s)
+    let path = jdata{"path"}.getStr()
+
     let p = (
         if path.len != 0 and not isAbsolute(path):
             absolutePath(path)

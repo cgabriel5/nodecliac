@@ -1,6 +1,9 @@
-import os
+import os, asyncdispatch, strutils, algorithm, strformat
 
-proc registry() {.async.} =
+import ../utils/[chalk, paths]
+
+proc nlcli_registry*(s: string = "{}") {.async.} =
+    let registrypath = paths["registrypath"]
 
     type
         Data = object

@@ -1,10 +1,15 @@
-import sequtils, algorithm, os, strutils
+import os, asyncdispatch, json, sequtils, algorithm, strformat, strutils, re
 
-proc enable() {.async.} =
-    var packages = paramsargs
-    let action = packages[0]
+import ../utils/[paths]
+
+proc nlcli_enable*(s: string = "{}") {.async.} =
+    let registrypath = paths["registrypath"]
+
+    let jdata = parseJSON(s)
+    let all = jdata{"all"}.getBool()
+    var packages = toSeq(jdata{"_"}).mapIt(it.getStr())
+    let action = packages[0].string
     packages.delete(0, 0)
-
     let state = if action == "enable": "false" else: "true"
 
     # Get all packages when '--all' is provided.

@@ -1,11 +1,9 @@
-import times, sets
+import os, osproc, times, sets, asyncdispatch, json, strutils, re, strformat
 
-import ../utils/[osutils]
+import ../utils/[chalk, paths, osutils, text]
 
-proc setup() {.async.} =
-    var err: string
-    var tstring = ""
-
+proc nlcli_setup*(s: string = "{}") {.async.} =
+    let hdir = paths["homedir"]
     let ncliacdir = paths["ncliacdir"]
     var bashrcpath = paths["bashrcpath"]
     let mainscriptname = paths["mainscriptname"]
@@ -15,6 +13,15 @@ proc setup() {.async.} =
     let resourcessrcs = paths["resourcessrcs"]
     let setupfilepath = paths["setupfilepath"]
     let testsrcpath = paths["testsrcpath"]
+
+    let jdata = parseJSON(s)
+    let force = jdata{"force"}.getBool()
+    let update = jdata{"update"}.getBool()
+    let rcfile = jdata{"rcfile"}.getStr()
+    let packages = jdata{"packages"}.getBool()
+    let yes = jdata{"yes"}.getBool()
+
+    var tstring = ""
 
     if rcfile.len != 0: bashrcpath = rcfile # Use provided path.
 
@@ -101,7 +108,7 @@ proc setup() {.async.} =
     proc cmode(path: string) = os.setFilePermissions(path, perm775)
 
     # If flag isn't provided don't install packages except nodecliac.
-    if paramsargs.len == 0:
+    if not packages:
         resourcespath = joinPath(resourcespath, "nodecliac")
         registrypath = joinPath(registrypath, "nodecliac")
 
@@ -124,7 +131,7 @@ proc setup() {.async.} =
     const ALLOWED = ["nodecliac.sh"]
     for path in walkDirRec(testsrcpath):
         if "/." in path: continue # Skip hidden files/dirs.
-        let (dirname, filename) = splitPath(path)
+        let filename = splitPath(path).tail
         if filename notin ALLOWED: continue
         let ext = splitFile(filename).ext
         let dest = joinPath(mainpath, filename)

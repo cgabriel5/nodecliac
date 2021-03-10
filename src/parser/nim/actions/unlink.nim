@@ -1,2 +1,4 @@
+import asyncdispatch, ./remove
+
 # Action is an alias for 'remove' action.
-const unlink = remove
+proc nlcli_unlink*(s: string = "{}") {.async.} = asyncCheck nlcli_remove(s)

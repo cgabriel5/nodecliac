@@ -1,9 +1,19 @@
-import os, strformat, asyncdispatch, httpclient
+import os, asyncdispatch, httpclient, json, strformat
 import re, osproc, strutils, times
 
-import ../utils/[chalk, osutils]
+import ../utils/[chalk, paths, osutils]
 
-proc xadd() {.async.} =
+proc nlcli_add*(s: string = "{}") {.async.} =
+    let cwd = paths["cwd"]
+    let hdir = paths["homedir"]
+    let registrypath = paths["registrypath"]
+
+    let jdata = parseJSON(s)
+    let force = jdata{"force"}.getBool()
+    let skipval = jdata{"skip-val"}.getBool()
+    let path = jdata{"path"}.getStr()
+    var repo = jdata{"repo"}.getStr()
+
     # Checks whether completion package has a valid base structure.
     #
     # @param  {string} command - The completion package command.
@@ -20,7 +30,7 @@ proc xadd() {.async.} =
 
         # If a single item is provided a folder contents
         # check is performed.
-        if args.len == 2:
+        if not _:
             # Validate repo's basic package structure: Must
             # contain: acmap, acdef, and config.acdef root files.
             const ini = "package.ini"
@@ -118,7 +128,7 @@ proc xadd() {.async.} =
 
     else:
 
-        var uri = ""; var cmd = ""; var err = ""; var res = ""
+        var uri, cmd, res: string = ""
         var rname = splitPath(repo).tail
         # let timestamp="$(perl -MTime::HiRes=time -e 'print int(time() * 1000);')"
         let timestamp = intToStr(getTime().toUnix().int)

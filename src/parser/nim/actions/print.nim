@@ -1,16 +1,25 @@
-proc print() {.async.} =
+import os, strutils, asyncdispatch, json, strformat, re
+
+import ../utils/[chalk, paths]
+
+proc nlcli_print*(s: string = "{}") {.async.} =
+    let registrypath = paths["registrypath"]
+
+    let jdata = parseJSON(s)
+    let command = jdata{"command"}.getStr()
+
     var tstring = ""
 
     # Source must be provided.
-    if prcommand.len == 0:
+    if command.len == 0:
         tstring = "Please provide a command name using the $1 flag."
         quit(tstring % ["--command".chalk("bold")])
 
     # If command is supplied then print its acdef/config file contents.
-    if prcommand.len != 0:
+    if command.len != 0:
         # Break apart command.
         var cmdname = ""
-        if prcommand =~ re"^(.*?)(\.(acdef))?$": cmdname = matches[0]
+        if command =~ re"^(.*?)(\.(acdef))?$": cmdname = matches[0]
         let ext = ".acdef"
 
         # Exit and give error if a command name not provided.

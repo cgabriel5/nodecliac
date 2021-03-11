@@ -481,7 +481,7 @@ if [[ $(isset "$PRINT") ]]; then
 		)"
 	if [[ -n "$files" ]]; then
 		hlen="${#HOME}"
-		echo -e "\n${YELLOW}${BOLD}[Warning]${NC} ${BOLD}Non-executable files found:${NC}"
+		echo -e "${YELLOW}${BOLD}[Warning]${NC} ${BOLD}Non-executable files found:${NC}"
 		while read -r file; do
 			echo "[-x] ~${file:$hlen}"
 		done <<< "$files"

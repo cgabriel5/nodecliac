@@ -463,6 +463,32 @@ function xtest {
 
 # ------------------------------------------------------------------------ TESTS
 
+# Print any script/binary files that are not executable.
+if [[ $(isset "$PRINT") ]]; then
+	# [http://codeprairie.net/blogs/chrisortman/archive/2008/06/14/using-the-find-command-to-find-non-executable-files.aspx]
+	# [https://stackoverflow.com/a/36129599]
+	# [https://www.cyberciti.biz/faq/find-command-exclude-ignore-files/] 
+	files="$(find ~/.nodecliac/ \
+		-not -path '*/\._*' \
+		-type f \( \
+			-iname "*.sh" -or \
+			-iname "*.nim" -or \
+			-iname "*.pl" -or \
+			-iname "*.linux" -or \
+			-iname "*.macosx" \
+		\) \
+		! -executable
+		)"
+	if [[ -n "$files" ]]; then
+		hlen="${#HOME}"
+		echo -e "\n${YELLOW}${BOLD}[Warning]${NC} ${BOLD}Non-executable files found:${NC}"
+		while read -r file; do
+			echo "[-x] ~${file:$hlen}"
+		done <<< "$files"
+		echo ""
+	fi
+fi
+
 # Note: When `OVERRIDE` is present then we only test that
 # specificity script once. Else we test both the Nim and Perl scripts.
 for script in "${scripts[@]}"; do # [https://linuxconfig.org/how-to-use-arrays-in-bash-script]

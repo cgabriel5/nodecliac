@@ -131,7 +131,7 @@ proc main =
                 lastpos = i + 1
             elif i == EOS: result.add(chain[lastpos .. i])
 
-    proc strfrom(start, stop: int): string =
+    proc strfrompoint(start, stop: int): string =
         # [https://forum.nim-lang.org/t/707#3931]
         # [https://forum.nim-lang.org/t/735#4170]
         var s = newStringOfCap(stop - start)
@@ -164,7 +164,7 @@ proc main =
 
         # Locate the first space character in the line.
         let sindex = find_space_index(start, stop)
-        let chain = strfrom(start, sindex)
+        let chain = strfrompoint(start, sindex)
 
         # # If retrieving next possible levels for the command chain,
         # # lastchar must be an empty space and the commandchain does

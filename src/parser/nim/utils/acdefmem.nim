@@ -37,6 +37,7 @@ proc main =
     const C_DOT = '.'
     const C_SLASH = '\\'
     const C_SPACE = ' ' # {' ', '\t', '\v', '\c', '\n', '\f'}
+    const C_NUMSIGN = '#'
 
     # var db_dict = initTable[char, Table[string, Table[string, seq[string]]]]()
     # var db_levels = initTable[int, Table[string, int]]()
@@ -69,18 +70,16 @@ proc main =
 
     # Count number of lines in file.
     var counter = 0
+    const VALID_LINE_STARTS = { C_NUMSIGN, C_NL }
     var ff = memfiles.open(fn)
-    for line in memSlices(ff): inc(counter)
+    for line in memSlices(ff): # Skip comment/empty lines.
+        if cast[cstring](line.data)[0] notin VALID_LINE_STARTS: inc(counter)
     ff.close()
 
     # [https://forum.nim-lang.org/t/4680]
     let mstrm = newMemMapFileStream(fn, fmRead)
     let text = mstrm.readAll()
     mstrm.close()
-
-    # echo text.len
-    #   694,807,694 ==  22,733,774
-    # 4,168,846,164 == 136,402,644
 
     # var index = 0
     var lastpos = 0
@@ -102,7 +101,8 @@ proc main =
     while true:
         pocx = find(text, sub = C_NL, start = pocx + 1)
         if pocx == -1: break
-        ranges.add([lastpos, pocx - 1])
+        if lastpos != pocx and text[lastpos] != C_NUMSIGN:
+            ranges.add([lastpos, pocx - 1])
         lastpos = pocx + 1
 
     let commandchain = ".disable"
@@ -186,14 +186,14 @@ proc main =
     #         let answer = @["", "first\\.escaped", "last"]
     #         assert splitundel(".first\\.escaped.last") == answer
 
-    proc get_chain(start, stop: int): tuple[s: string, l: int] =
-        # Locate the first space character in the line.
-        let space_index = find_space_index(start, stop)
-        # let space_index = text.find(C_SPACE, start, stop)
-        var s = newStringOfCap(space_index - start)
-        for i in countup(start, space_index - 1): s.add(text[i])
-        shallow(s)
-        result = (s, s.len)
+    # proc get_chain(start, stop: int): tuple[s: string, l: int] =
+    #     # Locate the first space character in the line.
+    #     let space_index = find_space_index(start, stop)
+    #     # let space_index = text.find(C_SPACE, start, stop)
+    #     var s = newStringOfCap(space_index - start)
+    #     for i in countup(start, space_index - 1): s.add(text[i])
+    #     shallow(s)
+    #     result = (s, s.len)
 
     # type DBEntry = Table[string, Table[string, seq[string]]]
     type DBEntry = Table[string, array[2, Range]]
@@ -210,7 +210,17 @@ proc main =
 
     # initTable[string, Table[string, seq[string]]]()
 
-    var start, stop, ostart: int = 0
+    # proc strfrom(start, stop: int): tuple[s: string, l: int] =
+    proc strfrom(start, stop: int): string =
+        var s = newStringOfCap(stop - start)
+        for i in countup(start, stop - 1): s.add(text[i])
+        shallow(s)
+        # result = (s, s.len)
+        return s
+
+    # var start, stop, ostart: int = 0
+    var start, stop, rindex: int = 0
+    var rchar: char
     # const T_FLAG_LABEL = "flags"
     # const T_CMDS_LABEL = "commands"
     const T_KW_DEFAULT = 100 # default
@@ -220,41 +230,44 @@ proc main =
     const C_SRT_DOT = "."
     let lastchar = ' '
     # for i in countup(0, ranges.high):
-    # echo ranges.len
     for rng in ranges:
         # (start, stop) = ranges[i]
         start = rng[0]
-        ostart = start
+        # ostart = start
         stop = rng[1]
 
         # Line must start with commandchain
         if not cmpindices(text, commandchain, start, stop): continue
 
-        let (chain, clen) = get_chain(start, stop)
+        # Locate the first space character in the line.
+        let sindex = find_space_index(start, stop)
+        let chain = strfrom(start, sindex)
 
-        # If retrieving next possible levels for the command chain,
-        # lastchar must be an empty space and the commandchain does
-        # not equal the chain of the line, skip the line.
-        if lastchar == C_SPACE and not chain.cmpstart(commandchain, C_SRT_DOT):
-            continue
+        # let (chain, clen) = get_chain(start, stop)
+
+        # # If retrieving next possible levels for the command chain,
+        # # lastchar must be an empty space and the commandchain does
+        # # not equal the chain of the line, skip the line.
+        # if lastchar == C_SPACE and not chain.cmpstart(commandchain, C_SRT_DOT):
+        #     continue
 
         # let commands = splitundel(chain)
 
         # Point index to the character after the chain and initial space.
-        start += clen + 1
-        # echo text[start + clen + 1]
+        # start += clen + 1
 
         # Cleanup remainder (flag/command-string).
-        let fchar = text[start]
-        if ord(fchar) == 45:
-            if fchar notin db_dict: db_dict[fchar] = DBEntry()
-            # db_dict[fchar][chain] = {T_CMDS_LABEL: @[""], T_FLAG_LABEL: @[""]}.toTable
-            db_dict[fchar][chain] = [[ostart, ostart + chain.high], [start, stop]]
+        rindex = sindex + 1
+        rchar = text[rindex]
+        if ord(rchar) == 45:
+            if rchar notin db_dict: db_dict[rchar] = DBEntry()
+            # db_dict[rchar][chain] = {T_CMDS_LABEL: @[""], T_FLAG_LABEL: @[""]}.toTable
+            db_dict[rchar][chain] = [[start, sindex - 1], [rindex, stop]]
 
         else: # Store keywords.
             # The index from the start of the keyword value string to end of line.
-            let value = [start + KEYWORD_LEN + 2, stop]
-            case ord(text[start]): # Keyword first char keyword.
+            let value = [rindex + (KEYWORD_LEN + 2), stop]
+            case ord(text[rindex]): # Keyword first char keyword.
                 of T_KW_DEFAULT:
                     if chain notin db_defaults: db_defaults[chain] = value
                 of T_KW_FILEDIR:

@@ -34,17 +34,22 @@ proc main =
         Range = array[2, int]
         DBEntry = Table[string, array[2, Range]]
 
+    const LVL1 = 1
+    const KEYWORD_LEN = 6
+
     const C_NL = '\n'
     const C_DOT = '.'
     const C_SPACE = ' '
     const C_SLASH = '\\'
     const C_NUMSIGN = '#'
+    const C_UNDERSCORE = '_'
     const C_SRT_DOT = $C_SPACE
-    const KEYWORD_LEN = 6
+    const C_SPACE_DOT = {C_DOT, C_SPACE}
+    const VALID_LINE_STARTS = { C_NUMSIGN, C_NL }
+
     const T_KW_DEFAULT = 100 # (d)efault
     const T_KW_FILEDIR = 102 # (f)iledir
     const T_KW_CONTEXT = 99  # (c)ontext
-    const VALID_LINE_STARTS = { C_NUMSIGN, C_NL }
 
     var db_dict = initTable[char, DBEntry]()
     var db_levels = initTable[int, Table[string, int]]()
@@ -52,6 +57,7 @@ proc main =
     var db_filedirs = initTable[string, Range]()
     var db_contexts = initTable[string, Range]()
 
+    let last = ""
     let lastchar = ' '
     let commandchain = ".disable"
 

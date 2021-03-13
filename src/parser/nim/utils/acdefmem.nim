@@ -139,15 +139,6 @@ proc main =
         shallow(s)
         return s
 
-    # proc get_chain(start, stop: int): tuple[s: string, l: int] =
-    #     # Locate the first space character in the line.
-    #     let space_index = find_space_index(start, stop)
-    #     # let space_index = text.find(C_SPACE, start, stop)
-    #     var s = newStringOfCap(space_index - start)
-    #     for i in countup(start, space_index - 1): s.add(text[i])
-    #     shallow(s)
-    #     result = (s, s.len)
-
     type DBEntry = Table[string, array[2, Range]]
 
     var db_dict = initTable[char, DBEntry]()
@@ -174,8 +165,6 @@ proc main =
         # Locate the first space character in the line.
         let sindex = find_space_index(start, stop)
         let chain = strfrom(start, sindex)
-
-        # let (chain, clen) = get_chain(start, stop)
 
         # # If retrieving next possible levels for the command chain,
         # # lastchar must be an empty space and the commandchain does

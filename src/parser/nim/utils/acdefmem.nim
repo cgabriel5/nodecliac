@@ -148,17 +148,14 @@ proc main =
     var db_filedirs = initTable[string, Range]()
     var db_contexts = initTable[string, Range]()
 
-    var start, stop, rindex: int = 0
-    var rchar: char
     const T_KW_DEFAULT = 100 # (d)efault
     const T_KW_FILEDIR = 102 # (f)iledir
     const T_KW_CONTEXT = 99  # (c)ontext
     const KEYWORD_LEN = 6
     const C_SRT_DOT = "."
-    let lastchar = ' '
     for rng in ranges:
-        start = rng[0]
-        stop = rng[1]
+        let start = rng[0]
+        let stop = rng[1]
 
         # Line must start with commandchain
         if not cmpindices(text, commandchain, start, stop): continue
@@ -176,8 +173,8 @@ proc main =
         # let commands = splitundel(chain)
 
         # Cleanup remainder (flag/command-string).
-        rindex = sindex + 1
-        rchar = text[rindex]
+        let rindex = sindex + 1
+        let rchar = text[rindex]
         if ord(rchar) == 45:
             if rchar notin db_dict: db_dict[rchar] = DBEntry()
             db_dict[rchar][chain] = [[start, sindex - 1], [rindex, stop]]

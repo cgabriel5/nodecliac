@@ -152,42 +152,107 @@ proc main =
         shallow(s)
         return s
 
-    for rng in ranges:
-        let start = rng[0]
-        let stop = rng[1]
+    proc fn_makedb() =
+        if commandchain == "": # First level commands only.
+            if last == "":
+                db_levels[LVL1] = initTable[string, int]()
 
-        # Line must start with commandchain
-        if not cmpindices(text, commandchain, start, stop): continue
+                for rng in ranges:
+                    let start = rng[0]
+                    let stop = rng[1]
 
-        # Locate the first space character in the line.
-        let sindex = find_space_index(start, stop)
-        let chain = strfrompoint(start, sindex)
+                    if text[start] == C_SPACE: continue
 
-        # # If retrieving next possible levels for the command chain,
-        # # lastchar must be an empty space and the commandchain does
-        # # not equal the chain of the line, skip the line.
-        # if lastchar == C_SPACE and not chain.cmpstart(commandchain, C_SRT_DOT):
-        #     continue
+                    # echo "[", text[start .. stop], "]"
 
-        # let commands = splitundel(chain)
+                    # Locate the first space character in the line.
+                    # let sindex = indexof(text, C_SPACE, start, stop)
 
-        # Cleanup remainder (flag/command-string).
-        let rindex = sindex + 1
-        let rchar = text[rindex]
-        if ord(rchar) == 45:
-            if rchar notin db_dict: db_dict[rchar] = DBEntry()
-            db_dict[rchar][chain] = [[start, sindex - 1], [rindex, stop]]
+                    # if sindex == start: continue
 
-        else: # Store keywords.
-            # The index from the start of the keyword value string to end of line.
-            let value = [rindex + (KEYWORD_LEN + 2), stop]
-            case ord(text[rindex]): # Keyword first char keyword.
-                of T_KW_DEFAULT:
-                    if chain notin db_defaults: db_defaults[chain] = value
-                of T_KW_FILEDIR:
-                    if chain notin db_filedirs: db_filedirs[chain] = value
-                of T_KW_CONTEXT:
-                    if chain notin db_contexts: db_contexts[chain] = value
-                else: discard
+                    # let chain = strfrompoint(start, sindex)
+
+                    # let dindex = indexof(text, C_DOT, start + 1, sindex)
+
+                    # let dindex = find(text, C_SPACE_DOT, start + 1, stop)
+
+                    # let command = strfrompoint(start, dindex)
+                    # let command = strfrompoint(start, (
+                    #         if dindex > 0: dindex else: sindex
+                    #     )
+                    # )
+
+                    let command = strfrompoint(start, find(text, C_SPACE_DOT, start + 1, stop))
+                    if command notin db_levels[LVL1]: db_levels[LVL1][command] = LVL1
+
+                    # db_levels[LVL1].withValue(key, value) do: discard
+                    # do: db_levels[LVL1][command] = LVL1
+
+                    # db_levels[LVL1][
+                    #     strfrompoint(
+                    #             start,
+                    #             find(text, C_SPACE_DOT, start + 1, stop
+                    #         )
+                    #     )
+                    # ] = LVL1
+
+                    # db_levels[LVL1][text[start ..< dindex]] = LVL1
+                    # echo "[", text[start .. dindex - 1], "]"
+                    # echo "[", start, ",", dindex, "]"
+                    # echo "====="
+
+            else: # First level flags.
+
+                db_dict[C_UNDERSCORE] = DBEntry()
+
+                for rng in ranges:
+                    let start = rng[0]
+                    let stop = rng[1]
+
+                    if text[start] == C_SPACE:
+                        db_dict[C_UNDERSCORE][$C_UNDERSCORE] = [[start, start], [start + 1, stop]]
+                        break
+
+        else: # Go through entire .acdef file contents.
+
+            for rng in ranges:
+                let start = rng[0]
+                let stop = rng[1]
+
+                # Line must start with commandchain
+                if not cmpindices(text, commandchain, start, stop): continue
+
+                # Locate the first space character in the line.
+                let sindex = find(text, C_SPACE, start, stop)
+                let chain = strfrompoint(start, sindex)
+
+                # # If retrieving next possible levels for the command chain,
+                # # lastchar must be an empty space and the commandchain does
+                # # not equal the chain of the line, skip the line.
+                # if lastchar == C_SPACE and not chain.cmpstart(commandchain, C_SRT_DOT):
+                #     continue
+
+                # let commands = splitundel(chain)
+
+                # Cleanup remainder (flag/command-string).
+                let rindex = sindex + 1
+                let rchar = text[rindex]
+                if ord(rchar) == 45:
+                    if rchar notin db_dict: db_dict[rchar] = DBEntry()
+                    db_dict[rchar][chain] = [[start, sindex - 1], [rindex, stop]]
+
+                else: # Store keywords.
+                    # The index from the start of the keyword value string to end of line.
+                    let value = [rindex + (KEYWORD_LEN + 2), stop]
+                    case ord(text[rindex]): # Keyword first char keyword.
+                        of T_KW_DEFAULT:
+                            if chain notin db_defaults: db_defaults[chain] = value
+                        of T_KW_FILEDIR:
+                            if chain notin db_filedirs: db_filedirs[chain] = value
+                        of T_KW_CONTEXT:
+                            if chain notin db_contexts: db_contexts[chain] = value
+                        else: discard
+
+    fn_makedb()
 
 main()

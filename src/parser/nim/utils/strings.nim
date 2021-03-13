@@ -122,3 +122,58 @@ proc append*(s: var string, sub: string = "") =
     let ll = sub.len
     s.setLen(l + ll)
     for i, c in sub: s[i + l] = c
+
+# Creates a capped ref string.
+#
+# @param  {number} cap - Size string should be.
+# @return {ref string} - The created ref string.
+#
+# @{resource} [https://forum.nim-lang.org/t/707#3931]
+# @{resource} [https://forum.nim-lang.org/t/735#4170]
+# @{resource} [https://forum.nim-lang.org/t/4182]
+# @{resource} [https://gist.github.com/Varriount/c3ba438533497bc636da]
+proc newStringRefOfCap*(cap: Natural): ref string =
+    runnableExamples:
+        var str = newStringRefOfCap(3)
+        str[].add("1")
+        str[].addInt(2)
+        str[].add("3")
+        doAssert str[] == "123"
+        doAssert str[].len == 3
+
+        # Without `newStringRefOfCap` the following
+        # can be used to create a ref string.
+        var tmp: ref string = new(string)
+        tmp[] = newStringOfCap(3)
+        tmp[].add("1")
+        tmp[].addInt(2)
+        tmp[].add("3")
+        doAssert tmp[].len == str[].len
+        doAssert tmp[] == str[]
+
+    new(result)
+    result[] = newStringOfCap(cap)
+
+# Creates a ref string.
+#
+# @param  {string} s - The string source.
+# @return {ref string} - The created ref string.
+#
+# @{resource} [https://forum.nim-lang.org/t/707#3931]
+# @{resource} [https://forum.nim-lang.org/t/735#4170]
+# @{resource} [https://forum.nim-lang.org/t/4182]
+# @{resource} [https://gist.github.com/Varriount/c3ba438533497bc636da]
+proc newStringRef*(s = ""): ref string =
+    runnableExamples:
+        var a = newStringRef("abc")
+        doAssert a[] == "abc"
+        a[][1] = ($2)[0] # Change second character in string.
+        doAssert a[] == "a2c"
+
+        let b = newStringRef("123")
+        doAssert b[] == "123"
+        b[][1] = ($2)[0]
+        doAssert b[] != "a2c" # String is immutable due to `let` declaration.
+
+    new(result)
+    result[] = s

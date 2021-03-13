@@ -30,13 +30,18 @@ import os, memfiles, streams, tables
 
 proc main =
 
+    type
+        Range = array[2, int]
+        DBEntry = Table[string, array[2, Range]]
+
     const C_NL = '\n'
     const C_DOT = '.'
     const C_SLASH = '\\'
     const C_SPACE = ' ' # {' ', '\t', '\v', '\c', '\n', '\f'}
     const C_NUMSIGN = '#'
 
-    type Range = array[2, int]
+    let lastchar = ' '
+    let commandchain = ".disable"
 
     let hdir = getEnv("HOME")
     let fn = joinPath(hdir, ".nodecliac/registry/nodecliac/nodecliac.acdefBIG")
@@ -66,8 +71,6 @@ proc main =
         if lastpos != pocx and text[lastpos] != C_NUMSIGN:
             ranges.add([lastpos, pocx - 1])
         lastpos = pocx + 1
-
-    let commandchain = ".disable"
 
     # Checks whether string starts with given substring and optional suffix.
     proc cmpstart(s, sub, suffix: string = ""): bool =
@@ -138,8 +141,6 @@ proc main =
         for i in countup(start, stop - 1): s.add(text[i])
         shallow(s)
         return s
-
-    type DBEntry = Table[string, array[2, Range]]
 
     var db_dict = initTable[char, DBEntry]()
     var db_levels = initTable[int, Table[string, int]]()

@@ -44,7 +44,7 @@ proc main =
     const C_NUMSIGN = '#'
     const C_UNDERSCORE = '_'
     const C_SRT_DOT = $C_SPACE
-    const C_SPACE_DOT = {C_DOT, C_SPACE}
+    const C_SPACE_DOT = { C_DOT, C_SPACE }
     const VALID_LINE_STARTS = { C_NUMSIGN, C_NL }
 
     const T_KW_DEFAULT = 100 # (d)efault

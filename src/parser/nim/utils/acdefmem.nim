@@ -40,7 +40,7 @@ proc main =
     const C_NL = '\n'
     const C_DOT = '.'
     const C_SPACE = ' '
-    const C_SLASH = '\\'
+    const C_ESCAPE = '\\'
     const C_NUMSIGN = '#'
     const C_UNDERSCORE = '_'
     const C_SRT_DOT = $C_SPACE
@@ -141,7 +141,7 @@ proc main =
         var lastpos = 0
         let EOS = chain.high
         for i, c in chain:
-            if c == DEL and chain[i - 1] != C_SLASH:
+            if c == DEL and chain[i - 1] != C_ESCAPE:
                 result.add(chain[lastpos .. i - 1])
                 lastpos = i + 1
             elif i == EOS: result.add(chain[lastpos .. i])

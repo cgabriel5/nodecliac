@@ -132,11 +132,6 @@ proc main =
             inc(index)
         return true
 
-    proc find_space_index(start, stop: int): int =
-        for i in countup(start, stop):
-            if text[i] == C_SPACE: return i
-        return -1
-
     proc splitundel(chain: string, DEL: char = C_DOT): seq[string] =
         runnableExamples:
             let answer = @["", "first\\.escaped", "last"]

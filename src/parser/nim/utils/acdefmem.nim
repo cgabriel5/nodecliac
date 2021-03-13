@@ -36,9 +36,21 @@ proc main =
 
     const C_NL = '\n'
     const C_DOT = '.'
+    const C_SPACE = ' '
     const C_SLASH = '\\'
-    const C_SPACE = ' ' # {' ', '\t', '\v', '\c', '\n', '\f'}
     const C_NUMSIGN = '#'
+    const C_SRT_DOT = $C_SPACE
+    const KEYWORD_LEN = 6
+    const T_KW_DEFAULT = 100 # (d)efault
+    const T_KW_FILEDIR = 102 # (f)iledir
+    const T_KW_CONTEXT = 99  # (c)ontext
+    const VALID_LINE_STARTS = { C_NUMSIGN, C_NL }
+
+    var db_dict = initTable[char, DBEntry]()
+    var db_levels = initTable[int, Table[string, int]]()
+    var db_defaults = initTable[string, Range]()
+    var db_filedirs = initTable[string, Range]()
+    var db_contexts = initTable[string, Range]()
 
     let lastchar = ' '
     let commandchain = ".disable"
@@ -49,28 +61,26 @@ proc main =
     # Count number of lines in file.
     # [https://forum.nim-lang.org/t/4680#29221]
     # [https://forum.nim-lang.org/t/3261]
-    var counter = 0
-    const VALID_LINE_STARTS = { C_NUMSIGN, C_NL }
-    var ff = memfiles.open(fn)
-    for line in memSlices(ff): # Skip comment/empty lines.
-        if cast[cstring](line.data)[0] notin VALID_LINE_STARTS: inc(counter)
-    ff.close()
+    var line_count = 0
+    var mf = memfiles.open(fn)
+    for line in memSlices(mf): # Skip comment/empty lines.
+        if cast[cstring](line.data)[0] notin VALID_LINE_STARTS: inc(line_count)
+    mf.close()
 
     # [https://forum.nim-lang.org/t/4680]
     let mstrm = newMemMapFileStream(fn, fmRead)
     let text = mstrm.readAll()
     mstrm.close()
 
+    var pos = 0
     var lastpos = 0
-    var ranges = newSeqOfCap[Range](counter)
-
-    var pocx = 0
+    var ranges = newSeqOfCap[Range](line_count)
     while true:
-        pocx = find(text, sub = C_NL, start = pocx + 1)
-        if pocx == -1: break
-        if lastpos != pocx and text[lastpos] != C_NUMSIGN:
-            ranges.add([lastpos, pocx - 1])
-        lastpos = pocx + 1
+        pos = find(text, sub = C_NL, start = pos + 1)
+        if pos == -1: break
+        if lastpos != pos and text[lastpos] != C_NUMSIGN:
+            ranges.add([lastpos, pos - 1])
+        lastpos = pos + 1
 
     # Checks whether string starts with given substring and optional suffix.
     proc cmpstart(s, sub, suffix: string = ""): bool =
@@ -142,17 +152,6 @@ proc main =
         shallow(s)
         return s
 
-    var db_dict = initTable[char, DBEntry]()
-    var db_levels = initTable[int, Table[string, int]]()
-    var db_defaults = initTable[string, Range]()
-    var db_filedirs = initTable[string, Range]()
-    var db_contexts = initTable[string, Range]()
-
-    const T_KW_DEFAULT = 100 # (d)efault
-    const T_KW_FILEDIR = 102 # (f)iledir
-    const T_KW_CONTEXT = 99  # (c)ontext
-    const KEYWORD_LEN = 6
-    const C_SRT_DOT = "."
     for rng in ranges:
         let start = rng[0]
         let stop = rng[1]

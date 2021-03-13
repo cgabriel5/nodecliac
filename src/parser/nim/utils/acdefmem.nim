@@ -1,8 +1,5 @@
-import os, memfiles, streams
 from strutils import find
-import tables #, strtabs
-
-# import ./vla
+import os, memfiles, streams, tables
 
 # String, StringBuiler, newStringOfCap, shallowCopy/shallow
 # [https://github.com/nim-lang/Nim/issues/8317]
@@ -39,36 +36,14 @@ proc main =
     const C_SPACE = ' ' # {' ', '\t', '\v', '\c', '\n', '\f'}
     const C_NUMSIGN = '#'
 
-    # var db_dict = initTable[char, Table[string, Table[string, seq[string]]]]()
-    # var db_levels = initTable[int, Table[string, int]]()
-    # var db_defaults = newStringTable()
-    # var db_filedirs = newStringTable()
-    # var db_contexts = newStringTable()
-
-    # type Range = tuple[start, stop: int]
     type Range = array[2, int]
 
     let hdir = getEnv("HOME")
-    # let fn = joinPath(hdir, ".nodecliac/registry/nodecliac/nodecliac.acdefBIG_ALL")
     let fn = joinPath(hdir, ".nodecliac/registry/nodecliac/nodecliac.acdefBIG")
-    # let fn = joinPath(hdir, ".nodecliac/registry/nodecliac/nodecliac.acdef")
-
-
-    # # Count number of lines in file.
-    # var ranges: seq[Range] = @[]
-    # var counter = 0
-    # var pos = 0
-    # var ff = memfiles.open(fn)
-    # var length = 0
-    # # var text = ""
-    # for line in memSlices(ff):
-    #     length = line.size
-    #     ranges.add([pos, pos + length - 1])
-    #     pos += length + 1
-    #     inc(counter)
-    # ff.close()
 
     # Count number of lines in file.
+    # [https://forum.nim-lang.org/t/4680#29221]
+    # [https://forum.nim-lang.org/t/3261]
     var counter = 0
     const VALID_LINE_STARTS = { C_NUMSIGN, C_NL }
     var ff = memfiles.open(fn)
@@ -81,21 +56,8 @@ proc main =
     let text = mstrm.readAll()
     mstrm.close()
 
-    # var index = 0
     var lastpos = 0
-    # var ranges = newVLA(Range, counter)
     var ranges = newSeqOfCap[Range](counter)
-    # var ranges: seq[Range] = @[]
-    # [https://forum.nim-lang.org/t/4680#29221]
-    # [https://forum.nim-lang.org/t/3261]
-    # for pos in countup(0, text.high):
-    # for pos, c in text:
-    #     if ord(c) == 10:
-    #         # ranges[index] = (lastpos, pos - 1)
-    #         # ranges.add((lastpos, pos - 1))
-    #         ranges.add([lastpos, pos - 1])
-    #         # inc(index)
-    #         lastpos = pos + 1
 
     var pocx = 0
     while true:
@@ -106,7 +68,6 @@ proc main =
         lastpos = pocx + 1
 
     let commandchain = ".disable"
-    # shallow(commandchain)
 
     # Checks whether string starts with given substring and optional suffix.
     proc cmpstart(s, sub, suffix: string = ""): bool =
@@ -195,45 +156,30 @@ proc main =
     #     shallow(s)
     #     result = (s, s.len)
 
-    # type DBEntry = Table[string, Table[string, seq[string]]]
     type DBEntry = Table[string, array[2, Range]]
 
-    # var db_dict = initTable[char, Table[string, Table[string, seq[string]]]]()
     var db_dict = initTable[char, DBEntry]()
     var db_levels = initTable[int, Table[string, int]]()
-    # var db_defaults = newStringTable()
     var db_defaults = initTable[string, Range]()
-    # var db_filedirs = newStringTable()
     var db_filedirs = initTable[string, Range]()
-    # var db_contexts = newStringTable()
     var db_contexts = initTable[string, Range]()
 
-    # initTable[string, Table[string, seq[string]]]()
-
-    # proc strfrom(start, stop: int): tuple[s: string, l: int] =
     proc strfrom(start, stop: int): string =
         var s = newStringOfCap(stop - start)
         for i in countup(start, stop - 1): s.add(text[i])
         shallow(s)
-        # result = (s, s.len)
         return s
 
-    # var start, stop, ostart: int = 0
     var start, stop, rindex: int = 0
     var rchar: char
-    # const T_FLAG_LABEL = "flags"
-    # const T_CMDS_LABEL = "commands"
-    const T_KW_DEFAULT = 100 # default
-    const T_KW_FILEDIR = 102 # filedir
-    const T_KW_CONTEXT = 99 # context
+    const T_KW_DEFAULT = 100 # (d)efault
+    const T_KW_FILEDIR = 102 # (f)iledir
+    const T_KW_CONTEXT = 99  # (c)ontext
     const KEYWORD_LEN = 6
     const C_SRT_DOT = "."
     let lastchar = ' '
-    # for i in countup(0, ranges.high):
     for rng in ranges:
-        # (start, stop) = ranges[i]
         start = rng[0]
-        # ostart = start
         stop = rng[1]
 
         # Line must start with commandchain
@@ -253,15 +199,11 @@ proc main =
 
         # let commands = splitundel(chain)
 
-        # Point index to the character after the chain and initial space.
-        # start += clen + 1
-
         # Cleanup remainder (flag/command-string).
         rindex = sindex + 1
         rchar = text[rindex]
         if ord(rchar) == 45:
             if rchar notin db_dict: db_dict[rchar] = DBEntry()
-            # db_dict[rchar][chain] = {T_CMDS_LABEL: @[""], T_FLAG_LABEL: @[""]}.toTable
             db_dict[rchar][chain] = [[start, sindex - 1], [rindex, stop]]
 
         else: # Store keywords.
@@ -275,11 +217,5 @@ proc main =
                 of T_KW_CONTEXT:
                     if chain notin db_contexts: db_contexts[chain] = value
                 else: discard
-
-    # echo db_dict
-    # echo db_levels
-    # echo db_defaults
-    # echo db_filedirs
-    # echo db_contexts
 
 main()

@@ -164,43 +164,8 @@ proc main =
 
                     if text[start] == C_SPACE: continue
 
-                    # echo "[", text[start .. stop], "]"
-
-                    # Locate the first space character in the line.
-                    # let sindex = indexof(text, C_SPACE, start, stop)
-
-                    # if sindex == start: continue
-
-                    # let chain = strfrompoint(start, sindex)
-
-                    # let dindex = indexof(text, C_DOT, start + 1, sindex)
-
-                    # let dindex = find(text, C_SPACE_DOT, start + 1, stop)
-
-                    # let command = strfrompoint(start, dindex)
-                    # let command = strfrompoint(start, (
-                    #         if dindex > 0: dindex else: sindex
-                    #     )
-                    # )
-
                     let command = strfrompoint(start, find(text, C_SPACE_DOT, start + 1, stop))
                     if command notin db_levels[LVL1]: db_levels[LVL1][command] = LVL1
-
-                    # db_levels[LVL1].withValue(key, value) do: discard
-                    # do: db_levels[LVL1][command] = LVL1
-
-                    # db_levels[LVL1][
-                    #     strfrompoint(
-                    #             start,
-                    #             find(text, C_SPACE_DOT, start + 1, stop
-                    #         )
-                    #     )
-                    # ] = LVL1
-
-                    # db_levels[LVL1][text[start ..< dindex]] = LVL1
-                    # echo "[", text[start .. dindex - 1], "]"
-                    # echo "[", start, ",", dindex, "]"
-                    # echo "====="
 
             else: # First level flags.
 

@@ -119,6 +119,10 @@ proc main =
         return -1
 
     proc splitundel(chain: string, DEL: char = C_DOT): seq[string] =
+        runnableExamples:
+            let answer = @["", "first\\.escaped", "last"]
+            assert splitundel(".first\\.escaped.last") == answer
+
         var lastpos = 0
         let EOS = chain.high
         for i, c in chain:
@@ -127,25 +131,13 @@ proc main =
                 lastpos = i + 1
             elif i == EOS: result.add(chain[lastpos .. i])
 
-    # proc splitundel(chain: string, DEL: char = C_DOT): seq[string] =
-    #     # [https://forum.nim-lang.org/t/707#3931]
-    #     # [https://forum.nim-lang.org/t/735#4170]
-    #     proc getsubstr(start, stop: int): string =
-    #         result = newStringOfCap(stop - start)
-    #         for i in countup(start, stop): result.add(chain[i])
-    #         shallow(result)
-
-    #     var lastpos = 0
-    #     let EOS = chain.high
-    #     for i, c in chain:
-    #         if c == DEL and chain[i - 1] != C_SLASH:
-    #             result.add(getsubstr(lastpos, i - 1))
-    #             lastpos = i + 1
-    #         elif i == EOS: result.add(getsubstr(lastpos, i))
-
-    #     runnableExamples:
-    #         let answer = @["", "first\\.escaped", "last"]
-    #         assert splitundel(".first\\.escaped.last") == answer
+    proc strfrom(start, stop: int): string =
+        # [https://forum.nim-lang.org/t/707#3931]
+        # [https://forum.nim-lang.org/t/735#4170]
+        var s = newStringOfCap(stop - start)
+        for i in countup(start, stop - 1): s.add(text[i])
+        shallow(s)
+        return s
 
     # proc get_chain(start, stop: int): tuple[s: string, l: int] =
     #     # Locate the first space character in the line.
@@ -163,12 +155,6 @@ proc main =
     var db_defaults = initTable[string, Range]()
     var db_filedirs = initTable[string, Range]()
     var db_contexts = initTable[string, Range]()
-
-    proc strfrom(start, stop: int): string =
-        var s = newStringOfCap(stop - start)
-        for i in countup(start, stop - 1): s.add(text[i])
-        shallow(s)
-        return s
 
     var start, stop, rindex: int = 0
     var rchar: char

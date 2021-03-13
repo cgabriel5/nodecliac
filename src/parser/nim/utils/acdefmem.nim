@@ -50,6 +50,7 @@ proc main =
     const T_KW_DEFAULT = 100 # (d)efault
     const T_KW_FILEDIR = 102 # (f)iledir
     const T_KW_CONTEXT = 99  # (c)ontext
+    const T_CH_HYPHEN  = 45  # hyphen
 
     var db_dict = initTable[char, DBEntry]()
     var db_levels = initTable[int, Table[string, int]]()
@@ -203,7 +204,7 @@ proc main =
                 # Cleanup remainder (flag/command-string).
                 let rindex = sindex + 1
                 let rchar = text[rindex]
-                if ord(rchar) == 45:
+                if ord(rchar) == T_CH_HYPHEN:
                     if rchar notin db_dict: db_dict[rchar] = DBEntry()
                     db_dict[rchar][chain] = [[start, sindex - 1], [rindex, stop]]
 

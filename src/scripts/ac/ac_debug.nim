@@ -1316,11 +1316,11 @@ proc fn_makedb() =
                 if not db_levels.hasKey(1): db_levels[1] = initTable[string, int]()
                 db_levels[1][command] = 1
 
-        if DEBUGMODE:
-            dline(dfn("makedb", "(first level commands only)"))
-            dline(dvar("commandchain") & fmt"{pstart}{commandchain}{pend}")
-            dline(dvar("db_levels") & fmt"{pstart}{db_levels}{pend}")
-            dline("")
+            if DEBUGMODE:
+                dline(dfn("makedb", "(first level commands only)"))
+                dline(dvar("commandchain") & fmt"{pstart}{commandchain}{pend}")
+                dline(dvar("db_levels") & fmt"{pstart}{db_levels}{pend}")
+                dline("")
 
         else: # First level flags.
             let (start, `end`) = findBounds(acdef, re("^ ([^\n]+)", {reMultiLine}))

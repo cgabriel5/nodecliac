@@ -1605,12 +1605,12 @@ sub __makedb {
 				$db{levels}{1}{$command} = undef;
 			}
 
-		if ($DEBUGMODE) {
-			__dline(__dfn("makedb", "(first level commands only)") . "\n");
-			__dline(__dvar("commandchain") . "$pstart$commandchain$pend\n");
-			__dline(__dvar("db_levels") . $pstart . Dumper(\%db{levels}) . "$pend\n");
-			__dline("\n");
-		}
+			if ($DEBUGMODE) {
+				__dline(__dfn("makedb", "(first level commands only)") . "\n");
+				__dline(__dvar("commandchain") . "$pstart$commandchain$pend\n");
+				__dline(__dvar("db_levels") . $pstart . Dumper(\%db{levels}) . "$pend\n");
+				__dline("\n");
+			}
 
 		} else { # First level flags.
 			if ($acdef =~ /^ ([^\n]+)/m) {$db{dict}{''}{''} = { flags => $1 };}

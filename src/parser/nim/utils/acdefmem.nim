@@ -204,10 +204,10 @@ proc main =
 
                 # Cleanup remainder (flag/command-string).
                 let rindex = sindex + 1
-                let rchar = text[rindex]
-                if ord(rchar) == T_CH_HYPHEN:
-                    if rchar notin db_dict: db_dict[rchar] = DBEntry()
-                    db_dict[rchar][chain] = [[start, sindex - 1], [rindex, stop]]
+                let fchar = chain[1]
+                if ord(text[rindex]) == T_CH_HYPHEN:
+                    if fchar notin db_dict: db_dict[fchar] = DBEntry()
+                    db_dict[fchar][chain] = [[start, sindex - 1], [rindex, stop]]
 
                 else: # Store keywords.
                     # The index from the start of the keyword value string to end of line.

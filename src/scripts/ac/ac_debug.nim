@@ -1297,7 +1297,9 @@ proc fn_printer() =
         dline(dvar("output") & fmt"{pstart}{output}{pend}")
         dline(dheader)
 
-        for x in debuglines: echo x
+        # Remove all null byte characters, avoid the Bash warning message:
+        # "bash: warning: command substitution: ignored null byte in input"
+        for x in debuglines: echo x.replace($'\0')
 
     else: echo lines & completions.join("")
 

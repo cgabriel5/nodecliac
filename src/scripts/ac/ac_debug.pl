@@ -1653,7 +1653,7 @@ sub __makedb {
 		}
 
 		if ($DEBUGMODE) {
-			__dline(__dfn("makedb", "(first level flags only)") . "\n");
+			__dline(__dfn("makedb", "(entire .acdef file contents)") . "\n");
 			__dline(__dvar("commandchain") . "$pstart$commandchain$pend\n");
 			__dline(__dvar("db_defaults") . $pstart . Dumper(\%db_defaults) . "$pend\n");
 			__dline(__dvar("db_filedirs") . $pstart . Dumper(\%db_filedirs) . "$pend\n");

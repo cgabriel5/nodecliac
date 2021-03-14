@@ -1377,7 +1377,7 @@ proc main() =
                         else: discard
 
             if DEBUGMODE:
-                dline(dfn("makedb", "(first level flags only)"))
+                dline(dfn("makedb", "(entire .acdef file contents)"))
                 dline(dvar("commandchain") & fmt"{pstart}{commandchain}{pend}")
                 dline(dvar("db_defaults") & fmt"{pstart}{db_defaults}{pend}")
                 dline(dvar("db_filedirs") & fmt"{pstart}{db_filedirs}{pend}")

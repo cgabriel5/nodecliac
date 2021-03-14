@@ -9,11 +9,13 @@
 
 # [https://nim-lang.org/docs/gc.html]
 # --gc:orc \
+# [https://forum.nim-lang.org/t/6216#38531]
 # -d:useMalloc \
 nim compile \
 --passL:"-no-pie" \
 --gc:arc \
 --app:gui \
+-d:useMalloc \
 -d:ssl \
 -d:release \
 -d:danger \

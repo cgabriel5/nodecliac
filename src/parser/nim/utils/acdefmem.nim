@@ -47,10 +47,10 @@ proc main =
     const C_SPACE_DOT = { C_DOT, C_SPACE }
     const VALID_LINE_STARTS = { C_NUMSIGN, C_NL }
 
-    const T_KW_DEFAULT = 100 # (d)efault
-    const T_KW_FILEDIR = 102 # (f)iledir
-    const T_KW_CONTEXT = 99  # (c)ontext
-    const T_CH_HYPHEN  = 45  # hyphen
+    const O_DEFAULT = 100 # (d)efault
+    const O_FILEDIR = 102 # (f)iledir
+    const O_CONTEXT = 99  # (c)ontext
+    const O_HYPHEN  = 45  # hyphen
 
     var db_dict = initTable[char, DBEntry]()
     var db_levels = initTable[int, Table[string, int]]()
@@ -208,7 +208,7 @@ proc main =
                 # Cleanup remainder (flag/command-string).
                 let rindex = sindex + 1
                 let fchar = chain[1]
-                if ord(text[rindex]) == T_CH_HYPHEN:
+                if ord(text[rindex]) == O_HYPHEN:
                     if fchar notin db_dict: db_dict[fchar] = DBEntry()
                     db_dict[fchar][chain] = [[start, sindex - 1], [rindex, stop]]
 
@@ -216,11 +216,11 @@ proc main =
                     # The index from the start of the keyword value string to end of line.
                     let value = [rindex + (KEYWORD_LEN + 2), stop]
                     case ord(text[rindex]): # Keyword first char keyword.
-                    of T_KW_DEFAULT:
+                    of O_DEFAULT:
                         if chain notin db_defaults: db_defaults[chain] = value
-                    of T_KW_FILEDIR:
+                    of O_FILEDIR:
                         if chain notin db_filedirs: db_filedirs[chain] = value
-                    of T_KW_CONTEXT:
+                    of O_CONTEXT:
                         if chain notin db_contexts: db_contexts[chain] = value
                     else: discard
 

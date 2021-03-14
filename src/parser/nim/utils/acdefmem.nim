@@ -165,7 +165,8 @@ proc main =
 
                     if text[start] == C_SPACE: continue
 
-                    let command = strfromrange(text, start, find(text, C_SPACE_DOT, start + 1, stop))
+                    # Add 1 to start to skip the initial dot in command chain.
+                    let command = strfromrange(text, start + 1, find(text, C_SPACE_DOT, start + 1, stop))
                     if command notin db_levels[LVL1]: db_levels[LVL1][command] = LVL1
 
             else: # First level flags.

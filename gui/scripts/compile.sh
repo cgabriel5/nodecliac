@@ -40,7 +40,13 @@ nim compile \
 main.nim
 # --debuginfo \
 
+# StackTrace:
+# [https://nim-lang.org/docs/estp.html]
+# [https://stackoverflow.com/questions/36577570/how-to-benchmark-few-lines-of-code-in-nim]
 
+# Nim unittest
+# [https://nim-lang.org/docs/unittest.html]
+# [https://github.com/technicallyagd/unpack/blob/master/tests/theTest.nim]
 
 # # For faster compilation drop the flags:
 # -d:nimDebugDlOpen \

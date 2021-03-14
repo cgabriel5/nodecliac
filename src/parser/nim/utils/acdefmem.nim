@@ -216,12 +216,9 @@ proc main =
                     # The index from the start of the keyword value string to end of line.
                     let value = [rindex + (KEYWORD_LEN + 2), stop]
                     case ord(text[rindex]): # Keyword first char keyword.
-                    of O_DEFAULT:
-                        if chain notin db_defaults: db_defaults[chain] = value
-                    of O_FILEDIR:
-                        if chain notin db_filedirs: db_filedirs[chain] = value
-                    of O_CONTEXT:
-                        if chain notin db_contexts: db_contexts[chain] = value
+                    of O_DEFAULT: (if chain notin db_defaults: db_defaults[chain] = value)
+                    of O_FILEDIR: (if chain notin db_filedirs: db_filedirs[chain] = value)
+                    of O_CONTEXT: (if chain notin db_contexts: db_contexts[chain] = value)
                     else: discard
 
     fn_makedb()

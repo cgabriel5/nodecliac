@@ -149,14 +149,13 @@ proc main =
     proc strfromrange(s: string, start, stop: int): string =
         # [https://forum.nim-lang.org/t/707#3931]
         # [https://forum.nim-lang.org/t/735#4170]
-        var str = newStringOfCap(stop - start)
-        for i in countup(start, stop - 1): str.add(s[i])
-        # The string indices may also be populated with builtin slice
+        result = newStringOfCap(stop - start)
+        for i in countup(start, stop - 1): result.add(s[i])
+        # The resulting indices may also be populated with builtin slice
         # notation. However, using a loop shows to be slightly faster.
         # [https://github.com/nim-lang/Nim/pull/2171/files]
-        # str[str.low .. str.high] = s[start ..< stop]
-        shallow(str)
-        return str
+        # result[result.low .. result.high] = s[start ..< stop]
+        shallow(result)
 
     proc fn_makedb() =
         if commandchain == "": # First level commands only.

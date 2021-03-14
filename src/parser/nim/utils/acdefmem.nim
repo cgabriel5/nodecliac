@@ -7,6 +7,7 @@ import os, memfiles, streams, tables
 # [https://gist.github.com/Varriount/c3ba438533497bc636da]
 # [https://forum.nim-lang.org/t/1793]
 # [https://nim-lang.org/docs/system.html#newStringOfCap%2CNatural]
+# [https://forum.nim-lang.org/t/897]
 
 # Unicode length:
 # [https://hsivonen.fi/string-length/]
@@ -27,6 +28,14 @@ import os, memfiles, streams, tables
 # String slow concatenation: [https://github.com/nim-lang/Nim/issues/8317]
 # Use different compiler (i.e. clang): [https://forum.nim-lang.org/t/2387]
 # stdout.write: [https://forum.nim-lang.org/t/6253#38601]
+
+# Templates:
+# [https://forum.nim-lang.org/t/6616]
+# [https://stackoverflow.com/a/31586821]
+# [https://nim-lang.org/docs/manual.html#templates-identifier-construction]
+
+# Procedures:
+# auto: [https://forum.nim-lang.org/t/3153]
 
 proc main =
 

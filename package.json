@@ -62,11 +62,11 @@
 		"npm": ">=6.4.1"
 	},
 	"devDependencies": {
-		"cross-env": "^7.0.2",
-		"eslint": "^7.7.0",
+		"cross-env": "^7.0.3",
+		"eslint": "^7.22.0",
 		"eslint-config-simple": "*",
 		"eslint-formatter-simple": "*",
-		"prettier": "^2.0.5",
+		"prettier": "^2.2.1",
 		"prettier-cli-watcher": "*"
 	},
 	"files": [

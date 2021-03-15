@@ -109,16 +109,23 @@ function _nodecliac() {
 
 	if [[ "$usecache" == 0 ]]; then
 		local acdef=$(<"$acdefpath")
-		local os=$(uname); os=${os,,}
-		local pac="$root"/src/ac/ac.pl
-		local nac="$root"/src/bin/ac."${os/darwin/macosx}"
+
+		# [https://unix.stackexchange.com/a/324181]
+		# [https://stackoverflow.com/a/19327286]
+		[[ "$OSTYPE" =~ (^[^0-9-]+) ]]
+		local os="${BASH_REMATCH[1]}"
+		local pac="$root/src/ac/ac.pl"
+		local nac="$root/src/bin/ac.${os/darwin/macosx}"
 		local ac="$pac"
 		[[ " linux darwin " == *" $os "* ]] && ac="$nac"
-		case "$debug" in
-			1) ac="${ac/ac./ac_debug.}" ;;
-			2) ac="${pac/ac./ac_debug.}" ;;
-			3) ac="${nac/ac./ac_debug.}" ;;
-		esac
+		# // 0=off , 1=debug , 2=debug + ac.pl , 3=debug + ac.nim
+		if [[ "$debug" != "0" ]]; then
+			case "$debug" in
+				1) ac="${ac/ac./ac_debug.}" ;;
+				2) ac="${pac/ac./ac_debug.}" ;;
+				3) ac="${nac/ac./ac_debug.}" ;;
+			esac
+		fi
 
 		[[ -e "$prehook" ]] && . "$prehook"
 

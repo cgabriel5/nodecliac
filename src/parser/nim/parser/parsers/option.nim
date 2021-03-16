@@ -25,9 +25,9 @@ proc p_option*(S: State): Node =
     # Error if flag scope doesn't exist.
     bracechecks(S, check = "pre-existing-fs")
 
-    let l = S.l; var c, pchar: char
+    let l = S.l; var c, p: char
     while S.i < l:
-        pchar = c
+        p = c
         c = text[S.i]
 
         if c in C_NL:
@@ -35,7 +35,7 @@ proc p_option*(S: State): Node =
             N.`end` = S.i
             break # Stop at nl char.
 
-        if c == '#' and pchar != '\\' and (state != "value" or comment):
+        if c == '#' and p != '\\' and (state != "value" or comment):
             rollback(S)
             N.`end` = S.i
             break
@@ -73,12 +73,12 @@ proc p_option*(S: State): Node =
                 else:
                     case `type`:
                         of "escaped":
-                            if c in C_SPACES and pchar != '\\':
+                            if c in C_SPACES and p != '\\':
                                 state = "eol-wsb"
                                 forward(S)
                                 continue
                         of "quoted":
-                            if c == qchar and pchar != '\\':
+                            if c == qchar and p != '\\':
                                 state = "eol-wsb"
                             elif c == '#' and qchar == '\0':
                                 comment = true
@@ -96,7 +96,7 @@ proc p_option*(S: State): Node =
                             # The following logic, is precursor validation
                             # logic that ensures braces are balanced and
                             # detects inline comment.
-                            if pchar != '\\':
+                            if p != '\\':
                                 if c == '(' and qchar == '\0':
                                     braces.add(S.i)
                                 elif c == ')' and qchar == '\0':

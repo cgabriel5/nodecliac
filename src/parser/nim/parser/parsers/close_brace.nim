@@ -16,9 +16,9 @@ proc p_closebrace*(S: State) =
     var state = "brace"
     var N = node(nkBrace, S)
 
-    let l = S.l; var c, pchar: char
+    let l = S.l; var c, p: char
     while S.i < l:
-        pchar = c
+        p = c
         c = text[S.i]
 
         if c in C_NL:
@@ -26,7 +26,7 @@ proc p_closebrace*(S: State) =
             N.`end` = S.i
             break # Stop at nl char.
 
-        if c == '#' and pchar != '\\':
+        if c == '#' and p != '\\':
             rollback(S)
             N.`end` = S.i
             break

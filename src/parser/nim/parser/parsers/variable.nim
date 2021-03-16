@@ -21,9 +21,9 @@ proc p_variable*(S: State) =
     var state = "sigil"
     var N = node(nkVariable, S)
 
-    let l = S.l; var c, pchar: char
+    let l = S.l; var c, p: char
     while S.i < l:
-        pchar = c
+        p = c
         c = text[S.i]
 
         if c in C_NL:
@@ -31,7 +31,7 @@ proc p_variable*(S: State) =
             N.`end` = S.i
             break # Stop at nl char.
 
-        if c == '#' and pchar != '\\' and state != "value":
+        if c == '#' and p != '\\' and state != "value":
             rollback(S)
             N.`end` = S.i
             break
@@ -90,11 +90,11 @@ proc p_variable*(S: State) =
                     N.value.value = $c
                 else:
                     if qchar != '\0':
-                        if c == qchar and pchar != '\\': state = "eol-wsb"
+                        if c == qchar and p != '\\': state = "eol-wsb"
                         N.value.`end` = S.i
                         N.value.value &= $c
                     else:
-                        if c in C_SPACES and pchar != '\\':
+                        if c in C_SPACES and p != '\\':
                             state = "eol-wsb"
                             rollback(S)
                         else:

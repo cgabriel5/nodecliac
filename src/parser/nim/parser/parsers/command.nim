@@ -72,9 +72,9 @@ proc p_command*(S: State) =
                 if isgroup: G.command = G.command[0 .. ^2]
                 else: N.command.value = N.command.value[0 .. ^2]
 
-    let l = S.l; var c, pchar: char
+    let l = S.l; var c, p: char
     while S.i < l:
-        pchar = c
+        p = c
         c = text[S.i]
 
         if c in C_NL:
@@ -82,7 +82,7 @@ proc p_command*(S: State) =
             N.`end` = S.i
             break # Stop at nl char.
 
-        if c == '#' and pchar != '\\':
+        if c == '#' and p != '\\':
             rollback(S)
             N.`end` = S.i
             break

@@ -36,7 +36,7 @@ type
         nkBrace = "BRACE"
     Node* = ref object
         node*: string
-        line*, start*, `end`*: int
+        line*, start*, stop*: int
 
         # Due to Nim's limitations some fields must be shared.
         # [https://forum.nim-lang.org/t/4817]
@@ -63,7 +63,7 @@ type
         of nkOption: bullet*: Branch
         of nkBrace: brace*: Branch
     Branch* = ref object
-        start*, `end`*: int
+        start*, stop*: int
         value*: string
 
 # Object constructors.
@@ -162,4 +162,4 @@ proc node*(nkType: NodeKind, S: State): Node =
     result.node = $nkType
     result.line = S.line
     result.start = S.i
-    result.`end` = -1
+    result.stop = -1

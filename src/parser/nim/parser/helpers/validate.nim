@@ -33,7 +33,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                 error(S, currentSourcePath, 17)
 
         if value == "":
-            S.column = N.keyword.`end` - S.tables.linestarts[S.line]
+            S.column = N.keyword.stop - S.tables.linestarts[S.line]
             inc(S.column) # Add 1 to account for 0 base indexing.
             error(S, currentSourcePath, 16)
 
@@ -65,10 +65,10 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
     # @param  {numbers} end - The end index.
     # @param  {string} val - The value.
     # @return - Nothing is returned.
-    proc tNset(start: int, `end`: int, val: string) =
+    proc tNset(start: int, stop: int, val: string) =
         let value = tN.value
         value.start = start
-        value.`end` = `end`
+        value.stop = stop
         value.value = val
 
     case (`type`):
@@ -285,8 +285,8 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                         if `char` == qchar and pchar != '\\':
                             argument &= $`char`
 
-                            let `end` = argument.high
-                            tNset(vsi, `end`, argument)
+                            let stop = argument.high
+                            tNset(vsi, stop, argument)
                             argument = validate(S, tN, mode)
                             args.add(argument)
 
@@ -299,8 +299,8 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                         if `char` in C_SPACES and pchar != '\\':
                             # argument &= $`char` # Store character.
 
-                            let `end` = argument.high
-                            tNset(vsi, `end`, argument)
+                            let stop = argument.high
+                            tNset(vsi, stop, argument)
                             argument = validate(S, tN, mode)
                             args.add(argument)
 
@@ -313,8 +313,8 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                         if `char` == ')' and pchar != '\\':
                             argument &= $`char`
 
-                            let `end` = argument.high
-                            tNset(vsi, `end`, argument)
+                            let stop = argument.high
+                            tNset(vsi, stop, argument)
                             argument = validate(S, tN, mode)
                             args.add(argument)
 

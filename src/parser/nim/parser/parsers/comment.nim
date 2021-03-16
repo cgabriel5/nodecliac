@@ -21,10 +21,10 @@ proc p_comment*(S: State, inline = false) =
 
         if c in C_NL:
             rollback(S)
-            N.`end` = S.i
+            N.stop = S.i
             break # Stop at nl char.
 
-        N.comment.`end` = S.i
+        N.comment.stop = S.i
         N.comment.value &= $c
 
         forward(S)

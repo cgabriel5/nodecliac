@@ -79,12 +79,12 @@ proc p_command*(S: State) =
 
         if c in C_NL:
             rollback(S)
-            N.`end` = S.i
+            N.stop = S.i
             break # Stop at nl char.
 
         if c == '#' and p != '\\':
             rollback(S)
-            N.`end` = S.i
+            N.stop = S.i
             break
 
         case (state):
@@ -93,14 +93,14 @@ proc p_command*(S: State) =
                     if c notin C_CMD_IDENT_START : error(S, currentSourcePath)
 
                     N.command.start = S.i
-                    N.command.`end` = S.i
+                    N.command.stop = S.i
                     N.command.value &= $c
 
                     # Once a wildcard (all) char is found change state.
                     if c == '*': state = "chain-wsb"
                 else:
                     if c in C_CMD_IDENT:
-                        N.command.`end` = S.i
+                        N.command.stop = S.i
                         N.command.value &= $c
                         cescape(c, false, l, G)
                     elif c in C_SPACES:
@@ -130,13 +130,13 @@ proc p_command*(S: State) =
 
             of "assignment":
                 N.assignment.start = S.i
-                N.assignment.`end` = S.i
+                N.assignment.stop = S.i
                 N.assignment.value = $c
                 state = "value-wsb"
 
             of "delimiter":
                 N.delimiter.start = S.i
-                N.delimiter.`end` = S.i
+                N.delimiter.stop = S.i
                 N.delimiter.value = $c
                 state = "eol-wsb"
 
@@ -165,7 +165,7 @@ proc p_command*(S: State) =
 
             of "close-bracket":
                 if c != ']': error(S, currentSourcePath)
-                N.brackets.`end` = S.i
+                N.brackets.stop = S.i
                 N.value.value &= $c
                 state = "eol-wsb"
 
@@ -201,7 +201,7 @@ proc p_command*(S: State) =
             # Command group states
 
             of "group-open":
-                N.command.`end` = S.i
+                N.command.stop = S.i
                 N.command.value &= (if not isformatting: "?" else: $c)
 
                 state = "group-wsb"
@@ -232,12 +232,12 @@ proc p_command*(S: State) =
 
                     var token: Token; token = ("command", S.column)
                     G.tokens.add(token)
-                    N.command.`end` = S.i
+                    N.command.stop = S.i
                     G.command &= $c
                     if isformatting: N.command.value &= $c
                 else:
                     if c in C_CMD_IDENT:
-                        N.command.`end` = S.i
+                        N.command.stop = S.i
                         G.command &= $c
                         if isformatting: N.command.value &= $c
                         cescape(c, true, l, G)
@@ -253,7 +253,7 @@ proc p_command*(S: State) =
                     else: error(S, currentSourcePath)
 
             of "group-delimiter":
-                N.command.`end` = S.i
+                N.command.stop = S.i
                 if isformatting: N.command.value &= $c
 
                 let ll = G.tokens.len
@@ -267,7 +267,7 @@ proc p_command*(S: State) =
                 state = "group-wsb"
 
             of "group-close":
-                N.command.`end` = S.i
+                N.command.stop = S.i
                 if isformatting: N.command.value &= $c
 
                 if G.command != "": G.commands[^1].add(G.command)

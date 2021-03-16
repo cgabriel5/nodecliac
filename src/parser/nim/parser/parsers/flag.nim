@@ -45,12 +45,12 @@ proc p_flag*(S: State, isoneliner: string): Node =
 
         if stop or c in C_NL:
             rollback(S)
-            N.`end` = S.i
+            N.stop = S.i
             break # Stop at nl char.
 
         if c == '#' and p != '\\' and (state != "value" or comment):
             rollback(S)
-            N.`end` = S.i
+            N.stop = S.i
             break
 
         case (state):
@@ -62,14 +62,14 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 if N.hyphens.value == "":
                     if c != '-': error(S, currentSourcePath)
                     N.hyphens.start = S.i
-                    N.hyphens.`end` = S.i
+                    N.hyphens.stop = S.i
                     N.hyphens.value = $c
                 else:
                     if c != '-':
                         state = "name"
                         rollback(S)
                     else:
-                        N.hyphens.`end` = S.i
+                        N.hyphens.stop = S.i
                         N.hyphens.value &= $c
 
             of "keyword":
@@ -80,7 +80,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 # Keyword must be allowed.
                 if keyword notin C_KW_ALL: error(S, currentSourcePath)
                 N.keyword.start = S.i
-                N.keyword.`end` = endpoint
+                N.keyword.stop = endpoint
                 N.keyword.value = keyword
                 state = "keyword-spacer"
 
@@ -96,11 +96,11 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 if N.name.value == "":
                     if c notin C_LETTERS: error(S, currentSourcePath)
                     N.name.start = S.i
-                    N.name.`end` = S.i
+                    N.name.stop = S.i
                     N.name.value = $c
                 else:
                     if c in C_FLG_IDENT:
-                        N.name.`end` = S.i
+                        N.name.stop = S.i
                         N.name.value &= $c
                     elif c == ':' and not alias:
                         state = "alias"
@@ -137,7 +137,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
 
             of "boolean-indicator":
                 N.boolean.start = S.i
-                N.boolean.`end` = S.i
+                N.boolean.stop = S.i
                 N.boolean.value = $c
                 state = "pipe-delimiter"
 
@@ -147,7 +147,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 let n = if S.i + 1 < l: text[S.i + 1] else: '\0'
                 if n != ':': error(S, currentSourcePath)
                 N.alias.start = S.i
-                N.alias.`end` = S.i + 2
+                N.alias.stop = S.i + 2
 
                 let letter = if S.i + 2 < l: text[S.i + 2] else: '\0'
                 if letter notin C_LETTERS:
@@ -164,14 +164,14 @@ proc p_flag*(S: State, isoneliner: string): Node =
 
             of "assignment":
                 N.assignment.start = S.i
-                N.assignment.`end` = S.i
+                N.assignment.stop = S.i
                 N.assignment.value = $c
                 state = "multi-indicator"
 
             of "multi-indicator":
                 if c == '*':
                     N.multi.start = S.i
-                    N.multi.`end` = S.i
+                    N.multi.stop = S.i
                     N.multi.value = $c
                     state = "wsb-prevalue"
                 else:
@@ -193,7 +193,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
 
             of "delimiter":
                 N.delimiter.start = S.i
-                N.delimiter.`end` = S.i
+                N.delimiter.stop = S.i
                 N.delimiter.value = $c
                 state = "eol-wsb"
 
@@ -217,7 +217,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                         qchar = c
 
                     N.value.start = S.i
-                    N.value.`end` = S.i
+                    N.value.stop = S.i
                     N.value.value = $c
                 else:
                     if c == '|' and N.keyword.value notin C_KD_STR and p != '\\':
@@ -273,7 +273,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                                             inc(S.column) # Add 1 to account for 0 base indexing.
                                             error(S, currentSourcePath)
 
-                        N.value.`end` = S.i
+                        N.value.stop = S.i
                         N.value.value &= $c
 
             of "eol-wsb":
@@ -289,7 +289,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
     # If scope is created store ref to Node object.
     if N.value.value == "(":
         N.brackets.start = N.value.start
-        N.brackets.`end` = N.value.start
+        N.brackets.stop = N.value.start
         N.brackets.value = N.value.value
         S.scopes.flag = N
 

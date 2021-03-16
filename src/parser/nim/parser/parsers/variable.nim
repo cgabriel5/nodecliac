@@ -28,18 +28,18 @@ proc p_variable*(S: State) =
 
         if c in C_NL:
             rollback(S)
-            N.`end` = S.i
+            N.stop = S.i
             break # Stop at nl char.
 
         if c == '#' and p != '\\' and state != "value":
             rollback(S)
-            N.`end` = S.i
+            N.stop = S.i
             break
 
         case (state):
             of "sigil":
                 N.sigil.start = S.i
-                N.sigil.`end` = S.i
+                N.sigil.stop = S.i
                 state = "name"
 
             of "name":
@@ -47,11 +47,11 @@ proc p_variable*(S: State) =
                     if c notin C_LETTERS: error(S, currentSourcePath)
 
                     N.name.start = S.i
-                    N.name.`end` = S.i
+                    N.name.stop = S.i
                     N.name.value = $c
                 else:
                     if c in C_VAR_IDENT:
-                        N.name.`end` = S.i
+                        N.name.stop = S.i
                         N.name.value &= $c
                     elif c in C_SPACES:
                         state = "name-wsb"
@@ -71,7 +71,7 @@ proc p_variable*(S: State) =
 
             of "assignment":
                 N.assignment.start = S.i
-                N.assignment.`end` = S.i
+                N.assignment.stop = S.i
                 N.assignment.value = $c
                 state = "value-wsb"
 
@@ -86,19 +86,19 @@ proc p_variable*(S: State) =
 
                     if c in C_QUOTES: qchar = c
                     N.value.start = S.i
-                    N.value.`end` = S.i
+                    N.value.stop = S.i
                     N.value.value = $c
                 else:
                     if qchar != '\0':
                         if c == qchar and p != '\\': state = "eol-wsb"
-                        N.value.`end` = S.i
+                        N.value.stop = S.i
                         N.value.value &= $c
                     else:
                         if c in C_SPACES and p != '\\':
                             state = "eol-wsb"
                             rollback(S)
                         else:
-                            N.value.`end` = S.i
+                            N.value.stop = S.i
                             N.value.value &= $c
 
             of "eol-wsb":

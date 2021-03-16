@@ -11,7 +11,7 @@ proc p_newline*(S: State) =
     var N = node(nkNewline, S)
 
     N.start = S.i
-    N.`end` = S.i
+    N.stop = S.i
 
     S.line = S.line + 1
     S.column = 0

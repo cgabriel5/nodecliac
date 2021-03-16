@@ -32,18 +32,18 @@ proc p_option*(S: State): Node =
 
         if c in C_NL:
             rollback(S)
-            N.`end` = S.i
+            N.stop = S.i
             break # Stop at nl char.
 
         if c == '#' and p != '\\' and (state != "value" or comment):
             rollback(S)
-            N.`end` = S.i
+            N.stop = S.i
             break
 
         case (state):
             of "bullet":
                 N.bullet.start = S.i
-                N.bullet.`end` = S.i
+                N.bullet.stop = S.i
                 N.bullet.value = $c
                 state = "spacer"
 
@@ -68,7 +68,7 @@ proc p_option*(S: State): Node =
                         qchar = c
 
                     N.value.start = S.i
-                    N.value.`end` = S.i
+                    N.value.stop = S.i
                     N.value.value = $c
                 else:
                     case `type`:
@@ -123,7 +123,7 @@ proc p_option*(S: State): Node =
                                         inc(S.column) # Add 1 to account for 0 base indexing.
                                         error(S, currentSourcePath)
 
-                    N.value.`end` = S.i
+                    N.value.stop = S.i
                     N.value.value &= $c
 
             of "eol-wsb":

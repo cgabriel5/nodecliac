@@ -182,12 +182,12 @@ proc acdef*(S: State, cmdname: string): tuple =
                 else: wildcard = false
 
                 # Store command in current group.
-                if not oGroups.hasKey(count):
+                if count notin oGroups:
                     oGroups[count] = {"commands": @[N], "flags": @[]}.toTable
                 else: oGroups[count]["commands"].add(N)
 
                 let cval = N.command.value
-                if not oSets.hasKey(cval):
+                if cval notin oSets:
                     oSets[cval] = initHashSet[string]()
 
                     # Create missing parent chains.

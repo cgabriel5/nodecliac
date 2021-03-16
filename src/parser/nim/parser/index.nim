@@ -6,8 +6,8 @@ import parsers/[comment, newline, setting, variable]
 import helpers/[charsets, types, brace_checks, error]
 import helpers/[linetype, specificity, tracer, forward]
 
-proc parser*(action, text, cmdname, source: string, fmt: tuple,
-            trace, igc, test: bool): tuple =
+proc parser*(action, text, cmdname, source: string,
+            fmt: tuple, trace, igc, test: bool): tuple =
     var S = state(action, cmdname, text, source, fmt, trace, igc, test)
     var ltype = ""
 

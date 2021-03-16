@@ -16,17 +16,17 @@ proc p_closebrace*(S: State) =
     var state = "brace"
     var N = node(nkBrace, S)
 
-    let l = S.l; var `char`, pchar: char
+    let l = S.l; var c, pchar: char
     while S.i < l:
-        pchar = `char`
-        `char` = text[S.i]
+        pchar = c
+        c = text[S.i]
 
-        if `char` in C_NL:
+        if c in C_NL:
             rollback(S)
             N.`end` = S.i
             break # Stop at nl char.
 
-        if `char` == '#' and pchar != '\\':
+        if c == '#' and pchar != '\\':
             rollback(S)
             N.`end` = S.i
             break
@@ -35,11 +35,11 @@ proc p_closebrace*(S: State) =
             of "brace":
                 N.brace.start = S.i
                 N.brace.`end` = S.i
-                N.brace.value = $`char`
+                N.brace.value = $c
                 state = "eol-wsb"
 
             of "eol-wsb":
-                if `char` notin C_SPACES: error(S, currentSourcePath)
+                if c notin C_SPACES: error(S, currentSourcePath)
 
             else: discard
 

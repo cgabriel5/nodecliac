@@ -25,17 +25,17 @@ proc p_option*(S: State): Node =
     # Error if flag scope doesn't exist.
     bracechecks(S, check = "pre-existing-fs")
 
-    let l = S.l; var `char`, pchar: char
+    let l = S.l; var c, pchar: char
     while S.i < l:
-        pchar = `char`
-        `char` = text[S.i]
+        pchar = c
+        c = text[S.i]
 
-        if `char` in C_NL:
+        if c in C_NL:
             rollback(S)
             N.`end` = S.i
             break # Stop at nl char.
 
-        if `char` == '#' and pchar != '\\' and (state != "value" or comment):
+        if c == '#' and pchar != '\\' and (state != "value" or comment):
             rollback(S)
             N.`end` = S.i
             break
@@ -44,43 +44,43 @@ proc p_option*(S: State): Node =
             of "bullet":
                 N.bullet.start = S.i
                 N.bullet.`end` = S.i
-                N.bullet.value = $`char`
+                N.bullet.value = $c
                 state = "spacer"
 
             of "spacer":
-                if `char` notin C_SPACES: error(S, currentSourcePath)
+                if c notin C_SPACES: error(S, currentSourcePath)
                 state = "wsb-prevalue"
 
             of "wsb-prevalue":
-                if `char` notin C_SPACES:
+                if c notin C_SPACES:
                     rollback(S)
                     state = "value"
 
             of "value":
                 if N.value.value == "":
                     # Determine value type.
-                    if `char` == '$': `type` = "command-flag"
-                    elif `char` == '(':
+                    if c == '$': `type` = "command-flag"
+                    elif c == '(':
                         `type` = "list"
                         braces.add(S.i)
-                    elif `char` in C_QUOTES:
+                    elif c in C_QUOTES:
                         `type` = "quoted"
-                        qchar = `char`
+                        qchar = c
 
                     N.value.start = S.i
                     N.value.`end` = S.i
-                    N.value.value = $`char`
+                    N.value.value = $c
                 else:
                     case `type`:
                         of "escaped":
-                            if `char` in C_SPACES and pchar != '\\':
+                            if c in C_SPACES and pchar != '\\':
                                 state = "eol-wsb"
                                 forward(S)
                                 continue
                         of "quoted":
-                            if `char` == qchar and pchar != '\\':
+                            if c == qchar and pchar != '\\':
                                 state = "eol-wsb"
-                            elif `char` == '#' and qchar == '\0':
+                            elif c == '#' and qchar == '\0':
                                 comment = true
                                 rollback(S)
                         else: # list|command-flag
@@ -90,16 +90,16 @@ proc p_option*(S: State): Node =
                             #   --help=$"cat ~/files.text"
                             #   --------^ Missing '(' after '$'.
                             if `type` == "command-flag":
-                                if N.value.value.len == 1 and `char` != '(':
+                                if N.value.value.len == 1 and c != '(':
                                     error(S, currentSourcePath)
 
                             # The following logic, is precursor validation
                             # logic that ensures braces are balanced and
                             # detects inline comment.
                             if pchar != '\\':
-                                if `char` == '(' and qchar == '\0':
+                                if c == '(' and qchar == '\0':
                                     braces.add(S.i)
-                                elif `char` == ')' and qchar == '\0':
+                                elif c == ')' and qchar == '\0':
                                     # If braces len is negative, opening
                                     # braces were never introduced so
                                     # current closing brace is invalid.
@@ -108,13 +108,13 @@ proc p_option*(S: State): Node =
                                     if braces.len == 0:
                                         state = "eol-wsb"
 
-                                if `char` in C_QUOTES:
+                                if c in C_QUOTES:
                                     if qchar == '\0':
-                                        qchar = `char`
-                                    elif qchar == `char`:
+                                        qchar = c
+                                    elif qchar == c:
                                         qchar = '\0'
 
-                                if `char` == '#' and qchar == '\0':
+                                if c == '#' and qchar == '\0':
                                     if braces.len == 0:
                                         comment = true
                                         rollback(S)
@@ -124,10 +124,10 @@ proc p_option*(S: State): Node =
                                         error(S, currentSourcePath)
 
                     N.value.`end` = S.i
-                    N.value.value &= $`char`
+                    N.value.value &= $c
 
             of "eol-wsb":
-                if `char` notin C_SPACES: error(S, currentSourcePath)
+                if c notin C_SPACES: error(S, currentSourcePath)
 
             else: discard
 

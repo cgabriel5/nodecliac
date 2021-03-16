@@ -15,17 +15,17 @@ proc p_comment*(S: State, inline = false) =
 
     if inline: N.inline = inline
 
-    let l = S.l; var `char`: char
+    let l = S.l; var c: char
     while S.i < l:
-        `char` = text[S.i]
+        c = text[S.i]
 
-        if `char` in C_NL:
+        if c in C_NL:
             rollback(S)
             N.`end` = S.i
             break # Stop at nl char.
 
         N.comment.`end` = S.i
-        N.comment.value &= $`char`
+        N.comment.value &= $c
 
         forward(S)
 

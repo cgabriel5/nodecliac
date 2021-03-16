@@ -21,17 +21,17 @@ proc p_variable*(S: State) =
     var state = "sigil"
     var N = node(nkVariable, S)
 
-    let l = S.l; var `char`, pchar: char
+    let l = S.l; var c, pchar: char
     while S.i < l:
-        pchar = `char`
-        `char` = text[S.i]
+        pchar = c
+        c = text[S.i]
 
-        if `char` in C_NL:
+        if c in C_NL:
             rollback(S)
             N.`end` = S.i
             break # Stop at nl char.
 
-        if `char` == '#' and pchar != '\\' and state != "value":
+        if c == '#' and pchar != '\\' and state != "value":
             rollback(S)
             N.`end` = S.i
             break
@@ -44,27 +44,27 @@ proc p_variable*(S: State) =
 
             of "name":
                 if N.name.value == "":
-                    if `char` notin C_LETTERS: error(S, currentSourcePath)
+                    if c notin C_LETTERS: error(S, currentSourcePath)
 
                     N.name.start = S.i
                     N.name.`end` = S.i
-                    N.name.value = $`char`
+                    N.name.value = $c
                 else:
-                    if `char` in C_VAR_IDENT:
+                    if c in C_VAR_IDENT:
                         N.name.`end` = S.i
-                        N.name.value &= $`char`
-                    elif `char` in C_SPACES:
+                        N.name.value &= $c
+                    elif c in C_SPACES:
                         state = "name-wsb"
                         forward(S)
                         continue
-                    elif `char` == '=':
+                    elif c == '=':
                         state = "assignment"
                         rollback(S)
                     else: error(S, currentSourcePath)
 
             of "name-wsb":
-                if `char` notin C_SPACES:
-                    if `char` == '=':
+                if c notin C_SPACES:
+                    if c == '=':
                         state = "assignment"
                         rollback(S)
                     else: error(S, currentSourcePath)
@@ -72,37 +72,37 @@ proc p_variable*(S: State) =
             of "assignment":
                 N.assignment.start = S.i
                 N.assignment.`end` = S.i
-                N.assignment.value = $`char`
+                N.assignment.value = $c
                 state = "value-wsb"
 
             of "value-wsb":
-                if `char` notin C_SPACES:
+                if c notin C_SPACES:
                     state = "value"
                     rollback(S)
 
             of "value":
                 if N.value.value == "":
-                    if `char` notin C_VAR_VALUE: error(S, currentSourcePath)
+                    if c notin C_VAR_VALUE: error(S, currentSourcePath)
 
-                    if `char` in C_QUOTES: qchar = `char`
+                    if c in C_QUOTES: qchar = c
                     N.value.start = S.i
                     N.value.`end` = S.i
-                    N.value.value = $`char`
+                    N.value.value = $c
                 else:
                     if qchar != '\0':
-                        if `char` == qchar and pchar != '\\': state = "eol-wsb"
+                        if c == qchar and pchar != '\\': state = "eol-wsb"
                         N.value.`end` = S.i
-                        N.value.value &= $`char`
+                        N.value.value &= $c
                     else:
-                        if `char` in C_SPACES and pchar != '\\':
+                        if c in C_SPACES and pchar != '\\':
                             state = "eol-wsb"
                             rollback(S)
                         else:
                             N.value.`end` = S.i
-                            N.value.value &= $`char`
+                            N.value.value &= $c
 
             of "eol-wsb":
-                if `char` notin C_SPACES: error(S, currentSourcePath)
+                if c notin C_SPACES: error(S, currentSourcePath)
 
             else: discard
 

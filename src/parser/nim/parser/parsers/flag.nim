@@ -144,8 +144,8 @@ proc p_flag*(S: State, isoneliner: string): Node =
             of "alias":
                 alias = true
                 # Next char must also be a colon.
-                let nchar = if S.i + 1 < l: text[S.i + 1] else: '\0'
-                if nchar != ':': error(S, currentSourcePath)
+                let n = if S.i + 1 < l: text[S.i + 1] else: '\0'
+                if n != ':': error(S, currentSourcePath)
                 N.alias.start = S.i
                 N.alias.`end` = S.i + 2
 

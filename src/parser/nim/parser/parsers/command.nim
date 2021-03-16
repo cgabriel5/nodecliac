@@ -59,13 +59,13 @@ proc p_command*(S: State) =
         # if the command is 'com\mand\.name' we should return
         # 'command\.name' and not 'com\mand\.name'.
         if c == '\\':
-            let nchar = if S.i + 1 < l: text[S.i + 1] else: '\0'
+            let n = if S.i + 1 < l: text[S.i + 1] else: '\0'
 
-            # nchar must exist else escaping nothing.
-            if nchar == '\0': error(S, currentSourcePath, 10)
+            # n must exist else escaping nothing.
+            if n == '\0': error(S, currentSourcePath, 10)
 
             # Only dots can be escaped.
-            if nchar != '.':
+            if n != '.':
                 error(S, currentSourcePath, 10)
 
                 # Remove last escape char as it isn't needed.

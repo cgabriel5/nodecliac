@@ -5,7 +5,7 @@ const vtest = require("./vtest.js");
 const vcontext = require("./vcontext.js");
 const { cin, cnotin, C_SPACES, C_QUOTES } = require("./charsets.js");
 const r = /(?<!\\)\$\{\s*[^}]*\s*\}/g;
-const r_unescap = /(?:\\(.))/g;
+// const r_unescap = /(?:\\(.))/g;
 
 /**
  * Validates string and interpolates its variables.

@@ -8,7 +8,7 @@ from charsets import C_QUOTES, C_SPACES, C_CTX_ALL, C_CTX_MUT,
     C_CTX_FLG, C_CTX_CON, C_LETTERS, C_CTX_CAT, C_CTX_OPS
 from ../../utils/regex import findAllBounds
 let r = re"(?<!\\)\$\{\s*[^}]*\s*\}"
-let r_unescap = re"(?:\\(.))"
+# let r_unescap = re"(?:\\(.))"
 
 # Validates string and interpolates its variables.
 #

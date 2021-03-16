@@ -29,7 +29,7 @@ proc p_setting*(S: State) =
             N.stop = S.i
             break # Stop at nl char.
 
-        if c == '#' and p != '\\' and state != "value":
+        if c == C_NUMSIGN and p != C_ESCAPE and state != "value":
             rollback(S)
             N.stop = S.i
             break
@@ -55,14 +55,14 @@ proc p_setting*(S: State) =
                         state = "name-wsb"
                         forward(S)
                         continue
-                    elif c == '=':
+                    elif c == C_EQUALSIGN:
                         state = "assignment"
                         rollback(S)
                     else: error(S, currentSourcePath)
 
             of "name-wsb":
                 if c notin C_SPACES:
-                    if c == '=':
+                    if c == C_EQUALSIGN:
                         state = "assignment"
                         rollback(S)
                     else: error(S, currentSourcePath)
@@ -87,12 +87,12 @@ proc p_setting*(S: State) =
                     N.value.stop = S.i
                     N.value.value = $c
                 else:
-                    if qchar != '\0':
-                        if c == qchar and p != '\\': state = "eol-wsb"
+                    if qchar != C_NULLB:
+                        if c == qchar and p != C_ESCAPE: state = "eol-wsb"
                         N.value.stop = S.i
                         N.value.value &= $c
                     else:
-                        if c in C_SPACES and p != '\\':
+                        if c in C_SPACES and p != C_ESCAPE:
                             state = "eol-wsb"
                             rollback(S)
                         else:

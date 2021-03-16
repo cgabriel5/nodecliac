@@ -1,6 +1,6 @@
 import std/[strformat, re, strutils, os, tables]
 
-import ../helpers/types
+import ../helpers/[types, charsets]
 import ../../utils/chalk
 
 var tb = initTable[int, string]()
@@ -63,7 +63,7 @@ proc error*(S: State, parserfile: string, code: int = 0) =
     let error = if code == 0: errors["*"][code] else: errors[parser][code]
 
     # Replace '_' to '-' to match JS error.
-    if '_' in parser: parser = parser.replace(re"_", "-")
+    if C_UNDERSCORE in parser: parser = parser.replace(re"_", "-")
 
     let pos = fmt"{line}:{column}".chalk("bold", "red")
     let einfo = "[" & "err".chalk("red") & fmt" {parser},{code}" & "]"

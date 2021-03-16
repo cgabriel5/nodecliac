@@ -26,7 +26,7 @@ proc p_closebrace*(S: State) =
             N.stop = S.i
             break # Stop at nl char.
 
-        if c == '#' and p != '\\':
+        if c == C_NUMSIGN and p != C_ESCAPE:
             rollback(S)
             N.stop = S.i
             break

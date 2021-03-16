@@ -23,7 +23,7 @@ import ../helpers/[error, validate, forward, rollback]
 # @return {object} - Node object.
 proc p_flag*(S: State, isoneliner: string): Node =
     let text = S.text
-    var state = if text[S.i] == '-': "hyphen" else: "keyword"
+    var state = if text[S.i] == C_HYPHEN: "hyphen" else: "keyword"
     var stop = false # Flag: true - stops parser.
     var `type` = "escaped"
     var N = node(nkFlag, S)
@@ -48,7 +48,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
             N.stop = S.i
             break # Stop at nl char.
 
-        if c == '#' and p != '\\' and (state != "value" or comment):
+        if c == C_NUMSIGN and p != C_ESCAPE and (state != "value" or comment):
             rollback(S)
             N.stop = S.i
             break
@@ -57,15 +57,15 @@ proc p_flag*(S: State, isoneliner: string): Node =
             of "hyphen":
                 # [https://stackoverflow.com/a/25895905]
                 # [https://stackoverflow.com/a/12281034]
-                # RegEx to split on unescaped '|': /(?<=[^\\]|^|$)\|/
+                # RegEx to split on unescaped C_PIPE: /(?<=[^\\]|^|$)\|/
 
                 if N.hyphens.value == "":
-                    if c != '-': error(S, currentSourcePath)
+                    if c != C_HYPHEN: error(S, currentSourcePath)
                     N.hyphens.start = S.i
                     N.hyphens.stop = S.i
                     N.hyphens.value = $c
                 else:
-                    if c != '-':
+                    if c != C_HYPHEN:
                         state = "name"
                         rollback(S)
                     else:
@@ -102,19 +102,19 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     if c in C_FLG_IDENT:
                         N.name.stop = S.i
                         N.name.value &= $c
-                    elif c == ':' and not alias:
+                    elif c == C_COLON and not alias:
                         state = "alias"
                         rollback(S)
-                    elif c == '=':
+                    elif c == C_EQUALSIGN:
                         state = "assignment"
                         rollback(S)
-                    elif c == ',':
+                    elif c == C_COMMA:
                         state = "delimiter"
                         rollback(S)
-                    elif c == '?':
+                    elif c == C_QMARK:
                         state = "boolean-indicator"
                         rollback(S)
-                    elif c == '|':
+                    elif c == C_PIPE:
                         state = "pipe-delimiter"
                         rollback(S)
                     elif c in C_SPACES:
@@ -124,13 +124,13 @@ proc p_flag*(S: State, isoneliner: string): Node =
 
             of "wsb-postname":
                 if c notin C_SPACES:
-                    if c == '=':
+                    if c == C_EQUALSIGN:
                         state = "assignment"
                         rollback(S)
-                    elif c == ',':
+                    elif c == C_COMMA:
                         state = "delimiter"
                         rollback(S)
-                    elif c == '|':
+                    elif c == C_PIPE:
                         state = "pipe-delimiter"
                         rollback(S)
                     else: error(S, currentSourcePath)
@@ -144,12 +144,12 @@ proc p_flag*(S: State, isoneliner: string): Node =
             of "alias":
                 alias = true
                 # Next char must also be a colon.
-                let n = if S.i + 1 < l: text[S.i + 1] else: '\0'
-                if n != ':': error(S, currentSourcePath)
+                let n = if S.i + 1 < l: text[S.i + 1] else: C_NULLB
+                if n != C_COLON: error(S, currentSourcePath)
                 N.alias.start = S.i
                 N.alias.stop = S.i + 2
 
-                let letter = if S.i + 2 < l: text[S.i + 2] else: '\0'
+                let letter = if S.i + 2 < l: text[S.i + 2] else: C_NULLB
                 if letter notin C_LETTERS:
                     S.i += 1
                     S.column += 1
@@ -169,14 +169,14 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 state = "multi-indicator"
 
             of "multi-indicator":
-                if c == '*':
+                if c == C_ASTERISK:
                     N.multi.start = S.i
                     N.multi.stop = S.i
                     N.multi.value = $c
                     state = "wsb-prevalue"
                 else:
-                    if c == '|': state = "pipe-delimiter"
-                    elif c == ',': state = "delimiter"
+                    if c == C_PIPE: state = "pipe-delimiter"
+                    elif c == C_COMMA: state = "delimiter"
                     else: state = "wsb-prevalue"
                     rollback(S)
 
@@ -188,7 +188,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     # * = [
                     #      --help?|context "!help: #fge1"
                     # ]
-                    if c != '|' or isoneliner == "": error(S, currentSourcePath)
+                    if c != C_PIPE or isoneliner == "": error(S, currentSourcePath)
                     stop = true
 
             of "delimiter":
@@ -200,16 +200,16 @@ proc p_flag*(S: State, isoneliner: string): Node =
             of "wsb-prevalue":
                 if c notin C_SPACES:
                     let keyword = N.keyword.value notin C_KD_STR
-                    if c == '|' and keyword: state = "pipe-delimiter"
-                    elif c == ',': state = "delimiter"
+                    if c == C_PIPE and keyword: state = "pipe-delimiter"
+                    elif c == C_COMMA: state = "delimiter"
                     else: state = "value"
                     rollback(S)
 
             of "value":
                 if N.value.value == "":
                     # Determine value type.
-                    if c == '$': `type` = "command-flag"
-                    elif c == '(':
+                    if c == C_DOLLARSIGN: `type` = "command-flag"
+                    elif c == C_LPAREN:
                         `type` = "list"
                         braces.add(S.i)
                     elif c in C_QUOTES:
@@ -220,20 +220,20 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     N.value.stop = S.i
                     N.value.value = $c
                 else:
-                    if c == '|' and N.keyword.value notin C_KD_STR and p != '\\':
+                    if c == C_PIPE and N.keyword.value notin C_KD_STR and p != C_ESCAPE:
                         state = "pipe-delimiter"
                         rollback(S)
                     else:
                         case `type`:
                             of "escaped":
-                                if c in C_SPACES and p != '\\':
+                                if c in C_SPACES and p != C_ESCAPE:
                                     state = "eol-wsb"
                                     forward(S)
                                     continue
                             of "quoted":
-                                if c == qchar and p != '\\':
+                                if c == qchar and p != C_ESCAPE:
                                     state = "eol-wsb"
-                                elif c == '#' and qchar == '\0':
+                                elif c == C_NUMSIGN and qchar == C_NULLB:
                                     comment = true
                                     rollback(S)
                             else: # list|command-flag
@@ -243,16 +243,16 @@ proc p_flag*(S: State, isoneliner: string): Node =
                                 #   --help=$"cat ~/files.text"
                                 #   --------^ Missing '(' after '$'.
                                 if `type` == "command-flag":
-                                    if N.value.value.len == 1 and c != '(':
+                                    if N.value.value.len == 1 and c != C_LPAREN:
                                         error(S, currentSourcePath)
 
                                 # The following logic, is precursor validation
                                 # logic that ensures braces are balanced and
                                 # detects inline comment.
-                                if p != '\\':
-                                    if c == '(' and qchar == '\0':
+                                if p != C_ESCAPE:
+                                    if c == C_LPAREN and qchar == C_NULLB:
                                         braces.add(S.i)
-                                    elif c == ')' and qchar == '\0':
+                                    elif c == C_RPAREN and qchar == C_NULLB:
                                         # If braces len is negative, opening
                                         # braces were never introduced so
                                         # current closing brace is invalid.
@@ -261,10 +261,10 @@ proc p_flag*(S: State, isoneliner: string): Node =
                                         if braces.len == 0: state = "eol-wsb"
 
                                     if c in C_QUOTES:
-                                        if qchar == '\0': qchar = c
-                                        elif qchar == c: qchar = '\0'
+                                        if qchar == C_NULLB: qchar = c
+                                        elif qchar == c: qchar = C_NULLB
 
-                                    if c == '#' and qchar == '\0':
+                                    if c == C_NUMSIGN and qchar == C_NULLB:
                                         if braces.len == 0:
                                             comment = true
                                             rollback(S)
@@ -277,7 +277,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                         N.value.value &= $c
 
             of "eol-wsb":
-                if c == '|' and N.keyword.value notin C_KD_STR and p != '\\':
+                if c == C_PIPE and N.keyword.value notin C_KD_STR and p != C_ESCAPE:
                     state = "pipe-delimiter"
                     rollback(S)
                 elif c notin C_SPACES: error(S, currentSourcePath)

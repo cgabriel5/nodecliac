@@ -37,21 +37,21 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
             inc(S.column) # Add 1 to account for 0 base indexing.
             error(S, currentSourcePath, 16)
 
-        let C = if kw == "default": C_QUOTES + {'$'} else: C_QUOTES
+        let C = if kw == "default": C_QUOTES + {C_DOLLARSIGN} else: C_QUOTES
         # context, filedir, exclude must have quoted string values.
         if value[0] notin C:
             S.column = resumepoint
             error(S, currentSourcePath)
 
-    # If value doesn't exist or is '(' (long-form flag list) return.
+    # If value doesn't exist or is C_LPAREN (long-form flag list) return.
     if value == "" or value == "(": return
 
     # Determine type if not provided.
     if `type` == "":
         `type` = "escaped"
         let `char` = value[0]
-        if `char` == '$': `type` = "command-flag"
-        elif `char` == '(': `type` = "list"
+        if `char` == C_DOLLARSIGN: `type` = "command-flag"
+        elif `char` == C_LPAREN: `type` = "list"
         elif `char` in C_QUOTES: `type` = "quoted"
 
     # Create temporary Node.
@@ -73,13 +73,13 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
 
     case (`type`):
         of "quoted":
-            let fchar = if value[0] == '$': value[1] else: value[0]
+            let fchar = if value[0] == C_DOLLARSIGN: value[1] else: value[0]
             let isquoted = fchar in C_QUOTES
             let lchar = value[^1]
             let schar = value[^2]
             if isquoted:
                 # Error if improperly quoted/end quote is escaped.
-                if lchar != fchar or schar == '\\':
+                if lchar != fchar or schar == C_ESCAPE:
                     S.column = resumepoint
                     error(S, currentSourcePath, 10)
                 # Error it string is empty.
@@ -131,8 +131,8 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
             if not value.startsWith("$("):
                 S.column = resumepoint + 1
                 error(S, currentSourcePath, 13)
-            # Error if command-flag doesn't end with ')'.
-            if value[^1] != ')':
+            # Error if command-flag doesn't end with C_RPAREN.
+            if value[^1] != C_RPAREN:
                 S.column = resumepoint + value.high
                 error(S, currentSourcePath, 13)
 
@@ -149,18 +149,18 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
             let l = value.high
             while i < l:
                 let `char` = value[i]
-                let pchar = if i - 0 > 0: value[i - 1] else: '\0'
-                let nchar = if i + 1 < l: value[i + 1] else: '\0'
+                let pchar = if i - 0 > 0: value[i - 1] else: C_NULLB
+                let nchar = if i + 1 < l: value[i + 1] else: C_NULLB
 
-                if qchar == '\0':
+                if qchar == C_NULLB:
                     # Look for unescaped quote characters.
-                    if `char` in C_QUOTES and pchar != '\\':
+                    if `char` in C_QUOTES and pchar != C_ESCAPE:
                         vsi = resume_index
                         qchar = `char`
                         argument &= $`char`
                     elif `char` in C_SPACES: discard
                         # Ignore any whitespace outside of quotes.
-                    elif `char` == ',':
+                    elif `char` == C_COMMA:
                         # Track count of command delimiters.
                         inc(delimiter_count)
                         delimiter_index = i
@@ -169,8 +169,8 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                         if delimiter_count > 1 or args.len == 0:
                             S.column = resumepoint + i
                             error(S, currentSourcePath, 14)
-                    # Look for '$' prefixed strings.
-                    elif `char` == '$' and nchar in C_QUOTES:
+                    # Look for C_DOLLARSIGN prefixed strings.
+                    elif `char` == C_DOLLARSIGN and nchar in C_QUOTES:
                         qchar = nchar
                         argument &= $`char` & $nchar
                         inc(resume_index)
@@ -189,13 +189,13 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                 else:
                     argument &= $`char`
 
-                    if `char` == qchar and pchar != '\\':
+                    if `char` == qchar and pchar != C_ESCAPE:
                         tNset(vsi, argument.high, argument)
                         argument = validate(S, tN, "quoted")
                         args.add(argument)
 
                         argument = ""
-                        qchar = '\0'
+                        qchar = C_NULLB
                         delimiter_index = -1
                         delimiter_count = 0
 
@@ -223,12 +223,12 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
             value = cvalue
 
         of "list":
-            # Error if list doesn't start with '('.
-            if value[0] != '(':
+            # Error if list doesn't start with C_LPAREN.
+            if value[0] != C_LPAREN:
                 S.column = resumepoint
                 error(S, currentSourcePath, 15)
-            # Error if command-flag doesn't end with ')'.
-            if value[^1] != ')':
+            # Error if command-flag doesn't end with C_RPAREN.
+            if value[^1] != C_RPAREN:
                 S.column = resumepoint + value.high
                 error(S, currentSourcePath, 15)
 
@@ -244,20 +244,20 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
             let l = value.high
             while i < l:
                 let `char` = value[i]
-                let pchar = if i - 0 > 0: value[i - 1] else: '\0'
+                let pchar = if i - 0 > 0: value[i - 1] else: C_NULLB
 
                 if mode == "":
                     # Skip unescaped ws delimiters.
-                    if `char` in C_SPACES and pchar != '\\':
+                    if `char` in C_SPACES and pchar != C_ESCAPE:
                         inc(i); inc(resume_index);
                         continue
 
                     # Set mode depending on the character.
-                    if `char` in C_QUOTES and pchar != '\\':
+                    if `char` in C_QUOTES and pchar != C_ESCAPE:
                         vsi = resume_index
                         mode = "quoted"
                         qchar = `char`
-                    elif `char` == '$' and pchar != '\\':
+                    elif `char` == C_DOLLARSIGN and pchar != C_ESCAPE:
                         vsi = resume_index
                         mode = "command-flag"
                     elif `char` notin C_SPACES:
@@ -282,7 +282,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                 elif mode != "":
                     if mode == "quoted":
                         # Stop at same-style quote char.
-                        if `char` == qchar and pchar != '\\':
+                        if `char` == qchar and pchar != C_ESCAPE:
                             argument &= $`char`
 
                             let stop = argument.high
@@ -296,7 +296,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                         else: argument &= $`char`
                     elif mode == "escaped":
                         # Stop at unescaped ws char.
-                        if `char` in C_SPACES and pchar != '\\':
+                        if `char` in C_SPACES and pchar != C_ESCAPE:
                             # argument &= $`char` # Store character.
 
                             let stop = argument.high
@@ -309,8 +309,8 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                             vsi = 0
                         else: argument &= $`char`
                     elif mode == "command-flag":
-                        # Stop at unescaped ')' char.
-                        if `char` == ')' and pchar != '\\':
+                        # Stop at unescaped C_RPAREN char.
+                        if `char` == C_RPAREN and pchar != C_ESCAPE:
                             argument &= $`char`
 
                             let stop = argument.high

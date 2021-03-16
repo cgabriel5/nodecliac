@@ -1,4 +1,4 @@
-import ../helpers/[tree_add, types]
+import ../helpers/[tree_add, types, charsets]
 
 # ------------------------------------------------------------ Parsing Breakdown
 # \n
@@ -15,6 +15,6 @@ proc p_newline*(S: State) =
 
     S.line = S.line + 1
     S.column = 0
-    S.sol_char = '\0'
+    S.sol_char = C_NULLB
 
     add(S, N)

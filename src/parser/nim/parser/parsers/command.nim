@@ -58,14 +58,14 @@ proc p_command*(S: State) =
         # include the '\' as it is not needed. For example,
         # if the command is 'com\mand\.name' we should return
         # 'command\.name' and not 'com\mand\.name'.
-        if c == '\\':
-            let n = if S.i + 1 < l: text[S.i + 1] else: '\0'
+        if c == C_ESCAPE:
+            let n = if S.i + 1 < l: text[S.i + 1] else: C_NULLB
 
             # n must exist else escaping nothing.
-            if n == '\0': error(S, currentSourcePath, 10)
+            if n == C_NULLB: error(S, currentSourcePath, 10)
 
             # Only dots can be escaped.
-            if n != '.':
+            if n != C_DOT:
                 error(S, currentSourcePath, 10)
 
                 # Remove last escape char as it isn't needed.
@@ -82,7 +82,7 @@ proc p_command*(S: State) =
             N.stop = S.i
             break # Stop at nl char.
 
-        if c == '#' and p != '\\':
+        if c == C_NUMSIGN and p != C_ESCAPE:
             rollback(S)
             N.stop = S.i
             break
@@ -97,7 +97,7 @@ proc p_command*(S: State) =
                     N.command.value &= $c
 
                     # Once a wildcard (all) char is found change state.
-                    if c == '*': state = "chain-wsb"
+                    if c == C_ASTERISK: state = "chain-wsb"
                 else:
                     if c in C_CMD_IDENT:
                         N.command.stop = S.i
@@ -107,23 +107,23 @@ proc p_command*(S: State) =
                         state = "chain-wsb"
                         forward(S)
                         continue
-                    elif c == '=':
+                    elif c == C_EQUALSIGN:
                         state = "assignment"
                         rollback(S)
-                    elif c == ',':
+                    elif c == C_COMMA:
                         state = "delimiter"
                         rollback(S)
-                    elif c == '{':
+                    elif c == C_LCURLY:
                         state = "group-open"
                         rollback(S)
                     else: error(S, currentSourcePath)
 
             of "chain-wsb":
                 if c notin C_SPACES:
-                    if c == '=':
+                    if c == C_EQUALSIGN:
                         state = "assignment"
                         rollback(S)
-                    elif c == ',':
+                    elif c == C_COMMA:
                         state = "delimiter"
                         rollback(S)
                     else: error(S, currentSourcePath)
@@ -148,7 +148,7 @@ proc p_command*(S: State) =
             of "value":
                 # Note: Intermediary step - remove it?
                 if c notin C_CMD_VALUE: error(S, currentSourcePath)
-                state = if c == '[': "open-bracket" else: "oneliner"
+                state = if c == C_LBRACKET: "open-bracket" else: "oneliner"
                 rollback(S)
 
             of "open-bracket":
@@ -164,7 +164,7 @@ proc p_command*(S: State) =
                     rollback(S)
 
             of "close-bracket":
-                if c != ']': error(S, currentSourcePath)
+                if c != C_RBRACKET: error(S, currentSourcePath)
                 N.brackets.stop = S.i
                 N.value.value &= $c
                 state = "eol-wsb"
@@ -218,10 +218,10 @@ proc p_command*(S: State) =
                     if c in C_CMD_GRP_IDENT_START:
                         state = "group-command"
                         rollback(S)
-                    elif c == ',':
+                    elif c == C_COMMA:
                         state = "group-delimiter"
                         rollback(S)
-                    elif c == '}':
+                    elif c == C_RCURLY:
                         state = "group-close"
                         rollback(S)
                     else: error(S, currentSourcePath)
@@ -244,10 +244,10 @@ proc p_command*(S: State) =
                     elif c in C_SPACES:
                         state = "group-wsb"
                         continue
-                    elif c == ',':
+                    elif c == C_COMMA:
                         state = "group-delimiter"
                         rollback(S)
-                    elif c == '}':
+                    elif c == C_RCURLY:
                         state = "group-close"
                         rollback(S)
                     else: error(S, currentSourcePath)

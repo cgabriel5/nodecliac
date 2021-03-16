@@ -35,7 +35,7 @@ proc p_option*(S: State): Node =
             N.stop = S.i
             break # Stop at nl char.
 
-        if c == '#' and p != '\\' and (state != "value" or comment):
+        if c == C_NUMSIGN and p != C_ESCAPE and (state != "value" or comment):
             rollback(S)
             N.stop = S.i
             break
@@ -59,8 +59,8 @@ proc p_option*(S: State): Node =
             of "value":
                 if N.value.value == "":
                     # Determine value type.
-                    if c == '$': `type` = "command-flag"
-                    elif c == '(':
+                    if c == C_DOLLARSIGN: `type` = "command-flag"
+                    elif c == C_LPAREN:
                         `type` = "list"
                         braces.add(S.i)
                     elif c in C_QUOTES:
@@ -73,14 +73,14 @@ proc p_option*(S: State): Node =
                 else:
                     case `type`:
                         of "escaped":
-                            if c in C_SPACES and p != '\\':
+                            if c in C_SPACES and p != C_ESCAPE:
                                 state = "eol-wsb"
                                 forward(S)
                                 continue
                         of "quoted":
-                            if c == qchar and p != '\\':
+                            if c == qchar and p != C_ESCAPE:
                                 state = "eol-wsb"
-                            elif c == '#' and qchar == '\0':
+                            elif c == C_NUMSIGN and qchar == C_NULLB:
                                 comment = true
                                 rollback(S)
                         else: # list|command-flag
@@ -90,16 +90,16 @@ proc p_option*(S: State): Node =
                             #   --help=$"cat ~/files.text"
                             #   --------^ Missing '(' after '$'.
                             if `type` == "command-flag":
-                                if N.value.value.len == 1 and c != '(':
+                                if N.value.value.len == 1 and c != C_LPAREN:
                                     error(S, currentSourcePath)
 
                             # The following logic, is precursor validation
                             # logic that ensures braces are balanced and
                             # detects inline comment.
-                            if p != '\\':
-                                if c == '(' and qchar == '\0':
+                            if p != C_ESCAPE:
+                                if c == C_LPAREN and qchar == C_NULLB:
                                     braces.add(S.i)
-                                elif c == ')' and qchar == '\0':
+                                elif c == C_RPAREN and qchar == C_NULLB:
                                     # If braces len is negative, opening
                                     # braces were never introduced so
                                     # current closing brace is invalid.
@@ -109,12 +109,12 @@ proc p_option*(S: State): Node =
                                         state = "eol-wsb"
 
                                 if c in C_QUOTES:
-                                    if qchar == '\0':
+                                    if qchar == C_NULLB:
                                         qchar = c
                                     elif qchar == c:
-                                        qchar = '\0'
+                                        qchar = C_NULLB
 
-                                if c == '#' and qchar == '\0':
+                                if c == C_NUMSIGN and qchar == C_NULLB:
                                     if braces.len == 0:
                                         comment = true
                                         rollback(S)

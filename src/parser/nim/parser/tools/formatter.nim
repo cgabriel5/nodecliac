@@ -1,6 +1,6 @@
 import std/[strformat, strutils, tables, re]
 
-import ../helpers/types
+import ../helpers/[types, charsets]
 
 # Formats (prettifies) .acmap file.
 #
@@ -101,7 +101,7 @@ proc formatter*(S: State): tuple =
                 if scopes.len != 0:
                     let last = output[output.len - 2]
                     let lchar = last[last.len - 1]
-                    let isbrace = lchar == '[' or lchar == '('
+                    let isbrace = lchar == C_LBRACKET or lchar == C_LPAREN
                     if isbrace and nN.node == "NEWLINE": inc(nl_count)
                     if nN.node == "BRACE":
                         if lastnode(i, l).node == "NEWLINE": discard output.pop()
@@ -237,8 +237,8 @@ proc formatter*(S: State): tuple =
                     let lfchar = last.replace(r, "")[0]
                     let slchar = slast[slast.len - 1]
 
-                    if lfchar == '-' and last[ll - 1] == '(': pad = ""
-                    elif last == "\n" and slchar == '(':
+                    if lfchar == C_HYPHEN and last[ll - 1] == C_LPAREN: pad = ""
+                    elif last == "\n" and slchar == C_LPAREN:
                         pad = ""
                         discard output.pop()
                 elif bval == "]":
@@ -250,7 +250,7 @@ proc formatter*(S: State): tuple =
                     else:
                         let sl = slast.len
                         let slchar = slast[sl - 1]
-                        if last == "\n" and slchar == '[': discard output.pop()
+                        if last == "\n" and slchar == C_LBRACKET: discard output.pop()
 
                 output.add(fmt"{pad}{bval}")
                 if scopes.len > 0: discard scopes.pop() # Un-track last scope.

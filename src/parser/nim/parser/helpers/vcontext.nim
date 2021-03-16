@@ -58,7 +58,7 @@ proc vcontext*(S: State, value: string = "",
         if `char` notin C_CTX_ALL:
             S.column = tindex(i)
             error(S, currentSourcePath)
-        if `char` == ';': # Track semicolons.
+        if `char` == C_SEMICOLON: # Track semicolons.
             if isEmptyOrWhitespace(argument):
                 S.column = tindex(i)
                 error(S, currentSourcePath, 14)
@@ -97,11 +97,11 @@ proc vcontext*(S: State, value: string = "",
         let l = value.len
         case (`type`):
             of "marg":
-                if v[0] == '-':
+                if v[0] == C_HYPHEN:
                     S.column = tindex(i)
                     error(S, currentSourcePath)
             of "carg":
-                    if v[0] == '!':
+                    if v[0] == C_EXPOINT:
                         if l < 2:
                             S.column = tindex(i)
                             error(S, currentSourcePath)
@@ -117,8 +117,8 @@ proc vcontext*(S: State, value: string = "",
                             error(S, currentSourcePath)
             of "ccond":
                 # Inversion: Remove '!' for next checks.
-                if v[0] == '!': v = v[1 .. ^1]
-                if v[0] == '#':
+                if v[0] == C_EXPOINT: v = v[1 .. ^1]
+                if v[0] == C_NUMSIGN:
                     # Must be at least 5 chars in length.
                     if l < 5:
                         S.column = tindex(i)
@@ -139,7 +139,7 @@ proc vcontext*(S: State, value: string = "",
                         error(S, currentSourcePath)
                     # Error if number starts with 0 and is
                     # more than 2 numbers.
-                    if v[4] == '0' and nval.len != 1:
+                    if v[4] == C_N0 and nval.len != 1:
                         S.column = tindex(i + 4)
                         error(S, currentSourcePath)
                 else:
@@ -157,7 +157,7 @@ proc vcontext*(S: State, value: string = "",
     for c, arg in args: # Validate parsed arguments.
         var i = 0
         let l = arg.len
-        var fchar = '\0'
+        var fchar = C_NULLB
 
         # Mutual exclusive variables.
         var marg = ""
@@ -184,13 +184,13 @@ proc vcontext*(S: State, value: string = "",
             if `char` in C_SPACES:
                 inc(i); inc(resume_index); continue
 
-            if fchar == '\0':
+            if fchar == C_NULLB:
                 fchar = `char`
-                if fchar == '{':
+                if fchar == C_LCURLY:
                     mopen_br_index = resume_index
                     inc(i); inc(resume_index); continue
 
-            if fchar == '{': # Mutual exclusivity.
+            if fchar == C_LCURLY: # Mutual exclusivity.
                 if `char` notin C_CTX_MUT:
                     S.column = tindex(resume_index)
                     error(S, currentSourcePath)
@@ -200,11 +200,11 @@ proc vcontext*(S: State, value: string = "",
                     S.column = tindex(resume_index)
                     error(S, currentSourcePath)
 
-                if `char` == '}':
+                if `char` == C_RCURLY:
                     mclose = true
                     inc(i); inc(resume_index); continue
 
-                if `char` == '|':
+                if `char` == C_PIPE:
                     if isEmptyOrWhitespace(marg):
                         S.column = tindex(resume_index)
                         error(S, currentSourcePath, 14)
@@ -222,7 +222,7 @@ proc vcontext*(S: State, value: string = "",
                         S.column = tindex(resume_index)
                         error(S, currentSourcePath)
 
-                    if `char` == ',':
+                    if `char` == C_COMMA:
                         if isEmptyOrWhitespace(carg):
                             S.column = tindex(resume_index)
                             error(S, currentSourcePath)
@@ -230,7 +230,7 @@ proc vcontext*(S: State, value: string = "",
                         cflags.add(verify(carg, "carg", cfindices[^1]))
                         carg = ""
                         inc(i); inc(resume_index); continue
-                    elif `char` == ':':
+                    elif `char` == C_COLON:
                         hasconds = true
                         if carg.len != 0 and cflags.len == 0:
                             cflags.add(verify(carg, "carg", cfindices[^1]))
@@ -247,15 +247,15 @@ proc vcontext*(S: State, value: string = "",
                     if `char` notin C_CTX_CON:
                         S.column = tindex(resume_index)
                         error(S, currentSourcePath)
-                    if `char` == '!':
+                    if `char` == C_EXPOINT:
                         if ccond != "":
                             S.column = tindex(resume_index)
                             error(S, currentSourcePath)
-                    elif `char` == '#':
-                        if ccond != "" and ccond[0] != '!':
+                    elif `char` == C_NUMSIGN:
+                        if ccond != "" and ccond[0] != C_EXPOINT:
                             S.column = tindex(resume_index)
                             error(S, currentSourcePath)
-                    if `char` == ',':
+                    if `char` == C_COMMA:
                         if isEmptyOrWhitespace(ccond):
                             S.column = tindex(resume_index)
                             error(S, currentSourcePath, 14)
@@ -271,7 +271,7 @@ proc vcontext*(S: State, value: string = "",
         # Add 1 to account for ';' delimiter.
         inc(i); inc(resume_index)
 
-        if fchar == '{':
+        if fchar == C_LCURLY:
             # Check that braces were closed.
             if mclose == false:
                 S.column = tindex(mopen_br_index)

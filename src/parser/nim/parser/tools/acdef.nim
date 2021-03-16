@@ -1,7 +1,7 @@
 import std/[md5, algorithm, sequtils, unicode, re]
 import std/[strutils, times, strtabs, sets, tables]
 
-import ../helpers/types
+import ../helpers/[types, charsets]
 
 # Generate .acdef, .config.acdef file contents.
 #
@@ -75,7 +75,7 @@ proc acdef*(S: State, cmdname: string): tuple =
         result.orig = s
         result.val = s.toLower()
         result.m = s.endsWith("=*").int
-        if s[1] != '-':
+        if s[1] != C_HYPHEN:
             result.orig = s
             result.single = true
 
@@ -259,7 +259,7 @@ proc acdef*(S: State, cmdname: string): tuple =
                 if keyword == "default": queue_defs.incl(value)
                 elif keyword == "filedir": queue_fdir.incl(value)
                 elif keyword == "context":
-                    queue_ctxs.incl(value.strip(chars={'"', '\''}))
+                    queue_ctxs.incl(value.strip(chars={C_DQUOTE, '\''}))
                 continue # defaults don't need to be added to Sets.
 
             let aval = fN.assignment.value

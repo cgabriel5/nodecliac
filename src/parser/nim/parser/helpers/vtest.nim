@@ -59,12 +59,12 @@ proc vtest*(S: State, value: string = "",
         else:
             if findex == 0: findex = i
         # Handle escaped characters.
-        if `char` == '\\':
-            if value[i + 1] != '\0':
+        if `char` == C_ESCAPE:
+            if value[i + 1] != C_NULLB:
                 argument &= `char` & $value[i + 1]
                 inc(i);inc(i)
                 continue
-        if `char` == ';': # Track semicolons.
+        if `char` == C_SEMICOLON: # Track semicolons.
             if isEmptyOrWhitespace(argument):
                 S.column = tindex(i)
                 error(S, currentSourcePath, 14)
@@ -101,8 +101,8 @@ proc vtest*(S: State, value: string = "",
         var v = value
         let l = value.len
         # Inversion: Remove '!' for next checks.
-        if v[0] == '!': v = v[1 .. ^1]
-        if v[0] == '#':
+        if v[0] == C_EXPOINT: v = v[1 .. ^1]
+        if v[0] == C_NUMSIGN:
             # Must be at least 5 chars in length.
             if l < 5:
                 S.column = tindex(i)
@@ -123,7 +123,7 @@ proc vtest*(S: State, value: string = "",
                 error(S, currentSourcePath)
             # Error if number starts with 0 and is
             # more than 2 numbers.
-            if v[4] == '0' and nval.len != 1:
+            if v[4] == C_N0 and nval.len != 1:
                 S.column = tindex(i + 4)
                 error(S, currentSourcePath)
         else:
@@ -148,7 +148,7 @@ proc vtest*(S: State, value: string = "",
     for arg in args: # Validate parsed arguments.
         var i = 0
         let l = arg.len
-        var fchar = '\0'
+        var fchar = C_NULLB
         var findex = 0
 
         while i < l:
@@ -156,15 +156,15 @@ proc vtest*(S: State, value: string = "",
             if `char` in C_SPACES:
                 inc(i); inc(resume_index); continue
 
-            if fchar == '\0':
+            if fchar == C_NULLB:
                 fchar = `char`
                 findex = i
 
             inc(i); inc(resume_index)
 
             # Only #ceq3 and its inversion (!#ceq3) are validated.
-            if fchar == '#' or fchar == '!':
-                if fchar == '!' and not (l > 2 and arg[findex + 1] == '#'):
+            if fchar == C_NUMSIGN or fchar == C_EXPOINT:
+                if fchar == C_EXPOINT and not (l > 2 and arg[findex + 1] == C_NUMSIGN):
                     continue
                 discard verify(arg.strip(trailing=true), resume_index)
                 break

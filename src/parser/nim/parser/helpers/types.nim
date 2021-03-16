@@ -1,5 +1,7 @@
 import std/[os, tables]
 
+import ../helpers/charsets
+
 type
 
     # State objects.
@@ -89,7 +91,7 @@ proc state*(action: string, cmdname: string, text: string, source: string,
     result.i = 0
     result.l = text.len
     result.text = text
-    result.sol_char = '\0' # First non-whitespace char of line.
+    result.sol_char = C_NULLB # First non-whitespace char of line.
     result.specf = 0 # Default to allow anything initially.
     result.scopes = Scopes(command: Node(), flag: Node()) #Scopes(command: Node, flag: Node),
     result.tables = Tables(variables: variables, linestarts: linestarts, tree: tree) # Parsing lookup tables.

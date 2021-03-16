@@ -14,7 +14,7 @@ proc parser*(action, text, cmdname, source: string,
     let l = S.l; var `char`, nchar: char
     while S.i < l:
         `char` = text[S.i]
-        nchar = if S.i + 1 < l: text[S.i + 1] else: '\0'
+        nchar = if S.i + 1 < l: text[S.i + 1] else: C_NULLB
 
         # Handle newlines.
         if `char` in C_NL:
@@ -23,7 +23,7 @@ proc parser*(action, text, cmdname, source: string,
             continue
 
         # Handle inline comment.
-        if `char` == '#' and S.sol_char != '\0':
+        if `char` == C_NUMSIGN and S.sol_char != C_NULLB:
             tracer.trace(S, "comment")
             p_comment(S, true)
             forward(S)
@@ -34,7 +34,7 @@ proc parser*(action, text, cmdname, source: string,
             S.tables.linestarts[S.line] = S.i
 
         # Start parsing at first non-ws character.
-        if S.sol_char == '\0' and `char` notin C_SPACES:
+        if S.sol_char == C_NULLB and `char` notin C_SPACES:
             S.sol_char = `char`
 
             # Sol char must be allowed.

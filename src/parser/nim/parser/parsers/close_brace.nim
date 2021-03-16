@@ -14,7 +14,7 @@ import ../helpers/[error, forward, rollback, brace_checks]
 proc p_closebrace*(S: State) =
     let text = S.text
     var state = "brace"
-    var N = node(S, nkBrace)
+    var N = node(nkBrace, S)
 
     let l = S.l; var `char`, pchar: char
     while S.i < l:

@@ -31,7 +31,7 @@ import ../helpers/[error, tracer, forward, rollback, brace_checks]
 proc p_command*(S: State) =
     let text = S.text
     var state = "command"
-    var N = node(S, nkCommand)
+    var N = node(nkCommand, S)
     let isformatting = S.args.action == "format"
 
     # Group state structures.
@@ -175,7 +175,7 @@ proc p_command*(S: State) =
                 let fN = p_flag(S, "oneliner")
                 # Add alias node if it exists.
                 if fN.alias.value != "":
-                    let cN = node(S, nkFlag)
+                    let cN = node(nkFlag, S)
                     cN.hyphens.value = "-"
                     cN.delimiter.value = ","
                     cN.name.value = fN.alias.value
@@ -186,7 +186,7 @@ proc p_command*(S: State) =
                     N.flags.add(cN)
 
                     # Add context node for mutual exclusivity.
-                    let xN = node(S, nkFlag)
+                    let xN = node(nkFlag, S)
                     xN.value.value = "\"{" & fN.name.value & "|" & fN.alias.value & "}\""
                     xN.keyword.value = "context"
                     xN.singleton = false

@@ -98,7 +98,7 @@ proc state*(action: string, cmdname: string, text: string, source: string,
     # Arguments/parameters for quick access across parsers.
     result.args = Args(action: action, source: source, fmt: fmt, trace: trace, igc: igc, test: test)
 
-proc node*(S: State, nkType: NodeKind): Node =
+proc node*(nkType: NodeKind, S: State): Node =
     result = Node(kind: nkType) # new(result)
 
     # [https://github.com/nim-lang/Nim/issues/11395]

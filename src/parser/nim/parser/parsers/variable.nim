@@ -19,7 +19,7 @@ proc p_variable*(S: State) =
     let text = S.text
     var qchar: char
     var state = "sigil"
-    var N = node(S, nkVariable)
+    var N = node(nkVariable, S)
 
     let l = S.l; var `char`, pchar: char
     while S.i < l:

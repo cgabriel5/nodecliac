@@ -70,8 +70,8 @@ type
 
 # Object constructors.
 
-proc state*(action: string, cmdname: string, text: string, source: string,
-    fmt: tuple, trace: bool, igc: bool, test: bool): State =
+proc state*(action, cmdname, text, source: string,
+            fmt: tuple, trace, igc, test: bool): State =
     new(result)
 
     var tests: seq[string] = @[]

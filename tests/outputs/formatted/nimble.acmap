@@ -17,7 +17,7 @@ nimble = [
 nimble.install = [
 	--depsOnly
 	--passNim
-	default $("nimble list | grep -v '^ ' | tr -d ':'")
+	default $("nimble list \| grep -v '^ ' \| tr -d ':'")
 ]
 nimble.develop
 nimble.check
@@ -25,7 +25,7 @@ nimble.init
 nimble.publish
 nimble.uninstall = [
 	--inclDeps
-	default $("nimble list -i | perl -pne 's/s+[/@/;s/]//'")
+	default $("nimble list -i \| perl -pne 's/\s+\[/\@/;s/\]//'")
 ]
 nimble.build
 nimble.run
@@ -39,5 +39,5 @@ nimble.refresh
 nimble.search = --ver
 nimble.list = --ver|--installed
 nimble.tasks
-nimble.path = default $("nimble list -i | cut -d' ' -f1")
+nimble.path = default $("nimble list -i \| cut -d' ' -f1")
 nimble.dump

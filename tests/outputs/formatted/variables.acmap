@@ -20,7 +20,7 @@ $cmdstring = "${scriptpath} ${argument}"
 @setting = "\${firstname} ${lastname}"
 
 program.command = --flag
-program.command = default $("${cmdstring}${   argument}")
+program.command = default $("${cmdstring}\${   argument}")
 # This line will overwrite the previous `program.command` declaration.
 program.command = default $("${argument}")
 program.command2 = default $("cat ${scriptpath}")
@@ -40,7 +40,7 @@ program.config.list
 $filename = "list.text"
 
 command\.test = [
-	--flag=$("cat "$HOME/Desktop/${filename}"")
+	--flag=$("cat \"$HOME/Desktop/${filename}\"")
 	--something=$("string ${filename}")
 	--nums=(strin\gs 13 "str ${filename}" false "\n" true 1 2 stri\&ng $("cat ${filename}",$"CAT ${filename}"))
 	--nums=("string ${filename}")

@@ -1,13 +1,13 @@
  --
-.command --print=|--print=$(""$HOME/Desktop/list.sh"")
-.double --test=|--test=$("echo $0-$1",$"echo john","doe","-")
-.file --print=|--print=$("cat "$HOME/Desktop/list.text"")
+.command --print=|--print=$("\"$HOME/Desktop/list.sh\"")
+.double --test=|--test=$("echo \$0-\$1",$"echo john","doe","-")
+.file --print=|--print=$("cat \"$HOME/Desktop/list.text\"")
 .gh -dorg-gradle-logging-level=|-dorg-gradle-logging-level=debug|-dorg-gradle-logging-level=info|-dorg-gradle-logging-level=lifecycle|-dorg-gradle-logging-level=quiet|-dorg-gradle-logging-level=warn
 .gradle --FLG|-dorg.gradle.logging.level=|-dorg.gradle.logging.level=-dorg.gradle.logging.level=debug|-dorg.gradle.logging.level=info|-dorg.gradle.logging.level=lifecycle|-dorg.gradle.logging.level=quiet|-dorg.gradle.logging.level=warn
 .GRADLE -Dorg=|-Dorg=debug|-Dorg=info|-Dorg=lifecycle|-Dorg=quiet|-Dorg=warn
 .gradle.next --string
 .gt --dorg=|--dorg="--dorg=(string \nstring)"|--dorg=debug|--dorg=info|--dorg=lifecycle|--dorg=quiet|--dorg=warn
-.hyphen --print=|--print=$("cat "$HOME/Desktop/text.text"","-")
+.hyphen --print=|--print=$("cat \"$HOME/Desktop/text.text\"","-")
 .keyword --
 .keyword.::ytfavorites --flag
 .longform --
@@ -16,22 +16,22 @@
 .longform.case3 --DORG=|--DORG="--dorg=(fname \\lname)"|--DORG=debug|--DORG=info|--DORG=lifecycle|--DORG=quiet|--DORG=warn
 .longform.case4 --flag1=|--flag1="--dorg=(fname \\lname)"|--flag1=debug|--flag1=info|--flag1=lifecycle|--flag1=quiet|--flag1=warn|--flag2=|--flag2="--dorg=(fname \\lname)"|--flag2=debug|--flag2=info|--flag2=lifecycle|--flag2=quiet
 .print --command=|--command=--command=string|--command=value|--FLAG
-.quoted --test=|--test=$("echo $0-$1",$"echo "'string str'"","doe","-")
+.quoted --test=|--test=$("echo \$0-\$1",$"echo \"\'string str\'\"","doe","-")
 .single --test=|--test=$('echo $0-$1',"john","doe","-")
 .test --
-.test.command --print=|--print=$(""$HOME/Desktop/list.sh"")
-.test.double --test=|--test=$("echo $0-$1",$"echo 'john'","doe","-")
-.test.file --print=|--print=$("cat "$HOME/Desktop/list.text"")
+.test.command --print=|--print=$("\"$HOME/Desktop/list.sh\"")
+.test.double --test=|--test=$("echo \$0-\$1",$"echo 'john'","doe","-")
+.test.file --print=|--print=$("cat \"$HOME/Desktop/list.text\"")
 .test.gh -dorg-gradle-logging-level=|-dorg-gradle-logging-level=debug|-dorg-gradle-logging-level=info|-dorg-gradle-logging-level=lifecycle|-dorg-gradle-logging-level=quiet|-dorg-gradle-logging-level=warn
 .test.gradle --FLG|-dorg.gradle.logging.level=|-dorg.gradle.logging.level=debug|-dorg.gradle.logging.level=info|-dorg.gradle.logging.level=lifecycle|-dorg.gradle.logging.level=quiet|-dorg.gradle.logging.level=warn
 .test.GRADLE -Dorg=|-Dorg=debug|-Dorg=info|-Dorg=lifecycle|-Dorg=quiet|-Dorg=warn
 .test.gradle.next --string
 .test.gt --dorg=|--dorg="--dorg=(string \\nvalue)"|--dorg="--dorg=(string value)"|--dorg=debug|--dorg=info|--dorg=lifecycle|--dorg=q:uiet|--dorg=quiet|--dorg=warn|--dorg=warn_ing|--FLAG
-.test.hyphen --print=|--print=$("cat "$HOME/Desktop/text.text"","-")
+.test.hyphen --print=|--print=$("cat \"$HOME/Desktop/text.text\"","-")
 .test.keyword --
 .test.keyword.::ytfavorites --flag
 .test.print --command=|--command=string|--command=value|--FLAG
-.test.quoted --test=|--test=$("echo $0-$1",$"echo "'string str'"","doe","-")
+.test.quoted --test=|--test=$("echo \$0-\$1",$"echo \"\'string str\'\"","doe","-")
 .test.single --test=|--test=$('echo $0-$1',"john","doe","-")
 .test.upper --FLG|-Dorg.gradle.Logging.level=|-Dorg.gradle.Logging.level=debug|-Dorg.gradle.Logging.level=info|-Dorg.gradle.Logging.level=lifecycle|-Dorg.gradle.Logging.level=quiet|-Dorg.gradle.Logging.level=warn
 .upper --FLG|-Dorg.gradle.Logging.level=|-Dorg.gradle.Logging.level=debug|-Dorg.gradle.Logging.level=info|-Dorg.gradle.Logging.level=lifecycle|-Dorg.gradle.Logging.level=quiet|-Dorg.gradle.Logging.level=warn

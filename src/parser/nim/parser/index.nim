@@ -6,8 +6,8 @@ from helpers/charsets import C_NL, C_SPACES, C_SOL
 import helpers/[brace_checks, error, linetype, specificity, tracer, rollback, forward]
 import parsers/[comment, newline, setting, variable, command, flag, option, close_brace]
 
-proc parser*(action: string, text: string, cmdname: string, source: string,
-    fmt: tuple, trace: bool, igc: bool, test: bool): tuple =
+proc parser*(action, text, cmdname, source: string, fmt: tuple,
+            trace, igc, test: bool): tuple =
     var S = state(action, cmdname, text, source, fmt, trace, igc, test)
     var ltype = ""
 

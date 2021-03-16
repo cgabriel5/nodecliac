@@ -8,7 +8,7 @@ import ../helpers/[tree_add, types]
 # @param  {object} S - State object.
 # @return Nothing is returned.
 proc p_newline*(S: State) =
-    var N = node(S, "NEWLINE")
+    var N = node(S, nkNewline)
 
     N.start = S.i
     N.`end` = S.i

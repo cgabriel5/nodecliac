@@ -17,7 +17,7 @@ proc p_setting*(S: State) =
     let text = S.text
     var qchar: char
     var state = "sigil"
-    var N = node(S, "SETTING")
+    var N = node(S, nkSetting)
 
     let l = S.l; var `char`, pchar: char
     while S.i < l:

@@ -17,7 +17,7 @@ proc p_option*(S: State): Node =
     let text = S.text
     var state = "bullet"
     var `type` = "escaped"
-    var N = node(S, "OPTION")
+    var N = node(S, nkOption)
     var qchar: char
     var comment = false
     var braces: seq[int] = @[]

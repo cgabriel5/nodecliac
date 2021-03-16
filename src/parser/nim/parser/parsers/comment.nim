@@ -10,7 +10,7 @@ import ../helpers/[tree_add, types, charsets, forward, rollback]
 # @return - Nothing is returned.
 proc p_comment*(S: State, inline=false) =
     let text = S.text
-    var N = node(S, "COMMENT")
+    var N = node(S, nkComment)
     N.comment.start = S.i
 
     if inline: N.inline = inline

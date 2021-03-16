@@ -26,7 +26,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
     var state = if text[S.i] == '-': "hyphen" else: "keyword"
     var stop = false # Flag: true - stops parser.
     var `type` = "escaped"
-    var N = node(S, "FLAG")
+    var N = node(S, nkFlag)
     var alias = false
     var qchar: char
     var comment = false
@@ -300,7 +300,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
 
         # Add alias node if it exists.
         if N.alias.value != "":
-            var cN = node(S, "FLAG")
+            var cN = node(S, nkFlag)
             cN.hyphens.value = "-"
             cN.delimiter.value = ","
             cN.name.value = N.alias.value
@@ -311,7 +311,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
             add(S, cN)
 
             # Add context node for mutual exclusivity.
-            let xN = node(S, "FLAG")
+            let xN = node(S, nkFlag)
             xN.value.value = "\"{" & N.name.value & "|" & N.alias.value & "}\""
             xN.keyword.value = "context"
             xN.singleton = false

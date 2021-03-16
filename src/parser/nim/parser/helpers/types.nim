@@ -27,7 +27,14 @@ type
     # Node + Variants
 
     NodeKind* = enum
-        comment, newline, setting, variable, command, flag, option, brace
+        nkComment = "COMMENT",
+        nkNewline = "NEWLINE",
+        nkSetting = "SETTING",
+        nkVariable = "VARIABLE",
+        nkCommand = "COMMAND",
+        nkFlag = "FLAG",
+        nkOption = "OPTION",
+        nkBrace = "BRACE"
     Node* = ref object
         node*: string
         line*, start*, `end`*: int
@@ -43,19 +50,19 @@ type
 
         # Depending on node type add needed fields.
         case kind: NodeKind
-        of comment:
+        of nkComment:
             comment*: Branch
             inline*: bool
-        of newline: discard
-        of setting, variable: sigil*: Branch
-        of command:
+        of nkNewline: discard
+        of nkSetting, nkVariable: sigil*: Branch
+        of nkCommand:
             command*: Branch
             flags*: seq[Node]
-        of flag:
+        of nkFlag:
             hyphens*, variable*, alias*, boolean*, multi*, keyword*: Branch
             singleton*, virtual*: bool
-        of option: bullet*: Branch
-        of brace: brace*: Branch
+        of nkOption: bullet*: Branch
+        of nkBrace: brace*: Branch
     Branch* = ref object
         start*, `end`*: int
         value*: string
@@ -91,40 +98,36 @@ proc state*(action: string, cmdname: string, text: string, source: string,
     # Arguments/parameters for quick access across parsers.
     result.args = Args(action: action, source: source, fmt: fmt, trace: trace, igc: igc, test: test)
 
-proc node*(S: State, node: string): Node =
-    new(result)
+proc node*(S: State, nkType: NodeKind): Node =
+    result = Node(kind: nkType) # new(result)
 
     # [https://github.com/nim-lang/Nim/issues/11395]
     # [https://forum.nim-lang.org/t/2799#17448]
-    case (node):
+    case (nkType):
 
     # Define each Node's props: [https://forum.nim-lang.org/t/4381]
     # [https://nim-lang.org/docs/manual.html#types-reference-and-pointer-types]
 
-    of "COMMENT":
-        result = Node(kind: comment)
+    of nkComment:
         result.comment = Branch()
 
-    of "NEWLINE": result = Node(kind: newline)
+    of nkNewline: discard
 
-    of "SETTING":
-        result = Node(kind: setting)
+    of nkSetting:
         result.sigil = Branch()
         result.name = Branch()
         result.assignment = Branch()
         result.value = Branch()
         result.args = @[]
 
-    of "VARIABLE":
-        result = Node(kind: variable)
+    of nkVariable:
         result.sigil = Branch()
         result.name = Branch()
         result.assignment = Branch()
         result.value = Branch()
         result.args = @[]
 
-    of "COMMAND":
-        result = Node(kind: command)
+    of nkCommand:
         result.command = Branch()
         result.name = Branch()
         result.brackets = Branch()
@@ -133,8 +136,7 @@ proc node*(S: State, node: string): Node =
         result.value = Branch()
         result.flags = @[]
 
-    of "FLAG":
-        result = Node(kind: flag)
+    of nkFlag:
         result.hyphens = Branch()
         result.variable = Branch()
         result.name = Branch()
@@ -150,17 +152,15 @@ proc node*(S: State, node: string): Node =
         result.virtual = false
         result.args = @[]
 
-    of "OPTION":
-        result = Node(kind: option)
+    of nkOption:
         result.bullet = Branch()
         result.value = Branch()
         result.args = @[]
 
-    of "BRACE":
-        result = Node(kind: brace)
+    of nkBrace:
         result.brace = Branch()
 
-    result.node = node
+    result.node = $nkType
     result.line = S.line
     result.start = S.i
     result.`end` = -1

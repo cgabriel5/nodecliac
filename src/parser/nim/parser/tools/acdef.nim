@@ -147,7 +147,7 @@ proc acdef*(S: State, cmdname: string): tuple =
     const types = toHashSet(["SETTING", "COMMAND", "FLAG", "OPTION"])
 
     # Contain missing parent command chains in their own group.
-    oGroups[-1] = {"commands": @[], "flags": @[], "_": @[node(S, "COMMAND")]}.toTable
+    oGroups[-1] = {"commands": @[], "flags": @[], "_": @[node(S, nkCommand)]}.toTable
 
     var i = 0; var l = xN.len; while i < l:
         let N = xN[i]
@@ -189,7 +189,7 @@ proc acdef*(S: State, cmdname: string): tuple =
                     while i > -1:
                         let rchain = commands.join(".") # Remainder chain.
                         if not oSets.hasKey(rchain):
-                            var mN = node(S, "COMMAND")
+                            var mN = node(S, nkCommand)
                             mN.command.value = rchain
                             oGroups[-1]["commands"].add(mN)
                             oSets[rchain] = initHashSet[string]()

@@ -1,12 +1,6 @@
-from algorithm import sort
-from sets import contains, toHashSet
-from strutils import join, parseInt, isEmptyOrWhitespace
-from tables import `[]=`, `[]`, OrderedTableRef, sort, pairs
+import std/[algorithm, sets, strutils, tables]
 
-import error
-from types import State
-from charsets import C_SPACES, C_CTX_ALL, C_CTX_MUT,
-    C_CTX_FLG, C_CTX_CON, C_LETTERS, C_CTX_CAT, C_CTX_OPS
+import error, types, charsets
 
 # Validate the provided context string.
 #

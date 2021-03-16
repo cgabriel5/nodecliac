@@ -1,7 +1,7 @@
-from tables import toTable, hasKey, getOrDefault, `[]`, `$`
+import std/tables
 
-from ../helpers/types import State
-from charsets import C_SPACES, C_KW_ALL, C_CMD_IDENT_START
+import ../helpers/types
+import charsets
 
 # Determine line's line type.
 #

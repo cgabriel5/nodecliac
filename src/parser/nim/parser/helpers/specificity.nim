@@ -1,7 +1,7 @@
-from tables import toTable, hasKey, getOrDefault, `[]=`, `[]`, `$`
+import std/tables
 
 import error
-from ../helpers/types import State
+import ../helpers/types
 
 # Validate line specificity.
 #

@@ -1,10 +1,6 @@
-from strformat import fmt
-from re import re, replace
-from strutils import split, join
-from os import DirSep, splitFile, extractFilename
-from tables import toTable, initTable, `[]=`, `[]`, `$`
+import std/[strformat, re, strutils, os, tables]
 
-from ../helpers/types import State
+import ../helpers/types
 import ../../utils/chalk
 
 var tb = initTable[int, string]()

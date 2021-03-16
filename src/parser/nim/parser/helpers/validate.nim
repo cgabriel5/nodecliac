@@ -1,12 +1,7 @@
-from re import re, replacef
-from strutils import join, strip, startsWith
-from tables import `[]=`, `[]`, hasKey, OrderedTableRef, pairs
+import std/[re, strutils, tables]
 
-import error, vcontext, vtest
-from types import State, Node, Branch
-from charsets import C_QUOTES, C_SPACES, C_CTX_ALL, C_CTX_MUT,
-    C_CTX_FLG, C_CTX_CON, C_LETTERS, C_CTX_CAT, C_CTX_OPS
-from ../../utils/regex import findAllBounds
+import error, vcontext, vtest, types, charsets
+import ../../utils/regex
 let r = re"(?<!\\)\$\{\s*[^}]*\s*\}"
 # let r_unescap = re"(?:\\(.))"
 

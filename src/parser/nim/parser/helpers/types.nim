@@ -1,5 +1,4 @@
-from os import getEnv
-from tables import Table, toTable, initTable, `[]=`, `$`
+import std/[os, tables]
 
 type
 

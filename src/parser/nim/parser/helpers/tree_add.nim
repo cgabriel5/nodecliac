@@ -1,6 +1,6 @@
-from tables import Table, `[]`, `$`, pairs
+import std/tables
 
-from types import State, Node
+import types
 
 # Add node object to tree.
 #

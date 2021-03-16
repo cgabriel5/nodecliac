@@ -51,16 +51,13 @@ proc main =
         echo "Path " & source.chalk("bold") & " doesn't exist."
         exit()
 
-    var res = read(source);shallow(res)
-    let pres = parser(action, res, cmdname, source, fmtinfo, trace, igc, test)
-    let acdef = pres.acdef
-    let config = pres.config
-    let keywords = pres.keywords
-    let filedirs = pres.filedirs
-    let contexts = pres.contexts
-    let placeholders = pres.placeholders
-    let formatted = pres.formatted
-    let tests = pres.tests
+    let (
+        acdef, config, keywords, filedirs,
+        contexts, formatted, placeholders, tests
+    ) = parser(
+        action, read(source), cmdname,
+        source, fmtinfo, trace, igc, test
+    )
 
     let testname = cmdname &  ".tests.sh"
     let savename = cmdname & ".acdef"

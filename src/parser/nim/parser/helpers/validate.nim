@@ -221,7 +221,8 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
 
             # Build clean cmd-flag and remove backslash escapes, but keep
             # escaped backslashes: [https://stackoverflow.com/a/57430306]
-            let cvalue = ("$(" & args.join(",") & ")").replacef(r_unescap, "$1")
+            # [TODO] Undo unescaping when formatting? (revisit this)
+            let cvalue = ("$(" & args.join(",") & ")") #.replacef(r_unescap, "$1")
             N.args = @[cvalue]
             N.value.value = cvalue
             value = cvalue

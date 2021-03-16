@@ -34,7 +34,7 @@ module.exports = (S, isoneliner) => {
 	let state = text.charAt(S.i) === "-" ? "hyphen" : "keyword";
 	let stop; // Flag: true - stops parser.
 	let type = "escaped";
-	let N = node(S, "FLAG");
+	let N = node("FLAG", S);
 	let alias = false;
 	let qchar = "";
 	let comment = false;
@@ -379,7 +379,7 @@ module.exports = (S, isoneliner) => {
 
 		// Add alias node if it exists.
 		if (N.alias.value) {
-			let cN = node(S, "FLAG");
+			let cN = node("FLAG", S);
 			cN.hyphens.value = "-";
 			cN.delimiter.value = ",";
 			cN.name.value = N.alias.value;
@@ -390,7 +390,7 @@ module.exports = (S, isoneliner) => {
 			add(S, cN);
 
 			// Add context node for mutual exclusivity.
-			let xN = node(S, "FLAG");
+			let xN = node("FLAG", S);
 			xN.value.value = `"{${N.name.value}|${N.alias.value}}"`;
 			xN.keyword.value = "context";
 			xN.singleton = false;

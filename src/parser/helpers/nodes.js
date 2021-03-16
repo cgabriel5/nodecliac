@@ -7,7 +7,7 @@
  * @param  {string} type - The object type to create.
  * @return {object} - The created node object.
  */
-module.exports = (S, type) => {
+module.exports = (type, S) => {
 	let N = {
 		node: type,
 		line: S.line,

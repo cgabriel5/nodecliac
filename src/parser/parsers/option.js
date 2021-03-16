@@ -30,7 +30,7 @@ module.exports = (S) => {
 	let { l, text } = S;
 	let state = "bullet";
 	let type = "escaped";
-	let N = node(S, "OPTION");
+	let N = node("OPTION", S);
 	let qchar = "";
 	let comment = false;
 	let braces = [];

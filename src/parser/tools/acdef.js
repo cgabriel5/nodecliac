@@ -201,7 +201,7 @@ module.exports = async (S, cmdname) => {
 					for (let i = commands.length - 1; i > -1; i--) {
 						let rchain = commands.join("."); // Remainder chain.
 						if (!hasProp(oSets, rchain)) {
-							let tN = node(S, "COMMAND");
+							let tN = node("COMMAND", S);
 							tN.command.value = rchain;
 							oGroups[-1].commands.push(tN);
 							oSets[rchain] = new Set();

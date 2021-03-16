@@ -17,7 +17,7 @@ const { cin, C_NL } = require("../helpers/charsets.js");
  */
 module.exports = (S, inline = false) => {
 	let { l, text } = S;
-	let N = node(S, "COMMENT");
+	let N = node("COMMENT", S);
 	N.comment.start = S.i;
 
 	if (inline) N.inline = inline;

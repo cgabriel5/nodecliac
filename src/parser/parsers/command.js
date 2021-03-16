@@ -49,7 +49,7 @@ const {
 module.exports = (S) => {
 	let { l, text } = S;
 	let state = "command";
-	let N = node(S, "COMMAND");
+	let N = node("COMMAND", S);
 	const isformatting = S.args.action === "format";
 
 	// Group state object.
@@ -217,7 +217,7 @@ module.exports = (S) => {
 					let fN = p_flag(S, "oneliner");
 					// Add alias node if it exists.
 					if (fN.alias.value) {
-						let cN = node(S, "FLAG");
+						let cN = node("FLAG", S);
 						cN.hyphens.value = "-";
 						cN.delimiter.value = ",";
 						cN.name.value = fN.alias.value;
@@ -228,7 +228,7 @@ module.exports = (S) => {
 						N.flags.push(cN);
 
 						// Add context node for mutual exclusivity.
-						let xN = node(S, "FLAG");
+						let xN = node("FLAG", S);
 						xN.value.value = `"{${fN.name.value}|${fN.alias.value}}"`;
 						xN.keyword.value = "context";
 						xN.singleton = false;

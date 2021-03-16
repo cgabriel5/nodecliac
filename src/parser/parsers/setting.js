@@ -34,7 +34,7 @@ module.exports = (S) => {
 	let { l, text } = S;
 	let qchar;
 	let state = "sigil";
-	let N = node(S, "SETTING");
+	let N = node("SETTING", S);
 
 	let char,
 		pchar = "";

@@ -22,7 +22,7 @@ const { cin, cnotin, C_NL, C_SPACES } = require("../helpers/charsets.js");
 module.exports = (S) => {
 	let { l, text } = S;
 	let state = "brace";
-	let N = node(S, "BRACE");
+	let N = node("BRACE", S);
 
 	let char,
 		pchar = "";

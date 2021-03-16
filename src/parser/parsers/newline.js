@@ -13,7 +13,7 @@ const add = require("../helpers/tree-add.js");
  * @return {undefined} - Nothing is returned.
  */
 module.exports = (S) => {
-	let N = node(S, "NEWLINE");
+	let N = node("NEWLINE", S);
 
 	N.start = N.end = S.i;
 

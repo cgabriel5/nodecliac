@@ -17,8 +17,8 @@ from ../helpers/types import State, Node, node
 # @param  {string} cmdname - Name of <command>.acdef being parsed.
 # @return {object} - Object containing acdef, config, and keywords contents.
 proc acdef*(S: State, cmdname: string): tuple =
-    var oSets = initTable[string, HashSet[string]]()
-    var oGroups = initTable[int, Table[string, seq[Node]]]()
+    var oSets = initOrderedTable[string, HashSet[string]]()
+    var oGroups = initOrderedTable[int, Table[string, seq[Node]]]()
     var oDefaults = newStringTable()
     var oFiledirs = newStringTable()
     var oContexts = newStringTable()
@@ -254,8 +254,8 @@ proc acdef*(S: State, cmdname: string): tuple =
     # @param  {set} queue_ctxs - The contexts container.
     # @param  {set} queue_flags - The flags container.
     # @return - Nothing is returned.
-    proc queues(fxN: seq[Node], queue_defs: var HashSet[string],
-        queue_fdir: var HashSet[string], queue_ctxs: var OrderedSet[string],
+    proc queues(fxN: seq[Node], queue_defs: var OrderedSet[string],
+        queue_fdir: var OrderedSet[string], queue_ctxs: var OrderedSet[string],
         queue_flags: var HashSet[string]) =
         for fN in fxN:
             let args = fN.args
@@ -301,8 +301,8 @@ proc acdef*(S: State, cmdname: string): tuple =
     for i, group in oGroups.pairs:
         var cxN = group["commands"]
         var fxN = group["flags"]
-        var queue_defs: HashSet[string]
-        var queue_fdir: HashSet[string]
+        var queue_defs: OrderedSet[string]
+        var queue_fdir: OrderedSet[string]
         var queue_ctxs: OrderedSet[string]
         var queue_flags: HashSet[string]
 

@@ -44,10 +44,10 @@ proc main =
     # Make path absolute.
     if not source.isAbsolute(): source = absolutePath(source)
 
-    if existsDir(source):
+    if dirExists(source):
         echo "Directory provided but .acmap file path needed."
         exit()
-    if not existsFile(source):
+    if not fileExists(source):
         echo "Path " & source.chalk("bold") & " doesn't exist."
         exit()
 

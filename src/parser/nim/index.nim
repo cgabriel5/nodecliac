@@ -1,14 +1,7 @@
-from re import re, find, replace
-from strutils import split, parseInt
-from os import isAbsolute, absolutePath, existsDir, existsFile, joinPath,
-    createDir, fpUserExec, fpUserWrite, fpUserRead, fpGroupExec, fpGroupWrite,
-    fpGroupRead, fpOthersExec, fpOthersRead
-from tables import Table, `[]`, `$`, keys, pairs, len # [https://github.com/nim-lang/Nim/issues/11155]
-from strtabs import StringTableRef, len, `[]`, keys
+import std/[re, strutils, os, tables, strtabs]
 
-from parser/index import parser
-import utils/[chalk, argvparse, exit]
-from utils/fs import info, read, write
+import parser/index
+import utils/[chalk, argvparse, exit, fs]
 
 # Wrap code in a function:
 # [https://forum.nim-lang.org/t/4835#30312]

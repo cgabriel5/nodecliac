@@ -1,7 +1,4 @@
-from ../helpers/tree_add import add
-import ../helpers/[forward, rollback]
-from ../helpers/types import State, node
-from ../helpers/charsets import C_NL
+import ../helpers/[tree_add, types, charsets, forward, rollback]
 
 # ------------------------------------------------------------ Parsing Breakdown
 # # Comment body.

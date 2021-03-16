@@ -1,5 +1,7 @@
-from sets import toHashSet
-from strutils import Digits, Letters, Newlines
+import std/[sets, strutils]
+
+# [Bug, Notice]: Compiler gives a warning importing constants.
+# [https://github.com/nim-lang/Nim/issues/13673]
 
 const C_NL* = Newlines
 const C_LETTERS* = Letters

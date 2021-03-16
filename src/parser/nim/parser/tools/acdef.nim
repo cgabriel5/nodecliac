@@ -1,15 +1,7 @@
-from md5 import getMD5
-from algorithm import sort
-from sequtils import insert
-from unicode import toLower
-from re import re, split, replace
-from strutils import join, endsWith, strip
-from times import format, getTime, toUnix
-from strtabs import `[]`, `[]=`, hasKey, keys, newStringTable, `$`
-from sets import HashSet, OrderedSet, initHashSet, incl, excl, toHashSet, contains, len, items, `$`
-from tables import Table, initTable, initOrderedTable, `[]=`, toTable, hasKey, keys, len, del, `$`
+import std/[md5, algorithm, sequtils, unicode, re]
+import std/[strutils, times, strtabs, sets, tables]
 
-from ../helpers/types import State, Node, node
+import ../helpers/types
 
 # Generate .acdef, .config.acdef file contents.
 #

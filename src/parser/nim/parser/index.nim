@@ -1,10 +1,10 @@
-from tables import `[]=`, `[]`, hasKey, `$`
+import std/tables
 
 import tools/[acdef, formatter]
-from helpers/types import state
-from helpers/charsets import C_NL, C_SPACES, C_SOL
-import helpers/[brace_checks, error, linetype, specificity, tracer, rollback, forward]
-import parsers/[comment, newline, setting, variable, command, flag, option, close_brace]
+import parsers/[command, flag, option, close_brace]
+import parsers/[comment, newline, setting, variable]
+import helpers/[charsets, types, brace_checks, error]
+import helpers/[linetype, specificity, tracer, forward]
 
 proc parser*(action, text, cmdname, source: string, fmt: tuple,
             trace, igc, test: bool): tuple =

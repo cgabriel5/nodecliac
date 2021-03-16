@@ -1,10 +1,7 @@
-from tables import `[]`
+import std/tables
 
-from ../helpers/tree_add import add
-from ../helpers/types import State, Node, node
+import ../helpers/[tree_add, types, charsets]
 import ../helpers/[error, validate, forward, rollback]
-from ../helpers/charsets import C_NL, C_SPACES, C_LETTERS, C_QUOTES,
-    C_FLG_IDENT, C_KW_ALL, C_KD_STR
 
 # ------------------------------------------------------------ Parsing Breakdown
 # --flag

@@ -1,5 +1,4 @@
-from ../helpers/tree_add import add
-from ../helpers/types import State, node
+import ../helpers/[tree_add, types]
 
 # ------------------------------------------------------------ Parsing Breakdown
 # \n

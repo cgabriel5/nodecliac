@@ -1,9 +1,6 @@
-from strformat import fmt
-from strutils import join, repeat
-from tables import Table, `[]`, toTable, `$`
-from re import re, replace, replacef, reMultiLine
+import std/[strformat, strutils, tables, re]
 
-from ../helpers/types import State, Node
+import ../helpers/types
 
 # Formats (prettifies) .acmap file.
 #

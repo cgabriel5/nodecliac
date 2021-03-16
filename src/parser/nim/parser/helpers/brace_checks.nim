@@ -1,7 +1,7 @@
-from tables import `[]`, `$`
+import std/tables
 
 import error
-from ../helpers/types import State, Node, node
+import ../helpers/types
 
 # Checks command/flag brace scopes are properly closed.
 #

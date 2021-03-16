@@ -1,11 +1,7 @@
 import flag
-from ../helpers/tree_add import add
-from ../helpers/types import State, Node, node
+import ../../utils/strutil
+import ../helpers/[tree_add, types, charsets]
 import ../helpers/[error, tracer, forward, rollback, brace_checks]
-from ../helpers/charsets import C_NL, C_SPACES,
-    C_CMD_IDENT_START, C_CMD_GRP_IDENT_START, C_CMD_IDENT, C_CMD_VALUE
-
-from ../../utils/strutil import replaceOnce
 
 # ------------------------------------------------------------ Parsing Breakdown
 # program.command

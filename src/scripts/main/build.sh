@@ -6,6 +6,7 @@
 #
 # --dev: Compile development binary.
 # --prod: Compile production binary.
+# --name: Rename output binary to provided name.
 # CFLAGS: ENV var to pass options to compiler.
 #
 # Examples:
@@ -16,6 +17,8 @@
 # 	$ yarn run build "$(pwd)"/main.nim --dev
 # Build development binary with compiler options via ENV var:
 # 	$ CFLAGS="--opt:size" yarn run build "$(pwd)"/main.nim --dev
+# Build development binary and name created binary:
+# 	$ yarn run build "$(pwd)"/main.nim --dev --name nodecliac.linux
 
 RED="\033[0;31m"
 # Bold colors.
@@ -43,10 +46,13 @@ fi
 # output="${dirname}/${name}.${USER_OS}"
 
 args=("-i" "$path")
+getname=""
 for i in "${@}"; do
 	# [[ "$i" == "-x"* ]] && echo "<$i>" && args+=("$i")
-	[[ "$i" == "--prod" ]] && args+=("-p")
-	[[ "$i" == "--dev" ]] && args+=("-d")
+	[[ "$i" == "--prod" ]] && args+=("-p") && continue
+	[[ "$i" == "--dev" ]] && args+=("-d") && continue
+	[[ "$i" == "--name" ]] && getname="1" && continue
+	[[ -n "$getname" ]] && args+=("-n" "$i") && getname="" && continue
 done
 
 CFLAGS="$CFLAGS" "$(pwd)/src/scripts/main/compile.sh" "${args[@]}"

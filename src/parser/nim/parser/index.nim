@@ -11,19 +11,19 @@ proc parser*(action, text, cmdname, source: string,
     var S = state(action, cmdname, text, source, fmt, trace, igc, test)
     var ltype = ""
 
-    let l = S.l; var `char`, nchar: char
+    let l = S.l; var c, n: char
     while S.i < l:
-        `char` = text[S.i]
-        nchar = if S.i + 1 < l: text[S.i + 1] else: C_NULLB
+        c = text[S.i]
+        n = if S.i + 1 < l: text[S.i + 1] else: C_NULLB
 
         # Handle newlines.
-        if `char` in C_NL:
+        if c in C_NL:
             p_newline(S)
             forward(S)
             continue
 
         # Handle inline comment.
-        if `char` == C_NUMSIGN and S.sol_char != C_NULLB:
+        if c == C_NUMSIGN and S.sol_char != C_NULLB:
             tracer.trace(S, "comment")
             p_comment(S, true)
             forward(S)
@@ -34,13 +34,13 @@ proc parser*(action, text, cmdname, source: string,
             S.tables.linestarts[S.line] = S.i
 
         # Start parsing at first non-ws character.
-        if S.sol_char == C_NULLB and `char` notin C_SPACES:
-            S.sol_char = `char`
+        if S.sol_char == C_NULLB and c notin C_SPACES:
+            S.sol_char = c
 
             # Sol char must be allowed.
-            if `char` notin C_SOL: error(S, 10)
+            if c notin C_SOL: error(S, 10)
 
-            ltype = linetype(S, `char`, nchar)
+            ltype = linetype(S, c, n)
             if ltype == "terminator": break
 
             specificity(S, ltype, currentSourcePath)

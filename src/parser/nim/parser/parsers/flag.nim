@@ -22,8 +22,7 @@ import ../helpers/[error, validate, forward, rollback]
 # @param  {string} isoneliner - Whether to treat flag as a oneliner.
 # @return {object} - Node object.
 proc p_flag*(S: State, isoneliner: string): Node =
-    let text = S.text
-    var state = if text[S.i] == C_HYPHEN: Hyphen else: Keyword
+    var state = if S.text[S.i] == C_HYPHEN: Hyphen else: Keyword
     var stop = false # Flag: true - stops parser.
     var `type` = "escaped"
     var N = node(nkFlag, S)
@@ -41,7 +40,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
     let l = S.l; var c, p: char
     while S.i < l:
         p = c
-        c = text[S.i]
+        c = S.text[S.i]
 
         if stop or c in C_NL:
             rollback(S)
@@ -75,7 +74,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
             of Keyword:
                 const keyword_len = 6
                 let endpoint = S.i + keyword_len
-                let keyword = text[S.i .. endpoint]
+                let keyword = S.text[S.i .. endpoint]
 
                 # Keyword must be allowed.
                 if keyword notin C_KW_ALL: error(S)
@@ -144,12 +143,12 @@ proc p_flag*(S: State, isoneliner: string): Node =
             of Alias:
                 alias = true
                 # Next char must also be a colon.
-                let n = if S.i + 1 < l: text[S.i + 1] else: C_NULLB
+                let n = if S.i + 1 < l: S.text[S.i + 1] else: C_NULLB
                 if n != C_COLON: error(S)
                 N.alias.start = S.i
                 N.alias.stop = S.i + 2
 
-                let letter = if S.i + 2 < l: text[S.i + 2] else: C_NULLB
+                let letter = if S.i + 2 < l: S.text[S.i + 2] else: C_NULLB
                 if letter notin C_LETTERS:
                     S.i += 1
                     S.column += 1

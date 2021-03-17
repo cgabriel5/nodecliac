@@ -29,7 +29,6 @@ import ../helpers/[error, tracer, forward, rollback, brace_checks]
 # @param  {object} S - State object.
 # @return {object} - Node object.
 proc p_command*(S: State) =
-    let text = S.text
     var state = Command
     var N = node(nkCommand, S)
     let isformatting = S.args.action == "format"
@@ -59,7 +58,7 @@ proc p_command*(S: State) =
         # if the command is 'com\mand\.name' we should return
         # 'command\.name' and not 'com\mand\.name'.
         if c == C_ESCAPE:
-            let n = if S.i + 1 < l: text[S.i + 1] else: C_NULLB
+            let n = if S.i + 1 < l: S.text[S.i + 1] else: C_NULLB
 
             # n must exist else escaping nothing.
             if n == C_NULLB: error(S, 10)
@@ -75,7 +74,7 @@ proc p_command*(S: State) =
     let l = S.l; var c, p: char
     while S.i < l:
         p = c
-        c = text[S.i]
+        c = S.text[S.i]
 
         if c in C_NL:
             rollback(S)

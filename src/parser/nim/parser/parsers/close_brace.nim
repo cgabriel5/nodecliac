@@ -12,14 +12,13 @@ import ../helpers/[error, forward, rollback, brace_checks]
 # @param  {object} S - State object.
 # @return {undefined} - Nothing is returned.
 proc p_closebrace*(S: State) =
-    let text = S.text
     var state = Brace
     var N = node(nkBrace, S)
 
     let l = S.l; var c, p: char
     while S.i < l:
         p = c
-        c = text[S.i]
+        c = S.text[S.i]
 
         if c in C_NL:
             rollback(S)

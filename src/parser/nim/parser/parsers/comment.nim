@@ -9,7 +9,6 @@ import ../helpers/[tree_add, types, charsets, forward, rollback]
 # @param  {object} S - State object.
 # @return - Nothing is returned.
 proc p_comment*(S: State, inline = false) =
-    let text = S.text
     var N = node(nkComment, S)
     N.comment.start = S.i
 
@@ -17,7 +16,7 @@ proc p_comment*(S: State, inline = false) =
 
     let l = S.l; var c: char
     while S.i < l:
-        c = text[S.i]
+        c = S.text[S.i]
 
         if c in C_NL:
             rollback(S)

@@ -10,8 +10,6 @@ import charsets
 # @param  {char} n - The loop's next character.
 # @return {enum} - The line's type.
 proc linetype*(S: State, c, n: char): LineType =
-    let text = S.text
-
     const types = {
         C_SEMICOLON: LTTerminator, # End parsing.
         C_NUMSIGN: LTComment,
@@ -31,7 +29,7 @@ proc linetype*(S: State, c, n: char): LineType =
         if n != C_NULLB and n in C_SPACES:
             line_type = LTOption
     elif line_type == LTCommand:
-        let keyword = text[S.i .. S.i + 6]
+        let keyword = S.text[S.i .. S.i + 6]
         if keyword in C_KW_ALL: line_type = LTFlag
 
     return line_type

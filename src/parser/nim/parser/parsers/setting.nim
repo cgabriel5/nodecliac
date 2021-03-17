@@ -14,7 +14,6 @@ import ../helpers/[error, validate, forward, rollback]
 # @param  {object} S - State object.
 # @return - Nothing is returned.
 proc p_setting*(S: State) =
-    let text = S.text
     var qchar: char
     var state = Sigil
     var N = node(nkSetting, S)
@@ -22,7 +21,7 @@ proc p_setting*(S: State) =
     let l = S.l; var c, p: char
     while S.i < l:
         p = c
-        c = text[S.i]
+        c = S.text[S.i]
 
         if c in C_NL:
             rollback(S)

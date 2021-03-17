@@ -46,6 +46,12 @@ type
         # Shared States
         Name, Assignment, Delimiter, Value, ValueWsb, EolWsb
 
+    # Line Types
+
+    LineType* {.pure.} = enum
+        LTTerminator LTComment, LTVariable, LTSetting,
+        LTCommand, LTFlag, LTOption, LTCloseBrace, LTSkip
+
     # Node + Variants
 
     NodeKind* = enum

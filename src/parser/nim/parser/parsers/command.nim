@@ -170,7 +170,7 @@ proc p_command*(S: State) =
                 state = EolWsb
 
             of Oneliner:
-                tracer.trace(S, "flag") # Trace parser.
+                tracer.trace(S, LTFlag) # Trace parser.
 
                 let fN = p_flag(S, "oneliner")
                 # Add alias node if it exists.

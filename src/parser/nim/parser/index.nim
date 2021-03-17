@@ -9,7 +9,7 @@ import helpers/[linetype, specificity, tracer, forward]
 proc parser*(action, text, cmdname, source: string,
             fmt: tuple, trace, igc, test: bool): tuple =
     var S = state(action, cmdname, text, source, fmt, trace, igc, test)
-    var ltype = ""
+    var ltype: LineType
 
     let l = S.l; var c, n: char
     while S.i < l:
@@ -24,7 +24,7 @@ proc parser*(action, text, cmdname, source: string,
 
         # Handle inline comment.
         if c == C_NUMSIGN and S.sol_char != C_NULLB:
-            tracer.trace(S, "comment")
+            tracer.trace(S, LTComment)
             p_comment(S, true)
             forward(S)
             continue
@@ -41,19 +41,19 @@ proc parser*(action, text, cmdname, source: string,
             if c notin C_SOL: error(S, 10)
 
             ltype = linetype(S, c, n)
-            if ltype == "terminator": break
+            if ltype == LTTerminator: break
 
             specificity(S, ltype, currentSourcePath)
 
             tracer.trace(S, ltype)
             case (ltype):
-            of "comment": p_comment(S)
-            of "setting": p_setting(S)
-            of "variable": p_variable(S)
-            of "command": p_command(S)
-            of "flag": discard p_flag(S, isoneliner = "")
-            of "option": discard p_option(S)
-            of "close-brace": p_closebrace(S)
+            of LTComment: p_comment(S)
+            of LTSetting: p_setting(S)
+            of LTVariable: p_variable(S)
+            of LTCommand: p_command(S)
+            of LTFlag: discard p_flag(S, isoneliner = "")
+            of LTOption: discard p_option(S)
+            of LTCloseBrace: p_closebrace(S)
             else: discard
 
         forward(S)

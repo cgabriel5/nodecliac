@@ -1,4 +1,4 @@
-import std/[strformat, re, strutils, os, tables]
+import std/[re, strutils, os, tables]
 
 import ../helpers/[types, charsets]
 import ../../utils/chalk
@@ -47,17 +47,28 @@ errors["vcontext"][17] = "Unclosed brace"
 errors["vtest"][14] = "Useless delimiter"
 errors["vtest"][15] = "Malformed test string"
 
-# Print error and kill process.
+# Print error and kill process. Programmatically gets the filename where
+#     the error occurred (file name where function was called). This is
+#     better than using `currentSourcePath` everywhere.
 #
 # @param  {object} S - State object.
 # @param  {number} code - Error code.
 # @param  {string} parserfile - Path of parser issuing error.
 # @return - Nothing is returned.
-proc error*(S: State, parserfile: string, code: int = 0) =
+template error*(S: State, code: int = 0) =
+    # [https://github.com/nim-lang/Nim/issues/7406]
+    # [https://nim-lang.org/docs/system.html#instantiationInfo]
+    # [https://stackoverflow.com/a/29472072]
+    # [https://github.com/nim-lang/Nim/blob/devel/lib/system.nim#L1729]
+    # [https://forum.nim-lang.org/t/4211#26241]
+    # [https://forum.nim-lang.org/t/3199#20161]
+    # let callfile = instantiationInfo(-1).filename # currentSourcePath
+    let fullpath = instantiationInfo(-1, true).filename
+
     let line = S.line
     let column = S.column
     var source = S.args.source
-    var parser = extractFilename(parserfile).replace(re"\.nim$")
+    var parser = extractFilename(fullpath).replace(re"\.nim$")
 
     # if not code code = 0; # Use default if code doesn't exist.
     let error = if code == 0: errors["*"][code] else: errors[parser][code]
@@ -65,8 +76,8 @@ proc error*(S: State, parserfile: string, code: int = 0) =
     # Replace '_' to '-' to match JS error.
     if C_UNDERSCORE in parser: parser = parser.replace(re"_", "-")
 
-    let pos = fmt"{line}:{column}".chalk("bold", "red")
-    let einfo = "[" & "err".chalk("red") & fmt" {parser},{code}" & "]"
+    let pos = ($line & ":" & $column).chalk("bold", "red")
+    let einfo = "[" & "err".chalk("red") & " " & parser & "," & $code & "]"
 
     # Truncate source file path if too long.
     var dirs = source.split($DirSep)
@@ -77,5 +88,5 @@ proc error*(S: State, parserfile: string, code: int = 0) =
     let filename = extractFilename(source).chalk("bold")
     let dirname = splitFile(source).dir
 
-    echo fmt"{einfo} {dirname}/{filename}:{pos} — {error}"
+    echo einfo & " " & dirname & "/" & filename & ":" & pos & " — " & error
     quit()

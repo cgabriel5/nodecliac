@@ -67,7 +67,7 @@ proc vtest*(S: State, value: string = "",
         if `char` == C_SEMICOLON: # Track semicolons.
             if isEmptyOrWhitespace(argument):
                 S.column = tindex(i)
-                error(S, currentSourcePath, 14)
+                error(S, 14)
             del_semicolon.add(i)
             args.add(argument)
             argument = ""
@@ -86,7 +86,7 @@ proc vtest*(S: State, value: string = "",
         let dindex = if del_semicolon.len == args.len: del_semicolon[^1]
             else: del_semicolon[args.high + 1]
         S.column = tindex(dindex)
-        error(S, currentSourcePath, 14)
+        error(S, 14)
 
     # Verifies that provided context string argument type is valid.
     #     Something to note, the provided index is the index of the
@@ -106,13 +106,13 @@ proc vtest*(S: State, value: string = "",
             # Must be at least 5 chars in length.
             if l < 5:
                 S.column = tindex(i)
-                error(S, currentSourcePath)
+                error(S)
             if v[1] notin C_CTX_CTT:
                 S.column = tindex(i + 1)
-                error(S, currentSourcePath)
+                error(S)
             if v[2 .. 3] notin C_CTX_OPS:
                 S.column = tindex(i + 2)
-                error(S, currentSourcePath)
+                error(S)
             let nval = v[4 .. ^1]
             try:
                 # Characters at these indices must be
@@ -120,25 +120,25 @@ proc vtest*(S: State, value: string = "",
                 discard parseInt(nval)
             except:
                 S.column = tindex(i + 4)
-                error(S, currentSourcePath)
+                error(S)
             # Error if number starts with 0 and is
             # more than 2 numbers.
             if v[4] == C_N0 and nval.len != 1:
                 S.column = tindex(i + 4)
-                error(S, currentSourcePath)
+                error(S)
         else:
             if l < 1:
                 S.column = tindex(i)
-                error(S, currentSourcePath)
+                error(S)
             if v[0] notin C_LETTERS:
                 S.column = tindex(i + 1)
-                error(S, currentSourcePath)
+                error(S)
         return value
 
     # Check that test string starts with main command.
     if not args[0].strip(trailing=true).startsWith(S.tables.variables["COMMAND"]):
         S.column = tindex(findex)
-        error(S, currentSourcePath, 15);
+        error(S, 15);
 
     # Account for initial skipped quote/test string.
     var resume_index = if args.len == 0: 1 else: args[0].len + 1

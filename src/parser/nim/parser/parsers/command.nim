@@ -62,11 +62,11 @@ proc p_command*(S: State) =
             let n = if S.i + 1 < l: text[S.i + 1] else: C_NULLB
 
             # n must exist else escaping nothing.
-            if n == C_NULLB: error(S, currentSourcePath, 10)
+            if n == C_NULLB: error(S, 10)
 
             # Only dots can be escaped.
             if n != C_DOT:
-                error(S, currentSourcePath, 10)
+                error(S, 10)
 
                 # Remove last escape char as it isn't needed.
                 if isgroup: G.command = G.command[0 .. ^2]
@@ -90,7 +90,7 @@ proc p_command*(S: State) =
         case (state):
             of Command:
                 if N.command.value == "":
-                    if c notin C_CMD_IDENT_START : error(S, currentSourcePath)
+                    if c notin C_CMD_IDENT_START : error(S)
 
                     N.command.start = S.i
                     N.command.stop = S.i
@@ -116,7 +116,7 @@ proc p_command*(S: State) =
                     elif c == C_LCURLY:
                         state = GroupOpen
                         rollback(S)
-                    else: error(S, currentSourcePath)
+                    else: error(S)
 
             of ChainWsb:
                 if c notin C_SPACES:
@@ -126,7 +126,7 @@ proc p_command*(S: State) =
                     elif c == C_COMMA:
                         state = Delimiter
                         rollback(S)
-                    else: error(S, currentSourcePath)
+                    else: error(S)
 
             of Assignment:
                 N.assignment.start = S.i
@@ -147,7 +147,7 @@ proc p_command*(S: State) =
 
             of Value:
                 # Note: Intermediary step - remove it?
-                if c notin C_CMD_VALUE: error(S, currentSourcePath)
+                if c notin C_CMD_VALUE: error(S)
                 state = if c == C_LBRACKET: OpenBracket else: Oneliner
                 rollback(S)
 
@@ -164,7 +164,7 @@ proc p_command*(S: State) =
                     rollback(S)
 
             of CloseBracket:
-                if c != C_RBRACKET: error(S, currentSourcePath)
+                if c != C_RBRACKET: error(S)
                 N.brackets.stop = S.i
                 N.value.value &= $c
                 state = EolWsb
@@ -196,7 +196,7 @@ proc p_command*(S: State) =
                 N.flags.add(fN)
 
             of EolWsb:
-                if c notin C_SPACES: error(S, currentSourcePath)
+                if c notin C_SPACES: error(S)
 
             # Command group states
 
@@ -224,11 +224,11 @@ proc p_command*(S: State) =
                     elif c == C_RCURLY:
                         state = GroupClose
                         rollback(S)
-                    else: error(S, currentSourcePath)
+                    else: error(S)
 
             of GroupCommand:
                 if G.command == "":
-                    if c notin C_CMD_GRP_IDENT_START: error(S, currentSourcePath)
+                    if c notin C_CMD_GRP_IDENT_START: error(S)
 
                     var token: Token; token = ("command", S.column)
                     G.tokens.add(token)
@@ -250,7 +250,7 @@ proc p_command*(S: State) =
                     elif c == C_RCURLY:
                         state = GroupClose
                         rollback(S)
-                    else: error(S, currentSourcePath)
+                    else: error(S)
 
             of GroupDelimiter:
                 N.command.stop = S.i
@@ -258,7 +258,7 @@ proc p_command*(S: State) =
 
                 let ll = G.tokens.len
                 if ll == 0 or (ll != 0 and G.tokens[^1][0] == "delimiter"):
-                    error(S, currentSourcePath, 12)
+                    error(S, 12)
 
                 if G.command != "": G.commands[^1].add(G.command)
                 var token: Token; token = ("delimiter", S.column)
@@ -273,10 +273,10 @@ proc p_command*(S: State) =
                 if G.command != "": G.commands[^1].add(G.command)
                 if G.commands[^1].len == 0:
                     S.column = G.start
-                    error(S, currentSourcePath, 11) # Empty command group.
+                    error(S, 11) # Empty command group.
                 if G.tokens[^1][0] == "delimiter":
                     S.column = G.tokens[^1][1]
-                    error(S, currentSourcePath, 12) # Trailing delimiter.
+                    error(S, 12) # Trailing delimiter.
 
                 G.active = false
                 G.command = ""
@@ -288,7 +288,7 @@ proc p_command*(S: State) =
 
     if G.active:
         S.column = G.start
-        error(S, currentSourcePath, 13) # Command group was left unclosed.
+        error(S, 13) # Command group was left unclosed.
 
     # Expand command groups.
     if not isformatting and G.commands.len != 0:

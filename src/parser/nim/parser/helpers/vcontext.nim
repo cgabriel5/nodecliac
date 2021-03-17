@@ -57,11 +57,11 @@ proc vcontext*(S: State, value: string = "",
         if `char` in C_SPACES: inc(i); argument &= `char`; continue
         if `char` notin C_CTX_ALL:
             S.column = tindex(i)
-            error(S, currentSourcePath)
+            error(S)
         if `char` == C_SEMICOLON: # Track semicolons.
             if isEmptyOrWhitespace(argument):
                 S.column = tindex(i)
-                error(S, currentSourcePath, 14)
+                error(S, 14)
             del_semicolon.add(i)
             args.add(argument)
             argument = ""
@@ -80,7 +80,7 @@ proc vcontext*(S: State, value: string = "",
         let dindex = if del_semicolon.len == args.len: del_semicolon[^1]
             else: del_semicolon[args.high + 1]
         S.column = tindex(dindex)
-        error(S, currentSourcePath, 14)
+        error(S, 14)
 
     # Verifies that provided context string argument type is valid.
     #     Something to note, the provided index is the index of the
@@ -99,22 +99,22 @@ proc vcontext*(S: State, value: string = "",
             of "marg":
                 if v[0] == C_HYPHEN:
                     S.column = tindex(i)
-                    error(S, currentSourcePath)
+                    error(S)
             of "carg":
                     if v[0] == C_EXPOINT:
                         if l < 2:
                             S.column = tindex(i)
-                            error(S, currentSourcePath)
+                            error(S)
                         if v[1] notin C_LETTERS:
                             S.column = tindex(i + 1)
-                            error(S, currentSourcePath)
+                            error(S)
                     else:
                         if l < 1:
                             S.column = tindex(i)
-                            error(S, currentSourcePath)
+                            error(S)
                         if v[0] notin C_LETTERS:
                             S.column = tindex(i + 1)
-                            error(S, currentSourcePath)
+                            error(S)
             of "ccond":
                 # Inversion: Remove '!' for next checks.
                 if v[0] == C_EXPOINT: v = v[1 .. ^1]
@@ -122,13 +122,13 @@ proc vcontext*(S: State, value: string = "",
                     # Must be at least 5 chars in length.
                     if l < 5:
                         S.column = tindex(i)
-                        error(S, currentSourcePath)
+                        error(S)
                     if v[1] notin C_CTX_CAT:
                         S.column = tindex(i + 1)
-                        error(S, currentSourcePath)
+                        error(S)
                     if v[2 .. 3] notin C_CTX_OPS:
                         S.column = tindex(i + 2)
-                        error(S, currentSourcePath)
+                        error(S)
                     let nval = v[4 .. ^1]
                     try:
                         # Characters at these indices must be
@@ -136,19 +136,19 @@ proc vcontext*(S: State, value: string = "",
                         discard parseInt(nval)
                     except:
                         S.column = tindex(i + 4)
-                        error(S, currentSourcePath)
+                        error(S)
                     # Error if number starts with 0 and is
                     # more than 2 numbers.
                     if v[4] == C_N0 and nval.len != 1:
                         S.column = tindex(i + 4)
-                        error(S, currentSourcePath)
+                        error(S)
                 else:
                     if l < 1:
                         S.column = tindex(i)
-                        error(S, currentSourcePath)
+                        error(S)
                     if v[0] notin C_LETTERS:
                         S.column = tindex(i + 1)
-                        error(S, currentSourcePath)
+                        error(S)
             else: discard
         return value
 
@@ -193,12 +193,12 @@ proc vcontext*(S: State, value: string = "",
             if fchar == C_LCURLY: # Mutual exclusivity.
                 if `char` notin C_CTX_MUT:
                     S.column = tindex(resume_index)
-                    error(S, currentSourcePath)
+                    error(S)
 
                 # Braces were closed but nws char found.
                 if mclose and `char` notin C_SPACES:
                     S.column = tindex(resume_index)
-                    error(S, currentSourcePath)
+                    error(S)
 
                 if `char` == C_RCURLY:
                     mclose = true
@@ -207,7 +207,7 @@ proc vcontext*(S: State, value: string = "",
                 if `char` == C_PIPE:
                     if isEmptyOrWhitespace(marg):
                         S.column = tindex(resume_index)
-                        error(S, currentSourcePath, 14)
+                        error(S, 14)
                     del_pipe.add(resume_index)
                     margs.add(verify(marg, "marg", mindices[^1]))
                     marg = ""
@@ -220,12 +220,12 @@ proc vcontext*(S: State, value: string = "",
                 if hasconds == false:
                     if `char` notin C_CTX_FLG:
                         S.column = tindex(resume_index)
-                        error(S, currentSourcePath)
+                        error(S)
 
                     if `char` == C_COMMA:
                         if isEmptyOrWhitespace(carg):
                             S.column = tindex(resume_index)
-                            error(S, currentSourcePath)
+                            error(S)
                         del_cfcomma.add(resume_index)
                         cflags.add(verify(carg, "carg", cfindices[^1]))
                         carg = ""
@@ -237,7 +237,7 @@ proc vcontext*(S: State, value: string = "",
                             carg = ""
                         if cflags.len == 0:
                             S.column = tindex(resume_index)
-                            error(S, currentSourcePath) # No flags.
+                            error(S) # No flags.
                         inc(i); inc(resume_index); continue
 
                     if carg == "": cfindices.add(resume_index)
@@ -246,19 +246,19 @@ proc vcontext*(S: State, value: string = "",
                 else:
                     if `char` notin C_CTX_CON:
                         S.column = tindex(resume_index)
-                        error(S, currentSourcePath)
+                        error(S)
                     if `char` == C_EXPOINT:
                         if ccond != "":
                             S.column = tindex(resume_index)
-                            error(S, currentSourcePath)
+                            error(S)
                     elif `char` == C_NUMSIGN:
                         if ccond != "" and ccond[0] != C_EXPOINT:
                             S.column = tindex(resume_index)
-                            error(S, currentSourcePath)
+                            error(S)
                     if `char` == C_COMMA:
                         if isEmptyOrWhitespace(ccond):
                             S.column = tindex(resume_index)
-                            error(S, currentSourcePath, 14)
+                            error(S, 14)
                         del_cncomma.add(resume_index)
                         cconds.add(verify(ccond, "ccond", ccindices[^1]))
                         ccond = ""
@@ -275,13 +275,13 @@ proc vcontext*(S: State, value: string = "",
             # Check that braces were closed.
             if mclose == false:
                 S.column = tindex(mopen_br_index)
-                error(S, currentSourcePath, 17)
+                error(S, 17)
 
             # Check if mutual exclusive braces are empty.
             if marg == "":
                 if margs.len == 0:
                     S.column = tindex(mopen_br_index)
-                    error(S, currentSourcePath)
+                    error(S)
             else: margs.add(verify(marg, "marg", mindices[^1]))
 
             # Error if a trailing '|' delimiter exists.
@@ -290,7 +290,7 @@ proc vcontext*(S: State, value: string = "",
                 let pindex = if del_pipe.len == margs.len: del_pipe[^1]
                     else: del_pipe[margs.high + 1]
                 S.column = tindex(pindex)
-                error(S, currentSourcePath, 14)
+                error(S, 14)
 
             # Build cleaned value string.
             values.add("{" & margs.join("|") & "}")
@@ -306,7 +306,7 @@ proc vcontext*(S: State, value: string = "",
                 let dindex = if del_cfcomma.len == cflags.len: del_cfcomma[^1]
                     else: del_cfcomma[cflags.high + 1]
                 S.column = tindex(dindex)
-                error(S, currentSourcePath, 14)
+                error(S, 14)
 
             # Error if a trailing conditions ',' delimiter exists.
             if del_cncomma.len > 0 and del_cncomma.len >= cconds.len:
@@ -314,7 +314,7 @@ proc vcontext*(S: State, value: string = "",
                 let dindex = if del_cncomma.len == cconds.len: del_cncomma[^1]
                     else: del_cncomma[cconds.high + 1]
                 S.column = tindex(dindex)
-                error(S, currentSourcePath, 14)
+                error(S, 14)
 
             # If flags exist but conditions don't, error.
             if cflags.len > 1 and cconds.len == 0:
@@ -322,7 +322,7 @@ proc vcontext*(S: State, value: string = "",
                     if del_semicolon.len > 0: del_semicolon[c] - 1
                     else: value.high - 1 # Else, use val length.
                 S.column = tindex(dindex)
-                error(S, currentSourcePath, 16)
+                error(S, 16)
 
             # Build cleaned value string.
             if cflags.len > 0:

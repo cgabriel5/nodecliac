@@ -30,18 +30,18 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
             if kw == "exclude" and sc.command.value != "*":
                 S.column = N.keyword.start - ls
                 inc(S.column) # Add 1 to account for 0 base indexing.
-                error(S, currentSourcePath, 17)
+                error(S, 17)
 
         if value == "":
             S.column = N.keyword.stop - S.tables.linestarts[S.line]
             inc(S.column) # Add 1 to account for 0 base indexing.
-            error(S, currentSourcePath, 16)
+            error(S, 16)
 
         let C = if kw == "default": C_QUOTES + {C_DOLLARSIGN} else: C_QUOTES
         # context, filedir, exclude must have quoted string values.
         if value[0] notin C:
             S.column = resumepoint
-            error(S, currentSourcePath)
+            error(S)
 
     # If value doesn't exist or is C_LPAREN (long-form flag list) return.
     if value == "" or value == "(": return
@@ -81,11 +81,11 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                 # Error if improperly quoted/end quote is escaped.
                 if lchar != fchar or schar == C_ESCAPE:
                     S.column = resumepoint
-                    error(S, currentSourcePath, 10)
+                    error(S, 10)
                 # Error it string is empty.
                 if lchar == fchar and value.len == 2:
                     S.column = resumepoint
-                    error(S, currentSourcePath, 11)
+                    error(S, 11)
 
             # Interpolate variables.
             var bounds = findAllBounds(value, r)
@@ -101,7 +101,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                         # Error if var is being used before declared.
                         if not vars.hasKey(rp):
                             S.column = resumepoint + bound.first
-                            error(S, currentSourcePath, 12)
+                            error(S, 12)
                         sub = vars[rp]
                     else: sub = "${" & rp & "}"
                     value[bound.first .. bound.last] = sub
@@ -130,11 +130,11 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
             # Error if command-flag doesn't start with '$('.
             if not value.startsWith("$("):
                 S.column = resumepoint + 1
-                error(S, currentSourcePath, 13)
+                error(S, 13)
             # Error if command-flag doesn't end with C_RPAREN.
             if value[^1] != C_RPAREN:
                 S.column = resumepoint + value.high
-                error(S, currentSourcePath, 13)
+                error(S, 13)
 
             var argument = ""
             var args: seq[string] = @[]
@@ -168,7 +168,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                         # If delimiter count is >1, there are empty args.
                         if delimiter_count > 1 or args.len == 0:
                             S.column = resumepoint + i
-                            error(S, currentSourcePath, 14)
+                            error(S, 14)
                     # Look for C_DOLLARSIGN prefixed strings.
                     elif `char` == C_DOLLARSIGN and nchar in C_QUOTES:
                         qchar = nchar
@@ -185,7 +185,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                         # ---------------------------^ Value is unquoted.
 
                         S.column = resumepoint + i
-                        error(S, currentSourcePath)
+                        error(S)
                 else:
                     argument &= $`char`
 
@@ -204,7 +204,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
             # If flag is still there is a trailing command delimiter.
             if delimiter_index > -1 and argument == "":
                 S.column = resumepoint + delimiter_index
-                error(S, currentSourcePath, 14)
+                error(S, 14)
 
             # Get last argument.
             if argument != "":
@@ -226,11 +226,11 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
             # Error if list doesn't start with C_LPAREN.
             if value[0] != C_LPAREN:
                 S.column = resumepoint
-                error(S, currentSourcePath, 15)
+                error(S, 15)
             # Error if command-flag doesn't end with C_RPAREN.
             if value[^1] != C_RPAREN:
                 S.column = resumepoint + value.high
-                error(S, currentSourcePath, 15)
+                error(S, 15)
 
             var argument = ""
             var args: seq[string] = @[]
@@ -266,7 +266,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                     # All other characters are invalid so error.
                     else:
                         S.column = resumepoint + i
-                        error(S, currentSourcePath)
+                        error(S)
 
                     # Note: If arguments array is already populated
                     # and if the previous `char` is not a space then
@@ -276,7 +276,7 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                     # --------------------------------^ Error point.
                     if args.len != 0 and pchar notin C_SPACES:
                         S.column = resumepoint + i
-                        error(S, currentSourcePath)
+                        error(S)
 
                     argument &= $`char`
                 elif mode != "":

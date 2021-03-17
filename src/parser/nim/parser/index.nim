@@ -38,7 +38,7 @@ proc parser*(action, text, cmdname, source: string,
             S.sol_char = `char`
 
             # Sol char must be allowed.
-            if `char` notin C_SOL: error(S, currentSourcePath, 10)
+            if `char` notin C_SOL: error(S, 10)
 
             ltype = linetype(S, `char`, nchar)
             if ltype == "terminator": break

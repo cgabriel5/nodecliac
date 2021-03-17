@@ -33,10 +33,10 @@ proc p_flag*(S: State, isoneliner: string): Node =
     var braces: seq[int] = @[]
 
     # If not a oneliner or no command scope, flag is being declared out of scope.
-    if not (isoneliner != "" or S.scopes.command.node != ""): error(S, currentSourcePath, 10)
+    if not (isoneliner != "" or S.scopes.command.node != ""): error(S, 10)
 
     # If flag scope already exists another flag cannot be declared.
-    if S.scopes.flag.node != "": error(S, currentSourcePath, 11)
+    if S.scopes.flag.node != "": error(S, 11)
 
     let l = S.l; var c, p: char
     while S.i < l:
@@ -60,7 +60,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 # RegEx to split on unescaped C_PIPE: /(?<=[^\\]|^|$)\|/
 
                 if N.hyphens.value == "":
-                    if c != C_HYPHEN: error(S, currentSourcePath)
+                    if c != C_HYPHEN: error(S)
                     N.hyphens.start = S.i
                     N.hyphens.stop = S.i
                     N.hyphens.value = $c
@@ -78,7 +78,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 let keyword = text[S.i .. endpoint]
 
                 # Keyword must be allowed.
-                if keyword notin C_KW_ALL: error(S, currentSourcePath)
+                if keyword notin C_KW_ALL: error(S)
                 N.keyword.start = S.i
                 N.keyword.stop = endpoint
                 N.keyword.value = keyword
@@ -89,12 +89,12 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 S.column += keyword_len
 
             of KeywordSpacer:
-                if c notin C_SPACES: error(S, currentSourcePath)
+                if c notin C_SPACES: error(S)
                 state = WsbPrevalue
 
             of Name:
                 if N.name.value == "":
-                    if c notin C_LETTERS: error(S, currentSourcePath)
+                    if c notin C_LETTERS: error(S)
                     N.name.start = S.i
                     N.name.stop = S.i
                     N.name.value = $c
@@ -120,7 +120,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     elif c in C_SPACES:
                         state = WsbPostname
                         rollback(S)
-                    else: error(S, currentSourcePath)
+                    else: error(S)
 
             of WsbPostname:
                 if c notin C_SPACES:
@@ -133,7 +133,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     elif c == C_PIPE:
                         state = PipeDelimiter
                         rollback(S)
-                    else: error(S, currentSourcePath)
+                    else: error(S)
 
             of BooleanIndicator:
                 N.boolean.start = S.i
@@ -145,7 +145,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 alias = true
                 # Next char must also be a colon.
                 let n = if S.i + 1 < l: text[S.i + 1] else: C_NULLB
-                if n != C_COLON: error(S, currentSourcePath)
+                if n != C_COLON: error(S)
                 N.alias.start = S.i
                 N.alias.stop = S.i + 2
 
@@ -153,7 +153,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 if letter notin C_LETTERS:
                     S.i += 1
                     S.column += 1
-                    error(S, currentSourcePath)
+                    error(S)
 
                 N.alias.value = $letter
                 state = Name
@@ -188,7 +188,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     # * = [
                     #      --help?|context "!help: #fge1"
                     # ]
-                    if c != C_PIPE or isoneliner == "": error(S, currentSourcePath)
+                    if c != C_PIPE or isoneliner == "": error(S)
                     stop = true
 
             of Delimiter:
@@ -244,7 +244,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                                 #   --------^ Missing '(' after '$'.
                                 if `type` == "command-flag":
                                     if N.value.value.len == 1 and c != C_LPAREN:
-                                        error(S, currentSourcePath)
+                                        error(S)
 
                                 # The following logic, is precursor validation
                                 # logic that ensures braces are balanced and
@@ -256,7 +256,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                                         # If braces len is negative, opening
                                         # braces were never introduced so
                                         # current closing brace is invalid.
-                                        if braces.len == 0: error(S, currentSourcePath)
+                                        if braces.len == 0: error(S)
                                         discard braces.pop()
                                         if braces.len == 0: state = EolWsb
 
@@ -271,7 +271,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                                         else:
                                             S.column = braces.pop() - S.tables.linestarts[S.line]
                                             inc(S.column) # Add 1 to account for 0 base indexing.
-                                            error(S, currentSourcePath)
+                                            error(S)
 
                         N.value.stop = S.i
                         N.value.value &= $c
@@ -280,7 +280,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 if c == C_PIPE and N.keyword.value notin C_KD_STR and p != C_ESCAPE:
                     state = PipeDelimiter
                     rollback(S)
-                elif c notin C_SPACES: error(S, currentSourcePath)
+                elif c notin C_SPACES: error(S)
 
             else: discard
 

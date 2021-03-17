@@ -39,7 +39,7 @@ proc p_closebrace*(S: State) =
                 state = EolWsb
 
             of EolWsb:
-                if c notin C_SPACES: error(S, currentSourcePath)
+                if c notin C_SPACES: error(S)
 
             else: discard
 

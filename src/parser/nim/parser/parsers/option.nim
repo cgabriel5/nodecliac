@@ -48,7 +48,7 @@ proc p_option*(S: State): Node =
                 state = Spacer
 
             of Spacer:
-                if c notin C_SPACES: error(S, currentSourcePath)
+                if c notin C_SPACES: error(S)
                 state = WsbPrevalue
 
             of WsbPrevalue:
@@ -91,7 +91,7 @@ proc p_option*(S: State): Node =
                             #   --------^ Missing '(' after '$'.
                             if `type` == "command-flag":
                                 if N.value.value.len == 1 and c != C_LPAREN:
-                                    error(S, currentSourcePath)
+                                    error(S)
 
                             # The following logic, is precursor validation
                             # logic that ensures braces are balanced and
@@ -103,7 +103,7 @@ proc p_option*(S: State): Node =
                                     # If braces len is negative, opening
                                     # braces were never introduced so
                                     # current closing brace is invalid.
-                                    if braces.len == 0: error(S, currentSourcePath)
+                                    if braces.len == 0: error(S)
                                     discard braces.pop()
                                     if braces.len == 0:
                                         state = EolWsb
@@ -121,13 +121,13 @@ proc p_option*(S: State): Node =
                                     else:
                                         S.column = braces.pop() - S.tables.linestarts[S.line]
                                         inc(S.column) # Add 1 to account for 0 base indexing.
-                                        error(S, currentSourcePath)
+                                        error(S)
 
                     N.value.stop = S.i
                     N.value.value &= $c
 
             of EolWsb:
-                if c notin C_SPACES: error(S, currentSourcePath)
+                if c notin C_SPACES: error(S)
 
             else: discard
 

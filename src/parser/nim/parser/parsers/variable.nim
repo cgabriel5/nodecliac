@@ -44,7 +44,7 @@ proc p_variable*(S: State) =
 
             of Name:
                 if N.name.value == "":
-                    if c notin C_LETTERS: error(S, currentSourcePath)
+                    if c notin C_LETTERS: error(S)
 
                     N.name.start = S.i
                     N.name.stop = S.i
@@ -60,14 +60,14 @@ proc p_variable*(S: State) =
                     elif c == C_EQUALSIGN:
                         state = Assignment
                         rollback(S)
-                    else: error(S, currentSourcePath)
+                    else: error(S)
 
             of NameWsb:
                 if c notin C_SPACES:
                     if c == C_EQUALSIGN:
                         state = Assignment
                         rollback(S)
-                    else: error(S, currentSourcePath)
+                    else: error(S)
 
             of Assignment:
                 N.assignment.start = S.i
@@ -82,7 +82,7 @@ proc p_variable*(S: State) =
 
             of Value:
                 if N.value.value == "":
-                    if c notin C_VAR_VALUE: error(S, currentSourcePath)
+                    if c notin C_VAR_VALUE: error(S)
 
                     if c in C_QUOTES: qchar = c
                     N.value.start = S.i
@@ -103,7 +103,7 @@ proc p_variable*(S: State) =
                             N.value.value &= $c
 
             of EolWsb:
-                if c notin C_SPACES: error(S, currentSourcePath)
+                if c notin C_SPACES: error(S)
 
             else: discard
 

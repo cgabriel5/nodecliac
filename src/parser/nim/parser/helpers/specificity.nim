@@ -33,5 +33,5 @@ proc specificity*(S: State, line_type: string, parserfile: string) =
     elif command_scope != "": state_specf = SPECF["command"]
 
     # Error when specificity is invalid.
-    if state_specf > 0 and state_specf < line_specf: error(S, parserfile, 12)
+    if state_specf > 0 and state_specf < line_specf: error(S, 12)
     S.specf = line_specf

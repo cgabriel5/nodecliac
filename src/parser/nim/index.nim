@@ -51,11 +51,14 @@ proc main =
         echo "Path " & source.chalk("bold") & " doesn't exist."
         exit()
 
+    # [TODO] Look into why using `let` over `var` causes hang up when file
+    # is large. Possibly due to `openFileStream`?
+    var res = read(source); shallow(res)
     let (
         acdef, config, keywords, filedirs,
         contexts, formatted, placeholders, tests
     ) = parser(
-        action, read(source), cmdname,
+        action, res, cmdname,
         source, fmtinfo, trace, igc, test
     )
 

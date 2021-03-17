@@ -23,7 +23,7 @@ import ../helpers/[error, validate, forward, rollback]
 # @return {object} - Node object.
 proc p_flag*(S: State, isoneliner: string): Node =
     let text = S.text
-    var state = if text[S.i] == C_HYPHEN: "hyphen" else: "keyword"
+    var state = if text[S.i] == C_HYPHEN: Hyphen else: Keyword
     var stop = false # Flag: true - stops parser.
     var `type` = "escaped"
     var N = node(nkFlag, S)
@@ -48,13 +48,13 @@ proc p_flag*(S: State, isoneliner: string): Node =
             N.stop = S.i
             break # Stop at nl char.
 
-        if c == C_NUMSIGN and p != C_ESCAPE and (state != "value" or comment):
+        if c == C_NUMSIGN and p != C_ESCAPE and (state != Value or comment):
             rollback(S)
             N.stop = S.i
             break
 
         case (state):
-            of "hyphen":
+            of Hyphen:
                 # [https://stackoverflow.com/a/25895905]
                 # [https://stackoverflow.com/a/12281034]
                 # RegEx to split on unescaped C_PIPE: /(?<=[^\\]|^|$)\|/
@@ -66,13 +66,13 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     N.hyphens.value = $c
                 else:
                     if c != C_HYPHEN:
-                        state = "name"
+                        state = Name
                         rollback(S)
                     else:
                         N.hyphens.stop = S.i
                         N.hyphens.value &= $c
 
-            of "keyword":
+            of Keyword:
                 const keyword_len = 6
                 let endpoint = S.i + keyword_len
                 let keyword = text[S.i .. endpoint]
@@ -82,17 +82,17 @@ proc p_flag*(S: State, isoneliner: string): Node =
                 N.keyword.start = S.i
                 N.keyword.stop = endpoint
                 N.keyword.value = keyword
-                state = "keyword-spacer"
+                state = KeywordSpacer
 
                 # Note: Forward indices to skip keyword chars.
                 S.i += keyword_len
                 S.column += keyword_len
 
-            of "keyword-spacer":
+            of KeywordSpacer:
                 if c notin C_SPACES: error(S, currentSourcePath)
-                state = "wsb-prevalue"
+                state = WsbPrevalue
 
-            of "name":
+            of Name:
                 if N.name.value == "":
                     if c notin C_LETTERS: error(S, currentSourcePath)
                     N.name.start = S.i
@@ -103,45 +103,45 @@ proc p_flag*(S: State, isoneliner: string): Node =
                         N.name.stop = S.i
                         N.name.value &= $c
                     elif c == C_COLON and not alias:
-                        state = "alias"
+                        state = Alias
                         rollback(S)
                     elif c == C_EQUALSIGN:
-                        state = "assignment"
+                        state = Assignment
                         rollback(S)
                     elif c == C_COMMA:
-                        state = "delimiter"
+                        state = Delimiter
                         rollback(S)
                     elif c == C_QMARK:
-                        state = "boolean-indicator"
+                        state = BooleanIndicator
                         rollback(S)
                     elif c == C_PIPE:
-                        state = "pipe-delimiter"
+                        state = PipeDelimiter
                         rollback(S)
                     elif c in C_SPACES:
-                        state = "wsb-postname"
+                        state = WsbPostname
                         rollback(S)
                     else: error(S, currentSourcePath)
 
-            of "wsb-postname":
+            of WsbPostname:
                 if c notin C_SPACES:
                     if c == C_EQUALSIGN:
-                        state = "assignment"
+                        state = Assignment
                         rollback(S)
                     elif c == C_COMMA:
-                        state = "delimiter"
+                        state = Delimiter
                         rollback(S)
                     elif c == C_PIPE:
-                        state = "pipe-delimiter"
+                        state = PipeDelimiter
                         rollback(S)
                     else: error(S, currentSourcePath)
 
-            of "boolean-indicator":
+            of BooleanIndicator:
                 N.boolean.start = S.i
                 N.boolean.stop = S.i
                 N.boolean.value = $c
-                state = "pipe-delimiter"
+                state = PipeDelimiter
 
-            of "alias":
+            of Alias:
                 alias = true
                 # Next char must also be a colon.
                 let n = if S.i + 1 < l: text[S.i + 1] else: C_NULLB
@@ -156,31 +156,31 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     error(S, currentSourcePath)
 
                 N.alias.value = $letter
-                state = "name"
+                state = Name
 
                 # Note: Forward indices to skip alias chars.
                 S.i += 2
                 S.column += 2
 
-            of "assignment":
+            of Assignment:
                 N.assignment.start = S.i
                 N.assignment.stop = S.i
                 N.assignment.value = $c
-                state = "multi-indicator"
+                state = MultiIndicator
 
-            of "multi-indicator":
+            of MultiIndicator:
                 if c == C_ASTERISK:
                     N.multi.start = S.i
                     N.multi.stop = S.i
                     N.multi.value = $c
-                    state = "wsb-prevalue"
+                    state = WsbPrevalue
                 else:
-                    if c == C_PIPE: state = "pipe-delimiter"
-                    elif c == C_COMMA: state = "delimiter"
-                    else: state = "wsb-prevalue"
+                    if c == C_PIPE: state = PipeDelimiter
+                    elif c == C_COMMA: state = Delimiter
+                    else: state = WsbPrevalue
                     rollback(S)
 
-            of "pipe-delimiter":
+            of PipeDelimiter:
                 if c notin C_SPACES:
                     # Note: If char is not a pipe or if the flag is not a
                     # oneliner flag and there are more characters after the
@@ -191,21 +191,21 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     if c != C_PIPE or isoneliner == "": error(S, currentSourcePath)
                     stop = true
 
-            of "delimiter":
+            of Delimiter:
                 N.delimiter.start = S.i
                 N.delimiter.stop = S.i
                 N.delimiter.value = $c
-                state = "eol-wsb"
+                state = EolWsb
 
-            of "wsb-prevalue":
+            of WsbPrevalue:
                 if c notin C_SPACES:
                     let keyword = N.keyword.value notin C_KD_STR
-                    if c == C_PIPE and keyword: state = "pipe-delimiter"
-                    elif c == C_COMMA: state = "delimiter"
-                    else: state = "value"
+                    if c == C_PIPE and keyword: state = PipeDelimiter
+                    elif c == C_COMMA: state = Delimiter
+                    else: state = Value
                     rollback(S)
 
-            of "value":
+            of Value:
                 if N.value.value == "":
                     # Determine value type.
                     if c == C_DOLLARSIGN: `type` = "command-flag"
@@ -221,18 +221,18 @@ proc p_flag*(S: State, isoneliner: string): Node =
                     N.value.value = $c
                 else:
                     if c == C_PIPE and N.keyword.value notin C_KD_STR and p != C_ESCAPE:
-                        state = "pipe-delimiter"
+                        state = PipeDelimiter
                         rollback(S)
                     else:
                         case `type`:
                             of "escaped":
                                 if c in C_SPACES and p != C_ESCAPE:
-                                    state = "eol-wsb"
+                                    state = EolWsb
                                     forward(S)
                                     continue
                             of "quoted":
                                 if c == qchar and p != C_ESCAPE:
-                                    state = "eol-wsb"
+                                    state = EolWsb
                                 elif c == C_NUMSIGN and qchar == C_NULLB:
                                     comment = true
                                     rollback(S)
@@ -258,7 +258,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
                                         # current closing brace is invalid.
                                         if braces.len == 0: error(S, currentSourcePath)
                                         discard braces.pop()
-                                        if braces.len == 0: state = "eol-wsb"
+                                        if braces.len == 0: state = EolWsb
 
                                     if c in C_QUOTES:
                                         if qchar == C_NULLB: qchar = c
@@ -276,9 +276,9 @@ proc p_flag*(S: State, isoneliner: string): Node =
                         N.value.stop = S.i
                         N.value.value &= $c
 
-            of "eol-wsb":
+            of EolWsb:
                 if c == C_PIPE and N.keyword.value notin C_KD_STR and p != C_ESCAPE:
-                    state = "pipe-delimiter"
+                    state = PipeDelimiter
                     rollback(S)
                 elif c notin C_SPACES: error(S, currentSourcePath)
 

@@ -18,7 +18,7 @@ import ../helpers/[error, validate, forward, rollback]
 proc p_variable*(S: State) =
     let text = S.text
     var qchar: char
-    var state = "sigil"
+    var state = Sigil
     var N = node(nkVariable, S)
 
     let l = S.l; var c, p: char
@@ -31,18 +31,18 @@ proc p_variable*(S: State) =
             N.stop = S.i
             break # Stop at nl char.
 
-        if c == C_NUMSIGN and p != C_ESCAPE and state != "value":
+        if c == C_NUMSIGN and p != C_ESCAPE and state != Value:
             rollback(S)
             N.stop = S.i
             break
 
         case (state):
-            of "sigil":
+            of Sigil:
                 N.sigil.start = S.i
                 N.sigil.stop = S.i
-                state = "name"
+                state = Name
 
-            of "name":
+            of Name:
                 if N.name.value == "":
                     if c notin C_LETTERS: error(S, currentSourcePath)
 
@@ -54,33 +54,33 @@ proc p_variable*(S: State) =
                         N.name.stop = S.i
                         N.name.value &= $c
                     elif c in C_SPACES:
-                        state = "name-wsb"
+                        state = NameWsb
                         forward(S)
                         continue
                     elif c == C_EQUALSIGN:
-                        state = "assignment"
+                        state = Assignment
                         rollback(S)
                     else: error(S, currentSourcePath)
 
-            of "name-wsb":
+            of NameWsb:
                 if c notin C_SPACES:
                     if c == C_EQUALSIGN:
-                        state = "assignment"
+                        state = Assignment
                         rollback(S)
                     else: error(S, currentSourcePath)
 
-            of "assignment":
+            of Assignment:
                 N.assignment.start = S.i
                 N.assignment.stop = S.i
                 N.assignment.value = $c
-                state = "value-wsb"
+                state = ValueWsb
 
-            of "value-wsb":
+            of ValueWsb:
                 if c notin C_SPACES:
-                    state = "value"
+                    state = Value
                     rollback(S)
 
-            of "value":
+            of Value:
                 if N.value.value == "":
                     if c notin C_VAR_VALUE: error(S, currentSourcePath)
 
@@ -90,18 +90,19 @@ proc p_variable*(S: State) =
                     N.value.value = $c
                 else:
                     if qchar != C_NULLB:
-                        if c == qchar and p != C_ESCAPE: state = "eol-wsb"
+                        if c == qchar and p != C_ESCAPE:
+                            state = EolWsb
                         N.value.stop = S.i
                         N.value.value &= $c
                     else:
                         if c in C_SPACES and p != C_ESCAPE:
-                            state = "eol-wsb"
+                            state = EolWsb
                             rollback(S)
                         else:
                             N.value.stop = S.i
                             N.value.value &= $c
 
-            of "eol-wsb":
+            of EolWsb:
                 if c notin C_SPACES: error(S, currentSourcePath)
 
             else: discard

@@ -15,7 +15,7 @@ import ../helpers/[error, validate, forward, rollback, brace_checks]
 # @return {undefined} - Nothing is returned.
 proc p_option*(S: State): Node =
     let text = S.text
-    var state = "bullet"
+    var state = Bullet
     var `type` = "escaped"
     var N = node(nkOption, S)
     var qchar: char
@@ -35,28 +35,28 @@ proc p_option*(S: State): Node =
             N.stop = S.i
             break # Stop at nl char.
 
-        if c == C_NUMSIGN and p != C_ESCAPE and (state != "value" or comment):
+        if c == C_NUMSIGN and p != C_ESCAPE and (state != Value or comment):
             rollback(S)
             N.stop = S.i
             break
 
         case (state):
-            of "bullet":
+            of Bullet:
                 N.bullet.start = S.i
                 N.bullet.stop = S.i
                 N.bullet.value = $c
-                state = "spacer"
+                state = Spacer
 
-            of "spacer":
+            of Spacer:
                 if c notin C_SPACES: error(S, currentSourcePath)
-                state = "wsb-prevalue"
+                state = WsbPrevalue
 
-            of "wsb-prevalue":
+            of WsbPrevalue:
                 if c notin C_SPACES:
                     rollback(S)
-                    state = "value"
+                    state = Value
 
-            of "value":
+            of Value:
                 if N.value.value == "":
                     # Determine value type.
                     if c == C_DOLLARSIGN: `type` = "command-flag"
@@ -74,12 +74,12 @@ proc p_option*(S: State): Node =
                     case `type`:
                         of "escaped":
                             if c in C_SPACES and p != C_ESCAPE:
-                                state = "eol-wsb"
+                                state = EolWsb
                                 forward(S)
                                 continue
                         of "quoted":
                             if c == qchar and p != C_ESCAPE:
-                                state = "eol-wsb"
+                                state = EolWsb
                             elif c == C_NUMSIGN and qchar == C_NULLB:
                                 comment = true
                                 rollback(S)
@@ -106,7 +106,7 @@ proc p_option*(S: State): Node =
                                     if braces.len == 0: error(S, currentSourcePath)
                                     discard braces.pop()
                                     if braces.len == 0:
-                                        state = "eol-wsb"
+                                        state = EolWsb
 
                                 if c in C_QUOTES:
                                     if qchar == C_NULLB:
@@ -126,7 +126,7 @@ proc p_option*(S: State): Node =
                     N.value.stop = S.i
                     N.value.value &= $c
 
-            of "eol-wsb":
+            of EolWsb:
                 if c notin C_SPACES: error(S, currentSourcePath)
 
             else: discard

@@ -13,7 +13,7 @@ import ../helpers/[error, forward, rollback, brace_checks]
 # @return {undefined} - Nothing is returned.
 proc p_closebrace*(S: State) =
     let text = S.text
-    var state = "brace"
+    var state = Brace
     var N = node(nkBrace, S)
 
     let l = S.l; var c, p: char
@@ -32,13 +32,13 @@ proc p_closebrace*(S: State) =
             break
 
         case (state):
-            of "brace":
+            of Brace:
                 N.brace.start = S.i
                 N.brace.stop = S.i
                 N.brace.value = $c
-                state = "eol-wsb"
+                state = EolWsb
 
-            of "eol-wsb":
+            of EolWsb:
                 if c notin C_SPACES: error(S, currentSourcePath)
 
             else: discard

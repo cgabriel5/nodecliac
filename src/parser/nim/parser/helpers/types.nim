@@ -25,6 +25,27 @@ type
         trace*, igc*, test*: bool
         fmt*: tuple[`char`: char, amount: int]
 
+    # Parsing States
+
+    ParseStates* {.pure.} = enum
+        # Close-Brace
+        Brace, #, EolWsb
+        # Setting
+        Sigil, #[ Name, ]# NameWsb, #, Assignment, ValueWsb, Value, EolWsb
+        # Command
+        Command, ChainWsb, #[ Assignment, Delimiter, ]# GroupOpen,
+        #[ ValueWsb, Value, ]# OpenBracket, #[ EolWsb, ]# OpenBracketWsb,
+        CloseBracket, Oneliner, GroupWsb, GroupCommand, GroupDelimiter,
+        GroupClose,
+        # Flag
+        #[ Value, ]# Hyphen, #[ Name, ]# Keyword, KeywordSpacer, WsbPrevalue,
+        Alias, #[ Assignment, Delimiter, ]# BooleanIndicator, PipeDelimiter,
+        WsbPostname, MultiIndicator, #[ EolWsb ]#
+        # Option
+        Bullet, #[ Value, ]# Spacer, #, WsbPrevalue, EolWsb
+        # Shared States
+        Name, Assignment, Delimiter, Value, ValueWsb, EolWsb
+
     # Node + Variants
 
     NodeKind* = enum

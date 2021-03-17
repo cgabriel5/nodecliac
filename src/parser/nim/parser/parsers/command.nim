@@ -30,7 +30,7 @@ import ../helpers/[error, tracer, forward, rollback, brace_checks]
 # @return {object} - Node object.
 proc p_command*(S: State) =
     let text = S.text
-    var state = "command"
+    var state = Command
     var N = node(nkCommand, S)
     let isformatting = S.args.action == "format"
 
@@ -88,7 +88,7 @@ proc p_command*(S: State) =
             break
 
         case (state):
-            of "command":
+            of Command:
                 if N.command.value == "":
                     if c notin C_CMD_IDENT_START : error(S, currentSourcePath)
 
@@ -97,79 +97,79 @@ proc p_command*(S: State) =
                     N.command.value &= $c
 
                     # Once a wildcard (all) char is found change state.
-                    if c == C_ASTERISK: state = "chain-wsb"
+                    if c == C_ASTERISK: state = ChainWsb
                 else:
                     if c in C_CMD_IDENT:
                         N.command.stop = S.i
                         N.command.value &= $c
                         cescape(c, false, l, G)
                     elif c in C_SPACES:
-                        state = "chain-wsb"
+                        state = ChainWsb
                         forward(S)
                         continue
                     elif c == C_EQUALSIGN:
-                        state = "assignment"
+                        state = Assignment
                         rollback(S)
                     elif c == C_COMMA:
-                        state = "delimiter"
+                        state = Delimiter
                         rollback(S)
                     elif c == C_LCURLY:
-                        state = "group-open"
+                        state = GroupOpen
                         rollback(S)
                     else: error(S, currentSourcePath)
 
-            of "chain-wsb":
+            of ChainWsb:
                 if c notin C_SPACES:
                     if c == C_EQUALSIGN:
-                        state = "assignment"
+                        state = Assignment
                         rollback(S)
                     elif c == C_COMMA:
-                        state = "delimiter"
+                        state = Delimiter
                         rollback(S)
                     else: error(S, currentSourcePath)
 
-            of "assignment":
+            of Assignment:
                 N.assignment.start = S.i
                 N.assignment.stop = S.i
                 N.assignment.value = $c
-                state = "value-wsb"
+                state = ValueWsb
 
-            of "delimiter":
+            of Delimiter:
                 N.delimiter.start = S.i
                 N.delimiter.stop = S.i
                 N.delimiter.value = $c
-                state = "eol-wsb"
+                state = EolWsb
 
-            of "value-wsb":
+            of ValueWsb:
                 if c notin C_SPACES:
-                    state = "value"
+                    state = Value
                     rollback(S)
 
-            of "value":
+            of Value:
                 # Note: Intermediary step - remove it?
                 if c notin C_CMD_VALUE: error(S, currentSourcePath)
-                state = if c == C_LBRACKET: "open-bracket" else: "oneliner"
+                state = if c == C_LBRACKET: OpenBracket else: Oneliner
                 rollback(S)
 
-            of "open-bracket":
+            of OpenBracket:
                 # Note: Intermediary step - remove it?
                 N.brackets.start = S.i
                 N.brackets.value = $c
                 N.value.value = $c
-                state = "open-bracket-wsb"
+                state = OpenBracketWsb
 
-            of "open-bracket-wsb":
+            of OpenBracketWsb:
                 if c notin C_SPACES:
-                    state = "close-bracket"
+                    state = CloseBracket
                     rollback(S)
 
-            of "close-bracket":
+            of CloseBracket:
                 if c != C_RBRACKET: error(S, currentSourcePath)
                 N.brackets.stop = S.i
                 N.value.value &= $c
-                state = "eol-wsb"
+                state = EolWsb
 
-            of "oneliner":
+            of Oneliner:
                 tracer.trace(S, "flag") # Trace parser.
 
                 let fN = p_flag(S, "oneliner")
@@ -195,38 +195,38 @@ proc p_command*(S: State) =
                     N.flags.add(xN)
                 N.flags.add(fN)
 
-            of "eol-wsb":
+            of EolWsb:
                 if c notin C_SPACES: error(S, currentSourcePath)
 
             # Command group states
 
-            of "group-open":
+            of GroupOpen:
                 N.command.stop = S.i
                 N.command.value &= (if not isformatting: "?" else: $c)
 
-                state = "group-wsb"
+                state = GroupWsb
 
                 G.start = S.column
                 G.commands.add(@[])
                 G.active = true
 
-            of "group-wsb":
+            of GroupWsb:
                 if G.command != "": G.commands[^1].add(G.command)
                 G.command = ""
 
                 if c notin C_SPACES:
                     if c in C_CMD_GRP_IDENT_START:
-                        state = "group-command"
+                        state = GroupCommand
                         rollback(S)
                     elif c == C_COMMA:
-                        state = "group-delimiter"
+                        state = GroupDelimiter
                         rollback(S)
                     elif c == C_RCURLY:
-                        state = "group-close"
+                        state = GroupClose
                         rollback(S)
                     else: error(S, currentSourcePath)
 
-            of "group-command":
+            of GroupCommand:
                 if G.command == "":
                     if c notin C_CMD_GRP_IDENT_START: error(S, currentSourcePath)
 
@@ -242,17 +242,17 @@ proc p_command*(S: State) =
                         if isformatting: N.command.value &= $c
                         cescape(c, true, l, G)
                     elif c in C_SPACES:
-                        state = "group-wsb"
+                        state = GroupWsb
                         continue
                     elif c == C_COMMA:
-                        state = "group-delimiter"
+                        state = GroupDelimiter
                         rollback(S)
                     elif c == C_RCURLY:
-                        state = "group-close"
+                        state = GroupClose
                         rollback(S)
                     else: error(S, currentSourcePath)
 
-            of "group-delimiter":
+            of GroupDelimiter:
                 N.command.stop = S.i
                 if isformatting: N.command.value &= $c
 
@@ -264,9 +264,9 @@ proc p_command*(S: State) =
                 var token: Token; token = ("delimiter", S.column)
                 G.tokens.add(token)
                 G.command = ""
-                state = "group-wsb"
+                state = GroupWsb
 
-            of "group-close":
+            of GroupClose:
                 N.command.stop = S.i
                 if isformatting: N.command.value &= $c
 
@@ -280,7 +280,7 @@ proc p_command*(S: State) =
 
                 G.active = false
                 G.command = ""
-                state = "command"
+                state = Command
 
             else: discard
 

@@ -30,7 +30,7 @@ proc parser*(action, text, cmdname, source: string,
             continue
 
         # Store line start index.
-        if not S.tables.linestarts.hasKey(S.line):
+        if S.line notin S.tables.linestarts:
             S.tables.linestarts[S.line] = S.i
 
         # Start parsing at first non-ws character.

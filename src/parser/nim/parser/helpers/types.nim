@@ -128,7 +128,7 @@ proc state*(action, cmdname, text, source: string,
     result.args = Args(action: action, source: source, fmt: fmt, trace: trace, igc: igc, test: test)
 
 proc node*(nkType: NodeKind, S: State): Node =
-    result = Node(kind: nkType) # new(result)
+    result = Node(kind: nkType, line: S.line, start: S.i, stop: -1) # new(result)
 
     # [https://github.com/nim-lang/Nim/issues/11395]
     # [https://forum.nim-lang.org/t/2799#17448]
@@ -188,7 +188,3 @@ proc node*(nkType: NodeKind, S: State): Node =
 
     of nkBrace:
         result.brace = Branch()
-
-    result.line = S.line
-    result.start = S.i
-    result.stop = -1

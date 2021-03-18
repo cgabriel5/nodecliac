@@ -164,77 +164,77 @@ proc acdef*(S: State, cmdname: string): tuple =
 
             last = nkEmpty
 
-        case (t):
-            of nkCommand:
+        case t:
+        of nkCommand:
 
-                # Handle wildcard node.
-                if N.command.value == "*":
-                    wildcard = true
-                    inc(i); continue
-                else: wildcard = false
+            # Handle wildcard node.
+            if N.command.value == "*":
+                wildcard = true
+                inc(i); continue
+            else: wildcard = false
 
-                # Store command in current group.
-                if count notin oGroups:
-                    oGroups[count] = {"commands": @[N], "flags": @[]}.toTable
-                else: oGroups[count]["commands"].add(N)
+            # Store command in current group.
+            if count notin oGroups:
+                oGroups[count] = {"commands": @[N], "flags": @[]}.toTable
+            else: oGroups[count]["commands"].add(N)
 
-                let cval = N.command.value
-                if cval notin oSets:
-                    oSets[cval] = initHashSet[string]()
+            let cval = N.command.value
+            if cval notin oSets:
+                oSets[cval] = initHashSet[string]()
 
-                    # Create missing parent chains.
-                    var commands = cval.split(re"(?<!\\)\.")
-                    discard commands.pop() # Remove last command (already made).
-                    var i = commands.high
-                    while i > -1:
-                        let rchain = commands.join(".") # Remainder chain.
-                        if not oSets.hasKey(rchain):
-                            var mN = node(nkCommand, S)
-                            mN.command.value = rchain
-                            oGroups[-1]["commands"].add(mN)
-                            oSets[rchain] = initHashSet[string]()
-                        discard commands.pop() # Remove last command.
-                        dec(i)
+                # Create missing parent chains.
+                var commands = cval.split(re"(?<!\\)\.")
+                discard commands.pop() # Remove last command (already made).
+                var i = commands.high
+                while i > -1:
+                    let rchain = commands.join(".") # Remainder chain.
+                    if not oSets.hasKey(rchain):
+                        var mN = node(nkCommand, S)
+                        mN.command.value = rchain
+                        oGroups[-1]["commands"].add(mN)
+                        oSets[rchain] = initHashSet[string]()
+                    discard commands.pop() # Remove last command.
+                    dec(i)
 
-                last = t
-                rN = N # Store reference to node.
+            last = t
+            rN = N # Store reference to node.
 
-            of nkFlag:
-                let keyword = N.keyword.value
+        of nkFlag:
+            let keyword = N.keyword.value
 
-                # Handle wildcard flags.
-                if wildcard:
-                    if keyword == "exclude": wc_exc.incl(N.value.value[1 .. ^2])
-                    else: wc_flg.add(N)
-                    inc(i); continue
+            # Handle wildcard flags.
+            if wildcard:
+                if keyword == "exclude": wc_exc.incl(N.value.value[1 .. ^2])
+                else: wc_flg.add(N)
+                inc(i); continue
 
-                # Add values/arguments to delimited flags.
-                if N.delimiter.value != "": dN.add(N)
-                elif keyword == "": # Skip/ignore keywords.
-                    let args = N.args
-                    let value = N.value.value
-                    for i, tN in dN:
-                        var tN = dN[i]
-                        tN.args = args
-                        tN.value.value = value
-                    dN.setLen(0)
+            # Add values/arguments to delimited flags.
+            if N.delimiter.value != "": dN.add(N)
+            elif keyword == "": # Skip/ignore keywords.
+                let args = N.args
+                let value = N.value.value
+                for i, tN in dN:
+                    var tN = dN[i]
+                    tN.args = args
+                    tN.value.value = value
+                dN.setLen(0)
 
-                oGroups[count]["flags"].add(N) # Store command in current group.
-                last = t
+            oGroups[count]["flags"].add(N) # Store command in current group.
+            last = t
 
-            of nkOption:
-                # Add value to last flag in group.
-                var fxN = oGroups[count]["flags"]
-                oGroups[count]["flags"][fxN.high].args.add(N.value.value)
-                last = t
+        of nkOption:
+            # Add value to last flag in group.
+            var fxN = oGroups[count]["flags"]
+            oGroups[count]["flags"][fxN.high].args.add(N.value.value)
+            last = t
 
-            of nkSetting:
-                let name = N.name.value
-                if name != "test":
-                    if not oSettings.hasKey(name): inc(settings_count)
-                    oSettings[name] = N.value.value
+        of nkSetting:
+            let name = N.name.value
+            if name != "test":
+                if not oSettings.hasKey(name): inc(settings_count)
+                oSettings[name] = N.value.value
 
-            else: discard
+        else: discard
 
         inc(i)
 

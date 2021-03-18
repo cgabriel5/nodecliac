@@ -30,17 +30,17 @@ proc p_closebrace*(S: State) =
             N.stop = S.i
             break
 
-        case (state):
-            of Brace:
-                N.brace.start = S.i
-                N.brace.stop = S.i
-                N.brace.value = $c
-                state = EolWsb
+        case state:
+        of Brace:
+            N.brace.start = S.i
+            N.brace.stop = S.i
+            N.brace.value = $c
+            state = EolWsb
 
-            of EolWsb:
-                if c notin C_SPACES: error(S)
+        of EolWsb:
+            if c notin C_SPACES: error(S)
 
-            else: discard
+        else: discard
 
         forward(S)
 

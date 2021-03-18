@@ -95,52 +95,18 @@ proc vcontext*(S: State, value: string = "",
     proc verify(value, `type`: string, i: int): string =
         var v = value
         let l = value.len
-        case (`type`):
-            of "marg":
-                if v[0] == C_HYPHEN:
-                    S.column = tindex(i)
-                    error(S)
-            of "carg":
-                    if v[0] == C_EXPOINT:
-                        if l < 2:
-                            S.column = tindex(i)
-                            error(S)
-                        if v[1] notin C_LETTERS:
-                            S.column = tindex(i + 1)
-                            error(S)
-                    else:
-                        if l < 1:
-                            S.column = tindex(i)
-                            error(S)
-                        if v[0] notin C_LETTERS:
-                            S.column = tindex(i + 1)
-                            error(S)
-            of "ccond":
-                # Inversion: Remove '!' for next checks.
-                if v[0] == C_EXPOINT: v = v[1 .. ^1]
-                if v[0] == C_NUMSIGN:
-                    # Must be at least 5 chars in length.
-                    if l < 5:
+        case `type`:
+        of "marg":
+            if v[0] == C_HYPHEN:
+                S.column = tindex(i)
+                error(S)
+        of "carg":
+                if v[0] == C_EXPOINT:
+                    if l < 2:
                         S.column = tindex(i)
                         error(S)
-                    if v[1] notin C_CTX_CAT:
+                    if v[1] notin C_LETTERS:
                         S.column = tindex(i + 1)
-                        error(S)
-                    if v[2 .. 3] notin C_CTX_OPS:
-                        S.column = tindex(i + 2)
-                        error(S)
-                    let nval = v[4 .. ^1]
-                    try:
-                        # Characters at these indices must be
-                        # numbers if not, error.
-                        discard parseInt(nval)
-                    except:
-                        S.column = tindex(i + 4)
-                        error(S)
-                    # Error if number starts with 0 and is
-                    # more than 2 numbers.
-                    if v[4] == C_N0 and nval.len != 1:
-                        S.column = tindex(i + 4)
                         error(S)
                 else:
                     if l < 1:
@@ -149,7 +115,41 @@ proc vcontext*(S: State, value: string = "",
                     if v[0] notin C_LETTERS:
                         S.column = tindex(i + 1)
                         error(S)
-            else: discard
+        of "ccond":
+            # Inversion: Remove '!' for next checks.
+            if v[0] == C_EXPOINT: v = v[1 .. ^1]
+            if v[0] == C_NUMSIGN:
+                # Must be at least 5 chars in length.
+                if l < 5:
+                    S.column = tindex(i)
+                    error(S)
+                if v[1] notin C_CTX_CAT:
+                    S.column = tindex(i + 1)
+                    error(S)
+                if v[2 .. 3] notin C_CTX_OPS:
+                    S.column = tindex(i + 2)
+                    error(S)
+                let nval = v[4 .. ^1]
+                try:
+                    # Characters at these indices must be
+                    # numbers if not, error.
+                    discard parseInt(nval)
+                except:
+                    S.column = tindex(i + 4)
+                    error(S)
+                # Error if number starts with 0 and is
+                # more than 2 numbers.
+                if v[4] == C_N0 and nval.len != 1:
+                    S.column = tindex(i + 4)
+                    error(S)
+            else:
+                if l < 1:
+                    S.column = tindex(i)
+                    error(S)
+                if v[0] notin C_LETTERS:
+                    S.column = tindex(i + 1)
+                    error(S)
+        else: discard
         return value
 
     var resume_index = 1 # Account for initial skipped quote.

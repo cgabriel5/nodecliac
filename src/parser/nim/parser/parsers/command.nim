@@ -86,202 +86,202 @@ proc p_command*(S: State) =
             N.stop = S.i
             break
 
-        case (state):
-            of Command:
-                if N.command.value == "":
-                    if c notin C_CMD_IDENT_START : error(S)
+        case state:
+        of Command:
+            if N.command.value == "":
+                if c notin C_CMD_IDENT_START : error(S)
 
-                    N.command.start = S.i
+                N.command.start = S.i
+                N.command.stop = S.i
+                N.command.value &= $c
+
+                # Once a wildcard (all) char is found change state.
+                if c == C_ASTERISK: state = ChainWsb
+            else:
+                if c in C_CMD_IDENT:
                     N.command.stop = S.i
                     N.command.value &= $c
-
-                    # Once a wildcard (all) char is found change state.
-                    if c == C_ASTERISK: state = ChainWsb
-                else:
-                    if c in C_CMD_IDENT:
-                        N.command.stop = S.i
-                        N.command.value &= $c
-                        cescape(c, false, l, G)
-                    elif c in C_SPACES:
-                        state = ChainWsb
-                        forward(S)
-                        continue
-                    elif c == C_EQUALSIGN:
-                        state = Assignment
-                        rollback(S)
-                    elif c == C_COMMA:
-                        state = Delimiter
-                        rollback(S)
-                    elif c == C_LCURLY:
-                        state = GroupOpen
-                        rollback(S)
-                    else: error(S)
-
-            of ChainWsb:
-                if c notin C_SPACES:
-                    if c == C_EQUALSIGN:
-                        state = Assignment
-                        rollback(S)
-                    elif c == C_COMMA:
-                        state = Delimiter
-                        rollback(S)
-                    else: error(S)
-
-            of Assignment:
-                N.assignment.start = S.i
-                N.assignment.stop = S.i
-                N.assignment.value = $c
-                state = ValueWsb
-
-            of Delimiter:
-                N.delimiter.start = S.i
-                N.delimiter.stop = S.i
-                N.delimiter.value = $c
-                state = EolWsb
-
-            of ValueWsb:
-                if c notin C_SPACES:
-                    state = Value
+                    cescape(c, false, l, G)
+                elif c in C_SPACES:
+                    state = ChainWsb
+                    forward(S)
+                    continue
+                elif c == C_EQUALSIGN:
+                    state = Assignment
                     rollback(S)
+                elif c == C_COMMA:
+                    state = Delimiter
+                    rollback(S)
+                elif c == C_LCURLY:
+                    state = GroupOpen
+                    rollback(S)
+                else: error(S)
 
-            of Value:
-                # Note: Intermediary step - remove it?
-                if c notin C_CMD_VALUE: error(S)
-                state = if c == C_LBRACKET: OpenBracket else: Oneliner
+        of ChainWsb:
+            if c notin C_SPACES:
+                if c == C_EQUALSIGN:
+                    state = Assignment
+                    rollback(S)
+                elif c == C_COMMA:
+                    state = Delimiter
+                    rollback(S)
+                else: error(S)
+
+        of Assignment:
+            N.assignment.start = S.i
+            N.assignment.stop = S.i
+            N.assignment.value = $c
+            state = ValueWsb
+
+        of Delimiter:
+            N.delimiter.start = S.i
+            N.delimiter.stop = S.i
+            N.delimiter.value = $c
+            state = EolWsb
+
+        of ValueWsb:
+            if c notin C_SPACES:
+                state = Value
                 rollback(S)
 
-            of OpenBracket:
-                # Note: Intermediary step - remove it?
-                N.brackets.start = S.i
-                N.brackets.value = $c
-                N.value.value = $c
-                state = OpenBracketWsb
+        of Value:
+            # Note: Intermediary step - remove it?
+            if c notin C_CMD_VALUE: error(S)
+            state = if c == C_LBRACKET: OpenBracket else: Oneliner
+            rollback(S)
 
-            of OpenBracketWsb:
-                if c notin C_SPACES:
-                    state = CloseBracket
+        of OpenBracket:
+            # Note: Intermediary step - remove it?
+            N.brackets.start = S.i
+            N.brackets.value = $c
+            N.value.value = $c
+            state = OpenBracketWsb
+
+        of OpenBracketWsb:
+            if c notin C_SPACES:
+                state = CloseBracket
+                rollback(S)
+
+        of CloseBracket:
+            if c != C_RBRACKET: error(S)
+            N.brackets.stop = S.i
+            N.value.value &= $c
+            state = EolWsb
+
+        of Oneliner:
+            tracer.trace(S, LTFlag) # Trace parser.
+
+            let fN = p_flag(S, "oneliner")
+            # Add alias node if it exists.
+            if fN.alias.value != "":
+                let cN = node(nkFlag, S)
+                cN.hyphens.value = "-"
+                cN.delimiter.value = ","
+                cN.name.value = fN.alias.value
+                cN.singleton = true
+                cN.boolean.value = fN.boolean.value
+                cN.assignment.value = fN.assignment.value
+                cN.alias.value = cN.name.value
+                N.flags.add(cN)
+
+                # Add context node for mutual exclusivity.
+                let xN = node(nkFlag, S)
+                xN.value.value = "\"{" & fN.name.value & "|" & fN.alias.value & "}\""
+                xN.keyword.value = "context"
+                xN.singleton = false
+                xN.virtual = true
+                xN.args.add(xN.value.value)
+                N.flags.add(xN)
+            N.flags.add(fN)
+
+        of EolWsb:
+            if c notin C_SPACES: error(S)
+
+        # Command group states
+
+        of GroupOpen:
+            N.command.stop = S.i
+            N.command.value &= (if not isformatting: "?" else: $c)
+
+            state = GroupWsb
+
+            G.start = S.column
+            G.commands.add(@[])
+            G.active = true
+
+        of GroupWsb:
+            if G.command != "": G.commands[^1].add(G.command)
+            G.command = ""
+
+            if c notin C_SPACES:
+                if c in C_CMD_GRP_IDENT_START:
+                    state = GroupCommand
                     rollback(S)
+                elif c == C_COMMA:
+                    state = GroupDelimiter
+                    rollback(S)
+                elif c == C_RCURLY:
+                    state = GroupClose
+                    rollback(S)
+                else: error(S)
 
-            of CloseBracket:
-                if c != C_RBRACKET: error(S)
-                N.brackets.stop = S.i
-                N.value.value &= $c
-                state = EolWsb
+        of GroupCommand:
+            if G.command == "":
+                if c notin C_CMD_GRP_IDENT_START: error(S)
 
-            of Oneliner:
-                tracer.trace(S, LTFlag) # Trace parser.
-
-                let fN = p_flag(S, "oneliner")
-                # Add alias node if it exists.
-                if fN.alias.value != "":
-                    let cN = node(nkFlag, S)
-                    cN.hyphens.value = "-"
-                    cN.delimiter.value = ","
-                    cN.name.value = fN.alias.value
-                    cN.singleton = true
-                    cN.boolean.value = fN.boolean.value
-                    cN.assignment.value = fN.assignment.value
-                    cN.alias.value = cN.name.value
-                    N.flags.add(cN)
-
-                    # Add context node for mutual exclusivity.
-                    let xN = node(nkFlag, S)
-                    xN.value.value = "\"{" & fN.name.value & "|" & fN.alias.value & "}\""
-                    xN.keyword.value = "context"
-                    xN.singleton = false
-                    xN.virtual = true
-                    xN.args.add(xN.value.value)
-                    N.flags.add(xN)
-                N.flags.add(fN)
-
-            of EolWsb:
-                if c notin C_SPACES: error(S)
-
-            # Command group states
-
-            of GroupOpen:
+                var token: Token; token = ("command", S.column)
+                G.tokens.add(token)
                 N.command.stop = S.i
-                N.command.value &= (if not isformatting: "?" else: $c)
-
-                state = GroupWsb
-
-                G.start = S.column
-                G.commands.add(@[])
-                G.active = true
-
-            of GroupWsb:
-                if G.command != "": G.commands[^1].add(G.command)
-                G.command = ""
-
-                if c notin C_SPACES:
-                    if c in C_CMD_GRP_IDENT_START:
-                        state = GroupCommand
-                        rollback(S)
-                    elif c == C_COMMA:
-                        state = GroupDelimiter
-                        rollback(S)
-                    elif c == C_RCURLY:
-                        state = GroupClose
-                        rollback(S)
-                    else: error(S)
-
-            of GroupCommand:
-                if G.command == "":
-                    if c notin C_CMD_GRP_IDENT_START: error(S)
-
-                    var token: Token; token = ("command", S.column)
-                    G.tokens.add(token)
+                G.command &= $c
+                if isformatting: N.command.value &= $c
+            else:
+                if c in C_CMD_IDENT:
                     N.command.stop = S.i
                     G.command &= $c
                     if isformatting: N.command.value &= $c
-                else:
-                    if c in C_CMD_IDENT:
-                        N.command.stop = S.i
-                        G.command &= $c
-                        if isformatting: N.command.value &= $c
-                        cescape(c, true, l, G)
-                    elif c in C_SPACES:
-                        state = GroupWsb
-                        continue
-                    elif c == C_COMMA:
-                        state = GroupDelimiter
-                        rollback(S)
-                    elif c == C_RCURLY:
-                        state = GroupClose
-                        rollback(S)
-                    else: error(S)
+                    cescape(c, true, l, G)
+                elif c in C_SPACES:
+                    state = GroupWsb
+                    continue
+                elif c == C_COMMA:
+                    state = GroupDelimiter
+                    rollback(S)
+                elif c == C_RCURLY:
+                    state = GroupClose
+                    rollback(S)
+                else: error(S)
 
-            of GroupDelimiter:
-                N.command.stop = S.i
-                if isformatting: N.command.value &= $c
+        of GroupDelimiter:
+            N.command.stop = S.i
+            if isformatting: N.command.value &= $c
 
-                let ll = G.tokens.len
-                if ll == 0 or (ll != 0 and G.tokens[^1][0] == "delimiter"):
-                    error(S, 12)
+            let ll = G.tokens.len
+            if ll == 0 or (ll != 0 and G.tokens[^1][0] == "delimiter"):
+                error(S, 12)
 
-                if G.command != "": G.commands[^1].add(G.command)
-                var token: Token; token = ("delimiter", S.column)
-                G.tokens.add(token)
-                G.command = ""
-                state = GroupWsb
+            if G.command != "": G.commands[^1].add(G.command)
+            var token: Token; token = ("delimiter", S.column)
+            G.tokens.add(token)
+            G.command = ""
+            state = GroupWsb
 
-            of GroupClose:
-                N.command.stop = S.i
-                if isformatting: N.command.value &= $c
+        of GroupClose:
+            N.command.stop = S.i
+            if isformatting: N.command.value &= $c
 
-                if G.command != "": G.commands[^1].add(G.command)
-                if G.commands[^1].len == 0:
-                    S.column = G.start
-                    error(S, 11) # Empty command group.
-                if G.tokens[^1][0] == "delimiter":
-                    S.column = G.tokens[^1][1]
-                    error(S, 12) # Trailing delimiter.
+            if G.command != "": G.commands[^1].add(G.command)
+            if G.commands[^1].len == 0:
+                S.column = G.start
+                error(S, 11) # Empty command group.
+            if G.tokens[^1][0] == "delimiter":
+                S.column = G.tokens[^1][1]
+                error(S, 12) # Trailing delimiter.
 
-                G.active = false
-                G.command = ""
-                state = Command
+            G.active = false
+            G.command = ""
+            state = Command
 
-            else: discard
+        else: discard
 
         forward(S)
 

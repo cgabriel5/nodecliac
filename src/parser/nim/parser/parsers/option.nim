@@ -39,96 +39,96 @@ proc p_option*(S: State): Node =
             N.stop = S.i
             break
 
-        case (state):
-            of Bullet:
-                N.bullet.start = S.i
-                N.bullet.stop = S.i
-                N.bullet.value = $c
-                state = Spacer
+        case state:
+        of Bullet:
+            N.bullet.start = S.i
+            N.bullet.stop = S.i
+            N.bullet.value = $c
+            state = Spacer
 
-            of Spacer:
-                if c notin C_SPACES: error(S)
-                state = WsbPrevalue
+        of Spacer:
+            if c notin C_SPACES: error(S)
+            state = WsbPrevalue
 
-            of WsbPrevalue:
-                if c notin C_SPACES:
-                    rollback(S)
-                    state = Value
+        of WsbPrevalue:
+            if c notin C_SPACES:
+                rollback(S)
+                state = Value
 
-            of Value:
-                if N.value.value == "":
-                    # Determine value type.
-                    if c == C_DOLLARSIGN: `type` = "command-flag"
-                    elif c == C_LPAREN:
-                        `type` = "list"
-                        braces.add(S.i)
-                    elif c in C_QUOTES:
-                        `type` = "quoted"
-                        qchar = c
+        of Value:
+            if N.value.value == "":
+                # Determine value type.
+                if c == C_DOLLARSIGN: `type` = "command-flag"
+                elif c == C_LPAREN:
+                    `type` = "list"
+                    braces.add(S.i)
+                elif c in C_QUOTES:
+                    `type` = "quoted"
+                    qchar = c
 
-                    N.value.start = S.i
-                    N.value.stop = S.i
-                    N.value.value = $c
-                else:
-                    case `type`:
-                        of "escaped":
-                            if c in C_SPACES and p != C_ESCAPE:
+                N.value.start = S.i
+                N.value.stop = S.i
+                N.value.value = $c
+            else:
+                case `type`:
+                of "escaped":
+                    if c in C_SPACES and p != C_ESCAPE:
+                        state = EolWsb
+                        forward(S)
+                        continue
+                of "quoted":
+                    if c == qchar and p != C_ESCAPE:
+                        state = EolWsb
+                    elif c == C_NUMSIGN and qchar == C_NULLB:
+                        comment = true
+                        rollback(S)
+                else: # list|command-flag
+                    # The following character after the initial
+                    # '$' must be a '('. If it does not follow,
+                    # error.
+                    #   --help=$"cat ~/files.text"
+                    #   --------^ Missing '(' after '$'.
+                    if `type` == "command-flag":
+                        if N.value.value.len == 1 and c != C_LPAREN:
+                            error(S)
+
+                    # The following logic, is precursor validation
+                    # logic that ensures braces are balanced and
+                    # detects inline comment.
+                    if p != C_ESCAPE:
+                        if c == C_LPAREN and qchar == C_NULLB:
+                            braces.add(S.i)
+                        elif c == C_RPAREN and qchar == C_NULLB:
+                            # If braces len is negative, opening
+                            # braces were never introduced so
+                            # current closing brace is invalid.
+                            if braces.len == 0: error(S)
+                            discard braces.pop()
+                            if braces.len == 0:
                                 state = EolWsb
-                                forward(S)
-                                continue
-                        of "quoted":
-                            if c == qchar and p != C_ESCAPE:
-                                state = EolWsb
-                            elif c == C_NUMSIGN and qchar == C_NULLB:
+
+                        if c in C_QUOTES:
+                            if qchar == C_NULLB:
+                                qchar = c
+                            elif qchar == c:
+                                qchar = C_NULLB
+
+                        if c == C_NUMSIGN and qchar == C_NULLB:
+                            if braces.len == 0:
                                 comment = true
                                 rollback(S)
-                        else: # list|command-flag
-                            # The following character after the initial
-                            # '$' must be a '('. If it does not follow,
-                            # error.
-                            #   --help=$"cat ~/files.text"
-                            #   --------^ Missing '(' after '$'.
-                            if `type` == "command-flag":
-                                if N.value.value.len == 1 and c != C_LPAREN:
-                                    error(S)
+                            else:
+                                S.column = braces.pop() - S.tables.linestarts[S.line]
+                                inc(S.column) # Add 1 to account for 0 base indexing.
+                                error(S)
 
-                            # The following logic, is precursor validation
-                            # logic that ensures braces are balanced and
-                            # detects inline comment.
-                            if p != C_ESCAPE:
-                                if c == C_LPAREN and qchar == C_NULLB:
-                                    braces.add(S.i)
-                                elif c == C_RPAREN and qchar == C_NULLB:
-                                    # If braces len is negative, opening
-                                    # braces were never introduced so
-                                    # current closing brace is invalid.
-                                    if braces.len == 0: error(S)
-                                    discard braces.pop()
-                                    if braces.len == 0:
-                                        state = EolWsb
+                N.value.stop = S.i
+                N.value.value &= $c
 
-                                if c in C_QUOTES:
-                                    if qchar == C_NULLB:
-                                        qchar = c
-                                    elif qchar == c:
-                                        qchar = C_NULLB
+        of EolWsb:
+            if c notin C_SPACES: error(S)
 
-                                if c == C_NUMSIGN and qchar == C_NULLB:
-                                    if braces.len == 0:
-                                        comment = true
-                                        rollback(S)
-                                    else:
-                                        S.column = braces.pop() - S.tables.linestarts[S.line]
-                                        inc(S.column) # Add 1 to account for 0 base indexing.
-                                        error(S)
-
-                    N.value.stop = S.i
-                    N.value.value &= $c
-
-            of EolWsb:
-                if c notin C_SPACES: error(S)
-
-            else: discard
+        else: discard
 
         forward(S)
 

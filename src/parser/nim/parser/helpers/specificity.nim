@@ -33,5 +33,5 @@ proc specificity*(S: State, line_type: LineType, parserfile: string) =
     elif command_scope != nkEmpty: state_specf = SPECF[LTCommand]
 
     # Error when specificity is invalid.
-    if state_specf > 0 and state_specf < line_specf: error(S, 12)
+    if state_specf > 0 and state_specf < line_specf: error(S, 12, parserfile)
     S.specf = line_specf

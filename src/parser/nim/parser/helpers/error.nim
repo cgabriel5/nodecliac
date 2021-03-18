@@ -55,7 +55,7 @@ errors["vtest"][15] = "Malformed test string"
 # @param  {number} code - Error code.
 # @param  {string} parserfile - Path of parser issuing error.
 # @return - Nothing is returned.
-template error*(S: State, code: int = 0) =
+template error*(S: State, code: int = 0, parserfile: string = "") =
     # [https://github.com/nim-lang/Nim/issues/7406]
     # [https://nim-lang.org/docs/system.html#instantiationInfo]
     # [https://stackoverflow.com/a/29472072]
@@ -63,7 +63,10 @@ template error*(S: State, code: int = 0) =
     # [https://forum.nim-lang.org/t/4211#26241]
     # [https://forum.nim-lang.org/t/3199#20161]
     # let callfile = instantiationInfo(-1).filename # currentSourcePath
-    let fullpath = instantiationInfo(-1, true).filename
+    let fullpath = (
+        if parserfile.len != 0: parserfile
+        else: instantiationInfo(-1, true).filename
+    )
 
     let line = S.line
     let column = S.column

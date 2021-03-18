@@ -98,18 +98,18 @@ perlscript_path=~/.nodecliac/src/ac/ac.pl # The Perl ac script path.
 
 # Detect which nodecliac ac script is being used (bin or Perl script).
 acpl_script=""
+[[ "$OSTYPE" =~ (^[^0-9-]+) ]]
+os="${BASH_REMATCH[1]/darwin/macosx}"
 if [[ $(isset "$OVERRIDE") ]]; then
 	if [[ "$OVERRIDE" == "nim" ]]; then
-		acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo "${e/darwin/macosx}")"
+		acpl_script=~/.nodecliac/src/bin/ac."$os"
 	else
 		acpl_script="$perlscript_path"
 	fi
 	
 	scripts=("$acpl_script")
 else
-	acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo "${e/darwin/macosx}")"
-	# acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo $e)"
-	# acpl_script="${acpl_script/darwin/macosx}"
+	acpl_script=~/.nodecliac/src/bin/ac."$os"
 	#"$(perl -ne 'print $1 if /acpl_script=.*\/(ac.*)$/' <<< "$(<~/.nodecliac/src/ac.sh)")"
 	# Fallback to Perl script if Nim os binary is not supported.
 	if [[ ! -e "$acpl_script"  ]]; then

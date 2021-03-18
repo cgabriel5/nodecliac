@@ -15,6 +15,7 @@ CACHE=0
 cachepath="$HOME/.nodecliac/.cache-level"
 [[ -f "$cachepath" ]] && CACHE=$(<"$cachepath")
 TESTS=""
+TDEBUG=""
 
 # ANSI colors: [https://stackoverflow.com/a/5947802]
 # [https://misc.flogisoft.com/bash/tip_colors_and_formatting]
@@ -34,7 +35,7 @@ NC="\033[0m"
 DIM="\033[2m"
 
 OPTIND=1 # Reset variable: [https://unix.stackexchange.com/a/233737]
-while getopts 't:p:f:o:' flag; do # [https://stackoverflow.com/a/18003735]
+while getopts 't:p:f:o:d:' flag; do # [https://stackoverflow.com/a/18003735]
 	case "$flag" in
 		p)
 			case "$OPTARG" in
@@ -53,6 +54,7 @@ while getopts 't:p:f:o:' flag; do # [https://stackoverflow.com/a/18003735]
 				*) OVERRIDE="" ;;
 			esac ;;
 		t) [[ -n "$OPTARG" ]] && TESTS="$OPTARG" ;;
+		d) [[ -n "$OPTARG" ]] && TDEBUG="$OPTARG" ;;
 	esac
 done
 shift $((OPTIND - 1))
@@ -201,6 +203,23 @@ function _nodecliac() {
 		[[ -n "$phscript" && -x "$phscript" ]] && posthook="$phscript"
 		# Unset to allow bash-completion to continue to work properly.
 		# shopt -u nullglob # [https://unix.stackexchange.com/a/434213]
+
+		if [[ -n "$TDEBUG" ]]; then
+			local lpad=" "
+			local verbose=""
+			verbose+="\n${lpad}───────────────────────────────────────────\n"
+			verbose+="${lpad}${BOLD}Args:${NC} [${GREEN}${BOLD}script${NC}=${acpl_script/#$HOME/\~}]\n"
+			verbose+="  │ ocline ----- [0] => [$2]\n"
+			verbose+="  │ cline ------ [1] => [$cline]\n"
+			verbose+="  │ cpoint ----- [2] => [$cpoint]\n"
+			verbose+="  │ command ---- [3] => [$command]\n"
+			verbose+="  │ acdef ------ [4] => [${acdefpath/#$HOME/\~}]\n"
+			verbose+="  │ posthook --- [5] => [${posthook/#$HOME/\~}]\n"
+			verbose+="  │ singletons - [6] => [$singletons]\n"
+			# verbose+="\n${lpad}-------------------------------------------\n"
+			verbose+="${lpad:0:-1}  │"
+			echo -e "$verbose" > /dev/tty
+		fi
 
 		output=$(TESTMODE=1 "$acpl_script" "$2" "$cline" "$cpoint" "$command" "$acdef" "$posthook" "$singletons")
 	fi
@@ -435,7 +454,7 @@ function xtest {
 				padding="" # [https://stackoverflow.com/a/5349842]
 				[[ "$diff" > 0 ]] && padding="$(printf ' %.0s' $(seq 1 $diff))"
 				echo ""
-				echo -e "${tid}${padding} ${BRED}Failing${NC}\n    [$X_MARK] (${t}s) TS=[$teststring_og]${NC}"
+				[[ -z "$TDEBUG" ]] && echo ""
 
 				l="${#tests[@]}"
 				for ((i = 0 ; i < $l ; i++)); do
@@ -455,7 +474,7 @@ function xtest {
 					c="${completions[$i]}"
 					echo -e "    [$i] => [$c]"
 				done
-				echo ""
+				[[ -z "$TDEBUG" ]] && echo ""
 			fi
 		fi
 	fi

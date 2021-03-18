@@ -113,11 +113,11 @@ function _nodecliac() {
 		# [https://unix.stackexchange.com/a/324181]
 		# [https://stackoverflow.com/a/19327286]
 		[[ "$OSTYPE" =~ (^[^0-9-]+) ]]
-		local os="${BASH_REMATCH[1]}"
+		local os="${BASH_REMATCH[1]/darwin/macosx}"
 		local pac="$root/src/ac/ac.pl"
-		local nac="$root/src/bin/ac.${os/darwin/macosx}"
+		local nac="$root/src/bin/ac.$os"
 		local ac="$pac"
-		[[ " linux darwin " == *" $os "* ]] && ac="$nac"
+		[[ " linux macosx " == *" $os "* ]] && ac="$nac"
 		# // 0=off , 1=debug , 2=debug + ac.pl , 3=debug + ac.nim
 		if [[ "$debug" != "0" ]]; then
 			case "$debug" in

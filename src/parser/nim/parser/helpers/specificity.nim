@@ -24,13 +24,13 @@ proc specificity*(S: State, line_type: LineType, parserfile: string) =
     }.toTable
 
     let line_specf = SPECF.getOrDefault(line_type, 0)
-    let flag_scope = S.scopes.flag.node
-    let command_scope = S.scopes.command.node
+    let flag_scope = S.scopes.flag.kind
+    let command_scope = S.scopes.command.kind
 
     # Note: When in a scope, scope's specificity trumps line's specificity.
     var state_specf = S.specf
-    if flag_scope != "": state_specf = SPECF[LTFlag]
-    elif command_scope != "": state_specf = SPECF[LTCommand]
+    if flag_scope != nkEmpty: state_specf = SPECF[LTFlag]
+    elif command_scope != nkEmpty: state_specf = SPECF[LTCommand]
 
     # Error when specificity is invalid.
     if state_specf > 0 and state_specf < line_specf: error(S, 12)

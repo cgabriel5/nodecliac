@@ -14,26 +14,26 @@ proc bracechecks*(S: State, N: Node = Node(), check: string) =
         # Note: Error if pre-existing command scope exists.
         # Command can't be declared inside a command scope.
         of "pre-existing-cs":
-            let scope = S.scopes.command.node
-            if scope != "": error(S, 10)
+            if S.scopes.command.kind != nkEmpty: error(S, 10)
 
         # Note: Reset existing scope. If no scope exists
         # the closing brace was wrongly used so error.
         of "reset-scope":
-            let `type` = if N.brace.value == "]": "command" else: "flag"
-            if `type` == "command" and S.scopes.command.node != "":
+            let t = if N.brace.value == "]": nkCommand else: nkFlag
+            if t == nkCommand and S.scopes.command.kind != nkEmpty:
                 S.scopes.command = Node()
-            elif `type` == "flag" and S.scopes.flag.node != "":
+            elif t == nkFlag and S.scopes.flag.kind != nkEmpty:
                 S.scopes.flag = Node()
             else: error(S, 11)
 
         # Note: Error if scope was left unclosed.
         of "post-standing-scope":
-            let flag = S.scopes.flag
-            let command = S.scopes.command
-            let scope = if command.node != "": command else: flag
+            let scope = (
+                if S.scopes.command.kind != nkEmpty: S.scopes.command
+                else: S.scopes.flag
+            )
 
-            if scope.node != "":
+            if scope.kind != nkEmpty:
                 let brackets_start = scope.brackets.start
                 let linestart = S.tables.linestarts[scope.line]
 
@@ -44,7 +44,7 @@ proc bracechecks*(S: State, N: Node = Node(), check: string) =
         # Note: Error if pre-existing flag scope exists.
         # Flag option declared out-of-scope.
         of "pre-existing-fs":
-            if S.scopes.flag.node == "":
+            if S.scopes.flag.kind == nkEmpty:
                 let linestart = S.tables.linestarts[S.line]
 
                 S.column = S.i - linestart + 1 # Point to bracket.

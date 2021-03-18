@@ -55,6 +55,7 @@ type
     # Node + Variants
 
     NodeKind* = enum
+        nkEmpty = "EMPTY",
         nkComment = "COMMENT",
         nkNewline = "NEWLINE",
         nkSetting = "SETTING",
@@ -77,11 +78,11 @@ type
         args*: seq[string]
 
         # Depending on node type add needed fields.
-        case kind: NodeKind
+        case kind*: NodeKind
         of nkComment:
             comment*: Branch
             inline*: bool
-        of nkNewline: discard
+        of nkNewline, nkEmpty: discard
         of nkSetting, nkVariable: sigil*: Branch
         of nkCommand:
             command*: Branch
@@ -139,7 +140,7 @@ proc node*(nkType: NodeKind, S: State): Node =
     of nkComment:
         result.comment = Branch()
 
-    of nkNewline: discard
+    of nkNewline, nkEmpty: discard
 
     of nkSetting:
         result.sigil = Branch()
@@ -188,7 +189,6 @@ proc node*(nkType: NodeKind, S: State): Node =
     of nkBrace:
         result.brace = Branch()
 
-    result.node = $nkType
     result.line = S.line
     result.start = S.i
     result.stop = -1

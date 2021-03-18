@@ -136,36 +136,36 @@ proc acdef*(S: State, cmdname: string): tuple =
 
     # Group commands with their flags.
 
-    var last = ""
+    var last: NodeKind
     var rN: Node # Reference node.
     var dN: seq[Node] = @[] # Delimited flag nodes.
     var xN = S.tables.tree["nodes"]
     var wildcard = false
     var wc_flg: seq[Node] = @[]
     var wc_exc = initHashSet[string]()
-    const ftypes = toHashSet(["FLAG", "OPTION"])
-    const types = toHashSet(["SETTING", "COMMAND", "FLAG", "OPTION"])
+    const ftypes = { nkFlag, nkOption }
+    const types = { nkSetting, nkCommand, nkFlag, nkOption }
 
     # Contain missing parent command chains in their own group.
     oGroups[-1] = {"commands": @[], "flags": @[], "_": @[node(nkCommand, S)]}.toTable
 
     var i = 0; var l = xN.len; while i < l:
         let N = xN[i]
-        let `type` = N.node
+        let t = N.kind
 
-        if not types.contains(`type`): inc(i); continue
+        if t notin types: inc(i); continue
 
         # Check whether new group must be started.
-        if last != "":
-            if last == "COMMAND":
-                if `type` == "COMMAND" and rN.delimiter.value == "": inc(count)
-            elif ftypes.contains(last):
-                if not ftypes.contains(`type`): inc(count)
+        if last != nkEmpty:
+            if last == nkCommand:
+                if t == nkCommand and rN.delimiter.value == "": inc(count)
+            elif last in ftypes:
+                if t notin ftypes: inc(count)
 
-            last = ""
+            last = nkEmpty
 
-        case (`type`):
-            of "COMMAND":
+        case (t):
+            of nkCommand:
 
                 # Handle wildcard node.
                 if N.command.value == "*":
@@ -196,10 +196,10 @@ proc acdef*(S: State, cmdname: string): tuple =
                         discard commands.pop() # Remove last command.
                         dec(i)
 
-                last = `type`
+                last = t
                 rN = N # Store reference to node.
 
-            of "FLAG":
+            of nkFlag:
                 let keyword = N.keyword.value
 
                 # Handle wildcard flags.
@@ -220,19 +220,21 @@ proc acdef*(S: State, cmdname: string): tuple =
                     dN.setLen(0)
 
                 oGroups[count]["flags"].add(N) # Store command in current group.
-                last = `type`
+                last = t
 
-            of "OPTION":
+            of nkOption:
                 # Add value to last flag in group.
                 var fxN = oGroups[count]["flags"]
                 oGroups[count]["flags"][fxN.high].args.add(N.value.value)
-                last = `type`
+                last = t
 
-            of "SETTING":
+            of nkSetting:
                 let name = N.name.value
                 if name != "test":
                     if not oSettings.hasKey(name): inc(settings_count)
                     oSettings[name] = N.value.value
+
+            else: discard
 
         inc(i)
 

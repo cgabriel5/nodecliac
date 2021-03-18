@@ -32,10 +32,10 @@ proc p_flag*(S: State, isoneliner: string): Node =
     var braces: seq[int] = @[]
 
     # If not a oneliner or no command scope, flag is being declared out of scope.
-    if not (isoneliner != "" or S.scopes.command.node != ""): error(S, 10)
+    if not (isoneliner != "" or S.scopes.command.kind != nkEmpty): error(S, 10)
 
     # If flag scope already exists another flag cannot be declared.
-    if S.scopes.flag.node != "": error(S, 11)
+    if S.scopes.flag.kind != nkEmpty: error(S, 11)
 
     let l = S.l; var c, p: char
     while S.i < l:

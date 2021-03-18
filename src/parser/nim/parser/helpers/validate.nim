@@ -21,12 +21,12 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
     inc(resumepoint) # Add 1 to account for 0 base indexing.
 
     # If validating a keyword there must be a value.
-    if N.node == "FLAG" and N.keyword.value != "":
+    if N.kind == nkFlag and N.keyword.value != "":
         let kw = N.keyword.value
         let ls = S.tables.linestarts[S.line]
         # Check for misused exclude.
         let sc = S.scopes.command
-        if sc.node != "":
+        if sc.kind != nkEmpty:
             if kw == "exclude" and sc.command.value != "*":
                 S.column = N.keyword.start - ls
                 inc(S.column) # Add 1 to account for 0 base indexing.
@@ -113,11 +113,11 @@ proc validate*(S: State, N: Node, `type`: string = ""): string =
                     vindices[bound.first] = (ind: if sl > vl: dt * -1 else: abs(dt), sl: sl)
 
             # Validate context string.
-            if not formatting and N.node == "FLAG" and
+            if not formatting and N.kind == nkFlag and
                 N.keyword.value == "context":
                 value = vcontext(S, value, vindices, resumepoint)
             # Validate test string.
-            if not formatting and N.node == "SETTING" and
+            if not formatting and N.kind == nkSetting and
                 N.name.value == "test":
                 value = vtest(S, value, vindices, resumepoint);
 

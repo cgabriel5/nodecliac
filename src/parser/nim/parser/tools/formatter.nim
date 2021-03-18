@@ -47,11 +47,11 @@ proc formatter*(S: State): tuple =
             var i = i + 1
             while i < l:
                 let N = nodes[i]
-                let `type` = N.node
-                if `type` != "COMMENT":
+                let t = N.kind
+                if t != nkComment:
                     result = N
                     break
-                elif `type` == "COMMENT":
+                elif t == nkComment:
                     inc(i)
                 inc(i)
         else: result = if i + 1 < l: nodes[i + 1] else: eN
@@ -72,41 +72,41 @@ proc formatter*(S: State): tuple =
     let l = nodes.len
     while i < l:
         let N = nodes[i]
-        let `type` = N.node
+        let t = N.kind
 
         # Ignore starting newlines.
-        if output.len == 0 and `type` == "NEWLINE":
+        if output.len == 0 and t == nkNewline:
             inc(i)
             continue
         # Remove comments when flag is provided.
-        if igc and `type` == "COMMENT":
+        if igc and t == nkComment:
             inc(i) # + 1 to skip next newline node.
             inc(i) # + 1 to account for continue.
             continue
 
-        case (`type`):
-            of "COMMENT":
+        case (t):
+            of nkComment:
                 let scope = if scopes.len > 0: scopes[^1] else: 0
                 let pad = if not N.inline: indent(count = scope) else: " "
 
                 output.add(fmt"{pad}{N.comment.value}")
 
-            of "NEWLINE":
+            of nkNewline:
                 let nN = nextnode(i, l);
 
                 if nl_count <= 1: output.add("\n")
                 inc(nl_count)
-                if nN.node != "NEWLINE": nl_count = 0
+                if nN.kind != nkNewline: nl_count = 0
 
                 if scopes.len != 0:
                     let last = output[output.len - 2]
                     let lchar = last[last.len - 1]
                     let isbrace = lchar == C_LBRACKET or lchar == C_LPAREN
-                    if isbrace and nN.node == "NEWLINE": inc(nl_count)
-                    if nN.node == "BRACE":
-                        if lastnode(i, l).node == "NEWLINE": discard output.pop()
+                    if isbrace and nN.kind == nkNewline: inc(nl_count)
+                    if nN.kind == nkBrace:
+                        if lastnode(i, l).kind == nkNewline: discard output.pop()
 
-            of "SETTING":
+            of nkSetting:
                 let nval = N.name.value
                 let aval = N.assignment.value
                 let vval = N.value.value
@@ -121,7 +121,7 @@ proc formatter*(S: State): tuple =
 
                 output.add(r)
 
-            of "VARIABLE":
+            of nkVariable:
                 let nval = N.name.value
                 let aval = N.assignment.value
                 let vval = N.value.value
@@ -136,7 +136,7 @@ proc formatter*(S: State): tuple =
 
                 output.add(r)
 
-            of "COMMAND":
+            of nkCommand:
                 let vval = N.value.value
                 let cval = N.command.value
                 let dval = N.delimiter.value
@@ -154,11 +154,11 @@ proc formatter*(S: State): tuple =
                                 r &= fmt" {vval}"
 
                 let nN = nextnode(i, l)
-                if nN.node == "FLAG": r &= " "
+                if nN.kind == nkFlag: r &= " "
                 output.add(r)
                 if vval != "" and vval == "[": scopes.add(1) # Track scope.
 
-            of "FLAG":
+            of nkFlag:
                 if N.virtual:
                     inc(i) # + 1 to account for continue.
                     continue
@@ -185,7 +185,7 @@ proc formatter*(S: State): tuple =
                 # Note: If nN is a flag reset var.
                 if pipe_del != "":
                     let nN = nextnode(i, l)
-                    if nN.node != "FLAG": pipe_del = ""
+                    if nN.kind != nkFlag: pipe_del = ""
 
                 var r = pad
 
@@ -212,7 +212,7 @@ proc formatter*(S: State): tuple =
 
                 if vval != "" and vval == "(": scopes.add(2) # Track scope.
 
-            of "OPTION":
+            of nkOption:
                 let bval = N.bullet.value
                 let vval = N.value.value
                 let pad = indent("OPTION")
@@ -225,7 +225,7 @@ proc formatter*(S: State): tuple =
 
                 output.add(r)
 
-            of "BRACE":
+            of nkBrace:
                 let bval = N.brace.value
                 var pad = indent(count = if bval == "]": 0 else: 1)
 
@@ -254,6 +254,8 @@ proc formatter*(S: State): tuple =
 
                 output.add(fmt"{pad}{bval}")
                 if scopes.len > 0: discard scopes.pop() # Un-track last scope.
+
+            else: discard
 
         passed.add(N)
         inc(i)

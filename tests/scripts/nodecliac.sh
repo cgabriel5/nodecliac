@@ -424,17 +424,18 @@ function xtest {
 	# done < <(perl -pe 's/([^\\]);/\1\n/g' <<< "$string")
 	done < <(perl -pe 's/((?<!\\\\));/\1\n/g' <<< "$string")
 	
+	local lpad="      "
 	if [[ "${#tests[@]}" == 0 ]]; then
 		((test_id--))
 		((skipped++))
 		if [[ $(isset "$PRINT") ]]; then
-			echo -e "(-) ${BOLD}Ignored (No Tests)${NC}\n    [?] [$teststring_og]${NC} (${t}s)"
-			echo -e "    ${BPURPLE}Output${NC}"
+			echo -e "(-) ${BOLD}Ignored (No Tests)${NC}\n${lpad}[?] [$teststring_og]${NC} (${t}s)"
+			echo -e "${lpad}${BPURPLE}Output${NC}"
 			readarray -t completions <<< "$(trim "$output")"
 			l="${#completions[@]}"
 			for ((i = 0 ; i < $l ; i++)); do
 				c="${completions[$i]}"
-				echo -e "    [$i] => [$c]"
+				echo -e "${lpad}[$i] => [$c]"
 			done
 		fi
 	else
@@ -444,7 +445,7 @@ function xtest {
 				diff=$(( test_columns - tidl ))
 				padding="" # [https://stackoverflow.com/a/5349842]
 				[[ "$diff" > 0 ]] && padding="$(printf ' %.0s' $(seq 1 $diff))"
-				echo -e "${tid}${padding} $CHECK_MARK ${t}s [$teststring_og]${NC}"
+				echo -e "${padding}${tid} $CHECK_MARK ${t}s [$teststring_og]${NC}"
 			fi
 			((passed_count++))
 		else
@@ -453,26 +454,26 @@ function xtest {
 				diff=$(( test_columns - tidl ))
 				padding="" # [https://stackoverflow.com/a/5349842]
 				[[ "$diff" > 0 ]] && padding="$(printf ' %.0s' $(seq 1 $diff))"
-				echo ""
 				[[ -z "$TDEBUG" ]] && echo ""
+				echo -e "${padding}${tid} $X_MARK ${BRED}Failing${NC}\n${lpad}[$X_MARK] (${t}s) TS=[$teststring_og]${NC}"
 
 				l="${#tests[@]}"
 				for ((i = 0 ; i < $l ; i++)); do
 					r="${results[$i]}"
 					t="$(perl -pe 's/([\\])(;|:)/\2/g' <<< "$(trim "${tests[$i]}")")"
 					if [[ "$r" == 1 ]]; then
-						echo -e "    [$CHECK_MARK] [${BTURQ}${tlogic^^}${NC}] —> [$t]"
+						echo -e "${lpad}[$CHECK_MARK] [${BTURQ}${tlogic^^}${NC}] —> [$t]"
 					else
-						echo -e "    [$X_MARK] [${BTURQ}${tlogic^^}${NC}] -- [$t]"
+						echo -e "${lpad}[$X_MARK] [${BTURQ}${tlogic^^}${NC}] -- [$t]"
 					fi
 				done
 				
-				echo -e "    ${BPURPLE}Output${NC}"
+				echo -e "${lpad}${BPURPLE}Output${NC}"
 				readarray -t completions <<< "$(trim "$output")"
 				l="${#completions[@]}"
 				for ((i = 0 ; i < $l ; i++)); do
 					c="${completions[$i]}"
-					echo -e "    [$i] => [$c]"
+					echo -e "${lpad}[$i] => [$c]"
 				done
 				[[ -z "$TDEBUG" ]] && echo ""
 			fi

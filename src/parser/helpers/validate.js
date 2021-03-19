@@ -2,6 +2,7 @@
 
 const error = require("./error.js");
 const vtest = require("./vtest.js");
+const { nk } = require("./enums.js");
 const vcontext = require("./vcontext.js");
 const { cin, cnotin, C_SPACES, C_QUOTES } = require("./charsets.js");
 const r = /(?<!\\)\$\{\s*[^}]*\s*\}/g;
@@ -22,7 +23,7 @@ let validate = (S, N, type) => {
 	resumepoint++; // Add 1 to account for 0 base indexing.
 
 	// If validating a keyword there must be a value.
-	if (N.node === "FLAG" && N.keyword.value) {
+	if (N.node === nk.Flag && N.keyword.value) {
 		let kw = N.keyword.value;
 		let ls = S.tables.linestarts[S.line];
 		// Check for misused exclude.
@@ -131,7 +132,7 @@ let validate = (S, N, type) => {
 				// Validate context string.
 				if (
 					!formatting &&
-					N.node === "FLAG" &&
+					N.node === nk.Flag &&
 					N.keyword.value === "context"
 				) {
 					value = vcontext(S, value, vindices, resumepoint);
@@ -139,7 +140,7 @@ let validate = (S, N, type) => {
 				// Validate test string.
 				if (
 					!formatting &&
-					N.node === "SETTING" &&
+					N.node === nk.Setting &&
 					N.name.value === "test"
 				) {
 					value = vtest(S, value, vindices, resumepoint);

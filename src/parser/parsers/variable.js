@@ -1,8 +1,9 @@
 "use strict";
 
 const node = require("../helpers/nodes.js");
-const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
+const add = require("../helpers/tree-add.js");
+const { nk } = require("../helpers/enums.js");
 const rollback = require("../helpers/rollback.js");
 const validate = require("../helpers/validate.js");
 const {
@@ -34,7 +35,7 @@ module.exports = (S) => {
 	let { l, text } = S;
 	let qchar;
 	let state = "sigil";
-	let N = node("VARIABLE", S);
+	let N = node(nk.Variable, S);
 
 	let char,
 		pchar = "";

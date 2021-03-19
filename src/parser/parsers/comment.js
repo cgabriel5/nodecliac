@@ -2,6 +2,7 @@
 
 const node = require("../helpers/nodes.js");
 const add = require("../helpers/tree-add.js");
+const { nk } = require("../helpers/enums.js");
 const rollback = require("../helpers/rollback.js");
 const { cin, C_NL } = require("../helpers/charsets.js");
 
@@ -17,7 +18,7 @@ const { cin, C_NL } = require("../helpers/charsets.js");
  */
 module.exports = (S, inline = false) => {
 	let { l, text } = S;
-	let N = node("COMMENT", S);
+	let N = node(nk.Comment, S);
 	N.comment.start = S.i;
 
 	if (inline) N.inline = inline;

@@ -1,8 +1,9 @@
 "use strict";
 
 const node = require("../helpers/nodes.js");
-const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
+const add = require("../helpers/tree-add.js");
+const { nk } = require("../helpers/enums.js");
 const rollback = require("../helpers/rollback.js");
 const validate = require("../helpers/validate.js");
 const charsets = require("../helpers/charsets.js");
@@ -34,7 +35,7 @@ module.exports = (S, isoneliner) => {
 	let state = text.charAt(S.i) === "-" ? "hyphen" : "keyword";
 	let stop; // Flag: true - stops parser.
 	let type = "escaped";
-	let N = node("FLAG", S);
+	let N = node(nk.Flag, S);
 	let alias = false;
 	let qchar = "";
 	let comment = false;
@@ -379,7 +380,7 @@ module.exports = (S, isoneliner) => {
 
 		// Add alias node if it exists.
 		if (N.alias.value) {
-			let cN = node("FLAG", S);
+			let cN = node(nk.Flag, S);
 			cN.hyphens.value = "-";
 			cN.delimiter.value = ",";
 			cN.name.value = N.alias.value;
@@ -390,7 +391,7 @@ module.exports = (S, isoneliner) => {
 			add(S, cN);
 
 			// Add context node for mutual exclusivity.
-			let xN = node("FLAG", S);
+			let xN = node(nk.Flag, S);
 			xN.value.value = `"{${N.name.value}|${N.alias.value}}"`;
 			xN.keyword.value = "context";
 			xN.singleton = false;

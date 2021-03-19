@@ -1,8 +1,9 @@
 "use strict";
 
 const node = require("../helpers/nodes.js");
-const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
+const add = require("../helpers/tree-add.js");
+const { nk } = require("../helpers/enums.js");
 const rollback = require("../helpers/rollback.js");
 const validate = require("../helpers/validate.js");
 const bracechecks = require("../helpers/brace-checks.js");
@@ -30,7 +31,7 @@ module.exports = (S) => {
 	let { l, text } = S;
 	let state = "bullet";
 	let type = "escaped";
-	let N = node("OPTION", S);
+	let N = node(nk.Option, S);
 	let qchar = "";
 	let comment = false;
 	let braces = [];

@@ -6,6 +6,7 @@ const p_flag = require("../parsers/flag.js");
 const error = require("../helpers/error.js");
 const add = require("../helpers/tree-add.js");
 const tracer = require("../helpers/trace.js");
+const { nk } = require("../helpers/enums.js");
 const rollback = require("../helpers/rollback.js");
 const bracechecks = require("../helpers/brace-checks.js");
 const {
@@ -49,7 +50,7 @@ const {
 module.exports = (S) => {
 	let { l, text } = S;
 	let state = "command";
-	let N = node("COMMAND", S);
+	let N = node(nk.Command, S);
 	const isformatting = S.args.action === "format";
 
 	// Group state object.
@@ -217,7 +218,7 @@ module.exports = (S) => {
 					let fN = p_flag(S, "oneliner");
 					// Add alias node if it exists.
 					if (fN.alias.value) {
-						let cN = node("FLAG", S);
+						let cN = node(nk.Flag, S);
 						cN.hyphens.value = "-";
 						cN.delimiter.value = ",";
 						cN.name.value = fN.alias.value;
@@ -228,7 +229,7 @@ module.exports = (S) => {
 						N.flags.push(cN);
 
 						// Add context node for mutual exclusivity.
-						let xN = node("FLAG", S);
+						let xN = node(nk.Flag, S);
 						xN.value.value = `"{${fN.name.value}|${fN.alias.value}}"`;
 						xN.keyword.value = "context";
 						xN.singleton = false;

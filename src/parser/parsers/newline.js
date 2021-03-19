@@ -2,6 +2,7 @@
 
 const node = require("../helpers/nodes.js");
 const add = require("../helpers/tree-add.js");
+const { nk } = require("../helpers/enums.js");
 
 /**
  * ----------------------------------------------------------- Parsing Breakdown
@@ -13,7 +14,7 @@ const add = require("../helpers/tree-add.js");
  * @return {undefined} - Nothing is returned.
  */
 module.exports = (S) => {
-	let N = node("NEWLINE", S);
+	let N = node(nk.Newline, S);
 
 	N.start = N.end = S.i;
 

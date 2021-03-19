@@ -17,14 +17,14 @@ const { cin, C_NL } = require("../helpers/charsets.js");
  * @return {undefined} - Nothing is returned.
  */
 module.exports = (S, inline = false) => {
-	let { l, text } = S;
+	let l = S.l;
 	let N = node(nk.Comment, S);
 	N.comment.start = S.i;
 
 	if (inline) N.inline = inline;
 
 	for (; S.i < l; S.i++, S.column++) {
-		let char = text.charAt(S.i);
+		let char = S.text.charAt(S.i);
 
 		if (cin(C_NL, char)) {
 			N.end = rollback(S) && S.i;

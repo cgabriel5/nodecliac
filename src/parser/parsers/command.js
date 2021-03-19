@@ -48,7 +48,7 @@ const {
  * @return {object} - Node object.
  */
 module.exports = (S) => {
-	let { l, text } = S;
+	let l = S.l;
 	let state = "command";
 	let N = node(nk.Command, S);
 	const isformatting = S.args.action === "format";
@@ -78,7 +78,7 @@ module.exports = (S) => {
 		// if the command is 'com\mand\.name' we should return
 		// 'command\.name' and not 'com\mand\.name'.
 		if (char === "\\") {
-			let nchar = text.charAt(S.i + 1);
+			let nchar = S.text.charAt(S.i + 1);
 
 			// nchar must exist else escaping nothing.
 			if (!nchar) error(S, 10);
@@ -98,7 +98,7 @@ module.exports = (S) => {
 		pchar = "";
 	for (; S.i < l; S.i++, S.column++) {
 		pchar = char;
-		char = text.charAt(S.i);
+		char = S.text.charAt(S.i);
 
 		if (cin(C_NL, char)) {
 			N.end = rollback(S) && S.i;

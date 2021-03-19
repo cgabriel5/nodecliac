@@ -11,8 +11,6 @@ const { cin, C_SPACES, C_KW_ALL, C_CMD_IDENT_START } = require("./charsets.js");
  * @return {string} - The line's type.
  */
 module.exports = (S, char, nchar) => {
-	let { text } = S;
-
 	let types = {
 		";": "terminator", // End parsing.
 		"#": "comment",
@@ -30,7 +28,7 @@ module.exports = (S, char, nchar) => {
 	if (line_type === "flag") {
 		if (nchar && cin(C_SPACES, nchar)) line_type = "option";
 	} else if (line_type === "command") {
-		let keyword = text.substr(S.i, 7);
+		let keyword = S.text.substr(S.i, 7);
 		if (-~C_KW_ALL.indexOf(keyword)) line_type = "flag";
 	}
 

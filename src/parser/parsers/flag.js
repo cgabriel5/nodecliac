@@ -31,8 +31,8 @@ const { C_QUOTES, C_FLG_IDENT, C_KW_ALL, C_KD_STR } = charsets;
  * @return {object} - Node object.
  */
 module.exports = (S, isoneliner) => {
-	let { l, text } = S;
-	let state = text.charAt(S.i) === "-" ? "hyphen" : "keyword";
+	let l = S.l;
+	let state = S.text.charAt(S.i) === "-" ? "hyphen" : "keyword";
 	let stop; // Flag: true - stops parser.
 	let type = "escaped";
 	let N = node(nk.Flag, S);
@@ -51,7 +51,7 @@ module.exports = (S, isoneliner) => {
 		pchar = "";
 	for (; S.i < l; S.i++, S.column++) {
 		pchar = char;
-		char = text.charAt(S.i);
+		char = S.text.charAt(S.i);
 
 		if (stop || cin(C_NL, char)) {
 			N.end = rollback(S) && S.i;
@@ -90,7 +90,7 @@ module.exports = (S, isoneliner) => {
 				{
 					let keyword_len = 7;
 					let endpoint = keyword_len - 1;
-					let keyword = text.substr(S.i, keyword_len);
+					let keyword = S.text.substr(S.i, keyword_len);
 
 					// Keyword must be allowed.
 					if (!-~C_KW_ALL.indexOf(keyword)) error(S);
@@ -171,12 +171,12 @@ module.exports = (S, isoneliner) => {
 				{
 					alias = true;
 					// Next char must also be a colon.
-					let nchar = text.charAt(S.i + 1);
+					let nchar = S.text.charAt(S.i + 1);
 					if (nchar !== ":") error(S);
 					N.alias.start = S.i;
 					N.alias.end = S.i + 2;
 
-					let letter = text.charAt(S.i + 2);
+					let letter = S.text.charAt(S.i + 2);
 					if (cnotin(C_LETTERS, letter)) {
 						S.i += 1;
 						S.column += 1;

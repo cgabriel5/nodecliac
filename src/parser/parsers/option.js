@@ -28,7 +28,7 @@ const {
  * @return {undefined} - Nothing is returned.
  */
 module.exports = (S) => {
-	let { l, text } = S;
+	let l = S.l;
 	let state = "bullet";
 	let type = "escaped";
 	let N = node(nk.Option, S);
@@ -43,7 +43,7 @@ module.exports = (S) => {
 		pchar = "";
 	for (; S.i < l; S.i++, S.column++) {
 		pchar = char;
-		char = text.charAt(S.i);
+		char = S.text.charAt(S.i);
 
 		if (cin(C_NL, char)) {
 			N.end = rollback(S) && S.i;

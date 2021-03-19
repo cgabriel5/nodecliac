@@ -21,7 +21,7 @@ const { cin, cnotin, C_NL, C_SPACES } = require("../helpers/charsets.js");
  * @return {undefined} - Nothing is returned.
  */
 module.exports = (S) => {
-	let { l, text } = S;
+	let l = S.l;
 	let state = "brace";
 	let N = node(nk.Brace, S);
 
@@ -29,7 +29,7 @@ module.exports = (S) => {
 		pchar = "";
 	for (; S.i < l; S.i++, S.column++) {
 		pchar = char;
-		char = text.charAt(S.i);
+		char = S.text.charAt(S.i);
 
 		if (cin(C_NL, char)) {
 			N.end = rollback(S) && S.i;

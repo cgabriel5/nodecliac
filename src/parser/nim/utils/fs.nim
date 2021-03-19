@@ -1,7 +1,4 @@
-from strutils import split
-from os import paramStr, paramCount, splitFile, DirSep,
-    setFilePermissions, FilePermission
-from streams import close, readAll, write, newFileStream, openFileStream
+import std/[os, strutils, streams]
 
 type FileInfo = ref object
     name*, dirname*, ext*, path*: string

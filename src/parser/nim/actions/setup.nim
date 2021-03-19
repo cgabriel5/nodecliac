@@ -1,4 +1,4 @@
-import os, osproc, times, sets, asyncdispatch, json, strutils, re, strformat
+import std/[os, osproc, times, sets, asyncdispatch, json, strutils, re, strformat]
 
 import ../utils/[chalk, paths, osutils, text]
 

@@ -1,4 +1,5 @@
-import json
+import std/json
+
 import ../../lcp
 
 let data = parseJson(readFile("./data.json"))

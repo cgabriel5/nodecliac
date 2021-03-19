@@ -1,4 +1,4 @@
-import os, memfiles, streams
+import std/[os, memfiles, streams]
 
 import ./vla
 

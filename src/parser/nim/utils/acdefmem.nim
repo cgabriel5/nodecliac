@@ -1,5 +1,4 @@
-from strutils import find
-import os, memfiles, streams, tables
+import std/[os, strutils, memfiles, streams, tables]
 
 # String, StringBuiler, newStringOfCap, shallowCopy/shallow
 # [https://github.com/nim-lang/Nim/issues/8317]
@@ -67,9 +66,9 @@ proc main =
     var db_filedirs = initTable[string, Range]()
     var db_contexts = initTable[string, Range]()
 
-    let last = ""
+    let last = "--"
     let lastchar = ' '
-    let commandchain = ".disable"
+    let commandchain = ".debug"
 
     let hdir = getEnv("HOME")
     let fn = joinPath(hdir, ".nodecliac/registry/nodecliac/nodecliac.acdefBIG")
@@ -220,6 +219,7 @@ proc main =
                 if ord(text[rindex]) == O_HYPHEN:
                     if fchar notin db_dict: db_dict[fchar] = DBEntry()
                     db_dict[fchar][chain] = [[start, sindex - 1], [rindex, stop]]
+                    # db_dict[fchar] = {chain: [[start, sindex - 1], [rindex, stop]]}.toTable
 
                 else: # Store keywords.
                     # The index from the start of the keyword value string to end of line.
@@ -231,5 +231,11 @@ proc main =
                     else: discard
 
     fn_makedb()
+
+    echo "db_dict: ", db_dict
+    echo "db_levels: ", db_levels
+    echo "db_defaults: ", db_defaults
+    echo "db_filedirs: ", db_filedirs
+    echo "db_contexts: ", db_contexts
 
 main()

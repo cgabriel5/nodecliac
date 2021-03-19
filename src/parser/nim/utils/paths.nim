@@ -1,4 +1,4 @@
-import os, strformat, tables
+import std/[os, strformat, tables]
 
 export tables.`[]`
 

@@ -1,19 +1,9 @@
 #!/usr/bin/env nim
 
-import streams
-from strformat import fmt
-from algorithm import sort
-from osproc import execProcess
-from re import re, `=~`, find, split, replace, contains,
-    replacef, reMultiLine, findBounds
-from sequtils import map, mapIt, toSeq, concat, filter
-from tables import `$`, add, del, len, keys, `[]`, `[]=`, pairs,
-    Table, hasKey, values, toTable, initTable, initOrderedTable, getOrDefault
-from os import getEnv, putEnv, paramStr, paramCount
-from strtabs import `[]`, `[]=`, hasKey, newStringTable, getOrDefault
-from strutils import find, join, split, strip, delete, Digits, Letters,
-    replace, contains, endsWith, intToStr, parseInt, splitLines, startsWith,
-    removePrefix, allCharsInSet, multiReplace, parseBool
+import std/[
+        os, streams, strformat, algorithm, osproc, re,
+        sequtils, tables, strtabs, strutils
+    ]
 
 import utils/lcp
 

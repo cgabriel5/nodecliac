@@ -1,4 +1,4 @@
-import os, asyncdispatch, json, strformat, sequtils
+import std/[os, asyncdispatch, json, strformat, sequtils]
 
 import ../utils/paths
 

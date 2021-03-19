@@ -1,4 +1,4 @@
-import os, asyncdispatch, json, sequtils, algorithm, strformat, strutils, re
+import std/[os, asyncdispatch, json, sequtils, algorithm, strformat, strutils, re]
 
 import ../utils/[paths]
 

@@ -1,4 +1,4 @@
-import os, strformat, tables, strutils
+import std/[os, strformat, tables, strutils]
 
 let hdir = os.getEnv("HOME")
 let root = fmt"{hdir}/.nodecliac"

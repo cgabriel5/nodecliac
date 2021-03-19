@@ -1,11 +1,4 @@
-import strformat
-from strutils import startsWith, join
-from sets import HashSet, initHashSet, incl
-from os import paramCount, commandLineParams
-from parseopt import next, cmdEnd, cmdArgument, cmdLongOption,
-    initOptParser, cmdShortOption
-from json import newJObject, newJString, newJArray, newJBool,
-    JString, hasKey, getStr, delete, add, `$`, `%*`, `[]`, `[]=`
+import std/[os, strformat, strutils, sets, parseopt, json]
 
 type
     Argument* = ref object

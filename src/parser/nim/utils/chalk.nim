@@ -1,7 +1,4 @@
-from re import re, replace, reMultiLine
-from unicode import toLower
-from tables import `$`, `[]`, `[]=`, hasKey, initTable
-from terminal import Style, ForegroundColor, BackgroundColor
+import std/[re, unicode, tables, terminal]
 
 # [https://nim-lang.org/docs/manual.html#modules-export-statement]
 # [https://github.com/nim-lang/Nim/issues/11155]

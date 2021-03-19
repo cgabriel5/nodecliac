@@ -1,8 +1,4 @@
-from re import re, replace
-from strutils import startsWith
-from os import paramCount, commandLineParams
-from parseopt import next, cmdEnd, cmdArgument,
-    cmdLongOption, initOptParser, cmdShortOption
+import std/[os, re, strutils, parseopt]
 
 from tilde import expand
 

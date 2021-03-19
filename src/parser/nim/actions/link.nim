@@ -1,4 +1,4 @@
-import os, asyncdispatch, json, strformat
+import std/[os, asyncdispatch, json, strformat]
 
 import ../utils/[chalk, paths]
 

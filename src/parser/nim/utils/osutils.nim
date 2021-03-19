@@ -1,4 +1,4 @@
-from distros import Distribution, detectOs
+import std/distros
 
 proc platform*(): string =
     if detectOs(Linux): return "linux"

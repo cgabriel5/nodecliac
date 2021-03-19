@@ -1,4 +1,4 @@
-import os, strutils, asyncdispatch, json, strformat, re
+import std/[os, strutils, asyncdispatch, json, strformat, re]
 
 import ../utils/[chalk, paths]
 

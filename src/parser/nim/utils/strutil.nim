@@ -1,4 +1,4 @@
-from strutils import find, SkipTable, initSkipTable
+import std/strutils
 
 # Modified version of Nim's strutils.replace function. This takes an extra
 #     parameter to stop replacements after a first replace has been made.

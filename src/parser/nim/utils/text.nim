@@ -1,5 +1,4 @@
-from strutils import endsWith, strip
-from re import re, multiReplace, reMultiLine
+import std/[strutils, re]
 
 # Remove all comments from Bash/Perl files.
 #

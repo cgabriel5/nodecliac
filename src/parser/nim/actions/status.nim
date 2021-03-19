@@ -1,4 +1,4 @@
-import asyncdispatch, json, strutils
+import std/[asyncdispatch, json, strutils]
 
 import ../utils/[chalk, config]
 

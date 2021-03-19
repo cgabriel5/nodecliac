@@ -1,6 +1,4 @@
-import json
-from strutils import strip
-import os, osproc, strformat, asyncdispatch
+import std/[os, json, strutils]
 
 from ../utils/osutils import platform
 

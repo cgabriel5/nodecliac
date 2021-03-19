@@ -1,5 +1,4 @@
-from math import floor
-from times import getTime, toUnix
+import std/[math, times]
 
 # Finds the 'timeago' of provided timestamp.
 #

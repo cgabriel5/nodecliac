@@ -1,0 +1,10 @@
+# ACMAP for github-linguist [https://github.com/github/linguist].
+
+#  Linguist v7.13.0
+#  Detect language type for a file, or, given a repository, determine language breakdown.
+#
+#  Usage: linguist <path>
+#         linguist <path> [--breakdown] [--json]
+#         linguist [--breakdown] [--json]
+
+github-linguist = --breakdown|--json

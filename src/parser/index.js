@@ -52,7 +52,7 @@ module.exports = async (
 			S.sol_char = char;
 
 			// Sol char must be allowed.
-			if (cnotin(C_SOL, char)) error(S, __filename, 10);
+			if (cnotin(C_SOL, char)) error(S, 10);
 
 			ltype = linetype(S, char, nchar);
 			if (ltype === "terminator") break;

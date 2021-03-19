@@ -32,21 +32,21 @@ let validate = (S, N, type) => {
 			if (kw === "exclude" && sc.command.value !== "*") {
 				S.column = N.keyword.start - ls;
 				S.column++; // Add 1 to account for 0 base indexing.
-				error(S, __filename, 17);
+				error(S, 17);
 			}
 		}
 
 		if (!value) {
 			S.column = N.keyword.end - ls;
 			S.column++; // Add 1 to account for 0 base indexing.
-			error(S, __filename, 16);
+			error(S, 16);
 		}
 
 		let C = kw === "default" ? new Set([...C_QUOTES, "$"]) : C_QUOTES;
 		// context, filedir, exclude must have quoted string values.
 		if (cnotin(C, value.charAt(0))) {
 			S.column = resumepoint;
-			error(S, __filename);
+			error(S);
 		}
 	}
 
@@ -95,12 +95,12 @@ let validate = (S, N, type) => {
 					// Error if improperly quoted/end quote is escaped.
 					if (lchar !== fchar || schar === "\\") {
 						S.column = resumepoint;
-						error(S, __filename, 10);
+						error(S, 10);
 					}
 					// Error it string is empty.
 					if (lchar === fchar && l === 2) {
 						S.column = resumepoint;
-						error(S, __filename, 11);
+						error(S, 11);
 					}
 				}
 
@@ -117,7 +117,7 @@ let validate = (S, N, type) => {
 					// Error if var is being used before declared.
 					if (!value) {
 						S.column = resumepoint + index;
-						return error(S, __filename, 12);
+						return error(S, 12);
 					}
 
 					// Calculate variable indices.
@@ -161,12 +161,12 @@ let validate = (S, N, type) => {
 				// Error if command-flag doesn't start with '$('.
 				if (!value.startsWith("$(")) {
 					S.column = resumepoint + 1;
-					error(S, __filename, 13);
+					error(S, 13);
 				}
 				// Error if command-flag doesn't end with ')'.
 				if (value.charAt(value.length - 1) !== ")") {
 					S.column = resumepoint + value.length - 1;
-					error(S, __filename, 13);
+					error(S, 13);
 				}
 
 				let argument = "";
@@ -200,7 +200,7 @@ let validate = (S, N, type) => {
 							// If delimiter count is >1, there are empty args.
 							if (delimiter_count > 1 || !args.length) {
 								S.column = resumepoint + i;
-								error(S, __filename, 14);
+								error(S, 14);
 							}
 						}
 						// Look for '$' prefixed strings.
@@ -219,7 +219,7 @@ let validate = (S, N, type) => {
 							// ---------------------------^ Value is unquoted.
 
 							S.column = resumepoint + i;
-							error(S, __filename);
+							error(S);
 						}
 					} else {
 						argument += char;
@@ -240,7 +240,7 @@ let validate = (S, N, type) => {
 				// If flag is still there is a trailing command delimiter.
 				if (delimiter_index && !argument) {
 					S.column = resumepoint + delimiter_index;
-					error(S, __filename, 14);
+					error(S, 14);
 				}
 
 				// Get last argument.
@@ -267,12 +267,12 @@ let validate = (S, N, type) => {
 				// Error if list doesn't start with '('.
 				if (value.charAt(0) !== "(") {
 					S.column = resumepoint;
-					error(S, __filename, 15);
+					error(S, 15);
 				}
 				// Error if command-flag doesn't end with ')'.
 				if (value.charAt(value.length - 1) !== ")") {
 					S.column = resumepoint + value.length - 1;
-					error(S, __filename, 15);
+					error(S, 15);
 				}
 
 				let argument = "";
@@ -307,7 +307,7 @@ let validate = (S, N, type) => {
 						// All other characters are invalid so error.
 						else {
 							S.column = resumepoint + i;
-							error(S, __filename);
+							error(S);
 						}
 
 						// Note: If arguments array is already populated
@@ -318,7 +318,7 @@ let validate = (S, N, type) => {
 						// --------------------------------^ Error point.
 						if (args.length && cnotin(C_SPACES, pchar)) {
 							S.column = resumepoint + i;
-							error(S, __filename);
+							error(S);
 						}
 
 						argument += char;

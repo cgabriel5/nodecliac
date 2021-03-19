@@ -42,10 +42,10 @@ module.exports = (S, isoneliner) => {
 	let braces = [];
 
 	// If not a oneliner or no command scope, flag is being declared out of scope.
-	if (!(isoneliner || S.scopes.command)) error(S, __filename, 10);
+	if (!(isoneliner || S.scopes.command)) error(S, 10);
 
 	// If flag scope already exists another flag cannot be declared.
-	if (S.scopes.flag) error(S, __filename, 11);
+	if (S.scopes.flag) error(S, 11);
 
 	let char,
 		pchar = "";
@@ -71,7 +71,7 @@ module.exports = (S, isoneliner) => {
 				// RegEx to split on unescaped '|': /(?<=[^\\]|^|$)\|/
 
 				if (!N.hyphens.value) {
-					if (char !== "-") error(S, __filename);
+					if (char !== "-") error(S);
 					N.hyphens.start = N.hyphens.end = S.i;
 					N.hyphens.value = char;
 				} else {
@@ -93,7 +93,7 @@ module.exports = (S, isoneliner) => {
 					let keyword = text.substr(S.i, keyword_len);
 
 					// Keyword must be allowed.
-					if (!-~C_KW_ALL.indexOf(keyword)) error(S, __filename);
+					if (!-~C_KW_ALL.indexOf(keyword)) error(S);
 					N.keyword.start = S.i;
 					N.keyword.end = S.i + endpoint;
 					N.keyword.value = keyword;
@@ -107,14 +107,14 @@ module.exports = (S, isoneliner) => {
 				break;
 
 			case "keyword-spacer":
-				if (cnotin(C_SPACES, char)) error(S, __filename);
+				if (cnotin(C_SPACES, char)) error(S);
 				state = "wsb-prevalue";
 
 				break;
 
 			case "name":
 				if (!N.name.value) {
-					if (cnotin(C_LETTERS, char)) error(S, __filename);
+					if (cnotin(C_LETTERS, char)) error(S);
 					N.name.start = N.name.end = S.i;
 					N.name.value = char;
 				} else {
@@ -139,7 +139,7 @@ module.exports = (S, isoneliner) => {
 					} else if (cin(C_SPACES, char)) {
 						state = "wsb-postname";
 						rollback(S);
-					} else error(S, __filename);
+					} else error(S);
 				}
 
 				break;
@@ -155,7 +155,7 @@ module.exports = (S, isoneliner) => {
 					} else if (char === "|") {
 						state = "pipe-delimiter";
 						rollback(S);
-					} else error(S, __filename);
+					} else error(S);
 				}
 
 				break;
@@ -172,7 +172,7 @@ module.exports = (S, isoneliner) => {
 					alias = true;
 					// Next char must also be a colon.
 					let nchar = text.charAt(S.i + 1);
-					if (nchar !== ":") error(S, __filename);
+					if (nchar !== ":") error(S);
 					N.alias.start = S.i;
 					N.alias.end = S.i + 2;
 
@@ -180,7 +180,7 @@ module.exports = (S, isoneliner) => {
 					if (cnotin(C_LETTERS, letter)) {
 						S.i += 1;
 						S.column += 1;
-						error(S, __filename);
+						error(S);
 					}
 
 					N.alias.value = letter;
@@ -222,7 +222,7 @@ module.exports = (S, isoneliner) => {
 					// * = [
 					// 		--help?|context "!help: #fge1"
 					// ]
-					if (char !== "|" || !isoneliner) error(S, __filename);
+					if (char !== "|" || !isoneliner) error(S);
 					stop = true;
 				}
 
@@ -301,7 +301,7 @@ module.exports = (S, isoneliner) => {
 											N.value.value.length === 1 &&
 											char !== "("
 										) {
-											error(S, __filename);
+											error(S);
 										}
 									}
 
@@ -316,7 +316,7 @@ module.exports = (S, isoneliner) => {
 											// braces were never introduced so
 											// current closing brace is invalid.
 											if (!braces.length) {
-												error(S, __filename);
+												error(S);
 											}
 											braces.pop();
 											if (!braces.length) {
@@ -338,7 +338,7 @@ module.exports = (S, isoneliner) => {
 													braces.pop() -
 													S.tables.linestarts[S.line];
 												S.column++; // Add 1 to account for 0 base indexing.
-												error(S, __filename);
+												error(S);
 											}
 										}
 									}
@@ -360,7 +360,7 @@ module.exports = (S, isoneliner) => {
 				) {
 					state = "pipe-delimiter";
 					rollback(S);
-				} else if (cnotin(C_SPACES, char)) error(S, __filename);
+				} else if (cnotin(C_SPACES, char)) error(S);
 
 				break;
 		}

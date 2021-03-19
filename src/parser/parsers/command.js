@@ -81,11 +81,11 @@ module.exports = (S) => {
 			let nchar = text.charAt(S.i + 1);
 
 			// nchar must exist else escaping nothing.
-			if (!nchar) error(S, __filename, 10);
+			if (!nchar) error(S, 10);
 
 			// Only dots can be escaped.
 			if (nchar !== ".") {
-				error(S, __filename, 10);
+				error(S, 10);
 
 				// Remove last escape char as it isn't needed.
 				if (isgroup) G.command = G.command.slice(0, -1);
@@ -114,7 +114,7 @@ module.exports = (S) => {
 		switch (state) {
 			case "command":
 				if (!N.command.value) {
-					if (cnotin(C_CMD_IDENT_START, char)) error(S, __filename);
+					if (cnotin(C_CMD_IDENT_START, char)) error(S);
 
 					N.command.start = N.command.end = S.i;
 					N.command.value += char;
@@ -138,7 +138,7 @@ module.exports = (S) => {
 					} else if (char === "{") {
 						state = "group-open";
 						rollback(S);
-					} else error(S, __filename);
+					} else error(S);
 				}
 
 				break;
@@ -151,7 +151,7 @@ module.exports = (S) => {
 					} else if (char === ",") {
 						state = "delimiter";
 						rollback(S);
-					} else error(S, __filename);
+					} else error(S);
 				}
 
 				break;
@@ -180,7 +180,7 @@ module.exports = (S) => {
 
 			case "value":
 				// Note: Intermediary step - remove it?
-				if (cnotin(C_CMD_VALUE, char)) error(S, __filename);
+				if (cnotin(C_CMD_VALUE, char)) error(S);
 				state = char === "[" ? "open-bracket" : "oneliner";
 				rollback(S);
 
@@ -204,7 +204,7 @@ module.exports = (S) => {
 				break;
 
 			case "close-bracket":
-				if (char !== "]") error(S, __filename);
+				if (char !== "]") error(S);
 				N.brackets.end = S.i;
 				N.value.value += char;
 				state = "eol-wsb";
@@ -243,7 +243,7 @@ module.exports = (S) => {
 				break;
 
 			case "eol-wsb":
-				if (cnotin(C_SPACES, char)) error(S, __filename);
+				if (cnotin(C_SPACES, char)) error(S);
 
 				break;
 
@@ -276,7 +276,7 @@ module.exports = (S) => {
 					} else if (char === "}") {
 						state = "group-close";
 						rollback(S);
-					} else error(S, __filename);
+					} else error(S);
 				}
 
 				break;
@@ -285,7 +285,7 @@ module.exports = (S) => {
 			case "group-command":
 				if (!G.command) {
 					if (cnotin(C_CMD_GRP_IDENT_START, char)) {
-						error(S, __filename);
+						error(S);
 					}
 
 					G.tokens.push(["command", S.column]);
@@ -307,7 +307,7 @@ module.exports = (S) => {
 					} else if (char === "}") {
 						state = "group-close";
 						rollback(S);
-					} else error(S, __filename);
+					} else error(S);
 				}
 
 				break;
@@ -318,7 +318,7 @@ module.exports = (S) => {
 
 				let l = G.tokens.length;
 				if (!l || (l && G.tokens[l - 1][0] === "delimiter")) {
-					error(S, __filename, 12);
+					error(S, 12);
 				}
 
 				l = G.commands.length;
@@ -338,12 +338,12 @@ module.exports = (S) => {
 				if (G.command) G.commands[l - 1].push(G.command);
 				if (!G.commands[l - 1].length) {
 					S.column = G.start;
-					error(S, __filename, 11); // Empty command group.
+					error(S, 11); // Empty command group.
 				}
 				l = G.tokens.length;
 				if (G.tokens[l - 1][0] === "delimiter") {
 					S.column = G.tokens[l - 1][1];
-					error(S, __filename, 12); // Trailing delimiter.
+					error(S, 12); // Trailing delimiter.
 				}
 
 				G.active = false;
@@ -357,7 +357,7 @@ module.exports = (S) => {
 
 	if (G.active) {
 		S.column = G.start;
-		error(S, __filename, 13); // Command group was left unclosed.
+		error(S, 13); // Command group was left unclosed.
 	}
 
 	// Expand command groups.

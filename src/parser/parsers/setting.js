@@ -63,7 +63,7 @@ module.exports = (S) => {
 
 			case "name":
 				if (!N.name.value) {
-					if (cnotin(C_LETTERS, char)) error(S, __filename);
+					if (cnotin(C_LETTERS, char)) error(S);
 
 					N.name.start = N.name.end = S.i;
 					N.name.value = char;
@@ -77,7 +77,7 @@ module.exports = (S) => {
 					} else if (char === "=") {
 						state = "assignment";
 						rollback(S);
-					} else error(S, __filename);
+					} else error(S);
 				}
 
 				break;
@@ -87,7 +87,7 @@ module.exports = (S) => {
 					if (char === "=") {
 						state = "assignment";
 						rollback(S);
-					} else error(S, __filename);
+					} else error(S);
 				}
 
 				break;
@@ -109,7 +109,7 @@ module.exports = (S) => {
 
 			case "value":
 				if (!N.value.value) {
-					if (cnotin(C_SET_VALUE, char)) error(S, __filename);
+					if (cnotin(C_SET_VALUE, char)) error(S);
 
 					if (cin(C_QUOTES, char)) qchar = char;
 					N.value.start = N.value.end = S.i;
@@ -133,7 +133,7 @@ module.exports = (S) => {
 				break;
 
 			case "eol-wsb":
-				if (cnotin(C_SPACES, char)) error(S, __filename);
+				if (cnotin(C_SPACES, char)) error(S);
 
 				break;
 		}

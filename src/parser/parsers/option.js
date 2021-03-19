@@ -65,7 +65,7 @@ module.exports = (S) => {
 				break;
 
 			case "spacer":
-				if (cnotin(C_SPACES, char)) error(S, __filename);
+				if (cnotin(C_SPACES, char)) error(S);
 				state = "wsb-prevalue";
 
 				break;
@@ -125,7 +125,7 @@ module.exports = (S) => {
 										N.value.value.length === 1 &&
 										char !== "("
 									) {
-										error(S, __filename);
+										error(S);
 									}
 								}
 
@@ -140,7 +140,7 @@ module.exports = (S) => {
 										// braces were never introduced so
 										// current closing brace is invalid.
 										if (!braces.length) {
-											error(S, __filename);
+											error(S);
 										}
 										braces.pop();
 										if (!braces.length) {
@@ -165,7 +165,7 @@ module.exports = (S) => {
 												braces.pop() -
 												S.tables.linestarts[S.line];
 											S.column++; // Add 1 to account for 0 base indexing.
-											error(S, __filename);
+											error(S);
 										}
 									}
 								}
@@ -179,7 +179,7 @@ module.exports = (S) => {
 				break;
 
 			case "eol-wsb":
-				if (cnotin(C_SPACES, char)) error(S, __filename);
+				if (cnotin(C_SPACES, char)) error(S);
 
 				break;
 		}

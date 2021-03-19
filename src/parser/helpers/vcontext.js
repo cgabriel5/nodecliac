@@ -113,13 +113,13 @@ module.exports = (S, value, vindices, resumepoint) => {
 		}
 		if (cnotin(C_CTX_ALL, char)) {
 			S.column = tindex(i);
-			error(S, __filename);
+			error(S);
 		}
 		if (char === ";") {
 			// Track semicolons.
 			if (is_empty_or_ws(argument)) {
 				S.column = tindex(i);
-				error(S, __filename, 14);
+				error(S, 14);
 			}
 			del_semicolon.push(i);
 			args.push(argument);
@@ -145,7 +145,7 @@ module.exports = (S, value, vindices, resumepoint) => {
 				? del_semicolon[del_semicolon.length - 1]
 				: del_semicolon[args.length - 1 + 1];
 		S.column = tindex(dindex);
-		error(S, __filename, 14);
+		error(S, 14);
 	}
 
 	/** Verifies that provided context string argument type is valid.
@@ -166,7 +166,7 @@ module.exports = (S, value, vindices, resumepoint) => {
 			case "marg":
 				if (v[0] === "-") {
 					S.column = tindex(i);
-					error(S, __filename);
+					error(S);
 				}
 
 				break;
@@ -175,20 +175,20 @@ module.exports = (S, value, vindices, resumepoint) => {
 				if (v[0] === "!") {
 					if (l < 2) {
 						S.column = tindex(i);
-						error(S, __filename);
+						error(S);
 					}
 					if (cnotin(C_LETTERS, v[1])) {
 						S.column = tindex(i + 1);
-						error(S, __filename);
+						error(S);
 					}
 				} else {
 					if (l < 1) {
 						S.column = tindex(i);
-						error(S, __filename);
+						error(S);
 					}
 					if (cnotin(C_LETTERS, v[0])) {
 						S.column = tindex(i + 1);
-						error(S, __filename);
+						error(S);
 					}
 				}
 
@@ -201,36 +201,36 @@ module.exports = (S, value, vindices, resumepoint) => {
 					// Must be at least 5 chars in length.
 					if (l < 5) {
 						S.column = tindex(i);
-						error(S, __filename);
+						error(S);
 					}
 					if (cnotin(C_CTX_CAT, v[1])) {
 						S.column = tindex(i + 1);
-						error(S, __filename);
+						error(S);
 					}
 					if (cnotin(C_CTX_OPS, v.substr(2, 2))) {
 						S.column = tindex(i + 2);
-						error(S, __filename);
+						error(S);
 					}
 					// Characters at these indices must be
 					// numbers if not, error.
 					let nval = v.substr(4);
 					if (!is_str_num(nval)) {
 						S.column = tindex(i + 4);
-						error(S, __filename);
+						error(S);
 					}
 					// Error if number starts with 0.
 					if (v[4] === "0" && nval.length !== 1) {
 						S.column = tindex(i + 4);
-						error(S, __filename);
+						error(S);
 					}
 				} else {
 					if (l < 1) {
 						S.column = tindex(i);
-						error(S, __filename);
+						error(S);
 					}
 					if (cnotin(C_LETTERS, v[0])) {
 						S.column = tindex(i + 1);
-						error(S, __filename);
+						error(S);
 					}
 				}
 
@@ -290,13 +290,13 @@ module.exports = (S, value, vindices, resumepoint) => {
 			if (fchar === "{") {
 				if (cnotin(C_CTX_MUT, char)) {
 					S.column = tindex(resume_index);
-					error(S, __filename);
+					error(S);
 				}
 
 				// Braces were closed but nws char found.
 				if (mclose && cnotin(C_SPACES, char)) {
 					S.column = tindex(resume_index);
-					error(S, __filename);
+					error(S);
 				}
 
 				if (char === "}") {
@@ -309,7 +309,7 @@ module.exports = (S, value, vindices, resumepoint) => {
 				if (char === "|") {
 					if (is_empty_or_ws(marg)) {
 						S.column = tindex(resume_index);
-						error(S, __filename, 14);
+						error(S, 14);
 					}
 					del_pipe.push(resume_index);
 					margs.push(
@@ -328,13 +328,13 @@ module.exports = (S, value, vindices, resumepoint) => {
 				if (hasconds === false) {
 					if (cnotin(C_CTX_FLG, char)) {
 						S.column = tindex(resume_index);
-						error(S, __filename);
+						error(S);
 					}
 
 					if (char === ",") {
 						if (is_empty_or_ws(carg)) {
 							S.column = tindex(resume_index);
-							error(S, __filename);
+							error(S);
 						}
 						del_cfcomma.push(resume_index);
 						cflags.push(
@@ -362,7 +362,7 @@ module.exports = (S, value, vindices, resumepoint) => {
 						}
 						if (cflags.length === 0) {
 							S.column = tindex(resume_index);
-							error(S, __filename); // No flags.
+							error(S); // No flags.
 						}
 						i++;
 						resume_index++;
@@ -374,22 +374,22 @@ module.exports = (S, value, vindices, resumepoint) => {
 				} else {
 					if (cnotin(C_CTX_CON, char)) {
 						S.column = tindex(resume_index);
-						error(S, __filename);
+						error(S);
 					}
 					if (char === "!") {
 						if (ccond) {
 							S.column = tindex(resume_index);
-							error(S, __filename);
+							error(S);
 						}
 					} else if (char === "#") {
 						if (ccond && ccond.charAt(0) !== "!") {
 							S.column = tindex(resume_index);
-							error(S, __filename);
+							error(S);
 						}
 					} else if (char === ",") {
 						if (is_empty_or_ws(ccond)) {
 							S.column = tindex(resume_index);
-							error(S, __filename, 14);
+							error(S, 14);
 						}
 						del_cncomma.push(resume_index);
 						cconds.push(
@@ -420,14 +420,14 @@ module.exports = (S, value, vindices, resumepoint) => {
 			// Check that braces were closed.
 			if (mclose === false) {
 				S.column = tindex(mopen_br_index);
-				error(S, __filename, 17);
+				error(S, 17);
 			}
 
 			// Check if mutual exclusive braces are empty.
 			if (marg === "") {
 				if (margs.length === 0) {
 					S.column = tindex(mopen_br_index);
-					error(S, __filename);
+					error(S);
 				}
 			} else {
 				margs.push(verify(marg, "marg", mindices[mindices.length - 1]));
@@ -441,7 +441,7 @@ module.exports = (S, value, vindices, resumepoint) => {
 						? del_pipe[del_pipe.length - 1]
 						: del_pipe[margs.length - 1 + 1];
 				S.column = tindex(pindex);
-				error(S, __filename, 14);
+				error(S, 14);
 			}
 
 			// Build cleaned value string.
@@ -467,7 +467,7 @@ module.exports = (S, value, vindices, resumepoint) => {
 						? del_cfcomma[del_cfcomma.length - 1]
 						: del_cfcomma[cflags.length - 1 + 1];
 				S.column = tindex(dindex);
-				error(S, __filename, 14);
+				error(S, 14);
 			}
 
 			// Error if a trailing conditions ',' delimiter exists.
@@ -478,7 +478,7 @@ module.exports = (S, value, vindices, resumepoint) => {
 						? del_cncomma[del_cncomma.length - 1]
 						: del_cncomma[cconds.length - 1 + 1];
 				S.column = tindex(dindex);
-				error(S, __filename, 14);
+				error(S, 14);
 			}
 
 			// If flags exist but conditions don't, error.
@@ -488,7 +488,7 @@ module.exports = (S, value, vindices, resumepoint) => {
 						? del_semicolon[c] - 1
 						: value.length - 1 - 1; // Else, use val length.
 				S.column = tindex(dindex);
-				error(S, __filename, 16);
+				error(S, 16);
 			}
 
 			// Build cleaned value string.

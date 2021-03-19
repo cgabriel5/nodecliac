@@ -51,7 +51,7 @@ module.exports = (S) => {
 				break;
 
 			case "eol-wsb":
-				if (cnotin(C_SPACES, char)) error(S, __filename);
+				if (cnotin(C_SPACES, char)) error(S);
 				break;
 		}
 	}

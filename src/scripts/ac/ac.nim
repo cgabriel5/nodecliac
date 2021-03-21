@@ -427,8 +427,7 @@ proc main() =
         var chainstrings: seq[string] = @[" "]
         var chainflags: seq[seq[string]] = @[@[""]]
         var delindices: seq[seq[int]] = @[@[0]]
-        var bounds: seq[int] = @[0]
-        var aindex = 0
+        var bound = 0
 
         var i = 1; while i < l:
             var item = args[i]
@@ -452,9 +451,8 @@ proc main() =
                     chainstrings.add(acdef[start .. `end`])
                     chainflags.add(@[])
                     delindices.add(@[])
-                    bounds.add(start)
+                    bound = `end`
                     commands.add(command)
-                    inc(aindex)
                 else: posargs.add(item)
 
                 cargs.add(item)
@@ -471,7 +469,7 @@ proc main() =
 
                 let flag = fn_validate_flag(item)
                 var pattern = "^" & quotemeta(chainstrings[^1]) & "(.+)$"
-                let (start, `end`) = findBounds(acdef, re(pattern, {reMultiLine}), start=bounds[aindex])
+                let (start, `end`) = findBounds(acdef, re(pattern, {reMultiLine}), start=bound)
 
                 if acdef.rfind(flag & "?", start, last = `end`) > 0:
                     cargs.add(flag)

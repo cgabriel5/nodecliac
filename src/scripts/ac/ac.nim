@@ -445,13 +445,13 @@ proc main() =
                 var chain = commands.join(".") & "." & command
                 if not chain.startsWith('.'): chain = "." & chain
 
-                let (start, `end`) = acdef.findBounds(re(
+                let (start, stop) = acdef.findBounds(re(
                     "^" & quotemeta(chain) & "[^ ]* ", {reMultiLine}))
                 if start != -1:
-                    chainstrings = acdef[start .. `end`]
+                    chainstrings = acdef[start .. stop]
                     chainflags.setLen(0)
                     delindices.setLen(0)
-                    bound = `end`
+                    bound = stop
                     commands.add(command)
                 else: posargs.add(item)
 
@@ -468,10 +468,10 @@ proc main() =
                     continue
 
                 let flag = fn_validate_flag(item)
-                let (start, `end`) = findBounds(acdef, re(
+                let (start, stop) = findBounds(acdef, re(
                     "^" & quotemeta(chainstrings) & "(.+)$", {reMultiLine}), start=bound)
 
-                if acdef.rfind(flag & "?", start, last = `end`) > 0:
+                if acdef.rfind(flag & "?", start, last = stop) > 0:
                     cargs.add(flag)
                     ameta[i][1] = 1
                     chainflags.add(flag)

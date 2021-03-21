@@ -472,10 +472,8 @@ proc main() =
                 let flag = fn_validate_flag(item)
                 var pattern = "^" & quotemeta(chainstrings[^1]) & "(.+)$"
                 let (start, `end`) = findBounds(acdef, re(pattern, {reMultiLine}), start=bounds[aindex])
-                let row = acdef[start .. `end`]
 
-                pattern = flag & "\\?(\\||$)"
-                if contains(row, re(pattern)):
+                if acdef.rfind(flag & "?", start, last = `end`) > 0:
                     cargs.add(flag)
                     ameta[i][1] = 1
                     chainflags[^1].add(flag)

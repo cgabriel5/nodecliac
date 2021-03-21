@@ -445,8 +445,8 @@ proc main() =
                 var chain = commands.join(".") & "." & command
                 if not chain.startsWith('.'): chain = "." & chain
 
-                let pattern = "^" & quotemeta(chain) & "[^ ]* "
-                let (start, `end`) = findBounds(acdef, re(pattern, {reMultiLine}))
+                let (start, `end`) = acdef.findBounds(re(
+                    "^" & quotemeta(chain) & "[^ ]* ", {reMultiLine}))
                 if start != -1:
                     chainstrings.add(acdef[start .. `end`])
                     chainflags.add(@[])
@@ -468,8 +468,8 @@ proc main() =
                     continue
 
                 let flag = fn_validate_flag(item)
-                var pattern = "^" & quotemeta(chainstrings[^1]) & "(.+)$"
-                let (start, `end`) = findBounds(acdef, re(pattern, {reMultiLine}), start=bound)
+                let (start, `end`) = findBounds(acdef, re(
+                    "^" & quotemeta(chainstrings[^1]) & "(.+)$", {reMultiLine}), start=bound)
 
                 if acdef.rfind(flag & "?", start, last = `end`) > 0:
                     cargs.add(flag)

@@ -425,7 +425,7 @@ proc main() =
         let l = args.len
         var commands: seq[string] = @[""]
         var chainstrings = " "
-        var chainflags: seq[seq[string]] = @[@[""]]
+        var chainflags: seq[string] = @[""]
         var delindices: seq[seq[int]] = @[@[0]]
         var bound = 0
 
@@ -449,7 +449,7 @@ proc main() =
                     "^" & quotemeta(chain) & "[^ ]* ", {reMultiLine}))
                 if start != -1:
                     chainstrings = acdef[start .. `end`]
-                    chainflags.add(@[])
+                    chainflags.setLen(0)
                     delindices.add(@[])
                     bound = `end`
                     commands.add(command)
@@ -462,7 +462,7 @@ proc main() =
 
                 if ameta[i][0] > -1:
                     cargs.add(item)
-                    chainflags[^1].add(item)
+                    chainflags.add(item)
                     delindices[^1].add(ameta[i][0])
                     inc(i)
                     continue
@@ -474,20 +474,20 @@ proc main() =
                 if acdef.rfind(flag & "?", start, last = `end`) > 0:
                     cargs.add(flag)
                     ameta[i][1] = 1
-                    chainflags[^1].add(flag)
+                    chainflags.add(flag)
                     delindices[^1].add(ameta[i][0])
 
                 else:
                     if nitem != "" and not nitem.startsWith('-'):
                         let vitem = flag & "=" & nitem
                         cargs.add(vitem)
-                        chainflags[^1].add(vitem)
+                        chainflags.add(vitem)
                         ameta[i][0] = flag.len
                         delindices[^1].add(ameta[i][0])
                         inc(i)
                     else:
                         cargs.add(flag)
-                        chainflags[^1].add(flag)
+                        chainflags.add(flag)
                         delindices[^1].add(ameta[i][0])
 
             inc(i)
@@ -519,10 +519,10 @@ proc main() =
             cargs[^1] = r
             args[^1] = r
             ameta[^1][0] = r.high
-            chainflags[^1][chainflags[^1].high] = r
+            chainflags[chainflags.high] = r
             delindices[^1][delindices[^1].high] = r.high
 
-        foundflags = chainflags[^1]
+        foundflags = chainflags
         let usedflags_meta = delindices[^1]
         for i, uflag in foundflags:
             var uflag_fkey = uflag

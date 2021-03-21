@@ -430,7 +430,7 @@ proc main() =
     proc fn_analyze() =
         let l = args.len
         var commands: seq[string] = @[""]
-        var chainstrings = " "
+        var chainstring = " "
         var bound = 0
 
         proc trackflagcount(flag: string) =
@@ -465,7 +465,7 @@ proc main() =
                 let (start, stop) = acdef.findBounds(re(
                     "^" & quotemeta(chain) & "[^ ]* ", {reMultiLine}))
                 if start != -1:
-                    chainstrings = acdef[start .. stop]
+                    chainstring = acdef[start .. stop]
                     bound = stop
                     commands.add(command)
                 else: posargs.add(item)
@@ -487,7 +487,7 @@ proc main() =
 
                 let flag = fn_validate_flag(item)
                 let (start, stop) = findBounds(acdef, re(
-                    "^" & quotemeta(chainstrings) & "(.+)$", {reMultiLine}), start=bound)
+                    "^" & quotemeta(chainstring) & "(.+)$", {reMultiLine}), start=bound)
 
                 if acdef.rfind(flag & "?", start, last = stop) > 0:
                     cargs.add(flag)

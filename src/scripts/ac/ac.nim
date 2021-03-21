@@ -30,7 +30,6 @@ proc main() =
     # Parsed last (flag) data.
     var dflag: tuple[flag: string, eq: char, value: string]
     var `type` = ""
-    var foundflags: seq[string] = @[]
     var completions: seq[string] = @[]
     var commandchain = ""
     var lastchar: char # Character before caret.
@@ -418,6 +417,13 @@ proc main() =
         # Get last char of input.
         lastchar = if not (c != ' ' and p != '\\'): c else: '\0'
 
+    # Wrapper for builtin cmp function. This function returns a boolean.
+    #
+    # @param  {string} a - The first string.
+    # @param  {string} b - The second string.
+    # @return {boolean} - Whether strings are the same or not.
+    proc eq(a, b: string): bool = cmp(a, b) == 0
+
     # Determine command chain, used flags, and set needed variables.
     #
     # @return - Nothing is returned.
@@ -425,9 +431,20 @@ proc main() =
         let l = args.len
         var commands: seq[string] = @[""]
         var chainstrings = " "
-        var chainflags: seq[string] = @[""]
-        var delindices: seq[int] = @[0]
         var bound = 0
+
+        proc trackflagcount(flag: string) =
+            # Track times flag was used.
+            if flag.len != 0 and (not eq(flag, "--") or not eq(flag, "-")):
+                if flag notin usedflags_counts:
+                    usedflags_counts[flag] = 0
+                inc(usedflags_counts[flag])
+
+        proc trackusedflag(flag, value: string) =
+            if flag notin usedflags:
+                usedflags[flag] = {value: 1}.toTable
+
+        proc trackvaluelessflag(flag: string) = usedflags_valueless[flag] = 1
 
         var i = 1; while i < l:
             var item = args[i]
@@ -449,8 +466,6 @@ proc main() =
                     "^" & quotemeta(chain) & "[^ ]* ", {reMultiLine}))
                 if start != -1:
                     chainstrings = acdef[start .. stop]
-                    chainflags.setLen(0)
-                    delindices.setLen(0)
                     bound = stop
                     commands.add(command)
                 else: posargs.add(item)
@@ -462,10 +477,13 @@ proc main() =
 
                 if ameta[i][0] > -1:
                     cargs.add(item)
-                    chainflags.add(item)
-                    delindices.add(ameta[i][0])
-                    inc(i)
-                    continue
+
+                    let flag = item[0 .. ameta[i][0] - 1]
+                    let value = item[ameta[i][0] .. item.high]
+                    trackusedflag(flag, value)
+                    trackflagcount(flag)
+
+                    inc(i); continue
 
                 let flag = fn_validate_flag(item)
                 let (start, stop) = findBounds(acdef, re(
@@ -474,21 +492,22 @@ proc main() =
                 if acdef.rfind(flag & "?", start, last = stop) > 0:
                     cargs.add(flag)
                     ameta[i][1] = 1
-                    chainflags.add(flag)
-                    delindices.add(ameta[i][0])
+                    trackvaluelessflag(flag)
 
                 else:
                     if nitem != "" and not nitem.startsWith('-'):
                         let vitem = flag & "=" & nitem
                         cargs.add(vitem)
-                        chainflags.add(vitem)
                         ameta[i][0] = flag.len
-                        delindices.add(ameta[i][0])
+
+                        trackusedflag(flag, nitem)
+
                         inc(i)
                     else:
                         cargs.add(flag)
-                        chainflags.add(flag)
-                        delindices.add(ameta[i][0])
+                        trackvaluelessflag(flag)
+
+                trackflagcount(flag)
 
             inc(i)
 
@@ -518,31 +537,7 @@ proc main() =
             last = r
             cargs[^1] = r
             args[^1] = r
-            ameta[^1][0] = r.high
-            chainflags[chainflags.high] = r
-            delindices[delindices.high] = r.high
-
-        foundflags = chainflags
-        let usedflags_meta = delindices
-        for i, uflag in foundflags:
-            var uflag_fkey = uflag
-            var uflag_value = ""
-
-            let eqsign_index = usedflags_meta[i]
-            if eqsign_index > -1:
-                uflag_fkey = uflag.substr(0, eqsign_index - 1)
-                uflag_value = uflag.substr(eqsign_index + 1)
-
-            if uflag_value != "":
-                if not usedflags.hasKey(uflag_fkey):
-                    usedflags[uflag_fkey] = {uflag_value: 1}.toTable
-            else: usedflags_valueless[uflag_fkey] = 1
-
-            # Track times flag was used.
-            if uflag_fkey != "" and (uflag_fkey != "--" or uflag_fkey != "-"):
-                if not usedflags_counts.hasKey(uflag_fkey):
-                    usedflags_counts[uflag_fkey] = 0
-                inc(usedflags_counts[uflag_fkey])
+            ameta[^1][0] = r.high # Not needed?
 
     # Lookup acdef definitions.
     #

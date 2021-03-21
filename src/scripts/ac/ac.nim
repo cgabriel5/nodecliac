@@ -512,7 +512,7 @@ proc main() =
         # if last == "" and cargs.len > 0 and cargs[^1].startsWith('-') and
         # ameta[^1][0] == -1 and ameta[^1][1] == 0:
         if last == "" and cargs.len > 0 and cargs[^1].startsWith('-') and
-        '=' notin cargs[^1] and ameta[^1][0] == -1 and ameta[^1][1] == 0:
+        '=' notin cargs[^1] and ameta[^1] == [-1, 0]:
             let r = cargs[^1] & "="
             lastchar = '\0'
             last = r

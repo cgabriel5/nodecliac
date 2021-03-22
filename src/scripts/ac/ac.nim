@@ -428,7 +428,6 @@ proc main() =
     # @return - Nothing is returned.
     proc fn_analyze() =
         let l = args.len
-        var commands = ""
         var chainstring = " "
         var bound = 0
 
@@ -462,14 +461,14 @@ proc main() =
 
             if item[0] != '-':
                 let command = fn_normalize_command(item)
-                var chain = commands & "." & command
+                var tmpchain = commandchain & "." & command
 
                 let (start, stop) = acdef.findBounds(re(
-                    template_cmd % [quotemeta(chain)], {reMultiLine}))
+                    template_cmd % [quotemeta(tmpchain)], {reMultiLine}))
                 if start != -1:
                     chainstring = acdef[start .. stop]
                     bound = stop
-                    commands &= "." & command
+                    commandchain &= fn_validate_command("." & command)
                 else: posargs.add(item)
 
                 cargs.add(item)
@@ -531,8 +530,6 @@ proc main() =
             inc(i)
 
         # Set needed data (cc, pos args, etc.).
-
-        commandchain = fn_validate_command(commands)
 
         last = if lastchar == ' ': "" else: cargs[^1]
         # Reset if completion is being attempted for a quoted/escaped string.

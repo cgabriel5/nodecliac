@@ -478,6 +478,8 @@ proc main() =
             else:
                 inc(afcount) # Increment flag counter.
 
+                # If a flag has an eq-sign and therefore possible
+                # a value, simply split the flag/value and store it.
                 if ameta[i][0] > -1:
                     cargs.add(item)
 
@@ -493,6 +495,7 @@ proc main() =
                     template_flg % [quotemeta(chainstring)], {reMultiLine}),
                     start=bound)
 
+                # Determine whether flag is a boolean flag.
                 if acdef.rfind(flag & "?", start, last = stop) > 0:
                     cargs.add(flag)
                     ameta[i][1] = 1

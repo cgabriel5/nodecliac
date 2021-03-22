@@ -22,7 +22,6 @@ proc main() =
     var args: seq[string] = @[]
     var cargs: seq[string] = @[]
     var posargs: seq[string] = @[]
-    var afcount = 0
     # Arguments meta data: [eq-sign index, isBool]
     var ameta: seq[array[2, int]] = @[]
     var last = ""
@@ -474,7 +473,6 @@ proc main() =
                 cargs.add(item)
 
             else:
-                inc(afcount) # Increment flag counter.
 
                 # If a flag has an eq-sign and therefore possible
                 # a value, simply split the flag/value and store it.
@@ -892,7 +890,7 @@ proc main() =
 
                 # If level does not match argument length, return. As the
                 # parsed arguments do not match that of a valid commandchain.
-                let la = (cargs.len + 1) - afcount
+                let la = (cargs.len + 1) - usedflags_counts.len
                 if not ((la == level + 1 and lastchar != '\0') or
                     (la > level and lastchar != '\0') or (la - level > 1)):
 

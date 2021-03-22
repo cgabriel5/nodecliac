@@ -55,8 +55,6 @@ proc main() =
     var usedflags_multi = initTable[string, int]()
     var usedflags_counts = initTable[string, int]()
 
-    const prefix = "NODECLIAC_"
-
     const C_QUOTES = {'"', '\''}
     const C_SPACES = {' ', '\t'}
     const C_QUOTEMETA = Letters + Digits + {'_'}
@@ -228,6 +226,7 @@ proc main() =
     # @return - Nothing is returned.
     proc setEnvs(arguments: varargs[string], post=false) =
         let l = args.len
+        const prefix = "NODECLIAC_"
         let ctype = (if comptype[0] == 'c': "command" else: "flag")
         let prev = args[^(if not post: 2 else: 1)]
 

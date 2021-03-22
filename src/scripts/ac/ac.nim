@@ -41,7 +41,7 @@ proc main() =
     # Last parsed flag data.
     var dflag: tuple[flag, value: string, eq: char]
 
-    var `type` = ""
+    var comptype = ""
     var filedir = ""
 
     var db_dict = initTable[char, Table[string, Table[string, seq[string]]]]()
@@ -228,7 +228,7 @@ proc main() =
     # @return - Nothing is returned.
     proc setEnvs(arguments: varargs[string], post=false) =
         let l = args.len
-        let ctype = (if `type`[0] == 'c': "command" else: "flag")
+        let ctype = (if comptype[0] == 'c': "command" else: "flag")
         let prev = args[^(if not post: 2 else: 1)]
 
         # Get any used flags to pass along.
@@ -546,7 +546,7 @@ proc main() =
         # if isquoted or not autocompletion: return ""
 
         if last.startsWith('-'):
-            `type` = "flag"
+            comptype = "flag"
 
             var letter = if commandchain != "": commandchain[1] else: '_'
             commandchain = if commandchain != "": commandchain else: "_"
@@ -721,7 +721,7 @@ proc main() =
 
                         # If a command-flag, run it and add items to array.
                         if flag_value.startsWith("$(") and flag_value.endsWith(')') and last_eqsign == '=':
-                            `type` = "flag;nocache"
+                            comptype = "flag;nocache"
                             let lines = execCommand(flag_value)
                             for line in lines:
                                 if line != "": flags.add(last_fkey & "=" & line)
@@ -829,8 +829,8 @@ proc main() =
                     if last_value[^1] != quote: last_value &= $quote
 
                     # Add quoted indicator to later escape double quoted strings.
-                    `type` = "flag;quoted"
-                    if quote == '\"': `type` &= ";noescape"
+                    comptype = "flag;quoted"
+                    if quote == '\"': comptype &= ";noescape"
 
                     # If value is empty return.
                     if last_value.len == 2:
@@ -860,7 +860,7 @@ proc main() =
 
         else:
 
-            `type` = "command"
+            comptype = "command"
 
             # # If command chain and used flags exits, don't complete.
             # if usedflags.len > 0 and commandchain != "":
@@ -968,7 +968,7 @@ proc main() =
                                     completions.add(command_str)
                             else: completions.add(command_str)
 
-                        `type` &= ";nocache"
+                        comptype &= ";nocache"
                         break # Stop once a command-string is found/ran.
 
                     # Remove last command chain from overall command chain.
@@ -1026,9 +1026,9 @@ proc main() =
     proc fn_printer() =
         const sep = "\n"
         var skip_map = false
-        let isflag = `type`.startsWith('f')
+        let isflag = comptype.startsWith('f')
         let iscommand = not isflag
-        let lines = fmt"{`type`}:{last}+{filedir}"
+        let lines = fmt"{comptype}:{last}+{filedir}"
 
         # Note: When providing flag completions and only "--" is provided,
         # collapse (don't show) flags with the same prefix. This aims to

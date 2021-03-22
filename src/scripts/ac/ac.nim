@@ -429,7 +429,7 @@ proc main() =
     # @return - Nothing is returned.
     proc fn_analyze() =
         let l = args.len
-        var commands: seq[string] = @[""]
+        var commands = ""
         var chainstring = " "
         var bound = 0
 
@@ -459,15 +459,14 @@ proc main() =
 
             if not item.startsWith('-'):
                 let command = fn_normalize_command(item)
-                var chain = commands.join(".") & "." & command
-                if not chain.startsWith('.'): chain = "." & chain
+                var chain = commands & "." & command
 
                 let (start, stop) = acdef.findBounds(re(
                     "^" & quotemeta(chain) & "[^ ]* ", {reMultiLine}))
                 if start != -1:
                     chainstring = acdef[start .. stop]
                     bound = stop
-                    commands.add(command)
+                    commands &= "." & command
                 else: posargs.add(item)
 
                 cargs.add(item)
@@ -513,9 +512,7 @@ proc main() =
 
         # Set needed data: cc, pos args, last word, and found flags.
 
-        commandchain = fn_validate_command(commands.join("."))
-        if not commandchain.startsWith('.'): commandchain = "." & commandchain
-        if commandchain == ".": commandchain = ""
+        commandchain = fn_validate_command(commands)
 
         if posargs.len > 0: used_default_pa_args = posargs.join("\n")
 

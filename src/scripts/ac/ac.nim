@@ -517,6 +517,7 @@ proc main() =
                         # 'nodecliac print --command=[TAB]'
                         if (i == args.high) and lastchar == ' ':
                             let aflag = flag & "="
+                            # last = aflag
                             lastchar = '\0'
                             cargs.add(aflag)
                             args[^1] = aflag
@@ -529,8 +530,7 @@ proc main() =
 
             inc(i)
 
-        # Set needed data (cc, pos args, etc.).
-
+        # Perform final reset(s).
         last = if lastchar == ' ': "" else: cargs[^1]
         # Reset if completion is being attempted for a quoted/escaped string.
         if lastchar == ' ' and cargs.len > 0:

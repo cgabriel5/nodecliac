@@ -446,6 +446,10 @@ proc main() =
 
         proc trackvaluelessflag(flag: string) = usedflags_valueless[flag] = 1
 
+        # RegEx lookup templates.
+        const template_cmd = "^$1[^ ]* "
+        const template_flg = "^$1(.+)$"
+
         var i = 1; while i < l:
             var item = args[i]
             let nitem = if i + 1 < l: args[i + 1] else: ""
@@ -462,7 +466,7 @@ proc main() =
                 var chain = commands & "." & command
 
                 let (start, stop) = acdef.findBounds(re(
-                    "^" & quotemeta(chain) & "[^ ]* ", {reMultiLine}))
+                    template_cmd % [quotemeta(chain)], {reMultiLine}))
                 if start != -1:
                     chainstring = acdef[start .. stop]
                     bound = stop
@@ -486,7 +490,7 @@ proc main() =
 
                 let flag = fn_validate_flag(item)
                 let (start, stop) = findBounds(acdef, re(
-                    "^" & quotemeta(chainstring) & "(.+)$", {reMultiLine}), start=bound)
+                    template_flg % [quotemeta(chainstring)], {reMultiLine}), start=bound)
 
                 if acdef.rfind(flag & "?", start, last = stop) > 0:
                     cargs.add(flag)

@@ -315,106 +315,121 @@ proc main() =
     #
     # @return - Nothing is returned.
     proc fn_tokenize() =
-        var argument = ""
-        var qchar: char
-        var input = input
-        var delindex = -1
-        var c, p: char
-
         if input == "": return
 
-        # [TODO]: Re-do spread function; needs to be simplified/robust.
+        const C_NULLB = '\0'
+        const C_ESCAPE = '\\'
+        const C_COLON = ':'
+        const C_EQUALSIGN = '='
+        const C_HYPHEN = '-'
+        const C_QUOTES = {'"', '\''}
+        const C_SPACES = {' ', '\t'}
+        const FLAGVAL_DELS = { C_COLON, C_EQUALSIGN }
 
-        # Spreads input, ex: '-n5 -abc "val"' => '-n 5 -a -b -c "val"'
+        type
+            ArgSlice = array[4, int] # [start, stop, eqsign_index, is_singleton]
+
+        # Spreads single hyphen flags: ex: '-n5 -abc "val"' => '-n 5 -a -b -c "val"'
         #
-        # @param  {string} argument - The string to spread.
-        # @return {string} - The remaining argument.
-        proc spread(argument: var string): string =
-            if argument.len >= 3 and argument[1] != '-' and '=' notin argument:
-                discard shift(argument)
-                let lchar = argument[^1]
+        # @param  {ArgSlice} item - The slice to unpack.
+        # @return {seq[ArgSlice]} - The unpacked slices.
+        # @resource [https://serverfault.com/a/387936]
+        # @resource [https://nullprogram.com/blog/2020/08/01/]
+        proc unpcka(item: ArgSlice): seq[ArgSlice] =
+            let start = item[0]
+            let stop = item[1]
 
-                if lchar in "1234567890":
-                    let argletter = argument[0]
-                    discard shift(argument)
-                    ameta.add([delindex, 0]); delindex = -1
-                    args.add(fmt"-{argletter}")
-                else:
-                    let chars = splitchars(argument)
-                    let max = chars.high
-                    var i = 0
-                    var hyphenref = false
-                    for chr in chars:
-                        # Handle: 'sudo wget -qO- https://foo.sh':
-                        # Hitting a hyphen breaks loop. All characters at hyphen
-                        # and beyond are now the value of the last argument.
-                        if chr == '-': hyphenref = true; break
+            # Short circuit if not a single hyphen flag or contain an '='.
+            if (stop - start) < 2 or input[start] != C_HYPHEN or
+                input[start + 1] == C_HYPHEN or item[2] != -1:
+                result.add(item)
+                return
 
-                        # Note: If the argument is not a hyphen and is the last
-                        # item in the array, remove it from the array as it will
-                        # get added back later in the main loop.
-                        elif i == max: break
+            # Plus 1 to start to ignore single '-'.
+            for i in countup(start + 1, stop):
+                if input[stop] in Digits:
+                    if input[i] notin Digits: result.add([i, i, -1, 1])
+                    else: (result.add([i, stop, -1, 0]); break)
+                else: result.add([i, i, -1, 1])
 
-                        ameta.add([delindex, 0]); delindex = -1
-                        args.add(fmt"-{chr}"); inc(i)
+        proc strfromrange(s: string, start, stop: int, prefix: string = ""): string =
+            let pl = prefix.len
+            # [https://forum.nim-lang.org/t/707#3931]
+            # [https://forum.nim-lang.org/t/735#4170]
+            result = newStringOfCap((stop - start + 1) + pl)
+            if pl > 0: (for c in prefix: result.add(c))
+            for i in countup(start, stop): result.add(s[i])
 
-                    # Reset value to final argument.
-                    argument = if not hyphenref: fmt"-{lchar}" else: argument.substr(i)
+        # Parses CLI input into its individual arguments and normalizes any
+        #     flag/value ':' delimiters to '='.
+        #
+        # @return - Nothing is returned.
+        proc fn_argslices(): seq[ArgSlice] =
+            if input.len == 0: return
 
-            return argument
+            var c, p, q: char
+            var start, eqsign: int = -1
 
-        while input != "":
-            c = shift(input)
-            p = if argument.len > 0: argument[^1] else: '\0'
+            var i = 0; let l = input.len
+            while i < l:
+                swap(p, c)
+                c = input[i]
 
-            if qchar != '\0':
-                argument &= $c
-
-                if c == qchar and p != '\\':
-                    # Note: Check that argument is spaced out. For example, this
-                    # is invalid: '$ nodecliac format --indent="t:1"--sa'
-                    # ----------------------------------------------^. Should be:
-                    #          '$ nodecliac format --indent="t:1" --sa'
-                    # -------------------------------------------^Whitespace char.
-                    # If argument is not spaced out or at the end of the input
-                    # do not add it to the array. Just skip to next iteration.
-                    # if input != "" and not input.startsWith(' '): continue
-
-                    ameta.add([delindex, 0]); delindex = -1
-                    args.add(if not argument.startsWith('-'): argument else: spread(argument))
-                    argument = ""
-                    qchar = '\0'
-
-            else:
-                if c in C_QUOTES and p != '\\':
-                    qchar = c
-                    argument &= $c
-
-                elif c in C_SPACES and p != '\\':
-                    if argument == "": continue
-
-                    ameta.add([delindex, 0]); delindex = -1
-                    args.add(if not argument.startsWith('-'): argument else: spread(argument))
-                    argument = ""
-                    qchar = '\0'
+                if q != C_NULLB:
+                    if c == q and p != C_ESCAPE:
+                        if start != -1:
+                            result.add([start, i, eqsign, 0])
+                            eqsign = -1
+                            start = -1
+                            q = C_NULLB
 
                 else:
-                    if c in "=:" and delindex == -1 and argument.len > 0 and argument.startsWith('-'):
-                        delindex = argument.len
-                        c = '=' # Normalize ':' to '='.
-                    argument &= $c
+                    if c in C_QUOTES and p != C_ESCAPE:
+                        if start == -1: start = i
+                        q = c
 
-        # If the qchar is set, there was an unclosed string like:
-        # '$ op list itema --categories="Outdoor '
-        if qchar != '\0': quote_open = true
+                    elif c in C_SPACES and p != C_ESCAPE:
+                        if start != -1:
+                            let targ = [start, i - 1, eqsign, 0]
+                            for uarg in unpcka(targ): result.add(uarg)
+                            eqsign = -1
+                            start = -1
 
-        # Get last argument.
-        if argument != "":
-            ameta.add([delindex, 0]); delindex = -1
-            args.add(if not argument.startsWith('-'): argument else: spread(argument))
+                    else:
+                        if start == -1: start = i
+                        if c in FLAGVAL_DELS and eqsign == -1 and
+                                input[start] == C_HYPHEN:
+                            input[i] = C_EQUALSIGN # Normalize ':' to '='.
+                            eqsign = i - start
+                inc(i)
 
-        # Get last char of input.
-        lastchar = if not (c != ' ' and p != '\\'): c else: '\0'
+            # Finish last point post loop.
+            if start > -1 and start != l:
+                let targ = [start, input.high, eqsign, 0]
+                for uarg in unpcka(targ): result.add(uarg)
+
+            # If the qchar is set, there was an unclosed string like:
+            # '$ op list itema --categories="Outdoor '
+            if q != C_NULLB: quote_open = true
+
+            # Get last char of input.
+            lastchar = if not (c != ' ' and p != '\\'): c else: '\0'
+
+        let ranges = fn_argslices()
+        let l = ranges.len
+
+        # # Using the found argument ranges, create strings of them.
+        # var args = newSeqOfCap[tuple[arg: string, eqsign: int]](l)
+        # for rng in ranges:
+        #     let prefix = $(if rng[3] == 1: C_HYPHEN else: C_NULLB)
+        #     args.add((strfromrange(input, rng[0], rng[1] + 1, prefix), rng[2]))
+
+        # Using the found argument ranges, create strings of them.
+        # var args = newSeqOfCap[tuple[arg: string, eqsign: int]](l)
+        for rng in ranges:
+            let prefix = if rng[3] == 1: "-" else: ""
+            args.add(strfromrange(input, rng[0], rng[1], prefix))
+            ameta.add([rng[2], 0])
 
     # Wrapper for builtin cmp function. This function returns a boolean.
     #

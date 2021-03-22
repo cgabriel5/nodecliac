@@ -461,7 +461,7 @@ proc main() =
             #     inc(i)
             #     continue
 
-            if not item.startsWith('-'):
+            if item[0] != '-':
                 let command = fn_normalize_command(item)
                 var chain = commands & "." & command
 
@@ -502,7 +502,7 @@ proc main() =
                     trackvaluelessflag(flag)
 
                 else:
-                    if nitem != "" and not nitem.startsWith('-'):
+                    if nitem != "" and nitem[0] != '-':
                         let vitem = flag & "=" & nitem
                         cargs.add(vitem)
                         ameta[i][0] = flag.len

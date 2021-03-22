@@ -18,26 +18,30 @@ proc main() =
     let acdef = os.paramStr(5) # Get the acdef definitions file.
     let posthook = os.paramStr(6) # Get the posthook file path.
     let singletons = parseBool(os.paramStr(7)) # Show singleton flags?
+    var input = cline.substr(0, cpoint - 1) # CLI input from start to caret index.
+
+    let hdir = os.getEnv("HOME")
+    let TESTMODE = os.getEnv("TESTMODE") == "1"
+
+    var isquoted: bool
+    var quote_open: bool
+    # var autocompletion = true
+
+    var last = ""
+    var commandchain = ""
+    var completions: seq[string] = @[]
+    var lastchar: char # Character before caret.
+    let nextchar = cline.substr(cpoint, cpoint) # Character after caret.
 
     var args: seq[string] = @[]
     var cargs: seq[string] = @[]
     var posargs: seq[string] = @[]
-    # Arguments meta data: [eq-sign index, isBool]
-    var ameta: seq[array[2, int]] = @[]
-    var last = ""
-    var quote_open = false
-    # Last parsed last flag data.
+    var ameta: seq[array[2, int]] = @[] # [eq-sign index, isBool]
+
+    # Last parsed flag data.
     var dflag: tuple[flag, value: string, eq: char]
+
     var `type` = ""
-    var completions: seq[string] = @[]
-    var commandchain = ""
-    var lastchar: char # Character before caret.
-    let nextchar = cline.substr(cpoint, cpoint) # Character after caret.
-    var isquoted = false
-    # var autocompletion = true
-    var input = cline.substr(0, cpoint - 1) # CLI input from start to caret index.
-    let hdir = os.getEnv("HOME")
-    let TESTMODE = os.getEnv("TESTMODE") == "1"
     var filedir = ""
 
     var db_dict = initTable[char, Table[string, Table[string, seq[string]]]]()

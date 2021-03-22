@@ -33,11 +33,9 @@ proc main() =
     var commandchain = ""
     var lastchar: char # Character before caret.
     let nextchar = cline.substr(cpoint, cpoint) # Character after caret.
-    var cline_length = cline.len # Original input's length.
     var isquoted = false
     # var autocompletion = true
     var input = cline.substr(0, cpoint - 1) # CLI input from start to caret index.
-    var input_remainder = cline.substr(cpoint, -1)# CLI input from caret index to input string end.
     let hdir = os.getEnv("HOME")
     let TESTMODE = os.getEnv("TESTMODE") == "1"
     var filedir = ""
@@ -258,14 +256,14 @@ proc main() =
             fmt"{prefix}PREV": prev,
             fmt"{prefix}INPUT": input, # CLI input from start to caret index.
             fmt"{prefix}INPUT_ORIGINAL": oinput, # Original unmodified CLI input.
-            # CLI input from start to caret index.
-            fmt"{prefix}INPUT_REMAINDER": input_remainder,
+            # CLI input from caret index to input string end.
+            fmt"{prefix}INPUT_REMAINDER": cline.substr(cpoint, -1),
             fmt"{prefix}LAST_CHAR": $lastchar, # Character before caret.
             # Character after caret. If char is not '' (empty) then the last word
             # item is a partial word.
             fmt"{prefix}NEXT_CHAR": nextchar,
             # Original input's length.
-            fmt"{prefix}COMP_LINE_LENGTH": intToStr(cline_length),
+            fmt"{prefix}COMP_LINE_LENGTH": intToStr(cline.len),
             # CLI input length from beginning of string to caret position.
             fmt"{prefix}INPUT_LINE_LENGTH": intToStr(input.len),
             # Amount arguments parsed before caret position/index.

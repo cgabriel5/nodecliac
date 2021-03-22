@@ -490,7 +490,8 @@ proc main() =
 
                 let flag = fn_validate_flag(item)
                 let (start, stop) = findBounds(acdef, re(
-                    template_flg % [quotemeta(chainstring)], {reMultiLine}), start=bound)
+                    template_flg % [quotemeta(chainstring)], {reMultiLine}),
+                    start=bound)
 
                 if acdef.rfind(flag & "?", start, last = stop) > 0:
                     cargs.add(flag)

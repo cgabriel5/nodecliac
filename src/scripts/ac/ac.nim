@@ -531,7 +531,7 @@ proc main() =
 
             inc(i)
 
-        # Set needed data: cc, pos args, last word, and found flags.
+        # Set needed data (cc, pos args, etc.).
 
         commandchain = fn_validate_command(commands)
 

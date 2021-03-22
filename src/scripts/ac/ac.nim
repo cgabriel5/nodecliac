@@ -511,7 +511,20 @@ proc main() =
 
                         inc(i)
                     else:
-                        cargs.add(flag)
+
+                        # Check whether flag needs to be normalized.
+                        # For example, the following input:
+                        # 'nodecliac print --command [TAB]'
+                        # will gets converted into:
+                        # 'nodecliac print --command=[TAB]'
+                        if (i == args.high) and lastchar == ' ':
+                            let aflag = flag & "="
+                            lastchar = '\0'
+                            cargs.add(aflag)
+                            args[^1] = aflag
+                        else:
+                            cargs.add(flag)
+
                         trackvaluelessflag(flag)
 
                 trackflagcount(flag)
@@ -531,18 +544,6 @@ proc main() =
             quote_open = quote_open and litem[0] == '-'
             if (litem[0] in C_QUOTES or quote_open or litem[^2] == '\\'): last = litem
         if last.find(C_QUOTES) == 0: isquoted = true
-
-        # Handle case: 'nodecliac print --command [TAB]'
-        # if last == "" and cargs.len > 0 and cargs[^1].startsWith('-') and
-        # ameta[^1][0] == -1 and ameta[^1][1] == 0:
-        if last == "" and cargs.len > 0 and cargs[^1].startsWith('-') and
-        '=' notin cargs[^1] and ameta[^1] == [-1, 0]:
-            let r = cargs[^1] & "="
-            lastchar = '\0'
-            last = r
-            cargs[^1] = r
-            args[^1] = r
-            ameta[^1][0] = r.high # Not needed?
 
     # Lookup acdef definitions.
     #

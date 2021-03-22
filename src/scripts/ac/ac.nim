@@ -26,8 +26,8 @@ proc main() =
     var ameta: seq[array[2, int]] = @[]
     var last = ""
     var quote_open = false
-    # Parsed last (flag) data.
-    var dflag: tuple[flag: string, eq: char, value: string]
+    # Last parsed last flag data.
+    var dflag: tuple[flag, value: string, eq: char]
     var `type` = ""
     var completions: seq[string] = @[]
     var commandchain = ""
@@ -679,7 +679,7 @@ proc main() =
                 let last_val_quoted = last_value.find(C_QUOTES) == 0
 
                 # Store data for env variables.
-                dflag = (flag: last_fkey, eq: last_eqsign, value: last_value)
+                dflag = (last_fkey, last_value, last_eqsign)
 
                 # Process flags.
                 var i = 0; while i < flags.len:

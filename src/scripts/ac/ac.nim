@@ -11,12 +11,12 @@ proc main() =
 
     if os.paramCount() == 0: quit()
 
-    let oinput = os.paramStr(1) # Original unmodified CLI input.
+    let oinput = os.paramStr(1) # Original/unmodified CLI input.
     let cline = os.paramStr(2) # CLI input (could be modified via pre-parse).
-    let cpoint = os.paramStr(3).parseInt(); # Caret index when [tab] key was pressed.
-    let maincommand = os.paramStr(4) # Get command name from sourced passed-in argument.
-    let acdef = os.paramStr(5) # Get the acdef definitions file.
-    let posthook = os.paramStr(6) # Get the posthook file path.
+    let cpoint = os.paramStr(3).parseInt(); # Index where [tab] key was pressed.
+    let maincommand = os.paramStr(4) # Name of command completion is for.
+    let acdef = os.paramStr(5) # The command's .acdef file contents.
+    let posthook = os.paramStr(6) # Posthook file path.
     let singletons = parseBool(os.paramStr(7)) # Show singleton flags?
     var input = cline.substr(0, cpoint - 1) # CLI input from start to caret index.
 

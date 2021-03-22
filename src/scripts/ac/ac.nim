@@ -54,7 +54,6 @@ proc main() =
     var usedflags_multi = initTable[string, int]()
     var usedflags_counts = initTable[string, int]()
 
-    var used_default_pa_args = ""
     const prefix = "NODECLIAC_"
 
     const C_QUOTES = {'"', '\''}
@@ -274,7 +273,7 @@ proc main() =
             fmt"{prefix}ARG_COUNT": intToStr(l),
             # Store collected positional arguments after validating the
             # command-chain to access in plugin auto-completion scripts.
-            fmt"{prefix}USED_DEFAULT_POSITIONAL_ARGS": used_default_pa_args,
+            fmt"{prefix}USED_DEFAULT_POSITIONAL_ARGS": posargs.join("\n"),
             # Whether completion is being done for a command or a flag.
             fmt"{prefix}COMP_TYPE": ctype
         }.toTable
@@ -534,8 +533,6 @@ proc main() =
         # Set needed data (cc, pos args, etc.).
 
         commandchain = fn_validate_command(commands)
-
-        if posargs.len > 0: used_default_pa_args = posargs.join("\n")
 
         last = if lastchar == ' ': "" else: cargs[^1]
         # Reset if completion is being attempted for a quoted/escaped string.
@@ -920,7 +917,7 @@ proc main() =
                             if row.startsWith(last):
                                 let c = commandchain.endsWith("." & row)
                                 if (not c or (c and lastchar == '\0')) or
-                                used_default_pa_args == "" and lastchar == '\0':
+                                posargs.len == 0 and lastchar == '\0':
                                     completions.add(row)
                         else: completions.add(row) # Allow all.
 

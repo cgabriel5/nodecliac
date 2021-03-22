@@ -467,7 +467,7 @@ proc main() =
                     template_cmd % [quotemeta(tmpchain)], {reMultiLine}))
                 if start != -1:
                     chainstring = acdef[start .. stop]
-                    bound = stop
+                    bound = start
                     commandchain &= fn_validate_command("." & command)
                 else: posargs.add(item)
 

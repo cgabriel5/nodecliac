@@ -154,11 +154,17 @@ proc main =
                 lastpos = i + 1
             elif i == EOS: result.add(chain[lastpos .. i])
 
-    proc strfromrange(s: string, start, stop: int): string =
+    proc strfromrange(s: string, start, stop: int, prefix: string = ""): string =
+        runnableExamples:
+            var s = "nodecliac debug --disable"
+            doAssert "nodecliac" == strfromrange(s, 0, 8)
+
+        let pl = prefix.len
         # [https://forum.nim-lang.org/t/707#3931]
         # [https://forum.nim-lang.org/t/735#4170]
-        result = newStringOfCap(stop - start)
-        for i in countup(start, stop - 1): result.add(s[i])
+        result = newStringOfCap((stop - start + 1) + pl)
+        if pl > 0: (for c in prefix: result.add(c))
+        for i in countup(start, stop): result.add(s[i])
         # The resulting indices may also be populated with builtin slice
         # notation. However, using a loop shows to be slightly faster.
         # [https://github.com/nim-lang/Nim/pull/2171/files]
@@ -177,7 +183,8 @@ proc main =
                     if text[start] == C_SPACE: continue
 
                     # Add 1 to start to skip the initial dot in command chain.
-                    let command = strfromrange(text, start + 1, find(text, C_SPACE_DOT, start + 1, stop))
+                    let command = strfromrange(text, start + 1, find(text,
+                        C_SPACE_DOT, start + 1, stop) - 1)
                     if command notin db_levels[LVL1]: db_levels[LVL1][command] = LVL1
 
             else: # First level flags.
@@ -203,7 +210,7 @@ proc main =
 
                 # Locate the first space character in the line.
                 let sindex = find(text, C_SPACE, start, stop)
-                let chain = strfromrange(text, start, sindex)
+                let chain = strfromrange(text, start, sindex - 1)
 
                 # # If retrieving next possible levels for the command chain,
                 # # lastchar must be an empty space and the commandchain does

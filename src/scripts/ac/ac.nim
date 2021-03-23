@@ -353,12 +353,21 @@ proc main() =
                 else: result.add([i, i, -1, 1])
 
         proc strfromrange(s: string, start, stop: int, prefix: string = ""): string =
+            runnableExamples:
+                var s = "nodecliac debug --disable"
+                doAssert "nodecliac" == strfromrange(s, 0, 8)
+
             let pl = prefix.len
             # [https://forum.nim-lang.org/t/707#3931]
             # [https://forum.nim-lang.org/t/735#4170]
             result = newStringOfCap((stop - start + 1) + pl)
             if pl > 0: (for c in prefix: result.add(c))
             for i in countup(start, stop): result.add(s[i])
+            # The resulting indices may also be populated with builtin slice
+            # notation. However, using a loop shows to be slightly faster.
+            # [https://github.com/nim-lang/Nim/pull/2171/files]
+            # result[result.low .. result.high] = s[start ..< stop]
+            shallow(result)
 
         # Parses CLI input into its individual arguments and normalizes any
         #     flag/value ':' delimiters to '='.

@@ -1144,65 +1144,6 @@ proc main() =
 
         echo lines & completions.join("")
 
-    # proc fn_makedb() =
-    #     if commandchain == "": # First level commands only.
-    #         if last == "":
-    #             for line in acdef.splitLines:
-    #                 if not line.startsWith('.'): continue
-
-    #                 var space_index = line.find(' ')
-    #                 var chain = line.substr(1, space_index - 1)
-
-    #                 var dot_index = chain.find('.')
-    #                 var command = chain.substr(0, if dot_index != -1: dot_index - 1 else: space_index)
-
-    #                 if not db_levels.hasKey(1): db_levels[1] = initTable[string, int]()
-    #                 db_levels[1][command] = 1
-
-    #         else: # First level flags.
-    #             let (start, `end`) = findBounds(acdef, re("^ ([^\n]+)", {reMultiLine}))
-    #             if start != -1:
-    #                 db_dict['_'] = initTable[string, Table[string, seq[string]]]()
-    #                 # + 1 to start bound to ignore captured space (capture groups).
-    #                 # [Bug: https://github.com/nim-lang/Nim/issues/12267]
-    #                 db_dict['_']["_"] = {"flags": @[acdef[start + 1 .. `end`]]}.toTable
-
-    #     else: # Go through entire .acdef file contents.
-
-    #         for line in acdef.splitLines:
-    #             var line = line
-    #             if not line.startsWith(commandchain): continue
-
-    #             let chain = line.substr(0, line.find(' ') - 1)
-    #             line.removePrefix(chain & " ") # Flag list left remaining.
-
-    #             # If retrieving next possible levels for the command chain,
-    #             # lastchar must be an empty space and the commandchain does
-    #             # not equal the chain of the line, skip the line.
-    #             if lastchar == ' ' and not (chain & ".").startsWith(commandchain & "."): continue
-
-    #             # Remove starting '.'?
-    #             let commands = (chain).split(re"(?<!\\)\.")
-
-    #             # Cleanup remainder (flag/command-string).
-    #             if ord(line[0]) == 45:
-    #                 let fchar = chain[1]
-    #                 if not db_dict.hasKey(fchar):
-    #                     db_dict[fchar] = initTable[string, Table[string, seq[string]]]()
-    #                 db_dict[fchar][chain] = {"commands": commands, "flags": @[line]}.toTable
-
-    #             else: # Store keywords.
-    #                 let keyword = line[0 .. 6]
-    #                 let value = line.substr(8)
-    #                 case (keyword):
-    #                     of "default":
-    #                         if not db_defaults.hasKey(chain): db_defaults[chain] = value
-    #                     of "filedir":
-    #                         if not db_filedirs.hasKey(chain): db_filedirs[chain] = value
-    #                     of "context":
-    #                         if not db_contexts.hasKey(chain): db_contexts[chain] = value
-    #                     else: discard
-
     # Checks whether string starts with given substring and optional suffix.
     proc cmpstart(s, sub, suffix: string = ""): bool =
         runnableExamples:

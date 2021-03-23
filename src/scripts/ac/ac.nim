@@ -1,8 +1,8 @@
 #!/usr/bin/env nim
 
 import std/[
-        os, streams, strformat, algorithm, osproc, re,
-        sequtils, tables, strtabs, strutils
+        os, streams, strformat, algorithm,
+        osproc, re, sequtils, tables, strutils
     ]
 
 import utils/lcp
@@ -44,12 +44,6 @@ proc main() =
     var comptype = ""
     var filedir = ""
 
-    var db_dict = initTable[char, Table[string, Table[string, seq[string]]]]()
-    var db_levels = initTable[int, Table[string, int]]()
-    var db_defaults = newStringTable()
-    var db_filedirs = newStringTable()
-    var db_contexts = newStringTable()
-
     var usedflags = initTable[string, Table[string, int]]()
     var usedflags_valueless = initTable[string, int]()
     var usedflags_multi = initTable[string, int]()
@@ -60,6 +54,35 @@ proc main() =
     const C_QUOTEMETA = Letters + Digits + {'_'}
     const C_VALID_CMD = Letters + Digits + {'-', '.', '_', ':', '\\'}
     const C_VALID_FLG = Letters + Digits + {'-', '_', }
+
+    type
+        Range = array[2, int]
+        DBEntry = Table[string, array[2, Range]]
+
+    const LVL1 = 1
+    const KEYWORD_LEN = 6
+
+    const C_NL = '\n'
+    const C_DOT = '.'
+    const C_SPACE = ' '
+    const C_ESCAPE = '\\'
+    const C_NUMSIGN = '#'
+    const C_UNDERSCORE = '_'
+    const C_SRT_DOT = $C_SPACE
+    const C_SPACE_DOT = { C_DOT, C_SPACE }
+    const VALID_LINE_STARTS = { C_NUMSIGN, C_NL }
+
+    const O_DEFAULT = 100 # (d)efault
+    const O_FILEDIR = 102 # (f)iledir
+    const O_CONTEXT = 99  # (c)ontext
+    const O_HYPHEN  = 45  # hyphen
+
+    var db_dict = initTable[char, DBEntry]()
+    var db_levels = initTable[int, Table[string, int]]()
+    var db_defaults = initTable[string, Range]()
+    var db_filedirs = initTable[string, Range]()
+    var db_contexts = initTable[string, Range]()
+
 
     # --------------------------------------------------------- VALIDATION-FUNCTIONS
 
@@ -576,7 +599,8 @@ proc main() =
             if db_dict.hasKey(letter) and db_dict[letter].hasKey(commandchain):
                 var excluded = initTable[string, int]()
                 var parsedflags = initTable[string, int]()
-                var flag_list = db_dict[letter][commandchain]["flags"][0]
+                let frange = db_dict[letter][commandchain][1]
+                var flag_list = acdef[frange[0] .. frange[1]]
 
                 # If a placeholder get its contents.
                 if flag_list =~ re"^--p#(.{6})$":
@@ -925,9 +949,9 @@ proc main() =
                     for row in rows:
                         var row = row
                         # Command must exist.
-                        if not h[row].hasKey("commands"): continue
+                        # if not h[row].hasKey("commands"): continue # Needed?
 
-                        var cmds = h[row]["commands"]
+                        var cmds = acdef[ h[row][0][0] .. h[row][0][1] ].split(".")
                         row = if level < cmds.len: cmds[level] else: ""
 
                         # Add last command if not yet already added.
@@ -957,7 +981,12 @@ proc main() =
                 # Loop over command chains to build individual chain levels.
                 while copy_commandchain != "":
                     # Get command-string, parse and run it.
-                    var command_str = db_defaults.getOrDefault(copy_commandchain, "")
+                    var crange = db_defaults.getOrDefault(copy_commandchain, [-1, -1])
+                    var command_str = (
+                        if crange != [-1, -1]: acdef[crange[0] .. crange[1]]
+                        else: ""
+                    )
+
                     if command_str != "":
                         var lchar = chop(command_str)
 
@@ -1115,64 +1144,217 @@ proc main() =
 
         echo lines & completions.join("")
 
+    # proc fn_makedb() =
+    #     if commandchain == "": # First level commands only.
+    #         if last == "":
+    #             for line in acdef.splitLines:
+    #                 if not line.startsWith('.'): continue
+
+    #                 var space_index = line.find(' ')
+    #                 var chain = line.substr(1, space_index - 1)
+
+    #                 var dot_index = chain.find('.')
+    #                 var command = chain.substr(0, if dot_index != -1: dot_index - 1 else: space_index)
+
+    #                 if not db_levels.hasKey(1): db_levels[1] = initTable[string, int]()
+    #                 db_levels[1][command] = 1
+
+    #         else: # First level flags.
+    #             let (start, `end`) = findBounds(acdef, re("^ ([^\n]+)", {reMultiLine}))
+    #             if start != -1:
+    #                 db_dict['_'] = initTable[string, Table[string, seq[string]]]()
+    #                 # + 1 to start bound to ignore captured space (capture groups).
+    #                 # [Bug: https://github.com/nim-lang/Nim/issues/12267]
+    #                 db_dict['_']["_"] = {"flags": @[acdef[start + 1 .. `end`]]}.toTable
+
+    #     else: # Go through entire .acdef file contents.
+
+    #         for line in acdef.splitLines:
+    #             var line = line
+    #             if not line.startsWith(commandchain): continue
+
+    #             let chain = line.substr(0, line.find(' ') - 1)
+    #             line.removePrefix(chain & " ") # Flag list left remaining.
+
+    #             # If retrieving next possible levels for the command chain,
+    #             # lastchar must be an empty space and the commandchain does
+    #             # not equal the chain of the line, skip the line.
+    #             if lastchar == ' ' and not (chain & ".").startsWith(commandchain & "."): continue
+
+    #             # Remove starting '.'?
+    #             let commands = (chain).split(re"(?<!\\)\.")
+
+    #             # Cleanup remainder (flag/command-string).
+    #             if ord(line[0]) == 45:
+    #                 let fchar = chain[1]
+    #                 if not db_dict.hasKey(fchar):
+    #                     db_dict[fchar] = initTable[string, Table[string, seq[string]]]()
+    #                 db_dict[fchar][chain] = {"commands": commands, "flags": @[line]}.toTable
+
+    #             else: # Store keywords.
+    #                 let keyword = line[0 .. 6]
+    #                 let value = line.substr(8)
+    #                 case (keyword):
+    #                     of "default":
+    #                         if not db_defaults.hasKey(chain): db_defaults[chain] = value
+    #                     of "filedir":
+    #                         if not db_filedirs.hasKey(chain): db_filedirs[chain] = value
+    #                     of "context":
+    #                         if not db_contexts.hasKey(chain): db_contexts[chain] = value
+    #                     else: discard
+
+    # Checks whether string starts with given substring and optional suffix.
+    proc cmpstart(s, sub, suffix: string = ""): bool =
+        runnableExamples:
+          var s, sub: string = ""
+
+          s = ".disable.second"
+          sub = ".disable"
+          doAssert cmpstart(s, sub, suffix = ".") == true
+
+          s = ".disable.second"
+          sub = ".disable.last"
+          doAssert cmpstart(s, sub, suffix = ".") == false
+
+          s = ".disable.second"
+          sub = ".disable"
+          doAssert cmpstart(s, sub, suffix = "+") == false
+
+        let ls = suffix.len
+        if (sub.len + ls) > (s.len + ls): return
+
+        var i = 0
+        for c in sub:
+            if sub[i] != s[i]: return
+            inc(i)
+
+        # Compare suffix if provided.
+        if ls > 0:
+            for c in suffix:
+              if c != s[i]: return
+              inc(i)
+
+        return true
+
+    # Checks whether provided substring is found at the start/stop indices
+    #     at the source string.
+    proc cmpindices(s, sub: string, start, stop: int): bool =
+        if sub.len > (stop - start): return
+
+        var index = start
+        for c in sub:
+            if c != s[index]: return
+            inc(index)
+        return true
+
+    proc splitundel(chain: string, DEL: char = C_DOT): seq[string] =
+        runnableExamples:
+            let answer = @["", "first\\.escaped", "last"]
+            assert splitundel(".first\\.escaped.last") == answer
+
+        var lastpos = 0
+        let EOS = chain.high
+        for i, c in chain:
+            if c == DEL and chain[i - 1] != C_ESCAPE:
+                result.add(chain[lastpos .. i - 1])
+                lastpos = i + 1
+            elif i == EOS: result.add(chain[lastpos .. i])
+
+    proc strfromrange(s: string, start, stop: int, prefix: string = ""): string =
+        runnableExamples:
+            var s = "nodecliac debug --disable"
+            doAssert "nodecliac" == strfromrange(s, 0, 8)
+
+        let pl = prefix.len
+        # [https://forum.nim-lang.org/t/707#3931]
+        # [https://forum.nim-lang.org/t/735#4170]
+        result = newStringOfCap((stop - start + 1) + pl)
+        if pl > 0: (for c in prefix: result.add(c))
+        for i in countup(start, stop): result.add(s[i])
+        # The resulting indices may also be populated with builtin slice
+        # notation. However, using a loop shows to be slightly faster.
+        # [https://github.com/nim-lang/Nim/pull/2171/files]
+        # result[result.low .. result.high] = s[start ..< stop]
+        shallow(result)
+
     proc fn_makedb() =
+        var pos = 0
+        var lastpos = 0
+        var ranges = newSeqOfCap[Range](countLines(acdef))
+        while true:
+            pos = find(acdef, sub = C_NL, start = pos + 1)
+            if pos == -1:
+                # Handle case where only one line exists.
+                if lastpos != -1: ranges.add([lastpos, acdef.high])
+                break
+            if lastpos != pos and acdef[lastpos] != C_NUMSIGN:
+                ranges.add([lastpos, pos - 1])
+            lastpos = pos + 1
+
         if commandchain == "": # First level commands only.
             if last == "":
-                for line in acdef.splitLines:
-                    if not line.startsWith('.'): continue
+                db_levels[LVL1] = initTable[string, int]()
 
-                    var space_index = line.find(' ')
-                    var chain = line.substr(1, space_index - 1)
+                for rng in ranges:
+                    let start = rng[0]
+                    let stop = rng[1]
 
-                    var dot_index = chain.find('.')
-                    var command = chain.substr(0, if dot_index != -1: dot_index - 1 else: space_index)
+                    if acdef[start] == C_SPACE: continue
 
-                    if not db_levels.hasKey(1): db_levels[1] = initTable[string, int]()
-                    db_levels[1][command] = 1
+                    # Add 1 to start to skip the initial dot in command chain.
+                    let command = strfromrange(acdef, start + 1, find(acdef,
+                        C_SPACE_DOT, start + 1, stop) - 1)
+                    if command notin db_levels[LVL1]: db_levels[LVL1][command] = LVL1
 
             else: # First level flags.
-                let (start, `end`) = findBounds(acdef, re("^ ([^\n]+)", {reMultiLine}))
-                if start != -1:
-                    db_dict['_'] = initTable[string, Table[string, seq[string]]]()
-                    # + 1 to start bound to ignore captured space (capture groups).
-                    # [Bug: https://github.com/nim-lang/Nim/issues/12267]
-                    db_dict['_']["_"] = {"flags": @[acdef[start + 1 .. `end`]]}.toTable
+
+                db_dict[C_UNDERSCORE] = DBEntry()
+
+                for rng in ranges:
+                    let start = rng[0]
+                    let stop = rng[1]
+
+                    if acdef[start] == C_SPACE:
+                        db_dict[C_UNDERSCORE][$C_UNDERSCORE] =
+                            [[start, start], [start + 1, stop]]
+                        break
 
         else: # Go through entire .acdef file contents.
 
-            for line in acdef.splitLines:
-                var line = line
-                if not line.startsWith(commandchain): continue
+            for rng in ranges:
+                let start = rng[0]
+                let stop = rng[1]
 
-                let chain = line.substr(0, line.find(' ') - 1)
-                line.removePrefix(chain & " ") # Flag list left remaining.
+                # Line must start with commandchain
+                if not cmpindices(acdef, commandchain, start, stop): continue
 
-                # If retrieving next possible levels for the command chain,
-                # lastchar must be an empty space and the commandchain does
-                # not equal the chain of the line, skip the line.
-                if lastchar == ' ' and not (chain & ".").startsWith(commandchain & "."): continue
+                # Locate the first space character in the line.
+                let sindex = find(acdef, C_SPACE, start, stop)
+                let chain = strfromrange(acdef, start, sindex - 1)
 
-                # Remove starting '.'?
-                let commands = (chain).split(re"(?<!\\)\.")
+                # # If retrieving next possible levels for the command chain,
+                # # lastchar must be an empty space and the commandchain does
+                # # not equal the chain of the line, skip the line.
+                # if lastchar == C_SPACE and not chain.cmpstart(commandchain, C_SRT_DOT):
+                #     continue
+
+                # let commands = splitundel(chain)
 
                 # Cleanup remainder (flag/command-string).
-                if ord(line[0]) == 45:
-                    let fchar = chain[1]
-                    if not db_dict.hasKey(fchar):
-                        db_dict[fchar] = initTable[string, Table[string, seq[string]]]()
-                    db_dict[fchar][chain] = {"commands": commands, "flags": @[line]}.toTable
+                let rindex = sindex + 1
+                let fchar = chain[1]
+                if ord(acdef[rindex]) == O_HYPHEN:
+                    if fchar notin db_dict: db_dict[fchar] = DBEntry()
+                    db_dict[fchar][chain] = [[start, sindex - 1], [rindex, stop]]
 
                 else: # Store keywords.
-                    let keyword = line[0 .. 6]
-                    let value = line.substr(8)
-                    case (keyword):
-                        of "default":
-                            if not db_defaults.hasKey(chain): db_defaults[chain] = value
-                        of "filedir":
-                            if not db_filedirs.hasKey(chain): db_filedirs[chain] = value
-                        of "context":
-                            if not db_contexts.hasKey(chain): db_contexts[chain] = value
-                        else: discard
+                    # The index from the start of the keyword value string to end of line.
+                    let value = [rindex + (KEYWORD_LEN + 2), stop]
+                    case ord(acdef[rindex]): # Keyword first char keyword.
+                    of O_DEFAULT: (if chain notin db_defaults: db_defaults[chain] = value)
+                    of O_FILEDIR: (if chain notin db_filedirs: db_filedirs[chain] = value)
+                    of O_CONTEXT: (if chain notin db_contexts: db_contexts[chain] = value)
+                    else: discard
 
     fn_tokenize();fn_analyze();fn_makedb();discard fn_lookup();fn_printer()
 

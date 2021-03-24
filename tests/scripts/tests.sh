@@ -70,6 +70,13 @@ tests=(
 "nim compile --app=con; *console*"
 "nim compile --app:con; *console*"
 
+# [test-suite: nim, Single letter sub-command tests]
+"nim c; *cc*" #
+"nim c ; *@(nim)*" # 
+"nim c --; *--hint...*" #
+"nim c --include; *--include=*" #
+"nim c --include=; *flag\\\\:--include=+@(nim)*" #
+
 # [test-suite: nimble]
 "nimble install ; *a*"
 "nimble uninstall ; *@*"

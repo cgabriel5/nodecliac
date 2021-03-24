@@ -213,35 +213,62 @@ proc main() =
     #
     # @param  {string} input - The string command-flag to parse.
     # @return {string} - The cleaned command-flag string.
-    proc parseCmdStr(input: var string): seq[string] =
-        var argument = ""
-        var args: seq[string] = @[]
-        var qchar = '\0'
-        var c, p: char
+    proc parseCmdStr(input: string): seq[string] =
+        type
+            CMDArgSlice = tuple
+                start, stop: int
+                espipes: seq[int]
 
-        if input == "": return args
+        const C_PIPE = '|'
+        const C_NULLB = '\0'
+        const C_ESCAPE = '\\'
+        const C_DOLLARSIGN = '$'
+        const C_QUOTES = {'"', '\''}
 
-        while input != "":
-            c = shift(input)
-            p = if argument.len > 0: argument[^1] else: '\0'
+        if input.len == 0: return
 
-            if qchar == '\0':
-                if c in C_QUOTES and p != '\\':
-                    qchar = c
-                    argument &= $c
-                elif args.len > 1 and c == '$' and argument == "":
-                    argument &= $c
+        var c, p, q: char
+        var start: int = -1
+        var espipes: seq[int] = @[]
+        var ranges: seq[CMDArgSlice] = @[]
+
+        var i = 0; let l = input.len
+        while i < l:
+            swap(p, c)
+            c = input[i]
+
+            if q == C_NULLB:
+                if c in C_QUOTES and p != C_ESCAPE:
+                    if start == -1: start = i
+                    q = c
+                elif ranges.len > 0 and c == C_DOLLARSIGN:
+                    if start == -1: start = i
             else:
-                if c == '|' and p == '\\': discard chop(argument)
-                argument &= $c
+                if c == C_PIPE and p == C_ESCAPE: espipes.add(i - start)
 
-                if c == qchar and p != '\\':
-                    args.add(argument)
-                    argument = ""
-                    qchar = '\0'
+                if c == q and p != C_ESCAPE:
+                    if start != -1:
+                        ranges.add((start, i, espipes))
+                        espipes.setLen(0)
+                        start = -1
+                        q = C_NULLB
 
-        if argument != "": args.add(argument)
-        return args
+            inc(i)
+
+        # Finish last range post loop.
+        if start > -1 and start != l:
+            ranges.add((start, input.high, espipes))
+
+        # Use slices to get arguments.
+        result = newSeqOfCap[string](ranges.len)
+        for i, rng in ranges:
+            let (start, stop, espipes) = rng
+            var arg = input[start .. stop]
+            if espipes.len > 0: # Unescape pipe chars.
+                for j in countdown(espipes.high, 0):
+                    let rindex = espipes[j] - 1
+                    arg.delete(rindex, rindex)
+            result.add(arg)
 
     # Set environment variables to access in custom scripts.
     #

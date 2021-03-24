@@ -163,7 +163,7 @@ proc main() =
     # ------------------------------------------------------------------------------
 
     # Predefine procs to maintain proc order with ac.pl.
-    proc parseCmdStr(input: var string): seq[string]
+    proc parseCmdStr(input: string): seq[string]
     proc setEnvs(arguments: varargs[string], post=false)
 
     # Parse and run command-flag (flag) or default command chain.
@@ -178,33 +178,26 @@ proc main() =
     # @resource [https://stackoverflow.com/a/1711985]
     # @resource [https://stackoverflow.com/a/15678831]
     # @resource [https://stackoverflow.com/a/3374285]
-    proc execCommand(command_str: var string): seq[string] =
-        var arguments = parseCmdStr(command_str)
-        let count = arguments.len
-        var command = arguments[0]
-        unquote(command)
-        var delimiter = "\\r?\\n"
-        var r: seq[string] = @[]
+    proc execCommand(cmdstr: string): seq[string] =
+        var arguments = parseCmdStr(cmdstr)
+        unquote(arguments[0]) # Uncomment command.
 
-        if count > 1: # Add arguments.
-            for i in countup(1, count - 1, 1):
-                var arg = arguments[i]
-
-                # Run '$' string.
-                if arg.startsWith('$'):
-                    discard shift(arg)
-                    let qchar = arg[0]
-                    unquote(arg)
-                    # command &= " \"$(" & qchar & arg & qchar & ")\""
-                    # Wrap command with ticks to target the common shell 'sh'.
-                    command &= " " & qchar & "`" & arg & "`" & qchar
-                else: command &= " " & arg
+        # Build '$' command parameters.
+        for i in countup(1, arguments.high):
+            if arguments[i][0] == '$':
+                discard shift(arguments[i]) # Remove '$'.
+                let q = arguments[i][0]
+                unquote(arguments[i])
+                # Wrap command in ticks to target common (sh)ell.
+                arguments[i] = q & "`" & arguments[i] & "`" & q
 
         setEnvs()
-        var res = ""
-        try: res = execProcess(command)
-        except: discard
-        result = if res != "": split(res, re(delimiter)) else: r
+        var res = (
+            try: execProcess(arguments.join(" "))
+            except: ""
+        ).string
+        res.stripLineEnd()
+        result = splitLines(res)
 
     # Parse command string `$("")` and returns its arguments.
     #

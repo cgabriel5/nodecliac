@@ -84,7 +84,7 @@ proc main() =
     var db_contexts = initTable[string, Range]()
 
 
-    # --------------------------------------------------------- VALIDATION-FUNCTIONS
+    # ----------------------------------------------------- VALIDATION-FUNCTIONS
 
     # Peek string for '/','~'. If contained assume it's a file/dir.
     #
@@ -117,7 +117,7 @@ proc main() =
         if not allCharsInSet(item, C_VALID_CMD): quit()
         return item
 
-    # ------------------------------------------------------------- STRING-FUNCTIONS
+    # --------------------------------------------------------- STRING-FUNCTIONS
 
     # Removes and return last char
     #
@@ -160,7 +160,7 @@ proc main() =
     proc quotemeta(s: string): string =
         for c in s: result &= (if c notin C_QUOTEMETA: '\\' & c else: $c)
 
-    # ------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     # Predefine procs to maintain proc order with ac.pl.
     proc parseCmdStr(input: string): seq[string]
@@ -352,7 +352,7 @@ proc main() =
                 var key = prefix & env_name
                 if envs.hasKey(key): os.putEnv(key, envs[key])
 
-    # --------------------------------------------------------------- MAIN-FUNCTIONS
+    # ----------------------------------------------------------- MAIN-FUNCTIONS
 
     # Parses CLI input.
     #
@@ -679,7 +679,7 @@ proc main() =
                 # Split by unescaped pipe '|' characters:
                 var flags = flag_list.split(re"(?<!\\)\|")
 
-                # Context string logic: start --------------------------------------
+                # Context string logic: start ----------------------------------
 
                 let cchain = if commandchain == "_": "" else: quotemeta(commandchain)
                 let pattern = "^" & cchain & " context (.+)$"
@@ -775,7 +775,7 @@ proc main() =
                                     if fchar == '!': excluded[flag] = 1
                                     else: excluded.del(flag)
 
-                # Context string logic: end ----------------------------------------
+                # Context string logic: end ------------------------------------
 
                 var last_fkey = last
                 var last_eqsign: char
@@ -862,7 +862,7 @@ proc main() =
                         inc(i)
                         continue
 
-                    # [Start] Remove duplicate flag logic --------------------------
+                    # [Start] Remove duplicate flag logic ----------------------
 
                     var dupe = 0
 
@@ -913,7 +913,7 @@ proc main() =
 
                     if dupe == 1: inc(i); continue # Skip if dupe.
 
-                    # [End] Remove duplicate flag logic ----------------------------
+                    # [End] Remove duplicate flag logic ------------------------
 
                     # Note: Don't list single letter flags. Listing them along
                     # with double hyphen flags is awkward. Therefore, only list

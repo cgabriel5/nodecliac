@@ -582,7 +582,10 @@ proc main() =
         if lastchar == ' ' and cargs.len > 0:
             let litem = cargs[^1]
             quote_open = quote_open and litem[0] == '-'
-            if (litem[0] in C_QUOTES or quote_open or litem[^2] == '\\'): last = litem
+            # Skip single letter sub-commands like in input: '$ nim c '
+            if litem.len > 2 and (litem[0] in C_QUOTES or
+                quote_open or litem[^2] == '\\'):
+                last = litem
         if last.find(C_QUOTES) == 0: isquoted = true
 
     # Lookup acdef definitions.

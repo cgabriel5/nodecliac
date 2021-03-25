@@ -67,7 +67,9 @@ proc main() =
     const C_PIPE = '|'
     const C_SPACE = ' '
     const C_ESCAPE = '\\'
+    const C_EXPOINT = '!'
     const C_NUMSIGN = '#'
+    const C_EQUALSIGN = '='
     const C_UNDERSCORE = '_'
     const C_SRT_DOT = $C_SPACE
     const C_SPACE_DOT = { C_DOT, C_SPACE }
@@ -416,7 +418,6 @@ proc main() =
         const C_NULLB = '\0'
         const C_ESCAPE = '\\'
         const C_COLON = ':'
-        const C_EQUALSIGN = '='
         const C_HYPHEN = '-'
         const C_QUOTES = {'"', '\''}
         const C_SPACES = {' ', '\t'}
@@ -1156,41 +1157,44 @@ proc main() =
 
         # Run posthook if it exists.
         if posthook != "":
-            const delimiter = "\\r?\\n"
-            var r: seq[string] = @[]
             setEnvs(post=true)
-            var res = ""
-            try: res = execProcess(posthook)
-            except: discard
-            res = res.strip(trailing=true)
-            if res != "": r= split(res, re(delimiter))
-            var dsl = false # Delimiter Separated List.
-            if r.len != 0:
+            var res = (
+                try: execProcess(posthook)
+                except: ""
+            ).string
+            res.stripLineEnd()
+            var lines = splitLines(res)
+            if lines.len == 1 and lines[0] == "": lines.setLen(0)
+
+            if lines.len != 0:
                 let l = last.len
-                var filtered: seq[string] = @[]
+                const DSL_IDENT = "__DSL__"
                 var useditems: seq[string] = @[]
-                let eqsign_index = last.find('=')
-                for c in r:
-                    var c = c
-                    if c == "__DSL__": dsl = true
-                    if c[0] == '!': useditems.add(c[1 .. ^1]); continue
-                    if not c.startsWith(last): continue
+                let eqsign_index = last.find(C_EQUALSIGN)
+                var isDSL = false # Delimiter Separated List.
+                completions.setLen(0)
+                for i in countup(0, lines.high):
+                    if lines[i] == DSL_IDENT: isDSL = true
+                    if lines[i][0] == C_EXPOINT:
+                        discard shift(lines[i])
+                        useditems.add(lines[i])
+                        continue
+                    if not lines[i].startsWith(last): continue
                     # When completing a delimited separated list, ensure to remove
                     # the flag from every completion item to leave the values only.
                     # [https://unix.stackexchange.com/q/124539]
                     # [https://github.com/scop/bash-completion/issues/240]
                     # [https://github.com/scop/bash-completion/blob/master/completions/usermod]
                     # [https://github.com/scop/bash-completion/commit/021058b38ad7279c33ffbaa36d73041d607385ba]
-                    if dsl and c.len >= l: c.delete(0, eqsign_index)
-                    filtered.add(c)
-                completions = filtered
+                    if isDSL and lines[i].len >= l: lines[i].delete(0, eqsign_index)
+                    completions.add(lines[i])
 
-                if completions.len == 0 and dsl:
-                    for c in useditems:
-                        var c = c
-                        if not c.startsWith(last): continue
-                        if dsl and c.len >= l: c.delete(0, eqsign_index)
-                        completions.add(c)
+                if completions.len == 0 and isDSL:
+                    for i in countup(0, useditems.high):
+                        if not useditems[i].startsWith(last): continue
+                        if isDSL and useditems[i].len >= l:
+                            useditems[i].delete(0, eqsign_index)
+                        completions.add(useditems[i])
 
     # Send all possible completions to bash.
     proc fn_printer() =

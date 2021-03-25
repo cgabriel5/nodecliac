@@ -1099,7 +1099,7 @@ proc main() =
                 # Loop over command chains to build individual chain levels.
                 while copy_commandchain != "":
                     # Get command-string, parse and run it.
-                    var crange = db_defaults.getOrDefault(copy_commandchain, [-1, -1])
+                    let crange = db_defaults.getOrDefault(copy_commandchain, [-1, -1])
                     var command_str = (
                         if crange != [-1, -1]: acdef[crange[0] .. crange[1]]
                         else: ""

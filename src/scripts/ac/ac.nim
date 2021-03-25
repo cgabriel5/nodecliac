@@ -172,8 +172,15 @@ proc main() =
     # @return {array} - The individual strings after split.
     proc splitundel(s: string, DEL: char = '.'): seq[string] =
         runnableExamples:
-            let answer = @["", "first\\.escaped", "last"]
-            assert splitundel(".first\\.escaped.last") == answer
+            var answer: seq[string] = @[]
+
+            answer = @["", "first\\.escaped", "last"]
+            doAssert ".first\\.escaped.last".splitundel('.') == answer
+
+            import re
+            var s = "--flag|--flag2=$('echo 123 \\| grep 1')"
+            answer = @["--flag", "--flag2=$(\'echo 123 \\| grep 1\')"]
+            doAssert s.splitundel('|') == answer
 
         var lastpos = 0
         let EOS = s.high

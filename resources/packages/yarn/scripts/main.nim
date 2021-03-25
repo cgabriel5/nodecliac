@@ -35,7 +35,7 @@ else:
 var args = initHashSet[string]()
 
 if action == "run":
-    if action != "":
+    if pkg != "":
         let pkgcontents = readFile(pkg)
         let p1 = re("\"scripts\"\\s*:\\s*{([\\s\\S]*?)}(,|$)")
         let p2 = re("\"([^\"]*)\"\\s*:")

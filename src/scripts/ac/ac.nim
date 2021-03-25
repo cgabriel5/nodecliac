@@ -162,6 +162,29 @@ proc main() =
 
     # --------------------------------------------------------------------------
 
+    # Regexless alternate to split a string by an unescaped delimiter.
+    #     For example, instead of using regex to split by unescaped '|'
+    #     chars: 'var flags = flag_list.split(re"(?<!\\)\|")', this
+    #     function can be used.
+    #
+    # @param  {string} s - The source string.
+    # @param {char} - The delimiter to split on.
+    # @return {array} - The individual strings after split.
+    proc splitundel(s: string, DEL: char = '.'): seq[string] =
+        runnableExamples:
+            let answer = @["", "first\\.escaped", "last"]
+            assert splitundel(".first\\.escaped.last") == answer
+
+        var lastpos = 0
+        let EOS = s.high
+        for i, c in s:
+            if c == DEL and s[i - 1] != C_ESCAPE:
+                result.add(s[lastpos .. i - 1])
+                lastpos = i + 1
+            elif i == EOS: result.add(s[lastpos .. i])
+
+    # --------------------------------------------------------------------------
+
     # Predefine procs to maintain proc order with ac.pl.
     proc parseCmdStr(input: string): seq[string]
     proc setEnvs(arguments: varargs[string], post=false)
@@ -1253,19 +1276,6 @@ proc main() =
             if c != s[index]: return
             inc(index)
         return true
-
-    proc splitundel(chain: string, DEL: char = C_DOT): seq[string] =
-        runnableExamples:
-            let answer = @["", "first\\.escaped", "last"]
-            assert splitundel(".first\\.escaped.last") == answer
-
-        var lastpos = 0
-        let EOS = chain.high
-        for i, c in chain:
-            if c == DEL and chain[i - 1] != C_ESCAPE:
-                result.add(chain[lastpos .. i - 1])
-                lastpos = i + 1
-            elif i == EOS: result.add(chain[lastpos .. i])
 
     proc strfromrange(s: string, start, stop: int, prefix: string = ""): string =
         runnableExamples:

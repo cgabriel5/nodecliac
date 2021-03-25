@@ -64,6 +64,7 @@ proc main() =
 
     const C_NL = '\n'
     const C_DOT = '.'
+    const C_PIPE = '|'
     const C_SPACE = ' '
     const C_ESCAPE = '\\'
     const C_NUMSIGN = '#'
@@ -708,7 +709,7 @@ proc main() =
                 if flag_list == "--":  return ""
 
                 # Split by unescaped pipe '|' characters:
-                var flags = flag_list.split(re"(?<!\\)\|")
+                var flags = flag_list.splitundel(C_PIPE)
 
                 # Context string logic: start ----------------------------------
 
@@ -1029,7 +1030,7 @@ proc main() =
                 # if (rows.len == 1 and commandchain.endsWith(rows[0])): rows.setLen(0)
 
                 var usedcommands = initTable[string, int]()
-                var commands = (commandchain).split(re"(?<!\\)\.")
+                var commands = commandchain.splitundel(C_DOT)
                 var level = commands.len - 1
                 # Increment level if completing a new command level.
                 if lastchar == ' ': inc(level)

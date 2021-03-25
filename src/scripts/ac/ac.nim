@@ -1125,9 +1125,10 @@ proc main() =
                             # If no completions and last word is a valid completion
                             # item, add it to completions to add a trailing space.
                             if completions.len == 0:
-                                var pattern = "^\\!?" & quotemeta(last) & "$"
-                                let bounds = findBounds(lines.join("\n"), re(pattern, {reMultiLine}))
-                                if bounds.first != -1: completions.add(last)
+                                if findBounds(lines.join("\n"), re(
+                                    "^\\!?" & quotemeta(last) & "$",
+                                    {reMultiLine})).first != -1:
+                                    completions.add(last)
 
                         # Static value.
                         else:

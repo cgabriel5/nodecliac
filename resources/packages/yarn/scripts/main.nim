@@ -1,9 +1,4 @@
-from sequtils import toSeq
-from osproc import execProcess
-from os import getEnv, paramStr, paramCount, fileExists
-from strutils import join, rfind, delete, parseInt, stripLineEnd
-from sets import HashSet, initHashSet, incl, excl, contains, items
-from nre import re, `[]`, get, find, split, isSome, captures, findIter
+import std/[os, osproc, sequtils, strutils, sets, nre]
 
 let argcount = os.paramCount()
 if argcount == 0: quit()

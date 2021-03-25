@@ -192,6 +192,27 @@ proc main() =
                 lastpos = i + 1
             elif i == EOS: result.add(s[lastpos .. i])
 
+    # Finds the last unescaped delimiter starting from the right side of
+    #     the source string. This is an alternative to using regex like:
+    #     'let pattern = re"\.((?:\\\.)|[^\.])+$"'.
+    #
+    # @param  {string} s - The source string.
+    # @param {char} - The delimiter to find.
+    # @return {number} - The unescaped delimiter's index.
+    proc rlastundel(s: string, DEL: char = '.'): int =
+        runnableExamples:
+            doAssert rlastundel("nodecliaccommand\\.command") == -1
+            doAssert rlastundel(".nodecliaccommand\\.command") == 0
+            doAssert rlastundel(".nodecliac.command\\.command") == 10
+
+        const C_ESCAPE = '\\'
+
+        for i in countdown(s.high, s.low):
+            if s[i] == DEL:
+                if i == 0 or (i - 1 > -1 and s[i - 1] != C_ESCAPE):
+                    return i
+        result = -1
+
     # --------------------------------------------------------------------------
 
     # Predefine procs to maintain proc order with ac.pl.
@@ -1074,7 +1095,6 @@ proc main() =
             # Run default command if no completions were found.
             if completions.len == 0:
                 var copy_commandchain = commandchain
-                let pattern = re"\.((?:\\\.)|[^\.])+$" # ((?:\\\.)|[^\.]*?)*$
 
                 # Loop over command chains to build individual chain levels.
                 while copy_commandchain != "":
@@ -1122,7 +1142,7 @@ proc main() =
                         break # Stop once a command-string is found/ran.
 
                     # Remove last command chain from overall command chain.
-                    copy_commandchain = copy_commandchain.replace(pattern)
+                    copy_commandchain.setLen(rlastundel(copy_commandchain))
 
         # Get filedir of command chain.
         if completions.len == 0:

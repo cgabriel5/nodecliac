@@ -177,6 +177,7 @@ proc main() =
 
         var lastpos = 0
         let EOS = s.high
+        const C_ESCAPE = '\\'
         for i, c in s:
             if c == DEL and s[i - 1] != C_ESCAPE:
                 result.add(s[lastpos .. i - 1])

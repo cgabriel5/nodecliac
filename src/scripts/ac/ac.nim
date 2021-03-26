@@ -576,7 +576,7 @@ proc main() =
                 # Skip range if shorter than string.
                 if rng[1] - rng[0] < sub.len: continue
                 for j, c in sub:
-                    if sub[j] != s[rng[0] + j]:
+                    if c != s[rng[0] + j]:
                         break innerLoop
 
                 # If everything has matched up to this point,
@@ -601,7 +601,7 @@ proc main() =
                 # Skip range if shorter than string.
                 if rng[1] - rng[0] < sub.len: continue
                 for j, c in sub:
-                    if sub[j] != s[rng[0] + j]:
+                    if c != s[rng[0] + j]:
                         break innerLoop
 
                 # If everything has matched up to this point,

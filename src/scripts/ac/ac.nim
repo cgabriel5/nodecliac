@@ -563,7 +563,8 @@ proc main() =
     proc eq(a, b: string): bool = cmp(a, b) == 0
 
     # Looks for the first row in acdef that matches the provided
-    #     command chain. This is a non regex alternative to re.findBounds.
+    #     command chain. This is a non regex alternative to
+    #     re.findBounds(re"^$1[^ ]* ")
     #
     # @param  {string} s - The source string.
     # @param  {string} sub - The needle to find.
@@ -588,7 +589,7 @@ proc main() =
 
     # Looks for the first row in acdef that matches the provided
     #     command chain and returns the indices of its flags. This
-    #     is a non regex alternative to re.findBounds.
+    #     is a non regex alternative to re.findBounds(re"^$1(.+)$")
     #
     # @param  {string} s - The source string.
     # @param  {string} sub - The needle to find.
@@ -679,10 +680,6 @@ proc main() =
                 usedflags[flag] = {value: 1}.toTable
 
         proc trackvaluelessflag(flag: string) = usedflags_valueless[flag] = 1
-
-        # RegEx lookup templates.
-        const template_cmd = "^$1[^ ]* "
-        const template_flg = "^$1(.+)$"
 
         var i = 1; while i < l:
             var item = args[i]

@@ -565,9 +565,9 @@ proc main() =
     # Looks for the first row in acdef that matches the provided
     #     command chain. This is a non regex alternative to re.findBounds.
     #
-    # @param  {string} a - The first string.
-    # @param  {string} b - The second string.
-    # @return {boolean} - Whether strings are the same or not.
+    # @param  {string} s - The source string.
+    # @param  {string} sub - The needle to find.
+    # @return {array} - The range of the command chain row.
     proc lookupcmd(s, sub: string): array[2, int] =
         const C_SPACE = ' '
 

@@ -562,6 +562,30 @@ proc main() =
     # @return {boolean} - Whether strings are the same or not.
     proc eq(a, b: string): bool = cmp(a, b) == 0
 
+    # Looks for the first row in acdef that matches the provided
+    #     command chain. This is a non regex alternative to re.findBounds.
+    #
+    # @param  {string} a - The first string.
+    # @param  {string} b - The second string.
+    # @return {boolean} - Whether strings are the same or not.
+    proc lookupcmd(s, sub: string): array[2, int] =
+        const C_SPACE = ' '
+
+        for i, rng in ranges:
+            block innerLoop:
+                # Skip range if shorter than string.
+                if rng[1] - rng[0] < sub.len: continue
+                for j, c in sub:
+                    if sub[j] != s[rng[0] + j]:
+                        break innerLoop
+
+                # If everything has matched up to this point,
+                # get the index of the first space in the line.
+                for k in countup(sub.high, rng[1]):
+                    if s[k] == C_SPACE:
+                        return [rng[0], rng[0] + k]
+        return [-1, 0]
+
     # Determine command chain, used flags, and set needed variables.
     #
     # @return - Nothing is returned.
@@ -602,11 +626,10 @@ proc main() =
                 let command = fn_normalize_command(item)
                 var tmpchain = commandchain & "." & command
 
-                let (start, stop) = acdef.findBounds(re(
-                    template_cmd % [quotemeta(tmpchain)], {reMultiLine}))
-                if start != -1:
-                    chainstring = acdef[start .. stop]
-                    bound = start
+                let rng = acdef.lookupcmd(tmpchain)
+                if rng[0] != -1:
+                    chainstring = acdef[rng[0] .. rng[1]]
+                    bound = rng[0]
                     commandchain &= fn_validate_command("." & command)
                 else: posargs.add(item)
 

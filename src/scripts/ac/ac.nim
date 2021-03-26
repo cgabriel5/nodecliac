@@ -616,7 +616,7 @@ proc main() =
     # @param  {string} sub - The needle to find.
     # @param  {number} kind - Keyword to search for (context|filedir).
     # @return {array} - The range of the command chain row.
-    proc lookupdef(s, sub: string, kind: int): Range =
+    proc lookupkw(s, sub: string, kind: int): Range =
         let postsub = if kind == 1: " context " else: " filedir "
 
         for i, rng in ranges:
@@ -825,7 +825,7 @@ proc main() =
                 # Context string logic: start ----------------------------------
 
                 let cchain = if commandchain == "_": "" else: quotemeta(commandchain)
-                let rng = acdef.lookupdef(cchain, 1)
+                let rng = acdef.lookupkw(cchain, 1)
                 if rng[0] != -1:
                     let context = acdef[rng[0] .. rng[1]]
 
@@ -1233,7 +1233,7 @@ proc main() =
 
         # Get filedir of command chain.
         if completions.len == 0:
-            let rng = acdef.lookupdef(commandchain, 2)
+            let rng = acdef.lookupkw(commandchain, 2)
             if rng[0] != -1: filedir = acdef[rng[0] .. rng[1]]
 
         # Run posthook if it exists.

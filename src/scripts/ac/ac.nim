@@ -409,6 +409,24 @@ proc main() =
 
     # ----------------------------------------------------------- MAIN-FUNCTIONS
 
+    var ranges = newSeqOfCap[Range](countLines(acdef))
+
+    # Loop over acdef and generate line ranges.
+    #
+    # @return - Nothing is returned.
+    proc fn_ranges() =
+        var pos = 0
+        var lastpos = 0
+        while true:
+            pos = find(acdef, sub = C_NL, start = pos + 1)
+            if pos == -1:
+                # Handle case where only one line exists.
+                if lastpos != -1: ranges.add([lastpos, acdef.high])
+                break
+            if lastpos != pos and acdef[lastpos] != C_NUMSIGN:
+                ranges.add([lastpos, pos - 1])
+            lastpos = pos + 1
+
     # Parses CLI input.
     #
     # @return - Nothing is returned.
@@ -1329,19 +1347,6 @@ proc main() =
         shallow(result)
 
     proc fn_makedb() =
-        var pos = 0
-        var lastpos = 0
-        var ranges = newSeqOfCap[Range](countLines(acdef))
-        while true:
-            pos = find(acdef, sub = C_NL, start = pos + 1)
-            if pos == -1:
-                # Handle case where only one line exists.
-                if lastpos != -1: ranges.add([lastpos, acdef.high])
-                break
-            if lastpos != pos and acdef[lastpos] != C_NUMSIGN:
-                ranges.add([lastpos, pos - 1])
-            lastpos = pos + 1
-
         if commandchain == "": # First level commands only.
             if last == "":
                 db_levels[LVL1] = initTable[string, int]()
@@ -1407,6 +1412,6 @@ proc main() =
                     of O_CONTEXT: (if chain notin db_contexts: db_contexts[chain] = value)
                     else: discard
 
-    fn_tokenize();fn_analyze();fn_makedb();discard fn_lookup();fn_printer()
+    fn_ranges();fn_tokenize();fn_analyze();fn_makedb();discard fn_lookup();fn_printer()
 
 main()

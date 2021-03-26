@@ -1229,6 +1229,7 @@ proc main() =
                             # If no completions and last word is a valid completion
                             # item, add it to completions to add a trailing space.
                             if completions.len == 0:
+                                # [TODO] Make test for following case.
                                 if cmpexecout(lines, last): completions.add(last)
 
                         # Static value.

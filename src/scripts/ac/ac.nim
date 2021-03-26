@@ -637,6 +637,28 @@ proc main() =
                         rng[1] - 1] # +2 and -1 to unquote.
         return [-1, 0]
 
+    # Compare string (last) to the execCommand output. Returns true when
+    #     output contains the (last) string. This is a non regex alternative
+    #     to re.findBounds.
+    #
+    # @param  {seq} lines - The output lines.
+    # @param  {string} sub - The needle to find.
+    # @return {bool} - Whether output (lines) contain (last) word.
+    proc cmpexecout(lines: seq[string], sub: string): bool =
+        const C_EXPOINT = '!'
+
+        for i, line in lines:
+            block innerLoop:
+                if line.len == 0: continue
+                let offset = (line[0] == C_EXPOINT).int
+                if line.len != sub.len + offset: continue
+
+                for i in countup(offset, line.high):
+                    if line[i] != sub[i - offset]: break innerLoop
+
+                return true
+        return false
+
     # Determine command chain, used flags, and set needed variables.
     #
     # @return - Nothing is returned.
@@ -1210,10 +1232,7 @@ proc main() =
                             # If no completions and last word is a valid completion
                             # item, add it to completions to add a trailing space.
                             if completions.len == 0:
-                                if findBounds(lines.join("\n"), re(
-                                    "^\\!?" & quotemeta(last) & "$",
-                                    {reMultiLine})).first != -1:
-                                    completions.add(last)
+                                if cmpexecout(lines, last): completions.add(last)
 
                         # Static value.
                         else:

@@ -586,6 +586,29 @@ proc main() =
                         return [rng[0], rng[0] + k]
         return [-1, 0]
 
+    # Looks for the first row in acdef that matches the provided
+    #     command chain and returns the indices of its flags. This
+    #     is a non regex alternative to re.findBounds.
+    #
+    # @param  {string} s - The source string.
+    # @param  {string} sub - The needle to find.
+    # @param  {number} start - Index where search should begin.
+    # @return {array} - The range of the command chain flags.
+    proc lookupflg(s, sub: string, start: int = 0): array[2, int] =
+        for i, rng in ranges:
+            block innerLoop:
+                if rng[0] < start: continue
+                # Skip range if shorter than string.
+                if rng[1] - rng[0] < sub.len: continue
+                for j, c in sub:
+                    if sub[j] != s[rng[0] + j]:
+                        break innerLoop
+
+                # If everything has matched up to this point,
+                # return the [index after commandchain, to the end of line].
+                return [rng[0] + sub.len, rng[1]]
+        return [-1, 0]
+
     # Determine command chain, used flags, and set needed variables.
     #
     # @return - Nothing is returned.
@@ -650,12 +673,9 @@ proc main() =
                     inc(i); continue
 
                 let flag = fn_validate_flag(item)
-                let (start, stop) = findBounds(acdef, re(
-                    template_flg % [quotemeta(chainstring)], {reMultiLine}),
-                    start=bound)
-
+                let rng = acdef.lookupflg(chainstring, start=bound)
                 # Determine whether flag is a boolean flag.
-                if acdef.rfind(flag & "?", start, last = stop) > 0:
+                if acdef.rfind(flag & "?", rng[0], last = rng[1]) > 0:
                     cargs.add(flag)
                     ameta[i][1] = 1
                     trackvaluelessflag(flag)

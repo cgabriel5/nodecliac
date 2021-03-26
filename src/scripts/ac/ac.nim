@@ -568,7 +568,7 @@ proc main() =
     # @param  {string} s - The source string.
     # @param  {string} sub - The needle to find.
     # @return {array} - The range of the command chain row.
-    proc lookupcmd(s, sub: string): array[2, int] =
+    proc lookupcmd(s, sub: string): Range =
         const C_SPACE = ' '
 
         for i, rng in ranges:
@@ -594,7 +594,7 @@ proc main() =
     # @param  {string} sub - The needle to find.
     # @param  {number} start - Index where search should begin.
     # @return {array} - The range of the command chain flags.
-    proc lookupflg(s, sub: string, start: int = 0): array[2, int] =
+    proc lookupflg(s, sub: string, start: int = 0): Range =
         for i, rng in ranges:
             block innerLoop:
                 if rng[0] < start: continue

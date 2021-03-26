@@ -1,7 +1,7 @@
 #!/usr/bin/env nim
 
 import std/[
-        os, osproc, strformat, algorithm, re,
+        os, osproc, strformat, algorithm,
         strutils, sequtils, strscans, tables
     ]
 
@@ -66,6 +66,7 @@ proc main() =
     const C_DOT = '.'
     const C_PIPE = '|'
     const C_SPACE = ' '
+    const C_HYPHEN = '-'
     const C_ESCAPE = '\\'
     const C_EXPOINT = '!'
     const C_NUMSIGN = '#'
@@ -436,7 +437,6 @@ proc main() =
         const C_NULLB = '\0'
         const C_ESCAPE = '\\'
         const C_COLON = ':'
-        const C_HYPHEN = '-'
         const C_QUOTES = {'"', '\''}
         const C_SPACES = {' ', '\t'}
         const FLAGVAL_DELS = { C_COLON, C_EQUALSIGN }
@@ -1346,10 +1346,32 @@ proc main() =
         # CLI programs that implement/allow for a colon ':' separator. Maybe
         # something that should be opted for via an acmap setting?
         if completions.len == 1 and not iscommand:
-            var fcompletion = completions[0]
-            if fcompletion =~ re"^--?[-a-zA-Z0-9]+\=$" and last != fcompletion and ((fcompletion.len - last.len) > 1):
-                discard chop(fcompletion)
-                completions[0] = "\n" & fcompletion
+            proc completingfv(s: string): bool =
+                runnableExamples:
+                    doAssert completingfv("--flag") == false
+                    doAssert completingfv("--flag=") == true
+                    doAssert completingfv("--fla=") == true
+                    doAssert completingfv("--fl=") == true
+                    doAssert completingfv("--fl=") == true
+                    doAssert completingfv("--f=") == true
+                    doAssert completingfv("-f=") == true
+                    doAssert completingfv("-f") == false
+                    doAssert completingfv("--=") == false
+                    doAssert completingfv("-=") == false
+
+                if s.len < 3: return
+                if s[0] != C_HYPHEN or s[^1] != C_EQUALSIGN: return
+                let start = 1 + (s[1] == C_HYPHEN).int
+                if start == 2 and s.len < 4: return
+                for i in countup(start, s.high - 1):
+                    if s[i] notin C_VALID_FLG: return
+                return true
+
+            # [TODO] Make test for following case.
+            if completingfv(completions[0]) and last != completions[0] and
+                    ((completions[0].len - last.len) > 1):
+                discard chop(completions[0])
+                completions[0] = "\n" & completions[0]
                 skip_map = true
 
         if not skip_map:

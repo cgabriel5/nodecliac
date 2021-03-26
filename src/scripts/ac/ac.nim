@@ -1194,8 +1194,16 @@ proc main() =
             # Note: If only 1 completion exists, check if command exists in
             # commandchain. If so, it's already used so clear completions.
             if nextchar != "" and completions.len == 1:
-                var pattern = "." & completions[0] & "(\\.|$)"
-                if contains(commandchain, re(pattern)): completions.setLen(0)
+                # [TODO] Make test for following case.
+                # Code is ugly but only creates a single test string.
+                var needle = newStringOfCap(completions[0].len + 2)
+                needle.add(".")
+                needle.add(completions[0])
+                needle.add(".")
+                if commandchain.find(needle) != -1: completions.setLen(0)
+                else:
+                    needle.setLen(needle.high)
+                    if commandchain.endsWith(needle): completions.setLen(0)
 
             # Run default command if no completions were found.
             if completions.len == 0:

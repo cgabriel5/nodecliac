@@ -609,6 +609,34 @@ proc main() =
                 return [rng[0] + sub.len, rng[1]]
         return [-1, 0]
 
+    # Looks for the first keyword row in acdef that matches the provided
+    #     command chain. This is a non regex alternative to re.findBounds.
+    #
+    # @param  {string} s - The source string.
+    # @param  {string} sub - The needle to find.
+    # @param  {number} kind - Keyword to search for (context|filedir).
+    # @return {array} - The range of the command chain row.
+    proc lookupdef(s, sub: string, kind: int): Range =
+        let postsub = if kind == 1: " context " else: " filedir "
+
+        for i, rng in ranges:
+            block innerLoop:
+                # Skip range if shorter than string.
+                if rng[1] - rng[0] < sub.len: continue
+                for j, c in sub:
+                    if c != s[rng[0] + j]:
+                        break innerLoop
+
+                for k, c in postsub:
+                    if c != s[rng[0] + k + sub.len]:
+                        break innerLoop
+
+                # If everything has matched up to this point,
+                # get the index of the first space in the line.
+                return [rng[0] + sub.len + postsub.len + 1,
+                        rng[1] - 1] # +2 and -1 to unquote.
+        return [-1, 0]
+
     # Determine command chain, used flags, and set needed variables.
     #
     # @return - Nothing is returned.
@@ -797,13 +825,9 @@ proc main() =
                 # Context string logic: start ----------------------------------
 
                 let cchain = if commandchain == "_": "" else: quotemeta(commandchain)
-                let pattern = "^" & cchain & " context (.+)$"
-                let (start, `end`) = findBounds(acdef, re(pattern, {reMultiLine}))
-                if start != -1:
-                    let row = acdef[start .. `end`]
-                    let kw_index = row.find("context")
-                    let sp_index = row.find(' ', start=kw_index)
-                    let context = row[sp_index + 2 .. row.high - 1] # Unquote.
+                let rng = acdef.lookupdef(cchain, 1)
+                if rng[0] != -1:
+                    let context = acdef[rng[0] .. rng[1]]
 
                     let ctxs = context.split(';')
                     for ctx in ctxs:
@@ -1209,13 +1233,8 @@ proc main() =
 
         # Get filedir of command chain.
         if completions.len == 0:
-            let pattern = "^" & quotemeta(commandchain) & " filedir (.+)$"
-            let (start, `end`) = findBounds(acdef, re(pattern, {reMultiLine}))
-            if start != -1:
-                let row = acdef[start .. `end`]
-                let kw_index = row.find("filedir")
-                let sp_index = row.find(' ', start=kw_index)
-                filedir = row[sp_index + 2 .. row.high - 1] # Unquote.
+            let rng = acdef.lookupdef(commandchain, 2)
+            if rng[0] != -1: filedir = acdef[rng[0] .. rng[1]]
 
         # Run posthook if it exists.
         if posthook != "":

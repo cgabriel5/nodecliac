@@ -642,7 +642,7 @@ proc main() =
                 # If everything has matched up to this point,
                 # get the index of the first space in the line.
                 return [rng[0] + sub.len + postsub.len + 1,
-                        rng[1] - 1] # +2 and -1 to unquote.
+                        rng[1] - 1] # +1 and -1 to unquote.
         return [-1, 0]
 
     # Compare string (last) to the execCommand output. Returns true when

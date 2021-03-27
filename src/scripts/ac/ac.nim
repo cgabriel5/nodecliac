@@ -358,90 +358,79 @@ proc main() =
     # @return - Nothing is returned.
     proc setEnvs(arguments: varargs[string], post=false) =
         let l = args.len
-        const prefix = "NODECLIAC_"
         const IDENT_CMD = "command"
         const IDENT_FLG = "flag"
-        let ctype = (if comptype[0] == C_LC: IDENT_CMD else: IDENT_FLG)
-        let prev = args[^(if not post: 2 else: 1)]
+        let ctype = if comptype[0] == C_LC: IDENT_CMD else: IDENT_FLG
 
         # Get any used flags to pass along.
         var usedflags: seq[string] = @[]
         for k in usedflags_counts.keys: usedflags.add(k)
 
-        var envs = {
-            # nodecliac exposed Bash env vars.
+        # nodecliac exposed Bash env vars.
 
-            fmt"{prefix}COMP_LINE": cline, # Original (unmodified) CLI input.
-            # Caret index when [tab] key was pressed.
-            fmt"{prefix}COMP_POINT": intToStr(cpoint),
+        putEnv("NODECLIAC_COMP_LINE", cline) # Original (unmodified) CLI input.
+        # Caret index when [tab] key was pressed.
+        putEnv("NODECLIAC_COMP_POINT", intToStr(cpoint))
 
-            # nodecliac env vars.
+        # nodecliac env vars.
 
-            # The command auto completion is being performed for.
-            fmt"{prefix}MAIN_COMMAND": maincommand,
-            fmt"{prefix}COMMAND_CHAIN": commandchain, # The parsed command chain.
-            fmt"{prefix}USED_FLAGS": usedflags.join("\n"), # The parsed used flags.
-            # The last parsed word item (note: could be a partial word item.
-            # This happens when the [tab] key gets pressed within a word item.
-            # For example, take the input 'maincommand command'. If
-            # the [tab] key was pressed like so: 'maincommand comm[tab]and' then
-            # the last word item is 'comm' and it is a partial as its remaining
-            # text is 'and'. This will result in using 'comm' to determine
-            # possible auto completion word possibilities.).
-            fmt"{prefix}LAST": last,
-            # The word item preceding last word item.
-            fmt"{prefix}PREV": prev,
-            fmt"{prefix}INPUT": input, # CLI input from start to caret index.
-            fmt"{prefix}INPUT_ORIGINAL": oinput, # Original unmodified CLI input.
-            # CLI input from caret index to input string end.
-            fmt"{prefix}INPUT_REMAINDER": cline.substr(cpoint, -1),
-            fmt"{prefix}LAST_CHAR": $lastchar, # Character before caret.
-            # Character after caret. If char is not '' (empty) then the last word
-            # item is a partial word.
-            fmt"{prefix}NEXT_CHAR": $nextchar,
-            # Original input's length.
-            fmt"{prefix}COMP_LINE_LENGTH": intToStr(cline.len),
-            # CLI input length from beginning of string to caret position.
-            fmt"{prefix}INPUT_LINE_LENGTH": intToStr(input.len),
-            # Amount arguments parsed before caret position/index.
-            fmt"{prefix}ARG_COUNT": intToStr(l),
-            # Store collected positional arguments after validating the
-            # command-chain to access in plugin auto-completion scripts.
-            fmt"{prefix}USED_DEFAULT_POSITIONAL_ARGS": posargs.join("\n"),
-            # Whether completion is being done for a command or a flag.
-            fmt"{prefix}COMP_TYPE": ctype
-        }.toTable
+        # The command auto completion is being performed for.
+        putEnv("NODECLIAC_MAIN_COMMAND", maincommand,)
+        putEnv("NODECLIAC_COMMAND_CHAIN", commandchain) # The parsed command chain.
+        putEnv("NODECLIAC_USED_FLAGS", usedflags.join("\n")) # The parsed used flags.
+        # The last parsed word item (note: could be a partial word item.
+        # This happens when the [tab] key gets pressed within a word item.
+        # For example, take the input 'maincommand command'. If
+        # the [tab] key was pressed like so: 'maincommand comm[tab]and' then
+        # the last word item is 'comm' and it is a partial as its remaining
+        # text is 'and'. This will result in using 'comm' to determine
+        # possible auto completion word possibilities.).
+        putEnv("NODECLIAC_LAST", last)
+        # The word item preceding last word item.
+        putEnv("NODECLIAC_PREV", args[^(if not post: 2 else: 1)])
+        putEnv("NODECLIAC_INPUT", input) # CLI input from start to caret index.
+        putEnv("NODECLIAC_INPUT_ORIGINAL", oinput) # Original unmodified CLI input.
+        # CLI input from caret index to input string end.
+        putEnv("NODECLIAC_INPUT_REMAINDER", cline.substr(cpoint, -1))
+        putEnv("NODECLIAC_LAST_CHAR", $lastchar) # Character before caret.
+        # Character after caret. If char is not '' (empty) then the last word
+        # item is a partial word.
+        putEnv("NODECLIAC_NEXT_CHAR", $nextchar)
+        # Original input's length.
+        putEnv("NODECLIAC_COMP_LINE_LENGTH", intToStr(cline.len))
+        # CLI input length from beginning of string to caret position.
+        putEnv("NODECLIAC_INPUT_LINE_LENGTH", intToStr(input.len))
+        # Amount arguments parsed before caret position/index.
+        putEnv("NODECLIAC_ARG_COUNT", intToStr(l))
+        # Store collected positional arguments after validating the
+        # command-chain to access in plugin auto-completion scripts.
+        putEnv("NODECLIAC_USED_DEFAULT_POSITIONAL_ARGS", posargs.join("\n"))
+        # Whether completion is being done for a command or a flag.
+        putEnv("NODECLIAC_COMP_TYPE", ctype)
 
         # If completion is for a flag, set flag data for quick access in script.
         if eq(ctype, IDENT_FLG):
-            envs[fmt"{prefix}FLAG_NAME"] = dflag.flag
-            envs[fmt"{prefix}FLAG_EQSIGN"] = $dflag.eq
-            envs[fmt"{prefix}FLAG_VALUE"] = dflag.value
+            putEnv("NODECLIAC_FLAG_NAME", dflag.flag)
+            putEnv("NODECLIAC_FLAG_EQSIGN", $dflag.eq)
+            putEnv("NODECLIAC_FLAG_VALUE", dflag.value)
             # Indicates if last word is an open quoted value.
-            envs[fmt"{prefix}QUOTE_OPEN"] = if quote_open: "1" else: "0"
+            putEnv("NODECLIAC_QUOTE_OPEN", if quote_open: "1" else: "0")
 
         # Set completion index (index where completion is being attempted) to
         # better mimic bash's $COMP_CWORD builtin variable.
-        let comp_index = if lastchar == C_NULLB or
+        putEnv("NODECLIAC_COMP_INDEX", (
+            if lastchar == C_NULLB or
             (last.len > 0 and (
                 last[0] in C_QUOTES or quote_open or last[^2] == C_ESCAPE
             )): $(l - 1) else: $l
-        envs[fmt"{prefix}COMP_INDEX"] = comp_index
+        ))
         # Also, ensure NODECLIAC_PREV is reset to the second last argument
         # if it exists only when the lastchar is empty to To better mimic
         # prev=${COMP_WORDS[COMP_CWORD-1]}.
-        if lastchar == C_NULLB and l > l - 2: envs[fmt"{prefix}PREV"] = args[l - 2]
+        if lastchar == C_NULLB and l > l - 2: putEnv("NODECLIAC_PREV", args[l - 2])
 
         # Add parsed arguments as individual env variables.
-        for i, arg in args: envs[fmt"{prefix}ARG_{i}"] = arg
-
-        # Set all env variables.
-        if arguments.len == 0:
-            for key, value in envs: putEnv(key, value)
-        else: # Set requested ones only.
-            for env_name in arguments:
-                var key = prefix & env_name
-                if envs.hasKey(key): putEnv(key, envs[key])
+        for i, arg in args: putEnv("NODECLIAC_ARG_" & $i, arg)
 
     # ----------------------------------------------------------- MAIN-FUNCTIONS
 

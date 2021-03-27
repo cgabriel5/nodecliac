@@ -140,7 +140,7 @@ proc main() =
     # @param  {string} item - The string to check.
     # @return {bool}
     proc fn_is_file_or_dir(item: string): bool =
-        return C_FSLASH in item or eq(item, "~")
+        C_FSLASH in item or eq(item, "~")
 
     # Escape '\' chars and replace unescaped slashes '/' with '.'.
     #

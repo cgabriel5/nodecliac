@@ -87,7 +87,7 @@ proc main() =
     const C_EQUALSIGN = '='
     const C_DOLLARSIGN = '$'
     const C_UNDERSCORE = '_'
-    const C_SRT_DOT = $C_SPACE
+    const C_STR_DOT = $C_SPACE
     const C_SPACE_DOT = { C_DOT, C_SPACE }
     const VALID_LINE_STARTS = { C_NUMSIGN, C_NL }
     const FLAGVAL_DELS = { C_COLON, C_EQUALSIGN }
@@ -1520,7 +1520,7 @@ proc main() =
                 # # If retrieving next possible levels for the command chain,
                 # # lastchar must be an empty space and the commandchain does
                 # # not equal the chain of the line, skip the line.
-                # if lastchar == C_SPACE and not chain.cmpstart(commandchain, C_SRT_DOT):
+                # if lastchar == C_SPACE and not chain.cmpstart(commandchain, C_STR_DOT):
                 #     continue
 
                 # let commands = splitundel(chain)

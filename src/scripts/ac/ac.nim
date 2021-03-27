@@ -125,7 +125,7 @@ proc main() =
     # @param  {string} item - The string to check.
     # @return {bool}
     proc fn_is_file_or_dir(item: string): bool =
-        return '/' in item or item == "~"
+        return '/' in item or eq(item, "~")
 
     # Escape '\' chars and replace unescaped slashes '/' with '.'.
     #
@@ -407,7 +407,7 @@ proc main() =
         }.toTable
 
         # If completion is for a flag, set flag data for quick access in script.
-        if ctype == "flag":
+        if eq(ctype, "flag"):
             envs[fmt"{prefix}FLAG_NAME"] = dflag.flag
             envs[fmt"{prefix}FLAG_EQSIGN"] = $dflag.eq
             envs[fmt"{prefix}FLAG_VALUE"] = dflag.value
@@ -857,14 +857,14 @@ proc main() =
                     scanf(flag_list, "--p#${placeholder}$.", cplname):
                     flag_list = readFile(hdir & "/.nodecliac/registry/" & maincommand & "/placeholders/" & cplname)
 
-                if flag_list == "--":  return ""
+                if eq(flag_list, "--"):  return ""
 
                 # Split by unescaped pipe '|' characters:
                 var flags = flag_list.splitundel(C_PIPE)
 
                 # Context string logic: start ----------------------------------
 
-                let cchain = if commandchain == "_": "" else: quotemeta(commandchain)
+                let cchain = if eq(commandchain, "_"): "" else: quotemeta(commandchain)
                 let rng = acdef.lookupkw(cchain, 1)
                 if rng[0] != -1:
                     let context = acdef[rng[0] .. rng[1]]
@@ -885,7 +885,7 @@ proc main() =
                                     break
                             if exclude != "":
                                 for flag in flags:
-                                    if exclude != flag: excluded[flag] = 1
+                                    if neq(exclude, flag): excluded[flag] = 1
                                 excluded.del(exclude)
                         else:
                             var r = false
@@ -1083,7 +1083,7 @@ proc main() =
 
                         # If no root level entry.
                         else:
-                            if last != flag_fkey and usedflags_valueless.hasKey(flag_fkey):
+                            if neq(last, flag_fkey) and usedflags_valueless.hasKey(flag_fkey):
                                 # Add flag to usedflags root level.
                                 if not usedflags.hasKey(flag_fkey):
                                     usedflags[flag_fkey] = initTable[string, int]()
@@ -1336,7 +1336,7 @@ proc main() =
         # help reduce the `display all n possibilities? (y or n)` message
         # prompt. Instead, only show the prefix in the following format:
         # "--prefix..." along with the shortest completion item.
-        if completions.len >= 10 and not iscommand and last == "--":
+        if completions.len >= 10 and not iscommand and eq(last, "--"):
             # Get completion's common prefixes.
             let res = lcp(
                 completions,
@@ -1389,7 +1389,7 @@ proc main() =
                 return true
 
             # [TODO] Make test for following case.
-            if completingfv(completions[0]) and last != completions[0] and
+            if completingfv(completions[0]) and neq(last, completions[0]) and
                     ((completions[0].len - last.len) > 1):
                 discard chop(completions[0])
                 completions[0] = "\n" & completions[0]

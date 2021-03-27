@@ -31,7 +31,7 @@ proc main() =
     var commandchain = ""
     var completions: seq[string] = @[]
     var lastchar: char # Character before caret.
-    let nextchar = cline.substr(cpoint, cpoint) # Character after caret.
+    let nextchar: char = cline[cpoint] # Character after caret.
 
     var args: seq[string] = @[]
     var cargs: seq[string] = @[]
@@ -66,6 +66,7 @@ proc main() =
     const C_DOT = '.'
     const C_PIPE = '|'
     const C_SPACE = ' '
+    const C_NULLB = '\0'
     const C_HYPHEN = '-'
     const C_ESCAPE = '\\'
     const C_EXPOINT = '!'
@@ -269,7 +270,6 @@ proc main() =
                 espipes: seq[int]
 
         const C_PIPE = '|'
-        const C_NULLB = '\0'
         const C_ESCAPE = '\\'
         const C_DOLLARSIGN = '$'
         const C_QUOTES = {'"', '\''}
@@ -363,7 +363,7 @@ proc main() =
             fmt"{prefix}LAST_CHAR": $lastchar, # Character before caret.
             # Character after caret. If char is not '' (empty) then the last word
             # item is a partial word.
-            fmt"{prefix}NEXT_CHAR": nextchar,
+            fmt"{prefix}NEXT_CHAR": $nextchar,
             # Original input's length.
             fmt"{prefix}COMP_LINE_LENGTH": intToStr(cline.len),
             # CLI input length from beginning of string to caret position.
@@ -434,7 +434,6 @@ proc main() =
     proc fn_tokenize() =
         if input == "": return
 
-        const C_NULLB = '\0'
         const C_ESCAPE = '\\'
         const C_COLON = ':'
         const C_QUOTES = {'"', '\''}
@@ -1193,7 +1192,7 @@ proc main() =
 
             # Note: If only 1 completion exists, check if command exists in
             # commandchain. If so, it's already used so clear completions.
-            if nextchar != "" and completions.len == 1:
+            if nextchar != C_NULLB and completions.len == 1:
                 # [TODO] Make test for following case.
                 # Code is ugly but only creates a single test string.
                 var needle = newStringOfCap(completions[0].len + 2)
@@ -1382,7 +1381,7 @@ proc main() =
                 # that have trailing characters (commands that are being
                 # completed in the middle), and flag string completions
                 # (i.e. --flag="some-word...).
-                let final_space = if isflag and not x.endsWith('=') and x.find({'"', '\''}) != 0 and nextchar == "": " " else: ""
+                let final_space = if isflag and not x.endsWith('=') and x.find({'"', '\''}) != 0 and nextchar == C_NULLB: " " else: ""
 
                 sep & x & final_space
             )

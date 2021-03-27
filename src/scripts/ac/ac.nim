@@ -207,7 +207,7 @@ proc main() =
     # @return {string} - The escaped string.
     # @resource [https://perldoc.perl.org/functions/quotemeta.html]
     proc quotemeta(s: string): string =
-        for c in s: result &= (if c notin C_QUOTEMETA: '\\' & c else: $c)
+        for c in s: result &= (if c notin C_QUOTEMETA: C_ESCAPE & c else: $c)
 
     # --------------------------------------------------------------------------
 
@@ -425,15 +425,15 @@ proc main() =
 
         # Set completion index (index where completion is being attempted) to
         # better mimic bash's $COMP_CWORD builtin variable.
-        let comp_index = if lastchar == '\0' or
+        let comp_index = if lastchar == C_NULLB or
             (last.len > 0 and (
-                last[0] in C_QUOTES or quote_open or last[^2] == '\\'
+                last[0] in C_QUOTES or quote_open or last[^2] == C_ESCAPE
             )): $(l - 1) else: $l
         envs[fmt"{prefix}COMP_INDEX"] = comp_index
         # Also, ensure NODECLIAC_PREV is reset to the second last argument
         # if it exists only when the lastchar is empty to To better mimic
         # prev=${COMP_WORDS[COMP_CWORD-1]}.
-        if lastchar == '\0' and l > l - 2: envs[fmt"{prefix}PREV"] = args[l - 2]
+        if lastchar == C_NULLB and l > l - 2: envs[fmt"{prefix}PREV"] = args[l - 2]
 
         # Add parsed arguments as individual env variables.
         for i, arg in args: envs[fmt"{prefix}ARG_{i}"] = arg
@@ -568,7 +568,7 @@ proc main() =
             if q != C_NULLB: quote_open = true
 
             # Get last char of input.
-            lastchar = if not (c != C_SPACE and p != '\\'): c else: '\0'
+            lastchar = if not (c != C_SPACE and p != C_ESCAPE): c else: C_NULLB
 
         let ranges = fn_argslices()
         let l = ranges.len
@@ -706,7 +706,7 @@ proc main() =
             let nitem = if i + 1 < l: args[i + 1] else: ""
 
             # # Skip quoted or escaped items.
-            # if item[0] in C_QUOTES or '\\' in item:
+            # if item[0] in C_QUOTES or C_ESCAPE in item:
             #     posargs.add(item)
             #     cargs.add(item)
             #     inc(i)
@@ -766,7 +766,7 @@ proc main() =
                         if (i == args.high) and lastchar == C_SPACE:
                             let aflag = flag & "="
                             # last = aflag
-                            lastchar = '\0'
+                            lastchar = C_NULLB
                             cargs.add(aflag)
                             args[^1] = aflag
                         else:
@@ -786,7 +786,7 @@ proc main() =
             quote_open = quote_open and litem[0] == C_HYPHEN
             # Skip single letter sub-commands like in input: '$ nim c '
             if litem.len > 2 and (litem[0] in C_QUOTES or
-                quote_open or litem[^2] == '\\'):
+                quote_open or litem[^2] == C_ESCAPE):
                 last = litem
         if last.find(C_QUOTES) == 0: isquoted = true
 
@@ -913,7 +913,7 @@ proc main() =
                                             c = usedflags_counts.len
                                             # Account for used '--' flag.
                                             if c == 1 and usedflags_counts.hasKey("--"): c = 0
-                                            if lastchar == '\0': dec(c)
+                                            if lastchar == C_NULLB: dec(c)
                                         else: c = posargs.len
                                         case (operator):
                                             of "eq": r = if c == n: true else: false
@@ -1036,7 +1036,7 @@ proc main() =
                     # with values as it's pointless to parse them. Basically, if
                     # the last word is not in the form "--form= + a character",
                     # don't show flags with values (--flag=value).
-                    if last_eqsign == '\0' and strset(flag_value) and flag_multif == '\0':
+                    if last_eqsign == C_NULLB and strset(flag_value) and flag_multif == C_NULLB:
                         inc(i)
                         continue
 
@@ -1055,14 +1055,14 @@ proc main() =
                             if usedflags[flag_fkey].hasKey(flag_value):
                                 dupe = 1
 
-                    elif flag_eqsign == '\0':
+                    elif flag_eqsign == C_NULLB:
 
                         # Valueless --flag (no-value) dupe check.
                         if usedflags_valueless.hasKey(flag_fkey) or
                         # Check if flag was used with a value already.
                             (usedflags.hasKey(flag_fkey) and
                             usedflags_counts[flag_fkey] < 2 and
-                            lastchar == '\0'): dupe = 1
+                            lastchar == C_NULLB): dupe = 1
 
                     else: # --flag=<value> (with value) dupe check.
 
@@ -1102,13 +1102,13 @@ proc main() =
 
                     # If last word is in the form '--flag=', remove the last
                     # word from the flag to only return its option/value.
-                    if last_eqsign != '\0':
+                    if last_eqsign != C_NULLB:
                         if not flag_value.startsWith(last_value) or not strset(flag_value): inc(i); continue
                         cflag = flag_value
 
                     # Don't add multi-starred flag item as its non-starred
                     # counterpart has already been added.
-                    if flag_multif != '\0': inc(i); continue
+                    if flag_multif != C_NULLB: inc(i); continue
 
                     completions.add(cflag)
 
@@ -1184,8 +1184,8 @@ proc main() =
                 # If level does not match argument length, return. As the
                 # parsed arguments do not match that of a valid commandchain.
                 let la = (cargs.len + 1) - usedflags_counts.len
-                if not ((la == level + 1 and lastchar != '\0') or
-                    (la > level and lastchar != '\0') or (la - level > 1)):
+                if not ((la == level + 1 and lastchar != C_NULLB) or
+                    (la > level and lastchar != C_NULLB) or (la - level > 1)):
 
                     # Get commandchains for specific letter outside of loop.
                     var h = db_dict[letter]
@@ -1204,8 +1204,8 @@ proc main() =
                         if lastchar_notspace:
                             if row.startsWith(last):
                                 let c = commandchain.endsWith("." & row)
-                                if (not c or (c and lastchar == '\0')) or
-                                posargs.len == 0 and lastchar == '\0':
+                                if (not c or (c and lastchar == C_NULLB)) or
+                                posargs.len == 0 and lastchar == C_NULLB:
                                     completions.add(row)
                         else: completions.add(row) # Allow all.
 

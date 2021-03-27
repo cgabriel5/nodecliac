@@ -53,7 +53,7 @@ proc main() =
     const C_SPACES = {' ', '\t'}
     const C_QUOTEMETA = Letters + Digits + {'_'}
     const C_VALID_CMD = Letters + Digits + {'-', '.', '_', ':', '\\'}
-    const C_VALID_FLG = Letters + Digits + {'-', '_', }
+    const C_VALID_FLG = Letters + Digits + {'-', '_'}
 
     type
         Range = array[2, int]

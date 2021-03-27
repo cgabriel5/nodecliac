@@ -461,7 +461,7 @@ proc main() =
     #
     # @return - Nothing is returned.
     proc fn_tokenize() =
-        if input == "": return
+        if not strset(input): return
 
         const C_ESCAPE = '\\'
         const C_COLON = ':'
@@ -749,7 +749,7 @@ proc main() =
                     trackvaluelessflag(flag)
 
                 else:
-                    if nitem != "" and nitem[0] != '-':
+                    if strset(nitem) and nitem[0] != '-':
                         let vitem = flag & "=" & nitem
                         cargs.add(vitem)
                         ameta[i][0] = flag.len
@@ -800,8 +800,8 @@ proc main() =
         if last.startsWith('-'):
             comptype = "flag"
 
-            var letter = if commandchain != "": commandchain[1] else: '_'
-            commandchain = if commandchain != "": commandchain else: "_"
+            var letter = if strset(commandchain): commandchain[1] else: '_'
+            commandchain = if strset(commandchain): commandchain else: "_"
             if db_dict.hasKey(letter) and db_dict[letter].hasKey(commandchain):
                 var excluded = initTable[string, int]()
                 var parsedflags = initTable[string, int]()
@@ -883,7 +883,7 @@ proc main() =
                                 if usedflags_counts.hasKey(flag):
                                     exclude = flag
                                     break
-                            if exclude != "":
+                            if strset(exclude):
                                 for flag in flags:
                                     if neq(exclude, flag): excluded[flag] = 1
                                 excluded.del(exclude)
@@ -1016,7 +1016,7 @@ proc main() =
                             comptype = "flag;nocache"
                             let lines = execCommand(flag_value)
                             for line in lines:
-                                if line != "": flags.add(last_fkey & "=" & line)
+                                if strset(line): flags.add(last_fkey & "=" & line)
                             # Don't add literal command to completions.
                             inc(i)
                             continue
@@ -1037,7 +1037,7 @@ proc main() =
                     # with values as it's pointless to parse them. Basically, if
                     # the last word is not in the form "--form= + a character",
                     # don't show flags with values (--flag=value).
-                    if last_eqsign == '\0' and flag_value != "" and flag_multif == '\0':
+                    if last_eqsign == '\0' and strset(flag_value) and flag_multif == '\0':
                         inc(i)
                         continue
 
@@ -1049,7 +1049,7 @@ proc main() =
                     if usedflags_multi.hasKey(flag_fkey):
 
                         # Check if multi-starred flag value has been used.
-                        if flag_value != "":
+                        if strset(flag_value):
                             # Add flag to usedflags root level.
                             if not usedflags.hasKey(flag_fkey):
                                 usedflags[flag_fkey] = initTable[string, int]()
@@ -1070,7 +1070,7 @@ proc main() =
                         # If usedflags contains <flag:value> at root level.
                         if usedflags.hasKey(flag_fkey):
                             # If no values exists.
-                            if flag_value == "": dupe = 1 # subl -n 2, subl -n 23
+                            if not strset(flag_value): dupe = 1 # subl -n 2, subl -n 23
 
                             else:
                                 # Add flag to usedflags root level.
@@ -1098,13 +1098,13 @@ proc main() =
                     # with double hyphen flags is awkward. Therefore, only list
                     # them when completing or showing its value(s).
                     # [https://scripter.co/notes/nim/#from-string]
-                    if not singletons and flag_fkey.len == 2 and flag_value == "":
+                    if not singletons and flag_fkey.len == 2 and not strset(flag_value):
                         inc(i); continue
 
                     # If last word is in the form '--flag=', remove the last
                     # word from the flag to only return its option/value.
                     if last_eqsign != '\0':
-                        if not flag_value.startsWith(last_value) or flag_value == "": inc(i); continue
+                        if not flag_value.startsWith(last_value) or not strset(flag_value): inc(i); continue
                         cflag = flag_value
 
                     # Don't add multi-starred flag item as its non-starred
@@ -1131,9 +1131,9 @@ proc main() =
 
                 # If no completions, add last item so Bash compl. can add a space.
                 if completions.len == 0:
-                    let key = last_fkey & (if last_value == "": "" else: "=" & last_value)
-                    let item = if last_value == "": last else: last_value
-                    if parsedflags.hasKey(key) and (last_value != "" or not last.endsWith('=')):
+                    let key = last_fkey & (if not strset(last_value): "" else: "=" & last_value)
+                    let item = if not strset(last_value): last else: last_value
+                    if parsedflags.hasKey(key) and (strset(last_value) or not last.endsWith('=')):
                         completions.add(item)
                 else:
                     # Note: If the last word (the flag in this case) is an options
@@ -1143,7 +1143,7 @@ proc main() =
                     # options are '7' and '77'. Since '7' is already used we remove
                     # that value to leave '77' so that on the next tab it can be
                     # completed to '--flag=77'.
-                    if last_value != "" and completions.len >= 2:
+                    if strset(last_value) and completions.len >= 2:
                         var last_val_length = last_value.len
                         # Remove values same length as current value.
                         completions = filter(completions, proc (x: string): bool =
@@ -1155,15 +1155,15 @@ proc main() =
             comptype = "command"
 
             # # If command chain and used flags exits, don't complete.
-            # if usedflags.len > 0 and commandchain != "":
-            #     commandchain = if last == "": "" else: last
+            # if usedflags.len > 0 and strset(commandchain):
+            #     commandchain = if not strset(last): "" else: last
 
             # If no cc get first level commands.
-            if commandchain == "" and last == "":
+            if not strset(commandchain) and not strset(last):
                 if posargs.len == 0:
                     if db_levels.hasKey(1): completions = toSeq(db_levels[1].keys)
             else:
-                let letter = if commandchain != "": commandchain[1] else: '_'
+                let letter = if strset(commandchain): commandchain[1] else: '_'
                 # Letter must exist in dictionary.
                 if not db_dict.hasKey(letter): return ""
                 var rows = toSeq(db_dict[letter].keys)
@@ -1200,7 +1200,7 @@ proc main() =
                         row = if level < cmds.len: cmds[level] else: ""
 
                         # Add last command if not yet already added.
-                        if row == "" or usedcommands.hasKey(row): continue
+                        if not strset(row) or usedcommands.hasKey(row): continue
                         # If char before caret isn't a space, completing a command.
                         if lastchar_notspace:
                             if row.startsWith(last):
@@ -1231,7 +1231,7 @@ proc main() =
                 var copy_commandchain = commandchain
 
                 # Loop over command chains to build individual chain levels.
-                while copy_commandchain != "":
+                while strset(copy_commandchain):
                     # Get command-string, parse and run it.
                     let crange = db_defaults.getOrDefault(copy_commandchain, [-1, -1])
                     var command_str = (
@@ -1239,7 +1239,7 @@ proc main() =
                         else: ""
                     )
 
-                    if command_str != "":
+                    if strset(command_str):
                         var lchar = chop(command_str)
 
                         # Run command string.
@@ -1247,8 +1247,8 @@ proc main() =
                             discard shift(command_str, 1)
                             let lines = execCommand(command_str)
                             for line in lines:
-                                if line != "":
-                                    if last != "":
+                                if strset(line):
+                                    if strset(last):
                                         # Must start with command.
                                         if line.startsWith(last): completions.add(line)
                                     else:
@@ -1265,7 +1265,7 @@ proc main() =
                         else:
                             command_str &= lchar
 
-                            if last != "":
+                            if strset(last):
                                 # Must start with command.
                                 if command_str.startsWith(last):
                                     completions.add(command_str)
@@ -1283,7 +1283,7 @@ proc main() =
             if rng[0] != -1: filedir = acdef[rng[0] .. rng[1]]
 
         # Run posthook if it exists.
-        if posthook != "":
+        if strset(posthook):
             setEnvs(post=true)
             var res = (
                 try: execProcess(posthook)
@@ -1291,7 +1291,7 @@ proc main() =
             ).string
             res.stripLineEnd()
             var lines = splitLines(res)
-            if lines.len == 1 and lines[0] == "": lines.setLen(0)
+            if lines.len == 1 and not strset(lines[0]): lines.setLen(0)
 
             if lines.len != 0:
                 let l = last.len
@@ -1477,8 +1477,8 @@ proc main() =
         shallow(result)
 
     proc fn_makedb() =
-        if commandchain == "": # First level commands only.
-            if last == "":
+        if not strset(commandchain): # First level commands only.
+            if not strset(last):
                 db_levels[LVL1] = initTable[string, int]()
 
                 for rng in ranges:

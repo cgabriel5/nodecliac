@@ -9,19 +9,19 @@ import utils/lcp
 
 proc main() =
 
-    if os.paramCount() == 0: quit()
+    if paramCount() == 0: quit()
 
-    let oinput = os.paramStr(1) # Original/unmodified CLI input.
-    let cline = os.paramStr(2) # CLI input (could be modified via pre-parse).
-    let cpoint = os.paramStr(3).parseInt(); # Index where [tab] key was pressed.
-    let maincommand = os.paramStr(4) # Name of command completion is for.
-    let acdef = os.paramStr(5) # The command's .acdef file contents.
-    let posthook = os.paramStr(6) # Posthook file path.
-    let singletons = parseBool(os.paramStr(7)) # Show singleton flags?
+    let oinput = paramStr(1) # Original/unmodified CLI input.
+    let cline = paramStr(2) # CLI input (could be modified via pre-parse).
+    let cpoint = paramStr(3).parseInt(); # Index where [tab] key was pressed.
+    let maincommand = paramStr(4) # Name of command completion is for.
+    let acdef = paramStr(5) # The command's .acdef file contents.
+    let posthook = paramStr(6) # Posthook file path.
+    let singletons = parseBool(paramStr(7)) # Show singleton flags?
     var input = cline.substr(0, cpoint - 1) # CLI input from start to caret index.
 
-    let hdir = os.getEnv("HOME")
-    let TESTMODE = os.getEnv("TESTMODE") == "1"
+    let hdir = getEnv("HOME")
+    let TESTMODE = getEnv("TESTMODE") == "1"
 
     var isquoted: bool
     var quote_open: bool
@@ -431,11 +431,11 @@ proc main() =
 
         # Set all env variables.
         if arguments.len == 0:
-            for key, value in envs: os.putEnv(key, value)
+            for key, value in envs: putEnv(key, value)
         else: # Set requested ones only.
             for env_name in arguments:
                 var key = prefix & env_name
-                if envs.hasKey(key): os.putEnv(key, envs[key])
+                if envs.hasKey(key): putEnv(key, envs[key])
 
     # ----------------------------------------------------------- MAIN-FUNCTIONS
 

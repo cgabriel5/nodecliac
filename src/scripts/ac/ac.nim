@@ -27,8 +27,8 @@ proc main() =
     var quote_open: bool
     # var autocompletion = true
 
-    var last = ""
-    var commandchain = ""
+    var last: string
+    var commandchain: string
     var completions: seq[string] = @[]
     var lastchar: char # Character before caret.
     let nextchar: char = cline[cpoint] # Character after caret.
@@ -41,8 +41,8 @@ proc main() =
     # Last parsed flag data.
     var dflag: tuple[flag, value: string, eq: char]
 
-    var comptype = ""
-    var filedir = ""
+    var comptype: string
+    var filedir: string
 
     var usedflags = initTable[string, Table[string, int]]()
     var usedflags_valueless = initTable[string, int]()
@@ -878,7 +878,7 @@ proc main() =
                             let flags = map(ctx.split('|'), proc (x: string): string =
                                 (if x.len == 1: "-" else: "--") & x
                             )
-                            var exclude = ""
+                            var exclude: string
                             for flag in flags:
                                 if usedflags_counts.hasKey(flag):
                                     exclude = flag
@@ -958,8 +958,8 @@ proc main() =
 
                 var last_fkey = last
                 var last_eqsign: char
-                # var last_multif = ""
-                var last_value = ""
+                # var last_multif: string
+                var last_value: string
 
                 if '=' in last_fkey:
                     let eqsign_index = last.find('=')
@@ -987,8 +987,8 @@ proc main() =
                     var flag_isbool: char
                     var flag_eqsign: char
                     var flag_multif: char
-                    var flag_value = ""
-                    var cflag = ""
+                    var flag_value: string
+                    var cflag: string
 
                     # If flag contains an eq sign.
                     if '=' in flag_fkey:
@@ -1418,7 +1418,7 @@ proc main() =
     # Checks whether string starts with given substring and optional suffix.
     proc cmpstart(s, sub, suffix: string = ""): bool =
         runnableExamples:
-          var s, sub: string = ""
+          var s, sub: string
 
           s = ".disable.second"
           sub = ".disable"

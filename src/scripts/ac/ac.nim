@@ -62,20 +62,35 @@ proc main() =
     const LVL1 = 1
     const KEYWORD_LEN = 6
 
+    const C_LC = 'c'
+    const C_LF = 'f'
+
+    const C_RPAREN = ')'
+    const C_LCURLY = '{'
+    const C_RCURLY = '}'
+
     const C_NL = '\n'
     const C_DOT = '.'
     const C_PIPE = '|'
+    const C_COMMA = '.'
+    const C_COLON = ':'
+    const C_QMARK = '?'
     const C_SPACE = ' '
     const C_NULLB = '\0'
     const C_HYPHEN = '-'
+    const C_FSLASH = '/'
     const C_ESCAPE = '\\'
     const C_EXPOINT = '!'
     const C_NUMSIGN = '#'
+    const C_ASTERISK = '*'
+    const C_SEMICOLON = ';'
     const C_EQUALSIGN = '='
+    const C_DOLLARSIGN = '$'
     const C_UNDERSCORE = '_'
     const C_SRT_DOT = $C_SPACE
     const C_SPACE_DOT = { C_DOT, C_SPACE }
     const VALID_LINE_STARTS = { C_NUMSIGN, C_NL }
+    const FLAGVAL_DELS = { C_COLON, C_EQUALSIGN }
 
     const O_DEFAULT = 100 # (d)efault
     const O_FILEDIR = 102 # (f)iledir
@@ -125,7 +140,7 @@ proc main() =
     # @param  {string} item - The string to check.
     # @return {bool}
     proc fn_is_file_or_dir(item: string): bool =
-        return '/' in item or eq(item, "~")
+        return C_FSLASH in item or eq(item, "~")
 
     # Escape '\' chars and replace unescaped slashes '/' with '.'.
     #
@@ -204,21 +219,20 @@ proc main() =
     # @param  {string} s - The source string.
     # @param {char} - The delimiter to split on.
     # @return {array} - The individual strings after split.
-    proc splitundel(s: string, DEL: char = '.'): seq[string] =
+    proc splitundel(s: string, DEL: char = C_DOT): seq[string] =
         runnableExamples:
             var answer: seq[string] = @[]
 
             answer = @["", "first\\.escaped", "last"]
-            doAssert ".first\\.escaped.last".splitundel('.') == answer
+            doAssert ".first\\.escaped.last".splitundel(C_DOT) == answer
 
             import re
             var s = "--flag|--flag2=$('echo 123 \\| grep 1')"
             answer = @["--flag", "--flag2=$(\'echo 123 \\| grep 1\')"]
-            doAssert s.splitundel('|') == answer
+            doAssert s.splitundel(C_PIPE) == answer
 
         var lastpos = 0
         let EOS = s.high
-        const C_ESCAPE = '\\'
         for i, c in s:
             if c == DEL and s[i - 1] != C_ESCAPE:
                 result.add(s[lastpos .. i - 1])
@@ -232,13 +246,11 @@ proc main() =
     # @param  {string} s - The source string.
     # @param {char} - The delimiter to find.
     # @return {number} - The unescaped delimiter's index.
-    proc rlastundel(s: string, DEL: char = '.'): int =
+    proc rlastundel(s: string, DEL: char = C_DOT): int =
         runnableExamples:
             doAssert rlastundel("nodecliaccommand\\.command") == -1
             doAssert rlastundel(".nodecliaccommand\\.command") == 0
             doAssert rlastundel(".nodecliac.command\\.command") == 10
-
-        const C_ESCAPE = '\\'
 
         for i in countdown(s.high, s.low):
             if s[i] == DEL:
@@ -270,7 +282,7 @@ proc main() =
 
         # Build '$' command parameters.
         for i in countup(1, arguments.high):
-            if arguments[i][0] == '$':
+            if arguments[i][0] == C_DOLLARSIGN:
                 discard shift(arguments[i]) # Remove '$'.
                 let q = arguments[i][0]
                 unquote(arguments[i])
@@ -297,11 +309,6 @@ proc main() =
             CMDArgSlice = tuple
                 start, stop: int
                 espipes: seq[int]
-
-        const C_PIPE = '|'
-        const C_ESCAPE = '\\'
-        const C_DOLLARSIGN = '$'
-        const C_QUOTES = {'"', '\''}
 
         if input.len == 0: return
 
@@ -463,12 +470,6 @@ proc main() =
     proc fn_tokenize() =
         if not strset(input): return
 
-        const C_ESCAPE = '\\'
-        const C_COLON = ':'
-        const C_QUOTES = {'"', '\''}
-        const C_SPACES = {' ', '\t'}
-        const FLAGVAL_DELS = { C_COLON, C_EQUALSIGN }
-
         type
             ArgSlice = array[4, int] # [start, stop, eqsign_index, is_singleton]
 
@@ -565,7 +566,7 @@ proc main() =
             if q != C_NULLB: quote_open = true
 
             # Get last char of input.
-            lastchar = if not (c != ' ' and p != '\\'): c else: '\0'
+            lastchar = if not (c != C_SPACE and p != '\\'): c else: '\0'
 
         let ranges = fn_argslices()
         let l = ranges.len
@@ -591,8 +592,6 @@ proc main() =
     # @param  {string} sub - The needle to find.
     # @return {array} - The range of the command chain row.
     proc lookupcmd(s, sub: string): Range =
-        const C_SPACE = ' '
-
         for i, rng in ranges:
             block innerLoop:
                 # Skip range if shorter than string.
@@ -667,8 +666,6 @@ proc main() =
     # @param  {string} sub - The needle to find.
     # @return {bool} - Whether output (lines) contain (last) word.
     proc cmpexecout(lines: seq[string], sub: string): bool =
-        const C_EXPOINT = '!'
-
         for i, line in lines:
             block innerLoop:
                 if line.len == 0: continue
@@ -713,7 +710,7 @@ proc main() =
             #     inc(i)
             #     continue
 
-            if item[0] != '-':
+            if item[0] != C_HYPHEN:
                 let command = fn_normalize_command(item)
                 var tmpchain = commandchain & "." & command
 
@@ -749,7 +746,7 @@ proc main() =
                     trackvaluelessflag(flag)
 
                 else:
-                    if strset(nitem) and nitem[0] != '-':
+                    if strset(nitem) and nitem[0] != C_HYPHEN:
                         let vitem = flag & "=" & nitem
                         cargs.add(vitem)
                         ameta[i][0] = flag.len
@@ -764,7 +761,7 @@ proc main() =
                         # 'nodecliac print --command [TAB]'
                         # will gets converted into:
                         # 'nodecliac print --command=[TAB]'
-                        if (i == args.high) and lastchar == ' ':
+                        if (i == args.high) and lastchar == C_SPACE:
                             let aflag = flag & "="
                             # last = aflag
                             lastchar = '\0'
@@ -780,11 +777,11 @@ proc main() =
             inc(i)
 
         # Perform final reset(s).
-        last = if lastchar == ' ': "" else: cargs[^1]
+        last = if lastchar == C_SPACE: "" else: cargs[^1]
         # Reset if completion is being attempted for a quoted/escaped string.
-        if lastchar == ' ' and cargs.len > 0:
+        if lastchar == C_SPACE and cargs.len > 0:
             let litem = cargs[^1]
-            quote_open = quote_open and litem[0] == '-'
+            quote_open = quote_open and litem[0] == C_HYPHEN
             # Skip single letter sub-commands like in input: '$ nim c '
             if litem.len > 2 and (litem[0] in C_QUOTES or
                 quote_open or litem[^2] == '\\'):
@@ -797,10 +794,10 @@ proc main() =
     proc fn_lookup(): string =
         # if isquoted or not autocompletion: return ""
 
-        if last.startsWith('-'):
+        if last.startsWith(C_HYPHEN):
             comptype = "flag"
 
-            var letter = if strset(commandchain): commandchain[1] else: '_'
+            var letter = if strset(commandchain): commandchain[1] else: C_UNDERSCORE
             commandchain = if strset(commandchain): commandchain else: "_"
             if db_dict.hasKey(letter) and db_dict[letter].hasKey(commandchain):
                 var excluded = initTable[string, int]()
@@ -869,13 +866,13 @@ proc main() =
                 if rng[0] != -1:
                     let context = acdef[rng[0] .. rng[1]]
 
-                    let ctxs = context.split(';')
+                    let ctxs = context.split(C_SEMICOLON)
                     for ctx in ctxs:
                         var ctx = ctx.multiReplace([(" ", ""), ("\t", "")])
                         if ctx.len == 0: continue
-                        if ctx[0] == '{' and ctx[^1] == '}': # Mutual exclusion.
-                            ctx = ctx.strip(chars={'{', '}'})
-                            let flags = map(ctx.split('|'), proc (x: string): string =
+                        if ctx[0] == C_LCURLY and ctx[^1] == C_RCURLY: # Mutual exclusion.
+                            ctx = ctx.strip(chars={C_LCURLY, C_RCURLY})
+                            let flags = map(ctx.split(C_PIPE), proc (x: string): string =
                                 (if x.len == 1: "-" else: "--") & x
                             )
                             var exclude: string
@@ -889,10 +886,10 @@ proc main() =
                                 excluded.del(exclude)
                         else:
                             var r = false
-                            if ':' in ctx:
-                                let parts = ctx.split(':')
-                                let flags = parts[0].split(',')
-                                let conditions = parts[1].split(',')
+                            if C_COLON in ctx:
+                                let parts = ctx.split(C_COLON)
+                                let flags = parts[0].split(C_COMMA)
+                                let conditions = parts[1].split(C_COMMA)
                                 # Examples:
                                 # flags:      !help,!version
                                 # conditions: #fge1, #ale4, !#fge0, !flag-name
@@ -901,16 +898,16 @@ proc main() =
                                     var invert = false
                                     var condition = condition
                                     # Check for inversion.
-                                    if condition[0] == '!':
+                                    if condition[0] == C_EXPOINT:
                                         discard shift(condition)
                                         invert = true
 
                                     let fchar = condition[0]
-                                    if fchar == '#':
+                                    if fchar == C_NUMSIGN:
                                         let operator = condition[2 .. 3]
                                         let n = condition[4 .. ^1].parseInt()
                                         var c = 0
-                                        if condition[1] == 'f':
+                                        if condition[1] == C_LF:
                                             c = usedflags_counts.len
                                             # Account for used '--' flag.
                                             if c == 1 and usedflags_counts.hasKey("--"): c = 0
@@ -927,7 +924,7 @@ proc main() =
                                         if invert: r = not r
                                     # elif fchar in {'1'..'9'}: continue # [TODO?]
                                     else: # Just a flag name.
-                                        if fchar == '!':
+                                        if fchar == C_EXPOINT:
                                             if usedflags_counts.hasKey(condition): r = false
                                         else:
                                             if usedflags_counts.hasKey(condition): r = true
@@ -937,21 +934,21 @@ proc main() =
                                     for flag in flags:
                                         var flag = flag
                                         let fchar = flag[0]
-                                        flag = flag.strip(chars={'!'})
+                                        flag = flag.strip(chars={C_EXPOINT})
                                         flag = (if flag.len == 1: "-" else: "--") & flag
-                                        if fchar == '!': excluded[flag] = 1
+                                        if fchar == C_EXPOINT: excluded[flag] = 1
                                         else: excluded.del(flag)
                             else: # Just a flag name.
-                                if ctx[0] == '!':
+                                if ctx[0] == C_EXPOINT:
                                     if usedflags_counts.hasKey(ctx): r = false
                                 else:
                                     if usedflags_counts.hasKey(ctx): r = true
                                 if r == true:
                                     var flag = ctx
                                     let fchar = flag[0]
-                                    flag = flag.strip(chars={'!'})
+                                    flag = flag.strip(chars={C_EXPOINT})
                                     flag = (if flag.len == 1: "-" else: "--") & flag
-                                    if fchar == '!': excluded[flag] = 1
+                                    if fchar == C_EXPOINT: excluded[flag] = 1
                                     else: excluded.del(flag)
 
                 # Context string logic: end ------------------------------------
@@ -961,16 +958,16 @@ proc main() =
                 # var last_multif: string
                 var last_value: string
 
-                if '=' in last_fkey:
-                    let eqsign_index = last.find('=')
+                if C_EQUALSIGN in last_fkey:
+                    let eqsign_index = last.find(C_EQUALSIGN)
                     last_fkey = last.substr(0, eqsign_index - 1)
                     last_value = last.substr(eqsign_index + 1)
 
-                    if last_value.startsWith('*'):
+                    if last_value.startsWith(C_ASTERISK):
                         # last_multif = "*"
                         last_value = last_value[0 .. ^2]
 
-                    last_eqsign = '='
+                    last_eqsign = C_EQUALSIGN
 
                 let last_val_quoted = last_value.find(C_QUOTES) == 0
 
@@ -991,18 +988,18 @@ proc main() =
                     var cflag: string
 
                     # If flag contains an eq sign.
-                    if '=' in flag_fkey:
-                        var eqsign_index = flag.find('=')
+                    if C_EQUALSIGN in flag_fkey:
+                        var eqsign_index = flag.find(C_EQUALSIGN)
                         flag_fkey = flag.substr(0, eqsign_index - 1)
                         flag_value = flag.substr(eqsign_index + 1)
-                        flag_eqsign = '='
+                        flag_eqsign = C_EQUALSIGN
 
-                        if '?' in flag_fkey: flag_isbool = chop(flag_fkey)
+                        if C_QMARK in flag_fkey: flag_isbool = chop(flag_fkey)
                         # Skip flag if it's mutually exclusivity.
                         if excluded.hasKey(flag_fkey): inc(i); continue
 
-                        if flag_value.startsWith('*'):
-                            flag_multif = '*'
+                        if flag_value.startsWith(C_ASTERISK):
+                            flag_multif = C_ASTERISK
                             flag_value = flag_value[0 .. ^2]
 
                             # Track multi-starred flags.
@@ -1012,7 +1009,7 @@ proc main() =
                         cflag = fmt"{flag_fkey}={flag_value}"
 
                         # If a command-flag, run it and add items to array.
-                        if flag_value.startsWith("$(") and flag_value.endsWith(')') and last_eqsign == '=':
+                        if flag_value.startsWith("$(") and flag_value.endsWith(C_RPAREN) and last_eqsign == C_EQUALSIGN:
                             comptype = "flag;nocache"
                             let lines = execCommand(flag_value)
                             for line in lines:
@@ -1024,7 +1021,7 @@ proc main() =
                         # Store for later checks.
                         parsedflags[fmt"{flag_fkey}={flag_value}"] = 1
                     else:
-                        if '?' in flag_fkey: flag_isbool = chop(flag_fkey)
+                        if C_QMARK in flag_fkey: flag_isbool = chop(flag_fkey)
                         # Skip flag if it's mutually exclusivity.
                         if excluded.hasKey(flag_fkey): inc(i); continue
 
@@ -1133,7 +1130,7 @@ proc main() =
                 if completions.len == 0:
                     let key = last_fkey & (if not strset(last_value): "" else: "=" & last_value)
                     let item = if not strset(last_value): last else: last_value
-                    if parsedflags.hasKey(key) and (strset(last_value) or not last.endsWith('=')):
+                    if parsedflags.hasKey(key) and (strset(last_value) or not last.endsWith(C_EQUALSIGN)):
                         completions.add(item)
                 else:
                     # Note: If the last word (the flag in this case) is an options
@@ -1163,11 +1160,11 @@ proc main() =
                 if posargs.len == 0:
                     if db_levels.hasKey(1): completions = toSeq(db_levels[1].keys)
             else:
-                let letter = if strset(commandchain): commandchain[1] else: '_'
+                let letter = if strset(commandchain): commandchain[1] else: C_UNDERSCORE
                 # Letter must exist in dictionary.
                 if not db_dict.hasKey(letter): return ""
                 var rows = toSeq(db_dict[letter].keys)
-                let lastchar_notspace = lastchar != ' '
+                let lastchar_notspace = lastchar != C_SPACE
 
                 if rows.len == 0: return ""
 
@@ -1180,7 +1177,7 @@ proc main() =
                 var commands = commandchain.splitundel(C_DOT)
                 var level = commands.len - 1
                 # Increment level if completing a new command level.
-                if lastchar == ' ': inc(level)
+                if lastchar == C_SPACE: inc(level)
 
                 # If level does not match argument length, return. As the
                 # parsed arguments do not match that of a valid commandchain.
@@ -1243,7 +1240,7 @@ proc main() =
                         var lchar = chop(command_str)
 
                         # Run command string.
-                        if command_str.startsWith("$(") and lchar == ')':
+                        if command_str.startsWith("$(") and lchar == C_RPAREN:
                             discard shift(command_str, 1)
                             let lines = execCommand(command_str)
                             for line in lines:
@@ -1252,7 +1249,7 @@ proc main() =
                                         # Must start with command.
                                         if line.startsWith(last): completions.add(line)
                                     else:
-                                        if line.startsWith('!'): continue
+                                        if line.startsWith(C_EXPOINT): continue
                                         completions.add(line)
 
                             # If no completions and last word is a valid completion
@@ -1327,7 +1324,7 @@ proc main() =
     proc fn_printer() =
         const sep = "\n"
         var skip_map = false
-        let isflag = comptype.startsWith('f')
+        let isflag = comptype.startsWith(C_LF)
         let iscommand = not isflag
         let lines = fmt"{comptype}:{last}+{filedir}"
 
@@ -1344,7 +1341,7 @@ proc main() =
                 min_frqz_prefix_len = 2,
                 min_prefix_len = 3,
                 min_frqz_count = 3,
-                char_break_points = ['='],
+                char_break_points = [C_EQUALSIGN],
                 prepend = "--",
                 append = "..."
             )
@@ -1403,7 +1400,7 @@ proc main() =
                 # that have trailing characters (commands that are being
                 # completed in the middle), and flag string completions
                 # (i.e. --flag="some-word...).
-                let final_space = if isflag and not x.endsWith('=') and x.find({'"', '\''}) != 0 and nextchar == C_NULLB: " " else: ""
+                let final_space = if isflag and not x.endsWith(C_EQUALSIGN) and x.find(C_QUOTES) != 0 and nextchar == C_NULLB: " " else: ""
 
                 sep & x & final_space
             )

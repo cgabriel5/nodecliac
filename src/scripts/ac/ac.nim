@@ -88,6 +88,15 @@ proc main() =
     var db_filedirs = initTable[string, Range]()
     var db_contexts = initTable[string, Range]()
 
+    # --------------------------------------------------------- HELPER-FUNCTIONS
+
+    # Wrapper for builtin cmp function which returns a boolean instead
+    #     of a number for convenience.
+    #
+    # @param  {string} a - The first string.
+    # @param  {string} b - The second string.
+    # @return {boolean} - Whether strings are the same or not.
+    func eq(a, b: string): bool {.inline.} = cmp(a, b) == 0
 
     # ----------------------------------------------------- VALIDATION-FUNCTIONS
 
@@ -553,13 +562,6 @@ proc main() =
             let prefix = if rng[3] == 1: "-" else: ""
             args.add(strfromrange(input, rng[0], rng[1], prefix))
             ameta.add([rng[2], 0])
-
-    # Wrapper for builtin cmp function. This function returns a boolean.
-    #
-    # @param  {string} a - The first string.
-    # @param  {string} b - The second string.
-    # @return {boolean} - Whether strings are the same or not.
-    proc eq(a, b: string): bool = cmp(a, b) == 0
 
     # Looks for the first row in acdef that matches the provided
     #     command chain. This is a non regex alternative to

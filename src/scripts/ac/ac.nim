@@ -1172,29 +1172,23 @@ proc main() =
                 if not ((la == level + 1 and lastchar != C_NULLB) or
                     (la > level and lastchar != C_NULLB) or (la - level > 1)):
 
-                    # Get commandchains for specific letter outside of loop.
-                    var h = db_dict[letter]
-
                     for row in rows:
-                        var row = row
-                        # Command must exist.
-                        # if not h[row].hasKey("commands"): continue # Needed?
-
-                        var cmds = acdef[ h[row][0][0] .. h[row][0][1] ].split(".")
-                        row = if level < cmds.len: cmds[level] else: ""
+                        let crange = db_dict[letter][row][0]
+                        let cmds = splitundel(acdef[crange[0] .. crange[1]] , C_DOT)
+                        let cmd = if level < cmds.len: cmds[level] else: ""
 
                         # Add last command if not yet already added.
-                        if not strset(row) or usedcommands.hasKey(row): continue
+                        if not strset(cmd) or usedcommands.hasKey(cmd): continue
                         # If char before caret isn't a space, completing a command.
                         if lastchar_notspace:
-                            if row.startsWith(last):
-                                let c = commandchain.endsWith("." & row)
+                            if cmd.startsWith(last):
+                                let c = commandchain.endsWith("." & cmd)
                                 if (not c or (c and lastchar == C_NULLB)) or
                                 posargs.len == 0 and lastchar == C_NULLB:
-                                    completions.add(row)
-                        else: completions.add(row) # Allow all.
+                                    completions.add(cmd)
+                        else: completions.add(cmd) # Allow all.
 
-                        usedcommands[row] = 1
+                        usedcommands[cmd] = 1
 
             # Note: If only 1 completion exists, check if command exists in
             # commandchain. If so, it's already used so clear completions.

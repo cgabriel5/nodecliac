@@ -195,8 +195,7 @@ proc main() =
     # @param  {string} - The provided string to split.
     # @return {seq} - The seq of individual characters.
     # @resource [https://stackoverflow.com/a/51160075]
-    proc splitchars(s: string): seq[char] =
-        return mapIt(s, it)
+    proc splitchars(s: string): seq[char] = mapIt(s, it)
 
     # Substitute for Perl's quotemeta function.
     #

@@ -1,9 +1,6 @@
 #!/usr/bin/env nim
 
-import std/[
-        os, osproc, strformat, algorithm,
-        strutils, sequtils, strscans, tables
-    ]
+import std/[os, osproc, algorithm, strutils, sequtils, strscans, tables]
 
 import utils/lcp
 
@@ -1008,7 +1005,7 @@ proc main() =
                             usedflags_multi[flag_fkey] = 1
 
                         # Create completion flag item.
-                        cflag = fmt"{flag_fkey}={flag_value}"
+                        cflag = flag_fkey & "=" & flag_value
 
                         # If a command-flag, run it and add items to array.
                         if flag_value.startsWith("$(") and flag_value.endsWith(C_RPAREN) and last_eqsign == C_EQUALSIGN:
@@ -1021,7 +1018,7 @@ proc main() =
                             continue
 
                         # Store for later checks.
-                        parsedflags[fmt"{flag_fkey}={flag_value}"] = 1
+                        parsedflags[flag_fkey & "=" & flag_value] = 1
                     else:
                         if C_QMARK in flag_fkey: flag_isbool = chop(flag_fkey)
                         # Skip flag if it's mutually exclusivity.
@@ -1328,7 +1325,7 @@ proc main() =
         var skip_map = false
         let isflag = comptype.startsWith(C_LF)
         let iscommand = not isflag
-        let lines = fmt"{comptype}:{last}+{filedir}"
+        let lines = comptype & ":" & last & "+" & filedir
 
         # Note: When providing flag completions and only "--" is provided,
         # collapse (don't show) flags with the same prefix. This aims to

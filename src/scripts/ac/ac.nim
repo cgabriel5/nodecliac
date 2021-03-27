@@ -203,7 +203,7 @@ proc main() =
     # @return {string} - The escaped string.
     # @resource [https://perldoc.perl.org/functions/quotemeta.html]
     proc quotemeta(s: string): string =
-        for c in s: result &= (if c notin C_QUOTEMETA: C_ESCAPE & c else: $c)
+        for c in s: result.add(if c notin C_QUOTEMETA: C_ESCAPE & c else: $c)
 
     # --------------------------------------------------------------------------
 

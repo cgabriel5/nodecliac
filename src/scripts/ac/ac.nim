@@ -362,7 +362,9 @@ proc main() =
     proc setEnvs(arguments: varargs[string], post=false) =
         let l = args.len
         const prefix = "NODECLIAC_"
-        let ctype = (if comptype[0] == 'c': "command" else: "flag")
+        const IDENT_CMD = "command"
+        const IDENT_FLG = "flag"
+        let ctype = (if comptype[0] == C_LC: IDENT_CMD else: IDENT_FLG)
         let prev = args[^(if not post: 2 else: 1)]
 
         # Get any used flags to pass along.
@@ -414,7 +416,7 @@ proc main() =
         }.toTable
 
         # If completion is for a flag, set flag data for quick access in script.
-        if eq(ctype, "flag"):
+        if eq(ctype, IDENT_FLG):
             envs[fmt"{prefix}FLAG_NAME"] = dflag.flag
             envs[fmt"{prefix}FLAG_EQSIGN"] = $dflag.eq
             envs[fmt"{prefix}FLAG_VALUE"] = dflag.value

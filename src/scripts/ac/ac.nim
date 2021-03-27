@@ -98,6 +98,26 @@ proc main() =
     # @return {boolean} - Whether strings are the same or not.
     func eq(a, b: string): bool {.inline.} = cmp(a, b) == 0
 
+    # Negate wrapper for builtin cmp function which returns a boolean
+    #    instead of a number for convenience.
+    #
+    # @param  {string} a - The first string.
+    # @param  {string} b - The second string.
+    # @return {boolean} - Whether strings are the same or not.
+    func neq(a, b: string): bool {.inline.} = cmp(a, b) != 0
+
+    # Helper function which checks whether a string is not empty.
+    #
+    # @param  {string} a - The string.
+    # @return {boolean} - Whether string is empty or not.
+    func strset(s: string): bool {.inline.} = s.len > 0
+
+    # Helper function which checks whether a char is not empty.
+    #
+    # @param  {char} a - The character.
+    # @return {boolean} - Whether char is empty or not.
+    func chrset(c: char): bool {.inline.} = c != C_NULLB
+
     # ----------------------------------------------------- VALIDATION-FUNCTIONS
 
     # Peek string for '/','~'. If contained assume it's a file/dir.

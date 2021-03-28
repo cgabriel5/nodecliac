@@ -794,7 +794,7 @@ proc main() =
         if last.startsWith(C_HYPHEN):
             comptype = "flag"
 
-            var letter = if strset(commandchain): commandchain[1] else: C_UNDERSCORE
+            let letter = if strset(commandchain): commandchain[1] else: C_UNDERSCORE
             commandchain = if strset(commandchain): commandchain else: "_"
             if db_dict.hasKey(letter) and db_dict[letter].hasKey(commandchain):
 

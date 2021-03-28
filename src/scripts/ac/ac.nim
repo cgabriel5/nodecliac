@@ -854,7 +854,7 @@ proc main() =
                     scanf(flag_list, "--p#${placeholder}$.", cplname):
                     flag_list = readFile(hdir & "/.nodecliac/registry/" & maincommand & "/placeholders/" & cplname)
 
-                if eq(flag_list, "--"):  return ""
+                if eq(flag_list, "--"): return ""
 
                 # Split by unescaped pipe '|' characters:
                 var flags = flag_list.splitundel(C_PIPE)

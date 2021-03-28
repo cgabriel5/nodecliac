@@ -1489,7 +1489,7 @@ proc main() =
                     let start = rng[0]
                     let stop = rng[1]
 
-                    if acdef[start] == C_SPACE: continue
+                    if acdef[start] == C_SPACE or start > stop : continue
 
                     # Add 1 to start to skip the initial dot in command chain.
                     let command = strfromrange(acdef, start + 1, find(acdef,

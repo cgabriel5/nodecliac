@@ -955,17 +955,12 @@ proc main() =
 
                 var last_fkey = last
                 var last_eqsign: char
-                # var last_multif: string
                 var last_value: string
 
                 let eqsign_index = ameta[^1][0]
                 if eqsign_index != -1:
                     last_fkey = last.substr(0, eqsign_index - 1)
                     last_value = last.substr(eqsign_index + 1)
-
-                    if last_value.startsWith(C_ASTERISK):
-                        # last_multif = "*"
-                        last_value = last_value[0 .. ^2]
 
                     last_eqsign = C_EQUALSIGN
 

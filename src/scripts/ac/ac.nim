@@ -762,7 +762,7 @@ proc main() =
                             # last = aflag
                             lastchar = C_NULLB
                             cargs.add(aflag)
-                            args[^1] = aflag
+                            args[i] = aflag
                             ameta[i - mc][0] = flag.len
                         else:
                             cargs.add(flag)

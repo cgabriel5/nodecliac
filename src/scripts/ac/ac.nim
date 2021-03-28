@@ -1158,11 +1158,11 @@ proc main() =
             # If no cc get first level commands.
             if not strset(commandchain) and not strset(last):
                 if posargs.len == 0:
-                    if db_levels.hasKey(1): completions = toSeq(db_levels[1].keys)
+                    if 1 in db_levels: completions = toSeq(db_levels[1].keys)
             else:
                 let letter = if strset(commandchain): commandchain[1] else: C_UNDERSCORE
                 # Letter must exist in dictionary.
-                if not db_dict.hasKey(letter): return ""
+                if letter notin db_dict: return ""
                 var rows = toSeq(db_dict[letter].keys)
                 let lastchar_notspace = lastchar != C_SPACE
 

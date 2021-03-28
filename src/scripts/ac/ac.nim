@@ -1183,10 +1183,9 @@ proc main() =
                 # if (rows.len == 1 and commandchain.endsWith(rows[0])): rows.setLen(0)
 
                 var usedcommands = initTable[string, int]()
-                var commands = commandchain.splitundel(C_DOT)
-                var level = commands.len - 1
-                # Increment level if completing a new command level.
-                if lastchar == C_SPACE: inc(level)
+                let level = commandchain.splitundel(C_DOT).high +
+                        # Increment level if completing a new command level.
+                        (if lastchar == C_SPACE: 1 else: 0)
 
                 # If level does not match argument length, return. As the
                 # parsed arguments do not match that of a valid commandchain.

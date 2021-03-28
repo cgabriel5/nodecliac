@@ -1326,7 +1326,7 @@ proc main() =
                         completions.add(useditems[i])
 
     # Send all possible completions to bash.
-    proc fn_printer() =
+    proc fn_print() =
         const sep = "\n"
         var skip_map = false
         let isflag = comptype.startsWith(C_LF)
@@ -1544,6 +1544,6 @@ proc main() =
                     of O_CONTEXT: (if chain notin db_contexts: db_contexts[chain] = value)
                     else: discard
 
-    fn_ranges();fn_tokenize();fn_analyze();fn_makedb();discard fn_lookup();fn_printer()
+    fn_ranges();fn_tokenize();fn_analyze();fn_makedb();discard fn_lookup();fn_print()
 
 main()

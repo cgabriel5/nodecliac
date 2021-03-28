@@ -983,8 +983,8 @@ proc main() =
                     var cflag: string
 
                     # If flag contains an eq sign.
-                    if C_EQUALSIGN in flag_fkey:
-                        var eqsign_index = flag.find(C_EQUALSIGN)
+                    let eqsign_index = flag.find(C_EQUALSIGN)
+                    if eqsign_index != -1:
                         flag_fkey = flag.substr(0, eqsign_index - 1)
                         flag_value = flag.substr(eqsign_index + 1)
                         flag_eqsign = C_EQUALSIGN

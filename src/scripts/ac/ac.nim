@@ -13,7 +13,7 @@ proc main() =
     let acdef = paramStr(5) # The command's .acdef file contents.
     let posthook = paramStr(6) # Posthook file path.
     let singletons = parseBool(paramStr(7)) # Show singleton flags?
-    var input = cline.substr(0, cpoint - 1) # CLI input from start to caret index.
+    var input = cline[0 ..< cpoint] # CLI input from start to caret index.
 
     let hdir = getEnv("HOME")
     let TESTMODE = getEnv("TESTMODE") == "1"
@@ -390,7 +390,7 @@ proc main() =
         putEnv("NODECLIAC_INPUT", input) # CLI input from start to caret index.
         putEnv("NODECLIAC_INPUT_ORIGINAL", oinput) # Original unmodified CLI input.
         # CLI input from caret index to input string end.
-        putEnv("NODECLIAC_INPUT_REMAINDER", cline.substr(cpoint, -1))
+        putEnv("NODECLIAC_INPUT_REMAINDER", cline[cpoint .. cline.high])
         putEnv("NODECLIAC_LAST_CHAR", $lastchar) # Character before caret.
         # Character after caret. If char is not '' (empty) then the last word
         # item is a partial word.
@@ -959,8 +959,8 @@ proc main() =
 
                 let eqsign_index = ameta[^1][0]
                 if eqsign_index != -1:
-                    last_fkey = last.substr(0, eqsign_index - 1)
-                    last_value = last.substr(eqsign_index + 1)
+                    last_fkey = last[0 ..< eqsign_index]
+                    last_value = last[eqsign_index + 1 .. last.high]
 
                     last_eqsign = C_EQUALSIGN
 

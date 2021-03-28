@@ -152,14 +152,14 @@ proc main() =
     #
     # @param  {string} item - The string to check.
     # @return {bool}
-    proc fn_is_file_or_dir(item: string): bool =
+    proc fn_is_file_or_dir(item: string): bool {.inline.} =
         C_FSLASH in item or eq(item, "~")
 
     # Escape '\' chars and replace unescaped slashes '/' with '.'.
     #
     # @param  {string} item - The item (command) string to escape.
     # @return {string} - The escaped item (command) string.
-    proc fn_normalize_command(item: var string): string =
+    proc fn_normalize_command(item: var string): string {.inline.} =
         if fn_is_file_or_dir(item): return item
         return item.replace(".", "\\\\.") # Escape periods.
 
@@ -168,13 +168,13 @@ proc main() =
     #
     # @param  {string} item - The word to check.
     # @return {string} - The validated argument.
-    proc fn_validate_flag(item: string): string =
+    proc fn_validate_flag(item: string): string {.inline.} =
         if fn_is_file_or_dir(item): return item
         if not allCharsInSet(item, C_VALID_FLG): quit()
         return item
 
     # Look at fn_validate_flag for details.
-    proc fn_validate_command(item: string): string =
+    proc fn_validate_command(item: string): string {.inline.} =
         if fn_is_file_or_dir(item): return item
         if not allCharsInSet(item, C_VALID_CMD): quit()
         return item
@@ -185,7 +185,7 @@ proc main() =
     #
     # @param  {string} s - The string to modify.
     # @return {string} - The removed character.
-    proc chop(s: var string): char =
+    proc chop(s: var string): char {.inline.} =
         result = s[^1]
         s.setLen(s.high)
 
@@ -194,7 +194,7 @@ proc main() =
     # @param  {string} s - The string to modify.
     # @param  {number} end - Optional end/cutoff index.
     # @return {char} - The removed character.
-    proc shift(s: var string, stop: int = 0): char =
+    proc shift(s: var string, stop: int = 0): char {.inline.} =
         result = s[0]
         s.delete(0, stop)
 
@@ -202,7 +202,7 @@ proc main() =
     #
     # @param  {string} s - The string to modify.
     # @return - Nothing is returned.
-    proc unquote(s: var string) =
+    proc unquote(s: var string) {.inline.} =
         s.delete(0, 0)
         s.setLen(s.high)
 
@@ -211,14 +211,14 @@ proc main() =
     # @param  {string} - The provided string to split.
     # @return {seq} - The seq of individual characters.
     # @resource [https://stackoverflow.com/a/51160075]
-    proc splitchars(s: string): seq[char] = mapIt(s, it)
+    proc splitchars(s: string): seq[char] {.inline.} = mapIt(s, it)
 
     # Substitute for Perl's quotemeta function.
     #
     # @param  {string} s - The string to escape.
     # @return {string} - The escaped string.
     # @resource [https://perldoc.perl.org/functions/quotemeta.html]
-    proc quotemeta(s: string): string =
+    proc quotemeta(s: string): string {.inline.} =
         for c in s: result.add(if c notin C_QUOTEMETA: C_ESCAPE & c else: $c)
 
     # --------------------------------------------------------------------------

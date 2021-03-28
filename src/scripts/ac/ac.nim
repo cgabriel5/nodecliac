@@ -384,7 +384,7 @@ proc main() =
         # nodecliac env vars.
 
         # The command auto completion is being performed for.
-        putEnv("NODECLIAC_MAIN_COMMAND", maincommand,)
+        putEnv("NODECLIAC_MAIN_COMMAND", maincommand)
         putEnv("NODECLIAC_COMMAND_CHAIN", commandchain) # The parsed command chain.
         putEnv("NODECLIAC_USED_FLAGS", usedflags.join("\n")) # The parsed used flags.
         # The last parsed word item (note: could be a partial word item.

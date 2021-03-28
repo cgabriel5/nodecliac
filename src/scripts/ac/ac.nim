@@ -1404,7 +1404,8 @@ proc main() =
                 # that have trailing characters (commands that are being
                 # completed in the middle), and flag string completions
                 # (i.e. --flag="some-word...).
-                let final_space = if isflag and not x.endsWith(C_EQUALSIGN) and x.find(C_QUOTES) != 0 and nextchar == C_NULLB: " " else: ""
+                let final_space = if isflag and not x.endsWith(C_EQUALSIGN) and
+                    x.find(C_QUOTES) != 0 and nextchar == C_NULLB: " " else: ""
 
                 sep & x & final_space
             )

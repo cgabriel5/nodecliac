@@ -1195,7 +1195,7 @@ proc main() =
 
                     for row in rows:
                         let crange = db_dict[letter][row][0]
-                        let cmds = splitundel(acdef[crange[0] .. crange[1]] , C_DOT)
+                        let cmds = splitundel(acdef[crange[0] .. crange[1]], C_DOT)
                         let cmd = if level < cmds.len: cmds[level] else: ""
 
                         # Add last command if not yet already added.

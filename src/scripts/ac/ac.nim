@@ -62,6 +62,7 @@ proc main() =
     const C_LC = 'c'
     const C_LF = 'f'
 
+    const C_LPAREN = '('
     const C_RPAREN = ')'
     const C_LCURLY = '{'
     const C_RCURLY = '}'
@@ -1004,7 +1005,8 @@ proc main() =
                         cflag = flag_fkey & "=" & flag_value
 
                         # If a command-flag, run it and add items to array.
-                        if flag_value.startsWith("$(") and flag_value.endsWith(C_RPAREN) and last_eqsign == C_EQUALSIGN:
+                        if flag_value[0] == C_DOLLARSIGN and
+                            flag_value[1] == C_LPAREN and
                             comptype = "flag;nocache"
                             let lines = execCommand(flag_value)
                             for line in lines:
@@ -1229,7 +1231,8 @@ proc main() =
                         var lchar = chop(command_str)
 
                         # Run command string.
-                        if command_str.startsWith("$(") and lchar == C_RPAREN:
+                        if command_str[0] == C_DOLLARSIGN and
+                            command_str[1] == C_LPAREN and lchar == C_RPAREN:
                             discard shift(command_str, 1)
                             let lines = execCommand(command_str)
                             for line in lines:

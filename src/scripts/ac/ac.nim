@@ -319,7 +319,7 @@ proc main() =
                 start, stop: int
                 espipes: seq[int]
 
-        if input.len == 0: return
+        if not strset(input): return
 
         var c, p, q: char
         var start: int = -1
@@ -518,7 +518,7 @@ proc main() =
         #
         # @return - Nothing is returned.
         proc fn_argslices(): seq[ArgSlice] =
-            if input.len == 0: return
+            if not strset(input): return
 
             var c, p, q: char
             var start, eqsign: int = -1
@@ -661,7 +661,7 @@ proc main() =
     proc cmpexecout(lines: seq[string], sub: string): bool =
         for i, line in lines:
             block innerLoop:
-                if line.len == 0: continue
+                if not strset(line): continue
                 let offset = (line[0] == C_EXPOINT).int
                 if line.len != sub.len + offset: continue
 
@@ -875,7 +875,7 @@ proc main() =
                     let ctxs = context.split(C_SEMICOLON)
                     for ctx in ctxs:
                         var ctx = ctx.multiReplace([(" ", ""), ("\t", "")])
-                        if ctx.len == 0: continue
+                        if not strset(ctx): continue
                         if ctx[0] == C_LCURLY and ctx[^1] == C_RCURLY: # Mutual exclusion.
                             ctx = ctx.strip(chars = {C_LCURLY, C_RCURLY})
                             let flags = map(ctx.split(C_PIPE), proc (

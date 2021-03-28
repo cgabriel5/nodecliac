@@ -850,7 +850,6 @@ proc main() =
                             echo "[", match, "]"
 
                     var i = start
-                    let l = s.len
                     const maxlen = 6 # Cache file names are exactly 6 chars.
                     while i < s.len and str.len <= maxlen:
                         if s[i] notin chars: break

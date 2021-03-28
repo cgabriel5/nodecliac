@@ -797,9 +797,12 @@ proc main() =
             var letter = if strset(commandchain): commandchain[1] else: C_UNDERSCORE
             commandchain = if strset(commandchain): commandchain else: "_"
             if db_dict.hasKey(letter) and db_dict[letter].hasKey(commandchain):
+
+            const def = [-1, -1]
+            let frange = (try: db_dict[letter][commandchain] except: [def, def])[1]
+            if frange[0] != -1:
                 var excluded = initTable[string, int]()
                 var parsedflags = initTable[string, int]()
-                let frange = db_dict[letter][commandchain][1]
                 var flag_list = acdef[frange[0] .. frange[1]]
 
                 # Explanation how scanf + custom definable matcher works:

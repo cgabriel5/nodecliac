@@ -979,11 +979,10 @@ proc main() =
 
                 # Process flags.
                 var i = 0; while i < flags.len:
-                    let flag = flags[i]
+                    var flag_fkey = flags[i]
 
-                    if not flag.startsWith(last_fkey): inc(i); continue
+                    if not flag_fkey.startsWith(last_fkey): inc(i); continue
 
-                    var flag_fkey = flag
                     var flag_isbool: char
                     var flag_eqsign: char
                     var flag_multif: char
@@ -991,10 +990,10 @@ proc main() =
                     var cflag: string
 
                     # If flag contains an eq sign.
-                    let eqsign_index = flag.find(C_EQUALSIGN)
+                    let eqsign_index = flag_fkey.find(C_EQUALSIGN)
                     if eqsign_index != -1:
-                        flag_fkey = flag[0 ..< eqsign_index]
-                        flag_value = flag[eqsign_index + 1 .. flag.high]
+                        flag_value = flag_fkey[eqsign_index + 1 .. flag_fkey.high]
+                        flag_fkey.setLen(eqsign_index)
                         flag_eqsign = C_EQUALSIGN
 
                         if flag_fkey[^1] == C_QMARK: discard chop(flag_fkey)

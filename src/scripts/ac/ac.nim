@@ -886,7 +886,7 @@ proc main() =
                             )
                             var exclude: string
                             for flag in flags:
-                                if usedflags_counts.hasKey(flag):
+                                if flag in usedflags_counts:
                                     exclude = flag
                                     break
                             if strset(exclude):
@@ -919,7 +919,7 @@ proc main() =
                                         if condition[1] == C_LF:
                                             c = usedflags_counts.len
                                             # Account for used '--' flag.
-                                            if c == 1 and usedflags_counts.hasKey("--"): c = 0
+                                            if c == 1 and "--" in usedflags_counts: c = 0
                                             if lastchar == C_NULLB: dec(c)
                                         else: c = posargs.len
                                         case (operator):
@@ -934,9 +934,9 @@ proc main() =
                                     # elif fchar in {'1'..'9'}: continue # [TODO?]
                                     else: # Just a flag name.
                                         if fchar == C_EXPOINT:
-                                            if usedflags_counts.hasKey(condition): r = false
+                                            if condition in usedflags_counts: r = false
                                         else:
-                                            if usedflags_counts.hasKey(condition): r = true
+                                            if condition in usedflags_counts: r = true
                                     # Once any condition fails exit loop.
                                     if r == false: break
                                 if r == true:
@@ -949,9 +949,9 @@ proc main() =
                                         else: excluded.del(flag)
                             else: # Just a flag name.
                                 if ctx[0] == C_EXPOINT:
-                                    if usedflags_counts.hasKey(ctx): r = false
+                                    if ctx in usedflags_counts: r = false
                                 else:
-                                    if usedflags_counts.hasKey(ctx): r = true
+                                    if ctx in usedflags_counts: r = true
                                 if r == true:
                                     var flag = ctx
                                     let fchar = flag[0]
@@ -1000,7 +1000,7 @@ proc main() =
 
                         if C_QMARK in flag_fkey: flag_isbool = chop(flag_fkey)
                         # Skip flag if it's mutually exclusivity.
-                        if excluded.hasKey(flag_fkey): inc(i); continue
+                        if flag_fkey in excluded: inc(i); continue
 
                         if flag_value.startsWith(C_ASTERISK):
                             flag_multif = C_ASTERISK
@@ -1030,7 +1030,7 @@ proc main() =
                     else:
                         if C_QMARK in flag_fkey: flag_isbool = chop(flag_fkey)
                         # Skip flag if it's mutually exclusivity.
-                        if excluded.hasKey(flag_fkey): inc(i); continue
+                        if flag_fkey in excluded: inc(i); continue
 
                         # Create completion flag item.
                         cflag = flag_fkey
@@ -1051,48 +1051,47 @@ proc main() =
                     var dupe = 0
 
                     # Let multi-flags through.
-                    if usedflags_multi.hasKey(flag_fkey):
+                    if flag_fkey in usedflags_multi:
 
                         # Check if multi-starred flag value has been used.
                         if strset(flag_value):
                             # Add flag to usedflags root level.
-                            if not usedflags.hasKey(flag_fkey):
+                            if flag_fkey notin usedflags:
                                 usedflags[flag_fkey] = initTable[string, int]()
-                            if usedflags[flag_fkey].hasKey(flag_value):
-                                dupe = 1
+                            if flag_value in usedflags[flag_fkey]: dupe = 1
 
                     elif flag_eqsign == C_NULLB:
 
                         # Valueless --flag (no-value) dupe check.
-                        if usedflags_valueless.hasKey(flag_fkey) or
+                        if flag_fkey in usedflags_valueless or
                         # Check if flag was used with a value already.
-                            (usedflags.hasKey(flag_fkey) and
+                            (flag_fkey in usedflags and
                             usedflags_counts[flag_fkey] < 2 and
                             lastchar == C_NULLB): dupe = 1
 
                     else: # --flag=<value> (with value) dupe check.
 
                         # If usedflags contains <flag:value> at root level.
-                        if usedflags.hasKey(flag_fkey):
+                        if flag_fkey in usedflags:
                             # If no values exists.
                             if not strset(flag_value): dupe = 1 # subl -n 2, subl -n 23
 
                             else:
                                 # Add flag to usedflags root level.
-                                if not usedflags.hasKey(flag_fkey):
+                                if flag_fkey notin usedflags:
                                     usedflags[flag_fkey] = initTable[string, int]()
-                                if usedflags[flag_fkey].hasKey(flag_value):
+                                if flag_value in usedflags[flag_fkey]:
                                     dupe = 1 # subl -n 23 -n
-                                elif usedflags_counts.hasKey(flag_fkey):
+                                elif flag_fkey in usedflags_counts:
                                     if usedflags_counts[flag_fkey] > 1: dupe = 1
 
                         # If no root level entry.
                         else:
-                            if neq(last, flag_fkey) and usedflags_valueless.hasKey(flag_fkey):
+                            if neq(last, flag_fkey) and flag_fkey in usedflags_valueless:
                                 # Add flag to usedflags root level.
-                                if not usedflags.hasKey(flag_fkey):
+                                if flag_fkey notin usedflags:
                                     usedflags[flag_fkey] = initTable[string, int]()
-                                if not usedflags[flag_fkey].hasKey(flag_value):
+                                if flag_value notin usedflags[flag_fkey]:
                                     dupe = 1 # subl --type=, subl --type= --
 
                     if dupe == 1: inc(i); continue # Skip if dupe.
@@ -1138,7 +1137,7 @@ proc main() =
                 if completions.len == 0:
                     let key = last_fkey & (if not strset(last_value): "" else: "=" & last_value)
                     let item = if not strset(last_value): last else: last_value
-                    if parsedflags.hasKey(key) and (strset(last_value) or not last.endsWith(C_EQUALSIGN)):
+                    if key in parsedflags and (strset(last_value) or not last.endsWith(C_EQUALSIGN)):
                         completions.add(item)
                 else:
                     # Note: If the last word (the flag in this case) is an options
@@ -1165,8 +1164,8 @@ proc main() =
 
             # If no cc get first level commands.
             if not strset(commandchain) and not strset(last):
-                if posargs.len == 0:
-                    if 1 in db_levels: completions = toSeq(db_levels[1].keys)
+                if posargs.len == 0 and 1 in db_levels:
+                    completions = toSeq(db_levels[1].keys)
             else:
                 let letter = if strset(commandchain): commandchain[1] else: C_UNDERSCORE
                 # Letter must exist in dictionary.
@@ -1198,7 +1197,7 @@ proc main() =
                         let cmd = if level < cmds.len: cmds[level] else: ""
 
                         # Add last command if not yet already added.
-                        if not strset(cmd) or usedcommands.hasKey(cmd): continue
+                        if not strset(cmd) or cmd in usedcommands: continue
                         # If char before caret isn't a space, completing a command.
                         if lastchar_notspace:
                             if cmd.startsWith(last):
@@ -1353,7 +1352,7 @@ proc main() =
                 inc(index)
                 # If the index exists in the remove indices table and it's
                 # value is set to `true` then do not remove from completions.
-                return not (rm_indices.hasKey(index) and rm_indices[index])
+                return not (index in rm_indices and rm_indices[index])
             )
 
             # Add prefix stubs to completions array.

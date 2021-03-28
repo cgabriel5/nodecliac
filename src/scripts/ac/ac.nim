@@ -1231,7 +1231,7 @@ proc main() =
                     )
 
                     if strset(command_str):
-                        var lchar = chop(command_str)
+                        let lchar = chop(command_str)
 
                         # Run command string.
                         if command_str[0] == C_DOLLARSIGN and

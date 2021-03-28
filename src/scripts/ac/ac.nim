@@ -795,8 +795,8 @@ proc main() =
             comptype = "flag"
 
             let letter = if strset(commandchain): commandchain[1] else: C_UNDERSCORE
-            commandchain = if strset(commandchain): commandchain else: "_"
-            if db_dict.hasKey(letter) and db_dict[letter].hasKey(commandchain):
+            if not strset(commandchain):
+                commandchain.setLen(1); commandchain[0] = C_UNDERSCORE
 
             const def = [-1, -1]
             let frange = (try: db_dict[letter][commandchain] except: [def, def])[1]

@@ -686,6 +686,12 @@ proc main() =
 
         proc trackvaluelessflag(flag: string) = usedflags_valueless[flag] = 1
 
+        # Note: Track the times ameta gets pruned. This happens when a
+        # flag and a next item are merged. This results in the ameta array
+        # getting shorted by one, which will then cause for the main loop
+        # index to lose sync. To remedy this, the amount of deletions are
+        # deducted from the loop index when accessing the ameta array.
+        var mc = 0 # ameta merge count.
         var i = 1; while i < l:
             var item = args[i]
             let nitem = if i + 1 < l: args[i + 1] else: ""
@@ -714,11 +720,11 @@ proc main() =
 
                 # If a flag has an eq-sign and therefore possible
                 # a value, simply split the flag/value and store it.
-                if ameta[i][0] > -1:
+                if ameta[i - mc][0] > -1:
                     cargs.add(item)
 
-                    let flag = item[0 .. ameta[i][0] - 1]
-                    let value = item[ameta[i][0] .. item.high]
+                    let flag = item[0 .. ameta[i - mc][0] - 1]
+                    let value = item[ameta[i - mc][0] .. item.high]
                     trackusedflag(flag, value)
                     trackflagcount(flag)
 
@@ -729,14 +735,17 @@ proc main() =
                 # Determine whether flag is a boolean flag.
                 if acdef.rfind(flag & "?", rng[0], last = rng[1]) > 0:
                     cargs.add(flag)
-                    ameta[i][1] = 1
+                    ameta[i - mc][1] = 1
                     trackvaluelessflag(flag)
 
                 else:
                     if strset(nitem) and nitem[0] != C_HYPHEN:
                         let vitem = flag & "=" & nitem
                         cargs.add(vitem)
-                        ameta[i][0] = flag.len
+                        ameta[i - mc][0] = flag.len
+                        # Shorten due to merging flag/value.
+                        ameta.setLen(ameta.high)
+                        inc(mc) # Increment merge count.
 
                         trackusedflag(flag, nitem)
 
@@ -754,6 +763,7 @@ proc main() =
                             lastchar = C_NULLB
                             cargs.add(aflag)
                             args[^1] = aflag
+                            ameta[i - mc][0] = flag.len
                         else:
                             cargs.add(flag)
 
@@ -945,8 +955,8 @@ proc main() =
                 # var last_multif: string
                 var last_value: string
 
-                if C_EQUALSIGN in last_fkey:
-                    let eqsign_index = last.find(C_EQUALSIGN)
+                let eqsign_index = ameta[^1][0]
+                if eqsign_index != -1:
                     last_fkey = last.substr(0, eqsign_index - 1)
                     last_value = last.substr(eqsign_index + 1)
 

@@ -1184,8 +1184,8 @@ proc main() =
 
                 var usedcommands = initTable[string, int]()
                 let level = commandchain.splitundel(C_DOT).high +
-                        # Increment level if completing a new command level.
-                        (if lastchar == C_SPACE: 1 else: 0)
+                    # Increment level if completing a new command level.
+                    (if lastchar == C_SPACE: 1 else: 0)
 
                 # If level does not match argument length, return. As the
                 # parsed arguments do not match that of a valid commandchain.
@@ -1420,19 +1420,19 @@ proc main() =
     # Checks whether string starts with given substring and optional suffix.
     proc cmpstart(s, sub, suffix: string = ""): bool =
         runnableExamples:
-          var s, sub: string
+            var s, sub: string
 
-          s = ".disable.second"
-          sub = ".disable"
-          doAssert cmpstart(s, sub, suffix = ".") == true
+            s = ".disable.second"
+            sub = ".disable"
+            doAssert cmpstart(s, sub, suffix = ".") == true
 
-          s = ".disable.second"
-          sub = ".disable.last"
-          doAssert cmpstart(s, sub, suffix = ".") == false
+            s = ".disable.second"
+            sub = ".disable.last"
+            doAssert cmpstart(s, sub, suffix = ".") == false
 
-          s = ".disable.second"
-          sub = ".disable"
-          doAssert cmpstart(s, sub, suffix = "+") == false
+            s = ".disable.second"
+            sub = ".disable"
+            doAssert cmpstart(s, sub, suffix = "+") == false
 
         let ls = suffix.len
         if (sub.len + ls) > (s.len + ls): return
@@ -1445,8 +1445,8 @@ proc main() =
         # Compare suffix if provided.
         if ls > 0:
             for c in suffix:
-              if c != s[i]: return
-              inc(i)
+                if c != s[i]: return
+                inc(i)
 
         return true
 

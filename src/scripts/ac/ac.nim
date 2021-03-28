@@ -862,7 +862,8 @@ proc main() =
                 var cplname: string
                 if flag_list.startsWith("--p#") and
                     scanf(flag_list, "--p#${placeholder}$.", cplname):
-                    flag_list = readFile(hdir & "/.nodecliac/registry/" & maincommand & "/placeholders/" & cplname)
+                    flag_list = readFile(hdir & "/.nodecliac/registry/" &
+                            maincommand & "/placeholders/" & cplname)
 
                 if eq(flag_list, "--"): return ""
 
@@ -882,7 +883,8 @@ proc main() =
                         if ctx.len == 0: continue
                         if ctx[0] == C_LCURLY and ctx[^1] == C_RCURLY: # Mutual exclusion.
                             ctx = ctx.strip(chars = {C_LCURLY, C_RCURLY})
-                            let flags = map(ctx.split(C_PIPE), proc (x: string): string =
+                            let flags = map(ctx.split(C_PIPE), proc (
+                                    x: string): string =
                                 (if x.len == 1: "-" else: "--") & x
                             )
                             var exclude: string

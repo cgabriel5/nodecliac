@@ -1017,8 +1017,7 @@ proc main() =
                             flag_value[^1] == C_RPAREN and
                             last_eqsign == C_EQUALSIGN:
                             comptype = "flag;nocache"
-                            let lines = execCommand(flag_value)
-                            for line in lines:
+                            for line in execCommand(flag_value):
                                 if strset(line): flags.add(last_fkey & "=" & line)
                             # Don't add literal command to completions.
                             inc(i)

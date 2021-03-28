@@ -924,13 +924,13 @@ proc main() =
                                             if lastchar == C_NULLB: dec(c)
                                         else: c = posargs.len
                                         case (operator):
-                                            of "eq": r = if c == n: true else: false
-                                            of "ne": r = if c != n: true else: false
-                                            of "gt": r = if c >  n: true else: false
-                                            of "ge": r = if c >= n: true else: false
-                                            of "lt": r = if c <  n: true else: false
-                                            of "le": r = if c <= n: true else: false
-                                            else: discard
+                                        of "eq": r = c == n
+                                        of "ne": r = c != n
+                                        of "gt": r = c >  n
+                                        of "ge": r = c >= n
+                                        of "lt": r = c <  n
+                                        of "le": r = c <= n
+                                        else: discard
                                         if invert: r = not r
                                     # elif fchar in {'1'..'9'}: continue # [TODO?]
                                     else: # Just a flag name.

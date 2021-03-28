@@ -296,10 +296,7 @@ proc main() =
                 arguments[i] = q & "`" & arguments[i] & "`" & q
 
         setEnvs()
-        var res = (
-            try: execProcess(arguments.join(" "))
-            except: ""
-        ).string
+        var res = (try: execProcess(arguments.join(" ")) except: "").string
         res.stripLineEnd()
         result = splitLines(res)
 
@@ -1288,10 +1285,7 @@ proc main() =
         # Run posthook if it exists.
         if strset(posthook):
             setEnvs(post = true)
-            var res = (
-                try: execProcess(posthook)
-                except: ""
-            ).string
+            var res = (try: execProcess(posthook) except: "").string
             res.stripLineEnd()
             var lines = splitLines(res)
             if lines.len == 1 and not strset(lines[0]): lines.setLen(0)

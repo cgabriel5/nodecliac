@@ -77,6 +77,7 @@ proc main() =
     const C_NULLB = '\0'
     const C_HYPHEN = '-'
     const C_FSLASH = '/'
+    const C_DQUOTE = '\"'
     const C_ESCAPE = '\\'
     const C_EXPOINT = '!'
     const C_NUMSIGN = '#'
@@ -1119,7 +1120,7 @@ proc main() =
 
                     # Add quoted indicator to later escape double quoted strings.
                     comptype = "flag;quoted"
-                    if quote == '\"': comptype &= ";noescape"
+                    if quote == C_DQUOTE: comptype &= ";noescape"
 
                     # If value is empty return.
                     if last_value.len == 2:

@@ -985,8 +985,8 @@ proc main() =
                     # If flag contains an eq sign.
                     let eqsign_index = flag.find(C_EQUALSIGN)
                     if eqsign_index != -1:
-                        flag_fkey = flag.substr(0, eqsign_index - 1)
-                        flag_value = flag.substr(eqsign_index + 1)
+                        flag_fkey = flag[0 ..< eqsign_index]
+                        flag_value = flag[eqsign_index + 1 .. flag.high]
                         flag_eqsign = C_EQUALSIGN
 
                         if C_QMARK in flag_fkey: flag_isbool = chop(flag_fkey)

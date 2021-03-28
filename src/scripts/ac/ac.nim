@@ -1,5 +1,3 @@
-#!/usr/bin/env nim
-
 import std/[os, osproc, algorithm, strutils, sequtils, strscans, tables]
 
 import utils/lcp

@@ -91,7 +91,7 @@ proc main() =
         comptype: string
         filedir: string
 
-        args: seq[string] = @[]
+        args: seq[string]
         cargs: seq[string] = @[]
         posargs: seq[string] = @[]
         ameta: seq[array[2, int]] = @[] # [eq-sign index, isBool]
@@ -569,16 +569,9 @@ proc main() =
             lastchar = if not (c != C_SPACE and p != C_ESCAPE): c else: C_NULLB
 
         let ranges = fn_argslices()
-        let l = ranges.len
-
-        # # Using the found argument ranges, create strings of them.
-        # var args = newSeqOfCap[tuple[arg: string, eqsign: int]](l)
-        # for rng in ranges:
-        #     let prefix = $(if rng[3] == 1: C_HYPHEN else: C_NULLB)
-        #     args.add((strfromrange(input, rng[0], rng[1] + 1, prefix), rng[2]))
 
         # Using the found argument ranges, create strings of them.
-        # var args = newSeqOfCap[tuple[arg: string, eqsign: int]](l)
+        args = newSeqOfCap[string](ranges.len)
         for rng in ranges:
             let prefix = if rng[3] == 1: "-" else: ""
             args.add(strfromrange(input, rng[0], rng[1], prefix))

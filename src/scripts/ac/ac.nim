@@ -1007,6 +1007,8 @@ proc main() =
                         # If a command-flag, run it and add items to array.
                         if flag_value[0] == C_DOLLARSIGN and
                             flag_value[1] == C_LPAREN and
+                            flag_value[^1] == C_RPAREN and
+                            last_eqsign == C_EQUALSIGN:
                             comptype = "flag;nocache"
                             let lines = execCommand(flag_value)
                             for line in lines:

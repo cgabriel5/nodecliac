@@ -6,99 +6,109 @@ proc main() =
 
     if paramCount() == 0: quit()
 
-    let oinput = paramStr(1) # Original/unmodified CLI input.
-    let cline = paramStr(2) # CLI input (could be modified via pre-parse).
-    let cpoint = paramStr(3).parseInt(); # Index where [tab] key was pressed.
-    let maincommand = paramStr(4) # Name of command completion is for.
-    let acdef = paramStr(5) # The command's .acdef file contents.
-    let posthook = paramStr(6) # Posthook file path.
-    let singletons = parseBool(paramStr(7)) # Show singleton flags?
+    let
+        oinput = paramStr(1) # Original/unmodified CLI input.
+        cline = paramStr(2) # CLI input (could be modified via pre-parse).
+        cpoint = paramStr(3).parseInt() # Index where [tab] key was pressed.
+        maincommand = paramStr(4) # Name of command completion is for.
+        acdef = paramStr(5) # The command's .acdef file contents.
+        posthook = paramStr(6) # Posthook file path.
+        singletons = parseBool(paramStr(7)) # Show singleton flags?
     var input = cline[0 ..< cpoint] # CLI input from start to caret index.
 
-    let hdir = getEnv("HOME")
-    let TESTMODE = getEnv("TESTMODE") == "1"
-
-    var isquoted: bool
-    var quote_open: bool
-    # var autocompletion = true
-
-    var last: string
-    var commandchain: string
-    var completions: seq[string] = @[]
-    var lastchar: char # Character before caret.
-    let nextchar: char = cline[cpoint] # Character after caret.
-
-    var args: seq[string] = @[]
-    var cargs: seq[string] = @[]
-    var posargs: seq[string] = @[]
-    var ameta: seq[array[2, int]] = @[] # [eq-sign index, isBool]
-
-    # Last parsed flag data.
-    var dflag: tuple[flag, value: string, eq: char]
-
-    var comptype: string
-    var filedir: string
-
-    var usedflags = initTable[string, Table[string, int]]()
-    var usedflags_valueless = initTable[string, int]()
-    var usedflags_multi = initTable[string, int]()
-    var usedflags_counts = initTable[string, int]()
-
-    const C_QUOTES = {'"', '\''}
-    const C_SPACES = {' ', '\t'}
-    const C_QUOTEMETA = Letters + Digits + {'_'}
-    const C_VALID_CMD = Letters + Digits + {'-', '.', '_', ':', '\\'}
-    const C_VALID_FLG = Letters + Digits + {'-', '_'}
+    # --------------------------------------------------------------------------
 
     type
         Range = array[2, int]
         DBEntry = Table[string, array[2, Range]]
 
-    const LVL1 = 1
-    const KEYWORD_LEN = 6
+    const
+        LVL1 = 1
+        KEYWORD_LEN = 6
 
-    const C_LC = 'c'
-    const C_LF = 'f'
+        C_LC = 'c'
+        C_LF = 'f'
 
-    const C_LPAREN = '('
-    const C_RPAREN = ')'
-    const C_LCURLY = '{'
-    const C_RCURLY = '}'
+        C_LPAREN = '('
+        C_RPAREN = ')'
+        C_LCURLY = '{'
+        C_RCURLY = '}'
 
-    const C_NL = '\n'
-    const C_DOT = '.'
-    const C_PIPE = '|'
-    const C_COMMA = '.'
-    const C_COLON = ':'
-    const C_QMARK = '?'
-    const C_SPACE = ' '
-    const C_NULLB = '\0'
-    const C_HYPHEN = '-'
-    const C_FSLASH = '/'
-    const C_DQUOTE = '\"'
-    const C_ESCAPE = '\\'
-    const C_EXPOINT = '!'
-    const C_NUMSIGN = '#'
-    const C_ASTERISK = '*'
-    const C_SEMICOLON = ';'
-    const C_EQUALSIGN = '='
-    const C_DOLLARSIGN = '$'
-    const C_UNDERSCORE = '_'
-    const C_STR_DOT = $C_SPACE
-    const C_SPACE_DOT = { C_DOT, C_SPACE }
-    const VALID_LINE_STARTS = { C_NUMSIGN, C_NL }
-    const C_FLAG_DELS = { C_COLON, C_EQUALSIGN }
+        C_NL = '\n'
+        C_DOT = '.'
+        C_TAB = '\t'
+        C_PIPE = '|'
+        C_COMMA = '.'
+        C_COLON = ':'
+        C_QMARK = '?'
+        C_SPACE = ' '
+        C_NULLB = '\0'
+        C_HYPHEN = '-'
+        C_FSLASH = '/'
+        C_DQUOTE = '\"'
+        C_SQUOTE = '\''
+        C_ESCAPE = '\\'
+        C_EXPOINT = '!'
+        C_NUMSIGN = '#'
+        C_ASTERISK = '*'
+        C_SEMICOLON = ';'
+        C_EQUALSIGN = '='
+        C_DOLLARSIGN = '$'
+        C_UNDERSCORE = '_'
 
-    const O_DEFAULT = 100 # (d)efault
-    const O_FILEDIR = 102 # (f)iledir
-    const O_CONTEXT = 99  # (c)ontext
-    const O_HYPHEN  = 45  # hyphen
+        C_STR_DOT = $C_SPACE
 
-    var db_dict = initTable[char, DBEntry]()
-    var db_levels = initTable[int, Table[string, int]]()
-    var db_defaults = initTable[string, Range]()
-    var db_filedirs = initTable[string, Range]()
-    var db_contexts = initTable[string, Range]()
+        C_SPACES = {C_SPACE, C_TAB}
+        C_SPACE_DOT = {C_DOT, C_SPACE}
+        C_QUOTES = {C_DQUOTE, C_SQUOTE}
+
+        C_ALPHANUMR = Letters + Digits
+        C_FLAG_DELS = {C_COLON, C_EQUALSIGN}
+        C_QUOTEMETA = C_ALPHANUMR + {C_UNDERSCORE}
+        C_VALID_FLG = C_ALPHANUMR + {C_HYPHEN, C_UNDERSCORE}
+        C_VALID_CMD = C_ALPHANUMR + {C_HYPHEN, C_DOT, C_UNDERSCORE,
+                                        C_COLON, C_ESCAPE}
+
+        O_DEFAULT = 100 # (d)efault
+        O_FILEDIR = 102 # (f)iledir
+        O_CONTEXT = 99  # (c)ontext
+        O_HYPHEN  = 45  # (-)hyphen
+
+    let
+        hdir = getEnv("HOME")
+        TESTMODE = getEnv("TESTMODE") == "1"
+        nextchar: char = cline[cpoint] # Character after caret.
+
+    var
+        last: string
+        commandchain: string
+        completions: seq[string] = @[]
+        lastchar: char # Character before caret.
+
+        isquoted: bool
+        quote_open: bool
+        # autocompletion = true
+        comptype: string
+        filedir: string
+
+        args: seq[string] = @[]
+        cargs: seq[string] = @[]
+        posargs: seq[string] = @[]
+        ameta: seq[array[2, int]] = @[] # [eq-sign index, isBool]
+
+        usedflags = initTable[string, Table[string, int]]()
+        usedflags_valueless = initTable[string, int]()
+        usedflags_multi = initTable[string, int]()
+        usedflags_counts = initTable[string, int]()
+
+        db_dict = initTable[char, DBEntry]()
+        db_levels = initTable[int, Table[string, int]]()
+        db_defaults = initTable[string, Range]()
+        db_filedirs = initTable[string, Range]()
+        db_contexts = initTable[string, Range]()
+
+        # Last flag data.
+        dflag: tuple[flag, value: string, eq: char]
 
     # --------------------------------------------------------- HELPER-FUNCTIONS
 

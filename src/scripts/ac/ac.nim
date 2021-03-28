@@ -995,7 +995,7 @@ proc main() =
 
                         if flag_value.startsWith(C_ASTERISK):
                             flag_multif = C_ASTERISK
-                            flag_value = flag_value[0 .. ^2]
+                            flag_value.setLen(flag_value.high)
 
                             # Track multi-starred flags.
                             usedflags_multi[flag_fkey] = 1

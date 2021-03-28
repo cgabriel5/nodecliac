@@ -140,6 +140,12 @@ proc main() =
     # @return {boolean} - Whether char is empty or not.
     func chrset(c: char): bool {.inline.} = c != C_NULLB
 
+    # Helper function which checks whether sequence/array if empty.
+    #
+    # @param  {openarray} a - The list.
+    # @return {boolean} - Whether list is empty or not.
+    func emp(a: openarray[any]): bool {.inline.} = a.len == 0
+
     # ----------------------------------------------------- VALIDATION-FUNCTIONS
 
     # Peek string for '/','~'. If contained assume it's a file/dir.
@@ -1134,7 +1140,7 @@ proc main() =
                         return ""
 
                 # If no completions, add last item so Bash compl. can add a space.
-                if completions.len == 0:
+                if emp(completions):
                     let key = last_fkey & (if not strset(last_value): "" else: "=" & last_value)
                     let item = if not strset(last_value): last else: last_value
                     if key in parsedflags and (strset(last_value) or not last.endsWith(C_EQUALSIGN)):
@@ -1164,7 +1170,7 @@ proc main() =
 
             # If no cc get first level commands.
             if not strset(commandchain) and not strset(last):
-                if posargs.len == 0 and 1 in db_levels:
+                if emp(posargs) and 1 in db_levels:
                     completions = toSeq(db_levels[1].keys)
             else:
                 let letter = if strset(commandchain): commandchain[1] else: C_UNDERSCORE
@@ -1173,7 +1179,7 @@ proc main() =
                 var rows = toSeq(db_dict[letter].keys)
                 let lastchar_notspace = lastchar != C_SPACE
 
-                if rows.len == 0: return ""
+                if emp(rows): return ""
 
                 # When there is only 1 completion item and it's the last command
                 # in the command chain, clear the completions array to not re-add
@@ -1203,7 +1209,7 @@ proc main() =
                             if cmd.startsWith(last):
                                 let c = commandchain.endsWith("." & cmd)
                                 if (not c or (c and lastchar == C_NULLB)) or
-                                posargs.len == 0 and lastchar == C_NULLB:
+                                emp(posargs) and lastchar == C_NULLB:
                                     completions.add(cmd)
                         else: completions.add(cmd) # Allow all.
 
@@ -1224,7 +1230,7 @@ proc main() =
                     if commandchain.endsWith(needle): completions.setLen(0)
 
             # Run default command if no completions were found.
-            if completions.len == 0:
+            if emp(completions):
                 var copy_commandchain = commandchain
 
                 # Loop over command chains to build individual chain levels.
@@ -1256,7 +1262,7 @@ proc main() =
 
                             # If no completions and last word is a valid completion
                             # item, add it to completions to add a trailing space.
-                            if completions.len == 0:
+                            if emp(completions):
                                 # [TODO] Make test for following case.
                                 if cmpexecout(lines, last): completions.add(last)
 
@@ -1277,7 +1283,7 @@ proc main() =
                     copy_commandchain.setLen(rlastundel(copy_commandchain))
 
         # Get filedir of command chain.
-        if completions.len == 0:
+        if emp(completions):
             let rng = acdef.lookupkw(commandchain, 2)
             if rng[0] != -1: filedir = acdef[rng[0] .. rng[1]]
 
@@ -1289,7 +1295,7 @@ proc main() =
             var lines = splitLines(res)
             if lines.len == 1 and not strset(lines[0]): lines.setLen(0)
 
-            if lines.len != 0:
+            if not emp(lines):
                 let l = last.len
                 const DSL_IDENT = "__DSL__"
                 var useditems: seq[string] = @[]
@@ -1312,7 +1318,7 @@ proc main() =
                     if isDSL and lines[i].len >= l: lines[i].delete(0, eqsign_index)
                     completions.add(lines[i])
 
-                if completions.len == 0 and isDSL:
+                if emp(completions) and isDSL:
                     for i in countup(0, useditems.high):
                         if not useditems[i].startsWith(last): continue
                         if isDSL and useditems[i].len >= l:

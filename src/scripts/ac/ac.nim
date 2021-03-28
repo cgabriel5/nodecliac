@@ -87,7 +87,7 @@ proc main() =
     const C_STR_DOT = $C_SPACE
     const C_SPACE_DOT = { C_DOT, C_SPACE }
     const VALID_LINE_STARTS = { C_NUMSIGN, C_NL }
-    const FLAGVAL_DELS = { C_COLON, C_EQUALSIGN }
+    const C_FLAG_DELS = { C_COLON, C_EQUALSIGN }
 
     const O_DEFAULT = 100 # (d)efault
     const O_FILEDIR = 102 # (f)iledir
@@ -537,7 +537,7 @@ proc main() =
 
                     else:
                         if start == -1: start = i
-                        if c in FLAGVAL_DELS and eqsign == -1 and
+                        if c in C_FLAG_DELS and eqsign == -1 and
                                 input[start] == C_HYPHEN:
                             input[i] = C_EQUALSIGN # Normalize ':' to '='.
                             eqsign = i - start

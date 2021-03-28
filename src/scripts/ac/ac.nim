@@ -188,9 +188,9 @@ proc main() =
     # @param  {string} s - The string to modify.
     # @param  {number} end - Optional end/cutoff index.
     # @return {char} - The removed character.
-    proc shift(s: var string, `end`: int = 0): char =
+    proc shift(s: var string, stop: int = 0): char =
         result = s[0]
-        s.delete(0, `end`)
+        s.delete(0, stop)
 
     # Removes first and last chars from string.
     #

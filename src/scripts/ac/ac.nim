@@ -108,7 +108,7 @@ proc main() =
         db_contexts = initTable[string, Range]()
 
         # Last flag data.
-        dflag: tuple[flag, value: string, eq: char]
+        dflag: tuple[flag, value, eq: string]
 
     # --------------------------------------------------------- HELPER-FUNCTIONS
 
@@ -423,7 +423,7 @@ proc main() =
         # If completion is for a flag, set flag data for quick access in script.
         if eq(ctype, IDENT_FLG):
             putEnv("NODECLIAC_FLAG_NAME", dflag.flag)
-            putEnv("NODECLIAC_FLAG_EQSIGN", $dflag.eq)
+            putEnv("NODECLIAC_FLAG_EQSIGN", dflag.eq)
             putEnv("NODECLIAC_FLAG_VALUE", dflag.value)
             # Indicates if last word is an open quoted value.
             putEnv("NODECLIAC_QUOTE_OPEN", if quote_open: "1" else: "0")
@@ -960,16 +960,16 @@ proc main() =
 
                 # Context string logic: end ------------------------------------
 
-                var last_fkey = last
-                var last_eqsign: char
-                var last_value: string
+                var
+                    last_fkey = last
+                    last_value, last_eqsign: string
 
                 let eqsign_index = ameta[^1][0]
                 if eqsign_index != -1:
                     last_fkey = last[0 ..< eqsign_index]
                     last_value = last[eqsign_index + 1 .. last.high]
 
-                    last_eqsign = C_EQUALSIGN
+                    last_eqsign = $C_EQUALSIGN
 
                 let last_val_quoted = last_value.len > 0 and
                     last_value[0] in C_QUOTES
@@ -983,25 +983,23 @@ proc main() =
 
                     if not flag_fkey.startsWith(last_fkey): inc(i); continue
 
-                    var flag_isbool: char
-                    var flag_eqsign: char
-                    var flag_multif: char
-                    var flag_value: string
-                    var cflag: string
+                    var
+                        flag_eqsign, flag_multif: bool
+                        flag_value, cflag: string
 
                     # If flag contains an eq sign.
                     let eqsign_index = flag_fkey.find(C_EQUALSIGN)
                     if eqsign_index != -1:
                         flag_value = flag_fkey[eqsign_index + 1 .. flag_fkey.high]
                         flag_fkey.setLen(eqsign_index)
-                        flag_eqsign = C_EQUALSIGN
+                        flag_eqsign = true
 
                         if flag_fkey[^1] == C_QMARK: discard chop(flag_fkey)
                         # Skip flag if it's mutually exclusivity.
                         if flag_fkey in excluded: inc(i); continue
 
                         if strset(flag_value) and flag_value[0] == C_ASTERISK:
-                            flag_multif = C_ASTERISK
+                            flag_multif = true
                             flag_value.setLen(flag_value.high)
 
                             # Track multi-starred flags.
@@ -1014,7 +1012,7 @@ proc main() =
                         if flag_value[0] == C_DOLLARSIGN and
                             flag_value[1] == C_LPAREN and
                             flag_value[^1] == C_RPAREN and
-                            last_eqsign == C_EQUALSIGN:
+                            eq(last_eqsign, $C_EQUALSIGN):
                             comptype = "flag;nocache"
                             for line in execCommand(flag_value):
                                 if strset(line): flags.add(last_fkey & "=" & line)
@@ -1038,8 +1036,8 @@ proc main() =
                     # with values as it's pointless to parse them. Basically, if
                     # the last word is not in the form "--form= + a character",
                     # don't show flags with values (--flag=value).
-                    if last_eqsign == C_NULLB and strset(flag_value) and
-                        flag_multif == C_NULLB:
+                    if not strset(last_eqsign) and strset(flag_value) and
+                        not flag_multif:
                         inc(i)
                         continue
 
@@ -1057,7 +1055,7 @@ proc main() =
                                 usedflags[flag_fkey] = initTable[string, int]()
                             if flag_value in usedflags[flag_fkey]: dupe = 1
 
-                    elif flag_eqsign == C_NULLB:
+                    elif not flag_eqsign:
 
                         # Valueless --flag (no-value) dupe check.
                         if flag_fkey in usedflags_valueless or
@@ -1104,13 +1102,13 @@ proc main() =
 
                     # If last word is in the form '--flag=', remove the last
                     # word from the flag to only return its option/value.
-                    if last_eqsign != C_NULLB:
+                    if strset(last_eqsign):
                         if not flag_value.startsWith(last_value) or not strset(flag_value): inc(i); continue
                         cflag = flag_value
 
                     # Don't add multi-starred flag item as its non-starred
                     # counterpart has already been added.
-                    if flag_multif != C_NULLB: inc(i); continue
+                    if flag_multif: inc(i); continue
 
                     completions.add(cflag)
 

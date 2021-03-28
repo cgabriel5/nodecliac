@@ -268,7 +268,7 @@ proc main() =
 
     # Predefine procs to maintain proc order with ac.pl.
     proc parseCmdStr(input: string): seq[string]
-    proc setEnvs(arguments: varargs[string], post=false)
+    proc setEnvs(arguments: varargs[string], post = false)
 
     # Parse and run command-flag (flag) or default command chain.
     #
@@ -365,7 +365,7 @@ proc main() =
     #
     # @param  {string} arguments - N amount of env names to set.
     # @return - Nothing is returned.
-    proc setEnvs(arguments: varargs[string], post=false) =
+    proc setEnvs(arguments: varargs[string], post = false) =
         let l = args.len
         const IDENT_CMD = "command"
         const IDENT_FLG = "flag"
@@ -741,7 +741,7 @@ proc main() =
                     inc(i); continue
 
                 let flag = fn_validate_flag(item)
-                let rng = acdef.lookupflg(chainstring, start=bound)
+                let rng = acdef.lookupflg(chainstring, start = bound)
                 # Determine whether flag is a boolean flag.
                 if acdef.rfind(flag & "?", rng[0], last = rng[1]) > 0:
                     cargs.add(flag)
@@ -881,7 +881,7 @@ proc main() =
                         var ctx = ctx.multiReplace([(" ", ""), ("\t", "")])
                         if ctx.len == 0: continue
                         if ctx[0] == C_LCURLY and ctx[^1] == C_RCURLY: # Mutual exclusion.
-                            ctx = ctx.strip(chars={C_LCURLY, C_RCURLY})
+                            ctx = ctx.strip(chars = {C_LCURLY, C_RCURLY})
                             let flags = map(ctx.split(C_PIPE), proc (x: string): string =
                                 (if x.len == 1: "-" else: "--") & x
                             )
@@ -944,7 +944,7 @@ proc main() =
                                     for flag in flags:
                                         var flag = flag
                                         let fchar = flag[0]
-                                        flag = flag.strip(chars={C_EXPOINT})
+                                        flag = flag.strip(chars = {C_EXPOINT})
                                         flag = (if flag.len == 1: "-" else: "--") & flag
                                         if fchar == C_EXPOINT: excluded[flag] = 1
                                         else: excluded.del(flag)
@@ -956,7 +956,7 @@ proc main() =
                                 if r == true:
                                     var flag = ctx
                                     let fchar = flag[0]
-                                    flag = flag.strip(chars={C_EXPOINT})
+                                    flag = flag.strip(chars = {C_EXPOINT})
                                     flag = (if flag.len == 1: "-" else: "--") & flag
                                     if fchar == C_EXPOINT: excluded[flag] = 1
                                     else: excluded.del(flag)
@@ -1285,7 +1285,7 @@ proc main() =
 
         # Run posthook if it exists.
         if strset(posthook):
-            setEnvs(post=true)
+            setEnvs(post = true)
             var res = (
                 try: execProcess(posthook)
                 except: ""

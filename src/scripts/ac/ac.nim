@@ -1018,7 +1018,7 @@ proc main() =
                             continue
 
                         # Store for later checks.
-                        parsedflags[flag_fkey & "=" & flag_value] = 1
+                        parsedflags[cflag] = 1
                     else:
                         if C_QMARK in flag_fkey: flag_isbool = chop(flag_fkey)
                         # Skip flag if it's mutually exclusivity.
@@ -1027,7 +1027,7 @@ proc main() =
                         # Create completion flag item.
                         cflag = flag_fkey
                         # Store for later checks.
-                        parsedflags[flag_fkey] = 1
+                        parsedflags[cflag] = 1
 
                     # If the last flag/word does not have an eq-sign, skip flags
                     # with values as it's pointless to parse them. Basically, if

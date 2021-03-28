@@ -971,7 +971,8 @@ proc main() =
 
                     last_eqsign = C_EQUALSIGN
 
-                let last_val_quoted = last_value.find(C_QUOTES) == 0
+                let last_val_quoted = last_value.len > 0 and
+                    last_value[0] in C_QUOTES
 
                 # Store data for env variables.
                 dflag = (last_fkey, last_value, last_eqsign)
@@ -996,11 +997,11 @@ proc main() =
                         flag_value = flag[eqsign_index + 1 .. flag.high]
                         flag_eqsign = C_EQUALSIGN
 
-                        if C_QMARK in flag_fkey: flag_isbool = chop(flag_fkey)
+                        if flag_fkey[^1] == C_QMARK: discard chop(flag_fkey)
                         # Skip flag if it's mutually exclusivity.
                         if flag_fkey in excluded: inc(i); continue
 
-                        if flag_value.startsWith(C_ASTERISK):
+                        if strset(flag_value) and flag_value[0] == C_ASTERISK:
                             flag_multif = C_ASTERISK
                             flag_value.setLen(flag_value.high)
 
@@ -1026,7 +1027,7 @@ proc main() =
                         # Store for later checks.
                         parsedflags[cflag] = 1
                     else:
-                        if C_QMARK in flag_fkey: flag_isbool = chop(flag_fkey)
+                        if flag_fkey[^1] == C_QMARK: discard chop(flag_fkey)
                         # Skip flag if it's mutually exclusivity.
                         if flag_fkey in excluded: inc(i); continue
 

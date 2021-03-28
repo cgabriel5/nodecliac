@@ -1033,7 +1033,8 @@ proc main() =
                     # with values as it's pointless to parse them. Basically, if
                     # the last word is not in the form "--form= + a character",
                     # don't show flags with values (--flag=value).
-                    if last_eqsign == C_NULLB and strset(flag_value) and flag_multif == C_NULLB:
+                    if last_eqsign == C_NULLB and strset(flag_value) and
+                        flag_multif == C_NULLB:
                         inc(i)
                         continue
 
@@ -1238,13 +1239,14 @@ proc main() =
                             discard shift(command_str, 1)
                             let lines = execCommand(command_str)
                             for line in lines:
-                                if strset(line):
-                                    if strset(last):
-                                        # Must start with command.
-                                        if line.startsWith(last): completions.add(line)
-                                    else:
-                                        if line.startsWith(C_EXPOINT): continue
+                                if not strset(line): continue
+                                if strset(last):
+                                    if line.startsWith(last):
                                         completions.add(line)
+                                else:
+                                    if line.startsWith(C_EXPOINT):
+                                        continue
+                                    completions.add(line)
 
                             # If no completions and last word is a valid completion
                             # item, add it to completions to add a trailing space.

@@ -868,7 +868,7 @@ proc main() =
 
                 # Context string logic: start ----------------------------------
 
-                let cchain = if eq(commandchain, "_"): "" else: quotemeta(commandchain)
+                let cchain = if eq(commandchain, "_"): "" else: commandchain
                 let rng = acdef.lookupkw(cchain, 1)
                 if rng[0] != -1:
                     let context = acdef[rng[0] .. rng[1]]

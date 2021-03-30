@@ -808,6 +808,7 @@ proc main() =
             let frange = (try: db_dict[letter][commandchain] except: [def, def])[1]
             if frange[0] != -1:
                 var excluded = initTable[string, int]()
+                var excluded_all = false
                 var parsedflags = initTable[string, int]()
                 var flag_list = acdef[frange[0] .. frange[1]]
 
@@ -934,7 +935,7 @@ proc main() =
                                         if fchar == C_EXPOINT:
                                             if condition in usedflags_counts: r = false
                                         else:
-                                            if condition in usedflags_counts: r = true
+                                            if "--" & condition in usedflags_counts: r = true
                                     # Once any condition fails exit loop.
                                     if r == false: break
                                 if r == true:
@@ -942,6 +943,11 @@ proc main() =
                                         var flag = flag
                                         let fchar = flag[0]
                                         flag = flag.strip(chars = {C_EXPOINT})
+                                        if flag == "*":
+                                            excluded_all = true
+                                            if last.strip(chars = {C_HYPHEN}) in conditions:
+                                                excluded_all = false
+                                            continue
                                         flag = (if flag.len == 1: "-" else: "--") & flag
                                         if fchar == C_EXPOINT: excluded[flag] = 1
                                         else: excluded.del(flag)
@@ -978,7 +984,8 @@ proc main() =
                 dflag = (last_fkey, last_value, last_eqsign)
 
                 # Process flags.
-                var i = 0; while i < flags.len:
+                var i = if excluded_all: flags.len else: 0
+                while i < flags.len:
                     var flag_fkey = flags[i]
 
                     if not flag_fkey.startsWith(last_fkey): inc(i); continue

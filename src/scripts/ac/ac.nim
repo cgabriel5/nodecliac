@@ -56,7 +56,13 @@ proc main() =
         C_DOLLARSIGN = '$'
         C_UNDERSCORE = '_'
 
+        C_STR_EMPTY = ""
+        C_STR_DHYPHEN = "--"
+        C_STR_DBL_HYPHEN = "--"
+        #
         C_STR_DOT = $C_SPACE
+        C_STR_SHYPHEN = $C_HYPHEN
+        C_STR_ASTERISK = $C_ASTERISK
 
         C_SPACES = {C_SPACE, C_TAB}
         C_SPACE_DOT = {C_DOT, C_SPACE}
@@ -871,97 +877,205 @@ proc main() =
                 let cchain = if eq(commandchain, "_"): "" else: commandchain
                 let rng = acdef.lookupkw(cchain, 1)
                 if rng[0] != -1:
-                    let context = acdef[rng[0] .. rng[1]]
 
-                    let ctxs = context.split(C_SEMICOLON)
-                    for ctx in ctxs:
-                        var ctx = ctx.multiReplace([(" ", ""), ("\t", "")])
-                        if not strset(ctx): continue
-                        if ctx[0] == C_LCURLY and ctx[^1] == C_RCURLY: # Mutual exclusion.
-                            ctx = ctx.strip(chars = {C_LCURLY, C_RCURLY})
-                            let flags = map(ctx.split(C_PIPE), proc (
-                                    x: string): string =
-                                (if x.len == 1: "-" else: "--") & x
-                            )
+                    type
+                        CtxOperator {.pure.} = enum
+                            eq, ne, gt, ge, lt, le
+
+                    proc strfromrange2(s: string, start, stop: int, prefix: string = "",
+                            skip: set[char] = {}): string =
+                        runnableExamples:
+                            var s = "nodecliac debug --disable"
+                            doAssert "nodecliac" == strfromrange2(s, 0, 8)
+
+                        let pl = prefix.len
+                        # [https://forum.nim-lang.org/t/707#3931]
+                        # [https://forum.nim-lang.org/t/735#4170]
+                        result = newStringOfCap((stop - start + 1) + pl)
+                        if pl > 0: (for c in prefix: result.add(c))
+                        for i in countup(start, stop): (if s[i] notin skip: result.add(s[i]))
+                        # if skip.len != 0:
+                            # for i in countup(start, stop): (if s[i] notin skip: result.add(s[i]))
+                        # else: (for i in countup(start, stop): result.add(s[i]))
+                        # The resulting indices may also be populated with builtin slice
+                        # notation. However, using a loop shows to be slightly faster.
+                        # [https://github.com/nim-lang/Nim/pull/2171/files]
+                        # result[result.low .. result.high] = s[start ..< stop]
+                        shallow(result)
+
+                    proc fn_ranges2(s: string, DEL: char, list: var seq[any], start, stop: int = 0) =
+                        var pos = if start > 0: start else: 0
+                        var lastpos = pos
+                        let last = if stop != 0: stop else: s.high
+
+                        while pos <= last:
+                            pos = find(s, sub = DEL, start = pos + 1)
+                            if pos == -1 or pos > last:
+                                # Handle case where only one line exists.
+                                if lastpos != -1: list.add([lastpos, last])
+                                break
+                            # if lastpos != pos and s[lastpos] != C_NUMSIGN:
+                            list.add([lastpos, pos - 1])
+                            lastpos = pos + 1
+
+                    # Checks if char is found at between start/stop indices of string.
+                    proc chrindex(s: string, c: char, start, stop: int): int =
+                        for i in countup(start, stop): (if s[i] == c: return i)
+                        return -1
+
+                    var ranges: seq[Range] = @[]
+                    fn_ranges2(acdef, C_SEMICOLON, ranges, rng[0], rng[1])
+
+                    for rng in ranges:
+                        let start = rng[0]
+                        let stop = rng[1]
+
+                        if stop - start < 0: continue # Skip empty regions.
+
+                        if acdef[start] == C_LCURLY: # Mutual exclusion.
+                            var franges: seq[Range] = @[]
+                            fn_ranges2(acdef, C_PIPE, franges, start + 1, stop - 1)
+
                             var exclude: string
-                            for flag in flags:
-                                if flag in usedflags_counts:
-                                    exclude = flag
-                                    break
+                            var flags = newSeqOfCap[string](franges.len)
+
+                            for frng in franges:
+                                let fstart = frng[0]
+                                let fstop = frng[1]
+
+                                if fstop - fstart < 0: continue # Skip empty regions.
+
+                                let flag = strfromrange2(acdef, fstart, fstop,
+                                    (if fstop - fstart > 0: C_STR_DHYPHEN else: C_STR_SHYPHEN),
+                                    C_SPACES)
+
+                                flags.add(flag)
+
+                                # for flag in flags:
+                                if flag in usedflags_counts and not strset(exclude): exclude = flag
+
                             if strset(exclude):
                                 for flag in flags:
                                     if neq(exclude, flag): excluded[flag] = 1
-                                excluded.del(exclude)
+                                    excluded.del(exclude)
+
+                            # var exclude: string
+                            # for flag in flags:
+                            #     if flag in usedflags_counts:
+                            #         exclude = flag
+                            #         break
+                            # if strset(exclude):
+                            #     for flag in flags:
+                            #         if neq(exclude, flag): excluded[flag] = 1
+                            #     excluded.del(exclude)
+
                         else:
                             var r = false
-                            if C_COLON in ctx:
-                                let parts = ctx.split(C_COLON)
-                                let flags = parts[0].split(C_COMMA)
-                                let conditions = parts[1].split(C_COMMA)
-                                # Examples:
-                                # flags:      !help,!version
-                                # conditions: #fge1, #ale4, !#fge0, !flag-name
-                                # [TODO?] index-conditions: 1follow, 1!follow
-                                for condition in conditions:
-                                    var invert = false
-                                    var condition = condition
-                                    # Check for inversion.
-                                    if condition[0] == C_EXPOINT:
-                                        discard shift(condition)
-                                        invert = true
+                            let colon_index = chrindex(acdef, C_COLON, start, stop)
+                            if colon_index != -1: # Has conditions.
+                                # Get conditions.
+                                var cranges: seq[Range] = @[]
+                                fn_ranges2(acdef, C_COMMA, cranges, colon_index + 1, stop)
+                                var conditions = newSeqOfCap[string](cranges.len)
 
-                                    let fchar = condition[0]
-                                    if fchar == C_NUMSIGN:
-                                        let operator = condition[2 .. 3]
-                                        let n = condition[4 .. ^1].parseInt()
+                                for frng in cranges:
+                                    let invert = acdef[frng[0]] == C_EXPOINT
+                                    let fstart = (if invert: 1 else: 0) + frng[0]
+                                    let fstop = frng[1]
+
+                                    if fstop - fstart < 0: continue # Skip empty regions.
+
+                                    if acdef[fstart] == C_NUMSIGN:
+                                        let operator = acdef[fstart + 2 .. fstart + 3]
+                                        let n = acdef[fstart + 4 .. fstop].parseInt()
                                         var c = 0
-                                        if condition[1] == C_LF:
+
+                                        if acdef[fstart + 1] == C_LF:
                                             c = usedflags_counts.len
                                             # Account for used '--' flag.
-                                            if c == 1 and "--" in usedflags_counts: c = 0
+                                            if c == 1 and C_STR_DHYPHEN in usedflags_counts: c = 0
                                             if lastchar == C_NULLB: dec(c)
                                         else: c = posargs.len
-                                        case (operator):
-                                        of "eq": r = c == n
-                                        of "ne": r = c != n
-                                        of "gt": r = c >  n
-                                        of "ge": r = c >= n
-                                        of "lt": r = c <  n
-                                        of "le": r = c <= n
-                                        else: discard
+
+                                        case (parseEnum[CtxOperator](operator)):
+                                        of CtxOperator.eq: r = c == n
+                                        of CtxOperator.ne: r = c != n
+                                        of CtxOperator.gt: r = c >  n
+                                        of CtxOperator.ge: r = c >= n
+                                        of CtxOperator.lt: r = c <  n
+                                        of CtxOperator.le: r = c <= n
                                         if invert: r = not r
-                                    # elif fchar in {'1'..'9'}: continue # [TODO?]
+
+                                    # elif acdef[fstart] in {'1'..'9'}: continue # [TODO?]
                                     else: # Just a flag name.
-                                        if fchar == C_EXPOINT:
-                                            if condition in usedflags_counts: r = false
+                                        let flag = strfromrange2(acdef, fstart, fstop,
+                                            (
+                                                if fstop - fstart > 0:
+                                                    C_STR_DHYPHEN
+                                                else:
+                                                    if acdef[fstart] != C_ASTERISK:
+                                                        C_STR_SHYPHEN
+                                                    else: C_STR_EMPTY
+                                            ), C_SPACES)
+                                        conditions.add(flag)
+
+                                        if invert:
+                                            if flag in usedflags_counts: r = false
                                         else:
-                                            if "--" & condition in usedflags_counts: r = true
+                                            if flag in usedflags_counts: r = true
                                     # Once any condition fails exit loop.
                                     if r == false: break
+
                                 if r == true:
-                                    for flag in flags:
-                                        var flag = flag
-                                        let fchar = flag[0]
-                                        flag = flag.strip(chars = {C_EXPOINT})
-                                        if flag == "*":
+                                    # Get flags.
+                                    var franges: seq[Range] = @[]
+                                    fn_ranges2(acdef, C_COMMA, franges, start, colon_index - 1)
+
+                                    for frng in franges:
+                                        let invert = acdef[frng[0]] == C_EXPOINT
+                                        let fstart = (if invert: 1 else: 0) + frng[0]
+                                        let fstop = frng[1]
+
+                                        if fstop - fstart < 0: continue # Skip empty regions.
+
+                                        let flag = strfromrange2(acdef, fstart, fstop,
+                                            (
+                                                if fstop - fstart > 0:
+                                                    C_STR_DHYPHEN
+                                                else:
+                                                    if acdef[fstart] != C_ASTERISK:
+                                                        C_STR_SHYPHEN
+                                                    else: C_STR_EMPTY
+                                            ), C_SPACES)
+
+                                        if eq(flag, C_STR_ASTERISK):
                                             excluded_all = true
-                                            if last.strip(chars = {C_HYPHEN}) in conditions:
-                                                excluded_all = false
+                                            if last in conditions: excluded_all = false
                                             continue
-                                        flag = (if flag.len == 1: "-" else: "--") & flag
-                                        if fchar == C_EXPOINT: excluded[flag] = 1
+                                        if invert: excluded[flag] = 1
                                         else: excluded.del(flag)
+
                             else: # Just a flag name.
-                                if ctx[0] == C_EXPOINT:
-                                    if ctx in usedflags_counts: r = false
+                                let invert = acdef[start] == C_EXPOINT
+                                let fstart = (if invert: 1 else: 0) + start
+                                let fstop = stop
+
+                                let flag = strfromrange2(acdef, fstart, fstop,
+                                    (
+                                        if fstop - fstart > 0:
+                                            C_STR_DHYPHEN
+                                        else:
+                                            if acdef[fstart] != C_ASTERISK:
+                                                C_STR_SHYPHEN
+                                            else: C_STR_EMPTY
+                                    ), C_SPACES)
+
+                                if invert:
+                                    if flag in usedflags_counts: r = false
                                 else:
-                                    if ctx in usedflags_counts: r = true
+                                    if flag in usedflags_counts: r = true
                                 if r == true:
-                                    var flag = ctx
-                                    let fchar = flag[0]
-                                    flag = flag.strip(chars = {C_EXPOINT})
-                                    flag = (if flag.len == 1: "-" else: "--") & flag
-                                    if fchar == C_EXPOINT: excluded[flag] = 1
+                                    if invert: excluded[flag] = 1
                                     else: excluded.del(flag)
 
                 # Context string logic: end ------------------------------------

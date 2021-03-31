@@ -240,23 +240,63 @@ proc main() =
     # @return {array} - The individual strings after split.
     proc splitundel(s: string, DEL: char = C_DOT): seq[string] =
         runnableExamples:
+            var s: string
             var answer: seq[string] = @[]
 
             answer = @["", "first\\.escaped", "last"]
             doAssert ".first\\.escaped.last".splitundel(C_DOT) == answer
 
             import re
-            var s = "--flag|--flag2=$('echo 123 \\| grep 1')"
+            s = "--flag|--flag2=$('echo 123 \\| grep 1')"
             answer = @["--flag", "--flag2=$(\'echo 123 \\| grep 1\')"]
-            doAssert s.splitundel(C_PIPE) == answer
+            doAssert s.splitundel('|') == answer
+
+            s = ""
+            answer = @[""]
+            doAssert splitundel(s, C_SEMICOLON) == answer
+
+            s = ";"
+            answer = @["", ""]
+            doAssert splitundel(s, C_SEMICOLON) == answer
+
+            s = ";;"
+            answer = @["", "", ""]
+            doAssert splitundel(s, C_SEMICOLON) == answer
+
+            s = "a;b\\;c;d"
+            answer = @["a", "b\\;c", "d"]
+            doAssert splitundel(s, C_SEMICOLON) == answer
+
+            s = ";a;b\\;c;d"
+            answer = @["", "a", "b\\;c", "d"]
+            doAssert splitundel(s, C_SEMICOLON) == answer
+
+            s = ";a;b\\;c;d;"
+            answer = @["", "a", "b\\;c", "d", ""]
+            doAssert splitundel(s, C_SEMICOLON) == answer
+
+            s = ";a;b\\;c;d;;"
+            answer = @["", "a", "b\\;c", "d", "", ""]
+            doAssert splitundel(s, C_SEMICOLON) == answer
 
         var lastpos = 0
-        let EOS = s.high
-        for i, c in s:
-            if c == DEL and s[i - 1] != C_ESCAPE:
+        let EOS = s.len
+        var c, p: char
+        var i = 0
+
+        if EOS == 0: return @[""]
+
+        while i < EOS:
+            swap(p, c)
+            c = s[i]
+            if c == DEL and p != C_ESCAPE:
                 result.add(s[lastpos .. i - 1])
                 lastpos = i + 1
-            elif i == EOS: result.add(s[lastpos .. i])
+            elif i == EOS - 1:
+              result.add(s[lastpos .. i])
+            inc(i)
+
+        if c == DEL: result.add("")
 
     # Finds the last unescaped delimiter starting from the right side of
     #     the source string. This is an alternative to using regex like:

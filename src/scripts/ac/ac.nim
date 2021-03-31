@@ -276,6 +276,40 @@ proc main() =
                     return i
         result = -1
 
+    # Builds a string using newStringOfCap from the given start and stop
+    #     indices of the source string.
+    #
+    # @param {string} s - The source string.
+    # @param {start} - Where to start getting characters.
+    # @param {string} - Optional string prefix.
+    # @param {set[char]} - Optional characters to skip.
+    # @return {string} - The built string.
+    proc strfromrange(s: string, start, stop: int, prefix: string = "",
+            skip: set[char] = {}): string =
+        runnableExamples:
+            var s: string
+
+            s = "nodecliac debug --disable"
+            doAssert "nodecliac" == strfromrange(s, 0, 8)
+
+            s = "{ --f lag }"
+            doAssert " --f lag " == strfromrange(s, 1, 9)
+            doAssert "--flag" == strfromrange(s, 1, 9, skip = {' '})
+
+        let pl = prefix.len
+        # [https://forum.nim-lang.org/t/707#3931]
+        # [https://forum.nim-lang.org/t/735#4170]
+        result = newStringOfCap((stop - start + 1) + pl)
+        if pl > 0: (for c in prefix: result.add(c))
+        if skip.len == 0: (for i in countup(start, stop): (result.add(s[i])))
+        else: (for i in countup(start, stop): (if s[i] notin skip: result.add(s[i])))
+        # else: (for i in countup(start, stop): result.add(s[i]))
+        # The resulting indices may also be populated with builtin slice
+        # notation. However, using a loop shows to be slightly faster.
+        # [https://github.com/nim-lang/Nim/pull/2171/files]
+        # result[result.low .. result.high] = s[start ..< stop]
+        shallow(result)
+
     # --------------------------------------------------------------------------
 
     # Predefine procs to maintain proc order with ac.pl.
@@ -501,23 +535,6 @@ proc main() =
                     if input[i] notin Digits: result.add([i, i, -1, 1])
                     else: (result.add([i, stop, -1, 0]); break)
                 else: result.add([i, i, -1, 1])
-
-        proc strfromrange(s: string, start, stop: int, prefix: string = ""): string =
-            runnableExamples:
-                var s = "nodecliac debug --disable"
-                doAssert "nodecliac" == strfromrange(s, 0, 8)
-
-            let pl = prefix.len
-            # [https://forum.nim-lang.org/t/707#3931]
-            # [https://forum.nim-lang.org/t/735#4170]
-            result = newStringOfCap((stop - start + 1) + pl)
-            if pl > 0: (for c in prefix: result.add(c))
-            for i in countup(start, stop): result.add(s[i])
-            # The resulting indices may also be populated with builtin slice
-            # notation. However, using a loop shows to be slightly faster.
-            # [https://github.com/nim-lang/Nim/pull/2171/files]
-            # result[result.low .. result.high] = s[start ..< stop]
-            shallow(result)
 
         # Parses CLI input into its individual arguments and normalizes any
         #     flag/value ':' delimiters to '='.
@@ -882,27 +899,6 @@ proc main() =
                         CtxOperator {.pure.} = enum
                             eq, ne, gt, ge, lt, le
 
-                    proc strfromrange2(s: string, start, stop: int, prefix: string = "",
-                            skip: set[char] = {}): string =
-                        runnableExamples:
-                            var s = "nodecliac debug --disable"
-                            doAssert "nodecliac" == strfromrange2(s, 0, 8)
-
-                        let pl = prefix.len
-                        # [https://forum.nim-lang.org/t/707#3931]
-                        # [https://forum.nim-lang.org/t/735#4170]
-                        result = newStringOfCap((stop - start + 1) + pl)
-                        if pl > 0: (for c in prefix: result.add(c))
-                        for i in countup(start, stop): (if s[i] notin skip: result.add(s[i]))
-                        # if skip.len != 0:
-                            # for i in countup(start, stop): (if s[i] notin skip: result.add(s[i]))
-                        # else: (for i in countup(start, stop): result.add(s[i]))
-                        # The resulting indices may also be populated with builtin slice
-                        # notation. However, using a loop shows to be slightly faster.
-                        # [https://github.com/nim-lang/Nim/pull/2171/files]
-                        # result[result.low .. result.high] = s[start ..< stop]
-                        shallow(result)
-
                     proc fn_ranges2(s: string, DEL: char, list: var seq[any], start, stop: int = 0) =
                         var pos = if start > 0: start else: 0
                         var lastpos = pos
@@ -945,7 +941,7 @@ proc main() =
 
                                 if fstop - fstart < 0: continue # Skip empty regions.
 
-                                let flag = strfromrange2(acdef, fstart, fstop,
+                                let flag = strfromrange(acdef, fstart, fstop,
                                     (if fstop - fstart > 0: C_STR_DHYPHEN else: C_STR_SHYPHEN),
                                     C_SPACES)
 
@@ -1008,7 +1004,7 @@ proc main() =
 
                                     # elif acdef[fstart] in {'1'..'9'}: continue # [TODO?]
                                     else: # Just a flag name.
-                                        let flag = strfromrange2(acdef, fstart, fstop,
+                                        let flag = strfromrange(acdef, fstart, fstop,
                                             (
                                                 if fstop - fstart > 0:
                                                     C_STR_DHYPHEN
@@ -1038,7 +1034,7 @@ proc main() =
 
                                         if fstop - fstart < 0: continue # Skip empty regions.
 
-                                        let flag = strfromrange2(acdef, fstart, fstop,
+                                        let flag = strfromrange(acdef, fstart, fstop,
                                             (
                                                 if fstop - fstart > 0:
                                                     C_STR_DHYPHEN
@@ -1060,7 +1056,7 @@ proc main() =
                                 let fstart = (if invert: 1 else: 0) + start
                                 let fstop = stop
 
-                                let flag = strfromrange2(acdef, fstart, fstop,
+                                let flag = strfromrange(acdef, fstart, fstop,
                                     (
                                         if fstop - fstart > 0:
                                             C_STR_DHYPHEN
@@ -1571,23 +1567,6 @@ proc main() =
             if c != s[index]: return
             inc(index)
         return true
-
-    proc strfromrange(s: string, start, stop: int, prefix: string = ""): string =
-        runnableExamples:
-            var s = "nodecliac debug --disable"
-            doAssert "nodecliac" == strfromrange(s, 0, 8)
-
-        let pl = prefix.len
-        # [https://forum.nim-lang.org/t/707#3931]
-        # [https://forum.nim-lang.org/t/735#4170]
-        result = newStringOfCap((stop - start + 1) + pl)
-        if pl > 0: (for c in prefix: result.add(c))
-        for i in countup(start, stop): result.add(s[i])
-        # The resulting indices may also be populated with builtin slice
-        # notation. However, using a loop shows to be slightly faster.
-        # [https://github.com/nim-lang/Nim/pull/2171/files]
-        # result[result.low .. result.high] = s[start ..< stop]
-        shallow(result)
 
     proc fn_makedb() =
         if not strset(commandchain): # First level commands only.

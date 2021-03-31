@@ -280,7 +280,8 @@ proc main() =
     #     indices of the source string.
     #
     # @param {string} s - The source string.
-    # @param {start} - Where to start getting characters.
+    # @param {start} - Where to start loop.
+    # @param {stop} - Where to stop loop.
     # @param {string} - Optional string prefix.
     # @param {set[char]} - Optional characters to skip.
     # @return {string} - The built string.

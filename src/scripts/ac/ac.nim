@@ -83,7 +83,8 @@ proc main() =
     let
         hdir = getEnv("HOME")
         TESTMODE = getEnv("TESTMODE") == "1"
-        nextchar: char = cline[cpoint] # Character after caret.
+        # Character after caret.
+        nextchar: char = if cpoint < input.len: cline[cpoint] else: C_NULLB
 
     var
         last: string
@@ -1131,7 +1132,8 @@ proc main() =
                         cflag = flag_fkey & "=" & flag_value
 
                         # If a command-flag, run it and add items to array.
-                        if flag_value[0] == C_DOLLARSIGN and
+                        if strset(flag_value) and
+                            flag_value[0] == C_DOLLARSIGN and
                             flag_value[1] == C_LPAREN and
                             flag_value[^1] == C_RPAREN and
                             eq(last_eqsign, $C_EQUALSIGN):
@@ -1357,7 +1359,8 @@ proc main() =
                         let lchar = chop(command_str)
 
                         # Run command string.
-                        if command_str[0] == C_DOLLARSIGN and
+                        if strset(command_str) and
+                            command_str[0] == C_DOLLARSIGN and
                             command_str[1] == C_LPAREN and lchar == C_RPAREN:
                             discard shift(command_str, 1)
                             let lines = execCommand(command_str)

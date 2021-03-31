@@ -310,6 +310,38 @@ proc main() =
         # result[result.low .. result.high] = s[start ..< stop]
         shallow(result)
 
+    # Get string ranges from source string between provided delimiter.
+    #
+    # @param {string} s - The source string.
+    # @param {char} - The delimiter.
+    # @param {start} - Where to start loop.
+    # @param {stop} - Where to stop loop.
+    # @return {seq[Range]} - The list of ranges.
+    proc getranges(s: string, DEL: char, start, stop: int = 0): seq[Range] =
+        var pos = if start > 0: start else: 0
+        var lastpos = pos
+        let last = if stop != 0: stop else: s.high
+
+        while pos <= last:
+            pos = find(s, sub = DEL, start = pos + 1)
+            if pos == -1 or pos > last:
+                # Handle case where only one line exists.
+                if lastpos != -1: result.add([lastpos, last])
+                break
+            result.add([lastpos, pos - 1])
+            lastpos = pos + 1
+
+    # Checks if char is found at between start/stop indices of string.
+    #
+    # @param {string} s - The source string.
+    # @param {char} - The character to find.
+    # @param {start} - Where to start search.
+    # @param {stop} - Where to stop search.
+    # @return {number} - The character index.
+    proc chrindex(s: string, c: char, start, stop: int): int =
+        for i in countup(start, stop): (if s[i] == c: return i)
+        return -1
+
     # --------------------------------------------------------------------------
 
     # Predefine procs to maintain proc order with ac.pl.
@@ -899,38 +931,14 @@ proc main() =
                         CtxOperator {.pure.} = enum
                             eq, ne, gt, ge, lt, le
 
-                    proc fn_ranges2(s: string, DEL: char, list: var seq[any], start, stop: int = 0) =
-                        var pos = if start > 0: start else: 0
-                        var lastpos = pos
-                        let last = if stop != 0: stop else: s.high
-
-                        while pos <= last:
-                            pos = find(s, sub = DEL, start = pos + 1)
-                            if pos == -1 or pos > last:
-                                # Handle case where only one line exists.
-                                if lastpos != -1: list.add([lastpos, last])
-                                break
-                            # if lastpos != pos and s[lastpos] != C_NUMSIGN:
-                            list.add([lastpos, pos - 1])
-                            lastpos = pos + 1
-
-                    # Checks if char is found at between start/stop indices of string.
-                    proc chrindex(s: string, c: char, start, stop: int): int =
-                        for i in countup(start, stop): (if s[i] == c: return i)
-                        return -1
-
-                    var ranges: seq[Range] = @[]
-                    fn_ranges2(acdef, C_SEMICOLON, ranges, rng[0], rng[1])
-
-                    for rng in ranges:
+                    for rng in getranges(acdef, C_SEMICOLON, rng[0], rng[1]):
                         let start = rng[0]
                         let stop = rng[1]
 
                         if stop - start < 0: continue # Skip empty regions.
 
                         if acdef[start] == C_LCURLY: # Mutual exclusion.
-                            var franges: seq[Range] = @[]
-                            fn_ranges2(acdef, C_PIPE, franges, start + 1, stop - 1)
+                            let franges = getranges(acdef, C_PIPE, start + 1, stop - 1)
 
                             var exclude: string
                             var flags = newSeqOfCap[string](franges.len)
@@ -970,8 +978,7 @@ proc main() =
                             let colon_index = chrindex(acdef, C_COLON, start, stop)
                             if colon_index != -1: # Has conditions.
                                 # Get conditions.
-                                var cranges: seq[Range] = @[]
-                                fn_ranges2(acdef, C_COMMA, cranges, colon_index + 1, stop)
+                                let cranges = getranges(acdef, C_COMMA, colon_index + 1, stop)
                                 var conditions = newSeqOfCap[string](cranges.len)
 
                                 for frng in cranges:
@@ -1024,10 +1031,7 @@ proc main() =
 
                                 if r == true:
                                     # Get flags.
-                                    var franges: seq[Range] = @[]
-                                    fn_ranges2(acdef, C_COMMA, franges, start, colon_index - 1)
-
-                                    for frng in franges:
+                                    for frng in getranges(acdef, C_COMMA, start, colon_index - 1):
                                         let invert = acdef[frng[0]] == C_EXPOINT
                                         let fstart = (if invert: 1 else: 0) + frng[0]
                                         let fstop = frng[1]

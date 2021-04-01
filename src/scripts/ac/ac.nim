@@ -293,7 +293,7 @@ proc main() =
                 result.add(s[lastpos .. i - 1])
                 lastpos = i + 1
             elif i == EOS - 1:
-              result.add(s[lastpos .. i])
+                result.add(s[lastpos .. i])
             inc(i)
 
         if c == DEL: result.add("")

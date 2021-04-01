@@ -997,61 +997,29 @@ proc main() =
                 var excluded = initTable[string, int]()
                 var excluded_all = false
                 var parsedflags = initTable[string, int]()
-                var flag_list = acdef[frange[0] .. frange[1]]
+                let l = frange[1] - frange[0]
+                var flags: seq[string]
 
-                # Explanation how scanf + custom definable matcher works:
-                # The provided source string (s) is provided to loop over characters.
-                # Characters are looped over and processed against the necessary
-                # char set (chars). With that being said, looping starts at the index
-                # where the ${matcherName}/$[matcherName] was invoked. This is index
-                # (start) corresponds to that start point. It is the matcher functions
-                # job to determine whether characters pass or fail the match. When
-                # characters match the captured string (str) can be built. The final
-                # thing to note is that the matcher must return an integer. This integer
-                # must be the resume index where the main loop/parser must continue off
-                # at. This index is different than that of the (start) index parameter.
-                # This value must be the amount of characters the matcher function ate.
-                # As shown below, if the (start) index is copied, it can then be
-                # calculated as `i - start`.
-                #
-                # User definable matcher for scanf which checks that the placeholder
-                #     contains valid characters.
-                #
-                # @param  {string} s - The source string.
-                # @param {string} str - The string being built/captured string.
-                # @param {number} start - Index where parsing starts.
-                # @param {set[char]} chars - Valid parsing characters.
-                # @return {number} - Amount of characters matched/eaten.
-                proc placeholder(s: string; str: var string; start: int;
-                    chars: set[char] = HexDigits): int =
+                # Expand placeholder.
+                if l == 9 and
+                    acdef[frange[0]] == C_HYPHEN and
+                    acdef[frange[0] + 1] == C_HYPHEN and
+                    acdef[frange[0] + 3] == C_NUMSIGN:
 
-                    runnableExamples:
-                        var match: string
-                        if scanf("--p#07d43e", "--p#${placeholder}$.", match):
-                            echo "[", match, "]"
+                    # [https://forum.nim-lang.org/t/4680]
+                    # Split by unescaped pipe '|' characters:
+                    flags = splitundelstrm(hdir &
+                            "/.nodecliac/registry/" &
+                            maincommand & "/placeholders/" &
+                            acdef[frange[0] + 4 .. frange[1]], C_PIPE)
 
-                    var i = start
-                    const maxlen = 6 # Cache file names are exactly 6 chars.
-                    while i < s.len and str.len <= maxlen:
-                        if s[i] notin chars: break
-                        str.add($s[i]); inc(i)
-                    # If cache file name is not 6 characters don't capture anything
-                    # as the name is invalid. Therefore reset the index to 0 which
-                    # signals the parent parser that nothing was matched/eaten.
-                    if str.len != maxlen: i = 0
-                    return (i - start) # Resume index (count of eaten chars).
+                    if flags.len == 1 and eq(flags[0], C_STR_DHYPHEN): return ""
 
-                # If a placeholder get its contents.
-                var cplname: string
-                if flag_list.startsWith("--p#") and
-                    scanf(flag_list, "--p#${placeholder}$.", cplname):
-                    flag_list = readFile(hdir & "/.nodecliac/registry/" &
-                            maincommand & "/placeholders/" & cplname)
+                else:
+                    if l == 2 and acdef[frange[0]] == C_HYPHEN and
+                        acdef[frange[0] + 1] == C_HYPHEN: return ""
 
-                if eq(flag_list, "--"): return ""
-
-                # Split by unescaped pipe '|' characters:
-                var flags = flag_list.splitundel(C_PIPE)
+                    flags = acdef.splitundeliter(frange[0], frange[1], C_PIPE)
 
                 # Context string logic: start ----------------------------------
 

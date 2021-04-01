@@ -177,9 +177,15 @@ module.exports = (S, value, vindices, resumepoint) => {
 						S.column = tindex(i);
 						error(S);
 					}
-					if (cnotin(C_LETTERS, v[1])) {
-						S.column = tindex(i + 1);
+					if (v[1] === "*" && l !== 2) {
+						S.column = tindex(i + 2);
 						error(S);
+					}
+					if (cnotin(C_LETTERS, v[1])) {
+						if (v[1] !== "*") {
+							S.column = tindex(i + 1);
+							error(S);
+						}
 					}
 				} else {
 					if (l < 1) {

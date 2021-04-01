@@ -1,4 +1,4 @@
-import std/[os, osproc, algorithm, strutils, sequtils, strscans, tables]
+import std/[os, osproc, algorithm, strutils, sequtils, memfiles, streams, tables]
 
 import utils/lcp
 
@@ -297,6 +297,96 @@ proc main() =
             inc(i)
 
         if c == DEL: result.add("")
+
+    # Function variant to `splitundel` but uses start/stop points
+    #     to get characters (either from seq[char] or string).
+    #
+    # @param  {string|openarray[char]} s - The source.
+    # @param {number} start - The index to start loop on.
+    # @param {number} stop - The index to stop loop on (inclusive).
+    # @param {char} DEL - The delimiter to split on.
+    # @return {seq[string]} - The individual strings after split.
+    proc splitundeliter(s: string|openarray[char], start, stop: int,
+        DEL: char = C_DOT): seq[string] =
+        runnableExamples:
+            # [TODO] Cover all edge cases like `splitundel`.
+
+            let s = "123 --flag=1|--flag='\\4'|--flag=1000 456"
+            let answer = @["--flag=1", "--flag=\'\\4\'", "--flag=1000"]
+            doAssert splitundeliter(s, 4, 35, C_PIPE) == answer
+
+        var lastpos = start
+        let EOS = stop + 1
+        var c, p: char
+        var i = start
+
+        if EOS == 0: return @[""]
+
+        while i < EOS:
+            swap(p, c)
+            c = s[i]
+            if c == DEL and p != C_ESCAPE:
+                result.add(s[lastpos .. i - 1])
+                lastpos = i + 1
+            elif i == EOS - 1:
+                result.add(s[lastpos .. i])
+            inc(i)
+
+        if c == DEL: result.add("")
+
+    # Function variant to `splitundel` but reads content from a file
+    #     via streams.
+    #
+    # @param  {string} s - The source file path.
+    # @param {char} DEL - The delimiter to split on.
+    # @return {seq[string]} - The individual strings after split.
+    proc splitundelstrm(f: string, DEL: char): seq[string] =
+        runnableExamples:
+            # [TODO] Cover all edge cases like `splitundel`.
+
+            import std/[os, posix_utils]
+
+            const C_PIPE = '|'
+
+            var (path, f) = mkstemp("rtest-splitundelstrm:")
+            f.write("--flag=1|--flag='\\4'|--flag=10\\|00")
+            f.close()
+            let fpath = absolutePath(path)
+            let answer = @["--flag=1", "--flag=\'\\4\'", "--flag=10\\|00"]
+            doAssert splitundelstrm(fpath, C_PIPE) == answer
+            removeFile(fpath)
+
+        # [https://forum.nim-lang.org/t/4680]
+        let fs = newMemMapFileStream(f, fmRead)
+
+        var lastpos, revert, i: int
+        var buffer: string
+        var c, p: char
+
+        while not fs.atEnd:
+            swap(p, c)
+            c = fs.readChar()
+            if c == DEL and p != C_ESCAPE:
+                buffer = newString(i - lastpos)
+                revert = i + 1
+                fs.setPosition(lastpos)
+                discard fs.readDataStr(buffer, 0 .. buffer.high)
+                fs.setPosition(revert)
+                result.add(buffer)
+                lastpos = i + 1
+
+            inc(i)
+
+        if fs.atEnd:
+            buffer = newString(i - lastpos)
+            fs.setPosition(lastpos)
+            discard fs.readDataStr(buffer, 0 .. buffer.high)
+            stripLineEnd(buffer)
+            result.add(buffer)
+
+        if c == DEL: result.add("")
+
+        fs.close()
 
     # Finds the last unescaped delimiter starting from the right side of
     #     the source string. This is an alternative to using regex like:

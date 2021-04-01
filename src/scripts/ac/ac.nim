@@ -38,10 +38,12 @@ proc main() =
         C_DOT = '.'
         C_TAB = '\t'
         C_PIPE = '|'
+        C_TICK = '`'
         C_COMMA = '.'
         C_COLON = ':'
         C_QMARK = '?'
         C_SPACE = ' '
+        C_TILDE = '~'
         C_NULLB = '\0'
         C_HYPHEN = '-'
         C_FSLASH = '/'
@@ -50,6 +52,7 @@ proc main() =
         C_ESCAPE = '\\'
         C_EXPOINT = '!'
         C_NUMSIGN = '#'
+        C_PLUSSIGN = '+'
         C_ASTERISK = '*'
         C_SEMICOLON = ';'
         C_EQUALSIGN = '='
@@ -57,12 +60,18 @@ proc main() =
         C_UNDERSCORE = '_'
 
         C_STR_EMPTY = ""
-        C_STR_DHYPHEN = "--"
-        C_STR_DBL_HYPHEN = "--"
-        #
-        C_STR_DOT = $C_SPACE
+        C_STR_DOT = $C_DOT
+        C_STR_TICK = $C_TICK
+        C_STR_COLON = $C_COLON
+        C_STR_QMARK = $C_QMARK
+        C_STR_SPACE = $C_SPACE
+        C_STR_TILDE = $C_TILDE
         C_STR_SHYPHEN = $C_HYPHEN
         C_STR_ASTERISK = $C_ASTERISK
+        C_STR_PLUSSIGN = $C_PLUSSIGN
+        C_STR_EQUALSIGN = $C_EQUALSIGN
+        C_STR_UNDERSCORE = $C_UNDERSCORE
+        C_STR_DHYPHEN = $C_HYPHEN & $C_HYPHEN
 
         C_SPACES = {C_SPACE, C_TAB}
         C_SPACE_DOT = {C_DOT, C_SPACE}
@@ -82,7 +91,7 @@ proc main() =
 
     let
         hdir = getEnv("HOME")
-        TESTMODE = getEnv("TESTMODE") == "1"
+        TESTMODE = getEnv("TESTMODE") == $1
         # Character after caret.
         nextchar: char = if cpoint < input.len: cline[cpoint] else: C_NULLB
 
@@ -160,7 +169,7 @@ proc main() =
     # @param  {string} item - The string to check.
     # @return {bool}
     proc fn_is_file_or_dir(item: string): bool {.inline.} =
-        C_FSLASH in item or eq(item, "~")
+        C_FSLASH in item or eq(item, C_STR_TILDE)
 
     # Escape '\' chars and replace unescaped slashes '/' with '.'.
     #
@@ -168,7 +177,7 @@ proc main() =
     # @return {string} - The escaped item (command) string.
     proc fn_normalize_command(item: var string): string {.inline.} =
         if fn_is_file_or_dir(item): return item
-        return item.replace(".", "\\\\.") # Escape periods.
+        return item.replace(C_STR_DOT, "\\\\.") # Escape periods.
 
     # Validates whether command/flag (--flag) only contain valid characters.
     #     Containing invalid chars exits script - terminating completion.
@@ -284,7 +293,7 @@ proc main() =
         var c, p: char
         var i = 0
 
-        if EOS == 0: return @[""]
+        if EOS == 0: return @[C_STR_EMPTY]
 
         while i < EOS:
             swap(p, c)
@@ -296,7 +305,7 @@ proc main() =
                 result.add(s[lastpos .. i])
             inc(i)
 
-        if c == DEL: result.add("")
+        if c == DEL: result.add(C_STR_EMPTY)
 
     # Function variant to `splitundel` but uses start/stop points
     #     to get characters (either from seq[char] or string).
@@ -320,7 +329,7 @@ proc main() =
         var c, p: char
         var i = start
 
-        if EOS == 0: return @[""]
+        if EOS == 0: return @[C_STR_EMPTY]
 
         while i < EOS:
             swap(p, c)
@@ -332,7 +341,7 @@ proc main() =
                 result.add(s[lastpos .. i])
             inc(i)
 
-        if c == DEL: result.add("")
+        if c == DEL: result.add(C_STR_EMPTY)
 
     # Function variant to `splitundel` but reads content from a file
     #     via streams.
@@ -384,7 +393,7 @@ proc main() =
             stripLineEnd(buffer)
             result.add(buffer)
 
-        if c == DEL: result.add("")
+        if c == DEL: result.add(C_STR_EMPTY)
 
         fs.close()
 
@@ -416,7 +425,7 @@ proc main() =
     # @param {string} - Optional string prefix.
     # @param {set[char]} - Optional characters to skip.
     # @return {string} - The built string.
-    proc strfromrange(s: string, start, stop: int, prefix: string = "",
+    proc strfromrange(s: string, start, stop: int, prefix: string = C_STR_EMPTY,
             skip: set[char] = {}): string =
         runnableExamples:
             var s: string
@@ -503,10 +512,10 @@ proc main() =
                 let q = arguments[i][0]
                 unquote(arguments[i])
                 # Wrap command in ticks to target common (sh)ell.
-                arguments[i] = q & "`" & arguments[i] & "`" & q
+                arguments[i] = q & C_STR_TICK & arguments[i] & C_STR_TICK & q
 
         setEnvs()
-        var res = (try: execProcess(arguments.join(" ")) except: "").string
+        var res = (try: execProcess(arguments.join(C_STR_SPACE)) except: C_STR_EMPTY).string
         res.stripLineEnd()
         result = splitLines(res)
 
@@ -630,7 +639,7 @@ proc main() =
             putEnv("NODECLIAC_FLAG_EQSIGN", dflag.eq)
             putEnv("NODECLIAC_FLAG_VALUE", dflag.value)
             # Indicates if last word is an open quoted value.
-            putEnv("NODECLIAC_QUOTE_OPEN", if quote_open: "1" else: "0")
+            putEnv("NODECLIAC_QUOTE_OPEN", if quote_open: $1 else: $0)
 
         # Set completion index (index where completion is being attempted) to
         # better mimic bash's $COMP_CWORD builtin variable.
@@ -760,7 +769,7 @@ proc main() =
         # Using the found argument ranges, create strings of them.
         args = newSeqOfCap[string](ranges.len)
         for rng in ranges:
-            let prefix = if rng[3] == 1: "-" else: ""
+            let prefix = if rng[3] == 1: C_STR_SHYPHEN else: C_STR_EMPTY
             args.add(strfromrange(input, rng[0], rng[1], prefix))
             ameta.add([rng[2], 0])
 
@@ -863,12 +872,12 @@ proc main() =
     # @return - Nothing is returned.
     proc fn_analyze() =
         let l = args.len
-        var chainstring = " "
+        var chainstring = C_STR_SPACE
         var bound = 0
 
         proc trackflagcount(flag: string) =
             # Track times flag was used.
-            if flag.len != 0 and (not eq(flag, "--") or not eq(flag, "-")):
+            if flag.len != 0 and (not eq(flag, C_STR_DHYPHEN) or not eq(flag, C_STR_SHYPHEN)):
                 if flag notin usedflags_counts:
                     usedflags_counts[flag] = 0
                 inc(usedflags_counts[flag])
@@ -887,7 +896,7 @@ proc main() =
         var mc = 0 # ameta merge count.
         var i = 1; while i < l:
             var item = args[i]
-            let nitem = if i + 1 < l: args[i + 1] else: ""
+            let nitem = if i + 1 < l: args[i + 1] else: C_STR_EMPTY
 
             # # Skip quoted or escaped items.
             # if item[0] in C_QUOTES or C_ESCAPE in item:
@@ -898,13 +907,13 @@ proc main() =
 
             if item[0] != C_HYPHEN:
                 let command = fn_normalize_command(item)
-                var tmpchain = commandchain & "." & command
+                var tmpchain = commandchain & C_STR_DOT & command
 
                 let rng = acdef.lookupcmd(tmpchain)
                 if rng[0] != -1:
                     chainstring = acdef[rng[0] .. rng[1]]
                     bound = rng[0]
-                    commandchain &= fn_validate_command("." & command)
+                    commandchain &= fn_validate_command(C_STR_DOT & command)
                 else: posargs.add(item)
 
                 cargs.add(item)
@@ -926,14 +935,14 @@ proc main() =
                 let flag = fn_validate_flag(item)
                 let rng = acdef.lookupflg(chainstring, start = bound)
                 # Determine whether flag is a boolean flag.
-                if acdef.rfind(flag & "?", rng[0], last = rng[1]) > 0:
+                if acdef.rfind(flag & C_STR_QMARK, rng[0], last = rng[1]) > 0:
                     cargs.add(flag)
                     ameta[i - mc][1] = 1
                     trackvaluelessflag(flag)
 
                 else:
                     if strset(nitem) and nitem[0] != C_HYPHEN:
-                        let vitem = flag & "=" & nitem
+                        let vitem = flag & C_STR_EQUALSIGN & nitem
                         cargs.add(vitem)
                         ameta[i - mc][0] = flag.len
                         # Shorten due to merging flag/value.
@@ -951,7 +960,7 @@ proc main() =
                         # will gets converted into:
                         # 'nodecliac print --command=[TAB]'
                         if (i == args.high) and lastchar == C_SPACE:
-                            let aflag = flag & "="
+                            let aflag = flag & C_STR_EQUALSIGN
                             # last = aflag
                             lastchar = C_NULLB
                             cargs.add(aflag)
@@ -967,7 +976,7 @@ proc main() =
             inc(i)
 
         # Perform final reset(s).
-        last = if lastchar == C_SPACE: "" else: cargs[^1]
+        last = if lastchar == C_SPACE: C_STR_EMPTY else: cargs[^1]
         # Reset if completion is being attempted for a quoted/escaped string.
         if lastchar == C_SPACE and cargs.len > 0:
             let litem = cargs[^1]
@@ -982,7 +991,7 @@ proc main() =
     #
     # @return - Nothing is returned.
     proc fn_lookup(): string =
-        # if isquoted or not autocompletion: return ""
+        # if isquoted or not autocompletion: return C_STR_EMPTY
 
         if last.startsWith(C_HYPHEN):
             comptype = "flag"
@@ -1013,17 +1022,18 @@ proc main() =
                             maincommand & "/placeholders/" &
                             acdef[frange[0] + 4 .. frange[1]], C_PIPE)
 
-                    if flags.len == 1 and eq(flags[0], C_STR_DHYPHEN): return ""
+                    if flags.len == 1 and eq(flags[0], C_STR_DHYPHEN):
+                        return C_STR_EMPTY
 
                 else:
                     if l == 2 and acdef[frange[0]] == C_HYPHEN and
-                        acdef[frange[0] + 1] == C_HYPHEN: return ""
+                        acdef[frange[0] + 1] == C_HYPHEN: return C_STR_EMPTY
 
                     flags = acdef.splitundeliter(frange[0], frange[1], C_PIPE)
 
                 # Context string logic: start ----------------------------------
 
-                let cchain = if eq(commandchain, "_"): "" else: commandchain
+                let cchain = if eq(commandchain, C_STR_UNDERSCORE): C_STR_EMPTY else: commandchain
                 let rng = acdef.lookupkw(cchain, 1)
                 if rng[0] != -1:
 
@@ -1227,7 +1237,7 @@ proc main() =
                             usedflags_multi[flag_fkey] = 1
 
                         # Create completion flag item.
-                        cflag = flag_fkey & "=" & flag_value
+                        cflag = flag_fkey & C_STR_EQUALSIGN & flag_value
 
                         # If a command-flag, run it and add items to array.
                         if strset(flag_value) and
@@ -1237,7 +1247,7 @@ proc main() =
                             eq(last_eqsign, $C_EQUALSIGN):
                             comptype = "flag;nocache"
                             for line in execCommand(flag_value):
-                                if strset(line): flags.add(last_fkey & "=" & line)
+                                if strset(line): flags.add(last_fkey & C_STR_EQUALSIGN & line)
                             # Don't add literal command to completions.
                             inc(i)
                             continue
@@ -1348,11 +1358,11 @@ proc main() =
                     # If value is empty return.
                     if last_value.len == 2:
                         completions.add($quote & $quote)
-                        return ""
+                        return C_STR_EMPTY
 
                 # If no completions, add last item so Bash compl. can add a space.
                 if emp(completions):
-                    let key = last_fkey & (if not strset(last_value): "" else: "=" & last_value)
+                    let key = last_fkey & (if not strset(last_value): C_STR_EMPTY else: C_STR_EQUALSIGN & last_value)
                     let item = if not strset(last_value): last else: last_value
                     if key in parsedflags and (strset(last_value) or not last.endsWith(C_EQUALSIGN)):
                         completions.add(item)
@@ -1377,7 +1387,7 @@ proc main() =
 
             # # If command chain and used flags exits, don't complete.
             # if usedflags.len > 0 and strset(commandchain):
-            #     commandchain = if not strset(last): "" else: last
+            #     commandchain = if not strset(last): C_STR_EMPTY else: last
 
             # If no cc get first level commands.
             if not strset(commandchain) and not strset(last):
@@ -1386,11 +1396,11 @@ proc main() =
             else:
                 let letter = if strset(commandchain): commandchain[1] else: C_UNDERSCORE
                 # Letter must exist in dictionary.
-                if letter notin db_dict: return ""
+                if letter notin db_dict: return C_STR_EMPTY
                 var rows = toSeq(db_dict[letter].keys)
                 let lastchar_notspace = lastchar != C_SPACE
 
-                if emp(rows): return ""
+                if emp(rows): return C_STR_EMPTY
 
                 # When there is only 1 completion item and it's the last command
                 # in the command chain, clear the completions array to not re-add
@@ -1411,14 +1421,14 @@ proc main() =
                     for row in rows:
                         let crange = db_dict[letter][row][0]
                         let cmds = splitundel(acdef[crange[0] .. crange[1]], C_DOT)
-                        let cmd = if level < cmds.len: cmds[level] else: ""
+                        let cmd = if level < cmds.len: cmds[level] else: C_STR_EMPTY
 
                         # Add last command if not yet already added.
                         if not strset(cmd) or cmd in usedcommands: continue
                         # If char before caret isn't a space, completing a command.
                         if lastchar_notspace:
                             if cmd.startsWith(last):
-                                let c = commandchain.endsWith("." & cmd)
+                                let c = commandchain.endsWith(C_STR_DOT & cmd)
                                 if (not c or (c and lastchar == C_NULLB)) or
                                 emp(posargs) and lastchar == C_NULLB:
                                     completions.add(cmd)
@@ -1432,9 +1442,9 @@ proc main() =
                 # [TODO] Make test for following case.
                 # Code is ugly but only creates a single test string.
                 var needle = newStringOfCap(completions[0].len + 2)
-                needle.add(".")
+                needle.add(C_STR_DOT)
                 needle.add(completions[0])
-                needle.add(".")
+                needle.add(C_STR_DOT)
                 if commandchain.find(needle) != -1: completions.setLen(0)
                 else:
                     needle.setLen(needle.high)
@@ -1450,7 +1460,7 @@ proc main() =
                     let crange = db_defaults.getOrDefault(copy_commandchain, [-1, -1])
                     var command_str = (
                         if crange != [-1, -1]: acdef[crange[0] .. crange[1]]
-                        else: ""
+                        else: C_STR_EMPTY
                     )
 
                     if strset(command_str):
@@ -1502,7 +1512,7 @@ proc main() =
         # Run posthook if it exists.
         if strset(posthook):
             setEnvs(post = true)
-            var res = (try: execProcess(posthook) except: "").string
+            var res = (try: execProcess(posthook) except: C_STR_EMPTY).string
             res.stripLineEnd()
             var lines = splitLines(res)
             if lines.len == 1 and not strset(lines[0]): lines.setLen(0)
@@ -1543,7 +1553,7 @@ proc main() =
         var skip_map = false
         let isflag = comptype.startsWith(C_LF)
         let iscommand = not isflag
-        let lines = comptype & ":" & last & "+" & filedir
+        let lines = comptype & C_STR_COLON & last & C_STR_PLUSSIGN & filedir
 
         # Note: When providing flag completions and only "--" is provided,
         # collapse (don't show) flags with the same prefix. This aims to
@@ -1618,7 +1628,7 @@ proc main() =
                 # completed in the middle), and flag string completions
                 # (i.e. --flag="some-word...).
                 let final_space = if isflag and not x.endsWith(C_EQUALSIGN) and
-                    x.find(C_QUOTES) != 0 and nextchar == C_NULLB: " " else: ""
+                    x.find(C_QUOTES) != 0 and nextchar == C_NULLB: C_STR_SPACE else: C_STR_EMPTY
 
                 sep & x & final_space
             )
@@ -1628,24 +1638,24 @@ proc main() =
         # so the completions need to be sorted for testing purposes.
         if TESTMODE: completions.sort()
 
-        echo lines & completions.join("")
+        echo lines & completions.join(C_STR_EMPTY)
 
     # Checks whether string starts with given substring and optional suffix.
-    proc cmpstart(s, sub, suffix: string = ""): bool =
+    proc cmpstart(s, sub, suffix: string = C_STR_EMPTY): bool =
         runnableExamples:
             var s, sub: string
 
             s = ".disable.second"
             sub = ".disable"
-            doAssert cmpstart(s, sub, suffix = ".") == true
+            doAssert cmpstart(s, sub, suffix = C_STR_DOT) == true
 
             s = ".disable.second"
             sub = ".disable.last"
-            doAssert cmpstart(s, sub, suffix = ".") == false
+            doAssert cmpstart(s, sub, suffix = C_STR_DOT) == false
 
             s = ".disable.second"
             sub = ".disable"
-            doAssert cmpstart(s, sub, suffix = "+") == false
+            doAssert cmpstart(s, sub, suffix = C_STR_PLUSSIGN) == false
 
         let ls = suffix.len
         if (sub.len + ls) > (s.len + ls): return

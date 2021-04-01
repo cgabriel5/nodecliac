@@ -10,6 +10,16 @@ tests=(
 "testapp --help for; *format*"
 "testapp --version for; !*format*"
 
+# [test-suite: alacritty]
+"alacritty --hold --class; *--class=*"
+"alacritty --hold --class= ; command\\:+"
+"alacritty --hold --class ; flag\\:--class=+"
+"alacritty --hold --title= ; command\\:+"
+"alacritty --hold --title ; flag\\:--title=+"
+"alacritty --hold --t= ; command\\:+"
+"alacritty --hold --t ; flag\\:--t=+"
+"alacritty --hold --; *--version*"
+
 # [test-suite: nodecliac]
 "nodecliac ; *uninstall*"
 # "nodecliac --nonexistantflag ;"

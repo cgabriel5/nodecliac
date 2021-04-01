@@ -69,8 +69,9 @@ const C_KD_STR* = ["context", "filedir", "exclude"]
 const C_CTX_MUT* = AlphaNum + { C_HYPHEN, C_RCURLY, C_PIPE }
 const C_CTX_CON* = AlphaNum + { C_NUMSIGN, C_HYPHEN, C_EXPOINT, C_COMMA }
 const C_CTX_ALL* = AlphaNum + { C_NUMSIGN, C_HYPHEN, C_LCURLY, C_RCURLY,
-        C_PIPE, C_EXPOINT, C_COLON, C_SEMICOLON, C_COMMA }
-const C_CTX_FLG* = AlphaNum + { C_HYPHEN, C_EXPOINT, C_COMMA, C_COLON }
+        C_PIPE, C_EXPOINT, C_COLON, C_SEMICOLON, C_COMMA, C_ASTERISK }
+const C_CTX_FLG* = AlphaNum + { C_HYPHEN, C_EXPOINT, C_COMMA, C_COLON,
+        C_ASTERISK }
 const C_CTX_OPS* = toHashSet(["eq", "ne", "gt", "ge", "lt", "le"])
 const C_CTX_CAT* = { C_LA, C_UA, C_LF, C_UF} # Conditional argument-count type.
 const C_CTX_CTT* = { C_LC, C_UC} # Conditional test-count type.

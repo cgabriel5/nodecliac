@@ -105,9 +105,13 @@ proc vcontext*(S: State, value: string = "",
                     if l < 2:
                         S.column = tindex(i)
                         error(S)
-                    if v[1] notin C_LETTERS:
-                        S.column = tindex(i + 1)
+                    if v[1] == '*' and l != 2:
+                        S.column = tindex(i + 2)
                         error(S)
+                    if v[1] notin C_LETTERS:
+                        if v[1] != '*':
+                            S.column = tindex(i + 1)
+                            error(S)
                 else:
                     if l < 1:
                         S.column = tindex(i)

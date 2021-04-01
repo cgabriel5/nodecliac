@@ -1,0 +1,59 @@
+# ACMAP for alacritty [https://github.com/alacritty/alacritty].
+# [https://github.com/alacritty/alacritty/blob/master/extra/completions/alacritty.bash]
+
+# alacritty 0.8.0-dev
+# Christian Duerr <contact@christianduerr.com>
+# Joe Wilm <joe@jwilm.com>
+# A fast, cross-platform, OpenGL terminal emulator
+
+# USAGE:
+#     alacritty [FLAGS] [OPTIONS]
+
+# FLAGS:
+#     -h, --help            Prints help information
+#         --hold            Remain open after child process exits
+#         --print-events    Print all events to stdout
+#     -q                    Reduces the level of verbosity (the min level is -qq)
+#         --ref-test        Generates ref test
+#     -v                    Increases the level of verbosity (the max level is -vvv)
+#     -V, --version         Prints version information
+
+# OPTIONS:
+#         --class <instance> | <instance>,<general>    Defines window class/app_id on X11/Wayland [default: Alacritty]
+#     -e, --command <command>...                       Command and args to execute (must be last argument)
+#         --config-file <config-file>
+#             Specify alternative configuration file [default: $XDG_CONFIG_HOME/alacritty/alacritty.yml]
+
+#         --embed <embed>
+#             Defines the X11 window ID (as a decimal integer) to embed Alacritty within
+
+#     -o, --option <option>...                         Override configuration file options [example: cursor.style=Beam]
+#     -t, --title <title>                              Defines the window title [default: Alacritty]
+#         --working-directory <working-directory>      Start the shell in the specified working directory
+
+$cmd = "bash -c 'compgen $0'"
+
+alacritty = [
+	# Flags.
+	--help::h?
+	--hold?
+	--print-events?
+	-q?
+	-qq?
+	--ref-test?
+	-v?
+	-vv?
+	-vvv?
+	--version::V?
+
+	# Options.
+	--class=
+	--command::e=$("${cmd}", "-c")
+	--config-file=$("${cmd}", "-f")
+	--embed=
+	--option::o=
+	--title::t=
+	--working-directory=$("${cmd}", "-d")
+
+	context " !*: class; !*: title; !*: t"
+]

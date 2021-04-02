@@ -111,7 +111,6 @@ module.exports = async (args) => {
 		registrypath = path.join(registrypath, "nodecliac");
 	}
 	await Promise.all([
-		// Copy completion packages.
 		copydir(resourcessrcs, acmapssource, {
 			overwrite: true,
 			dot: false,

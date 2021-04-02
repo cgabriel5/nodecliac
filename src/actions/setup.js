@@ -135,6 +135,8 @@ module.exports = async (args) => {
 		copydir(resourcespath, registrypath, {
 			overwrite: true,
 			dot: true,
+			// Ignore .git folder and root files. Only copy completion packages.
+			filter: (f) => !(f.startsWith(".git") || !-~f.indexOf("/")),
 			transform: (src /*dest, stats*/) => {
 				if (!/\.(sh|pl)$/.test(path.extname(src))) return null;
 				return transform();

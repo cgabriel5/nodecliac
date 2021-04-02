@@ -312,8 +312,15 @@ if [[ " binary manual " == *" $installer "* ]]; then
 	cp -pr "$mainpath"/config.pl "$dest/main"
 	cp -pr "$testspath"/scripts/nodecliac.sh "$dest/main/test.sh"
 	cp -pr "$binpath"/binary.sh "$dest/bin"
-	[[ -n "$packages" ]] && cp -pr "$outputdir"/resources/packages/* ~/.nodecliac/registry
-	[[ -z "$packages" ]] && cp -pr "$outputdir"/resources/packages/nodecliac ~/.nodecliac/registry
+	if [[ -n "$packages" ]]; then
+		# cp -pr "$outputdir"/resources/packages/* ~/.nodecliac/registry
+		# Ignore .git folder and root files. Only copy completion packages.
+		while read -r cpkgpath; do
+			cp -pr "$cpkgpath" ~/.nodecliac/registry
+		done < <(find "$outputdir"/resources/packages/ -maxdepth 1 -mindepth 1 \( -type d -o -type l \) -name "[!.]*")
+	else # Only copy nodecliac completion package.
+		cp -pr "$outputdir"/resources/packages/nodecliac ~/.nodecliac/registry
+	fi
 	nimbin="$outputdir/src/parser/nim/nodecliac.$os"
 	[[ -e "$nimbin" ]] && cp -pr "$nimbin" "$dest/bin"
 	acbin="$binpath/ac.$os"; [[ -e "$acbin" ]] && cp -pr "$acbin" "$dest/bin"

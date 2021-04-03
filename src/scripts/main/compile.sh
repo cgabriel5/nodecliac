@@ -300,4 +300,7 @@ if [[ -n "$genscript" ]]; then
 	# [https://forum.nim-lang.org/t/6207#38401]
 	# [https://github.com/nim-lang/Nim/issues/13826]
 	cp -pr "$nimbase" "$genscript"
+
+	# [Bug?] Using -o/--out doesn't change binary output name so change it.
+	perl -pi -e "s/\$2/$name.$USER_OS/ if eol && /^(gcc|clang)\s{1,}-o\s{1,}(.*?)\s{1,}/" "$genscript"/compile_*.sh
 fi

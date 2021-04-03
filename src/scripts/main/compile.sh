@@ -278,7 +278,7 @@ nim "$gencommand" "${args[@]}"
 [[ -f "$OUTPUT_PATH" ]] && chmod +x "$OUTPUT_PATH"
 
 # If nodecliac is installed, add binaries.
-if [[ -n "$CONVERSION" && -e ~/.nodecliac/src/bin ]]; then
+if [[ -n "$CONVERSION" && -z "$genscript" && -e ~/.nodecliac/src/bin ]]; then
 	[[ -e "$OUTPUT_PATH" ]] && cp -pr "$OUTPUT_PATH" ~/.nodecliac/src/bin
 fi
 

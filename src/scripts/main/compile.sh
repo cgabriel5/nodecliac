@@ -166,11 +166,14 @@ if [[ "$(uname -m)" == "x86_64" ]]; then CPU_ARCHITECTURE="amd64"; fi
 # [https://nim-lang.org/docs/manual.html#implementation-specific-pragmas-passl-pragma]
 
 args=(
-	"--passL:\"-no-pie\""
 	"--cpu:$CPU_ARCHITECTURE"
 	"--os:$USER_OS"
 	# "--forceBuild:on"
 )
+
+# Only add when compiling for Linux as clang on macosx complains about the
+# flag ("clang: warning: argument unused during compilation: '-no-pie'").
+[[ "$USER_OS" == "linux" ]] && echo "sfsdfdsfsdfsd" && args+=("--passL:\"-no-pie\"")
 
 if [[ "$INPUT_PATH" == *"/gui/"* ]]; then
 	COMPILE_TYPE="GUI"

@@ -6,7 +6,9 @@
 #
 # --dev: Compile development binary.
 # --prod: Compile production binary.
+# --script: Generate cross-compilation script (linux|macosx).
 # --name: Rename output binary to provided name.
+# --gen: Type of code to generate: default 'c' (c|cpp|oc|js).
 # CFLAGS: ENV var to pass options to compiler.
 #
 # Examples:
@@ -25,16 +27,17 @@ RED="\033[0;31m"
 BOLD="\033[1m"
 NC="\033[0m"
 
+# Get parent shell path: [https://askubuntu.com/a/1012236]
+# [https://stackoverflow.com/a/46918581]
+# [https://github.com/npm/npm/pull/10958]
+path="$(ls -l /proc/$SPPID/cwd | perl -ne 'print $1 if / -> (\/.*?)$/')/${1}"
+
 if [[ $# -eq 0 ]]; then
 	echo -e "${RED}Error:${NC} No arguments provided." && exit
 fi
 
-path="$1"
-# dirname="$(dirname "$path")"
-# filename="$(basename "$path")"
-
-if [[ ! -f "$path" ]]; then
-	echo -e "${RED}Error:${NC} ${BOLD}${path}${NC} doesn't exist." && exit
+if [[ ! -e "$path" ]]; then
+	echo -e "${RED}Error:${NC} ${BOLD}${1}${NC} doesn't exist." && exit
 fi
 
 # Get OS name.
@@ -47,12 +50,18 @@ fi
 
 args=("-i" "$path")
 getname=""
+getscript=""
+codegen=""
 for i in "${@}"; do
 	# [[ "$i" == "-x"* ]] && echo "<$i>" && args+=("$i")
 	[[ "$i" == "--prod" ]] && args+=("-p") && continue
 	[[ "$i" == "--dev" ]] && args+=("-d") && continue
 	[[ "$i" == "--name" ]] && getname="1" && continue
 	[[ -n "$getname" ]] && args+=("-n" "$i") && getname="" && continue
+	[[ "$i" == "--script" ]] && getscript="1" && continue
+	[[ -n "$getscript" ]] && args+=("-s" "$i") && getscript="" && continue
+	[[ "$i" == "--gen" ]] && codegen="1" && continue
+	[[ -n "$codegen" ]] && args+=("-c" "$i") && codegen="" && continue
 done
 
 CFLAGS="$CFLAGS" "$(pwd)/src/scripts/main/compile.sh" "${args[@]}"

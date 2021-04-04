@@ -1,5 +1,6 @@
 "use strict";
 
+const fs = require("fs");
 const path = require("path");
 const chalk = require("chalk");
 const shell = require("shelljs");
@@ -10,7 +11,7 @@ const de = require("directory-exists");
 const copydir = require("recursive-copy");
 const toolbox = require("../utils/toolbox.js");
 const prompt = require("prompt-sync")({ sigint: true });
-const { fmt, exit, paths, read, write, strip_comments, chmod } = toolbox;
+const { fmt, exit, paths, read, write, strip_comments, chmod, lstats } = toolbox;
 
 module.exports = async (args) => {
 	let { force, update, rcfile, packages, yes, jsInstall } = args;
@@ -106,7 +107,9 @@ module.exports = async (args) => {
 	};
 
 	// If flag isn't provided don't install packages except nodecliac.
+	let nodecliaconly = false;
 	if (!packages) {
+		nodecliaconly = true;
 		resourcespath = path.join(resourcespath, "nodecliac");
 		registrypath = path.join(registrypath, "nodecliac");
 	}
@@ -136,7 +139,13 @@ module.exports = async (args) => {
 			overwrite: true,
 			dot: true,
 			// Ignore .git folder and root files. Only copy completion packages.
-			filter: (f) => !(f.startsWith(".git") || !-~f.indexOf("/")),
+			filter: (f) => {
+				if (nodecliaconly) return true;
+				let fullpath = path.join(resourcespath, f);
+				if (f.startsWith(".git")) return false;
+				if (!f.includes("/") && fs.lstatSync(fullpath).isFile()) return false;
+				return true;
+			},
 			transform: (src /*dest, stats*/) => {
 				if (!/\.(sh|pl)$/.test(path.extname(src))) return null;
 				return transform();

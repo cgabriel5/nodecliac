@@ -21,7 +21,7 @@ module.exports = async (args) => {
 	else {
 		let res = await fe(setupfilepath);
 		if (res) {
-			let res await read(setupfilepath)
+			let res = await read(setupfilepath)
 			if (res) {
 				bashrcpath = JSON.parse(res).rcfile || bashrcpath;
 			}

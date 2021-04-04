@@ -1,0 +1,143 @@
+body {
+	font-size: 20px;
+	font-family: Roboto, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica,
+		Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
+	zoom: 100%;
+}
+
+@media (-webkit-min-device-pixel-ratio: 2) {
+	body {
+		font-size: 12;
+	}
+}
+
+.tippy-box > .tippy-arrow::before {
+	transform: scale(0.6);
+}
+
+.tippy-box {
+	font-size: 16px;
+	font-weight: bold;
+    border: 1px solid white;
+    border-radius: 3px;
+    border-radius: 0px;
+}
+
+/* Disable scrolling rubber-banding, yet still scroll overflow elements. */
+/* [https://stackoverflow.com/a/16327467] */
+/* [https://stackoverflow.com/a/29629214] */
+.macosx-no-rubberbanding {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	-webkit-overflow-scrolling: touch;
+	position: fixed;
+}
+
+/* [https://stackoverflow.com/a/26866503] */
+.macosx-zoom {
+	zoom: 75%;
+}
+
+.fa-spin {
+	-webkit-animation: fa-spin 0.6s linear infinite;
+	animation: fa-spin 0.6s linear infinite;
+}
+
+/* Selection overrides. */
+
+::selection {
+	background: rgba(16, 103, 222, 0.16); /* WebKit/Blink Browsers */
+	background: rgb(180, 216, 262, 1); /* WebKit/Blink Browsers */
+}
+::-moz-selection {
+	background: rgba(16, 103, 222, 0.16); /* Gecko Browsers */
+	background: rgb(180, 216, 262, 1); /* Gecko Browsers */
+}
+
+/* Placeholder overrides. */
+
+::placeholder {
+	/* Chrome, Firefox, Opera, Safari 10.1+ */
+	color: #999;
+	opacity: 1; /* Firefox */
+}
+
+:-ms-input-placeholder {
+	/* Internet Explorer 10-11 */
+	color: #999;
+}
+
+::-ms-input-placeholder {
+	/* Microsoft Edge */
+	color: #999;
+}
+
+/* Scrollbar overrides. */
+
+::-webkit-scrollbar {
+	width: 20px;
+	height: 20px;
+	background: #f8f8f8;
+}
+
+body::-webkit-scrollbar {
+	width: 20px;
+	height: 20px;
+	background: #f7f6f8;
+}
+
+::-webkit-scrollbar:window-inactive {
+	background: #f8f8f850;
+}
+::-webkit-scrollbar-button {
+	width: 0;
+	height: 0;
+}
+::-webkit-scrollbar-thumb {
+	background: #c1c1c1;
+	border-radius: 1000px;
+	border: 4px solid transparent;
+	background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:window-inactive {
+	background: #c1c1c150;
+	border-radius: 1000px;
+	border: 4px solid transparent;
+	background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+	background: #7d7d7d;
+	border: 4px solid transparent;
+	background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:window-inactive:hover {
+	background: #c1c1c150;
+	border: 4px solid transparent;
+	background-clip: content-box;
+}
+::-webkit-scrollbar-track {
+	background: 0 0;
+	border-radius: 0;
+}
+::-webkit-scrollbar-track:vertical {
+	background: 0 0;
+	border-radius: 0;
+	border-left: 1px solid #eaeaea;
+}
+::-webkit-scrollbar-track:horizontal {
+	background: 0 0;
+	border-radius: 0;
+	border-top: 1px solid #eaeaea;
+}
+::-webkit-scrollbar-track:vertical:window-inactive {
+	border-left: 1px solid #eaeaea50;
+}
+::-webkit-scrollbar-track:horizontal:window-inactive {
+	border-top: 1px solid #eaeaea50;
+}
+::-webkit-scrollbar-corner {
+	background: #ffffff;
+	border-top: 0px solid #dddddd;
+	border-left: 0px solid #dddddd;
+}

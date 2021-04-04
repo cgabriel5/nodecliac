@@ -1,8 +1,9 @@
 "use strict";
 
 const node = require("../helpers/nodes.js");
-const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
+const add = require("../helpers/tree-add.js");
+const { nk } = require("../helpers/enums.js");
 const rollback = require("../helpers/rollback.js");
 const bracechecks = require("../helpers/brace-checks.js");
 const { cin, cnotin, C_NL, C_SPACES } = require("../helpers/charsets.js");
@@ -20,22 +21,22 @@ const { cin, cnotin, C_NL, C_SPACES } = require("../helpers/charsets.js");
  * @return {undefined} - Nothing is returned.
  */
 module.exports = (S) => {
-	let { l, text } = S;
+	let l = S.l;
 	let state = "brace";
-	let N = node(S, "BRACE");
+	let N = node(nk.Brace, S);
 
-	let char,
-		pchar = "";
+	let c,
+		p = "";
 	for (; S.i < l; S.i++, S.column++) {
-		pchar = char;
-		char = text.charAt(S.i);
+		p = c;
+		c = S.text.charAt(S.i);
 
-		if (cin(C_NL, char)) {
+		if (cin(C_NL, c)) {
 			N.end = rollback(S) && S.i;
 			break; // Stop at nl char.
 		}
 
-		if (char === "#" && pchar !== "\\") {
+		if (c === "#" && p !== "\\") {
 			rollback(S);
 			N.end = S.i;
 			break;
@@ -44,13 +45,13 @@ module.exports = (S) => {
 		switch (state) {
 			case "brace":
 				N.brace.start = N.brace.end = S.i;
-				N.brace.value = char;
+				N.brace.value = c;
 				state = "eol-wsb";
 
 				break;
 
 			case "eol-wsb":
-				if (cnotin(C_SPACES, char)) error(S, __filename);
+				if (cnotin(C_SPACES, c)) error(S);
 				break;
 		}
 	}

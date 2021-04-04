@@ -54,18 +54,53 @@ let errors = {
 	}
 };
 
-/**
- * Print error and kill process.
- *
- * @param  {object} S - State object.
- * @param  {number} code - Error code.
- * @param  {string} parserfile - Path of parser issuing error.
- * @return {undefined} - Nothing is returned.
- */
-module.exports = (S, parserfile, code) => {
+/* Programmatically gets the filename where error occurred (file name
+*     where function was called).
+*
+* @param  {object} S - State object.
+* @param  {number} code - Error code.
+* @param  {string} parserfile - Path of parser issuing error.
+* @return - Nothing is returned.
+*/
+function get_caller_file() {
+	var originalFunc = Error.prepareStackTrace;
+
+	var callerfile;
+	try {
+		var err = new Error();
+		var currentfile;
+
+		Error.prepareStackTrace = function (err, stack) { return stack; };
+
+		currentfile = err.stack.shift().getFileName();
+
+		while (err.stack.length) {
+			callerfile = err.stack.shift().getFileName();
+			if(currentfile !== callerfile) break;
+		}
+	} catch (e) {}
+
+	Error.prepareStackTrace = originalFunc;
+
+	return callerfile;
+}
+
+/* Print error and kill process. Programmatically gets the filename where
+*     the error occurred (file name where function was called). This is
+*     better than using `currentSourcePath` everywhere.
+*
+* @param  {object} S - State object.
+* @param  {number} code - Error code.
+* @param  {string} parserfile - Path of parser issuing error.
+* @return - Nothing is returned.
+*/
+module.exports = (S, code = 0, parserfile = "") => {
+	// [https://stackoverflow.com/a/29581862]
+	let fullpath = parserfile || get_caller_file()
+
 	let { line, column } = S;
 	let { source } = S.args;
-	let parser = path.basename(parserfile).replace(/\.js$/, "");
+	let parser = path.basename(fullpath).replace(/\.js$/, "");
 
 	if (!code) code = 0; // Use default if code doesn't exist.
 	let error = errors[code ? parser : "*"][code];

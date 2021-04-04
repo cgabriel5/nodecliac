@@ -10,6 +10,16 @@ tests=(
 "testapp --help for; *format*"
 "testapp --version for; !*format*"
 
+# [test-suite: alacritty]
+"alacritty --hold --class; *--class=*"
+"alacritty --hold --class= ; command\\:+"
+"alacritty --hold --class ; flag\\:--class=+"
+"alacritty --hold --title= ; command\\:+"
+"alacritty --hold --title ; flag\\:--title=+"
+"alacritty --hold --t= ; command\\:+"
+"alacritty --hold --t ; flag\\:--t=+"
+"alacritty --hold --; *--version*"
+
 # [test-suite: nodecliac]
 "nodecliac ; *uninstall*"
 # "nodecliac --nonexistantflag ;"
@@ -69,6 +79,13 @@ tests=(
 "nim compile --; *--hint...*" # Test flag collapsing.
 "nim compile --app=con; *console*"
 "nim compile --app:con; *console*"
+
+# [test-suite: nim, Single letter sub-command tests]
+"nim c; *cc*" #
+"nim c ; *@(nim)*" # 
+"nim c --; *--hint...*" #
+"nim c --include; *--include=*" #
+"nim c --include=; *flag\\\\:--include=+@(nim)*" #
 
 # [test-suite: nimble]
 "nimble install ; *a*"

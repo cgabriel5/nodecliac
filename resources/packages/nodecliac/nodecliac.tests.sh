@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# DON'T EDIT FILE —— GENERATED: Tue Sep 01 2020 11:54:37 (1598986477)
+# DON'T EDIT FILE —— GENERATED: Sat Oct 10 2020 17:45:15 (1602377115)
 
 tests=(
 "nodecliac ;*uninstall*"
@@ -17,8 +17,8 @@ tests=(
 "nodecliac make --sou| path/to/file;*source*"
 "nodecliac make --source install --print --so;!*--source*"
 'nodecliac format --source command.acmap --print --indent "s:2" --;*strip-comments*'
-'nodecliac NONEXISTANTCOMMAND ;*format*'
-'nodecliac NONEXISTANTCOMMAND for;*format*'
-'nodecliac . ;*format*'
+'nodecliac NONEXISTANTCOMMAND ;!*format*'
+'nodecliac NONEXISTANTCOMMAND for;!*format*'
+'nodecliac . ;!*format*'
 'nodecliac . -;1:*--version*'
 )

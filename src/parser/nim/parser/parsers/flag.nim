@@ -1,10 +1,7 @@
-from tables import `[]`
+import std/tables
 
-from ../helpers/tree_add import add
-from ../helpers/types import State, Node, node
+import ../helpers/[tree_add, types, charsets]
 import ../helpers/[error, validate, forward, rollback]
-from ../helpers/charsets import C_NL, C_SPACES, C_LETTERS, C_QUOTES,
-    C_FLG_IDENT, C_KW_ALL, C_KD_STR
 
 # ------------------------------------------------------------ Parsing Breakdown
 # --flag
@@ -25,274 +22,273 @@ from ../helpers/charsets import C_NL, C_SPACES, C_LETTERS, C_QUOTES,
 # @param  {string} isoneliner - Whether to treat flag as a oneliner.
 # @return {object} - Node object.
 proc p_flag*(S: State, isoneliner: string): Node =
-    let text = S.text
-    var state = if text[S.i] == '-': "hyphen" else: "keyword"
+    var state = if S.text[S.i] == C_HYPHEN: Hyphen else: Keyword
     var stop = false # Flag: true - stops parser.
     var `type` = "escaped"
-    var N = node(S, "FLAG")
+    var N = node(nkFlag, S)
     var alias = false
     var qchar: char
     var comment = false
     var braces: seq[int] = @[]
 
     # If not a oneliner or no command scope, flag is being declared out of scope.
-    if not (isoneliner != "" or S.scopes.command.node != ""): error(S, currentSourcePath, 10)
+    if not (isoneliner != "" or S.scopes.command.kind != nkEmpty): error(S, 10)
 
     # If flag scope already exists another flag cannot be declared.
-    if S.scopes.flag.node != "": error(S, currentSourcePath, 11)
+    if S.scopes.flag.kind != nkEmpty: error(S, 11)
 
-    let l = S.l; var `char`, pchar: char
+    let l = S.l; var c, p: char
     while S.i < l:
-        pchar = `char`
-        `char` = text[S.i]
+        p = c
+        c = S.text[S.i]
 
-        if stop or `char` in C_NL:
+        if stop or c in C_NL:
             rollback(S)
-            N.`end` = S.i
+            N.stop = S.i
             break # Stop at nl char.
 
-        if `char` == '#' and pchar != '\\' and (state != "value" or comment):
+        if c == C_NUMSIGN and p != C_ESCAPE and (state != Value or comment):
             rollback(S)
-            N.`end` = S.i
+            N.stop = S.i
             break
 
-        case (state):
-            of "hyphen":
-                # [https://stackoverflow.com/a/25895905]
-                # [https://stackoverflow.com/a/12281034]
-                # RegEx to split on unescaped '|': /(?<=[^\\]|^|$)\|/
+        case state:
+        of Hyphen:
+            # [https://stackoverflow.com/a/25895905]
+            # [https://stackoverflow.com/a/12281034]
+            # RegEx to split on unescaped C_PIPE: /(?<=[^\\]|^|$)\|/
 
-                if N.hyphens.value == "":
-                    if `char` != '-': error(S, currentSourcePath)
-                    N.hyphens.start = S.i
-                    N.hyphens.`end` = S.i
-                    N.hyphens.value = $`char`
-                else:
-                    if `char` != '-':
-                        state = "name"
-                        rollback(S)
-                    else:
-                        N.hyphens.`end` = S.i
-                        N.hyphens.value &= $`char`
-
-            of "keyword":
-                const keyword_len = 6
-                let endpoint = S.i + keyword_len
-                let keyword = text[S.i .. endpoint]
-
-                # Keyword must be allowed.
-                if keyword notin C_KW_ALL: error(S, currentSourcePath)
-                N.keyword.start = S.i
-                N.keyword.`end` = endpoint
-                N.keyword.value = keyword
-                state = "keyword-spacer"
-
-                # Note: Forward indices to skip keyword chars.
-                S.i += keyword_len
-                S.column += keyword_len
-
-            of "keyword-spacer":
-                if `char` notin C_SPACES: error(S, currentSourcePath)
-                state = "wsb-prevalue"
-
-            of "name":
-                if N.name.value == "":
-                    if `char` notin C_LETTERS: error(S, currentSourcePath)
-                    N.name.start = S.i
-                    N.name.`end` = S.i
-                    N.name.value = $`char`
-                else:
-                    if `char` in C_FLG_IDENT:
-                        N.name.`end` = S.i
-                        N.name.value &= $`char`
-                    elif `char` == ':' and not alias:
-                        state = "alias"
-                        rollback(S)
-                    elif `char` == '=':
-                        state = "assignment"
-                        rollback(S)
-                    elif `char` == ',':
-                        state = "delimiter"
-                        rollback(S)
-                    elif `char` == '?':
-                        state = "boolean-indicator"
-                        rollback(S)
-                    elif `char` == '|':
-                        state = "pipe-delimiter"
-                        rollback(S)
-                    elif `char` in C_SPACES:
-                        state = "wsb-postname"
-                        rollback(S)
-                    else: error(S, currentSourcePath)
-
-            of "wsb-postname":
-                if `char` notin C_SPACES:
-                    if `char` == '=':
-                        state = "assignment"
-                        rollback(S)
-                    elif `char` == ',':
-                        state = "delimiter"
-                        rollback(S)
-                    elif `char` == '|':
-                        state = "pipe-delimiter"
-                        rollback(S)
-                    else: error(S, currentSourcePath)
-
-            of "boolean-indicator":
-                N.boolean.start = S.i
-                N.boolean.`end` = S.i
-                N.boolean.value = $`char`
-                state = "pipe-delimiter"
-
-            of "alias":
-                alias = true
-                # Next char must also be a colon.
-                let nchar = if S.i + 1 < l: text[S.i + 1] else: '\0'
-                if nchar != ':': error(S, currentSourcePath)
-                N.alias.start = S.i
-                N.alias.`end` = S.i + 2
-
-                let letter = if S.i + 2 < l: text[S.i + 2] else: '\0'
-                if letter notin C_LETTERS:
-                    S.i += 1
-                    S.column += 1
-                    error(S, currentSourcePath)
-
-                N.alias.value = $letter
-                state = "name"
-
-                # Note: Forward indices to skip alias chars.
-                S.i += 2
-                S.column += 2
-
-            of "assignment":
-                N.assignment.start = S.i
-                N.assignment.`end` = S.i
-                N.assignment.value = $`char`
-                state = "multi-indicator"
-
-            of "multi-indicator":
-                if `char` == '*':
-                    N.multi.start = S.i
-                    N.multi.`end` = S.i
-                    N.multi.value = $`char`
-                    state = "wsb-prevalue"
-                else:
-                    if `char` == '|': state = "pipe-delimiter"
-                    elif `char` == ',': state = "delimiter"
-                    else: state = "wsb-prevalue"
+            if N.hyphens.value == "":
+                if c != C_HYPHEN: error(S)
+                N.hyphens.start = S.i
+                N.hyphens.stop = S.i
+                N.hyphens.value = $c
+            else:
+                if c != C_HYPHEN:
+                    state = Name
                     rollback(S)
-
-            of "pipe-delimiter":
-                if `char` notin C_SPACES:
-                    # Note: If char is not a pipe or if the flag is not a
-                    # oneliner flag and there are more characters after the
-                    # flag error. Example:
-                    # * = [
-                    #      --help?|context "!help: #fge1"
-                    # ]
-                    if `char` != '|' or isoneliner == "": error(S, currentSourcePath)
-                    stop = true
-
-            of "delimiter":
-                N.delimiter.start = S.i
-                N.delimiter.`end` = S.i
-                N.delimiter.value = $`char`
-                state = "eol-wsb"
-
-            of "wsb-prevalue":
-                if `char` notin C_SPACES:
-                    let keyword = N.keyword.value notin C_KD_STR
-                    if `char` == '|' and keyword: state = "pipe-delimiter"
-                    elif `char` == ',': state = "delimiter"
-                    else: state = "value"
-                    rollback(S)
-
-            of "value":
-                if N.value.value == "":
-                    # Determine value type.
-                    if `char` == '$': `type` = "command-flag"
-                    elif `char` == '(':
-                        `type` = "list"
-                        braces.add(S.i)
-                    elif `char` in C_QUOTES:
-                        `type` = "quoted"
-                        qchar = `char`
-
-                    N.value.start = S.i
-                    N.value.`end` = S.i
-                    N.value.value = $`char`
                 else:
-                    if `char` == '|' and N.keyword.value notin C_KD_STR and pchar != '\\':
-                        state = "pipe-delimiter"
-                        rollback(S)
-                    else:
-                        case `type`:
-                            of "escaped":
-                                if `char` in C_SPACES and pchar != '\\':
-                                    state = "eol-wsb"
-                                    forward(S)
-                                    continue
-                            of "quoted":
-                                if `char` == qchar and pchar != '\\':
-                                    state = "eol-wsb"
-                                elif `char` == '#' and qchar == '\0':
+                    N.hyphens.stop = S.i
+                    N.hyphens.value &= $c
+
+        of Keyword:
+            const keyword_len = 6
+            let endpoint = S.i + keyword_len
+            let keyword = S.text[S.i .. endpoint]
+
+            # Keyword must be allowed.
+            if keyword notin C_KW_ALL: error(S)
+            N.keyword.start = S.i
+            N.keyword.stop = endpoint
+            N.keyword.value = keyword
+            state = KeywordSpacer
+
+            # Note: Forward indices to skip keyword chars.
+            S.i += keyword_len
+            S.column += keyword_len
+
+        of KeywordSpacer:
+            if c notin C_SPACES: error(S)
+            state = WsbPrevalue
+
+        of Name:
+            if N.name.value == "":
+                if c notin C_LETTERS: error(S)
+                N.name.start = S.i
+                N.name.stop = S.i
+                N.name.value = $c
+            else:
+                if c in C_FLG_IDENT:
+                    N.name.stop = S.i
+                    N.name.value &= $c
+                elif c == C_COLON and not alias:
+                    state = Alias
+                    rollback(S)
+                elif c == C_EQUALSIGN:
+                    state = Assignment
+                    rollback(S)
+                elif c == C_COMMA:
+                    state = Delimiter
+                    rollback(S)
+                elif c == C_QMARK:
+                    state = BooleanIndicator
+                    rollback(S)
+                elif c == C_PIPE:
+                    state = PipeDelimiter
+                    rollback(S)
+                elif c in C_SPACES:
+                    state = WsbPostname
+                    rollback(S)
+                else: error(S)
+
+        of WsbPostname:
+            if c notin C_SPACES:
+                if c == C_EQUALSIGN:
+                    state = Assignment
+                    rollback(S)
+                elif c == C_COMMA:
+                    state = Delimiter
+                    rollback(S)
+                elif c == C_PIPE:
+                    state = PipeDelimiter
+                    rollback(S)
+                else: error(S)
+
+        of BooleanIndicator:
+            N.boolean.start = S.i
+            N.boolean.stop = S.i
+            N.boolean.value = $c
+            state = PipeDelimiter
+
+        of Alias:
+            alias = true
+            # Next char must also be a colon.
+            let n = if S.i + 1 < l: S.text[S.i + 1] else: C_NULLB
+            if n != C_COLON: error(S)
+            N.alias.start = S.i
+            N.alias.stop = S.i + 2
+
+            let letter = if S.i + 2 < l: S.text[S.i + 2] else: C_NULLB
+            if letter notin C_LETTERS:
+                S.i += 1
+                S.column += 1
+                error(S)
+
+            N.alias.value = $letter
+            state = Name
+
+            # Note: Forward indices to skip alias chars.
+            S.i += 2
+            S.column += 2
+
+        of Assignment:
+            N.assignment.start = S.i
+            N.assignment.stop = S.i
+            N.assignment.value = $c
+            state = MultiIndicator
+
+        of MultiIndicator:
+            if c == C_ASTERISK:
+                N.multi.start = S.i
+                N.multi.stop = S.i
+                N.multi.value = $c
+                state = WsbPrevalue
+            else:
+                if c == C_PIPE: state = PipeDelimiter
+                elif c == C_COMMA: state = Delimiter
+                else: state = WsbPrevalue
+                rollback(S)
+
+        of PipeDelimiter:
+            if c notin C_SPACES:
+                # Note: If char is not a pipe or if the flag is not a
+                # oneliner flag and there are more characters after the
+                # flag error. Example:
+                # * = [
+                #      --help?|context "!help: #fge1"
+                # ]
+                if c != C_PIPE or isoneliner == "": error(S)
+                stop = true
+
+        of Delimiter:
+            N.delimiter.start = S.i
+            N.delimiter.stop = S.i
+            N.delimiter.value = $c
+            state = EolWsb
+
+        of WsbPrevalue:
+            if c notin C_SPACES:
+                let keyword = N.keyword.value notin C_KD_STR
+                if c == C_PIPE and keyword: state = PipeDelimiter
+                elif c == C_COMMA: state = Delimiter
+                else: state = Value
+                rollback(S)
+
+        of Value:
+            if N.value.value == "":
+                # Determine value type.
+                if c == C_DOLLARSIGN: `type` = "command-flag"
+                elif c == C_LPAREN:
+                    `type` = "list"
+                    braces.add(S.i)
+                elif c in C_QUOTES:
+                    `type` = "quoted"
+                    qchar = c
+
+                N.value.start = S.i
+                N.value.stop = S.i
+                N.value.value = $c
+            else:
+                if c == C_PIPE and N.keyword.value notin C_KD_STR and p != C_ESCAPE:
+                    state = PipeDelimiter
+                    rollback(S)
+                else:
+                    case `type`:
+                    of "escaped":
+                        if c in C_SPACES and p != C_ESCAPE:
+                            state = EolWsb
+                            forward(S)
+                            continue
+                    of "quoted":
+                        if c == qchar and p != C_ESCAPE:
+                            state = EolWsb
+                        elif c == C_NUMSIGN and qchar == C_NULLB:
+                            comment = true
+                            rollback(S)
+                    else: # list|command-flag
+                        # The following character after the initial
+                        # '$' must be a '('. If it does not follow,
+                        # error.
+                        #   --help=$"cat ~/files.text"
+                        #   --------^ Missing '(' after '$'.
+                        if `type` == "command-flag":
+                            if N.value.value.len == 1 and c != C_LPAREN:
+                                error(S)
+
+                        # The following logic, is precursor validation
+                        # logic that ensures braces are balanced and
+                        # detects inline comment.
+                        if p != C_ESCAPE:
+                            if c == C_LPAREN and qchar == C_NULLB:
+                                braces.add(S.i)
+                            elif c == C_RPAREN and qchar == C_NULLB:
+                                # If braces len is negative, opening
+                                # braces were never introduced so
+                                # current closing brace is invalid.
+                                if braces.len == 0: error(S)
+                                discard braces.pop()
+                                if braces.len == 0: state = EolWsb
+
+                            if c in C_QUOTES:
+                                if qchar == C_NULLB: qchar = c
+                                elif qchar == c: qchar = C_NULLB
+
+                            if c == C_NUMSIGN and qchar == C_NULLB:
+                                if braces.len == 0:
                                     comment = true
                                     rollback(S)
-                            else: # list|command-flag
-                                # The following character after the initial
-                                # '$' must be a '('. If it does not follow,
-                                # error.
-                                #   --help=$"cat ~/files.text"
-                                #   --------^ Missing '(' after '$'.
-                                if `type` == "command-flag":
-                                    if N.value.value.len == 1 and `char` != '(':
-                                        error(S, currentSourcePath)
+                                else:
+                                    S.column = braces.pop() - S.tables.linestarts[S.line]
+                                    inc(S.column) # Add 1 to account for 0 base indexing.
+                                    error(S)
 
-                                # The following logic, is precursor validation
-                                # logic that ensures braces are balanced and
-                                # detects inline comment.
-                                if pchar != '\\':
-                                    if `char` == '(' and qchar == '\0':
-                                        braces.add(S.i)
-                                    elif `char` == ')' and qchar == '\0':
-                                        # If braces len is negative, opening
-                                        # braces were never introduced so
-                                        # current closing brace is invalid.
-                                        if braces.len == 0: error(S, currentSourcePath)
-                                        discard braces.pop()
-                                        if braces.len == 0: state = "eol-wsb"
+                    N.value.stop = S.i
+                    N.value.value &= $c
 
-                                    if `char` in C_QUOTES:
-                                        if qchar == '\0': qchar = `char`
-                                        elif qchar == `char`: qchar = '\0'
+        of EolWsb:
+            if c == C_PIPE and N.keyword.value notin C_KD_STR and p != C_ESCAPE:
+                state = PipeDelimiter
+                rollback(S)
+            elif c notin C_SPACES: error(S)
 
-                                    if `char` == '#' and qchar == '\0':
-                                        if braces.len == 0:
-                                            comment = true
-                                            rollback(S)
-                                        else:
-                                            S.column = braces.pop() - S.tables.linestarts[S.line]
-                                            inc(S.column) # Add 1 to account for 0 base indexing.
-                                            error(S, currentSourcePath)
-
-                        N.value.`end` = S.i
-                        N.value.value &= $`char`
-
-            of "eol-wsb":
-                if `char` == '|' and N.keyword.value notin C_KD_STR and pchar != '\\':
-                    state = "pipe-delimiter"
-                    rollback(S)
-                elif `char` notin C_SPACES: error(S, currentSourcePath)
-
-            else: discard
+        else: discard
 
         forward(S)
 
     # If scope is created store ref to Node object.
     if N.value.value == "(":
         N.brackets.start = N.value.start
-        N.brackets.`end` = N.value.start
+        N.brackets.stop = N.value.start
         N.brackets.value = N.value.value
         S.scopes.flag = N
 
@@ -303,7 +299,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
 
         # Add alias node if it exists.
         if N.alias.value != "":
-            var cN = node(S, "FLAG")
+            var cN = node(nkFlag, S)
             cN.hyphens.value = "-"
             cN.delimiter.value = ","
             cN.name.value = N.alias.value
@@ -314,7 +310,7 @@ proc p_flag*(S: State, isoneliner: string): Node =
             add(S, cN)
 
             # Add context node for mutual exclusivity.
-            let xN = node(S, "FLAG")
+            let xN = node(nkFlag, S)
             xN.value.value = "\"{" & N.name.value & "|" & N.alias.value & "}\""
             xN.keyword.value = "context"
             xN.singleton = false

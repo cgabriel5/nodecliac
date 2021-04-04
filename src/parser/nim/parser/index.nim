@@ -1,59 +1,59 @@
-from tables import `[]=`, `[]`, hasKey, `$`
+import std/tables
 
 import tools/[acdef, formatter]
-from helpers/types import state
-from helpers/charsets import C_NL, C_SPACES, C_SOL
-import helpers/[brace_checks, error, linetype, specificity, tracer, rollback, forward]
-import parsers/[comment, newline, setting, variable, command, flag, option, close_brace]
+import parsers/[command, flag, option, close_brace]
+import parsers/[comment, newline, setting, variable]
+import helpers/[charsets, types, brace_checks, error]
+import helpers/[linetype, specificity, tracer, forward]
 
-proc parser*(action: string, text: string, cmdname: string, source: string,
-    fmt: tuple, trace: bool, igc: bool, test: bool): tuple =
+proc parser*(action, text, cmdname, source: string,
+            fmt: tuple, trace, igc, test: bool): tuple =
     var S = state(action, cmdname, text, source, fmt, trace, igc, test)
-    var ltype = ""
+    var ltype: LineType
 
-    let l = S.l; var `char`, nchar: char
+    let l = S.l; var c, n: char
     while S.i < l:
-        `char` = text[S.i]
-        nchar = if S.i + 1 < l: text[S.i + 1] else: '\0'
+        c = text[S.i]
+        n = if S.i + 1 < l: text[S.i + 1] else: C_NULLB
 
         # Handle newlines.
-        if `char` in C_NL:
+        if c in C_NL:
             p_newline(S)
             forward(S)
             continue
 
         # Handle inline comment.
-        if `char` == '#' and S.sol_char != '\0':
-            tracer.trace(S, "comment")
+        if c == C_NUMSIGN and S.sol_char != C_NULLB:
+            tracer.trace(S, LTComment)
             p_comment(S, true)
             forward(S)
             continue
 
         # Store line start index.
-        if not S.tables.linestarts.hasKey(S.line):
+        if S.line notin S.tables.linestarts:
             S.tables.linestarts[S.line] = S.i
 
         # Start parsing at first non-ws character.
-        if S.sol_char == '\0' and `char` notin C_SPACES:
-            S.sol_char = `char`
+        if S.sol_char == C_NULLB and c notin C_SPACES:
+            S.sol_char = c
 
             # Sol char must be allowed.
-            if `char` notin C_SOL: error(S, currentSourcePath, 10)
+            if c notin C_SOL: error(S, 10)
 
-            ltype = linetype(S, `char`, nchar)
-            if ltype == "terminator": break
+            ltype = linetype(S, c, n)
+            if ltype == LTTerminator: break
 
             specificity(S, ltype, currentSourcePath)
 
             tracer.trace(S, ltype)
             case (ltype):
-            of "comment": p_comment(S)
-            of "setting": p_setting(S)
-            of "variable": p_variable(S)
-            of "command": p_command(S)
-            of "flag": discard p_flag(S, isoneliner = "")
-            of "option": discard p_option(S)
-            of "close-brace": p_closebrace(S)
+            of LTComment: p_comment(S)
+            of LTSetting: p_setting(S)
+            of LTVariable: p_variable(S)
+            of LTCommand: p_command(S)
+            of LTFlag: discard p_flag(S, isoneliner = "")
+            of LTOption: discard p_option(S)
+            of LTCloseBrace: p_closebrace(S)
             else: discard
 
         forward(S)

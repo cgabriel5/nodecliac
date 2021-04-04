@@ -1,8 +1,9 @@
 "use strict";
 
 const node = require("../helpers/nodes.js");
-const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
+const add = require("../helpers/tree-add.js");
+const { nk } = require("../helpers/enums.js");
 const rollback = require("../helpers/rollback.js");
 const validate = require("../helpers/validate.js");
 const {
@@ -31,23 +32,23 @@ const {
  * @return {undefined} - Nothing is returned.
  */
 module.exports = (S) => {
-	let { l, text } = S;
+	let l = S.l;
 	let qchar;
 	let state = "sigil";
-	let N = node(S, "SETTING");
+	let N = node(nk.Setting, S);
 
-	let char,
-		pchar = "";
+	let c,
+		p = "";
 	for (; S.i < l; S.i++, S.column++) {
-		pchar = char;
-		char = text.charAt(S.i);
+		p = c;
+		c = S.text.charAt(S.i);
 
-		if (cin(C_NL, char)) {
+		if (cin(C_NL, c)) {
 			N.end = rollback(S) && S.i;
 			break; // Stop at nl char.
 		}
 
-		if (char === "#" && pchar !== "\\" && state !== "value") {
+		if (c === "#" && p !== "\\" && state !== "value") {
 			rollback(S);
 			N.end = S.i;
 			break;
@@ -62,44 +63,44 @@ module.exports = (S) => {
 
 			case "name":
 				if (!N.name.value) {
-					if (cnotin(C_LETTERS, char)) error(S, __filename);
+					if (cnotin(C_LETTERS, c)) error(S);
 
 					N.name.start = N.name.end = S.i;
-					N.name.value = char;
+					N.name.value = c;
 				} else {
-					if (cin(C_SET_IDENT, char)) {
+					if (cin(C_SET_IDENT, c)) {
 						N.name.end = S.i;
-						N.name.value += char;
-					} else if (cin(C_SPACES, char)) {
+						N.name.value += c;
+					} else if (cin(C_SPACES, c)) {
 						state = "name-wsb";
 						continue;
-					} else if (char === "=") {
+					} else if (c === "=") {
 						state = "assignment";
 						rollback(S);
-					} else error(S, __filename);
+					} else error(S);
 				}
 
 				break;
 
 			case "name-wsb":
-				if (cnotin(C_SPACES, char)) {
-					if (char === "=") {
+				if (cnotin(C_SPACES, c)) {
+					if (c === "=") {
 						state = "assignment";
 						rollback(S);
-					} else error(S, __filename);
+					} else error(S);
 				}
 
 				break;
 
 			case "assignment":
 				N.assignment.start = N.assignment.end = S.i;
-				N.assignment.value = char;
+				N.assignment.value = c;
 				state = "value-wsb";
 
 				break;
 
 			case "value-wsb":
-				if (cnotin(C_SPACES, char)) {
+				if (cnotin(C_SPACES, c)) {
 					state = "value";
 					rollback(S);
 				}
@@ -108,23 +109,23 @@ module.exports = (S) => {
 
 			case "value":
 				if (!N.value.value) {
-					if (cnotin(C_SET_VALUE, char)) error(S, __filename);
+					if (cnotin(C_SET_VALUE, c)) error(S);
 
-					if (cin(C_QUOTES, char)) qchar = char;
+					if (cin(C_QUOTES, c)) qchar = c;
 					N.value.start = N.value.end = S.i;
-					N.value.value = char;
+					N.value.value = c;
 				} else {
 					if (qchar) {
-						if (char === qchar && pchar !== "\\") state = "eol-wsb";
+						if (c === qchar && p !== "\\") state = "eol-wsb";
 						N.value.end = S.i;
-						N.value.value += char;
+						N.value.value += c;
 					} else {
-						if (cin(C_SPACES, char) && pchar !== "\\") {
+						if (cin(C_SPACES, c) && p !== "\\") {
 							state = "eol-wsb";
 							rollback(S);
 						} else {
 							N.value.end = S.i;
-							N.value.value += char;
+							N.value.value += c;
 						}
 					}
 				}
@@ -132,7 +133,7 @@ module.exports = (S) => {
 				break;
 
 			case "eol-wsb":
-				if (cnotin(C_SPACES, char)) error(S, __filename);
+				if (cnotin(C_SPACES, c)) error(S);
 
 				break;
 		}

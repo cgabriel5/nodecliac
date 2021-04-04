@@ -16,7 +16,7 @@ module.exports = (S, N, check) => {
 		// Command can't be declared inside a command scope.
 		case "pre-existing-cs": {
 			let scope = S.scopes.command;
-			if (scope) error(S, __filename, 10);
+			if (scope) error(S, 10);
 
 			break;
 		}
@@ -26,7 +26,7 @@ module.exports = (S, N, check) => {
 		case "reset-scope": {
 			let type = N.brace.value === "]" ? "command" : "flag";
 			if (S.scopes[type]) S.scopes[type] = null;
-			else error(S, __filename, 11);
+			else error(S, 11);
 
 			break;
 		}
@@ -42,7 +42,7 @@ module.exports = (S, N, check) => {
 
 				S.column = brackets_start - linestart + 1; // Point to bracket.
 				S.line = scope.line; // Reset to line of unclosed scope.
-				error(S, __filename, 12);
+				error(S, 12);
 			}
 
 			break;
@@ -55,7 +55,7 @@ module.exports = (S, N, check) => {
 				const linestart = S.tables.linestarts[S.line];
 
 				S.column = S.i - linestart + 1; // Point to bracket.
-				error(S, __filename, 13);
+				error(S, 13);
 			}
 
 			break;

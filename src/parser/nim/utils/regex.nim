@@ -1,4 +1,4 @@
-from re import Regex, findBounds
+import std/re
 
 # Like findBounds() but returns all found bounds in a sequence.
 #

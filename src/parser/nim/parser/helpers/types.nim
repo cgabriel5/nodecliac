@@ -1,5 +1,6 @@
-from os import getEnv
-from tables import Table, toTable, initTable, `[]=`, `$`
+import std/[os, tables]
+
+import ../helpers/charsets
 
 type
 
@@ -24,13 +25,48 @@ type
         trace*, igc*, test*: bool
         fmt*: tuple[`char`: char, amount: int]
 
+    # Parsing States
+
+    ParseStates* {.pure.} = enum
+        # Close-Brace
+        Brace, #, EolWsb
+        # Setting
+        Sigil, #[ Name, ]# NameWsb, #, Assignment, ValueWsb, Value, EolWsb
+        # Command
+        Command, ChainWsb, #[ Assignment, Delimiter, ]# GroupOpen,
+        #[ ValueWsb, Value, ]# OpenBracket, #[ EolWsb, ]# OpenBracketWsb,
+        CloseBracket, Oneliner, GroupWsb, GroupCommand, GroupDelimiter,
+        GroupClose,
+        # Flag
+        #[ Value, ]# Hyphen, #[ Name, ]# Keyword, KeywordSpacer, WsbPrevalue,
+        Alias, #[ Assignment, Delimiter, ]# BooleanIndicator, PipeDelimiter,
+        WsbPostname, MultiIndicator, #[ EolWsb ]#
+        # Option
+        Bullet, #[ Value, ]# Spacer, #, WsbPrevalue, EolWsb
+        # Shared States
+        Name, Assignment, Delimiter, Value, ValueWsb, EolWsb
+
+    # Line Types
+
+    LineType* {.pure.} = enum
+        LTTerminator LTComment, LTVariable, LTSetting,
+        LTCommand, LTFlag, LTOption, LTCloseBrace, LTSkip
+
     # Node + Variants
 
     NodeKind* = enum
-        comment, newline, setting, variable, command, flag, option, brace
+        nkEmpty = "EMPTY",
+        nkComment = "COMMENT",
+        nkNewline = "NEWLINE",
+        nkSetting = "SETTING",
+        nkVariable = "VARIABLE",
+        nkCommand = "COMMAND",
+        nkFlag = "FLAG",
+        nkOption = "OPTION",
+        nkBrace = "BRACE"
     Node* = ref object
         node*: string
-        line*, start*, `end`*: int
+        line*, start*, stop*: int
 
         # Due to Nim's limitations some fields must be shared.
         # [https://forum.nim-lang.org/t/4817]
@@ -42,125 +78,23 @@ type
         args*: seq[string]
 
         # Depending on node type add needed fields.
-        case kind: NodeKind
-        of comment:
+        case kind*: NodeKind
+        of nkComment:
             comment*: Branch
             inline*: bool
-        of newline: discard
-        of setting, variable: sigil*: Branch
-        of command:
+        of nkNewline, nkEmpty: discard
+        of nkSetting, nkVariable: sigil*: Branch
+        of nkCommand:
             command*: Branch
             flags*: seq[Node]
-        of flag:
+        of nkFlag:
             hyphens*, variable*, alias*, boolean*, multi*, keyword*: Branch
             singleton*, virtual*: bool
-        of option: bullet*: Branch
-        of brace: brace*: Branch
+        of nkOption: bullet*: Branch
+        of nkBrace: brace*: Branch
     Branch* = ref object
-        start*, `end`*: int
+        start*, stop*: int
         value*: string
 
 # Object constructors.
-
-proc state*(action: string, cmdname: string, text: string, source: string,
-    fmt: tuple, trace: bool, igc: bool, test: bool): State =
-    new(result)
-
-    var tests: seq[string] = @[]
-    var linestarts = initTable[int, int]()
-    # Builtin variables.
-    var variables = {
-        "HOME": os.getEnv("HOME"),
-        "OS": hostOS,
-        "COMMAND": cmdname,
-        "PATH": "~/.nodecliac/registry/" & cmdname,
-    }.toTable
-    var tree = initTable[string, seq[Node]]()
-    tree["nodes"] = @[]
-
-    result.line = 1
-    result.column = 1
-    result.i = 0
-    result.l = text.len
-    result.text = text
-    result.sol_char = '\0' # First non-whitespace char of line.
-    result.specf = 0 # Default to allow anything initially.
-    result.scopes = Scopes(command: Node(), flag: Node()) #Scopes(command: Node, flag: Node),
-    result.tables = Tables(variables: variables, linestarts: linestarts, tree: tree) # Parsing lookup tables.
-    result.tests = tests
-    # Arguments/parameters for quick access across parsers.
-    result.args = Args(action: action, source: source, fmt: fmt, trace: trace, igc: igc, test: test)
-
-proc node*(S: State, node: string): Node =
-    new(result)
-
-    # [https://github.com/nim-lang/Nim/issues/11395]
-    # [https://forum.nim-lang.org/t/2799#17448]
-    case (node):
-
-    # Define each Node's props: [https://forum.nim-lang.org/t/4381]
-    # [https://nim-lang.org/docs/manual.html#types-reference-and-pointer-types]
-
-    of "COMMENT":
-        result = Node(kind: comment)
-        result.comment = Branch()
-
-    of "NEWLINE": result = Node(kind: newline)
-
-    of "SETTING":
-        result = Node(kind: setting)
-        result.sigil = Branch()
-        result.name = Branch()
-        result.assignment = Branch()
-        result.value = Branch()
-        result.args = @[]
-
-    of "VARIABLE":
-        result = Node(kind: variable)
-        result.sigil = Branch()
-        result.name = Branch()
-        result.assignment = Branch()
-        result.value = Branch()
-        result.args = @[]
-
-    of "COMMAND":
-        result = Node(kind: command)
-        result.command = Branch()
-        result.name = Branch()
-        result.brackets = Branch()
-        result.assignment = Branch()
-        result.delimiter = Branch()
-        result.value = Branch()
-        result.flags = @[]
-
-    of "FLAG":
-        result = Node(kind: flag)
-        result.hyphens = Branch()
-        result.variable = Branch()
-        result.name = Branch()
-        result.alias = Branch()
-        result.boolean = Branch()
-        result.assignment = Branch()
-        result.delimiter = Branch()
-        result.multi = Branch()
-        result.brackets = Branch()
-        result.value = Branch()
-        result.keyword = Branch()
-        result.singleton = false
-        result.virtual = false
-        result.args = @[]
-
-    of "OPTION":
-        result = Node(kind: option)
-        result.bullet = Branch()
-        result.value = Branch()
-        result.args = @[]
-
-    of "BRACE":
-        result = Node(kind: brace)
-        result.brace = Branch()
-
-    result.node = node
-    result.line = S.line
-    result.start = S.i
-    result.`end` = -1
+include state, nodes

@@ -15,6 +15,7 @@ CACHE=0
 cachepath="$HOME/.nodecliac/.cache-level"
 [[ -f "$cachepath" ]] && CACHE=$(<"$cachepath")
 TESTS=""
+TDEBUG=""
 
 # ANSI colors: [https://stackoverflow.com/a/5947802]
 # [https://misc.flogisoft.com/bash/tip_colors_and_formatting]
@@ -34,7 +35,7 @@ NC="\033[0m"
 DIM="\033[2m"
 
 OPTIND=1 # Reset variable: [https://unix.stackexchange.com/a/233737]
-while getopts 't:p:f:o:' flag; do # [https://stackoverflow.com/a/18003735]
+while getopts 't:p:f:o:d:' flag; do # [https://stackoverflow.com/a/18003735]
 	case "$flag" in
 		p)
 			case "$OPTARG" in
@@ -53,6 +54,7 @@ while getopts 't:p:f:o:' flag; do # [https://stackoverflow.com/a/18003735]
 				*) OVERRIDE="" ;;
 			esac ;;
 		t) [[ -n "$OPTARG" ]] && TESTS="$OPTARG" ;;
+		d) [[ -n "$OPTARG" ]] && TDEBUG="$OPTARG" ;;
 	esac
 done
 shift $((OPTIND - 1))
@@ -98,18 +100,18 @@ perlscript_path=~/.nodecliac/src/ac/ac.pl # The Perl ac script path.
 
 # Detect which nodecliac ac script is being used (bin or Perl script).
 acpl_script=""
+[[ "$OSTYPE" =~ (^[^0-9-]+) ]]
+os="${BASH_REMATCH[1]/darwin/macosx}"
 if [[ $(isset "$OVERRIDE") ]]; then
 	if [[ "$OVERRIDE" == "nim" ]]; then
-		acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo "${e/darwin/macosx}")"
+		acpl_script=~/.nodecliac/src/bin/ac."$os"
 	else
 		acpl_script="$perlscript_path"
 	fi
 	
 	scripts=("$acpl_script")
 else
-	acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo "${e/darwin/macosx}")"
-	# acpl_script=~/.nodecliac/src/bin/ac."$(e=$(uname);e=${e,,};echo $e)"
-	# acpl_script="${acpl_script/darwin/macosx}"
+	acpl_script=~/.nodecliac/src/bin/ac."$os"
 	#"$(perl -ne 'print $1 if /acpl_script=.*\/(ac.*)$/' <<< "$(<~/.nodecliac/src/ac.sh)")"
 	# Fallback to Perl script if Nim os binary is not supported.
 	if [[ ! -e "$acpl_script"  ]]; then
@@ -201,6 +203,23 @@ function _nodecliac() {
 		[[ -n "$phscript" && -x "$phscript" ]] && posthook="$phscript"
 		# Unset to allow bash-completion to continue to work properly.
 		# shopt -u nullglob # [https://unix.stackexchange.com/a/434213]
+
+		if [[ -n "$TDEBUG" ]]; then
+			local lpad=" "
+			local verbose=""
+			verbose+="\n${lpad}───────────────────────────────────────────\n"
+			verbose+="${lpad}${BOLD}Args:${NC} [${GREEN}${BOLD}script${NC}=${acpl_script/#$HOME/\~}]\n"
+			verbose+="  │ ocline ----- [0] => [$2]\n"
+			verbose+="  │ cline ------ [1] => [$cline]\n"
+			verbose+="  │ cpoint ----- [2] => [$cpoint]\n"
+			verbose+="  │ command ---- [3] => [$command]\n"
+			verbose+="  │ acdef ------ [4] => [${acdefpath/#$HOME/\~}]\n"
+			verbose+="  │ posthook --- [5] => [${posthook/#$HOME/\~}]\n"
+			verbose+="  │ singletons - [6] => [$singletons]\n"
+			# verbose+="\n${lpad}-------------------------------------------\n"
+			verbose+="${lpad:0:-1}  │"
+			echo -e "$verbose" > /dev/tty
+		fi
 
 		output=$(TESTMODE=1 "$acpl_script" "$2" "$cline" "$cpoint" "$command" "$acdef" "$posthook" "$singletons")
 	fi
@@ -405,17 +424,18 @@ function xtest {
 	# done < <(perl -pe 's/([^\\]);/\1\n/g' <<< "$string")
 	done < <(perl -pe 's/((?<!\\\\));/\1\n/g' <<< "$string")
 	
+	local lpad="      "
 	if [[ "${#tests[@]}" == 0 ]]; then
 		((test_id--))
 		((skipped++))
 		if [[ $(isset "$PRINT") ]]; then
-			echo -e "(-) ${BOLD}Ignored (No Tests)${NC}\n    [?] [$teststring_og]${NC} (${t}s)"
-			echo -e "    ${BPURPLE}Output${NC}"
+			echo -e "(-) ${BOLD}Ignored (No Tests)${NC}\n${lpad}[?] [$teststring_og]${NC} (${t}s)"
+			echo -e "${lpad}${BPURPLE}Output${NC}"
 			readarray -t completions <<< "$(trim "$output")"
 			l="${#completions[@]}"
 			for ((i = 0 ; i < $l ; i++)); do
 				c="${completions[$i]}"
-				echo -e "    [$i] => [$c]"
+				echo -e "${lpad}[$i] => [$c]"
 			done
 		fi
 	else
@@ -425,7 +445,7 @@ function xtest {
 				diff=$(( test_columns - tidl ))
 				padding="" # [https://stackoverflow.com/a/5349842]
 				[[ "$diff" > 0 ]] && padding="$(printf ' %.0s' $(seq 1 $diff))"
-				echo -e "${tid}${padding} $CHECK_MARK ${t}s [$teststring_og]${NC}"
+				echo -e "${padding}${tid} $CHECK_MARK ${t}s [$teststring_og]${NC}"
 			fi
 			((passed_count++))
 		else
@@ -434,34 +454,60 @@ function xtest {
 				diff=$(( test_columns - tidl ))
 				padding="" # [https://stackoverflow.com/a/5349842]
 				[[ "$diff" > 0 ]] && padding="$(printf ' %.0s' $(seq 1 $diff))"
-				echo ""
-				echo -e "${tid}${padding} ${BRED}Failing${NC}\n    [$X_MARK] (${t}s) TS=[$teststring_og]${NC}"
+				[[ -z "$TDEBUG" ]] && echo ""
+				echo -e "${padding}${tid} $X_MARK ${BRED}Failing${NC}\n${lpad}[$X_MARK] (${t}s) TS=[$teststring_og]${NC}"
 
 				l="${#tests[@]}"
 				for ((i = 0 ; i < $l ; i++)); do
 					r="${results[$i]}"
 					t="$(perl -pe 's/([\\])(;|:)/\2/g' <<< "$(trim "${tests[$i]}")")"
 					if [[ "$r" == 1 ]]; then
-						echo -e "    [$CHECK_MARK] [${BTURQ}${tlogic^^}${NC}] —> [$t]"
+						echo -e "${lpad}[$CHECK_MARK] [${BTURQ}${tlogic^^}${NC}] —> [$t]"
 					else
-						echo -e "    [$X_MARK] [${BTURQ}${tlogic^^}${NC}] -- [$t]"
+						echo -e "${lpad}[$X_MARK] [${BTURQ}${tlogic^^}${NC}] -- [$t]"
 					fi
 				done
 				
-				echo -e "    ${BPURPLE}Output${NC}"
+				echo -e "${lpad}${BPURPLE}Output${NC}"
 				readarray -t completions <<< "$(trim "$output")"
 				l="${#completions[@]}"
 				for ((i = 0 ; i < $l ; i++)); do
 					c="${completions[$i]}"
-					echo -e "    [$i] => [$c]"
+					echo -e "${lpad}[$i] => [$c]"
 				done
-				echo ""
+				[[ -z "$TDEBUG" ]] && echo ""
 			fi
 		fi
 	fi
 }
 
 # ------------------------------------------------------------------------ TESTS
+
+# Print any script/binary files that are not executable.
+if [[ $(isset "$PRINT") ]]; then
+	# [http://codeprairie.net/blogs/chrisortman/archive/2008/06/14/using-the-find-command-to-find-non-executable-files.aspx]
+	# [https://stackoverflow.com/a/36129599]
+	# [https://www.cyberciti.biz/faq/find-command-exclude-ignore-files/] 
+	files="$(find ~/.nodecliac/ \
+		-not -path '*/\._*' \
+		-type f \( \
+			-iname "*.sh" -or \
+			-iname "*.nim" -or \
+			-iname "*.pl" -or \
+			-iname "*.linux" -or \
+			-iname "*.macosx" \
+		\) \
+		! -executable
+		)"
+	if [[ -n "$files" ]]; then
+		hlen="${#HOME}"
+		echo -e "${YELLOW}${BOLD}[Warning]${NC} ${BOLD}Non-executable files found:${NC}"
+		while read -r file; do
+			echo "[-x] ~${file:$hlen}"
+		done <<< "$files"
+		echo ""
+	fi
+fi
 
 # Note: When `OVERRIDE` is present then we only test that
 # specificity script once. Else we test both the Nim and Perl scripts.

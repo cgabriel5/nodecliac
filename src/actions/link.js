@@ -5,11 +5,15 @@ const chalk = require("chalk");
 const flatry = require("flatry");
 const de = require("directory-exists");
 const symlink = require("symlink-dir");
-const { fmt, exit, paths, lstats } = require("../utils/toolbox.js");
+const { fmt, exit, paths, lstats, ispath_abs } = require("../utils/toolbox.js");
 
-module.exports = async () => {
+module.exports = async (args) => {
 	let { registrypath } = paths;
-	let cwd = process.cwd();
+	let { path: p } = args;
+
+	if (p) if (!ispath_abs(p)) p = path.resolve(p);
+
+	let cwd = p || process.cwd();
 	let dirname = path.basename(cwd);
 	let pkgpath = `${registrypath}/${dirname}`;
 

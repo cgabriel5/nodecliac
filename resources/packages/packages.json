@@ -1,0 +1,34 @@
+[
+	{
+		"name": "balena",
+		"repo": "https://github.com/cgabriel5/nodecliac-packages",
+		"scheme": "cgabriel5/nodecliac-packages#master/trunk/balena",
+		"method": "git",
+		"description": "nodecliac completion package for balena command.",
+		"license": "MIT",
+		"tags": []
+	},
+	{
+		"name": "nimble",
+		"repo": "https://github.com/cgabriel5/nodecliac-packages",
+		"scheme": "cgabriel5/nodecliac-packages#master/trunk/nimble",
+		"method": "git",
+		"description": "nodecliac completion package for nimble command.",
+		"license": "MIT",
+		"tags": [
+			"app",
+			"binary",
+			"package",
+			"manager"
+		]
+	},
+	{
+		"name": "nodecliac",
+		"repo": "https://github.com/cgabriel5/nodecliac-packages",
+		"scheme": "cgabriel5/nodecliac-packages#master/trunk/nodecliac",
+		"method": "git",
+		"description": "nodecliac completion package for nodecliac command.",
+		"license": "MIT",
+		"tags": []
+	}
+]

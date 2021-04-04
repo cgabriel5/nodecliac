@@ -1,5 +1,7 @@
 "use strict";
 
+const { nk } = require("./enums.js");
+
 /**
  * Create parsing node object.
  *
@@ -7,7 +9,7 @@
  * @param  {string} type - The object type to create.
  * @return {object} - The created node object.
  */
-module.exports = (S, type) => {
+module.exports = (type, S) => {
 	let N = {
 		node: type,
 		line: S.line,
@@ -24,16 +26,16 @@ module.exports = (S, type) => {
 
 	// Modify each type as needed.
 	switch (type) {
-		case "COMMENT":
+		case nk.Comment:
 			N.comment = o();
 			N.inline = false;
 
 			break;
 
-		case "NEWLINE":
+		case nk.Newline:
 			break;
 
-		case "SETTING":
+		case nk.Setting:
 			N.sigil = o();
 			N.name = o();
 			N.assignment = o();
@@ -42,7 +44,7 @@ module.exports = (S, type) => {
 
 			break;
 
-		case "VARIABLE":
+		case nk.Variable:
 			N.sigil = o();
 			N.name = o();
 			N.assignment = o();
@@ -51,7 +53,7 @@ module.exports = (S, type) => {
 
 			break;
 
-		case "COMMAND":
+		case nk.Command:
 			N.command = o();
 			N.name = o();
 			N.brackets = o();
@@ -62,7 +64,7 @@ module.exports = (S, type) => {
 
 			break;
 
-		case "FLAG":
+		case nk.Flag:
 			N.hyphens = o();
 			N.variable = o();
 			N.name = o();
@@ -80,14 +82,14 @@ module.exports = (S, type) => {
 
 			break;
 
-		case "OPTION":
+		case nk.Option:
 			N.bullet = o();
 			N.value = o();
 			N.args = [];
 
 			break;
 
-		case "BRACE":
+		case nk.Brace:
 			N.brace = o();
 
 			break;

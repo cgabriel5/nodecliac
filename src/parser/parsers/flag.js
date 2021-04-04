@@ -1,8 +1,9 @@
 "use strict";
 
 const node = require("../helpers/nodes.js");
-const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
+const add = require("../helpers/tree-add.js");
+const { nk } = require("../helpers/enums.js");
 const rollback = require("../helpers/rollback.js");
 const validate = require("../helpers/validate.js");
 const charsets = require("../helpers/charsets.js");
@@ -30,34 +31,34 @@ const { C_QUOTES, C_FLG_IDENT, C_KW_ALL, C_KD_STR } = charsets;
  * @return {object} - Node object.
  */
 module.exports = (S, isoneliner) => {
-	let { l, text } = S;
-	let state = text.charAt(S.i) === "-" ? "hyphen" : "keyword";
+	let l = S.l;
+	let state = S.text.charAt(S.i) === "-" ? "hyphen" : "keyword";
 	let stop; // Flag: true - stops parser.
 	let type = "escaped";
-	let N = node(S, "FLAG");
+	let N = node(nk.Flag, S);
 	let alias = false;
 	let qchar = "";
 	let comment = false;
 	let braces = [];
 
 	// If not a oneliner or no command scope, flag is being declared out of scope.
-	if (!(isoneliner || S.scopes.command)) error(S, __filename, 10);
+	if (!(isoneliner || S.scopes.command)) error(S, 10);
 
 	// If flag scope already exists another flag cannot be declared.
-	if (S.scopes.flag) error(S, __filename, 11);
+	if (S.scopes.flag) error(S, 11);
 
-	let char,
-		pchar = "";
+	let c,
+		p = "";
 	for (; S.i < l; S.i++, S.column++) {
-		pchar = char;
-		char = text.charAt(S.i);
+		p = c;
+		c = S.text.charAt(S.i);
 
-		if (stop || cin(C_NL, char)) {
+		if (stop || cin(C_NL, c)) {
 			N.end = rollback(S) && S.i;
 			break; // Stop at nl char.
 		}
 
-		if (char === "#" && pchar !== "\\" && (state !== "value" || comment)) {
+		if (c === "#" && p !== "\\" && (state !== "value" || comment)) {
 			rollback(S);
 			N.end = S.i;
 			break;
@@ -70,16 +71,16 @@ module.exports = (S, isoneliner) => {
 				// RegEx to split on unescaped '|': /(?<=[^\\]|^|$)\|/
 
 				if (!N.hyphens.value) {
-					if (char !== "-") error(S, __filename);
+					if (c !== "-") error(S);
 					N.hyphens.start = N.hyphens.end = S.i;
-					N.hyphens.value = char;
+					N.hyphens.value = c;
 				} else {
-					if (char !== "-") {
+					if (c !== "-") {
 						state = "name";
 						rollback(S);
 					} else {
 						N.hyphens.end = S.i;
-						N.hyphens.value += char;
+						N.hyphens.value += c;
 					}
 				}
 
@@ -89,10 +90,10 @@ module.exports = (S, isoneliner) => {
 				{
 					let keyword_len = 7;
 					let endpoint = keyword_len - 1;
-					let keyword = text.substr(S.i, keyword_len);
+					let keyword = S.text.substr(S.i, keyword_len);
 
 					// Keyword must be allowed.
-					if (!-~C_KW_ALL.indexOf(keyword)) error(S, __filename);
+					if (!-~C_KW_ALL.indexOf(keyword)) error(S);
 					N.keyword.start = S.i;
 					N.keyword.end = S.i + endpoint;
 					N.keyword.value = keyword;
@@ -106,62 +107,62 @@ module.exports = (S, isoneliner) => {
 				break;
 
 			case "keyword-spacer":
-				if (cnotin(C_SPACES, char)) error(S, __filename);
+				if (cnotin(C_SPACES, c)) error(S);
 				state = "wsb-prevalue";
 
 				break;
 
 			case "name":
 				if (!N.name.value) {
-					if (cnotin(C_LETTERS, char)) error(S, __filename);
+					if (cnotin(C_LETTERS, c)) error(S);
 					N.name.start = N.name.end = S.i;
-					N.name.value = char;
+					N.name.value = c;
 				} else {
-					if (cin(C_FLG_IDENT, char)) {
+					if (cin(C_FLG_IDENT, c)) {
 						N.name.end = S.i;
-						N.name.value += char;
-					} else if (char === ":" && !alias) {
+						N.name.value += c;
+					} else if (c === ":" && !alias) {
 						state = "alias";
 						rollback(S);
-					} else if (char === "=") {
+					} else if (c === "=") {
 						state = "assignment";
 						rollback(S);
-					} else if (char === ",") {
+					} else if (c === ",") {
 						state = "delimiter";
 						rollback(S);
-					} else if (char === "?") {
+					} else if (c === "?") {
 						state = "boolean-indicator";
 						rollback(S);
-					} else if (char === "|") {
+					} else if (c === "|") {
 						state = "pipe-delimiter";
 						rollback(S);
-					} else if (cin(C_SPACES, char)) {
+					} else if (cin(C_SPACES, c)) {
 						state = "wsb-postname";
 						rollback(S);
-					} else error(S, __filename);
+					} else error(S);
 				}
 
 				break;
 
 			case "wsb-postname":
-				if (cnotin(C_SPACES, char)) {
-					if (char === "=") {
+				if (cnotin(C_SPACES, c)) {
+					if (c === "=") {
 						state = "assignment";
 						rollback(S);
-					} else if (char === ",") {
+					} else if (c === ",") {
 						state = "delimiter";
 						rollback(S);
-					} else if (char === "|") {
+					} else if (c === "|") {
 						state = "pipe-delimiter";
 						rollback(S);
-					} else error(S, __filename);
+					} else error(S);
 				}
 
 				break;
 
 			case "boolean-indicator":
 				N.boolean.start = N.boolean.end = S.i;
-				N.boolean.value = char;
+				N.boolean.value = c;
 				state = "pipe-delimiter";
 
 				break;
@@ -170,16 +171,16 @@ module.exports = (S, isoneliner) => {
 				{
 					alias = true;
 					// Next char must also be a colon.
-					let nchar = text.charAt(S.i + 1);
-					if (nchar !== ":") error(S, __filename);
+					let n = S.text.charAt(S.i + 1);
+					if (n !== ":") error(S);
 					N.alias.start = S.i;
 					N.alias.end = S.i + 2;
 
-					let letter = text.charAt(S.i + 2);
+					let letter = S.text.charAt(S.i + 2);
 					if (cnotin(C_LETTERS, letter)) {
 						S.i += 1;
 						S.column += 1;
-						error(S, __filename);
+						error(S);
 					}
 
 					N.alias.value = letter;
@@ -194,19 +195,19 @@ module.exports = (S, isoneliner) => {
 
 			case "assignment":
 				N.assignment.start = N.assignment.end = S.i;
-				N.assignment.value = char;
+				N.assignment.value = c;
 				state = "multi-indicator";
 
 				break;
 
 			case "multi-indicator":
-				if (char === "*") {
+				if (c === "*") {
 					N.multi.start = N.multi.end = S.i;
-					N.multi.value = char;
+					N.multi.value = c;
 					state = "wsb-prevalue";
 				} else {
-					if (char === "|") state = "pipe-delimiter";
-					else if (char === ",") state = "delimiter";
+					if (c === "|") state = "pipe-delimiter";
+					else if (c === ",") state = "delimiter";
 					else state = "wsb-prevalue";
 					rollback(S);
 				}
@@ -214,14 +215,14 @@ module.exports = (S, isoneliner) => {
 				break;
 
 			case "pipe-delimiter":
-				if (cnotin(C_SPACES, char)) {
+				if (cnotin(C_SPACES, c)) {
 					// Note: If char is not a pipe or if the flag is not a
 					// oneliner flag and there are more characters after the
 					// flag error. Example:
 					// * = [
 					// 		--help?|context "!help: #fge1"
 					// ]
-					if (char !== "|" || !isoneliner) error(S, __filename);
+					if (c !== "|" || !isoneliner) error(S);
 					stop = true;
 				}
 
@@ -229,16 +230,16 @@ module.exports = (S, isoneliner) => {
 
 			case "delimiter":
 				N.delimiter.start = N.delimiter.end = S.i;
-				N.delimiter.value = char;
+				N.delimiter.value = c;
 				state = "eol-wsb";
 
 				break;
 
 			case "wsb-prevalue":
-				if (cnotin(C_SPACES, char)) {
+				if (cnotin(C_SPACES, c)) {
 					let keyword = !-~C_KD_STR.indexOf(N.keyword.value);
-					if (char === "|" && keyword) state = "pipe-delimiter";
-					else if (char === ",") state = "delimiter";
+					if (c === "|" && keyword) state = "pipe-delimiter";
+					else if (c === ",") state = "delimiter";
 					else state = "value";
 					rollback(S);
 				}
@@ -249,29 +250,29 @@ module.exports = (S, isoneliner) => {
 				{
 					if (!N.value.value) {
 						// Determine value type.
-						if (char === "$") type = "command-flag";
-						else if (char === "(") {
+						if (c === "$") type = "command-flag";
+						else if (c === "(") {
 							type = "list";
 							braces.push(S.i);
-						} else if (cin(C_QUOTES, char)) {
+						} else if (cin(C_QUOTES, c)) {
 							type = "quoted";
-							qchar = char;
+							qchar = c;
 						}
 
 						N.value.start = N.value.end = S.i;
-						N.value.value = char;
+						N.value.value = c;
 					} else {
 						if (
-							char === "|" &&
+							c === "|" &&
 							!-~C_KD_STR.indexOf(N.keyword.value) &&
-							pchar !== "\\"
+							p !== "\\"
 						) {
 							state = "pipe-delimiter";
 							rollback(S);
 						} else {
 							switch (type) {
 								case "escaped":
-									if (cin(C_SPACES, char) && pchar !== "\\") {
+									if (cin(C_SPACES, c) && p !== "\\") {
 										state = "eol-wsb";
 										continue;
 									}
@@ -279,9 +280,9 @@ module.exports = (S, isoneliner) => {
 									break;
 
 								case "quoted":
-									if (char === qchar && pchar !== "\\") {
+									if (c === qchar && p !== "\\") {
 										state = "eol-wsb";
-									} else if (char === "#" && !qchar) {
+									} else if (c === "#" && !qchar) {
 										comment = true;
 										rollback(S);
 									}
@@ -298,24 +299,24 @@ module.exports = (S, isoneliner) => {
 									if (type === "command-flag") {
 										if (
 											N.value.value.length === 1 &&
-											char !== "("
+											c !== "("
 										) {
-											error(S, __filename);
+											error(S);
 										}
 									}
 
 									// The following logic, is precursor validation
 									// logic that ensures braces are balanced and
 									// detects inline comment.
-									if (pchar !== "\\") {
-										if (char === "(" && !qchar) {
+									if (p !== "\\") {
+										if (c === "(" && !qchar) {
 											braces.push(S.i);
-										} else if (char === ")" && !qchar) {
+										} else if (c === ")" && !qchar) {
 											// If braces len is negative, opening
 											// braces were never introduced so
 											// current closing brace is invalid.
 											if (!braces.length) {
-												error(S, __filename);
+												error(S);
 											}
 											braces.pop();
 											if (!braces.length) {
@@ -323,12 +324,12 @@ module.exports = (S, isoneliner) => {
 											}
 										}
 
-										if (cin(C_QUOTES, char)) {
-											if (!qchar) qchar = char;
-											else if (qchar === char) qchar = "";
+										if (cin(C_QUOTES, c)) {
+											if (!qchar) qchar = c;
+											else if (qchar === c) qchar = "";
 										}
 
-										if (char === "#" && !qchar) {
+										if (c === "#" && !qchar) {
 											if (!braces.length) {
 												comment = true;
 												rollback(S);
@@ -337,14 +338,14 @@ module.exports = (S, isoneliner) => {
 													braces.pop() -
 													S.tables.linestarts[S.line];
 												S.column++; // Add 1 to account for 0 base indexing.
-												error(S, __filename);
+												error(S);
 											}
 										}
 									}
 							}
 
 							N.value.end = S.i;
-							N.value.value += char;
+							N.value.value += c;
 						}
 					}
 				}
@@ -353,13 +354,13 @@ module.exports = (S, isoneliner) => {
 
 			case "eol-wsb":
 				if (
-					char === "|" &&
+					c === "|" &&
 					!-~C_KD_STR.indexOf(N.keyword.value) &&
-					pchar !== "\\"
+					p !== "\\"
 				) {
 					state = "pipe-delimiter";
 					rollback(S);
-				} else if (cnotin(C_SPACES, char)) error(S, __filename);
+				} else if (cnotin(C_SPACES, c)) error(S);
 
 				break;
 		}
@@ -379,7 +380,7 @@ module.exports = (S, isoneliner) => {
 
 		// Add alias node if it exists.
 		if (N.alias.value) {
-			let cN = node(S, "FLAG");
+			let cN = node(nk.Flag, S);
 			cN.hyphens.value = "-";
 			cN.delimiter.value = ",";
 			cN.name.value = N.alias.value;
@@ -390,7 +391,7 @@ module.exports = (S, isoneliner) => {
 			add(S, cN);
 
 			// Add context node for mutual exclusivity.
-			let xN = node(S, "FLAG");
+			let xN = node(nk.Flag, S);
 			xN.value.value = `"{${N.name.value}|${N.alias.value}}"`;
 			xN.keyword.value = "context";
 			xN.singleton = false;

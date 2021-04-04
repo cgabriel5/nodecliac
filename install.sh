@@ -83,13 +83,17 @@ rcfile=""
 params=""
 manual=""
 yes=""
+update=""
+packages=""
 
 sudo echo > /dev/null 2>&1 # Prompt password early.
 
 while (( "$#" )); do
 	case "$1" in
-		--manual) manual="1"; shift ;;
-		--yes|-y) yes=1; shift ;;
+		--packages) packages=1; shift ;;
+		--manual) manual=1; shift ;;
+		--update) update=1; shift ;;
+		--yes) yes=1; shift ;;
 
 		--branch=*)
 			flag="${1%%=*}"; value="${1#*=}"
@@ -126,6 +130,13 @@ branch_npm="https://github.com/cgabriel5/nodecliac/tarball/$branch_name"
 branch_yarn="cgabriel5/nodecliac#$branch_name"
 
 if [[ -z "$installer" ]]; then
+	if [[ "$(exists yarn)" ]]; then installer="yarn"
+	elif [[ "$(exists npm)" ]]; then installer="npm"
+	else installer="binary"; fi
+fi
+
+# If updating get current install method.
+if [[ -n "$update" ]]; then
 	if [[ "$(exists yarn)" ]]; then installer="yarn"
 	elif [[ "$(exists npm)" ]]; then installer="npm"
 	else installer="binary"; fi
@@ -191,18 +202,46 @@ if [[ -z "$manual" ]]; then
 	success "Verified branch."
 fi
 
-# If ~/.nodecliac exists back it up.
-if [[ -e ~/.nodecliac ]]; then
-	echo " - Backing up old ~/.nodecliac directory..."
-	cp -a ~/.nodecliac "$HOME/.nodecliac.bak.$timestamp"
-	success "Backed up old ~/.nodecliac directory."
+# ------------------------------------------------------------------- NPM-CHECKS
+
+if [[ "$installer" != "binary" ]]; then
+	hash -r # Rebuild $PATH: [https://unix.stackexchange.com/a/5610]
+
+	# Ensure NPM is properly configured/setup.
+	if [[ "$installer" == "npm" ]]; then
+		configstore=~/.config/configstore
+		echo " - Checking local config store..."
+		[[ ! -d "$configstore" ]] && cline && err "$configstore doesn't exist."
+		success "Local config store exists."
+
+		# ~/.config/configstore must be owned by the user.
+		# [https://unix.stackexchange.com/a/7733]
+		echo " - Checking local config store ownership..."
+		if [[ $(ls -ld "$configstore" | awk '{print $3}') != "$USER" ]]; then
+			cline && err "Change local config store ownership."
+			echo -e "Run: ${BOLD}sudo chown -R \$USER:\$(id -gn \$USER) $configstore${NC}"
+		fi
+		success "Proper config store ownership."
+	fi
 fi
 
-if [[ "$(exists nodecliac)" ]]; then
-	echo " - Running 'nodecliac uninstall'..."
-	nodecliac uninstall > /dev/null 2>&1
-	success "Ran 'nodecliac uninstall'."
+# ----------------------------------------------------------- REMOVE-OLD-INSTALL
+
+# If updating, skip following blocks.
+if [[ -z "$update" ]]; then
+	# If ~/.nodecliac exists back it up.
+	if [[ -e ~/.nodecliac ]]; then
+		echo " - Backing up old ~/.nodecliac directory..."
+		cp -a ~/.nodecliac "$HOME/.nodecliac.bak.$timestamp"
+		success "Backed up old ~/.nodecliac directory."
+	fi
+	if [[ "$(exists nodecliac)" ]]; then
+		echo " - Running 'nodecliac uninstall'..."
+		nodecliac uninstall > /dev/null 2>&1
+		success "Ran 'nodecliac uninstall'."
+	fi
 fi
+
 if [[ "$(exists yarn)" ]]; then
 	echo " - Checking for yarn global nodecliac install..."
 	if [[ -n "$(yarn global list | grep -F "nodecliac@")" ]]; then
@@ -267,13 +306,21 @@ if [[ " binary manual " == *" $installer "* ]]; then
 	mkdir -p ~/.nodecliac/{registry,src}
 	mkdir -p "$dest"/{bin,main}
 	mkdir -p "$dest"/ac/utils
-	cp -pr "$acpath"/ac.pl "$dest/ac"
+	cp -pr "$acpath"/{ac,ac_debug}.pl "$dest/ac"
 	cp -pr "$acpath"/utils/LCP.pm "$dest/ac/utils"
 	cp -pr "$mainpath"/init.sh "$dest/main"
 	cp -pr "$mainpath"/config.pl "$dest/main"
 	cp -pr "$testspath"/scripts/nodecliac.sh "$dest/main/test.sh"
 	cp -pr "$binpath"/binary.sh "$dest/bin"
-	cp -pr "$outputdir"/resources/packages/* ~/.nodecliac/registry
+	if [[ -n "$packages" ]]; then
+		# cp -pr "$outputdir"/resources/packages/* ~/.nodecliac/registry
+		# Ignore .git folder and root files. Only copy completion packages.
+		while read -r cpkgpath; do
+			cp -pr "$cpkgpath" ~/.nodecliac/registry
+		done < <(find "$outputdir"/resources/packages/ -maxdepth 1 -mindepth 1 \( -type d -o -type l \) -name "[!.]*")
+	else # Only copy nodecliac completion package.
+		cp -pr "$outputdir"/resources/packages/nodecliac ~/.nodecliac/registry
+	fi
 	nimbin="$outputdir/src/parser/nim/nodecliac.$os"
 	[[ -e "$nimbin" ]] && cp -pr "$nimbin" "$dest/bin"
 	acbin="$binpath/ac.$os"; [[ -e "$acbin" ]] && cp -pr "$acbin" "$dest/bin"
@@ -343,20 +390,6 @@ else
 	hash -r # Rebuild $PATH: [https://unix.stackexchange.com/a/5610]
 
 	if [[ "$installer" == "npm" ]]; then
-		configstore=~/.config/configstore
-		echo " - Checking local config store..."
-		[[ ! -d "$configstore" ]] && cline && err "$configstore doesn't exist."
-		success "Local config store exists."
-
-		# ~/.config/configstore must be owned by the user.
-		# [https://unix.stackexchange.com/a/7733]
-		echo " - Checking local config store ownership..."
-		if [[ $(ls -ld "$configstore" | awk '{print $3}') != "$USER" ]]; then
-			cline && err "Change local config store ownership."
-			echo -e "Run: ${BOLD}sudo chown -R \$USER:\$(id -gn \$USER) $configstore${NC}"
-		fi
-		success "Proper config store ownership."
-
 		echo " - Installing nodecliac via npm..."
 		# Global installs can't install shorthand branch method:
 		# [https://stackoverflow.com/a/32436218]

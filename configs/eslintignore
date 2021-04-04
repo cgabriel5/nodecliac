@@ -2,6 +2,8 @@
 
 node_modules/*
 bower_components/*
+fonts/
+gui/js/libs/
 .git/*
 dist/*
 *.test.js

@@ -1,8 +1,5 @@
-from ../helpers/tree_add import add
-from ../helpers/types import State, node
+import ../helpers/[tree_add, types, charsets]
 import ../helpers/[error, validate, forward, rollback]
-from ../helpers/charsets import C_NL, C_LETTERS, C_SPACES, C_QUOTES,
-    C_SET_IDENT, C_SET_VALUE
 
 # ------------------------------------------------------------ Parsing Breakdown
 # @setting = true
@@ -17,95 +14,95 @@ from ../helpers/charsets import C_NL, C_LETTERS, C_SPACES, C_QUOTES,
 # @param  {object} S - State object.
 # @return - Nothing is returned.
 proc p_setting*(S: State) =
-    let text = S.text
     var qchar: char
-    var state = "sigil"
-    var N = node(S, "SETTING")
+    var state = Sigil
+    var N = node(nkSetting, S)
 
-    let l = S.l; var `char`, pchar: char
+    let l = S.l; var c, p: char
     while S.i < l:
-        pchar = `char`
-        `char` = text[S.i]
+        p = c
+        c = S.text[S.i]
 
-        if `char` in C_NL:
+        if c in C_NL:
             rollback(S)
-            N.`end` = S.i
+            N.stop = S.i
             break # Stop at nl char.
 
-        if `char` == '#' and pchar != '\\' and state != "value":
+        if c == C_NUMSIGN and p != C_ESCAPE and state != Value:
             rollback(S)
-            N.`end` = S.i
+            N.stop = S.i
             break
 
-        case (state):
-            of "sigil":
-                N.sigil.start = S.i
-                N.sigil.`end` = S.i
-                state = "name"
+        case state:
+        of Sigil:
+            N.sigil.start = S.i
+            N.sigil.stop = S.i
+            state = Name
 
-            of "name":
-                if N.name.value == "":
-                    if `char` notin C_LETTERS: error(S, currentSourcePath)
+        of Name:
+            if N.name.value == "":
+                if c notin C_LETTERS: error(S)
 
-                    N.name.start = S.i
-                    N.name.`end` = S.i
-                    N.name.value = $`char`
-                else:
-                    if `char` in C_SET_IDENT:
-                        N.name.`end` = S.i
-                        N.name.value &= $`char`
-                    elif `char` in C_SPACES:
-                        state = "name-wsb"
-                        forward(S)
-                        continue
-                    elif `char` == '=':
-                        state = "assignment"
-                        rollback(S)
-                    else: error(S, currentSourcePath)
-
-            of "name-wsb":
-                if `char` notin C_SPACES:
-                    if `char` == '=':
-                        state = "assignment"
-                        rollback(S)
-                    else: error(S, currentSourcePath)
-
-            of "assignment":
-                N.assignment.start = S.i
-                N.assignment.`end` = S.i
-                N.assignment.value = $`char`
-                state = "value-wsb"
-
-            of "value-wsb":
-                if `char` notin C_SPACES:
-                    state = "value"
+                N.name.start = S.i
+                N.name.stop = S.i
+                N.name.value = $c
+            else:
+                if c in C_SET_IDENT:
+                    N.name.stop = S.i
+                    N.name.value &= $c
+                elif c in C_SPACES:
+                    state = NameWsb
+                    forward(S)
+                    continue
+                elif c == C_EQUALSIGN:
+                    state = Assignment
                     rollback(S)
+                else: error(S)
 
-            of "value":
-                if N.value.value == "":
-                    if `char` notin C_SET_VALUE: error(S, currentSourcePath)
+        of NameWsb:
+            if c notin C_SPACES:
+                if c == C_EQUALSIGN:
+                    state = Assignment
+                    rollback(S)
+                else: error(S)
 
-                    if `char` in C_QUOTES: qchar = `char`
-                    N.value.start = S.i
-                    N.value.`end` = S.i
-                    N.value.value = $`char`
+        of Assignment:
+            N.assignment.start = S.i
+            N.assignment.stop = S.i
+            N.assignment.value = $c
+            state = ValueWsb
+
+        of ValueWsb:
+            if c notin C_SPACES:
+                state = Value
+                rollback(S)
+
+        of Value:
+            if N.value.value == "":
+                if c notin C_SET_VALUE: error(S)
+
+                if c in C_QUOTES: qchar = c
+                N.value.start = S.i
+                N.value.stop = S.i
+                N.value.value = $c
+            else:
+                if qchar != C_NULLB:
+                    if c == qchar and p != C_ESCAPE:
+                        state = EolWsb
+                    N.value.stop = S.i
+                    N.value.value &= $c
                 else:
-                    if qchar != '\0':
-                        if `char` == qchar and pchar != '\\': state = "eol-wsb"
-                        N.value.`end` = S.i
-                        N.value.value &= $`char`
+                    if c in C_SPACES and p != C_ESCAPE:
+                        state = EolWsb
+                        rollback(S)
                     else:
-                        if `char` in C_SPACES and pchar != '\\':
-                            state = "eol-wsb"
-                            rollback(S)
-                        else:
-                            N.value.`end` = S.i
-                            N.value.value &= $`char`
+                        N.value.stop = S.i
+                        N.value.value &= $c
 
-            of "eol-wsb":
-                if `char` notin C_SPACES: error(S, currentSourcePath)
+        of EolWsb:
+            if c notin C_SPACES: error(S)
 
-            else: discard
+        else: discard
 
         forward(S)
 

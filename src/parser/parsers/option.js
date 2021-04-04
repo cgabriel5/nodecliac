@@ -1,8 +1,9 @@
 "use strict";
 
 const node = require("../helpers/nodes.js");
-const add = require("../helpers/tree-add.js");
 const error = require("../helpers/error.js");
+const add = require("../helpers/tree-add.js");
+const { nk } = require("../helpers/enums.js");
 const rollback = require("../helpers/rollback.js");
 const validate = require("../helpers/validate.js");
 const bracechecks = require("../helpers/brace-checks.js");
@@ -27,10 +28,10 @@ const {
  * @return {undefined} - Nothing is returned.
  */
 module.exports = (S) => {
-	let { l, text } = S;
+	let l = S.l;
 	let state = "bullet";
 	let type = "escaped";
-	let N = node(S, "OPTION");
+	let N = node(nk.Option, S);
 	let qchar = "";
 	let comment = false;
 	let braces = [];
@@ -38,18 +39,18 @@ module.exports = (S) => {
 	// Error if flag scope doesn't exist.
 	bracechecks(S, null, "pre-existing-fs");
 
-	let char,
-		pchar = "";
+	let c,
+		p = "";
 	for (; S.i < l; S.i++, S.column++) {
-		pchar = char;
-		char = text.charAt(S.i);
+		p = c;
+		c = S.text.charAt(S.i);
 
-		if (cin(C_NL, char)) {
+		if (cin(C_NL, c)) {
 			N.end = rollback(S) && S.i;
 			break; // Stop at nl char.
 		}
 
-		if (char === "#" && pchar !== "\\" && (state !== "value" || comment)) {
+		if (c === "#" && p !== "\\" && (state !== "value" || comment)) {
 			rollback(S);
 			N.end = S.i;
 			break;
@@ -58,19 +59,19 @@ module.exports = (S) => {
 		switch (state) {
 			case "bullet":
 				N.bullet.start = N.bullet.end = S.i;
-				N.bullet.value = char;
+				N.bullet.value = c;
 				state = "spacer";
 
 				break;
 
 			case "spacer":
-				if (cnotin(C_SPACES, char)) error(S, __filename);
+				if (cnotin(C_SPACES, c)) error(S);
 				state = "wsb-prevalue";
 
 				break;
 
 			case "wsb-prevalue":
-				if (cnotin(C_SPACES, char)) {
+				if (cnotin(C_SPACES, c)) {
 					rollback(S);
 					state = "value";
 				}
@@ -81,21 +82,21 @@ module.exports = (S) => {
 				{
 					if (!N.value.value) {
 						// Determine value type.
-						if (char === "$") type = "command-flag";
-						else if (char === "(") {
+						if (c === "$") type = "command-flag";
+						else if (c === "(") {
 							type = "list";
 							braces.push(S.i);
-						} else if (cin(C_QUOTES, char)) {
+						} else if (cin(C_QUOTES, c)) {
 							type = "quoted";
-							qchar = char;
+							qchar = c;
 						}
 
 						N.value.start = N.value.end = S.i;
-						N.value.value = char;
+						N.value.value = c;
 					} else {
 						switch (type) {
 							case "escaped":
-								if (cin(C_SPACES, char) && pchar !== "\\") {
+								if (cin(C_SPACES, c) && p !== "\\") {
 									state = "eol-wsb";
 									continue;
 								}
@@ -103,9 +104,9 @@ module.exports = (S) => {
 								break;
 
 							case "quoted":
-								if (char === qchar && pchar !== "\\") {
+								if (c === qchar && p !== "\\") {
 									state = "eol-wsb";
-								} else if (char === "#" && !qchar) {
+								} else if (c === "#" && !qchar) {
 									comment = true;
 									rollback(S);
 								}
@@ -122,24 +123,24 @@ module.exports = (S) => {
 								if (type === "command-flag") {
 									if (
 										N.value.value.length === 1 &&
-										char !== "("
+										c !== "("
 									) {
-										error(S, __filename);
+										error(S);
 									}
 								}
 
 								// The following logic, is precursor validation
 								// logic that ensures braces are balanced and
 								// detects inline comment.
-								if (pchar !== "\\") {
-									if (char === "(" && !qchar) {
+								if (p !== "\\") {
+									if (c === "(" && !qchar) {
 										braces.push(S.i);
-									} else if (char === ")" && !qchar) {
+									} else if (c === ")" && !qchar) {
 										// If braces len is negative, opening
 										// braces were never introduced so
 										// current closing brace is invalid.
 										if (!braces.length) {
-											error(S, __filename);
+											error(S);
 										}
 										braces.pop();
 										if (!braces.length) {
@@ -147,15 +148,15 @@ module.exports = (S) => {
 										}
 									}
 
-									if (cin(C_QUOTES, char)) {
+									if (cin(C_QUOTES, c)) {
 										if (!qchar) {
-											qchar = char;
-										} else if (qchar === char) {
+											qchar = c;
+										} else if (qchar === c) {
 											qchar = "";
 										}
 									}
 
-									if (char === "#" && !qchar) {
+									if (c === "#" && !qchar) {
 										if (!braces.length) {
 											comment = true;
 											rollback(S);
@@ -164,21 +165,21 @@ module.exports = (S) => {
 												braces.pop() -
 												S.tables.linestarts[S.line];
 											S.column++; // Add 1 to account for 0 base indexing.
-											error(S, __filename);
+											error(S);
 										}
 									}
 								}
 						}
 
 						N.value.end = S.i;
-						N.value.value += char;
+						N.value.value += c;
 					}
 				}
 
 				break;
 
 			case "eol-wsb":
-				if (cnotin(C_SPACES, char)) error(S, __filename);
+				if (cnotin(C_SPACES, c)) error(S);
 
 				break;
 		}

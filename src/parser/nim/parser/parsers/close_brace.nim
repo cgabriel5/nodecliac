@@ -1,6 +1,4 @@
-from ../helpers/tree_add import add
-from ../helpers/types import State, node
-from ../helpers/charsets import C_NL, C_SPACES
+import ../helpers/[tree_add, types, charsets]
 import ../helpers/[error, forward, rollback, brace_checks]
 
 # ------------------------------------------------------------ Parsing Breakdown
@@ -14,36 +12,35 @@ import ../helpers/[error, forward, rollback, brace_checks]
 # @param  {object} S - State object.
 # @return {undefined} - Nothing is returned.
 proc p_closebrace*(S: State) =
-    let text = S.text
-    var state = "brace"
-    var N = node(S, "BRACE")
+    var state = Brace
+    var N = node(nkBrace, S)
 
-    let l = S.l; var `char`, pchar: char
+    let l = S.l; var c, p: char
     while S.i < l:
-        pchar = `char`
-        `char` = text[S.i]
+        p = c
+        c = S.text[S.i]
 
-        if `char` in C_NL:
+        if c in C_NL:
             rollback(S)
-            N.`end` = S.i
+            N.stop = S.i
             break # Stop at nl char.
 
-        if `char` == '#' and pchar != '\\':
+        if c == C_NUMSIGN and p != C_ESCAPE:
             rollback(S)
-            N.`end` = S.i
+            N.stop = S.i
             break
 
-        case (state):
-            of "brace":
-                N.brace.start = S.i
-                N.brace.`end` = S.i
-                N.brace.value = $`char`
-                state = "eol-wsb"
+        case state:
+        of Brace:
+            N.brace.start = S.i
+            N.brace.stop = S.i
+            N.brace.value = $c
+            state = EolWsb
 
-            of "eol-wsb":
-                if `char` notin C_SPACES: error(S, currentSourcePath)
+        of EolWsb:
+            if c notin C_SPACES: error(S)
 
-            else: discard
+        else: discard
 
         forward(S)
 

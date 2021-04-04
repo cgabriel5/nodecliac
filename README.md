@@ -67,7 +67,7 @@ $ bash <(wget -qO- git.io/nodecliac) && source ~/.bashrc
 
 **Checksum Install**: If desired, the install script file's integrity can be verified before running.
 
-[install.sh](https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install.sh) `sha256sum` checksum: `3b168fd5736f649854fb1010e16d3367b1bd98332428aba7467685ebd27fd3b8`
+[install.sh](https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install.sh) `sha256sum` checksum: `ba6dd1e52f11aea90b15a92e5deb71405baa3b55bf2986982324254b5ac17ba1`
 
 Create an executable shell file called `install.sh`, add the following, and run it.
 
@@ -82,7 +82,7 @@ install() {
     url="git.io/nodecliac"
     is="$([[ "$(command -v curl)" ]] && sudo curl -Ls "$url" || sudo wget -qO- "$url")"
     x=($([[ "$OSTYPE" == "darwin"* ]] && shasum -a 256 <<< "$is" || sha256sum <<< "$is"))
-    c="3b168fd5736f649854fb1010e16d3367b1bd98332428aba7467685ebd27fd3b8"
+    c="ba6dd1e52f11aea90b15a92e5deb71405baa3b55bf2986982324254b5ac17ba1"
     err="\033[1;31mError\033[0m: Verification failed: checksums don't match."
     [[ "$c" == "$x" ]] && bash <(echo "$is") \
         --installer= \
@@ -113,6 +113,9 @@ install() {
 - `--branch`: An _existing_ nodecliac branch name to install. (default: `master`)
 - `--rcfile`: `bashrc` file to install nodecliac to. (default: `~/.bashrc`)
 - `--yes`: Automate install by saying yes to any prompt(s).
+- `--packages`: Install [collection](https://github.com/cgabriel5/nodecliac/tree/master/resources/packages) of pre-made completion packages.
+- `--manual`: Let's install script to take manual install route.
+- `--update`: Let's install script to take update router over fresh install route.
 
 </details>
 
@@ -207,7 +210,7 @@ _Complete details/events are oversimplified and condensed to get the main points
 ## CLI
 
 <details>
-  <summary>CLI options</summary>
+  <summary>CLI commands/flags</summary>
 
 ###### Commands:
 
@@ -215,6 +218,8 @@ _Complete details/events are oversimplified and condensed to get the main points
   - [`make`](#cli-command-make)
   - [`format`](#cli-command-format)
 - Helper:
+  - [`init`](#cli-command-init)
+  - [`bin`](#cli-command-bin)
   - [`cache`](#cli-command-cache)
   - [`setup`](#cli-command-setup)
   - [`status`](#cli-command-status)
@@ -282,6 +287,38 @@ $ nodecliac format --source path/to/program.acmap --print --indent "s:2"
 - `--test`: Log output without file headers (_for tests_).
 
 </details>
+
+---
+
+<a name="cli-command-init"></a>
+
+<b><i>init</i></b>
+
+> Starts nodecliac's completion package generator to easily scaffold a completion package.
+
+- `--force`: Overwrites existing folder of the same name.
+
+###### Usage
+
+```sh
+$ nodecliac init
+```
+
+---
+
+<a name="cli-command-bin"></a>
+
+<b><i>bin</i></b>
+
+> Prints nodecliac's bin location.
+
+- _No arguments_
+
+###### Usage
+
+```sh
+$ nodecliac bin # Binary location.
+```
 
 ---
 
@@ -402,13 +439,29 @@ $ nodecliac registry # Print packages in registry.
 
 > Adds package to registry.
 
-- _No arguments_
-- **Note**: Must be run in package root.
+- `--path`: Path to completion package.
+- `--repo`: GitHub repo to install completion package from.
+  - Repo only (`master`): `<username>/<repo_name>`
+  - Repo branch (default: `master`): `<username>/<repo_name><#branch_name>`
+  - Repo sub-directory: `<username>/<repo_name>/trunk/<sub_directory_path>`
+  - Repo branch + sub-directory: `<username>/<repo_name><#branch_name>/trunk/<sub_directory_path>`
+- `--skip-val`: Skips package validation (caution: not recommended, for dev purposes).
+- `--force`: If local completion package is more than `10MB` this flag is needed to install.
+  - Meant as a safeguard to prevent accidentally copying large folders.
 
 ###### Usage
 
 ```sh
 $ nodecliac add # Copies cwd folder (completion package) to registry.
+$ nodecliac add --force # Copies cwd folder and forces install if package is over 10MB.
+$ nodecliac add --path ~/Desktop/subl # Installs completion package at specified path.
+$ nodecliac add --repo cgabriel5/nodecliac # Install completion package from a GitHub repo.
+# Install completion package from a specific directory in a GitHub repo.
+$ nodecliac add --repo cgabriel5/nodecliac/trunk/resources/packages/yarn
+# Install completion package from a specific branch (defaults to master branch).
+$ nodecliac add --repo cgabriel5/nodecliac#master
+# Install completion package from a specific directory + branch (defaults to master branch).
+$ nodecliac add --repo cgabriel5/nodecliac#dev/trunk/resources/packages/yarn
 ```
 
 ---
@@ -437,14 +490,13 @@ $ nodecliac remove --all # Removes all packages from registry.
 
 > Creates soft [symbolic](https://linuxize.com/post/how-to-create-symbolic-links-in-linux-using-the-ln-command/) link of package in registry.
 
-- _No arguments_
-- **Note**: Must be run in package root.
-- For use when developing a completion package.
+- `--path`: Path to completion package.
 
 ###### Usage
 
 ```sh
 $ nodecliac link # Symlinks cwd folder (completion package) to registry.
+$ nodecliac link --path ~/Desktop/subl # Symlinks completion package at specified path.
 ```
 
 ---

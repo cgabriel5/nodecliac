@@ -125,7 +125,7 @@ module.exports = (S, value, vindices, resumepoint) => {
 			// Track semicolons.
 			if (is_empty_or_ws(argument)) {
 				S.column = tindex(i);
-				error(S, __filename, 14);
+				error(S, 14);
 			}
 			del_semicolon.push(i);
 			args.push(argument);
@@ -151,7 +151,7 @@ module.exports = (S, value, vindices, resumepoint) => {
 				? del_semicolon[del_semicolon.length - 1]
 				: del_semicolon[args.length - 1 + 1];
 		S.column = tindex(dindex);
-		error(S, __filename, 14);
+		error(S, 14);
 	}
 
 	/** Verifies that provided context string argument type is valid.
@@ -173,36 +173,36 @@ module.exports = (S, value, vindices, resumepoint) => {
 			// Must be at least 5 chars in length.
 			if (l < 5) {
 				S.column = tindex(i);
-				error(S, __filename);
+				error(S);
 			}
 			if (cnotin(C_CTX_CTT, v[1])) {
 				S.column = tindex(i + 1);
-				error(S, __filename);
+				error(S);
 			}
 			if (cnotin(C_CTX_OPS, v.substr(2, 2))) {
 				S.column = tindex(i + 2);
-				error(S, __filename);
+				error(S);
 			}
 			// Characters at these indices must be
 			// numbers if not, error.
 			let nval = v.substr(4);
 			if (!is_str_num(nval)) {
 				S.column = tindex(i + 4);
-				error(S, __filename);
+				error(S);
 			}
 			// Error if number starts with 0.
 			if (v[4] === "0" && nval.length !== 1) {
 				S.column = tindex(i + 4);
-				error(S, __filename);
+				error(S);
 			}
 		} else {
 			if (l < 1) {
 				S.column = tindex(i);
-				error(S, __filename);
+				error(S);
 			}
 			if (cnotin(C_LETTERS, v[0])) {
 				S.column = tindex(i + 1);
-				error(S, __filename);
+				error(S);
 			}
 		}
 		return value;
@@ -211,7 +211,7 @@ module.exports = (S, value, vindices, resumepoint) => {
 	// Check that test string starts with main command.
 	if (!args[0].trim().startsWith(S.tables.variables.COMMAND)) {
 		S.column = tindex(findex);
-		error(S, __filename, 15);
+		error(S, 15);
 	}
 
 	// Account for initial skipped quote/test string.

@@ -1,0 +1,76 @@
+/* FlexBox helpers */
+
+.left {
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: start;
+	align-self: center;
+}
+
+.right {
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: end;
+	align-self: center;
+}
+
+.center {
+	display: flex !important;
+	flex-flow: row nowrap !important;
+	justify-content: center !important;
+	align-items: center !important;
+}
+
+.noselect {
+	-webkit-touch-callout: none; /* iOS Safari */
+	-webkit-user-select: none; /* Safari */
+	-khtml-user-select: none; /* Konqueror HTML */
+	-moz-user-select: none; /* Old versions of Firefox */
+	-ms-user-select: none; /* Internet Explorer/Edge */
+	user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+}
+
+.select {
+	-webkit-touch-callout: auto; /* iOS Safari */
+	-webkit-user-select: auto; /* Safari */
+	-khtml-user-select: auto; /* Konqueror HTML */
+	-moz-user-select: auto; /* Old versions of Firefox */
+	-ms-user-select: auto; /* Internet Explorer/Edge */
+	user-select: auto; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+}
+
+.nointer {
+	pointer-events: none;
+}
+
+.link {
+	color: #0366d6;
+	text-decoration: none;
+}
+
+.link:hover {
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.bold {
+	font-weight: bold !important;
+}
+
+.none {
+	display: none !important;
+}
+
+.opa0 {
+	opacity: 0 !important;
+}
+
+.opa1 {
+	opacity: 1 !important;
+}
+
+.disabled {
+	opacity: 0.4 !important;
+}

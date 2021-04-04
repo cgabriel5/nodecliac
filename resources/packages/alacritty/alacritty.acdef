@@ -1,0 +1,5 @@
+# DON'T EDIT FILE —— GENERATED: Thu Apr 01 2021 14:59:23 (1617314363)
+
+ --class=|--command=|--command=$("bash -c 'compgen $0'","-c")|--config-file=|--config-file=$("bash -c 'compgen $0'","-f")|--embed=|--help?|--hold?|--option=|--print-events?|--ref-test?|--title=|--version?|--working-directory=|--working-directory=$("bash -c 'compgen $0'","-d")|-e=|-e=$("bash -c 'compgen $0'","-c")|-h?|-o=|-q?|-qq?|-t=|-v?|-V?|-vv?|-vvv?
+
+ context "{help|h};{version|V};{command|e};{option|o};{title|t};!*:class;!*:title;!*:t"

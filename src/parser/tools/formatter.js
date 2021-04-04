@@ -1,5 +1,7 @@
 "use strict";
 
+const { nk } = require("../helpers/enums.js");
+
 /**
  * Formats (prettifies) .acmap file.
  *
@@ -47,10 +49,10 @@ module.exports = (S) => {
 			for (i = i + 1; i < l; i++) {
 				let N = nodes[i];
 				let type = N.node;
-				if (type !== "COMMENT") {
+				if (type !== nk.Comment) {
 					r = N;
 					break;
-				} else if (type === "COMMENT") i++;
+				} else if (type === nk.Comment) i++;
 			}
 		} else r = nodes[i + 1];
 
@@ -78,15 +80,15 @@ module.exports = (S) => {
 		let type = N.node;
 
 		// Ignore starting newlines.
-		if (!output.length && type === "NEWLINE") continue;
+		if (!output.length && type === nk.Newline) continue;
 		// Remove comments when flag is provided.
-		if (igc && type === "COMMENT") {
+		if (igc && type === nk.Comment) {
 			i++;
 			continue;
 		}
 
 		switch (type) {
-			case "COMMENT":
+			case nk.Comment:
 				{
 					let scope = scopes[scopes.length - 1] || null;
 					let pad = !N.inline ? indent(null, scope) : " ";
@@ -96,28 +98,29 @@ module.exports = (S) => {
 
 				break;
 
-			case "NEWLINE":
+			case nk.Newline:
 				{
 					let nN = nextnode(i, l);
 
 					if (nl_count <= 1) output.push("\n");
 					nl_count++;
-					if (nN && nN.node !== "NEWLINE") nl_count = 0;
+					if (nN && nN.node !== nk.Newline) nl_count = 0;
 
 					if (scopes.length) {
 						let last = output[output.length - 2];
 						let lchar = last[last.length - 1];
 						let isbrace = lchar === "[" || lchar === "(";
-						if (isbrace && nN && nN.node === "NEWLINE") nl_count++;
-						if (nN.node === "BRACE") {
-							if (lastnode(i, l).node === "NEWLINE") output.pop();
+						if (isbrace && nN && nN.node === nk.Newline) nl_count++;
+						if (nN.node === nk.Brace) {
+							if (lastnode(i, l).node === nk.Newline)
+								output.pop();
 						}
 					}
 				}
 
 				break;
 
-			case "SETTING":
+			case nk.Setting:
 				{
 					let nval = N.name.value;
 					let aval = N.assignment.value;
@@ -139,7 +142,7 @@ module.exports = (S) => {
 
 				break;
 
-			case "VARIABLE":
+			case nk.Variable:
 				{
 					let nval = N.name.value;
 					let aval = N.assignment.value;
@@ -161,7 +164,7 @@ module.exports = (S) => {
 
 				break;
 
-			case "COMMAND":
+			case nk.Command:
 				{
 					let vval = N.value.value;
 					let cval = N.command.value;
@@ -184,16 +187,18 @@ module.exports = (S) => {
 					}
 
 					let nN = nextnode(i, l);
-					if (nN && nN.node === "FLAG") r += " ";
+					if (nN && nN.node === nk.Flag) r += " ";
 					output.push(r);
 					if (vval && vval === "[") scopes.push(1); // Track scope.
 				}
 
 				break;
 
-			case "FLAG":
+			case nk.Flag:
 				{
-					if (N.virtual) { continue; }
+					if (N.virtual) {
+						continue;
+					}
 
 					let kval = N.keyword.value;
 					let hval = N.hyphens.value;
@@ -217,7 +222,7 @@ module.exports = (S) => {
 					// Note: If nN is a flag reset var.
 					if (pipe_del) {
 						let nN = nextnode(i, l);
-						if (nN && nN.node !== "FLAG") pipe_del = "";
+						if (nN && nN.node !== nk.Flag) pipe_del = "";
 					}
 
 					// [https://stackoverflow.com/a/23867090]
@@ -258,7 +263,7 @@ module.exports = (S) => {
 
 				break;
 
-			case "OPTION":
+			case nk.Option:
 				{
 					let bval = N.bullet.value;
 					let vval = N.value.value;
@@ -277,7 +282,7 @@ module.exports = (S) => {
 
 				break;
 
-			case "BRACE":
+			case nk.Brace:
 				{
 					let bval = N.brace.value;
 					let pad = indent(null, bval === "]" ? 0 : 1);

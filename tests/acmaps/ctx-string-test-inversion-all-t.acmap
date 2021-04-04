@@ -1,0 +1,10 @@
+# This acmap tests a context string: should produce no errors.
+
+program = [
+	--version?
+	--help?
+
+	# The following flag is used to test the context string.
+	--test
+	context " !*: class"
+]

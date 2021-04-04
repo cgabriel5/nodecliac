@@ -1,7 +1,8 @@
-# DON'T EDIT FILE —— GENERATED: Tue Sep 01 2020 11:54:37 (1598986477)
+# DON'T EDIT FILE —— GENERATED: Sat Oct 10 2020 17:45:15 (1602377115)
 
  --version?
 .add --force?
+.bin --
 .cache --clear?|--level=|--level=0|--level=1|--level=2
 .debug --disable?|--enable?|--script=|--script=nim|--script=perl
 .disable --all

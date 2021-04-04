@@ -743,6 +743,7 @@ sub __lookup {
 		if ($db{dict}{$letter}{$commandchain}) {
 			my %parsedflags;
 			my %excluded;
+			my $excluded_all = 0;
 			my $flag_list = $db{dict}{$letter}{$commandchain}{flags};
 
 			# If a placeholder get its contents.
@@ -838,10 +839,25 @@ sub __lookup {
 								if ($r == 0) { last; }
 							}
 							if ($r == 1) {
+								(my $llast = $last) =~ s/^-*//g;
 								foreach my $flag (@flags) {
 									# my $flag = flag;
 									my $fchar = substr($flag, 0, 1);
 									$flag =~ s/\!//g;
+
+									if ($flag eq '*') {
+										$excluded_all = 1;
+										my $found = 0;
+										for (@conditions) {
+											if ($_ eq $llast) {
+												$found = 1;
+												last;
+											}
+										}
+										if ($found == 1) { $excluded_all = 0; }
+										next;
+									}
+
 									$flag = (length($flag) == 1 ? '-' : '--') . $flag;
 									if ($fchar eq '!') { $excluded{$flag} = 1; }
 									else { delete $excluded{$flag}; }
@@ -892,6 +908,8 @@ sub __lookup {
 
 			# Store data for env variables.
 			push(@dflag, $last_fkey, $last_eqsign, $last_value);
+
+			if ($excluded_all == 1) { @flags = (); }
 
 			# Process flags.
 			foreach my $flag (@flags) {
@@ -1605,12 +1623,12 @@ sub __makedb {
 				$db{levels}{1}{$command} = undef;
 			}
 
-		if ($DEBUGMODE) {
-			__dline(__dfn("makedb", "(first level commands only)") . "\n");
-			__dline(__dvar("commandchain") . "$pstart$commandchain$pend\n");
-			__dline(__dvar("db_levels") . $pstart . Dumper(\%db{levels}) . "$pend\n");
-			__dline("\n");
-		}
+			if ($DEBUGMODE) {
+				__dline(__dfn("makedb", "(first level commands only)") . "\n");
+				__dline(__dvar("commandchain") . "$pstart$commandchain$pend\n");
+				__dline(__dvar("db_levels") . $pstart . Dumper(\%db{levels}) . "$pend\n");
+				__dline("\n");
+			}
 
 		} else { # First level flags.
 			if ($acdef =~ /^ ([^\n]+)/m) {$db{dict}{''}{''} = { flags => $1 };}
@@ -1653,7 +1671,7 @@ sub __makedb {
 		}
 
 		if ($DEBUGMODE) {
-			__dline(__dfn("makedb", "(first level flags only)") . "\n");
+			__dline(__dfn("makedb", "(entire .acdef file contents)") . "\n");
 			__dline(__dvar("commandchain") . "$pstart$commandchain$pend\n");
 			__dline(__dvar("db_defaults") . $pstart . Dumper(\%db_defaults) . "$pend\n");
 			__dline(__dvar("db_filedirs") . $pstart . Dumper(\%db_filedirs) . "$pend\n");

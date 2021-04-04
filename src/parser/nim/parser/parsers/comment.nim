@@ -1,7 +1,4 @@
-from ../helpers/tree_add import add
-import ../helpers/[forward, rollback]
-from ../helpers/types import State, node
-from ../helpers/charsets import C_NL
+import ../helpers/[tree_add, types, charsets, forward, rollback]
 
 # ------------------------------------------------------------ Parsing Breakdown
 # # Comment body.
@@ -11,24 +8,23 @@ from ../helpers/charsets import C_NL
 #
 # @param  {object} S - State object.
 # @return - Nothing is returned.
-proc p_comment*(S: State, inline=false) =
-    let text = S.text
-    var N = node(S, "COMMENT")
+proc p_comment*(S: State, inline = false) =
+    var N = node(nkComment, S)
     N.comment.start = S.i
 
     if inline: N.inline = inline
 
-    let l = S.l; var `char`: char
+    let l = S.l; var c: char
     while S.i < l:
-        `char` = text[S.i]
+        c = S.text[S.i]
 
-        if `char` in C_NL:
+        if c in C_NL:
             rollback(S)
-            N.`end` = S.i
+            N.stop = S.i
             break # Stop at nl char.
 
-        N.comment.`end` = S.i
-        N.comment.value &= $`char`
+        N.comment.stop = S.i
+        N.comment.value &= $c
 
         forward(S)
 

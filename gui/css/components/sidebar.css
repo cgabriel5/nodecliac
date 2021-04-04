@@ -1,0 +1,173 @@
+.sidebar {
+	background: #f7f6f8;
+	background: #fbfafc;
+	min-width: 300px;
+	height: 100%;
+	border-right: 1px solid #e5e5e5;
+	overflow: auto;
+	color: rgb(135, 135, 135);
+	position: relative;
+}
+
+/* White double-border: [https://css-tricks.com/snippets/css/multiple-borders/]; */
+/* [https://css-tricks.com/forums/topic/solved-getting-before-element-to-obey-main-width-and-height-help/] */
+
+.sidebar:before {
+	content: " ";
+	position: absolute;
+	display: inline;
+
+	height: 100%;
+
+	right: 0;
+
+	border-right: 1px solid white;
+}
+
+/* ROW */
+
+.sidebar .divider {
+	border-bottom: 1px solid #f0f0f0;
+	padding: 5px 0px 15px 0px;
+}
+
+.sidebar .section {
+	padding: 15px 15px 5px 15px;
+	color: rgb(105, 105, 105);
+}
+
+.sidebar .row {
+	display: flex;
+	flex-flow: row nowrap;
+	/*color: #333333;*/
+	justify-content: space-between;
+	align-items: center;
+	padding: 3px 7px 3px 35px;
+}
+
+.sidebar .selected,
+.sidebar .selected .label {
+	/*background: rgba(0, 0, 0, 0.05) !important;*/
+	background: rgb(16, 103, 222);
+	color: white !important;
+}
+
+.sidebar .selected .count {
+
+	background: white !important;
+	color:  rgb(16, 103, 222) !important;
+	color: #656d78 !important;
+}
+
+.sidebar .selected .svg-loader {
+	filter: brightness(2);
+}
+
+.sidebar .selected .icon-cont,
+.sidebar .selected .label {
+	/* color: #333; */
+}
+
+.sidebar .label {
+	color: rgb(55, 55, 55);
+}
+
+.sidebar .icon-cont {
+	/* display: block; */
+	margin-right: 5px;
+	width: 30px;
+	/* color: rgb(135, 135, 135); */
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.sidebar .icon-cont i {
+	font-weight: bold;
+	font-size: 24px;
+}
+
+.sidebar .s-loader {
+	margin-right: 5px;
+}
+
+/* ENTRY */
+
+.sidebar .entries .item {
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: space-between;
+	padding: 2px 0 2px 65px;
+	width: 100%;
+}
+
+.sidebar .entries .icon {
+	display: block;
+	margin-right: 5px;
+	width: 30px;
+	/* color: rgb(135, 135, 135); */
+}
+
+/*.sidebar .entries .count {*/
+
+/* OLD method uses, transform */
+/*.sidebar .row .count {
+	padding: 0px 10px;
+	border-radius: 20px;
+	background: rgb(29, 131, 246);
+	background: rgb(26, 115, 232);
+	background: #a9b8d3;
+	color: white;
+	font-weight: bold;
+	margin-right: 5px;
+	transform: scale(0.85);
+}
+*/
+
+.sidebar .row .count {
+	padding: 0px 8px;
+	border-radius: 20px;
+	/*background: #327dff;*/
+	background: rgb(29, 131, 246);
+	background: rgb(26, 115, 232);
+	background: #a9b8d3;
+	color: white;
+	font-weight: bold;
+	margin-right: 5px;
+	/*transform: scale(1);*/
+	height: 24px;
+	line-height: 25px;
+	text-align: center;
+    font-size: 16px
+}
+
+.sidebar .menu-item-loader {
+	/*background-image: url("../../resources/images/svg/loader.svg");*/
+	/*width: 30px;*/
+	/*height: 30px;*/
+	/* background-color: rgba(255, 192, 203, 0.4); */
+	/*background-repeat: no-repeat;*/
+	/*background-position: center;*/
+	/*background-size: cover;*/
+}
+
+/* CSS Arrows */
+
+/* [https://css-tricks.com/snippets/css/css-triangle/] */
+/*.arrow-right {
+	margin-top: 8px;
+	width: 0;
+	height: 0;
+	border-top: 7px solid transparent;
+	border-bottom: 7px solid transparent;
+	border-left: 9px solid #999999;
+}
+.arrow-down {
+	margin-top: 12px;
+	width: 0;
+	height: 0;
+	border-left: 7px solid transparent;
+	border-right: 7px solid transparent;
+	border-top: 9px solid #7e7d7e;
+}
+*/

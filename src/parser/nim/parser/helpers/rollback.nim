@@ -1,4 +1,4 @@
-from types import State
+import types
 
 # Rollback loop index/column to re-run parser at same iteration.
 #

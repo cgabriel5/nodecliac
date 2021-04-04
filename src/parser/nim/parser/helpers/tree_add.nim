@@ -1,11 +1,10 @@
-from tables import Table, `[]`, `$`, pairs
+import std/tables
 
-from types import State, Node
+import types
 
 # Add node object to tree.
 #
 # @param  {object} S - State object.
 # @param  {object} N - Node object.
 # @return - Nothing is returned.
-proc add*(S: State, N: Node) =
-    S.tables.tree["nodes"].add(N)
+proc add*(S: State, N: Node) = S.tables.tree["nodes"].add(N)

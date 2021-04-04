@@ -6,6 +6,7 @@ const p_flag = require("../parsers/flag.js");
 const error = require("../helpers/error.js");
 const add = require("../helpers/tree-add.js");
 const tracer = require("../helpers/trace.js");
+const { nk } = require("../helpers/enums.js");
 const rollback = require("../helpers/rollback.js");
 const bracechecks = require("../helpers/brace-checks.js");
 const {
@@ -47,9 +48,9 @@ const {
  * @return {object} - Node object.
  */
 module.exports = (S) => {
-	let { l, text } = S;
+	let l = S.l;
 	let state = "command";
-	let N = node(S, "COMMAND");
+	let N = node(nk.Command, S);
 	const isformatting = S.args.action === "format";
 
 	// Group state object.
@@ -71,20 +72,20 @@ module.exports = (S) => {
 	 * @param  {boolean} isgroup - Whether command is part of a group.
 	 * @return {undefined} - Nothing is returned.
 	 */
-	let cescape = (char, isgroup) => {
+	let cescape = (c, isgroup) => {
 		// Note: When escaping anything but a dot do not
 		// include the '\' as it is not needed. For example,
 		// if the command is 'com\mand\.name' we should return
 		// 'command\.name' and not 'com\mand\.name'.
-		if (char === "\\") {
-			let nchar = text.charAt(S.i + 1);
+		if (c === "\\") {
+			let n = S.text.charAt(S.i + 1);
 
 			// nchar must exist else escaping nothing.
-			if (!nchar) error(S, __filename, 10);
+			if (!n) error(S, 10);
 
 			// Only dots can be escaped.
-			if (nchar !== ".") {
-				error(S, __filename, 10);
+			if (n !== ".") {
+				error(S, 10);
 
 				// Remove last escape char as it isn't needed.
 				if (isgroup) G.command = G.command.slice(0, -1);
@@ -93,18 +94,18 @@ module.exports = (S) => {
 		}
 	};
 
-	let char,
-		pchar = "";
+	let c,
+		p = "";
 	for (; S.i < l; S.i++, S.column++) {
-		pchar = char;
-		char = text.charAt(S.i);
+		p = c;
+		c = S.text.charAt(S.i);
 
-		if (cin(C_NL, char)) {
+		if (cin(C_NL, c)) {
 			N.end = rollback(S) && S.i;
 			break; // Stop at nl char.
 		}
 
-		if (char === "#" && pchar !== "\\") {
+		if (c === "#" && p !== "\\") {
 			rollback(S);
 			N.end = S.i;
 			break;
@@ -113,64 +114,64 @@ module.exports = (S) => {
 		switch (state) {
 			case "command":
 				if (!N.command.value) {
-					if (cnotin(C_CMD_IDENT_START, char)) error(S, __filename);
+					if (cnotin(C_CMD_IDENT_START, c)) error(S);
 
 					N.command.start = N.command.end = S.i;
-					N.command.value += char;
+					N.command.value += c;
 
 					// Once a wildcard (all) char is found change state.
-					if (char === "*") state = "chain-wsb";
+					if (c === "*") state = "chain-wsb";
 				} else {
-					if (cin(C_CMD_IDENT, char)) {
+					if (cin(C_CMD_IDENT, c)) {
 						N.command.end = S.i;
-						N.command.value += char;
-						cescape(char, false);
-					} else if (cin(C_SPACES, char)) {
+						N.command.value += c;
+						cescape(c, false);
+					} else if (cin(C_SPACES, c)) {
 						state = "chain-wsb";
 						continue;
-					} else if (char === "=") {
+					} else if (c === "=") {
 						state = "assignment";
 						rollback(S);
-					} else if (char === ",") {
+					} else if (c === ",") {
 						state = "delimiter";
 						rollback(S);
-					} else if (char === "{") {
+					} else if (c === "{") {
 						state = "group-open";
 						rollback(S);
-					} else error(S, __filename);
+					} else error(S);
 				}
 
 				break;
 
 			case "chain-wsb":
-				if (cnotin(C_SPACES, char)) {
-					if (char === "=") {
+				if (cnotin(C_SPACES, c)) {
+					if (c === "=") {
 						state = "assignment";
 						rollback(S);
-					} else if (char === ",") {
+					} else if (c === ",") {
 						state = "delimiter";
 						rollback(S);
-					} else error(S, __filename);
+					} else error(S);
 				}
 
 				break;
 
 			case "assignment":
 				N.assignment.start = N.assignment.end = S.i;
-				N.assignment.value = char;
+				N.assignment.value = c;
 				state = "value-wsb";
 
 				break;
 
 			case "delimiter":
 				N.delimiter.start = N.delimiter.end = S.i;
-				N.delimiter.value = char;
+				N.delimiter.value = c;
 				state = "eol-wsb";
 
 				break;
 
 			case "value-wsb":
-				if (cnotin(C_SPACES, char)) {
+				if (cnotin(C_SPACES, c)) {
 					state = "value";
 					rollback(S);
 				}
@@ -179,8 +180,8 @@ module.exports = (S) => {
 
 			case "value":
 				// Note: Intermediary step - remove it?
-				if (cnotin(C_CMD_VALUE, char)) error(S, __filename);
-				state = char === "[" ? "open-bracket" : "oneliner";
+				if (cnotin(C_CMD_VALUE, c)) error(S);
+				state = c === "[" ? "open-bracket" : "oneliner";
 				rollback(S);
 
 				break;
@@ -188,14 +189,14 @@ module.exports = (S) => {
 			case "open-bracket":
 				// Note: Intermediary step - remove it?
 				N.brackets.start = S.i;
-				N.brackets.value = char;
-				N.value.value = char;
+				N.brackets.value = c;
+				N.value.value = c;
 				state = "open-bracket-wsb";
 
 				break;
 
 			case "open-bracket-wsb":
-				if (cnotin(C_SPACES, char)) {
+				if (cnotin(C_SPACES, c)) {
 					state = "close-bracket";
 					rollback(S);
 				}
@@ -203,9 +204,9 @@ module.exports = (S) => {
 				break;
 
 			case "close-bracket":
-				if (char !== "]") error(S, __filename);
+				if (c !== "]") error(S);
 				N.brackets.end = S.i;
-				N.value.value += char;
+				N.value.value += c;
 				state = "eol-wsb";
 
 				break;
@@ -217,7 +218,7 @@ module.exports = (S) => {
 					let fN = p_flag(S, "oneliner");
 					// Add alias node if it exists.
 					if (fN.alias.value) {
-						let cN = node(S, "FLAG");
+						let cN = node(nk.Flag, S);
 						cN.hyphens.value = "-";
 						cN.delimiter.value = ",";
 						cN.name.value = fN.alias.value;
@@ -228,7 +229,7 @@ module.exports = (S) => {
 						N.flags.push(cN);
 
 						// Add context node for mutual exclusivity.
-						let xN = node(S, "FLAG");
+						let xN = node(nk.Flag, S);
 						xN.value.value = `"{${fN.name.value}|${fN.alias.value}}"`;
 						xN.keyword.value = "context";
 						xN.singleton = false;
@@ -242,7 +243,7 @@ module.exports = (S) => {
 				break;
 
 			case "eol-wsb":
-				if (cnotin(C_SPACES, char)) error(S, __filename);
+				if (cnotin(C_SPACES, c)) error(S);
 
 				break;
 
@@ -250,7 +251,7 @@ module.exports = (S) => {
 
 			case "group-open":
 				N.command.end = S.i;
-				N.command.value += !isformatting ? "?" : char;
+				N.command.value += !isformatting ? "?" : c;
 
 				state = "group-wsb";
 
@@ -265,17 +266,17 @@ module.exports = (S) => {
 				if (G.command) G.commands[l - 1].push(G.command);
 				G.command = "";
 
-				if (cnotin(C_SPACES, char)) {
-					if (cin(C_CMD_GRP_IDENT_START, char)) {
+				if (cnotin(C_SPACES, c)) {
+					if (cin(C_CMD_GRP_IDENT_START, c)) {
 						state = "group-command";
 						rollback(S);
-					} else if (char === ",") {
+					} else if (c === ",") {
 						state = "group-delimiter";
 						rollback(S);
-					} else if (char === "}") {
+					} else if (c === "}") {
 						state = "group-close";
 						rollback(S);
-					} else error(S, __filename);
+					} else error(S);
 				}
 
 				break;
@@ -283,41 +284,41 @@ module.exports = (S) => {
 
 			case "group-command":
 				if (!G.command) {
-					if (cnotin(C_CMD_GRP_IDENT_START, char)) {
-						error(S, __filename);
+					if (cnotin(C_CMD_GRP_IDENT_START, c)) {
+						error(S);
 					}
 
 					G.tokens.push(["command", S.column]);
 					N.command.end = S.i;
-					G.command += char;
-					if (isformatting) N.command.value += char;
+					G.command += c;
+					if (isformatting) N.command.value += c;
 				} else {
-					if (cin(C_CMD_IDENT, char)) {
+					if (cin(C_CMD_IDENT, c)) {
 						N.command.end = S.i;
-						G.command += char;
-						if (isformatting) N.command.value += char;
-						cescape(char, true);
-					} else if (cin(C_SPACES, char)) {
+						G.command += c;
+						if (isformatting) N.command.value += c;
+						cescape(c, true);
+					} else if (cin(C_SPACES, c)) {
 						state = "group-wsb";
 						continue;
-					} else if (char === ",") {
+					} else if (c === ",") {
 						state = "group-delimiter";
 						rollback(S);
-					} else if (char === "}") {
+					} else if (c === "}") {
 						state = "group-close";
 						rollback(S);
-					} else error(S, __filename);
+					} else error(S);
 				}
 
 				break;
 
 			case "group-delimiter": {
 				N.command.end = S.i;
-				if (isformatting) N.command.value += char;
+				if (isformatting) N.command.value += c;
 
 				let l = G.tokens.length;
 				if (!l || (l && G.tokens[l - 1][0] === "delimiter")) {
-					error(S, __filename, 12);
+					error(S, 12);
 				}
 
 				l = G.commands.length;
@@ -331,18 +332,18 @@ module.exports = (S) => {
 
 			case "group-close": {
 				N.command.end = S.i;
-				if (isformatting) N.command.value += char;
+				if (isformatting) N.command.value += c;
 
 				let l = G.commands.length;
 				if (G.command) G.commands[l - 1].push(G.command);
 				if (!G.commands[l - 1].length) {
 					S.column = G.start;
-					error(S, __filename, 11); // Empty command group.
+					error(S, 11); // Empty command group.
 				}
 				l = G.tokens.length;
 				if (G.tokens[l - 1][0] === "delimiter") {
 					S.column = G.tokens[l - 1][1];
-					error(S, __filename, 12); // Trailing delimiter.
+					error(S, 12); // Trailing delimiter.
 				}
 
 				G.active = false;
@@ -356,7 +357,7 @@ module.exports = (S) => {
 
 	if (G.active) {
 		S.column = G.start;
-		error(S, __filename, 13); // Command group was left unclosed.
+		error(S, 13); // Command group was left unclosed.
 	}
 
 	// Expand command groups.

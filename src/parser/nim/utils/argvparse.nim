@@ -1,10 +1,6 @@
-from re import re, replace
-from strutils import startsWith
-from os import paramCount, commandLineParams
-from parseopt import next, cmdEnd, cmdArgument,
-    cmdLongOption, initOptParser, cmdShortOption
+import std/[os, re, strutils, parseopt]
 
-from fs import expand_tilde
+from tilde import expand
 
 if os.paramCount() == 0: quit() # Exit if no args.
 
@@ -60,4 +56,4 @@ proc argvparse*(): Arguments =
         inc(i)
 
     result.action = args[0]
-    result.source = expand_tilde(result.source)
+    result.source = expand(result.source)

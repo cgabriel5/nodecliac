@@ -1,4 +1,4 @@
-from os import getEnv, paramStr, paramCount
+import std/os
 
 # Like 'commandLineParams' but returns all CLI input in a string.
 #

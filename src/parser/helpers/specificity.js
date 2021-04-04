@@ -31,6 +31,6 @@ module.exports = (S, line_type, parserfile) => {
 	let state_specf = fs ? SPECF.flag : cs ? SPECF.command : S.specf;
 
 	// Error when specificity is invalid.
-	if (state_specf && state_specf < line_specf) error(S, parserfile, 12);
+	if (state_specf && state_specf < line_specf) error(S, 12, parserfile);
 	S.specf = line_specf;
 };

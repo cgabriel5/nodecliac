@@ -28,17 +28,17 @@ module.exports = async (
 	let ltype;
 
 	for (; S.i < S.l; S.i++, S.column++) {
-		let char = text.charAt(S.i);
-		let nchar = text.charAt(S.i + 1);
+		let c = text.charAt(S.i);
+		let n = text.charAt(S.i + 1);
 
 		// Handle newlines.
-		if (cin(C_NL, char)) {
+		if (cin(C_NL, c)) {
 			p_newline(S);
 			continue;
 		}
 
 		// Handle inline comment.
-		if (char === "#" && S.sol_char) {
+		if (c === "#" && S.sol_char) {
 			tracer(S, "comment");
 			require("./parsers/comment.js")(S, true);
 			continue;
@@ -48,13 +48,13 @@ module.exports = async (
 		if (!hasProp(linestarts, S.line)) linestarts[S.line] = S.i;
 
 		// Start parsing at first non-ws character.
-		if (!S.sol_char && cnotin(C_SPACES, char)) {
-			S.sol_char = char;
+		if (!S.sol_char && cnotin(C_SPACES, c)) {
+			S.sol_char = c;
 
-			// Sol char must be allowed.
-			if (cnotin(C_SOL, char)) error(S, __filename, 10);
+			// Sol c must be allowed.
+			if (cnotin(C_SOL, c)) error(S, 10);
 
-			ltype = linetype(S, char, nchar);
+			ltype = linetype(S, c, n);
 			if (ltype === "terminator") break;
 
 			specificity(S, ltype, __filename);

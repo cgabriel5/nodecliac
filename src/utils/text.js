@@ -20,6 +20,12 @@ let strip_comments = (contents) => {
 	);
 };
 
-module.exports = {
-	strip_comments
-};
+/**
+ * Remove trailing slash from path string.
+ *
+ * @param  {string} s - The path.
+ * @return {string} - The string with trailing slash removed.
+ */
+let strip_trailing_slash = (s = "") => (s.endsWith("/") ? s.slice(0, -1) : s);
+
+module.exports = { strip_comments, strip_trailing_slash };

@@ -1,9 +1,6 @@
-from strformat import fmt
-from strutils import join, repeat
-from tables import Table, `[]`, toTable, `$`
-from re import re, replace, replacef, reMultiLine
+import std/[strformat, strutils, tables, re]
 
-from ../helpers/types import State, Node
+import ../helpers/[types, charsets]
 
 # Formats (prettifies) .acmap file.
 #
@@ -50,11 +47,11 @@ proc formatter*(S: State): tuple =
             var i = i + 1
             while i < l:
                 let N = nodes[i]
-                let `type` = N.node
-                if `type` != "COMMENT":
+                let t = N.kind
+                if t != nkComment:
                     result = N
                     break
-                elif `type` == "COMMENT":
+                elif t == nkComment:
                     inc(i)
                 inc(i)
         else: result = if i + 1 < l: nodes[i + 1] else: eN
@@ -75,188 +72,190 @@ proc formatter*(S: State): tuple =
     let l = nodes.len
     while i < l:
         let N = nodes[i]
-        let `type` = N.node
+        let t = N.kind
 
         # Ignore starting newlines.
-        if output.len == 0 and `type` == "NEWLINE":
+        if output.len == 0 and t == nkNewline:
             inc(i)
             continue
         # Remove comments when flag is provided.
-        if igc and `type` == "COMMENT":
+        if igc and t == nkComment:
             inc(i) # + 1 to skip next newline node.
             inc(i) # + 1 to account for continue.
             continue
 
-        case (`type`):
-            of "COMMENT":
-                let scope = if scopes.len > 0: scopes[^1] else: 0
-                let pad = if not N.inline: indent(count = scope) else: " "
+        case t:
+        of nkComment:
+            let scope = if scopes.len > 0: scopes[^1] else: 0
+            let pad = if not N.inline: indent(count = scope) else: " "
 
-                output.add(fmt"{pad}{N.comment.value}")
+            output.add(fmt"{pad}{N.comment.value}")
 
-            of "NEWLINE":
-                let nN = nextnode(i, l);
+        of nkNewline:
+            let nN = nextnode(i, l);
 
-                if nl_count <= 1: output.add("\n")
-                inc(nl_count)
-                if nN.node != "NEWLINE": nl_count = 0
+            if nl_count <= 1: output.add("\n")
+            inc(nl_count)
+            if nN.kind != nkNewline: nl_count = 0
 
-                if scopes.len != 0:
-                    let last = output[output.len - 2]
-                    let lchar = last[last.len - 1]
-                    let isbrace = lchar == '[' or lchar == '('
-                    if isbrace and nN.node == "NEWLINE": inc(nl_count)
-                    if nN.node == "BRACE":
-                        if lastnode(i, l).node == "NEWLINE": discard output.pop()
+            if scopes.len != 0:
+                let last = output[output.len - 2]
+                let lchar = last[last.len - 1]
+                let isbrace = lchar == C_LBRACKET or lchar == C_LPAREN
+                if isbrace and nN.kind == nkNewline: inc(nl_count)
+                if nN.kind == nkBrace:
+                    if lastnode(i, l).kind == nkNewline: discard output.pop()
 
-            of "SETTING":
-                let nval = N.name.value
-                let aval = N.assignment.value
-                let vval = N.value.value
+        of nkSetting:
+            let nval = N.name.value
+            let aval = N.assignment.value
+            let vval = N.value.value
 
-                var r = "@"
-                if nval != "":
-                    r &= nval
-                    if aval != "":
-                        r &= fmt" {aval}"
-                        if vval != "":
-                            r &= fmt" {vval}"
-
-                output.add(r)
-
-            of "VARIABLE":
-                let nval = N.name.value
-                let aval = N.assignment.value
-                let vval = N.value.value
-
-                var r = "$"
-                if nval != "":
-                    r &= nval
-                    if aval != "":
-                        r &= fmt" {aval}"
-                        if vval != "":
-                            r &= fmt" {vval}"
-
-                output.add(r)
-
-            of "COMMAND":
-                let vval = N.value.value
-                let cval = N.command.value
-                let dval = N.delimiter.value
-                let aval = N.assignment.value
-
-                var r = ""
-                if cval != "":
-                    r &= cval
-                    if dval != "":
-                        r &= dval
-                    else:
-                        if aval != "":
-                            r &= fmt" {aval}"
-                            if vval != "":
-                                r &= fmt" {vval}"
-
-                let nN = nextnode(i, l)
-                if nN.node == "FLAG": r &= " "
-                output.add(r)
-                if vval != "" and vval == "[": scopes.add(1) # Track scope.
-
-            of "FLAG":
-                if N.virtual:
-                    inc(i) # + 1 to account for continue.
-                    continue
-
-                let kval = N.keyword.value
-                let hval = N.hyphens.value
-                let nval = N.name.value
-                let bval = N.boolean.value
-                let aval = N.assignment.value
-                let dval = N.delimiter.value
-                let mval = N.multi.value
-                let vval = N.value.value
-                let ival = N.alias.value
-                let singleton = N.singleton
-                let pad = indent(count = singleton.int)
-                var pipe_del = if singleton: "" else: "|"
-
-                # Skip if an alias and set ref for later.
-                if ival != "" and ival == nval:
-                    alias = N
-                    inc(i) # + 1 to account for continue.
-                    continue
-
-                # Note: If nN is a flag reset var.
-                if pipe_del != "":
-                    let nN = nextnode(i, l)
-                    if nN.node != "FLAG": pipe_del = ""
-
-                var r = pad
-
-                if kval != "":
-                    r &= kval
-                    if vval != "": r &= fmt" {vval}"
-                else:
-                    if hval != "":
-                        r &= hval
-                        if nval != "":
-                            r &= nval
-                            if ival != "" and alias != nil and ival == alias.alias.value:
-                                r &= "::" & ival
-                                alias = nil
-                            if bval != "":
-                                r &= bval
-                            elif aval != "":
-                                r &= aval
-                                if mval != "": r &= mval
-                                if dval != "": r &= dval
-                                if vval != "": r &= vval
-
-                output.add(r & pipe_del)
-
-                if vval != "" and vval == "(": scopes.add(2) # Track scope.
-
-            of "OPTION":
-                let bval = N.bullet.value
-                let vval = N.value.value
-                let pad = indent("OPTION")
-
-                var r = pad
-                if bval != "":
-                    r &= bval
+            var r = "@"
+            if nval != "":
+                r &= nval
+                if aval != "":
+                    r &= fmt" {aval}"
                     if vval != "":
                         r &= fmt" {vval}"
 
-                output.add(r)
+            output.add(r)
 
-            of "BRACE":
-                let bval = N.brace.value
-                var pad = indent(count = if bval == "]": 0 else: 1)
+        of nkVariable:
+            let nval = N.name.value
+            let aval = N.assignment.value
+            let vval = N.value.value
 
-                if bval == ")":
-                    let l = output.len
-                    let last = output[l - 1]
-                    let slast = output[l - 2]
-                    let ll = last.len
-                    let lfchar = last.replace(r, "")[0]
-                    let slchar = slast[slast.len - 1]
+            var r = "$"
+            if nval != "":
+                r &= nval
+                if aval != "":
+                    r &= fmt" {aval}"
+                    if vval != "":
+                        r &= fmt" {vval}"
 
-                    if lfchar == '-' and last[ll - 1] == '(': pad = ""
-                    elif last == "\n" and slchar == '(':
-                        pad = ""
-                        discard output.pop()
-                elif bval == "]":
-                    let l = output.len
-                    let last = output[l - 1]
-                    let slast = output[l - 2]
-                    if last == "\n" and slast == "\n":
-                        discard output.pop()
-                    else:
-                        let sl = slast.len
-                        let slchar = slast[sl - 1]
-                        if last == "\n" and slchar == '[': discard output.pop()
+            output.add(r)
 
-                output.add(fmt"{pad}{bval}")
-                if scopes.len > 0: discard scopes.pop() # Un-track last scope.
+        of nkCommand:
+            let vval = N.value.value
+            let cval = N.command.value
+            let dval = N.delimiter.value
+            let aval = N.assignment.value
+
+            var r = ""
+            if cval != "":
+                r &= cval
+                if dval != "":
+                    r &= dval
+                else:
+                    if aval != "":
+                        r &= fmt" {aval}"
+                        if vval != "":
+                            r &= fmt" {vval}"
+
+            let nN = nextnode(i, l)
+            if nN.kind == nkFlag: r &= " "
+            output.add(r)
+            if vval != "" and vval == "[": scopes.add(1) # Track scope.
+
+        of nkFlag:
+            if N.virtual:
+                inc(i) # + 1 to account for continue.
+                continue
+
+            let kval = N.keyword.value
+            let hval = N.hyphens.value
+            let nval = N.name.value
+            let bval = N.boolean.value
+            let aval = N.assignment.value
+            let dval = N.delimiter.value
+            let mval = N.multi.value
+            let vval = N.value.value
+            let ival = N.alias.value
+            let singleton = N.singleton
+            let pad = indent(count = singleton.int)
+            var pipe_del = if singleton: "" else: "|"
+
+            # Skip if an alias and set ref for later.
+            if ival != "" and ival == nval:
+                alias = N
+                inc(i) # + 1 to account for continue.
+                continue
+
+            # Note: If nN is a flag reset var.
+            if pipe_del != "":
+                let nN = nextnode(i, l)
+                if nN.kind != nkFlag: pipe_del = ""
+
+            var r = pad
+
+            if kval != "":
+                r &= kval
+                if vval != "": r &= fmt" {vval}"
+            else:
+                if hval != "":
+                    r &= hval
+                    if nval != "":
+                        r &= nval
+                        if ival != "" and alias != nil and ival == alias.alias.value:
+                            r &= "::" & ival
+                            alias = nil
+                        if bval != "":
+                            r &= bval
+                        elif aval != "":
+                            r &= aval
+                            if mval != "": r &= mval
+                            if dval != "": r &= dval
+                            if vval != "": r &= vval
+
+            output.add(r & pipe_del)
+
+            if vval != "" and vval == "(": scopes.add(2) # Track scope.
+
+        of nkOption:
+            let bval = N.bullet.value
+            let vval = N.value.value
+            let pad = indent("OPTION")
+
+            var r = pad
+            if bval != "":
+                r &= bval
+                if vval != "":
+                    r &= fmt" {vval}"
+
+            output.add(r)
+
+        of nkBrace:
+            let bval = N.brace.value
+            var pad = indent(count = if bval == "]": 0 else: 1)
+
+            if bval == ")":
+                let l = output.len
+                let last = output[l - 1]
+                let slast = output[l - 2]
+                let ll = last.len
+                let lfchar = last.replace(r, "")[0]
+                let slchar = slast[slast.len - 1]
+
+                if lfchar == C_HYPHEN and last[ll - 1] == C_LPAREN: pad = ""
+                elif last == "\n" and slchar == C_LPAREN:
+                    pad = ""
+                    discard output.pop()
+            elif bval == "]":
+                let l = output.len
+                let last = output[l - 1]
+                let slast = output[l - 2]
+                if last == "\n" and slast == "\n":
+                    discard output.pop()
+                else:
+                    let sl = slast.len
+                    let slchar = slast[sl - 1]
+                    if last == "\n" and slchar == C_LBRACKET: discard output.pop()
+
+            output.add(fmt"{pad}{bval}")
+            if scopes.len > 0: discard scopes.pop() # Un-track last scope.
+
+        else: discard
 
         passed.add(N)
         inc(i)

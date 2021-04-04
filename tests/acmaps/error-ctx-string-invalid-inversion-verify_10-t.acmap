@@ -1,0 +1,13 @@
+# This acmap tests a context string.
+
+$var = "!**"
+
+program = [
+	--version?
+	--help?
+
+	# The following flag is used to test the context string.
+	--test
+	context " ${var}: class"
+	# --------^
+]

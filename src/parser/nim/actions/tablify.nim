@@ -1,0 +1,20 @@
+const funcs = {
+    "make": nlcli_make,
+    "format": nlcli_format,
+    "test": nlcli_test,
+    "debug": nlcli_debug,
+    "bin": nlcli_bin,
+    "init": nlcli_init,
+    "print": nlcli_print,
+    "setup": nlcli_setup,
+    "status": nlcli_status,
+    "registry": nlcli_registry,
+    "uninstall": nlcli_uninstall,
+    "cache": nlcli_cache,
+    "add": nlcli_add,
+    "remove": nlcli_remove,
+    "link": nlcli_link,
+    "unlink": nlcli_unlink,
+    "enable": nlcli_enable,
+    "disable": nlcli_disable
+}.toTable

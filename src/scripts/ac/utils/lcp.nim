@@ -1,9 +1,6 @@
 #!/usr/bin/env nim
 
-from algorithm import sort
-from tables import `$`, add, del, len, `[]`, `[]=`, pairs, Table,
-    hasKey, initTable, initOrderedTable, getOrDefault
-from strutils import startsWith
+import std/[algorithm, tables, strutils]
 
 # Finds all common prefixes in a list of strings.
 #

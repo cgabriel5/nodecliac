@@ -1,6 +1,7 @@
 "use strict";
 
 const node = require("../helpers/nodes.js");
+const { nk } = require("../helpers/enums.js");
 const { md5, hasProp } = require("../../utils/toolbox.js");
 
 /**
@@ -155,8 +156,8 @@ module.exports = async (S, cmdname) => {
 	let wildcard = false;
 	let wc_flg = [];
 	let wc_exc = new Set();
-	const ftypes = new Set(["FLAG", "OPTION"]);
-	const types = new Set(["SETTING", "COMMAND", "FLAG", "OPTION"]);
+	const ftypes = new Set([nk.Flag, nk.Option]);
+	const types = new Set([nk.Setting, nk.Command, nk.Flag, nk.Option]);
 
 	// Contain missing parent command chains in their own group.
 	oGroups[-1] = { commands: [], flags: [] };
@@ -169,8 +170,8 @@ module.exports = async (S, cmdname) => {
 
 		// Check whether new group must be started.
 		if (last) {
-			if (last === "COMMAND") {
-				if (type === "COMMAND" && !rN.delimiter.value) count++;
+			if (last === nk.Command) {
+				if (type === nk.Command && !rN.delimiter.value) count++;
 			} else if (ftypes.has(last)) {
 				if (!ftypes.has(type)) count++;
 			}
@@ -179,7 +180,7 @@ module.exports = async (S, cmdname) => {
 		}
 
 		switch (type) {
-			case "COMMAND": {
+			case nk.Command: {
 				// Handle wildcard node.
 				if (N.command.value === "*") {
 					wildcard = true;
@@ -201,7 +202,7 @@ module.exports = async (S, cmdname) => {
 					for (let i = commands.length - 1; i > -1; i--) {
 						let rchain = commands.join("."); // Remainder chain.
 						if (!hasProp(oSets, rchain)) {
-							let tN = node(S, "COMMAND");
+							let tN = node(nk.Command, S);
 							tN.command.value = rchain;
 							oGroups[-1].commands.push(tN);
 							oSets[rchain] = new Set();
@@ -216,7 +217,7 @@ module.exports = async (S, cmdname) => {
 				break;
 			}
 
-			case "FLAG": {
+			case nk.Flag: {
 				let keyword = N.keyword.value;
 
 				// Handle wildcard flags.
@@ -247,7 +248,7 @@ module.exports = async (S, cmdname) => {
 				break;
 			}
 
-			case "OPTION": {
+			case nk.Option: {
 				// Add value to last flag in group.
 				let { flags: fxN } = oGroups[count];
 				fxN[fxN.length - 1].args.push(N.value.value);
@@ -256,7 +257,7 @@ module.exports = async (S, cmdname) => {
 				break;
 			}
 
-			case "SETTING": {
+			case nk.Setting: {
 				let name = N.name.value;
 				if (name !== "test") {
 					if (!hasProp(oSettings, name)) settings_count++;

@@ -1,4 +1,4 @@
-from strutils import find, SkipTable, initSkipTable
+import std/strutils
 
 # Modified version of Nim's strutils.replace function. This takes an extra
 #     parameter to stop replacements after a first replace has been made.
@@ -53,3 +53,14 @@ proc replaceOnce*(s, sub: string, by = "", once = true): string =
 
         # copy the rest:
         add result, substr(s, i)
+
+# Removes x-amount of characters from the end of a string. Note,
+#     this function mutates the string and does not return a copy.
+#
+# @param  {string} s - The string to use.
+# @param  {number} count - The number of characters to remove.
+# @return {undefined} - Nothing is returned.
+proc chopChars*(s: var string, count: Natural = 0) =
+  if count == 0: return
+  if count > s.len: s.setLen(0); return
+  s.setLen(s.len - count)

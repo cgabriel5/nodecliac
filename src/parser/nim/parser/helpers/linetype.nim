@@ -1,35 +1,35 @@
-from tables import toTable, hasKey, getOrDefault, `[]`, `$`
+import std/tables
 
-from ../helpers/types import State
-from charsets import C_SPACES, C_KW_ALL, C_CMD_IDENT_START
+import ../helpers/types
+import charsets
 
 # Determine line's line type.
 #
 # @param  {object} S - State object.
-# @param  {char} char - The loop's current character.
-# @param  {char} nchar - The loop's next character.
-# @return {string} - The line's type.
-proc linetype*(S: State, `char`, nchar: char): string =
-    let text = S.text
-
+# @param  {char} c - The loop's current character.
+# @param  {char} n - The loop's next character.
+# @return {enum} - The line's type.
+proc linetype*(S: State, c, n: char): LineType =
     const types = {
-        ';': "terminator", # End parsing.
-        '#': "comment",
-        '$': "variable",
-        '@': "setting",
-        '-': "flag",
-        ')': "close-brace",
-        ']': "close-brace"
+        C_SEMICOLON: LTTerminator, # End parsing.
+        C_NUMSIGN: LTComment,
+        C_DOLLARSIGN: LTVariable,
+        C_ATSIGN: LTSetting,
+        C_HYPHEN: LTFlag,
+        C_RPAREN: LTCloseBrace,
+        C_RBRACKET: LTCloseBrace
     }.toTable
 
-    var line_type = types.getOrDefault(`char`, "")
+    var line_type = types.getOrDefault(c, LTSkip)
 
     # Line type overrides for: command, option, default.
-    if line_type == "" and `char` in C_CMD_IDENT_START: line_type = "command"
-    if line_type == "flag":
-        if nchar != '\0' and nchar in C_SPACES: line_type = "option"
-    elif line_type == "command":
-        let keyword = text[S.i .. S.i + 6]
-        if keyword in C_KW_ALL: line_type = "flag"
+    if line_type == LTSkip and c in C_CMD_IDENT_START:
+        line_type = LTCommand
+    if line_type == LTFlag:
+        if n != C_NULLB and n in C_SPACES:
+            line_type = LTOption
+    elif line_type == LTCommand:
+        let keyword = S.text[S.i .. S.i + 6]
+        if keyword in C_KW_ALL: line_type = LTFlag
 
     return line_type

@@ -1,11 +1,7 @@
 import flag
-from ../helpers/tree_add import add
-from ../helpers/types import State, Node, node
+import ../../utils/strutil
+import ../helpers/[tree_add, types, charsets]
 import ../helpers/[error, tracer, forward, rollback, brace_checks]
-from ../helpers/charsets import C_NL, C_SPACES,
-    C_CMD_IDENT_START, C_CMD_GRP_IDENT_START, C_CMD_IDENT, C_CMD_VALUE
-
-from ../../utils/strutil import replaceOnce
 
 # ------------------------------------------------------------ Parsing Breakdown
 # program.command
@@ -33,9 +29,8 @@ from ../../utils/strutil import replaceOnce
 # @param  {object} S - State object.
 # @return {object} - Node object.
 proc p_command*(S: State) =
-    let text = S.text
-    var state = "command"
-    var N = node(S, "COMMAND")
+    var state = Command
+    var N = node(nkCommand, S)
     let isformatting = S.args.action == "format"
 
     # Group state structures.
@@ -57,242 +52,242 @@ proc p_command*(S: State) =
     # @param  {string} char - The current loop iteration character.
     # @param  {boolean} isgroup - Whether command is part of a group.
     # @return {undefined} - Nothing is returned.
-    proc cescape(`char`: char, isgroup: bool, l: int, G: Group) =
+    proc cescape(c: char, isgroup: bool, l: int, G: Group) =
         # Note: When escaping anything but a dot do not
         # include the '\' as it is not needed. For example,
         # if the command is 'com\mand\.name' we should return
         # 'command\.name' and not 'com\mand\.name'.
-        if `char` == '\\':
-            let nchar = if S.i + 1 < l: text[S.i + 1] else: '\0'
+        if c == C_ESCAPE:
+            let n = if S.i + 1 < l: S.text[S.i + 1] else: C_NULLB
 
-            # nchar must exist else escaping nothing.
-            if nchar == '\0': error(S, currentSourcePath, 10)
+            # n must exist else escaping nothing.
+            if n == C_NULLB: error(S, 10)
 
             # Only dots can be escaped.
-            if nchar != '.':
-                error(S, currentSourcePath, 10)
+            if n != C_DOT:
+                error(S, 10)
 
                 # Remove last escape char as it isn't needed.
                 if isgroup: G.command = G.command[0 .. ^2]
                 else: N.command.value = N.command.value[0 .. ^2]
 
-    let l = S.l; var `char`, pchar: char
+    let l = S.l; var c, p: char
     while S.i < l:
-        pchar = `char`
-        `char` = text[S.i]
+        p = c
+        c = S.text[S.i]
 
-        if `char` in C_NL:
+        if c in C_NL:
             rollback(S)
-            N.`end` = S.i
+            N.stop = S.i
             break # Stop at nl char.
 
-        if `char` == '#' and pchar != '\\':
+        if c == C_NUMSIGN and p != C_ESCAPE:
             rollback(S)
-            N.`end` = S.i
+            N.stop = S.i
             break
 
-        case (state):
-            of "command":
-                if N.command.value == "":
-                    if `char` notin C_CMD_IDENT_START : error(S, currentSourcePath)
+        case state:
+        of Command:
+            if N.command.value == "":
+                if c notin C_CMD_IDENT_START : error(S)
 
-                    N.command.start = S.i
-                    N.command.`end` = S.i
-                    N.command.value &= $`char`
+                N.command.start = S.i
+                N.command.stop = S.i
+                N.command.value &= $c
 
-                    # Once a wildcard (all) char is found change state.
-                    if `char` == '*': state = "chain-wsb"
-                else:
-                    if `char` in C_CMD_IDENT:
-                        N.command.`end` = S.i
-                        N.command.value &= $`char`
-                        cescape(`char`, false, l, G)
-                    elif `char` in C_SPACES:
-                        state = "chain-wsb"
-                        forward(S)
-                        continue
-                    elif `char` == '=':
-                        state = "assignment"
-                        rollback(S)
-                    elif `char` == ',':
-                        state = "delimiter"
-                        rollback(S)
-                    elif `char` == '{':
-                        state = "group-open"
-                        rollback(S)
-                    else: error(S, currentSourcePath)
-
-            of "chain-wsb":
-                if `char` notin C_SPACES:
-                    if `char` == '=':
-                        state = "assignment"
-                        rollback(S)
-                    elif `char` == ',':
-                        state = "delimiter"
-                        rollback(S)
-                    else: error(S, currentSourcePath)
-
-            of "assignment":
-                N.assignment.start = S.i
-                N.assignment.`end` = S.i
-                N.assignment.value = $`char`
-                state = "value-wsb"
-
-            of "delimiter":
-                N.delimiter.start = S.i
-                N.delimiter.`end` = S.i
-                N.delimiter.value = $`char`
-                state = "eol-wsb"
-
-            of "value-wsb":
-                if `char` notin C_SPACES:
-                    state = "value"
+                # Once a wildcard (all) char is found change state.
+                if c == C_ASTERISK: state = ChainWsb
+            else:
+                if c in C_CMD_IDENT:
+                    N.command.stop = S.i
+                    N.command.value &= $c
+                    cescape(c, false, l, G)
+                elif c in C_SPACES:
+                    state = ChainWsb
+                    forward(S)
+                    continue
+                elif c == C_EQUALSIGN:
+                    state = Assignment
                     rollback(S)
+                elif c == C_COMMA:
+                    state = Delimiter
+                    rollback(S)
+                elif c == C_LCURLY:
+                    state = GroupOpen
+                    rollback(S)
+                else: error(S)
 
-            of "value":
-                # Note: Intermediary step - remove it?
-                if `char` notin C_CMD_VALUE: error(S, currentSourcePath)
-                state = if `char` == '[': "open-bracket" else: "oneliner"
+        of ChainWsb:
+            if c notin C_SPACES:
+                if c == C_EQUALSIGN:
+                    state = Assignment
+                    rollback(S)
+                elif c == C_COMMA:
+                    state = Delimiter
+                    rollback(S)
+                else: error(S)
+
+        of Assignment:
+            N.assignment.start = S.i
+            N.assignment.stop = S.i
+            N.assignment.value = $c
+            state = ValueWsb
+
+        of Delimiter:
+            N.delimiter.start = S.i
+            N.delimiter.stop = S.i
+            N.delimiter.value = $c
+            state = EolWsb
+
+        of ValueWsb:
+            if c notin C_SPACES:
+                state = Value
                 rollback(S)
 
-            of "open-bracket":
-                # Note: Intermediary step - remove it?
-                N.brackets.start = S.i
-                N.brackets.value = $`char`
-                N.value.value = $`char`
-                state = "open-bracket-wsb"
+        of Value:
+            # Note: Intermediary step - remove it?
+            if c notin C_CMD_VALUE: error(S)
+            state = if c == C_LBRACKET: OpenBracket else: Oneliner
+            rollback(S)
 
-            of "open-bracket-wsb":
-                if `char` notin C_SPACES:
-                    state = "close-bracket"
+        of OpenBracket:
+            # Note: Intermediary step - remove it?
+            N.brackets.start = S.i
+            N.brackets.value = $c
+            N.value.value = $c
+            state = OpenBracketWsb
+
+        of OpenBracketWsb:
+            if c notin C_SPACES:
+                state = CloseBracket
+                rollback(S)
+
+        of CloseBracket:
+            if c != C_RBRACKET: error(S)
+            N.brackets.stop = S.i
+            N.value.value &= $c
+            state = EolWsb
+
+        of Oneliner:
+            tracer.trace(S, LTFlag) # Trace parser.
+
+            let fN = p_flag(S, "oneliner")
+            # Add alias node if it exists.
+            if fN.alias.value != "":
+                let cN = node(nkFlag, S)
+                cN.hyphens.value = "-"
+                cN.delimiter.value = ","
+                cN.name.value = fN.alias.value
+                cN.singleton = true
+                cN.boolean.value = fN.boolean.value
+                cN.assignment.value = fN.assignment.value
+                cN.alias.value = cN.name.value
+                N.flags.add(cN)
+
+                # Add context node for mutual exclusivity.
+                let xN = node(nkFlag, S)
+                xN.value.value = "\"{" & fN.name.value & "|" & fN.alias.value & "}\""
+                xN.keyword.value = "context"
+                xN.singleton = false
+                xN.virtual = true
+                xN.args.add(xN.value.value)
+                N.flags.add(xN)
+            N.flags.add(fN)
+
+        of EolWsb:
+            if c notin C_SPACES: error(S)
+
+        # Command group states
+
+        of GroupOpen:
+            N.command.stop = S.i
+            N.command.value &= (if not isformatting: "?" else: $c)
+
+            state = GroupWsb
+
+            G.start = S.column
+            G.commands.add(@[])
+            G.active = true
+
+        of GroupWsb:
+            if G.command != "": G.commands[^1].add(G.command)
+            G.command = ""
+
+            if c notin C_SPACES:
+                if c in C_CMD_GRP_IDENT_START:
+                    state = GroupCommand
                     rollback(S)
+                elif c == C_COMMA:
+                    state = GroupDelimiter
+                    rollback(S)
+                elif c == C_RCURLY:
+                    state = GroupClose
+                    rollback(S)
+                else: error(S)
 
-            of "close-bracket":
-                if `char` != ']': error(S, currentSourcePath)
-                N.brackets.`end` = S.i
-                N.value.value &= $`char`
-                state = "eol-wsb"
+        of GroupCommand:
+            if G.command == "":
+                if c notin C_CMD_GRP_IDENT_START: error(S)
 
-            of "oneliner":
-                tracer.trace(S, "flag") # Trace parser.
-
-                let fN = p_flag(S, "oneliner")
-                # Add alias node if it exists.
-                if fN.alias.value != "":
-                    let cN = node(S, "FLAG")
-                    cN.hyphens.value = "-"
-                    cN.delimiter.value = ","
-                    cN.name.value = fN.alias.value
-                    cN.singleton = true
-                    cN.boolean.value = fN.boolean.value
-                    cN.assignment.value = fN.assignment.value
-                    cN.alias.value = cN.name.value
-                    N.flags.add(cN)
-
-                    # Add context node for mutual exclusivity.
-                    let xN = node(S, "FLAG")
-                    xN.value.value = "\"{" & fN.name.value & "|" & fN.alias.value & "}\""
-                    xN.keyword.value = "context"
-                    xN.singleton = false
-                    xN.virtual = true
-                    xN.args.add(xN.value.value)
-                    N.flags.add(xN)
-                N.flags.add(fN)
-
-            of "eol-wsb":
-                if `char` notin C_SPACES: error(S, currentSourcePath)
-
-            # Command group states
-
-            of "group-open":
-                N.command.`end` = S.i
-                N.command.value &= (if not isformatting: "?" else: $`char`)
-
-                state = "group-wsb"
-
-                G.start = S.column
-                G.commands.add(@[])
-                G.active = true
-
-            of "group-wsb":
-                if G.command != "": G.commands[^1].add(G.command)
-                G.command = ""
-
-                if `char` notin C_SPACES:
-                    if `char` in C_CMD_GRP_IDENT_START:
-                        state = "group-command"
-                        rollback(S)
-                    elif `char` == ',':
-                        state = "group-delimiter"
-                        rollback(S)
-                    elif `char` == '}':
-                        state = "group-close"
-                        rollback(S)
-                    else: error(S, currentSourcePath)
-
-            of "group-command":
-                if G.command == "":
-                    if `char` notin C_CMD_GRP_IDENT_START: error(S, currentSourcePath)
-
-                    var token: Token; token = ("command", S.column)
-                    G.tokens.add(token)
-                    N.command.`end` = S.i
-                    G.command &= $`char`
-                    if isformatting: N.command.value &= $`char`
-                else:
-                    if `char` in C_CMD_IDENT:
-                        N.command.`end` = S.i
-                        G.command &= $`char`
-                        if isformatting: N.command.value &= $`char`
-                        cescape(`char`, true, l, G)
-                    elif `char` in C_SPACES:
-                        state = "group-wsb"
-                        continue
-                    elif `char` == ',':
-                        state = "group-delimiter"
-                        rollback(S)
-                    elif `char` == '}':
-                        state = "group-close"
-                        rollback(S)
-                    else: error(S, currentSourcePath)
-
-            of "group-delimiter":
-                N.command.`end` = S.i
-                if isformatting: N.command.value &= $`char`
-
-                let ll = G.tokens.len
-                if ll == 0 or (ll != 0 and G.tokens[^1][0] == "delimiter"):
-                    error(S, currentSourcePath, 12)
-
-                if G.command != "": G.commands[^1].add(G.command)
-                var token: Token; token = ("delimiter", S.column)
+                var token: Token; token = ("command", S.column)
                 G.tokens.add(token)
-                G.command = ""
-                state = "group-wsb"
+                N.command.stop = S.i
+                G.command &= $c
+                if isformatting: N.command.value &= $c
+            else:
+                if c in C_CMD_IDENT:
+                    N.command.stop = S.i
+                    G.command &= $c
+                    if isformatting: N.command.value &= $c
+                    cescape(c, true, l, G)
+                elif c in C_SPACES:
+                    state = GroupWsb
+                    continue
+                elif c == C_COMMA:
+                    state = GroupDelimiter
+                    rollback(S)
+                elif c == C_RCURLY:
+                    state = GroupClose
+                    rollback(S)
+                else: error(S)
 
-            of "group-close":
-                N.command.`end` = S.i
-                if isformatting: N.command.value &= $`char`
+        of GroupDelimiter:
+            N.command.stop = S.i
+            if isformatting: N.command.value &= $c
 
-                if G.command != "": G.commands[^1].add(G.command)
-                if G.commands[^1].len == 0:
-                    S.column = G.start
-                    error(S, currentSourcePath, 11) # Empty command group.
-                if G.tokens[^1][0] == "delimiter":
-                    S.column = G.tokens[^1][1]
-                    error(S, currentSourcePath, 12) # Trailing delimiter.
+            let ll = G.tokens.len
+            if ll == 0 or (ll != 0 and G.tokens[^1][0] == "delimiter"):
+                error(S, 12)
 
-                G.active = false
-                G.command = ""
-                state = "command"
+            if G.command != "": G.commands[^1].add(G.command)
+            var token: Token; token = ("delimiter", S.column)
+            G.tokens.add(token)
+            G.command = ""
+            state = GroupWsb
 
-            else: discard
+        of GroupClose:
+            N.command.stop = S.i
+            if isformatting: N.command.value &= $c
+
+            if G.command != "": G.commands[^1].add(G.command)
+            if G.commands[^1].len == 0:
+                S.column = G.start
+                error(S, 11) # Empty command group.
+            if G.tokens[^1][0] == "delimiter":
+                S.column = G.tokens[^1][1]
+                error(S, 12) # Trailing delimiter.
+
+            G.active = false
+            G.command = ""
+            state = Command
+
+        else: discard
 
         forward(S)
 
     if G.active:
         S.column = G.start
-        error(S, currentSourcePath, 13) # Command group was left unclosed.
+        error(S, 13) # Command group was left unclosed.
 
     # Expand command groups.
     if not isformatting and G.commands.len != 0:

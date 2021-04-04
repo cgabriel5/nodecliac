@@ -1,0 +1,28 @@
+@charset "UTF-8";
+@import "../css/sanitize.css";
+@import "../css/overrides.css";
+@import "../css/classes.css";
+
+.app {
+	display: flex;
+	flex-flow: column nowrap;
+	justify-content: center;
+	align-items: center;
+	align-content: center;
+	width: 100%;
+	height: 100%;
+}
+
+.title {
+	font-size: 30px;
+	font-weight: bold;
+	margin-bottom: 10px;
+}
+
+.logo-cont {
+	margin-bottom: 25px;
+}
+.logo {
+	width: 125px;
+	height: 125px;
+}

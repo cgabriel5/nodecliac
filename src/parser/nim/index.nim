@@ -1,14 +1,7 @@
-from re import re, find, replace
-from strutils import split, parseInt
-from os import isAbsolute, absolutePath, existsDir, existsFile, joinPath,
-    createDir, fpUserExec, fpUserWrite, fpUserRead, fpGroupExec, fpGroupWrite,
-    fpGroupRead, fpOthersExec, fpOthersRead
-from tables import Table, `[]`, `$`, keys, pairs, len # [https://github.com/nim-lang/Nim/issues/11155]
-from strtabs import StringTableRef, len, `[]`, keys
+import std/[re, strutils, os, tables, strtabs]
 
-from parser/index import parser
-import utils/[chalk, argvparse, exit]
-from utils/fs import info, read, write
+import parser/index
+import utils/[chalk, argvparse, exit, fs]
 
 # Wrap code in a function:
 # [https://forum.nim-lang.org/t/4835#30312]
@@ -51,23 +44,23 @@ proc main =
     # Make path absolute.
     if not source.isAbsolute(): source = absolutePath(source)
 
-    if existsDir(source):
+    if dirExists(source):
         echo "Directory provided but .acmap file path needed."
         exit()
-    if not existsFile(source):
+    if not fileExists(source):
         echo "Path " & source.chalk("bold") & " doesn't exist."
         exit()
 
-    var res = read(source);shallow(res)
-    let pres = parser(action, res, cmdname, source, fmtinfo, trace, igc, test)
-    let acdef = pres.acdef
-    let config = pres.config
-    let keywords = pres.keywords
-    let filedirs = pres.filedirs
-    let contexts = pres.contexts
-    let placeholders = pres.placeholders
-    let formatted = pres.formatted
-    let tests = pres.tests
+    # [TODO] Look into why using `let` over `var` causes hang up when file
+    # is large. Possibly due to `openFileStream`?
+    var res = read(source); shallow(res)
+    let (
+        acdef, config, keywords, filedirs,
+        contexts, formatted, placeholders, tests
+    ) = parser(
+        action, res, cmdname,
+        source, fmtinfo, trace, igc, test
+    )
 
     let testname = cmdname &  ".tests.sh"
     let savename = cmdname & ".acdef"

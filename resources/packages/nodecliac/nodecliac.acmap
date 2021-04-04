@@ -6,6 +6,7 @@ nodecliac.format = --indent|--source|--print?|--strip-comments?|filedir '@(acmap
 nodecliac.make = --source|--print?|filedir '@(acmap)'
 
 # Helper commands:
+nodecliac.bin
 nodecliac.setup = --force?|--rcfile|--yes?
 nodecliac.status = --enable?|--disable?|context "{enable | disable}"
 nodecliac.uninstall = --rcfile
@@ -44,7 +45,7 @@ nodecliac.cache = --clear?|--level=(0 1 2)
 @test = "nodecliac make --sou| path/to/file; *source*"
 @test = "nodecliac make --source install --print --so; !*--source*"
 @test = 'nodecliac format --source command.acmap --print --indent "s:2" --; *strip-comments*'
-@test = 'nodecliac NONEXISTANTCOMMAND ; *format*'
-@test = 'nodecliac NONEXISTANTCOMMAND for; *format*'
-@test = 'nodecliac . ; *format*'
+@test = 'nodecliac NONEXISTANTCOMMAND ; !*format*'
+@test = 'nodecliac NONEXISTANTCOMMAND for; !*format*'
+@test = 'nodecliac . ; !*format*'
 @test = 'nodecliac . -; 1:*--version*'

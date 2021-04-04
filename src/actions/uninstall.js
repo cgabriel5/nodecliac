@@ -10,7 +10,8 @@ module.exports = async (args) => {
 	let { rcfile } = args;
 	let { ncliacdir, bashrcpath, setupfilepath } = paths;
 
-	shell.exec("sudo echo > /dev/null 2>&1"); // Prompt password.
+	// [https://stackoverflow.com/a/84899]
+	shell.exec("sudo sh -c '' > /dev/null 2>&1"); // Prompt password.
 
 	// Delete nodecliac dir.
 	if (await de(ncliacdir)) await rmrf(ncliacdir);
@@ -20,7 +21,8 @@ module.exports = async (args) => {
 	else {
 		let res = await fe(setupfilepath);
 		if (res) {
-			if (await read(setupfilepath)) {
+			let res await read(setupfilepath)
+			if (res) {
 				bashrcpath = JSON.parse(res).rcfile || bashrcpath;
 			}
 		}

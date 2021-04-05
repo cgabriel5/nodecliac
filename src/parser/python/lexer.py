@@ -140,8 +140,10 @@ while S["i"] < l:
 		if S["kind"] == "setting":
 			if first_token_char(S):
 				if c != C_ATSIGN:
+					print("ERROR: invalid sigil (not @).")
 			elif S["i"] - S["start"] == 1:
-				if not c.isalpha(): print("ERROR: invalid char (not alpha).")
+				if not c.isalpha():
+					print("ERROR: invalid char (not alpha).")
 			else:
 				if not c.isalnum():
 					S["i"] -= 1
@@ -225,7 +227,8 @@ while S["i"] < l:
 				add_node(S)
 				S["kind"] = ""
 
-				if (c == C_LPAREN or c == C_RPAREN or c == C_LCURLY or c == C_RCURLY):
+				if (c == C_LPAREN or c == C_RPAREN or
+					c == C_LCURLY or c == C_RCURLY):
 					S["start"] = S["i"]
 					S["i"] -= 1
 					S["kind"] = "brace"

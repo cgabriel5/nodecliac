@@ -89,7 +89,7 @@ C_RPAREN = ')'
 C_LCURLY = '{'
 C_RCURLY = '}'
 
-SON = { # Start-of-node chars.
+SOT = { # Start-of-token chars.
 	"#": "comment",
 	"@": "setting",
 	"$": "variable",
@@ -111,14 +111,27 @@ SON = { # Start-of-node chars.
 }
 
 # Adds the token to tokens array.
-def add_node(S):
+def add_node():
 	copy = dict(S)
 	del copy["i"]
 	tokens.append(copy)
+	S["kind"] = ""
 
-# Checks to see whether the token is empty.
-def first_token_char(S):
-	return S["i"] - S["start"] == 0
+# Checks whether current tokens is at needed char index.
+def charpos(position):
+	return S["i"] - S["start"] == position - 1
+
+# Checks state object kind matches provided kind.
+def kind(s):
+	return S["kind"] == s
+
+# Forward loop x amount.
+def forward(amount):
+	S["i"] += amount
+
+# Rollback loop x amount.
+def rollback(amount):
+	S["i"] -= amount
 
 tokens = []
 
@@ -133,177 +146,132 @@ while S["i"] < l:
 		if rolledback:
 			rolledback = False
 			S["start"] = S["i"]
-			S["kind"] = SON.get(c, "-----")
+			S["kind"] = SOT.get(c, "-----")
 
-		if S["kind"] == "setting":
-			if first_token_char(S):
+		if kind("setting"):
+			if charpos(1):
 				if c != C_ATSIGN:
-					print("ERROR: invalid sigil (not @).")
-			elif S["i"] - S["start"] == 1:
+					print("Err: invalid sigil.")
+			elif charpos(2):
 				if not c.isalpha():
-					print("ERROR: invalid char (not alpha).")
+					print("Err: invalid char.")
 			else:
 				if not c.isalnum():
-					S["i"] -= 1
+					rollback(1)
 					S["end"] = S["i"]
-					add_node(S)
-					S["kind"] = ""
+					add_node()
 
-		elif S["kind"] == "variable":
-			if first_token_char(S):
+		elif kind("variable"):
+			if charpos(1):
 				if c != C_DOLLARSIGN:
-					print("ERROR: invalid sigil (not $).")
-			elif S["i"] - S["start"] == 1:
+					print("Err: invalid sigil.")
+			elif charpos(2):
 				if not c.isalpha():
 					if c == C_LPAREN:
 						S["kind"] = "dollarsign"
-						S["i"] -= 1
+						rollback(1)
 
 						S["end"] = S["i"]
-						add_node(S)
-						S["kind"] = ""
+						add_node()
 
 			else:
 				if not c.isalnum():
-					S["i"] -= 1
+					rollback(1)
 
 					S["end"] = S["i"]
-					add_node(S)
-					S["kind"] = ""
+					add_node()
 
-		elif S["kind"] == "comment":
-			if first_token_char(S):
+		elif kind("comment"):
+			if charpos(1):
 				if c != C_NUMSIGN:
-					print("ERROR: invalid sigil (not #).")
+					print("Err: invalid sigil.")
 			else:
 				if c == C_NL:
-					S["i"] -= 1
+					rollback(1)
 
 					S["end"] = S["i"]
-					add_node(S)
-					S["kind"] = ""
+					add_node()
 
-		elif S["kind"] == "assignment":
-			if first_token_char(S):
-				if c == C_EQUALSIGN:
+		elif kind("flag"):
+			if charpos(1):
+				if c != C_HYPHEN:
+					print("Err: invalid sigil (not -).")
+			else:
+				if not (c.isalnum() or c == C_HYPHEN):
+					rollback(1)
+
 					S["end"] = S["i"]
-					add_node(S)
-					S["kind"] = ""
-				else:
-					print("ERROR: invalid char (not =).")
+					add_node()
 
-		elif S["kind"] == "multi":
-			if first_token_char(S):
-				if c == C_ASTERISK:
-					S["end"] = S["i"]
-					add_node(S)
-					S["kind"] = ""
-				else:
-					print("ERROR: invalid char (not =).")
-
-		elif S["kind"] == "delpipe":
-			if first_token_char(S):
-				if c == C_PIPE:
-					S["end"] = S["i"]
-					add_node(S)
-					S["kind"] = ""
-				else:
-					print("ERROR: invalid char (not |).")
-
-		elif S["kind"] == "delcomma":
-			if first_token_char(S):
-				if c == C_COMMA:
-					S["end"] = S["i"]
-					add_node(S)
-					S["kind"] = ""
-				else:
-					print("ERROR: invalid char (not |).")
-
-		elif S["kind"] == "delcolon":
-			if first_token_char(S):
-				if c == C_COLON:
-					S["end"] = S["i"]
-					add_node(S)
-					S["kind"] = ""
-				else:
-					print("ERROR: invalid char (not |).")
-
-		elif S["kind"] == "qmark":
-			if first_token_char(S):
-				if c == C_QMARK:
-					S["end"] = S["i"]
-					add_node(S)
-					S["kind"] = ""
-				else:
-					print("ERROR: invalid char (not |).")
-
-		if S["kind"] == "-----":
+		elif kind("-----"): # Undetermined.
 			if not (c.isalnum() or c == C_DOT or c == C_ESCAPE):
 				if (c == C_LPAREN or c == C_RPAREN or
 					c == C_LCURLY or c == C_RCURLY):
 					S["start"] = S["i"]
-					S["i"] -= 1
+					rollback(1)
 					S["kind"] = "brace"
 
 				elif c == C_COMMA:
 					S["start"] = S["i"]
-					S["i"] -= 1
+					rollback(1)
 					S["kind"] = "delcomma"
 
 				elif c == C_COLON:
 					S["start"] = S["i"]
-					S["i"] -= 1
+					rollback(1)
 					S["kind"] = "delcolon"
 
 				elif c == C_QMARK:
 					S["start"] = S["i"]
-					S["i"] -= 1
+					rollback(1)
 					S["kind"] = "qmark"
 
 				else:
-					S["end"] = S["i"] - 1
-					add_node(S)
-					S["kind"] = ""
+					S["end"] = S["i"]
+					if c == C_SPACE or c == C_TAB or c == C_NL: S["end"] -= 1
+					add_node()
 
-		elif S["kind"] == "brace":
-			if (c == C_LBRACE or c == C_RBRACE or
-				c == C_LPAREN or c == C_RPAREN or
-				c == C_LCURLY or c == C_RCURLY):
-				S["end"] = S["i"]
-				add_node(S)
-				S["kind"] = ""
-			else:
-				print("ERROR: invalid sigil (not brace).")
-
-		elif S["kind"] == "string":
-			if first_token_char(S):
+		elif kind("string"):
+			if charpos(1):
 				if not (c == C_DQUOTE or c == C_SQUOTE):
-					print("ERROR: invalid char (not a quote).", "[" + c + "]")
+					print("Err: invalid char (not a quote).", "[" + c + "]")
 			elif c == text[S["start"]] and text[S["i"] - 1] != C_ESCAPE:
 				S["end"] = S["i"]
-				add_node(S)
-				S["kind"] = ""
+				add_node()
 
-		elif S["kind"] == "flag":
-			if first_token_char(S):
-				if c != C_HYPHEN:
-					print("ERROR: invalid sigil (not -).")
-			else:
-				if not (c.isalnum() or c == C_HYPHEN):
-					S["i"] -= 1
+		# Punctuation characters.
 
-					S["end"] = S["i"]
-					add_node(S)
-					S["kind"] = ""
+		elif kind("assignment"):
+			S["end"] = S["i"]
+			add_node()
 
-		elif S["kind"] == "terminator":
-			if first_token_char(S):
-				if c != C_SEMICOLON:
-					print("ERROR: invalid char (not ;).")
+		elif kind("multi"):
+			S["end"] = S["i"]
+			add_node()
 
-				S["end"] = S["i"]
-				add_node(S)
-				S["kind"] = ""
+		elif kind("delpipe"):
+			S["end"] = S["i"]
+			add_node()
+
+		elif kind("delcomma"):
+			S["end"] = S["i"]
+			add_node()
+
+		elif kind("delcolon"):
+			S["end"] = S["i"]
+			add_node()
+
+		elif kind("qmark"):
+			S["end"] = S["i"]
+			add_node()
+
+		elif kind("brace"):
+			S["end"] = S["i"]
+			add_node()
+
+		elif kind("terminator"):
+			S["end"] = S["i"]
+			add_node()
 
 	else:
 		if c == C_SPACE or c == C_NL or c == C_TAB:
@@ -312,9 +280,9 @@ while S["i"] < l:
 			continue
 		else:
 			rolledback = True
-			S["i"] -= 1
+			rollback(1)
 
-	S["i"] += 1
+	forward(1)
 
 f = open("output.text", "r")
 assert str(tokens) == f.read(), "Strings should match"

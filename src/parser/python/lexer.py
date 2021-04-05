@@ -113,9 +113,10 @@ SON = { # Start-of-node chars.
 def addNode(S):
 	copy = dict(S)
 	del copy["i"]
-	nodes.append(copy)
+	tokens.append(copy)
 
 nodes = []
+tokens = []
 
 S = {"i": 0, "line": 1, "kind": "", "start": -1, "end": -1}
 rolledback = False
@@ -281,11 +282,11 @@ while S["i"] < l:
 	S["i"] += 1
 
 f = open("output.text", "r")
-assert str(nodes) == f.read(), "Strings should match"
+assert str(tokens) == f.read(), "Strings should match"
 f.close()
 
-print("Node_Count: [" + str(len(nodes)) + "]")
-for node in nodes:
+print("Node_Count: [" + str(len(tokens)) + "]")
+for node in tokens:
 	kind = node["kind"]
 	start = node["start"]
 	end = node["end"]

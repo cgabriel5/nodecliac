@@ -66,26 +66,26 @@ text = f.read()
 C_DOT = '.'
 C_NL = '\n'
 C_TAB = '\t'
+C_PIPE = '|'
+C_COMMA = ','
+C_COLON = ':'
+C_QMARK = '?'
 C_SPACE = ' '
 C_ATSIGN = '@'
+C_HYPHEN = '-'
 C_DQUOTE = '"'
 C_SQUOTE = '\''
 C_ESCAPE = '\\'
 C_NUMSIGN = '#'
+C_ASTERISK = '*'
 C_EQUALSIGN = '='
 C_SEMICOLON = ';'
 C_DOLLARSIGN = '$'
-C_HYPHEN = '-'
-C_QMARK = '?'
-C_ASTERISK = '*'
-C_PIPE = '|'
-C_COMMA = ','
 
 C_LBRACE = '['
 C_RBRACE = ']'
 C_LPAREN = '('
 C_RPAREN = ')'
-
 C_LCURLY = '{'
 C_RCURLY = '}'
 
@@ -128,8 +128,6 @@ l = len(text)
 c = ''
 while S["i"] < l:
 	c = text[S["i"]]
-
-	if c == C_NL: S["line"] += 1
 
 	if S["kind"] or rolledback:
 		if rolledback:
@@ -221,22 +219,51 @@ while S["i"] < l:
 				else:
 					print("ERROR: invalid char (not |).")
 
+		elif S["kind"] == "delcolon":
+			if first_token_char(S):
+				if c == C_COLON:
+					S["end"] = S["i"]
+					add_node(S)
+					S["kind"] = ""
+				else:
+					print("ERROR: invalid char (not |).")
+
+		elif S["kind"] == "qmark":
+			if first_token_char(S):
+				if c == C_QMARK:
+					S["end"] = S["i"]
+					add_node(S)
+					S["kind"] = ""
+				else:
+					print("ERROR: invalid char (not |).")
+
 		if S["kind"] == "-----":
 			if not (c.isalnum() or c == C_DOT or c == C_ESCAPE):
-				S["end"] = S["i"] - 1
-				add_node(S)
-				S["kind"] = ""
-
 				if (c == C_LPAREN or c == C_RPAREN or
 					c == C_LCURLY or c == C_RCURLY):
 					S["start"] = S["i"]
 					S["i"] -= 1
 					S["kind"] = "brace"
 
-				elif (c == C_COMMA):
+				elif c == C_COMMA:
 					S["start"] = S["i"]
 					S["i"] -= 1
 					S["kind"] = "delcomma"
+
+				elif c == C_COLON:
+					S["start"] = S["i"]
+					S["i"] -= 1
+					S["kind"] = "delcolon"
+
+				elif c == C_QMARK:
+					S["start"] = S["i"]
+					S["i"] -= 1
+					S["kind"] = "qmark"
+
+				else:
+					S["end"] = S["i"] - 1
+					add_node(S)
+					S["kind"] = ""
 
 		elif S["kind"] == "brace":
 			if (c == C_LBRACE or c == C_RBRACE or
@@ -262,7 +289,7 @@ while S["i"] < l:
 				if c != C_HYPHEN:
 					print("ERROR: invalid sigil (not -).")
 			else:
-				if not (c.isalnum() or c == C_HYPHEN or c == C_QMARK):
+				if not (c.isalnum() or c == C_HYPHEN):
 					S["i"] -= 1
 
 					S["end"] = S["i"]
@@ -280,6 +307,7 @@ while S["i"] < l:
 
 	else:
 		if c == C_SPACE or c == C_NL or c == C_TAB:
+			if c == C_NL: S["line"] += 1
 			S["i"] += 1
 			continue
 		else:

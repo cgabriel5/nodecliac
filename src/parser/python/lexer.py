@@ -116,7 +116,10 @@ def add_node(S):
 	del copy["i"]
 	tokens.append(copy)
 
-nodes = []
+# Checks to see whether the token is empty.
+def first_token_char(S):
+	return S["i"] - S["start"] == 0
+
 tokens = []
 
 S = {"i": 0, "line": 1, "kind": "", "start": -1, "end": -1}
@@ -135,8 +138,8 @@ while S["i"] < l:
 			S["kind"] = SON.get(c, "-----")
 
 		if S["kind"] == "setting":
-			if S["i"] - S["start"] == 0:
-				if c != C_ATSIGN: print("ERROR: invalid sigil (not @).")
+			if first_token_char(S):
+				if c != C_ATSIGN:
 			elif S["i"] - S["start"] == 1:
 				if not c.isalpha(): print("ERROR: invalid char (not alpha).")
 			else:
@@ -147,7 +150,7 @@ while S["i"] < l:
 					S["kind"] = ""
 
 		elif S["kind"] == "variable":
-			if S["i"] - S["start"] == 0:
+			if first_token_char(S):
 				if c != C_DOLLARSIGN:
 					print("ERROR: invalid sigil (not $).")
 			elif S["i"] - S["start"] == 1:
@@ -169,7 +172,7 @@ while S["i"] < l:
 					S["kind"] = ""
 
 		elif S["kind"] == "comment":
-			if S["i"] - S["start"] == 0:
+			if first_token_char(S):
 				if c != C_NUMSIGN:
 					print("ERROR: invalid sigil (not #).")
 			else:
@@ -181,7 +184,7 @@ while S["i"] < l:
 					S["kind"] = ""
 
 		elif S["kind"] == "assignment":
-			if S["i"] - S["start"] == 0:
+			if first_token_char(S):
 				if c == C_EQUALSIGN:
 					S["end"] = S["i"]
 					add_node(S)
@@ -190,7 +193,7 @@ while S["i"] < l:
 					print("ERROR: invalid char (not =).")
 
 		elif S["kind"] == "multi":
-			if S["i"] - S["start"] == 0:
+			if first_token_char(S):
 				if c == C_ASTERISK:
 					S["end"] = S["i"]
 					add_node(S)
@@ -199,7 +202,7 @@ while S["i"] < l:
 					print("ERROR: invalid char (not =).")
 
 		elif S["kind"] == "delpipe":
-			if S["i"] - S["start"] == 0:
+			if first_token_char(S):
 				if c == C_PIPE:
 					S["end"] = S["i"]
 					add_node(S)
@@ -208,7 +211,7 @@ while S["i"] < l:
 					print("ERROR: invalid char (not |).")
 
 		elif S["kind"] == "delcomma":
-			if S["i"] - S["start"] == 0:
+			if first_token_char(S):
 				if c == C_COMMA:
 					S["end"] = S["i"]
 					add_node(S)
@@ -243,7 +246,7 @@ while S["i"] < l:
 				print("ERROR: invalid sigil (not brace).")
 
 		elif S["kind"] == "string":
-			if S["i"] - S["start"] == 0:
+			if first_token_char(S):
 				if not (c == C_DQUOTE or c == C_SQUOTE):
 					print("ERROR: invalid char (not a quote).", "[" + c + "]")
 			elif c == text[S["start"]] and text[S["i"] - 1] != C_ESCAPE:
@@ -252,7 +255,7 @@ while S["i"] < l:
 				S["kind"] = ""
 
 		elif S["kind"] == "flag":
-			if S["i"] - S["start"] == 0:
+			if first_token_char(S):
 				if c != C_HYPHEN:
 					print("ERROR: invalid sigil (not -).")
 			else:
@@ -264,7 +267,7 @@ while S["i"] < l:
 					S["kind"] = ""
 
 		elif S["kind"] == "terminator":
-			if S["i"] - S["start"] == 0:
+			if first_token_char(S):
 				if c != C_SEMICOLON:
 					print("ERROR: invalid char (not ;).")
 

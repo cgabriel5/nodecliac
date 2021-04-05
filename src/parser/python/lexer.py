@@ -110,7 +110,8 @@ SON = { # Start-of-node chars.
 	"'": "string"
 }
 
-def addNode(S):
+# Adds the token to tokens array.
+def add_node(S):
 	copy = dict(S)
 	del copy["i"]
 	tokens.append(copy)
@@ -142,7 +143,7 @@ while S["i"] < l:
 				if not c.isalnum():
 					S["i"] -= 1
 					S["end"] = S["i"]
-					addNode(S)
+					add_node(S)
 					S["kind"] = ""
 
 		elif S["kind"] == "variable":
@@ -156,7 +157,7 @@ while S["i"] < l:
 						S["i"] -= 1
 
 						S["end"] = S["i"]
-						addNode(S)
+						add_node(S)
 						S["kind"] = ""
 
 			else:
@@ -164,7 +165,7 @@ while S["i"] < l:
 					S["i"] -= 1
 
 					S["end"] = S["i"]
-					addNode(S)
+					add_node(S)
 					S["kind"] = ""
 
 		elif S["kind"] == "comment":
@@ -176,14 +177,14 @@ while S["i"] < l:
 					S["i"] -= 1
 
 					S["end"] = S["i"]
-					addNode(S)
+					add_node(S)
 					S["kind"] = ""
 
 		elif S["kind"] == "assignment":
 			if S["i"] - S["start"] == 0:
 				if c == C_EQUALSIGN:
 					S["end"] = S["i"]
-					addNode(S)
+					add_node(S)
 					S["kind"] = ""
 				else:
 					print("ERROR: invalid char (not =).")
@@ -192,7 +193,7 @@ while S["i"] < l:
 			if S["i"] - S["start"] == 0:
 				if c == C_ASTERISK:
 					S["end"] = S["i"]
-					addNode(S)
+					add_node(S)
 					S["kind"] = ""
 				else:
 					print("ERROR: invalid char (not =).")
@@ -201,7 +202,7 @@ while S["i"] < l:
 			if S["i"] - S["start"] == 0:
 				if c == C_PIPE:
 					S["end"] = S["i"]
-					addNode(S)
+					add_node(S)
 					S["kind"] = ""
 				else:
 					print("ERROR: invalid char (not |).")
@@ -210,7 +211,7 @@ while S["i"] < l:
 			if S["i"] - S["start"] == 0:
 				if c == C_COMMA:
 					S["end"] = S["i"]
-					addNode(S)
+					add_node(S)
 					S["kind"] = ""
 				else:
 					print("ERROR: invalid char (not |).")
@@ -218,7 +219,7 @@ while S["i"] < l:
 		if S["kind"] == "-----":
 			if not (c.isalnum() or c == C_DOT or c == C_ESCAPE):
 				S["end"] = S["i"] - 1
-				addNode(S)
+				add_node(S)
 				S["kind"] = ""
 
 				if (c == C_LPAREN or c == C_RPAREN or c == C_LCURLY or c == C_RCURLY):
@@ -236,7 +237,7 @@ while S["i"] < l:
 				c == C_LPAREN or c == C_RPAREN or
 				c == C_LCURLY or c == C_RCURLY):
 				S["end"] = S["i"]
-				addNode(S)
+				add_node(S)
 				S["kind"] = ""
 			else:
 				print("ERROR: invalid sigil (not brace).")
@@ -247,7 +248,7 @@ while S["i"] < l:
 					print("ERROR: invalid char (not a quote).", "[" + c + "]")
 			elif c == text[S["start"]] and text[S["i"] - 1] != C_ESCAPE:
 				S["end"] = S["i"]
-				addNode(S)
+				add_node(S)
 				S["kind"] = ""
 
 		elif S["kind"] == "flag":
@@ -259,7 +260,7 @@ while S["i"] < l:
 					S["i"] -= 1
 
 					S["end"] = S["i"]
-					addNode(S)
+					add_node(S)
 					S["kind"] = ""
 
 		elif S["kind"] == "terminator":
@@ -268,7 +269,7 @@ while S["i"] < l:
 					print("ERROR: invalid char (not ;).")
 
 				S["end"] = S["i"]
-				addNode(S)
+				add_node(S)
 				S["kind"] = ""
 
 	else:

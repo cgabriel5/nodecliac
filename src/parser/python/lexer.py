@@ -110,6 +110,11 @@ SON = { # Start-of-node chars.
 	"'": "string"
 }
 
+def addNode(S):
+	copy = dict(S)
+	del copy["i"]
+	nodes.append(copy)
+
 nodes = []
 
 S = {"i": 0, "line": 1, "kind": "", "start": -1, "end": -1}
@@ -119,75 +124,47 @@ c = ''
 while S["i"] < l:
 	c = text[S["i"]]
 
-	if c == C_NL:
-		S["line"] += 1
+	if c == C_NL: S["line"] += 1
 
 	if S["kind"] or rolledback:
 		if rolledback:
 			rolledback = False
 			S["start"] = S["i"]
-			son = SON.get(c, "")
-			if son:
-				S["kind"] = son
-			else:
-
-				S["kind"] = "-----"
+			S["kind"] = SON.get(c, "-----")
 
 		if S["kind"] == "setting":
 			if S["i"] - S["start"] == 0:
-				if c != C_ATSIGN:
-					print("ERROR: invalid sigil (not @).")
+				if c != C_ATSIGN: print("ERROR: invalid sigil (not @).")
 			elif S["i"] - S["start"] == 1:
-				# Must be a letter.
-				if not c.isalpha():
-					print("ERROR: invalid char (not alpha).")
+				if not c.isalpha(): print("ERROR: invalid char (not alpha).")
 			else:
-				# Can be letters/numbers now.
 				if not c.isalnum():
-					# if c == C_SPACE or c == C_NL or c == C_TAB:
 					S["i"] -= 1
-
 					S["end"] = S["i"]
-					copy = dict(S)
-					del copy['i']
-					nodes.append(copy)
+					addNode(S)
 					S["kind"] = ""
-					# else:
-						# print("ERROR: invalid char (not alphanumeric).", c, S["i"])
 
 		elif S["kind"] == "variable":
 			if S["i"] - S["start"] == 0:
 				if c != C_DOLLARSIGN:
 					print("ERROR: invalid sigil (not $).")
 			elif S["i"] - S["start"] == 1:
-				# Must be a letter.
 				if not c.isalpha():
 					if c == C_LPAREN:
-
 						S["kind"] = "dollarsign"
 						S["i"] -= 1
 
 						S["end"] = S["i"]
-						copy = dict(S)
-						del copy['i']
-						nodes.append(copy)
+						addNode(S)
 						S["kind"] = ""
 
-					else:
-						print("ERROR: invalid char 111 (not alpha).", "["+ c + "]", S["i"])
-
 			else:
-				# Can be letters/numbers now.
 				if not c.isalnum():
 					S["i"] -= 1
 
 					S["end"] = S["i"]
-					copy = dict(S)
-					del copy['i']
-					nodes.append(copy)
+					addNode(S)
 					S["kind"] = ""
-					# else:
-						# print("ERROR: invalid char (not alphanumeric).", c, S["i"])
 
 		elif S["kind"] == "comment":
 			if S["i"] - S["start"] == 0:
@@ -198,18 +175,14 @@ while S["i"] < l:
 					S["i"] -= 1
 
 					S["end"] = S["i"]
-					copy = dict(S)
-					del copy['i']
-					nodes.append(copy)
+					addNode(S)
 					S["kind"] = ""
 
 		elif S["kind"] == "assignment":
 			if S["i"] - S["start"] == 0:
 				if c == C_EQUALSIGN:
 					S["end"] = S["i"]
-					copy = dict(S)
-					del copy['i']
-					nodes.append(copy)
+					addNode(S)
 					S["kind"] = ""
 				else:
 					print("ERROR: invalid char (not =).")
@@ -218,9 +191,7 @@ while S["i"] < l:
 			if S["i"] - S["start"] == 0:
 				if c == C_ASTERISK:
 					S["end"] = S["i"]
-					copy = dict(S)
-					del copy['i']
-					nodes.append(copy)
+					addNode(S)
 					S["kind"] = ""
 				else:
 					print("ERROR: invalid char (not =).")
@@ -229,9 +200,7 @@ while S["i"] < l:
 			if S["i"] - S["start"] == 0:
 				if c == C_PIPE:
 					S["end"] = S["i"]
-					copy = dict(S)
-					del copy['i']
-					nodes.append(copy)
+					addNode(S)
 					S["kind"] = ""
 				else:
 					print("ERROR: invalid char (not |).")
@@ -240,9 +209,7 @@ while S["i"] < l:
 			if S["i"] - S["start"] == 0:
 				if c == C_COMMA:
 					S["end"] = S["i"]
-					copy = dict(S)
-					del copy['i']
-					nodes.append(copy)
+					addNode(S)
 					S["kind"] = ""
 				else:
 					print("ERROR: invalid char (not |).")
@@ -250,9 +217,7 @@ while S["i"] < l:
 		if S["kind"] == "-----":
 			if not (c.isalnum() or c == C_DOT or c == C_ESCAPE):
 				S["end"] = S["i"] - 1
-				copy = dict(S)
-				del copy['i']
-				nodes.append(copy)
+				addNode(S)
 				S["kind"] = ""
 
 				if (c == C_LPAREN or c == C_RPAREN or c == C_LCURLY or c == C_RCURLY):
@@ -266,15 +231,11 @@ while S["i"] < l:
 					S["kind"] = "delcomma"
 
 		elif S["kind"] == "brace":
-			if (
-				c == C_LBRACE or c == C_RBRACE or
+			if (c == C_LBRACE or c == C_RBRACE or
 				c == C_LPAREN or c == C_RPAREN or
-				c == C_LCURLY or c == C_RCURLY
-			):
+				c == C_LCURLY or c == C_RCURLY):
 				S["end"] = S["i"]
-				copy = dict(S)
-				del copy['i']
-				nodes.append(copy)
+				addNode(S)
 				S["kind"] = ""
 			else:
 				print("ERROR: invalid sigil (not brace).")
@@ -285,9 +246,7 @@ while S["i"] < l:
 					print("ERROR: invalid char (not a quote).", "[" + c + "]")
 			elif c == text[S["start"]] and text[S["i"] - 1] != C_ESCAPE:
 				S["end"] = S["i"]
-				copy = dict(S)
-				del copy['i']
-				nodes.append(copy)
+				addNode(S)
 				S["kind"] = ""
 
 		elif S["kind"] == "flag":
@@ -295,17 +254,12 @@ while S["i"] < l:
 				if c != C_HYPHEN:
 					print("ERROR: invalid sigil (not -).")
 			else:
-				# Can be letters/numbers now.
 				if not (c.isalnum() or c == C_HYPHEN or c == C_QMARK):
 					S["i"] -= 1
 
 					S["end"] = S["i"]
-					copy = dict(S)
-					del copy['i']
-					nodes.append(copy)
+					addNode(S)
 					S["kind"] = ""
-					# else:
-						# print("ERROR: invalid char (not alphanumeric).", c, S["i"])
 
 		elif S["kind"] == "terminator":
 			if S["i"] - S["start"] == 0:
@@ -313,9 +267,7 @@ while S["i"] < l:
 					print("ERROR: invalid char (not ;).")
 
 				S["end"] = S["i"]
-				copy = dict(S)
-				del copy['i']
-				nodes.append(copy)
+				addNode(S)
 				S["kind"] = ""
 
 	else:

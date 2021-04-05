@@ -81,7 +81,6 @@ C_ASTERISK = '*'
 C_PIPE = '|'
 C_COMMA = ','
 
-
 C_LBRACE = '['
 C_RBRACE = ']'
 C_LPAREN = '('
@@ -123,9 +122,6 @@ while S["i"] < l:
 	if c == C_NL:
 		S["line"] += 1
 
-	# print("---------------------------------", "["+c+"]", S["kind"])
-
-
 	if S["kind"] or rolledback:
 		if rolledback:
 			rolledback = False
@@ -134,13 +130,9 @@ while S["i"] < l:
 			if son:
 				S["kind"] = son
 			else:
-				# if (c == C_LPAREN or c == C_RPAREN or c == C_LCURLY or c == C_RCURLY):
-					# S["kind"] = "brace"
-				# else: S["kind"] = "-----"
+
 				S["kind"] = "-----"
-				# print("---------------------------------++++++++", "["+c+"]", S["kind"])
-				# print("ERROR: invalid SON.", "[" + c + "]")
-		# S["kind"] += c
+
 		if S["kind"] == "setting":
 			if S["i"] - S["start"] == 0:
 				if c != C_ATSIGN:
@@ -173,9 +165,6 @@ while S["i"] < l:
 					if c == C_LPAREN:
 
 						S["kind"] = "dollarsign"
-						# S["i"] -= 2
-						# S["start"] = S["i"]
-
 						S["i"] -= 1
 
 						S["end"] = S["i"]
@@ -184,14 +173,12 @@ while S["i"] < l:
 						nodes.append(copy)
 						S["kind"] = ""
 
-
 					else:
 						print("ERROR: invalid char 111 (not alpha).", "["+ c + "]", S["i"])
 
 			else:
 				# Can be letters/numbers now.
 				if not c.isalnum():
-					# if c == C_SPACE or c == C_NL or c == C_TAB:
 					S["i"] -= 1
 
 					S["end"] = S["i"]
@@ -238,7 +225,6 @@ while S["i"] < l:
 				else:
 					print("ERROR: invalid char (not =).")
 
-
 		elif S["kind"] == "delpipe":
 			if S["i"] - S["start"] == 0:
 				if c == C_PIPE:
@@ -261,149 +247,25 @@ while S["i"] < l:
 				else:
 					print("ERROR: invalid char (not |).")
 
-
-		# elif S["kind"] == "left-cmd-str":
-
-		# 	if S["i"] - S["start"] == 0:
-		# 		if not c == C_DOLLARSIGN:
-		# 			print("ERROR: invalid sigil (not $).")
-		# 	elif S["i"] - S["start"] == 1:
-		# 		if c == C_LPAREN:
-		# 			S["end"] = S["i"]
-		# 			copy = dict(S)
-		# 			del copy['i']
-		# 			nodes.append(copy)
-		# 			S["kind"] = ""
-		# 		else:
-		# 			print("ERROR: invalid char (not ().")
-
-
-		# elif S["kind"] == "dollarsign":
-
-		# 	print("++++++++++++++", c, S["i"] - S["start"])
-		# 	if S["i"] - S["start"] == 0:
-		# 		if c == C_DOLLARSIGN:
-		# 			S["end"] = S["i"]
-		# 			copy = dict(S)
-		# 			del copy['i']
-		# 			nodes.append(copy)
-		# 			S["kind"] = ""
-		# 		else:
-		# 			print("ERROR: invalid sigil (not $).")
-		# 	# elif S["i"] - S["start"] == 1:
-		# 	# 	if c == C_LPAREN:
-		# 	# 		S["end"] = S["i"]
-		# 	# 		copy = dict(S)
-		# 	# 		del copy['i']
-		# 	# 		nodes.append(copy)
-		# 	# 		S["kind"] = ""
-		# 	# 	else:
-		# 	# 		print("ERROR: invalid char (not ().")
-
-
-
-
 		if S["kind"] == "-----":
-			# if c == C_SPACE or c == C_NL or c == C_TAB:
-			# 	S["i"] -= 1
-
-			# 	S["end"] = S["i"]
-			# 	copy = dict(S)
-			# 	del copy['i']
-			# 	nodes.append(copy)
-			# 	S["kind"] = ""
-
-			# print("............", "["+c+"]")
-
-			# print("---------------------------------++++++++=========", "["+c+"]", S["kind"])
-
-# a.{b,c} = --d|e $('${f}')
-
-			# if (c == C_COMMA or c == C_LPAREN or c == C_RPAREN or c == C_LCURLY or c == C_RCURLY):
-			# 	S["i"] -= 1
-			# 	S["kind"] = "brace"
-			# 	# print("$$$$$$$$$", c)
-
-
-			# 	# S["end"] = S["i"]
-			# 	# copy = dict(S)
-			# 	# del copy['i']
-			# 	# nodes.append(copy)
-			# 	# # S["kind"] = "-----"
-
-
 			if not (c.isalnum() or c == C_DOT or c == C_ESCAPE):
-				# S["i"] -= 1
-
 				S["end"] = S["i"] - 1
 				copy = dict(S)
 				del copy['i']
-				# print(copy)
 				nodes.append(copy)
 				S["kind"] = ""
 
-
 				if (c == C_LPAREN or c == C_RPAREN or c == C_LCURLY or c == C_RCURLY):
 					S["start"] = S["i"]
-					# print(">>", S["i"])
 					S["i"] -= 1
 					S["kind"] = "brace"
-					# print("$$$$$$$$$", c)
-
-
 
 				elif (c == C_COMMA):
 					S["start"] = S["i"]
-					# print(">>", S["i"])
 					S["i"] -= 1
 					S["kind"] = "delcomma"
-					# print("$$$$$$$$$", c)
-
-
-					# S["end"] = S["i"]
-					# copy = dict(S)
-					# del copy['i']
-					# nodes.append(copy)
-					# # S["kind"] = "-----"
-
-			# else:
-			# 	# print("....1", text[S["i"]])
-			# 	# S["i"] -= 1
-			# 	# print("....2", text[S["i"]])
-			# 	S["kind"] = ""
-
-
-
-			# if S["i"] - S["start"] == 0:
-			# 	if c != C_ATSIGN:
-			# 		print("ERROR: invalid sigil (not @).")
-			# elif S["i"] - S["start"] == 1:
-			# 	# Must be a letter.
-			# 	if not c.isalpha():
-			# 		print("ERROR: invalid char (not alpha).")
-			# else:
-			# 	# Can be letters/numbers now.
-			# 	if not c.isalnum():
-			# 		# if c == C_SPACE or c == C_NL or c == C_TAB:
-			# 		S["i"] -= 1
-
-			# 		S["end"] = S["i"]
-			# 		copy = dict(S)
-			# 		del copy['i']
-			# 		nodes.append(copy)
-			# 		S["kind"] = ""
-			# 		# else:
-			# 			# print("ERROR: invalid char (not alphanumeric).", c, S["i"])
-
-
-
 
 		elif S["kind"] == "brace":
-
-
-			# print("-----", c)
-
-			# if S["i"] - S["start"] == 0:
 			if (
 				c == C_LBRACE or c == C_RBRACE or
 				c == C_LPAREN or c == C_RPAREN or
@@ -416,9 +278,6 @@ while S["i"] < l:
 				S["kind"] = ""
 			else:
 				print("ERROR: invalid sigil (not brace).")
-
-
-
 
 		elif S["kind"] == "string":
 			if S["i"] - S["start"] == 0:
@@ -435,15 +294,9 @@ while S["i"] < l:
 			if S["i"] - S["start"] == 0:
 				if c != C_HYPHEN:
 					print("ERROR: invalid sigil (not -).")
-			# elif S["i"] - S["start"] == 1:
-			# 	# Must be a letter.
-			# 	if not c.isalpha():
-			# 		print("ERROR: invalid char (not alpha).")
 			else:
 				# Can be letters/numbers now.
 				if not (c.isalnum() or c == C_HYPHEN or c == C_QMARK):
-					# if c == C_SPACE or c == C_NL or c == C_TAB:
-
 					S["i"] -= 1
 
 					S["end"] = S["i"]

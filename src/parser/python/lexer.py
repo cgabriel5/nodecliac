@@ -146,7 +146,10 @@ while S["i"] < l:
 		if rolledback:
 			rolledback = False
 			S["start"] = S["i"]
-			S["kind"] = SOT.get(c, "-----")
+			S["kind"] = SOT.get(c, "??")
+			if S["kind"] == "??":
+				if c.isalnum():
+					S["kind"] = "command"
 
 		if kind("setting"):
 			if charpos(1):
@@ -170,41 +173,40 @@ while S["i"] < l:
 					if c == C_LPAREN:
 						S["kind"] = "dollarsign"
 						rollback(1)
-
 						S["end"] = S["i"]
 						add_node()
-
 			else:
 				if not c.isalnum():
 					rollback(1)
-
 					S["end"] = S["i"]
 					add_node()
 
 		elif kind("comment"):
-			if charpos(1):
-				if c != C_NUMSIGN:
-					print("Err: invalid sigil.")
-			else:
-				if c == C_NL:
-					rollback(1)
-
-					S["end"] = S["i"]
-					add_node()
+			if c == C_NL:
+				rollback(1)
+				S["end"] = S["i"]
+				add_node()
 
 		elif kind("flag"):
-			if charpos(1):
-				if c != C_HYPHEN:
-					print("Err: invalid sigil (not -).")
-			else:
-				if not (c.isalnum() or c == C_HYPHEN):
-					rollback(1)
+			if not (c.isalnum() or c == C_HYPHEN):
+				rollback(1)
+				S["end"] = S["i"]
+				add_node()
 
-					S["end"] = S["i"]
-					add_node()
+		elif kind("command"):
+			if not (c.isalnum() or c == C_HYPHEN or c == C_ESCAPE):
+				rollback(1)
+				S["end"] = S["i"]
+				add_node()
 
-		elif kind("-----"): # Undetermined.
-			if not (c.isalnum() or c == C_DOT or c == C_ESCAPE):
+		elif kind("string"):
+			if (not charpos(1) and c == text[S["start"]] and
+					text[S["i"] - 1] != C_ESCAPE):
+				S["end"] = S["i"]
+				add_node()
+
+		elif kind("??"): # Undetermined.
+			if not (c.isalnum() or c == C_ESCAPE or c == C_HYPHEN):
 				if (c == C_LPAREN or c == C_RPAREN or
 					c == C_LCURLY or c == C_RCURLY):
 					S["start"] = S["i"]
@@ -226,18 +228,15 @@ while S["i"] < l:
 					rollback(1)
 					S["kind"] = "qmark"
 
+				elif c == C_DOT:
+					S["start"] = S["i"]
+					rollback(1)
+					S["kind"] = "deldot"
+
 				else:
 					S["end"] = S["i"]
 					if c == C_SPACE or c == C_TAB or c == C_NL: S["end"] -= 1
 					add_node()
-
-		elif kind("string"):
-			if charpos(1):
-				if not (c == C_DQUOTE or c == C_SQUOTE):
-					print("Err: invalid char (not a quote).", "[" + c + "]")
-			elif c == text[S["start"]] and text[S["i"] - 1] != C_ESCAPE:
-				S["end"] = S["i"]
-				add_node()
 
 		# Punctuation characters.
 
@@ -246,6 +245,10 @@ while S["i"] < l:
 			add_node()
 
 		elif kind("multi"):
+			S["end"] = S["i"]
+			add_node()
+
+		elif kind("deldot"):
 			S["end"] = S["i"]
 			add_node()
 

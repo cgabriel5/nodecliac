@@ -94,10 +94,11 @@ SOT = { # Start-of-token chars.
 	"@": "setting",
 	"$": "variable",
 	"-": "flag",
-	"*": "multi",
-	",": "delcomma",
-	"|": "delpipe",
 
+	"*": "multi",
+	"|": "delpipe",
+	",": "delcomma",
+	"=": "assignment",
 	";": "terminator",
 
 	"(": "brace",
@@ -105,13 +106,29 @@ SOT = { # Start-of-token chars.
 	"[": "brace",
 	"]": "brace",
 
-	"=": "assignment",
 	"\"": "string",
 	"'": "string"
 }
 
+KEYWORDS = ["default", "filedir", "exclude"]
+
 # Adds the token to tokens array.
 def add_node():
+	# Kind resets.
+	if len(tokens):
+		if cmd_chain:
+			if kind("string") and tokens[-1]["kind"] == "command":
+				if text[tokens[-1]["start"] : tokens[-1]["end"] + 1] in KEYWORDS:
+					tokens[-1]["kind"] = "keyword"
+			elif kind("command") and tokens[-1]["kind"] == "flag":
+				if text[tokens[-1]["start"] : tokens[-1]["end"] + 1] == C_HYPHEN:
+					tokens[-1]["kind"] = "flag-option"
+					S["kind"] = "flag-value"
+
+		elif flag_options:
+			if kind("command") and flag_options:
+				S["kind"] = "flag-value"
+
 	copy = dict(S)
 	del copy["i"]
 	tokens.append(copy)
@@ -133,10 +150,16 @@ def forward(amount):
 def rollback(amount):
 	S["i"] -= amount
 
+# Get previous iteration char.
+def prevchar():
+	return text[S["i"] - 1]
+
 tokens = []
 
 S = {"i": 0, "line": 1, "kind": "", "start": -1, "end": -1}
 rolledback = False
+cmd_chain = False
+flag_options = False
 l = len(text)
 c = ''
 while S["i"] < l:
@@ -170,11 +193,11 @@ while S["i"] < l:
 					print("Err: invalid sigil.")
 			elif charpos(2):
 				if not c.isalpha():
-					if c == C_LPAREN:
+					if c == C_LPAREN or (c == C_DQUOTE or c == C_SQUOTE):
 						S["kind"] = "dollarsign"
-						rollback(1)
-						S["end"] = S["i"]
-						add_node()
+					rollback(1)
+					S["end"] = S["i"]
+					add_node()
 			else:
 				if not c.isalnum():
 					rollback(1)
@@ -194,14 +217,16 @@ while S["i"] < l:
 				add_node()
 
 		elif kind("command"):
-			if not (c.isalnum() or c == C_HYPHEN or c == C_ESCAPE):
+			if not (c.isalnum() or
+					(c == C_DOT and prevchar() == C_ESCAPE)
+					or c == C_HYPHEN or c == C_ESCAPE):
 				rollback(1)
 				S["end"] = S["i"]
 				add_node()
 
 		elif kind("string"):
 			if (not charpos(1) and c == text[S["start"]] and
-					text[S["i"] - 1] != C_ESCAPE):
+					prevchar() != C_ESCAPE):
 				S["end"] = S["i"]
 				add_node()
 
@@ -268,11 +293,15 @@ while S["i"] < l:
 			S["end"] = S["i"]
 			add_node()
 
-		elif kind("brace"):
+		elif kind("terminator"):
 			S["end"] = S["i"]
 			add_node()
 
-		elif kind("terminator"):
+		elif kind("brace"):
+			if c == C_LPAREN: flag_options = True
+			elif c == C_RPAREN: flag_options = False
+			elif c == C_LBRACE: cmd_chain = True
+			elif c == C_RBRACE: cmd_chain = False
 			S["end"] = S["i"]
 			add_node()
 

@@ -90,24 +90,26 @@ C_LCURLY = '{'
 C_RCURLY = '}'
 
 SOT = { # Start-of-token chars.
-	"#": "comment",
-	"@": "setting",
-	"$": "variable",
-	"-": "flag",
-
-	"*": "multi",
-	"|": "delpipe",
-	",": "delcomma",
-	"=": "assignment",
-	";": "terminator",
-
-	"(": "brace",
-	")": "brace",
-	"[": "brace",
-	"]": "brace",
-
-	"\"": "string",
-	"'": "string"
+	"#": "tkCMT",
+	"@": "tkSTN",
+	"$": "tkVAR",
+	"-": "tkFLG",
+	"?": "tkQMK",
+	"*": "tkMTL",
+	".": "tkDDOT",
+	"\"": "tkSTR",
+	"'": "tkSTR",
+	"=": "tkAST",
+	"|": "tkDPPE",
+	",": "tkDCMA",
+	":": "tkDCLN",
+	";": "tkTRM",
+	"(": "tkBRC",
+	")": "tkBRC",
+	"[": "tkBRC",
+	"]": "tkBRC"
+	# "{": "tkBRC",
+	# "}": "tkBRC",
 }
 
 KEYWORDS = ["default", "filedir", "exclude"]
@@ -117,17 +119,17 @@ def add_node():
 	# Kind resets.
 	if len(tokens):
 		if cmd_chain:
-			if kind("string") and tokens[-1]["kind"] == "command":
+			if kind("tkSTR") and tokens[-1]["kind"] == "tkCMD":
 				if text[tokens[-1]["start"] : tokens[-1]["end"] + 1] in KEYWORDS:
-					tokens[-1]["kind"] = "keyword"
-			elif kind("command") and tokens[-1]["kind"] == "flag":
+					tokens[-1]["kind"] = "tkKYW"
+			elif kind("tkCMD") and tokens[-1]["kind"] == "tkFLG":
 				if text[tokens[-1]["start"] : tokens[-1]["end"] + 1] == C_HYPHEN:
-					tokens[-1]["kind"] = "flag-option"
-					S["kind"] = "flag-value"
+					tokens[-1]["kind"] = "tkFOPT"
+					S["kind"] = "tkFVAL"
 
 		elif flag_options:
-			if kind("command") and flag_options:
-				S["kind"] = "flag-value"
+			if kind("tkCMD") and flag_options:
+				S["kind"] = "tkFVAL"
 
 	copy = dict(S)
 	del copy["i"]
@@ -169,139 +171,52 @@ while S["i"] < l:
 		if rolledback:
 			rolledback = False
 			S["start"] = S["i"]
-			S["kind"] = SOT.get(c, "??")
-			if S["kind"] == "??":
-				if c.isalnum():
-					S["kind"] = "command"
+			S["kind"] = SOT.get(c, "tkTBD")
+			if S["kind"] == "tkTBD":
+				if c.isalnum(): S["kind"] = "tkCMD"
 
-		if kind("setting"):
-			if charpos(1):
-				if c != C_ATSIGN:
-					print("Err: invalid sigil.")
-			elif charpos(2):
-				if not c.isalpha():
-					print("Err: invalid char.")
-			else:
-				if not c.isalnum():
-					rollback(1)
-					S["end"] = S["i"]
-					add_node()
+		if kind("tkSTN") or kind("tkVAR") or kind("tkFLG"):
+			if S["i"] - S["start"] > 0 and not (c.isalnum() or c == C_HYPHEN):
+				rollback(1)
+				S["end"] = S["i"]
+				add_node()
 
-		elif kind("variable"):
-			if charpos(1):
-				if c != C_DOLLARSIGN:
-					print("Err: invalid sigil.")
-			elif charpos(2):
-				if not c.isalpha():
-					if c == C_LPAREN or (c == C_DQUOTE or c == C_SQUOTE):
-						S["kind"] = "dollarsign"
-					rollback(1)
-					S["end"] = S["i"]
-					add_node()
-			else:
-				if not c.isalnum():
-					rollback(1)
-					S["end"] = S["i"]
-					add_node()
+		elif kind("tkCMD"):
+			if not (c.isalnum() or (c == C_DOT and prevchar() == C_ESCAPE)
+					or c == C_HYPHEN or c == C_ESCAPE or
+					(prevchar() == C_ESCAPE)): # Allow escaped chars.
+				rollback(1)
+				S["end"] = S["i"]
+				add_node()
 
-		elif kind("comment"):
+		elif kind("tkCMT"):
 			if c == C_NL:
 				rollback(1)
 				S["end"] = S["i"]
 				add_node()
 
-		elif kind("flag"):
-			if not (c.isalnum() or c == C_HYPHEN):
-				rollback(1)
-				S["end"] = S["i"]
-				add_node()
-
-		elif kind("command"):
-			if not (c.isalnum() or
-					(c == C_DOT and prevchar() == C_ESCAPE)
-					or c == C_HYPHEN or c == C_ESCAPE):
-				rollback(1)
-				S["end"] = S["i"]
-				add_node()
-
-		elif kind("string"):
+		elif kind("tkSTR"):
 			if (not charpos(1) and c == text[S["start"]] and
 					prevchar() != C_ESCAPE):
 				S["end"] = S["i"]
 				add_node()
 
-		elif kind("??"): # Undetermined.
-			if not (c.isalnum() or c == C_ESCAPE or c == C_HYPHEN):
-				if (c == C_LPAREN or c == C_RPAREN or
-					c == C_LCURLY or c == C_RCURLY):
-					S["start"] = S["i"]
-					rollback(1)
-					S["kind"] = "brace"
-
-				elif c == C_COMMA:
-					S["start"] = S["i"]
-					rollback(1)
-					S["kind"] = "delcomma"
-
-				elif c == C_COLON:
-					S["start"] = S["i"]
-					rollback(1)
-					S["kind"] = "delcolon"
-
-				elif c == C_QMARK:
-					S["start"] = S["i"]
-					rollback(1)
-					S["kind"] = "qmark"
-
-				elif c == C_DOT:
-					S["start"] = S["i"]
-					rollback(1)
-					S["kind"] = "deldot"
-
-				else:
-					S["end"] = S["i"]
-					if c == C_SPACE or c == C_TAB or c == C_NL: S["end"] -= 1
-					add_node()
-
-		# Punctuation characters.
-
-		elif kind("assignment"):
+		elif kind("tkTBD"): # Undetermined.
 			S["end"] = S["i"]
+			if c == C_SPACE or c == C_TAB or c == C_NL: S["end"] -= 1
 			add_node()
 
-		elif kind("multi"):
-			S["end"] = S["i"]
-			add_node()
-
-		elif kind("deldot"):
-			S["end"] = S["i"]
-			add_node()
-
-		elif kind("delpipe"):
-			S["end"] = S["i"]
-			add_node()
-
-		elif kind("delcomma"):
-			S["end"] = S["i"]
-			add_node()
-
-		elif kind("delcolon"):
-			S["end"] = S["i"]
-			add_node()
-
-		elif kind("qmark"):
-			S["end"] = S["i"]
-			add_node()
-
-		elif kind("terminator"):
-			S["end"] = S["i"]
-			add_node()
-
-		elif kind("brace"):
+		elif kind("tkBRC"):
 			if c == C_LPAREN: flag_options = True
 			elif c == C_RPAREN: flag_options = False
 			elif c == C_LBRACE: cmd_chain = True
 			elif c == C_RBRACE: cmd_chain = False
+			S["end"] = S["i"]
+			add_node()
+
+		# All else (assignment, multi, delimiters, qmarks, terminator...).
+
+		else:
 			S["end"] = S["i"]
 			add_node()
 

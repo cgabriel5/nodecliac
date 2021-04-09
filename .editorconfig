@@ -11,12 +11,12 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
-[*.nim]
+[*.{nim,py}]
 indent_style = space
 
 # Set default displayed tab size for repository.
 # [https://stackoverflow.com/a/33831598]
-[*.{js,jsx,html,sass}]
+[*.{js,jsx,html,sass,py}]
 indent_size = 4
 
 # Override and allow for Markdown files.

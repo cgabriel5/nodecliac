@@ -42,7 +42,7 @@ def tokenizer(text):
     S["start"] = S["end"] = -1
 
     # Adds the token to tokens array.
-    def add_node():
+    def add_token():
         if tokens:
 
             # Keyword reset.
@@ -106,32 +106,32 @@ def tokenizer(text):
         if S["i"] - S["start"] > 0 and not (c.isalnum() or c == C_HYPHEN):
             rollback(1)
             S["end"] = S["i"]
-            add_node()
+            add_token()
 
     def tk_cmd():
         if not (c.isalnum() or c in (C_HYPHEN, C_ESCAPE) or
                 (prevchar() == C_ESCAPE)):  # Allow escaped chars.
             rollback(1)
             S["end"] = S["i"]
-            add_node()
+            add_token()
 
     def tk_cmt():
         if c == C_NL:
             rollback(1)
             S["end"] = S["i"]
-            add_node()
+            add_token()
 
     def tk_str():
         if (not charpos(1) and c == text[S["start"]] and
                 prevchar() != C_ESCAPE):
             S["end"] = S["i"]
-            add_node()
+            add_token()
 
     def tk_tbd():  # Determine in parser.
         S["end"] = S["i"]
         if c in (C_SPACE, C_TAB, C_NL):
             S["end"] -= 1
-        add_node()
+        add_token()
 
     def tk_brc():
         nonlocal flgopts  # [https://stackoverflow.com/a/8448011]
@@ -140,11 +140,11 @@ def tokenizer(text):
         elif c == C_RPAREN:
             flgopts = False
         S["end"] = S["i"]
-        add_node()
+        add_token()
 
     def tk_def():
         S["end"] = S["i"]
-        add_node()
+        add_token()
 
     DISPATCH = {
         "tkSTN": tk_stn_var_flg,

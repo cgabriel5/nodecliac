@@ -1,244 +1,211 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
-from pathlib import Path # [https://stackoverflow.com/a/66195538]
+# from pathlib import Path  # [https://stackoverflow.com/a/66195538]
 
-hdir = str(Path.home())
-acmappath = hdir + "/.nodecliac/registry/nodecliac/nodecliac.acmap"
-
-f = open(acmappath, "r")
-text = f.read()
-# f = open("../../../resources/packages/nodecliac/nodecliac.acmap", "r")
-# acmap = f.read()
-
-# text = """a.{b,c} = --d|e $('${f}')"""
-
-# text = """
-# @setting="value"
-# @setting = "value"
-
-# nodecliac.print = --command=*$('${commands}') # comment
-
-# 		  $var="123
-
-# 		  "
-
-
-# 		  $ var =      "
-# 		  456  "
-# """
-
-# # Test .acmap string.
-# text = """
-
-
-# # Available settings.
-# @compopt   = "default"
-# @filedir   = ""
-# @disable   = false
-# @placehold = true
-
-# # This is a comment.
-#     # Whitespace can precede comment.
-# program.command= !--flag # A trailing comment.
-# program.SUBCOMMAND= --XXXX|--XXX-X2? # A trailing comment.
-
-# program\\.command =[ *--flag # This is a trailing comment after flag
-
-#       @setting = "123"
-#       ;
-
-# 	     	# This == a comment.
-
-#       @setting = "456
-
-# fsdpoifspdoif" # Trailing comment
-
-# 	   		$var = "value.
-
-# \\"
-
-# 	   		     ";
-
-# 		$var = 'not us\\'ing "'
-
-# """
-
-C_DOT = '.'
 C_NL = '\n'
 C_TAB = '\t'
-C_PIPE = '|'
-C_COMMA = ','
-C_COLON = ':'
-C_QMARK = '?'
 C_SPACE = ' '
-C_ATSIGN = '@'
 C_HYPHEN = '-'
-C_DQUOTE = '"'
-C_SQUOTE = '\''
 C_ESCAPE = '\\'
-C_NUMSIGN = '#'
-C_ASTERISK = '*'
-C_EQUALSIGN = '='
-C_SEMICOLON = ';'
-C_DOLLARSIGN = '$'
-
-C_LBRACE = '['
-C_RBRACE = ']'
 C_LPAREN = '('
 C_RPAREN = ')'
-C_LCURLY = '{'
-C_RCURLY = '}'
 
-SOT = { # Start-of-token chars.
-	"#": "tkCMT",
-	"@": "tkSTN",
-	"$": "tkVAR",
-	"-": "tkFLG",
-	"?": "tkQMK",
-	"*": "tkMTL",
-	".": "tkDDOT",
-	"\"": "tkSTR",
-	"'": "tkSTR",
-	"=": "tkAST",
-	"|": "tkDPPE",
-	",": "tkDCMA",
-	":": "tkDCLN",
-	";": "tkTRM",
-	"(": "tkBRC",
-	")": "tkBRC",
-	"[": "tkBRC",
-	"]": "tkBRC"
-	# "{": "tkBRC",
-	# "}": "tkBRC",
+SOT = {  # Start-of-token chars.
+    "#": "tkCMT",
+    "@": "tkSTN",
+    "$": "tkVAR",
+    "-": "tkFLG",
+    "?": "tkQMK",
+    "*": "tkMTL",
+    ".": "tkDDOT",
+    "\"": "tkSTR",
+    "'": "tkSTR",
+    "=": "tkASG",
+    "|": "tkDPPE",
+    ",": "tkDCMA",
+    ":": "tkDCLN",
+    ";": "tkTRM",
+    "(": "tkBRC",
+    ")": "tkBRC",
+    "[": "tkBRC",
+    "]": "tkBRC",
+    "\n": "tkNL"
 }
 
-KEYWORDS = ["default", "filedir", "exclude"]
+KEYWORDS = ["default", "context", "filedir", "exclude"]
 
-# Adds the token to tokens array.
-def add_node():
-	# Kind resets.
-	if len(tokens):
-		if cmd_chain:
-			if kind("tkSTR") and tokens[-1]["kind"] == "tkCMD":
-				if text[tokens[-1]["start"] : tokens[-1]["end"] + 1] in KEYWORDS:
-					tokens[-1]["kind"] = "tkKYW"
-			elif kind("tkCMD") and tokens[-1]["kind"] == "tkFLG":
-				if text[tokens[-1]["start"] : tokens[-1]["end"] + 1] == C_HYPHEN:
-					tokens[-1]["kind"] = "tkFOPT"
-					S["kind"] = "tkFVAL"
+def tokenizer(text):
+    c = ''
+    tokens = []
+    l = len(text)
+    flgopts = False
+    S = {"i": 0, "line": 1, "kind": ""}
+    S["start"] = S["end"] = -1
 
-		elif flag_options:
-			if kind("tkCMD") and flag_options:
-				S["kind"] = "tkFVAL"
+    # Adds the token to tokens array.
+    def add_node():
+        if tokens:
 
-	copy = dict(S)
-	del copy["i"]
-	tokens.append(copy)
-	S["kind"] = ""
+            # Keyword reset.
+            if kind("tkSTR") and tokens[-1]["kind"] == "tkCMD":
+                if (text[tokens[-1]["start"]:tokens[-1]["end"] + 1]
+                        in KEYWORDS):
+                    tokens[-1]["kind"] = "tkKYW"
 
-# Checks whether current tokens is at needed char index.
-def charpos(position):
-	return S["i"] - S["start"] == position - 1
+            # Reset long form: --flag=(option1 option2)
+            elif (tokens[-1]["kind"] == "tkFLG" and
+                  text[tokens[-1]["start"]:tokens[-1]["end"] + 1] ==
+                  C_HYPHEN):
+                tokens[-1]["kind"] = "tkFOPT"
+                if S["kind"] == "tkCMD":
+                    S["kind"] = "tkFVAL"
 
-# Checks state object kind matches provided kind.
-def kind(s):
-	return S["kind"] == s
+            # Reset: --flag=(option1 option2)
+            elif flgopts and kind("tkCMD"):
+                S["kind"] = "tkFVAL"
 
-# Forward loop x amount.
-def forward(amount):
-	S["i"] += amount
+            # 'Merge' tkTBD tokens if possible.
+            elif (kind("tkTBD") and tokens[-1]["kind"] == "tkTBD" and
+                  tokens[-1]["line"] == S["line"] and
+                  S["start"] - tokens[-1]["end"] == 1):
+                tokens[-1]["end"] = S["end"]
+                S["kind"] = ""
+                return
 
-# Rollback loop x amount.
-def rollback(amount):
-	S["i"] -= amount
+        # Reset when single '$'.
+        if kind("tkVAR") and S["end"] - S["start"] == 0:
+            S["kind"] = "tkDLS"
 
-# Get previous iteration char.
-def prevchar():
-	return text[S["i"] - 1]
+        copy = dict(S)
+        del copy["i"]
+        tokens.append(copy)
+        S["kind"] = ""
 
-tokens = []
+    # Checks if token is at needed char index.
+    def charpos(pos):
+        return S["i"] - S["start"] == pos - 1
 
-S = {"i": 0, "line": 1, "kind": "", "start": -1, "end": -1}
-rolledback = False
-cmd_chain = False
-flag_options = False
-l = len(text)
-c = ''
-while S["i"] < l:
-	c = text[S["i"]]
+    # Checks state object kind matches provided kind.
+    def kind(s):
+        return S["kind"] == s
 
-	if S["kind"] or rolledback:
-		if rolledback:
-			rolledback = False
-			S["start"] = S["i"]
-			S["kind"] = SOT.get(c, "tkTBD")
-			if S["kind"] == "tkTBD":
-				if c.isalnum(): S["kind"] = "tkCMD"
+    # Forward loop x amount.
+    def forward(amount):
+        S["i"] += amount
 
-		if kind("tkSTN") or kind("tkVAR") or kind("tkFLG"):
-			if S["i"] - S["start"] > 0 and not (c.isalnum() or c == C_HYPHEN):
-				rollback(1)
-				S["end"] = S["i"]
-				add_node()
+    # Rollback loop x amount.
+    def rollback(amount):
+        S["i"] -= amount
 
-		elif kind("tkCMD"):
-			if not (c.isalnum() or (c == C_DOT and prevchar() == C_ESCAPE)
-					or c == C_HYPHEN or c == C_ESCAPE or
-					(prevchar() == C_ESCAPE)): # Allow escaped chars.
-				rollback(1)
-				S["end"] = S["i"]
-				add_node()
+    # Get previous iteration char.
+    def prevchar():
+        return text[S["i"] - 1]
 
-		elif kind("tkCMT"):
-			if c == C_NL:
-				rollback(1)
-				S["end"] = S["i"]
-				add_node()
+    # Tokenizer loop functions.
 
-		elif kind("tkSTR"):
-			if (not charpos(1) and c == text[S["start"]] and
-					prevchar() != C_ESCAPE):
-				S["end"] = S["i"]
-				add_node()
+    def tk_stn_var_flg():
+        if S["i"] - S["start"] > 0 and not (c.isalnum() or c == C_HYPHEN):
+            rollback(1)
+            S["end"] = S["i"]
+            add_node()
 
-		elif kind("tkTBD"): # Undetermined.
-			S["end"] = S["i"]
-			if c == C_SPACE or c == C_TAB or c == C_NL: S["end"] -= 1
-			add_node()
+    def tk_cmd():
+        if not (c.isalnum() or c in (C_HYPHEN, C_ESCAPE) or
+                (prevchar() == C_ESCAPE)):  # Allow escaped chars.
+            rollback(1)
+            S["end"] = S["i"]
+            add_node()
 
-		elif kind("tkBRC"):
-			if c == C_LPAREN: flag_options = True
-			elif c == C_RPAREN: flag_options = False
-			elif c == C_LBRACE: cmd_chain = True
-			elif c == C_RBRACE: cmd_chain = False
-			S["end"] = S["i"]
-			add_node()
+    def tk_cmt():
+        if c == C_NL:
+            rollback(1)
+            S["end"] = S["i"]
+            add_node()
 
-		# All else (assignment, multi, delimiters, qmarks, terminator...).
+    def tk_str():
+        if (not charpos(1) and c == text[S["start"]] and
+                prevchar() != C_ESCAPE):
+            S["end"] = S["i"]
+            add_node()
 
-		else:
-			S["end"] = S["i"]
-			add_node()
+    def tk_tbd():  # Determine in parser.
+        S["end"] = S["i"]
+        if c in (C_SPACE, C_TAB, C_NL):
+            S["end"] -= 1
+        add_node()
 
-	else:
-		if c == C_SPACE or c == C_NL or c == C_TAB:
-			if c == C_NL: S["line"] += 1
-			S["i"] += 1
-			continue
-		else:
-			rolledback = True
-			rollback(1)
+    def tk_brc():
+        nonlocal flgopts  # [https://stackoverflow.com/a/8448011]
+        if c == C_LPAREN:
+            flgopts = True
+        elif c == C_RPAREN:
+            flgopts = False
+        S["end"] = S["i"]
+        add_node()
 
-	forward(1)
+    def tk_def():
+        S["end"] = S["i"]
+        add_node()
 
-f = open("output.text", "r")
-assert str(tokens) == f.read(), "Strings should match"
-f.close()
+    DISPATCH = {
+        "tkSTN": tk_stn_var_flg,
+        "tkVAR": tk_stn_var_flg,
+        "tkFLG": tk_stn_var_flg,
+        "tkCMD": tk_cmd,
+        "tkCMT": tk_cmt,
+        "tkSTR": tk_str,
+        "tkTBD": tk_tbd,
+        "tkBRC": tk_brc,
+        "tkDEF": tk_def
+    }
 
-print("Node_Count: [" + str(len(tokens)) + "]")
-for node in tokens:
-	kind = node["kind"]
-	start = node["start"]
-	end = node["end"]
-	line = node["line"]
-	print("L: " + str(line) + ", K: [" + kind + "] V: [" + text[start : end + 1] + "]")
+    while S["i"] < l:
+        c = text[S["i"]]
+
+        if not S["kind"]:
+            if c in (C_SPACE, C_TAB):
+                forward(1)
+                continue
+
+            if c == C_NL:
+                S["line"] += 1
+
+            S["start"] = S["i"]
+            S["kind"] = SOT.get(c, "tkTBD")
+            if S["kind"] == "tkTBD":
+                if c.isalnum():
+                    S["kind"] = "tkCMD"
+
+        DISPATCH.get(S["kind"], tk_def)()
+
+        forward(1)
+
+    return tokens
+
+
+def main():
+    if __name__ == "__main__":
+
+        # hdir = str(Path.home())
+        # f = open(hdir + "/.nodecliac/registry/nodecliac/nodecliac.acmap", "r")
+        # text = f.read()
+
+        f = open("../../../resources/packages/nodecliac/nodecliac.acmap", "r")
+        text = f.read()
+
+        tokens = tokenizer(text)
+
+        print("Token_Count: [" + str(len(tokens)) + "]")
+        for token in tokens:
+            kind = token["kind"]
+            start = token["start"]
+            end = token["end"]
+            line = token["line"]
+            if kind == "tkNL":
+                continue
+            print("L: " + str(line) + ", K: [" + kind + "] V: [" +
+                  text[start:end + 1] + "] ["+str(start), ", " +
+                  str(end) + "]")
+
+main()

@@ -31,6 +31,8 @@ SOT = {  # Start-of-token chars.
     "\n": "tkNL"
 }
 
+LINESTARTS = {1: -1}
+
 KEYWORDS = ["default", "context", "filedir", "exclude"]
 
 def tokenizer(text):
@@ -168,6 +170,7 @@ def tokenizer(text):
 
             if c == C_NL:
                 S["line"] += 1
+                LINESTARTS.setdefault(S["line"], S["i"]);
 
             S["start"] = S["i"]
             S["kind"] = SOT.get(c, "tkTBD")

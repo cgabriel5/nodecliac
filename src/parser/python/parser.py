@@ -6,7 +6,13 @@ import sys
 from lexer import tokenizer, LINESTARTS
 # from pathlib import Path  # [https://stackoverflow.com/a/66195538]
 
+C_LF = 'f'
+C_LT = 't'
+
 C_ATSIGN = '@'
+
+C_PRIM_TBOOL = "true"
+C_PRIM_FBOOL = "false"
 
 def main():
     if __name__ == "__main__":
@@ -32,13 +38,16 @@ def main():
         maxpathways = 0
 
         tcount = 0
+        lastvalidpath = -1
         pathways = None
         PATHWAYS = {
             "tkSTN": [
                 ["tkTRM"],
-                ["tkASG", "tkSTR", "tkTRM"]
+                ["tkASG", "tkSTR", "tkTRM"],
+                ["tkASG", "tkCMD", "tkTRM"]
             ]
         }
+        SINGLES = {"tkSTN"}
 
         AST = []
 
@@ -70,7 +79,7 @@ def main():
             return (True, line, -1, "")
 
         def validpathway():
-            nonlocal tcount
+            nonlocal tcount, lastvalidpath
 
             # Loop over token kinds at construct token count index.
             valid = False
@@ -80,7 +89,13 @@ def main():
                 if tcount >= len(pathway): continue
                 if kind == pathways[j][tcount]:
                     valid = True
+                    lastvalidpath = tcount
                     break
+
+            # When nothing matches, it's the parent token, and
+            # the token kind is an allowed single consider it valid.
+            if tcount == 0 and lastvalidpath == -1 and kind in SINGLES:
+                lastvalidpath = 0
 
             tcount += 1
 
@@ -90,8 +105,6 @@ def main():
         l = len(tokens)
         while i < l:
             token = tokens[i]
-
-        # for token in tokens:
             kind = token["kind"]
             start = token["start"]
             end = token["end"]
@@ -133,6 +146,9 @@ def main():
                 pathways = PATHWAYS.get(construct, [])
                 maxpathways = range(len(pathways))
 
+                if not pathways:
+                    err(line, start, "INVALID_PATHWAY_PARENT")
+
                 for pathway in pathways:
                     if len(pathway) > maxtcount:
                         maxtcount = len(pathway)
@@ -148,15 +164,19 @@ def main():
                         (valid, *errinfo) = validtoken(token)
                         if valid: branch.append(token)
                         else: err(*errinfo)
-
                     else:
-                        if validpathway(): branch.append(token)
+                        if validpathway():
+                            (valid, *errinfo) = validtoken(token)
+                            if valid: branch.append(token)
+                            else: err(*errinfo)
                         else:
                             tcount = maxtcount
-                            err(line, start, "INVALID_PATHWAY")
+                            if lastvalidpath > -1: i -= 1
+                            else: err(line, start, "INVALID_PATHWAY_CHILD")
 
                         if tcount >= maxtcount: # Variable reset.
                             construct = ""
+                            lastvalidpath = -1
                             tcount = 0
                             branch = None
                             parent = None

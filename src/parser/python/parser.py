@@ -60,21 +60,34 @@ def main():
             end = token["end"]
             line = token["line"]
 
-            if kind == "tkSTN":
-                if end - start == 0:
-                    return (False, line, start, "SIGIL_SETTING_ONLY")
+            if construct == "tkSTN":
+                if tcount == 0:
+                    if end - start == 0:
+                        return (False, line, start, "SIGIL_SETTING_ONLY")
 
-                for i in range(start, end + 1):
-                    c = text[i]
-                    if i == start:
-                        if c != C_ATSIGN:
-                            return (False, line, i, "INVALID_SETTING_SIGIL")
-                    elif i == start + 1:
-                        if not c.isalpha():
-                            return (False, line, i, "INVALID_SETTING_IDENT_CHAR")
-                    else:
-                        if not c.isalnum():
-                            return (False, line, i, "INVALID_SETTING_CHAR")
+                    for i in range(start, end + 1):
+                        c = text[i]
+                        if i == start:
+                            if c != C_ATSIGN:
+                                return (False, line, i, "INVALID_SETTING_SIGIL")
+                        elif i == start + 1:
+                            if not c.isalpha():
+                                return (False, line, i, "INVALID_SETTING_IDENT_CHAR")
+                        else:
+                            if not c.isalnum():
+                                return (False, line, i, "INVALID_SETTING_CHAR")
+                if tcount == 2 and kind == "tkCMD":
+                    if end - start != 3:
+                        return (False, line, start, "INVALID_SETTING_UNQT_VAL1")
+
+                    if text[start] not in (C_LF, C_LT):
+                        return (False, line, start, "INVALID_SETTING_UNQT_VAL2")
+
+                    value = C_PRIM_TBOOL if text[start] == C_LT else C_PRIM_FBOOL
+
+                    for i in range(start, end + 1):
+                        if text[i] != value[i - start]:
+                            return (False, line, i, "INVALID_SETTING_UNQT_VAL3")
 
             return (True, line, -1, "")
 

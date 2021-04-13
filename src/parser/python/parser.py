@@ -31,6 +31,8 @@ def main():
 
         tokens = tokenizer(text)
 
+        last_true_token = 0
+        token = None
         construct = ""
         branch = None
         parent = None
@@ -38,7 +40,8 @@ def main():
         maxpathways = 0
 
         tcount = 0
-        lastvalidpath = -1
+        lastvalidpathindex = -1
+        lastvalidpathway = []
         pathways = None
         PATHWAYS = {
             "tkSTN": [
@@ -92,7 +95,7 @@ def main():
             return (True, line, -1, "")
 
         def validpathway():
-            nonlocal tcount, lastvalidpath
+            nonlocal tcount, lastvalidpathindex, lastvalidpathway
 
             # Loop over token kinds at construct token count index.
             valid = False
@@ -102,13 +105,14 @@ def main():
                 if tcount >= len(pathway): continue
                 if kind == pathways[j][tcount]:
                     valid = True
-                    lastvalidpath = tcount
+                    lastvalidpathway = pathways[j]
+                    lastvalidpathindex = tcount
                     break
 
             # When nothing matches, it's the parent token, and
             # the token kind is an allowed single consider it valid.
-            if tcount == 0 and lastvalidpath == -1 and kind in SINGLES:
-                lastvalidpath = 0
+            if tcount == 0 and lastvalidpathindex == -1 and kind in SINGLES:
+                lastvalidpathindex = 0
 
             tcount += 1
 
@@ -117,6 +121,12 @@ def main():
         i = 0
         l = len(tokens)
         while i < l:
+
+            if tokens[i]["kind"] == "tkNL":
+                i += 1
+                continue
+
+            last_true_token = i
             token = tokens[i]
             kind = token["kind"]
             start = token["start"]
@@ -184,12 +194,17 @@ def main():
                             else: err(*errinfo)
                         else:
                             tcount = maxtcount
-                            if lastvalidpath > -1: i -= 1
+                            if lastvalidpathindex > -1: i -= 1
                             else: err(line, start, "INVALID_PATHWAY_CHILD")
 
                         if tcount >= maxtcount: # Variable reset.
+
+                            if (len(lastvalidpathway)) - (len(branch) - 1) > 1 and len(branch) != 1:
+                                ttoken = tokens[last_true_token]
+                                err(ttoken["line"], ttoken["start"], "UNFINISHED_PATHWAY_INNER")
+
                             construct = ""
-                            lastvalidpath = -1
+                            lastvalidpathindex = -1
                             tcount = 0
                             branch = None
                             parent = None
@@ -197,6 +212,10 @@ def main():
                             maxpathways = None
 
             i += 1
+
+        if (len(lastvalidpathway)) - (len(branch) - 1) > 1 and len(branch) != 1:
+            ttoken = tokens[last_true_token]
+            err(ttoken["line"], ttoken["start"], "UNFINISHED_PATHWAY_POST")
 
         print("AST", len(AST))
         # print(AST)

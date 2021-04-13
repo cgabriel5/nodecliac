@@ -48,6 +48,10 @@ def main():
                 ["tkTRM"],
                 ["tkASG", "tkSTR", "tkTRM"],
                 ["tkASG", "tkCMD", "tkTRM"]
+            ],
+            "tkVAR": [
+                ["tkTRM"],
+                ["tkASG", "tkSTR", "tkTRM"]
             ]
         }
         SINGLES = {"tkSTN"}
@@ -91,6 +95,23 @@ def main():
                     for i in range(start, end + 1):
                         if text[i] != value[i - start]:
                             return (False, line, i, "INVALID_SETTING_UNQT_VAL3")
+
+            elif construct == "tkVAR":
+                if tcount == 0:
+                    if end - start == 0:
+                        return (False, line, start, "SIGIL_SETTING_ONLY")
+
+                    for i in range(start, end + 1):
+                        c = text[i]
+                        if i == start:
+                            if c != C_DOLLARSIGN:
+                                return (False, line, i, "INVALID_SETTING_SIGIL")
+                        elif i == start + 1:
+                            if not c.isalpha():
+                                return (False, line, i, "INVALID_SETTING_IDENT_CHAR")
+                        else:
+                            if not c.isalnum():
+                                return (False, line, i, "INVALID_SETTING_CHAR")
 
             return (True, line, -1, "")
 
@@ -179,7 +200,7 @@ def main():
 
                 i -= 1
             else:
-                if construct == "tkSTN":
+                if construct in ("tkSTN", "tkVAR"):
                     if not len(branch):
                         (valid, *errinfo) = validtoken(token)
                         if valid: branch.append(token)

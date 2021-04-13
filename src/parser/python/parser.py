@@ -121,20 +121,17 @@ def main():
         i = 0
         l = len(tokens)
         while i < l:
-
-            if tokens[i]["kind"] == "tkNL":
-                i += 1
-                continue
-
-            last_true_token = i
             token = tokens[i]
             kind = token["kind"]
             start = token["start"]
             end = token["end"]
             line = token["line"]
+
             if kind == "tkNL":
                 i += 1
                 continue
+            elif kind != "tkEOP":
+                last_true_token = i
 
             # print("L: " + str(line) + ", K: [" + kind + "] V: [" +
             #       text[start:end + 1] + "] ["+str(start), ", " +
@@ -163,7 +160,7 @@ def main():
             #
             # ------------------------------------------------------------------
 
-            if not construct:
+            if not construct and kind != "tkEOP":
                 construct = kind
                 tcount = 0
                 pathways = PATHWAYS.get(construct, [])
@@ -212,10 +209,6 @@ def main():
                             maxpathways = None
 
             i += 1
-
-        if (len(lastvalidpathway)) - (len(branch) - 1) > 1 and len(branch) != 1:
-            ttoken = tokens[last_true_token]
-            err(ttoken["line"], ttoken["start"], "UNFINISHED_PATHWAY_POST")
 
         print("AST", len(AST))
         # print(AST)

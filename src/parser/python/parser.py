@@ -99,19 +99,19 @@ def main():
             elif construct == "tkVAR":
                 if tcount == 0:
                     if end - start == 0:
-                        return (False, line, start, "SIGIL_SETTING_ONLY")
+                        return (False, line, start, "SIGIL_VARIABLE_ONLY")
 
                     for i in range(start, end + 1):
                         c = text[i]
                         if i == start:
                             if c != C_DOLLARSIGN:
-                                return (False, line, i, "INVALID_SETTING_SIGIL")
+                                return (False, line, i, "INVALID_VARIABLE_SIGIL")
                         elif i == start + 1:
                             if not c.isalpha():
-                                return (False, line, i, "INVALID_SETTING_IDENT_CHAR")
+                                return (False, line, i, "INVALID_VARIABLE_IDENT_CHAR")
                         else:
                             if not c.isalnum():
-                                return (False, line, i, "INVALID_SETTING_CHAR")
+                                return (False, line, i, "INVALID_VARIABLE_CHAR")
 
             return (True, line, -1, "")
 

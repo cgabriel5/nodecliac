@@ -198,7 +198,7 @@ def main():
 
                             if (len(lastvalidpathway)) - (len(branch) - 1) > 1 and len(branch) != 1:
                                 ttoken = tokens[last_true_token]
-                                err(ttoken["line"], ttoken["start"], "UNFINISHED_PATHWAY_INNER")
+                                err(ttoken["line"], ttoken["start"], "UNFINISHED_PATHWAY")
 
                             construct = ""
                             lastvalidpathindex = -1

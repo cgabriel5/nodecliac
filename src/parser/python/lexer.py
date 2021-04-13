@@ -182,4 +182,8 @@ def tokenizer(text):
 
         forward(1)
 
+    # To avoid post parsing checks, add a special end-of-parsing token.
+    S["kind"] = "tkEOP"
+    add_token()
+
     return tokens

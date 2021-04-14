@@ -10,6 +10,7 @@ C_LF = 'f'
 C_LT = 't'
 
 C_ATSIGN = '@'
+C_DOLLARSIGN = '$'
 
 C_PRIM_TBOOL = "true"
 C_PRIM_FBOOL = "false"
@@ -116,6 +117,8 @@ def main():
             return (True, line, -1, "")
 
         def validpathway():
+            if kind == "tkCMT": return True
+
             nonlocal tcount, lastvalidpathindex, lastvalidpathway
 
             # Loop over token kinds at construct token count index.
@@ -153,7 +156,7 @@ def main():
             if kind == "tkNL":
                 i += 1
                 continue
-            elif kind != "tkEOP":
+            elif kind not in ("tkEOP", "tkCMT"):
                 last_true_token = i
 
             # print("L: " + str(line) + ", K: [" + kind + "] V: [" +
@@ -184,6 +187,10 @@ def main():
             # ------------------------------------------------------------------
 
             if not construct and kind != "tkEOP":
+                if kind == "tkCMT":
+                    i += 1
+                    continue
+
                 construct = kind
                 tcount = 0
                 pathways = PATHWAYS.get(construct, [])
@@ -209,9 +216,10 @@ def main():
                         else: err(*errinfo)
                     else:
                         if validpathway():
-                            (valid, *errinfo) = validtoken(token)
-                            if valid: branch.append(token)
-                            else: err(*errinfo)
+                            if kind != "tkCMT":
+                                (valid, *errinfo) = validtoken(token)
+                                if valid: branch.append(token)
+                                else: err(*errinfo)
                         else:
                             tcount = maxtcount
                             if lastvalidpathindex > -1: i -= 1

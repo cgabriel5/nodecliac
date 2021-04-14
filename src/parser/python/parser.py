@@ -132,8 +132,10 @@ def main():
 
             # When nothing matches, it's the parent token, and
             # the token kind is an allowed single consider it valid.
-            if tcount == 0 and lastvalidpathindex == -1 and kind in SINGLES:
+            if tcount == 0 and lastvalidpathindex == -1:
                 lastvalidpathindex = 0
+                if kind == "tkEOP" and branch[0]["kind"] not in SINGLES:
+                    lastvalidpathindex = -1
 
             tcount += 1
 

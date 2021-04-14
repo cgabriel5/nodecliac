@@ -124,9 +124,15 @@ def tokenizer(text):
             add_token()
 
     def tk_str():
+        # Account for '\n's in string to track where string ends
+        if c == C_NL:
+            S["line"] += 1
+            LINESTARTS.setdefault(S["line"], S["i"]);
+
         if (not charpos(1) and c == text[S["start"]] and
                 prevchar() != C_ESCAPE):
             S["end"] = S["i"]
+            S["line_end"] = S["line"]
             add_token()
 
     def tk_tbd():  # Determine in parser.

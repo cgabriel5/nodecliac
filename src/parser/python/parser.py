@@ -215,7 +215,9 @@ def main():
                         else:
                             tcount = maxtcount
                             if lastvalidpathindex > -1: i -= 1
-                            else: err(line, start, "INVALID_PATHWAY_CHILD")
+                            else:
+                                ttoken = tokens[last_true_token]
+                                err(ttoken["line"], ttoken["end"], "INVALID_PATHWAY_CHILD")
 
                         if tcount >= maxtcount: # Variable reset.
 

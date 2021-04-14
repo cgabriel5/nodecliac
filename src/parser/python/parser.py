@@ -186,28 +186,37 @@ def main():
             #
             # ------------------------------------------------------------------
 
-            if not construct and kind != "tkEOP":
-                if kind == "tkCMT":
-                    i += 1
-                    continue
+            if not construct:
+                # Check if previous branch was properly terminated.
+                if AST:
+                    ltoken = AST[-1][-1] # Last branch token.
+                    lkind = ltoken["kind"]
+                    lline = ltoken.get("line_end", ltoken["line"])
+                    if lline == token["line"] and lkind != "tkTRM":
+                        err(line, ltoken["end"], "UNTERMINATED_BRANCH")
 
-                construct = kind
-                tcount = 0
-                pathways = PATHWAYS.get(construct, [])
-                maxpathways = range(len(pathways))
+                if kind not in ("tkEOP"):
+                    if kind == "tkCMT":
+                        i += 1
+                        continue
 
-                if not pathways:
-                    err(line, start, "INVALID_PATHWAY_PARENT")
+                    construct = kind
+                    tcount = 0
+                    pathways = PATHWAYS.get(construct, [])
+                    maxpathways = range(len(pathways))
 
-                for pathway in pathways:
-                    if len(pathway) > maxtcount:
-                        maxtcount = len(pathway)
+                    if not pathways:
+                        err(line, start, "INVALID_PATHWAY_PARENT")
 
-                branch = []
-                parent = token
-                AST.append(branch)
+                    for pathway in pathways:
+                        if len(pathway) > maxtcount:
+                            maxtcount = len(pathway)
 
-                i -= 1
+                    branch = []
+                    parent = token
+                    AST.append(branch)
+
+                    i -= 1
             else:
                 if construct in ("tkSTN", "tkVAR"):
                     if not len(branch):

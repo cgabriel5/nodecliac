@@ -28,6 +28,8 @@ SOT = {  # Start-of-token chars.
     ")": "tkBRC",
     "[": "tkBRC",
     "]": "tkBRC",
+    "{": "tkBRC",
+    "}": "tkBRC",
     "\n": "tkNL"
 }
 

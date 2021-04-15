@@ -8,6 +8,10 @@ C_HYPHEN = '-'
 C_ESCAPE = '\\'
 C_LPAREN = '('
 C_RPAREN = ')'
+C_LCURLY = '{'
+C_RCURLY = '}'
+C_LBRACE = '['
+C_RBRACE = ']'
 
 SOT = {  # Start-of-token chars.
     "#": "tkCMT",
@@ -31,6 +35,15 @@ SOT = {  # Start-of-token chars.
     "{": "tkBRC",
     "}": "tkBRC",
     "\n": "tkNL"
+}
+
+BRCTOKENS = {
+    C_LPAREN: "tkBRC_LP",
+    C_RPAREN: "tkBRC_RP",
+    C_LCURLY: "tkBRC_LC",
+    C_RCURLY: "tkBRC_RC",
+    C_LBRACE: "tkBRC_LB",
+    C_RBRACE: "tkBRC_RB"
 }
 
 LINESTARTS = {1: -1}
@@ -78,6 +91,9 @@ def tokenizer(text):
         # Reset when single '$'.
         if kind("tkVAR") and S["end"] - S["start"] == 0:
             S["kind"] = "tkDLS"
+
+        # If a brace token, reset kind to brace type.
+        if kind("tkBRC"): S["kind"] = BRCTOKENS.get(text[S["start"]])
 
         copy = dict(S)
         del copy["i"]

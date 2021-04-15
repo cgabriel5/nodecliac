@@ -81,6 +81,9 @@ def tokenizer(text):
 
         copy = dict(S)
         del copy["i"]
+        if S.get("last", False):
+            del S["last"]
+            del copy["last"]
         tokens.append(copy)
         S["kind"] = ""
 
@@ -156,6 +159,12 @@ def tokenizer(text):
         S["end"] = S["i"]
         add_token()
 
+    def tk_eop():  # Determine in parser.
+        S["end"] = S["i"]
+        if c in (C_SPACE, C_TAB, C_NL):
+            S["end"] -= 1
+        add_token()
+
     DISPATCH = {
         "tkSTN": tk_stn_var_flg,
         "tkVAR": tk_stn_var_flg,
@@ -170,6 +179,9 @@ def tokenizer(text):
 
     while S["i"] < l:
         c = text[S["i"]]
+
+        # Add 'last' key on last iteration.
+        if S["i"] == l - 1: S["last"] = True
 
         if not S["kind"]:
             if c in (C_SPACE, C_TAB):
@@ -188,10 +200,15 @@ def tokenizer(text):
 
         DISPATCH.get(S["kind"], tk_def)()
 
+        # Run on last iteration.
+        if S.get("last", False): tk_eop()
+
         forward(1)
 
     # To avoid post parsing checks, add a special end-of-parsing token.
     S["kind"] = "tkEOP"
+    S["start"] = -1
+    S["end"] = -1
     add_token()
 
     return tokens

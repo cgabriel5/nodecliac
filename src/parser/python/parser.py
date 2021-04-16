@@ -200,7 +200,6 @@ def main():
                         i += 1
                         continue
 
-                if kind not in ("tkEOP"):
                     if kind == "tkCMT":
                         i += 1
                         continue

@@ -50,9 +50,13 @@ def main():
                 ["tkASG", "tkCMD"]
             ],
             "tkVAR": [["tkASG", "tkSTR"]],
+            # Allowed command tokens (unordered).
+            "tkCMD": [["tkCMD", "tkDDOT", "tkBRC_LC", "tkDCMA", "tkBRC_RC"]],
             "tkTRM": []
         }
         SINGLES = {"tkSTN"}
+
+        BRACE_CMD = None
 
         AST = []
 
@@ -111,6 +115,49 @@ def main():
                             if not c.isalnum():
                                 return (False, line, i, "INVALID_VARIABLE_CHAR")
 
+            elif construct == "tkCMD":
+                if not branch:
+                    if kind != "tkCMD":
+                        return (False, line, start, "INVALID_START_CMD_TOKEN")
+                else:
+                    # + Subsequent/empty dot/comma delimiter checks.
+                    # + Trailing dot/commas.
+                    # + Balanced brace checks.
+                    # + Proper brace group syntax.
+                    # + Empty command groups check.
+
+                    nonlocal BRACE_CMD
+                    ltoken = branch[-1]
+                    lkind = ltoken["kind"]
+
+                    if kind == lkind:
+                        return (False, line, start, "INVALID_SUBSEQUENT_CMD_TOKEN")
+
+                    if kind == "tkBRC_LC" :
+                        if not BRACE_CMD: BRACE_CMD = token
+                        else: return (False, line, start, "INVALID_LBRACE_CMD_TOKEN")
+                    elif kind == "tkBRC_RC":
+                        if BRACE_CMD: BRACE_CMD = None
+                        else: return (False, line, start, "INVALID_RBRACE_CMD_TOKEN")
+
+                    if kind == "tkDCMA" and lkind == "tkBRC_LC":
+                        return (False, token["line"], token["start"], "INVALID_EMPTY_DCOMMA_CMD_TOKEN")
+
+                    if kind == "tkBRC_RC" and lkind == "tkDCMA":
+                        return (False, ltoken["line"], ltoken["start"], "INVALID_TRAILING_DCOMMA_CMD_TOKEN")
+
+                    if kind == "tkBRC_RC" and lkind == "tkBRC_LC":
+                        return (False, ltoken["line"], ltoken["start"], "INVALID_EMPTY_GROUP_CMD_TOKEN")
+
+                    if kind == "tkBRC_LC" and lkind != "tkDDOT":
+                        return (False, line, start, "INVALID_STARTBRACE_CMD_TOKEN")
+
+                    if kind == "tkCMD" and lkind == "tkBRC_RC":
+                        return (False, line, start, "INVALID_POSTBRACE_CMD_TOKEN")
+
+                    if kind == "tkDCMA" and not BRACE_CMD:
+                        return (False, line, start, "INVALID_COMMA_DEL_CMD_TOKEN")
+
             return (True, line, -1, "")
 
         def validpathway():
@@ -121,23 +168,31 @@ def main():
             # Loop over token kinds at construct token count index.
             valid = False
 
-            for j in maxpathways:
-                pathway = pathways[j]
-                if tcount >= len(pathway): continue
-                if kind == pathways[j][tcount]:
-                    valid = True
-                    lastvalidpathway = pathways[j]
-                    lastvalidpathindex = tcount
-                    break
+            if construct != "tkCMD":
+                for j in maxpathways:
+                    pathway = pathways[j]
+                    if tcount >= len(pathway): continue
+                    if kind == pathways[j][tcount]:
+                        valid = True
+                        lastvalidpathway = pathways[j]
+                        lastvalidpathindex = tcount
+                        break
 
-            # When nothing matches, it's the parent token, and
-            # the token kind is an allowed single consider it valid.
-            if tcount == 0 and lastvalidpathindex == -1:
-                lastvalidpathindex = 0
-                if kind == "tkEOP" and branch[0]["kind"] not in SINGLES:
-                    lastvalidpathindex = -1
+                # When nothing matches, it's the parent token, and
+                # the token kind is an allowed single consider it valid.
+                if tcount == 0 and lastvalidpathindex == -1:
+                    lastvalidpathindex = 0
+                    if kind == "tkEOP" and branch[0]["kind"] not in SINGLES:
+                        lastvalidpathindex = -1
 
-            tcount += 1
+                tcount += 1
+
+            else:
+                valid = kind in pathways[0]
+                if (kind == "tkCMD" and branch[-1]["kind"] != "tkDDOT"
+                    and not BRACE_CMD):
+                    valid = False
+                if not valid: lastvalidpathindex = 0
 
             return valid
 
@@ -222,13 +277,20 @@ def main():
 
                     i -= 1
             else:
-                if construct in ("tkSTN", "tkVAR"):
+                if construct in ("tkSTN", "tkVAR", "tkCMD"):
                     if not len(branch):
                         (valid, *errinfo) = validtoken(token)
                         if valid: branch.append(token)
                         else: err(*errinfo)
                     else:
                         if validpathway():
+                            if kind == "tkEOP":
+                                if construct == "tkCMD":
+                                    if BRACE_CMD:
+                                        err(BRACE_CMD["line"], BRACE_CMD["start"], "INVALID_UNCLOSED_LBRACE_CMD_TOKEN")
+                                    if branch[-1]["kind"] == "tkDDOT":
+                                        err(branch[-1]["line"], branch[-1]["start"], "INVALID_TRAILING_POST_CMD_TOKEN")
+
                             if kind != "tkCMT":
                                 (valid, *errinfo) = validtoken(token)
                                 if valid: branch.append(token)

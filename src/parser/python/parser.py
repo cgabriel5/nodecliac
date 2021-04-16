@@ -143,19 +143,19 @@ def main():
                     if kind == "tkDCMA" and lkind == "tkBRC_LC":
                         return (False, token["line"], token["start"], "INVALID_EMPTY_DCOMMA_CMD_TOKEN")
 
-                    if kind == "tkBRC_RC" and lkind == "tkDCMA":
+                    elif kind == "tkBRC_RC" and lkind == "tkDCMA":
                         return (False, ltoken["line"], ltoken["start"], "INVALID_TRAILING_DCOMMA_CMD_TOKEN")
 
-                    if kind == "tkBRC_RC" and lkind == "tkBRC_LC":
+                    elif kind == "tkBRC_RC" and lkind == "tkBRC_LC":
                         return (False, ltoken["line"], ltoken["start"], "INVALID_EMPTY_GROUP_CMD_TOKEN")
 
-                    if kind == "tkBRC_LC" and lkind != "tkDDOT":
+                    elif kind == "tkBRC_LC" and lkind != "tkDDOT":
                         return (False, line, start, "INVALID_STARTBRACE_CMD_TOKEN")
 
-                    if kind == "tkCMD" and lkind == "tkBRC_RC":
+                    elif kind == "tkCMD" and lkind == "tkBRC_RC":
                         return (False, line, start, "INVALID_POSTBRACE_CMD_TOKEN")
 
-                    if kind == "tkDCMA" and not BRACE_CMD:
+                    elif kind == "tkDCMA" and not BRACE_CMD:
                         return (False, line, start, "INVALID_COMMA_DEL_CMD_TOKEN")
 
             return (True, line, -1, "")

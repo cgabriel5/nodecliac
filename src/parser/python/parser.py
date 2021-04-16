@@ -46,14 +46,11 @@ def main():
         pathways = None
         PATHWAYS = {
             "tkSTN": [
-                ["tkTRM"],
-                ["tkASG", "tkSTR", "tkTRM"],
-                ["tkASG", "tkCMD", "tkTRM"]
+                ["tkASG", "tkSTR"],
+                ["tkASG", "tkCMD"]
             ],
-            "tkVAR": [
-                ["tkTRM"],
-                ["tkASG", "tkSTR", "tkTRM"]
-            ]
+            "tkVAR": [["tkASG", "tkSTR"]],
+            "tkTRM": []
         }
         SINGLES = {"tkSTN"}
 
@@ -187,13 +184,21 @@ def main():
             # ------------------------------------------------------------------
 
             if not construct:
-                # Check if previous branch was properly terminated.
-                if AST:
-                    ltoken = AST[-1][-1] # Last branch token.
-                    lkind = ltoken["kind"]
-                    lline = ltoken.get("line_end", ltoken["line"])
-                    if lline == token["line"] and lkind != "tkTRM":
-                        err(line, ltoken["end"], "UNTERMINATED_BRANCH")
+                if kind != "tkEOP":
+                    # Check if previous branch was properly terminated.
+                    if AST and kind != "tkTRM":
+                        ltoken = AST[-1][-1] # Last branch token.
+                        lkind = ltoken["kind"]
+                        lline = ltoken.get("line_end", ltoken["line"])
+                        if lline == token["line"] and lkind != "tkTRM":
+                            err(line, ltoken["end"], "UNTERMINATED_BRANCH")
+
+                    # Add ';' previous branch if not already terminated.
+                    if kind == "tkTRM":
+                        if AST and AST[-1][-1]["kind"] != "tkTRM":
+                            AST[-1].append(token)
+                        i += 1
+                        continue
 
                 if kind not in ("tkEOP"):
                     if kind == "tkCMT":

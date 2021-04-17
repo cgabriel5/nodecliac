@@ -181,14 +181,21 @@ b.c.d
 
             i += 1
 
-        print("AST", len(AST))
+        print("\nAST", len(AST), "\n")
         for branch in AST:
-            leaf = ""
+            output = ""
+            tids = []
             for token in branch:
                 start = token["start"]
                 end = token["end"]
-                leaf += text[start:end + 1]
+                tid = token["tid"]
+                output += text[start:end + 1]
+                tids.append(tid)
+                print(token)
 
-            print("LEAF [" + leaf + "]")
+            print("[tids]", tids)
+            print("[LEAF] [" + output + "]")
+
+            print("")
 
 main()

@@ -66,6 +66,11 @@ b.c.d
             construct = ""
             branch = None
 
+        def prevmerge():
+            ltoken = AST.pop()
+            for tkn in ltoken:
+                AST[-1].append(tkn)
+
         AST = []
         construct = ""
         branch = None
@@ -115,6 +120,17 @@ b.c.d
                                 reset()
                             else:
                                 err(tid, "[DANGLING] SETTING")
+
+                elif construct == "tkASG":
+                    if len(AST) <= 1:
+                        err(tid, "INVALID_EMPTY_ASSIGNMENT")
+                    else:
+                        if AST[-2][0]["kind"] not in ("tkSTN", "tkVAR", "tkCMD"):
+                            err(tid, "INVALID_ILLEGAL_ASSIGNMENT_USE")
+
+                    branch.append(token)
+                    reset()
+                    prevmerge()
 
                 elif construct == "tkVAR":
                     if not branch:

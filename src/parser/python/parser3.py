@@ -107,21 +107,8 @@ b.c.d
 
             else:
                 if construct == "tkSTN":
-                    if not branch:
-                        branch.append(token)
-                    else:
-                        if len(branch) == 1:
-                            if kind == "tkASG":
-                                branch.append(token)
-                            else:
-                                reset()
-                                i -= 1
-                        elif len(branch) == 2:
-                            if kind in ("tkSTR", "tkCMD"):
-                                branch.append(token)
-                                reset()
-                            else:
-                                err(tid, "[DANGLING] SETTING")
+                    branch.append(token)
+                    reset()
 
                 elif construct == "tkASG":
                     if len(AST) <= 1:
@@ -135,21 +122,8 @@ b.c.d
                     prevmerge()
 
                 elif construct == "tkVAR":
-                    if not branch:
-                        branch.append(token)
-                    else:
-                        if len(branch) == 1:
-                            if kind == "tkASG":
-                                branch.append(token)
-                            else:
-                                reset()
-                                i -= 1
-                        elif len(branch) == 2:
-                            if kind in ("tkSTR", "tkCMD"):
-                                branch.append(token)
-                                reset()
-                            else:
-                                err(tid, "[DANGLING] VARIABLE")
+                    branch.append(token)
+                    reset()
 
                 elif construct == "tkCMD":
                     if not branch:

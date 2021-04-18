@@ -53,6 +53,8 @@ KEYWORDS = ["default", "context", "filedir", "exclude"]
 def tokenizer(text):
     c = ''
     tokens = []
+    ttypes = {}
+    token_count = 0
     l = len(text)
     flgopts = False
     S = {"i": 0, "line": 1, "kind": ""}
@@ -95,13 +97,19 @@ def tokenizer(text):
         # If a brace token, reset kind to brace type.
         if kind("tkBRC"): S["kind"] = BRCTOKENS.get(text[S["start"]])
 
+        nonlocal token_count, ttypes
+        ttypes[token_count] = S["kind"]
+
         copy = dict(S)
         del copy["i"]
         if S.get("last", False):
             del S["last"]
             del copy["last"]
+        copy["tid"] = token_count
         tokens.append(copy)
         S["kind"] = ""
+
+        token_count += 1
 
     # Checks if token is at needed char index.
     def charpos(pos):
@@ -228,3 +236,4 @@ def tokenizer(text):
     add_token()
 
     return tokens
+    return (tokens, ttypes)

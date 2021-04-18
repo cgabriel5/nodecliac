@@ -208,6 +208,10 @@ b.c.d
                     branch.append(token)
                     reset()
 
+                else:
+                    if kind != "tkEOP":
+                        err(ttid, "UNEXPECTED_TOKEN_" + kind)
+
             i += 1
 
         print("\nAST", len(AST), "\n")

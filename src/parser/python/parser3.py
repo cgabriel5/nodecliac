@@ -114,8 +114,46 @@ b.c.d
                     if len(AST) <= 1:
                         err(ttid, "INVALID_EMPTY_ASSIGNMENT")
                     else:
-                        if AST[-2][0]["kind"] not in ("tkSTN", "tkVAR", "tkCMD"):
-                            err(tid, "INVALID_ILLEGAL_ASSIGNMENT_USE")
+                        lparent = AST[-2][0]
+                        lpkind = lparent["kind"]
+                        if lpkind not in ("tkSTN", "tkVAR", "tkCMD"):
+                            err(ttid, "INVALID_ILLEGAL_ASSIGNMENT_USE")
+
+                        nkind = ttypes.get(i + 1, None)
+                        if lpkind in ("tkSTN", "tkVAR"):
+                            # if not nkind:
+                                # err(ttid, "INCOMPLETE_TOKEN_" + kind)
+                            if nkind not in ("tkSTR", "tkCMD"):
+                                err(ttid, "INCOMPLETE_TOKEN_2_" + kind)
+
+                            # Tokenization is mostly context-free so improve
+                            # token context for further pipeline work.
+                            if nkind == "tkCMD":
+                                ttypes[i + 1] = "tkBOL"
+                                tokens[i + 1]["kind"] = "tkBOL"
+
+                    branch.append(token)
+                    reset()
+                    prevmerge()
+
+                elif construct == "tkBOL":
+                    branch.append(token)
+                    reset()
+                    prevmerge()
+
+                elif construct == "tkSTR":
+                    if len(AST) <= 1:
+                        err(ttid, "INVALID_EMPTY_STR_TOKEN")
+
+                    lbranch = AST[-2]
+                    lparent = lbranch[0]
+                    lpkind = lparent["kind"]
+
+                    if lpkind in ("tkSTN", "tkVAR"):
+                        if len(lbranch) != 2:
+                            err(ttid, "INVALID_STR_TOKEN")
+                    else:
+                        err(ttid, "INVALID_UNEXPECTED_STR_TOKEN")
 
                     branch.append(token)
                     reset()

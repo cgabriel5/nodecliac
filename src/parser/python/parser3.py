@@ -51,7 +51,6 @@ b.c.d
 
 # a.{b,c,d}.a
 
-        tokens = tokenizer(text)
         (tokens, ttypes) = tokenizer(text)
 
         # def err(line, index, errname):

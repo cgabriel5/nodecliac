@@ -74,8 +74,8 @@ b.c.d
         AST = []
         construct = ""
         branch = None
-        tid = 0
-        tids = []
+        ttid = 0
+        ttids = []
         BRACE_CMD = 0
 
         i = 0
@@ -93,8 +93,8 @@ b.c.d
                 continue
 
             if kind != "tkEOP":
-                tid = i
-                tids.append(i)
+                ttid = i
+                ttids.append(i)
 
             if not construct and kind != "tkEOP":
                 construct = kind
@@ -123,7 +123,7 @@ b.c.d
 
                 elif construct == "tkASG":
                     if len(AST) <= 1:
-                        err(tid, "INVALID_EMPTY_ASSIGNMENT")
+                        err(ttid, "INVALID_EMPTY_ASSIGNMENT")
                     else:
                         if AST[-2][0]["kind"] not in ("tkSTN", "tkVAR", "tkCMD"):
                             err(tid, "INVALID_ILLEGAL_ASSIGNMENT_USE")
@@ -160,34 +160,34 @@ b.c.d
                             if BRACE_CMD:
                                 err(BRACE_CMD, "INVALID_UNCLOSED_LBRACE_CMD_TOKEN")
                             elif branch[-1]["kind"] == "tkDDOT":
-                                err(tid, "INVALID_TRAILING_POST_CMD_TOKEN")
+                                err(ttid, "INVALID_TRAILING_POST_CMD_TOKEN")
                             reset()
                             continue
                         elif kind == lkind:
                             if lkind == "tkCMD":
                                 reset()
                                 continue
-                            else: err(tid, "INVALID_SUBSEQUENT_CMD_TOKEN")
+                            else: err(ttid, "INVALID_SUBSEQUENT_CMD_TOKEN")
 
                         if kind == "tkBRC_LC" :
-                            if not BRACE_CMD: BRACE_CMD = tid
-                            else: err(tid, "INVALID_LBRACE_CMD_TOKEN")
+                            if not BRACE_CMD: BRACE_CMD = ttid
+                            else: err(ttid, "INVALID_LBRACE_CMD_TOKEN")
                         elif kind == "tkBRC_RC":
                             if BRACE_CMD: BRACE_CMD = 0
-                            else: err(tid, "INVALID_RBRACE_CMD_TOKEN")
+                            else: err(ttid, "INVALID_RBRACE_CMD_TOKEN")
 
                         if kind == "tkDCMA" and lkind == "tkBRC_LC":
-                            err(tid, "INVALID_EMPTY_DCOMMA_CMD_TOKEN")
+                            err(ttid, "INVALID_EMPTY_DCOMMA_CMD_TOKEN")
                         elif kind == "tkBRC_RC" and lkind == "tkDCMA":
-                            err(tids[-2], "INVALID_TRAILING_DCOMMA_CMD_TOKEN")
+                            err(ttids[-2], "INVALID_TRAILING_DCOMMA_CMD_TOKEN")
                         elif kind == "tkBRC_RC" and lkind == "tkBRC_LC":
-                            err(tids[-2], "INVALID_EMPTY_GROUP_CMD_TOKEN")
+                            err(ttids[-2], "INVALID_EMPTY_GROUP_CMD_TOKEN")
                         elif kind == "tkBRC_LC" and lkind != "tkDDOT":
-                            err(tid, "INVALID_STARTBRACE_CMD_TOKEN")
+                            err(ttid, "INVALID_STARTBRACE_CMD_TOKEN")
                         elif kind == "tkCMD" and lkind == "tkBRC_RC":
-                            err(tid, "INVALID_POSTBRACE_CMD_TOKEN")
+                            err(ttid, "INVALID_POSTBRACE_CMD_TOKEN")
                         elif kind == "tkDCMA" and not BRACE_CMD:
-                            err(tid, "INVALID_COMMA_DEL_CMD_TOKEN")
+                            err(ttid, "INVALID_COMMA_DEL_CMD_TOKEN")
 
                         branch.append(token)
 

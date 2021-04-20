@@ -163,7 +163,6 @@ def main():
                 elif kind == "tkDCMA":
                     if completing("tkBRC_LC"):
                         eat(ttid)
-                        NEXT.clear()
                         NEXT = ["tkCMD"]
 
                 elif kind == "tkBRC_RC":

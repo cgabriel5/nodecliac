@@ -40,11 +40,8 @@ def main():
                     f"\033[0m \033[31;1merror:\033[0m {errname}")
 
         AST = []
-        construct = ""
-        branch = None
         ttid = 0
         ttids = []
-        BRACE_CMD = 0
         NEXT = []
         SCOPE = []
         branch = []

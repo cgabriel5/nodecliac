@@ -49,6 +49,10 @@ def main():
         def completing(kind):
             return SCOPE[-1] == kind
 
+        def eat(i):
+            nonlocal branch
+            branch.append(tokens[i])
+
         i = 0
         l = len(tokens)
 
@@ -73,21 +77,21 @@ def main():
                 if kind == "tkSTN":
                     SCOPE.append(kind)
 
-                    branch.append(token)
+                    eat(ttid)
                     AST.append(branch)
                     NEXT = ["", "tkASG"]
 
                 elif kind == "tkVAR":
                     SCOPE.append(kind)
 
-                    branch.append(token)
+                    eat(ttid)
                     AST.append(branch)
                     NEXT = ["", "tkASG"]
 
                 elif kind == "tkCMD":
                     SCOPE.append(kind)
 
-                    branch.append(token)
+                    eat(ttid)
                     AST.append(branch)
                     NEXT = ["", "tkDDOT", "tkASG"]
 
@@ -112,59 +116,59 @@ def main():
 
                 if kind == "tkASG":
                     if completing("tkSTN"):
-                        branch.append(token)
+                        eat(ttid)
                         NEXT = ["tkSTR", "tkAVAL"]
 
                     elif completing("tkVAR"):
-                        branch.append(token)
+                        eat(ttid)
                         NEXT = ["tkSTR"]
 
                 elif kind == "tkSTR":
                     if completing("tkSTN"):
-                        branch.append(token)
+                        eat(ttid)
                         SCOPE.clear()
                         branch = []
 
                     elif completing("tkVAR"):
-                        branch.append(token)
+                        eat(ttid)
                         SCOPE.clear()
                         branch = []
 
                 elif kind == "tkAVAL":
                     if completing("tkSTN"):
-                        branch.append(token)
+                        eat(ttid)
                         SCOPE.clear()
                         branch = []
 
                 elif kind == "tkDDOT":
                     if completing("tkCMD"):
-                        branch.append(token)
+                        eat(ttid)
                         NEXT = ["tkCMD", "tkBRC_LC"]
 
                 elif kind == "tkCMD":
                     if completing("tkCMD"):
-                        branch.append(token)
+                        eat(ttid)
                         NEXT = ["", "tkDDOT"]
 
                     elif completing("tkBRC_LC"):
-                        branch.append(token)
+                        eat(ttid)
                         NEXT = ["tkDCMA", "tkBRC_RC"]
 
                 elif kind == "tkBRC_LC":
                     if completing("tkCMD"):
-                        branch.append(token)
+                        eat(ttid)
                         SCOPE.append(kind)
                         NEXT = ["tkCMD"]
 
                 elif kind == "tkDCMA":
                     if completing("tkBRC_LC"):
-                        branch.append(token)
+                        eat(ttid)
                         NEXT.clear()
                         NEXT = ["tkCMD"]
 
                 elif kind == "tkBRC_RC":
                     if completing("tkBRC_LC"):
-                        branch.append(token)
+                        eat(ttid)
                         SCOPE.pop()
                         NEXT = ["", "tkDDOT"]
 

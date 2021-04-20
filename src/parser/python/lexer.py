@@ -264,5 +264,4 @@ def tokenizer(text):
     S["end"] = -1
     add_token()
 
-    return tokens
     return (tokens, ttypes)

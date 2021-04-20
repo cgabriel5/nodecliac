@@ -46,11 +46,11 @@ def main():
         ttids = []
         BRACE_CMD = 0
         NEXT = []
-        STACK = []
+        SCOPE = []
         branch = []
 
         def completing(kind):
-            return STACK[-1] == kind
+            return SCOPE[-1] == kind
 
         i = 0
         l = len(tokens)
@@ -71,24 +71,24 @@ def main():
                 ttid = i
                 ttids.append(i)
 
-            if not STACK:
+            if not SCOPE:
 
                 if kind == "tkSTN":
-                    STACK.append(kind)
+                    SCOPE.append(kind)
 
                     branch.append(token)
                     AST.append(branch)
                     NEXT = ["", "tkASG"]
 
                 elif kind == "tkVAR":
-                    STACK.append(kind)
+                    SCOPE.append(kind)
 
                     branch.append(token)
                     AST.append(branch)
                     NEXT = ["", "tkASG"]
 
                 elif kind == "tkCMD":
-                    STACK.append(kind)
+                    SCOPE.append(kind)
 
                     branch.append(token)
                     AST.append(branch)
@@ -102,7 +102,7 @@ def main():
 
                 if NEXT and kind not in NEXT:
                     if NEXT[0] == "":
-                        STACK.clear()
+                        SCOPE.clear()
                         branch = []
                         continue
                     else:
@@ -125,18 +125,18 @@ def main():
                 elif kind == "tkSTR":
                     if completing("tkSTN"):
                         branch.append(token)
-                        STACK.clear()
+                        SCOPE.clear()
                         branch = []
 
                     elif completing("tkVAR"):
                         branch.append(token)
-                        STACK.clear()
+                        SCOPE.clear()
                         branch = []
 
                 elif kind == "tkAVAL":
                     if completing("tkSTN"):
                         branch.append(token)
-                        STACK.clear()
+                        SCOPE.clear()
                         branch = []
 
                 elif kind == "tkDDOT":
@@ -156,7 +156,7 @@ def main():
                 elif kind == "tkBRC_LC":
                     if completing("tkCMD"):
                         branch.append(token)
-                        STACK.append(kind)
+                        SCOPE.append(kind)
                         NEXT = ["tkCMD"]
 
                 elif kind == "tkDCMA":
@@ -168,7 +168,7 @@ def main():
                 elif kind == "tkBRC_RC":
                     if completing("tkBRC_LC"):
                         branch.append(token)
-                        STACK.pop()
+                        SCOPE.pop()
                         NEXT = ["", "tkDDOT"]
 
             i += 1

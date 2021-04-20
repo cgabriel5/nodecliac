@@ -3,7 +3,9 @@
 
 C_NL = '\n'
 C_TAB = '\t'
+C_PIPE = '|'
 C_SPACE = ' '
+C_QMARK = '?'
 C_HYPHEN = '-'
 C_ESCAPE = '\\'
 C_LPAREN = '('
@@ -12,6 +14,9 @@ C_LCURLY = '{'
 C_RCURLY = '}'
 C_LBRACE = '['
 C_RBRACE = ']'
+C_ATSIGN = '@'
+C_ASTERISK = '*'
+C_DOLLARSIGN = '$'
 
 SOT = {  # Start-of-token chars.
     "#": "tkCMT",
@@ -182,9 +187,17 @@ def tokenizer(text):
 
     def tk_tbd():  # Determine in parser.
         S["end"] = S["i"]
-        if c in (C_SPACE, C_TAB, C_NL):
-            S["end"] -= 1
-        add_token()
+        if c == C_NL or (c in (
+                C_SPACE, C_TAB, C_DOLLARSIGN, C_ATSIGN,
+                C_PIPE, C_LCURLY, C_RCURLY, C_LBRACE,
+                C_RBRACE, C_LPAREN, C_RPAREN, C_HYPHEN,
+                C_QMARK, C_ASTERISK
+            ) and (prevchar() != C_ESCAPE)):
+            if c not in (C_NL, C_SPACE, C_TAB):
+                rollback(1)
+                S["end"] = S["i"]
+            else: S["end"] -= 1
+            add_token()
 
     def tk_brc():
         nonlocal flgopts  # [https://stackoverflow.com/a/8448011]

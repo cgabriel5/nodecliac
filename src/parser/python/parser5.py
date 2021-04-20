@@ -39,19 +39,45 @@ def main():
                     f"{line}:{index - LINESTARTS[line]}:" +
                     f"\033[0m \033[31;1merror:\033[0m {errname}")
 
-        AST = []
-        ttid = 0
-        ttids = []
-        NEXT = []
-        SCOPE = []
-        branch = []
-
         def completing(kind):
             return SCOPE[-1] == kind
 
         def eat(i):
             nonlocal branch
             branch.append(tokens[i])
+
+        def expect(*args):
+            nonlocal NEXT
+            NEXT.clear()
+            for a in args:
+                NEXT.append(a)
+
+        def clearscope():
+            nonlocal SCOPE
+            SCOPE.clear()
+
+        def addscope(s):
+            nonlocal SCOPE
+            SCOPE.append(s)
+
+        def popscope():
+            nonlocal SCOPE
+            SCOPE.pop()
+
+        def addbranch(b):
+            nonlocal AST
+            AST.append(b)
+
+        def newbranch():
+            nonlocal branch
+            branch = []
+
+        AST = []
+        ttid = 0
+        ttids = []
+        NEXT = []
+        SCOPE = []
+        branch = []
 
         i = 0
         l = len(tokens)
@@ -75,25 +101,22 @@ def main():
             if not SCOPE:
 
                 if kind == "tkSTN":
-                    SCOPE.append(kind)
-
+                    addscope(kind)
                     eat(ttid)
-                    AST.append(branch)
-                    NEXT = ["", "tkASG"]
+                    addbranch(branch)
+                    expect("", "tkASG")
 
                 elif kind == "tkVAR":
-                    SCOPE.append(kind)
-
+                    addscope(kind)
                     eat(ttid)
-                    AST.append(branch)
-                    NEXT = ["", "tkASG"]
+                    addbranch(branch)
+                    expect("", "tkASG")
 
                 elif kind == "tkCMD":
-                    SCOPE.append(kind)
-
+                    addscope(kind)
                     eat(ttid)
-                    AST.append(branch)
-                    NEXT = ["", "tkDDOT", "tkASG"]
+                    addbranch(branch)
+                    expect("", "tkDDOT", "tkASG")
 
                 elif kind != "tkEOP":
                     err(ttid, "INVALID_PATHWAY_CONSTRUCT_" + kind
@@ -103,9 +126,10 @@ def main():
 
                 if NEXT and kind not in NEXT:
                     if NEXT[0] == "":
-                        SCOPE.clear()
-                        branch = []
+                        clearscope()
+                        newbranch()
                         continue
+
                     else:
                         if kind == "tkEOP":
                             token = tokens[ttid]
@@ -117,59 +141,59 @@ def main():
                 if kind == "tkASG":
                     if completing("tkSTN"):
                         eat(ttid)
-                        NEXT = ["tkSTR", "tkAVAL"]
+                        expect("tkSTR", "tkAVAL")
 
                     elif completing("tkVAR"):
                         eat(ttid)
-                        NEXT = ["tkSTR"]
+                        expect("tkSTR")
 
                 elif kind == "tkSTR":
                     if completing("tkSTN"):
                         eat(ttid)
-                        SCOPE.clear()
-                        branch = []
+                        clearscope()
+                        newbranch()
 
                     elif completing("tkVAR"):
                         eat(ttid)
-                        SCOPE.clear()
-                        branch = []
+                        clearscope()
+                        newbranch()
 
                 elif kind == "tkAVAL":
                     if completing("tkSTN"):
                         eat(ttid)
-                        SCOPE.clear()
-                        branch = []
+                        clearscope()
+                        newbranch()
 
                 elif kind == "tkDDOT":
                     if completing("tkCMD"):
                         eat(ttid)
-                        NEXT = ["tkCMD", "tkBRC_LC"]
+                        expect("tkCMD", "tkBRC_LC")
 
                 elif kind == "tkCMD":
                     if completing("tkCMD"):
                         eat(ttid)
-                        NEXT = ["", "tkDDOT"]
+                        expect("", "tkDDOT")
 
                     elif completing("tkBRC_LC"):
                         eat(ttid)
-                        NEXT = ["tkDCMA", "tkBRC_RC"]
+                        expect("tkDCMA", "tkBRC_RC")
 
                 elif kind == "tkBRC_LC":
                     if completing("tkCMD"):
                         eat(ttid)
-                        SCOPE.append(kind)
-                        NEXT = ["tkCMD"]
+                        addscope(kind)
+                        expect("tkCMD")
 
                 elif kind == "tkDCMA":
                     if completing("tkBRC_LC"):
                         eat(ttid)
-                        NEXT = ["tkCMD"]
+                        expect("tkCMD")
 
                 elif kind == "tkBRC_RC":
                     if completing("tkBRC_LC"):
                         eat(ttid)
-                        SCOPE.pop()
-                        NEXT = ["", "tkDDOT"]
+                        popscope()
+                        expect("", "tkDDOT")
 
             i += 1
 

@@ -62,6 +62,8 @@ def tokenizer(text):
 
     # Adds the token to tokens array.
     def add_token():
+        nonlocal token_count, ttypes
+
         if tokens:
 
             # Keyword reset.
@@ -70,16 +72,11 @@ def tokenizer(text):
                         in KEYWORDS):
                     tokens[-1]["kind"] = "tkKYW"
 
-            # Reset long form: --flag=(option1 option2)
-            elif (tokens[-1]["kind"] == "tkFLG" and
-                  text[tokens[-1]["start"]:tokens[-1]["end"] + 1] ==
-                  C_HYPHEN):
-                tokens[-1]["kind"] = "tkFOPT"
-                if S["kind"] == "tkCMD":
-                    S["kind"] = "tkFVAL"
+            elif flgopts and S["kind"] == "tkFLG" and S["start"] == S["end"]:
+                S["kind"] = "tkFOPT"
 
             # Reset: --flag=(option1 option2)
-            elif flgopts and kind("tkCMD"):
+            elif flgopts and S["kind"] in ("tkCMD", "tkFLG"):
                 S["kind"] = "tkFVAL"
 
             # 'Merge' tkTBD tokens if possible.
@@ -90,6 +87,26 @@ def tokenizer(text):
                 S["kind"] = ""
                 return
 
+            elif kind("tkTBD") and flgopts:
+                S["kind"] = "tkFVAL"
+
+            elif kind("tkCMD") or kind("tkTBD"):
+                passed = []
+                for i in range(token_count - 1, -1, -1):
+                    lkind = ttypes[i]
+                    if lkind not in ("tkCMT", "tkNL"):
+                        passed.append(lkind)
+                    if lkind in ("tkCMD", "tkFLG"):
+                        if len(passed) > 1:
+                            if passed[0] == "tkASG" and passed[1] == "tkFLG":
+                                S["kind"] = "tkFVAL"
+                        break
+
+                # If not changed, check instead for setting/variable value.
+                if S["kind"] != "tkFVAL" and len(passed) >= 2:
+                    if passed[0] == "tkASG" and passed[1] in ("tkSTN", "tkVAR"):
+                        S["kind"] = "tkAVAL"
+
         # Reset when single '$'.
         if kind("tkVAR") and S["end"] - S["start"] == 0:
             S["kind"] = "tkDLS"
@@ -97,7 +114,6 @@ def tokenizer(text):
         # If a brace token, reset kind to brace type.
         if kind("tkBRC"): S["kind"] = BRCTOKENS.get(text[S["start"]])
 
-        nonlocal token_count, ttypes
         ttypes[token_count] = S["kind"]
 
         copy = dict(S)

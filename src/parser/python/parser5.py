@@ -39,36 +39,6 @@ def main():
                     f"{line}:{index - LINESTARTS[line]}:" +
                     f"\033[0m \033[31;1merror:\033[0m {errname}")
 
-        def reset():
-            nonlocal construct, branch
-            construct = ""
-            branch = None
-
-        def prevmerge():
-            ltoken = AST.pop()
-            for tkn in ltoken:
-                AST[-1].append(tkn)
-
-        def prevparent():
-            return AST[-1][0]
-
-        def prevlastchild():
-            return AST[-1][-1]
-
-        def prevcheck():
-            if not AST:
-                return
-
-            branch = AST[-1]
-            parent = branch[0]
-            last = branch[-1]
-            pkind = parent["kind"]
-            ckind = last["kind"]
-
-            if pkind == "tkSTN":
-                if ckind not in ("tkSTN", "tkSTR", "tkAVAL"):
-                    err(last["tid"], "UNCLOSED_BRANCH_" + pkind)
-
         AST = []
         construct = ""
         branch = None

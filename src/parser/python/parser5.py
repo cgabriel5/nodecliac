@@ -76,11 +76,8 @@ def main():
         ttids = []
         BRACE_CMD = 0
         NEXT = []
-
-        branch = []
-
         STACK = []
-        PUSH = []
+        branch = []
 
         def completing(kind):
             return STACK[-1] == kind
@@ -133,15 +130,6 @@ def main():
 
             else:
 
-                if PUSH and kind in PUSH:
-                    if completing("tkCMD"):
-                        if kind == "tkBRC_LC":
-                            STACK.append("tkBRC_LC")
-                            NEXT = []
-                            PUSH.clear()
-
-                            continue
-
                 if NEXT and kind not in NEXT:
                     if NEXT[0] == "":
                         STACK.clear()
@@ -184,8 +172,7 @@ def main():
                 elif kind == "tkDDOT":
                     if completing("tkCMD"):
                         branch.append(token)
-                        NEXT = ["tkCMD"]
-                        PUSH = ["tkBRC_LC"]
+                        NEXT = ["tkCMD", "tkBRC_LC"]
 
                 elif kind == "tkCMD":
                     if completing("tkCMD"):
@@ -197,8 +184,9 @@ def main():
                         NEXT = ["tkDCMA", "tkBRC_RC"]
 
                 elif kind == "tkBRC_LC":
-                    if completing("tkBRC_LC"):
+                    if completing("tkCMD"):
                         branch.append(token)
+                        STACK.append(kind)
                         NEXT = ["tkCMD"]
 
                 elif kind == "tkDCMA":

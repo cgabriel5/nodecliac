@@ -42,7 +42,7 @@ def main():
         def completing(kind):
             return SCOPE[-1] == kind
 
-        def eat(i):
+        def addtoken(i):
             nonlocal branch
             branch.append(tokens[i])
 
@@ -102,19 +102,19 @@ def main():
 
                 if kind == "tkSTN":
                     addscope(kind)
-                    eat(ttid)
+                    addtoken(ttid)
                     addbranch(branch)
                     expect("", "tkASG")
 
                 elif kind == "tkVAR":
                     addscope(kind)
-                    eat(ttid)
+                    addtoken(ttid)
                     addbranch(branch)
                     expect("", "tkASG")
 
                 elif kind == "tkCMD":
                     addscope(kind)
-                    eat(ttid)
+                    addtoken(ttid)
                     addbranch(branch)
                     expect("", "tkDDOT", "tkASG")
 
@@ -140,58 +140,58 @@ def main():
 
                 if kind == "tkASG":
                     if completing("tkSTN"):
-                        eat(ttid)
+                        addtoken(ttid)
                         expect("tkSTR", "tkAVAL")
 
                     elif completing("tkVAR"):
-                        eat(ttid)
+                        addtoken(ttid)
                         expect("tkSTR")
 
                 elif kind == "tkSTR":
                     if completing("tkSTN"):
-                        eat(ttid)
+                        addtoken(ttid)
                         clearscope()
                         newbranch()
 
                     elif completing("tkVAR"):
-                        eat(ttid)
+                        addtoken(ttid)
                         clearscope()
                         newbranch()
 
                 elif kind == "tkAVAL":
                     if completing("tkSTN"):
-                        eat(ttid)
+                        addtoken(ttid)
                         clearscope()
                         newbranch()
 
                 elif kind == "tkDDOT":
                     if completing("tkCMD"):
-                        eat(ttid)
+                        addtoken(ttid)
                         expect("tkCMD", "tkBRC_LC")
 
                 elif kind == "tkCMD":
                     if completing("tkCMD"):
-                        eat(ttid)
+                        addtoken(ttid)
                         expect("", "tkDDOT")
 
                     elif completing("tkBRC_LC"):
-                        eat(ttid)
+                        addtoken(ttid)
                         expect("tkDCMA", "tkBRC_RC")
 
                 elif kind == "tkBRC_LC":
                     if completing("tkCMD"):
-                        eat(ttid)
+                        addtoken(ttid)
                         addscope(kind)
                         expect("tkCMD")
 
                 elif kind == "tkDCMA":
                     if completing("tkBRC_LC"):
-                        eat(ttid)
+                        addtoken(ttid)
                         expect("tkCMD")
 
                 elif kind == "tkBRC_RC":
                     if completing("tkBRC_LC"):
-                        eat(ttid)
+                        addtoken(ttid)
                         popscope()
                         expect("", "tkDDOT")
 

@@ -30,14 +30,14 @@ def main():
 
         (tokens, ttypes) = tokenizer(text)
 
-        def err(tid, errname):
+        def err(tid, etype, message):
             token = tokens[tid]
             line = token["line"]
             index = token["start"]
 
             sys.exit("\033[1mdep.acmap:" +
                     f"{line}:{index - LINESTARTS[line]}:" +
-                    f"\033[0m \033[31;1merror:\033[0m {errname}")
+                    f"\033[0m \033[31;1merror:\033[0m <{etype}> {message}")
 
         def completing(kind):
             return SCOPE[-1] == kind
@@ -116,13 +116,21 @@ def main():
                     addscope(kind)
                     addtoken(ttid)
                     addbranch(branch)
-                    expect("", "tkDDOT", "tkASG")
+                    expect("", "tkDDOT", "tkASG", "tkDCMA")
 
                 elif kind != "tkEOP":
                     err(ttid, "INVALID_PATHWAY_CONSTRUCT_" + kind
                         + " E: " + str(NEXT) + " , G: "+ kind + " " + str(SCOPE))
 
             else:
+
+                # Remove/add necessary tokens when parsing long flag form.
+                if "tkBRC_LB" in SCOPE:
+                    if "tkDPPE" in NEXT:
+                        NEXT.remove("tkDPPE")
+                        NEXT.append("tkFLG")
+                        NEXT.append("tkKYW")
+                        NEXT.append("tkBRC_RB")
 
                 if NEXT and kind not in NEXT:
                     if NEXT[0] == "":
@@ -208,6 +216,16 @@ def main():
                         addscope(kind)
                         expect("tkSTR")
 
+                    elif completing("tkFLG"):
+                        addtoken(ttid)
+                        addscope(kind)
+                        expect("tkSTR")
+
+                    elif completing("tkBRC_LB"):
+                        addtoken(ttid)
+                        addscope(kind)
+                        expect("tkSTR")
+
                 elif kind == "tkBRC_LP":
                     if completing("tkFLG"):
                         addtoken(ttid)
@@ -225,10 +243,7 @@ def main():
                         if branch[-1]["kind"] == "tkBRC_LP":
                             addscope("tkOPTS")
                             expect("tkFVAL", "tkSTR", "tkDLS")
-                        # else:
                         addtoken(ttid)
-                        # else:
-                    # else:
                     elif completing("tkOPTS"):
                         addtoken(ttid)
                         expect("tkFVAL", "tkSTR", "tkDLS")
@@ -236,13 +251,11 @@ def main():
                 elif kind == "tkBRC_RP":
                     if completing("tkBRC_LP"):
                         addtoken(ttid)
-                        # addtoken(ttid)
                         popscope()
                         expect("", "tkDPPE")
 
                     elif completing("tkDLS"):
                         addtoken(ttid)
-                        # addtoken(ttid)
                         popscope()
                         if SCOPE[-1] == "tkOPTS":
                             expect("tkFVAL", "tkBRC_RP")
@@ -251,7 +264,6 @@ def main():
 
                     elif completing("tkOPTS"):
                         addtoken(ttid)
-                        # addtoken(ttid)
                         popscope()
                         expect("", "tkBRC_RB")
 
@@ -262,7 +274,7 @@ def main():
 
                     elif completing("tkBRC_LP"):
                         addtoken(ttid)
-                        expect("tkDCMA", "tkBRC_RP")
+                        expect("tkFVAL", "tkSTR", "tkBRC_RP")
 
                     elif completing("tkOPTS"):
                         addtoken(ttid)
@@ -285,7 +297,6 @@ def main():
                 elif kind == "tkFLGA":
                     if completing("tkFLG"):
                         addtoken(ttid)
-                        # expect("", "tkDPPE")
                         expect("", "tkASG", "tkQMK", "tkDPPE")
 
                 elif kind == "tkMTL":
@@ -302,17 +313,13 @@ def main():
 
                     if completing("tkFLG"):
                         addtoken(ttid)
-                        # if "tkBRC_LB" in SCOPE:
-                            # expect("", "tkFLG", "tkBRC_RB")
-                        # else: expect("", "tkDPPE")
                         expect("", "tkDPPE")
 
                     elif completing("tkBRC_LP"):
                         addtoken(ttid)
-                        expect("tkDCMA", "tkBRC_RP")
+                        expect("tkFVAL", "tkSTR", "tkBRC_RP")
 
                     elif completing("tkDLS"):
-
                         addtoken(ttid)
                         expect("tkDCMA", "tkBRC_RP")
 
@@ -332,12 +339,6 @@ def main():
                         clearscope()
                         newbranch()
 
-                    # elif completing("tkDLS"):
-                    #     addtoken(ttid)
-                    #     # clearscope()
-                    #     # newbranch()
-                    #     expect("tkDCMA", "tkBRC_RP")
-
                     elif completing("tkOPTS"):
                         addtoken(ttid)
                         expect("tkFOPT", "tkBRC_RP")
@@ -356,11 +357,16 @@ def main():
                 elif kind == "tkCMD":
                     if completing("tkCMD"):
                         addtoken(ttid)
-                        expect("", "tkDDOT")
+                        expect("", "tkDDOT", "tkASG")
 
                     elif completing("tkBRC_LC"):
                         addtoken(ttid)
                         expect("tkDCMA", "tkBRC_RC")
+
+                    elif completing("tkDCMA"):
+                        addtoken(ttid)
+                        popscope()
+                        expect("", "tkDDOT", "tkASG", "tkDCMA")
 
                 elif kind == "tkBRC_LC":
                     if completing("tkCMD"):
@@ -369,7 +375,15 @@ def main():
                         expect("tkCMD")
 
                 elif kind == "tkDCMA":
-                    if completing("tkBRC_LC"):
+                    if completing("tkCMD"):
+                        addtoken(ttid)
+                        addscope(kind)
+                        # clearscope()
+                        # newbranch()
+                        expect("tkCMD")
+                        # NEXT.clear()
+
+                    elif completing("tkBRC_LC"):
                         addtoken(ttid)
                         expect("tkCMD")
 
@@ -385,7 +399,7 @@ def main():
                     if completing("tkBRC_LC"):
                         addtoken(ttid)
                         popscope()
-                        expect("", "tkDDOT")
+                        expect("", "tkDDOT", "tkASG")
 
             i += 1
 

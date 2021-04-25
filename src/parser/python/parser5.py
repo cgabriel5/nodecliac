@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import sys
+import sys, json
 
 from lexer import tokenizer, LINESTARTS
 # from pathlib import Path  # [https://stackoverflow.com/a/66195538]
@@ -119,8 +119,16 @@ def main():
                     expect("", "tkDDOT", "tkASG", "tkDCMA")
 
                 elif kind != "tkEOP":
-                    err(ttid, "INVALID_PATHWAY_CONSTRUCT_" + kind
-                        + " E: " + str(NEXT) + " , G: "+ kind + " " + str(SCOPE))
+                    message = "\n\n\033[1mGot\033[0m: " + kind
+                    message += "\n\n" + json.dumps(token, indent = 2)
+                    message += "\n\n\033[1mExpected\033[0m: "
+                    for n in NEXT:
+                        if not n: n = "\"\""
+                        message += "\n    - " + n
+                    message += "\n\n\033[1mScopes\033[0m: "
+                    for s in SCOPE:
+                        message += "\n    - " + s
+                    err(ttid, "parent", message)
 
             else:
 
@@ -143,8 +151,16 @@ def main():
                             token = tokens[ttid]
                             kind = token["kind"]
 
-                        err(ttid, "INVALID_PATHWAY_CHILD_" + kind
-                            + " E: " + str(NEXT) + " , G: "+ kind)
+                        message = "\n\n\033[1mGot\033[0m: " + kind
+                        message += "\n\n" + json.dumps(token, indent = 2)
+                        message += "\n\n\033[1mExpected\033[0m: "
+                        for n in NEXT:
+                            if not n: n = "\"\""
+                            message += "\n    - " + n
+                        message += "\n\n\033[1mScopes\033[0m: "
+                        for s in SCOPE:
+                            message += "\n    - " + s
+                        err(ttid, "child", message)
 
                 if kind == "tkASG":
                     if completing("tkSTN"):

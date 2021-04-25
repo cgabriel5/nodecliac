@@ -109,14 +109,12 @@ def tokenizer(text):
 
                 if S["kind"] != "tkFVAL":
                     lp = len(passed)
-                    if lp >= 3:
-                        if (passed[0] == "tkDCLN" and passed[1] == "tkDCLN"
-                            and passed[2] == "tkFLG"):
-                            S["kind"] = "tkFLGA"
-                    elif lp >= 2:
-                        if (passed[0] == "tkASG" and passed[1] in
-                            ("tkSTN", "tkVAR")):
-                            S["kind"] = "tkAVAL"
+                    if (lp >= 3 and passed[0] == "tkDCLN" and passed[1] == "tkDCLN"
+                        and passed[2] == "tkFLG"):
+                        S["kind"] = "tkFLGA"
+                    if (lp >= 2 and passed[0] == "tkASG" and passed[1] in
+                        ("tkSTN", "tkVAR")):
+                        S["kind"] = "tkAVAL"
 
         # Reset when single '$'.
         if kind("tkVAR") and S["end"] - S["start"] == 0:

@@ -109,9 +109,11 @@ def tokenizer(text):
 
                 if S["kind"] != "tkFVAL":
                     lp = len(passed)
+                    # Flag alias '::' reset.
                     if (lp >= 3 and passed[0] == "tkDCLN" and passed[1] == "tkDCLN"
                         and passed[2] == "tkFLG"):
                         S["kind"] = "tkFLGA"
+                    # Setting/variable value reset.
                     if (lp >= 2 and passed[0] == "tkASG" and passed[1] in
                         ("tkSTN", "tkVAR")):
                         S["kind"] = "tkAVAL"

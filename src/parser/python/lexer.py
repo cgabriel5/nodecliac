@@ -125,6 +125,10 @@ def tokenizer(text):
         # If a brace token, reset kind to brace type.
         if kind("tkBRC"): S["kind"] = BRCTOKENS.get(text[S["start"]])
 
+        # Universal command multi-char reset.
+        if kind("tkMTL") and (not tokens or tokens[-1]["kind"] != "tkASG"):
+            S["kind"] = "tkCMD"
+
         ttypes[token_count] = S["kind"]
 
         copy = dict(S)

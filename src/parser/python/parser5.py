@@ -202,7 +202,8 @@ def main():
                     elif kind == "tkFLG":
                         addtoken(ttid)
                         addscope(kind)
-                        expect("", "tkASG", "tkQMK", "tkDCLN", "tkFVAL", "tkDPPE", "tkBRC_RB")
+                        expect("", "tkASG", "tkQMK", "tkDCLN",
+                            "tkFVAL", "tkDPPE", "tkBRC_RB")
 
                     elif kind == "tkKYW":
                         addtoken(ttid)
@@ -234,7 +235,8 @@ def main():
 
                     if kind == "tkASG":
                         addtoken(ttid)
-                        expect("", "tkMTL", "tkDPPE", "tkBRC_LP", "tkFVAL", "tkSTR", "tkDLS", "tkBRC_RB")
+                        expect("", "tkMTL", "tkDPPE", "tkBRC_LP",
+                            "tkFVAL", "tkSTR", "tkDLS", "tkBRC_RB")
 
                     elif kind == "tkBRC_RB":
                         addtoken(ttid)
@@ -249,7 +251,8 @@ def main():
                     elif kind == "tkFLG":
                         addtoken(ttid)
                         # addscope(kind)
-                        expect("", "tkASG", "tkQMK", "tkDCLN", "tkFVAL", "tkDPPE")
+                        expect("", "tkASG", "tkQMK",
+                            "tkDCLN", "tkFVAL", "tkDPPE")
 
                     elif kind == "tkKYW":
                         addtoken(ttid)
@@ -383,7 +386,8 @@ def main():
                     if kind == "tkFLG":
                         addtoken(ttid)
                         addscope(kind)
-                        expect("", "tkASG", "tkQMK", "tkDCLN", "tkFVAL", "tkDPPE", "tkBRC_RB")
+                        expect("", "tkASG", "tkQMK", "tkDCLN",
+                            "tkFVAL", "tkDPPE", "tkBRC_RB")
 
                     elif kind == "tkKYW":
                         addtoken(ttid)

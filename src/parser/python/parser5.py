@@ -231,10 +231,8 @@ def main():
                 elif completing("tkFLG"):
 
                     if kind == "tkDCLN":
-
                         if branch[-1]["kind"] != "tkDCLN":
                             expect("tkDCLN")
-
                         else:
                             expect("", "tkFLGA")
 

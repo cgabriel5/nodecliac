@@ -228,6 +228,21 @@ def main():
                         addscope(kind)
                         expect("tkCMD")
 
+                elif completing("tkBRC_LC"):
+
+                    if kind == "tkCMD":
+                        addtoken(ttid)
+                        expect("tkDCMA", "tkBRC_RC")
+
+                    elif kind == "tkDCMA":
+                        addtoken(ttid)
+                        expect("tkCMD")
+
+                    elif kind == "tkBRC_RC":
+                        addtoken(ttid)
+                        popscope()
+                        expect("", "tkDDOT", "tkASG")
+
                 elif completing("tkFLG"):
 
                     if kind == "tkASG":
@@ -395,21 +410,6 @@ def main():
                         popscope()
                         addscope("tkFLG") # Re-use flag pathways for now.
                         expect("", "tkDPPE")
-
-                elif completing("tkBRC_LC"):
-
-                    if kind == "tkCMD":
-                        addtoken(ttid)
-                        expect("tkDCMA", "tkBRC_RC")
-
-                    elif kind == "tkDCMA":
-                        addtoken(ttid)
-                        expect("tkCMD")
-
-                    elif kind == "tkBRC_RC":
-                        addtoken(ttid)
-                        popscope()
-                        expect("", "tkDDOT", "tkASG")
 
                 elif completing("tkDCMA"):
 

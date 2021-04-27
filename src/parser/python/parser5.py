@@ -342,21 +342,13 @@ def main():
 
                 elif completing("tkDLS"):
 
-                    if kind == "tkDLS":
+                    if kind == "tkBRC_LP":
                         addtoken(ttid)
                         expect("tkSTR")
 
-                    elif kind == "tkBRC_LP":
+                    elif kind == "tkDLS":
                         addtoken(ttid)
                         expect("tkSTR")
-
-                    elif kind == "tkBRC_RP":
-                        addtoken(ttid)
-                        popscope()
-                        if SCOPE[-1] == "tkOPTS":
-                            expect("tkFVAL", "tkBRC_RP")
-                        else:
-                            expect("", "tkDPPE")
 
                     elif kind == "tkSTR":
                         addtoken(ttid)
@@ -365,6 +357,14 @@ def main():
                     elif kind == "tkDCMA":
                         addtoken(ttid)
                         expect("tkSTR", "tkDLS")
+
+                    elif kind == "tkBRC_RP":
+                        addtoken(ttid)
+                        popscope()
+                        if SCOPE[-1] == "tkOPTS":
+                            expect("tkFVAL", "tkBRC_RP")
+                        else:
+                            expect("", "tkDPPE")
 
                 elif completing("tkOPTS"):
 

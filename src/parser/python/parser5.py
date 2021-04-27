@@ -168,12 +168,7 @@ def main():
                         addtoken(ttid)
                         expect("tkSTR", "tkAVAL")
 
-                    elif kind == "tkSTR":
-                        addtoken(ttid)
-                        clearscope()
-                        newbranch()
-
-                    elif kind == "tkAVAL":
+                    elif kind in ("tkSTR", "tkAVAL"):
                         addtoken(ttid)
                         clearscope()
                         newbranch()

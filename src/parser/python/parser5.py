@@ -226,10 +226,7 @@ def main():
                     elif kind == "tkDCMA":
                         addtoken(ttid)
                         addscope(kind)
-                        # clearscope()
-                        # newbranch()
                         expect("tkCMD")
-                        # NEXT.clear()
 
                 elif completing("tkFLG"):
 
@@ -250,7 +247,6 @@ def main():
 
                     elif kind == "tkFLG":
                         addtoken(ttid)
-                        # addscope(kind)
                         expect("", "tkASG", "tkQMK",
                             "tkDCLN", "tkFVAL", "tkDPPE")
 
@@ -306,7 +302,6 @@ def main():
                         expect("")
 
                     elif kind == "tkFOPT":
-                        # addtoken(ttid)
                         # [TODO] Make this code robust.
                         if branch[-1]["kind"] == "tkBRC_LP":
                             addscope("tkOPTS")
@@ -334,7 +329,6 @@ def main():
 
                     if kind == "tkDLS":
                         addtoken(ttid)
-                        # addscope(kind) # Build cmd-string.
                         expect("tkSTR")
 
                     elif kind == "tkBRC_LP":

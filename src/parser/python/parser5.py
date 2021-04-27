@@ -311,22 +311,12 @@ def main():
 
                 elif completing("tkBRC_LP"):
 
-                    if kind == "tkBRC_RB":
-                        addtoken(ttid)
-                        popscope()
-                        expect("")
-
-                    elif kind == "tkFOPT":
+                    if kind == "tkFOPT":
                         # [TODO] Make this code robust.
                         if branch[-1]["kind"] == "tkBRC_LP":
                             addscope("tkOPTS")
                             expect("tkFVAL", "tkSTR", "tkDLS")
                         addtoken(ttid)
-
-                    elif kind == "tkBRC_RP":
-                        addtoken(ttid)
-                        popscope()
-                        expect("", "tkDPPE")
 
                     elif kind == "tkFVAL":
                         addtoken(ttid)
@@ -339,6 +329,16 @@ def main():
                     elif kind == "tkDCMA":
                         addtoken(ttid)
                         expect("tkFVAL", "tkSTR")
+
+                    elif kind == "tkBRC_RP":
+                        addtoken(ttid)
+                        popscope()
+                        expect("", "tkDPPE")
+
+                    elif kind == "tkBRC_RB":
+                        addtoken(ttid)
+                        popscope()
+                        expect("")
 
                 elif completing("tkDLS"):
 

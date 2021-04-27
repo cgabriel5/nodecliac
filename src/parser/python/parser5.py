@@ -368,19 +368,14 @@ def main():
 
                 elif completing("tkOPTS"):
 
-                    if kind == "tkDLS":
-                        addtoken(ttid)
-                        addscope("tkDLS") # Build cmd-string.
-                        expect("tkBRC_LP")
-
-                    elif kind == "tkFOPT":
+                    if kind == "tkFOPT":
                         addtoken(ttid)
                         expect("tkFVAL", "tkSTR", "tkDLS")
 
-                    elif kind == "tkBRC_RP":
+                    elif kind == "tkDLS":
                         addtoken(ttid)
-                        popscope()
-                        expect("", "tkBRC_RB")
+                        addscope("tkDLS") # Build cmd-string.
+                        expect("tkBRC_LP")
 
                     elif kind == "tkFVAL":
                         addtoken(ttid)
@@ -389,6 +384,11 @@ def main():
                     elif kind == "tkSTR":
                         addtoken(ttid)
                         expect("tkFOPT", "tkBRC_RP")
+
+                    elif kind == "tkBRC_RP":
+                        addtoken(ttid)
+                        popscope()
+                        expect("", "tkBRC_RB")
 
                 elif completing("tkBRC_LB"):
 

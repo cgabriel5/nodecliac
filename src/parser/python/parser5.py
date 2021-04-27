@@ -245,45 +245,7 @@ def main():
 
                 elif completing("tkFLG"):
 
-                    if kind == "tkASG":
-                        addtoken(ttid)
-                        expect("", "tkMTL", "tkDPPE", "tkBRC_LP",
-                            "tkFVAL", "tkSTR", "tkDLS", "tkBRC_RB")
-
-                    elif kind == "tkBRC_RB":
-                        addtoken(ttid)
-                        popscope()
-                        expect("")
-
-                    elif kind == "tkDLS":
-                        addtoken(ttid)
-                        addscope(kind) # Build cmd-string.
-                        expect("tkBRC_LP")
-
-                    elif kind == "tkFLG":
-                        addtoken(ttid)
-                        expect("", "tkASG", "tkQMK",
-                            "tkDCLN", "tkFVAL", "tkDPPE")
-
-                    elif kind == "tkKYW":
-                        addtoken(ttid)
-                        addscope(kind)
-                        expect("tkSTR")
-
-                    elif kind == "tkBRC_LP":
-                        addtoken(ttid)
-                        addscope(kind)
-                        expect("tkFVAL", "tkSTR", "tkFOPT")
-
-                    elif kind == "tkFVAL":
-                        addtoken(ttid)
-                        expect("", "tkDPPE")
-
-                    elif kind == "tkQMK":
-                        addtoken(ttid)
-                        expect("", "tkDPPE")
-
-                    elif kind == "tkDCLN":
+                    if kind == "tkDCLN":
 
                         if branch[-1]["kind"] != "tkDCLN":
                             addtoken(ttid)
@@ -297,17 +259,55 @@ def main():
                         addtoken(ttid)
                         expect("", "tkASG", "tkQMK", "tkDPPE")
 
+                    elif kind == "tkQMK":
+                        addtoken(ttid)
+                        expect("", "tkDPPE")
+
+                    elif kind == "tkASG":
+                        addtoken(ttid)
+                        expect("", "tkMTL", "tkDPPE", "tkBRC_LP",
+                            "tkFVAL", "tkSTR", "tkDLS", "tkBRC_RB")
+
                     elif kind == "tkMTL":
                         addtoken(ttid)
                         expect("", "tkBRC_LP", "tkDPPE")
+
+                    elif kind == "tkDLS":
+                        addtoken(ttid)
+                        addscope(kind) # Build cmd-string.
+                        expect("tkBRC_LP")
+
+                    elif kind == "tkBRC_LP":
+                        addtoken(ttid)
+                        addscope(kind)
+                        expect("tkFVAL", "tkSTR", "tkFOPT")
+
+                    elif kind == "tkFLG":
+                        addtoken(ttid)
+                        expect("", "tkASG", "tkQMK",
+                            "tkDCLN", "tkFVAL", "tkDPPE")
+
+                    elif kind == "tkKYW":
+                        addtoken(ttid)
+                        addscope(kind)
+                        expect("tkSTR")
+
+                    elif kind == "tkSTR":
+                        addtoken(ttid)
+                        expect("", "tkDPPE")
+
+                    elif kind == "tkFVAL":
+                        addtoken(ttid)
+                        expect("", "tkDPPE")
 
                     elif kind == "tkDPPE":
                         addtoken(ttid)
                         expect("tkFLG")
 
-                    elif kind == "tkSTR":
+                    elif kind == "tkBRC_RB":
                         addtoken(ttid)
-                        expect("", "tkDPPE")
+                        popscope()
+                        expect("")
 
                 elif completing("tkBRC_LP"):
 

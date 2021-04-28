@@ -33,11 +33,11 @@ def main():
         def err(tid, etype, message):
             token = tokens[tid]
             line = token["line"]
-            index = token["start"]
+            index = token["start" if etype != "<term>" else "end"]
 
             sys.exit("\033[1mdep.acmap:" +
                     f"{line}:{index - LINESTARTS[line]}:" +
-                    f"\033[0m \033[31;1merror:\033[0m <{etype}> {message}")
+                    f"\033[0m \033[31;1merror:\033[0m {etype} {message}")
 
         def completing(kind):
             return SCOPE[-1] == kind
@@ -118,16 +118,9 @@ def main():
                     expect("", "tkDDOT", "tkASG", "tkDCMA")
 
                 elif kind != "tkEOP":
-                    message = "\n\n\033[1mGot\033[0m: " + kind
-                    message += "\n\n" + json.dumps(token, indent = 2)
-                    message += "\n\n\033[1mExpected\033[0m: "
-                    for n in NEXT:
-                        if not n: n = "\"\""
-                        message += "\n    - " + n
-                    message += "\n\n\033[1mScopes\033[0m: "
-                    for s in SCOPE:
-                        message += "\n    - " + s
-                    err(ttid, "parent", message)
+                    message = "\n\n\033[1mToken\033[0m: " + kind + " = "
+                    message += json.dumps(token, indent = 2).replace('"', "")
+                    err(ttid, "<parent>", message)
 
             else:
 
@@ -150,16 +143,16 @@ def main():
                             token = tokens[ttid]
                             kind = token["kind"]
 
-                        message = "\n\n\033[1mGot\033[0m: " + kind
-                        message += "\n\n" + json.dumps(token, indent = 2)
+                        message = "\n\n\033[1mToken\033[0m: " + kind + " = "
+                        message += json.dumps(token, indent = 2).replace('"', "")
                         message += "\n\n\033[1mExpected\033[0m: "
                         for n in NEXT:
                             if not n: n = "\"\""
-                            message += "\n    - " + n
+                            message += "\n - " + n
                         message += "\n\n\033[1mScopes\033[0m: "
                         for s in SCOPE:
-                            message += "\n    - " + s
-                        err(ttid, "child", message)
+                            message += "\n - " + s
+                        err(ttid, "<child>", message)
 
                 addtoken(ttid)
 

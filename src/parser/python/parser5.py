@@ -98,6 +98,27 @@ def main():
                 ttid = i
                 ttids.append(i)
 
+            if kind == "tkTRM":
+                addtoken(ttid)
+
+                if not SCOPE:
+                    addbranch(branch)
+                    newbranch()
+                    expect("")
+
+                    # # If branches exist on the same line,
+                    # # ensure lines are properly terminated.
+                    # if AST and AST[-1][-1]["kind"] not in ("tkTRM", "tkEOP"):
+                    #     if AST[-1][-1]["line"] == line:
+                    #         err(ttid, "<parent>", "- Improper termination")
+
+                else:
+                    if NEXT and NEXT[0] != "":
+                        err(ttid, "<child>", "- Improper termination")
+
+                i += 1
+                continue
+
             if not SCOPE:
 
                 addtoken(ttid)

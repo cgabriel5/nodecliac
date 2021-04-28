@@ -117,12 +117,22 @@ def main():
                     addbranch(branch)
                     expect("", "tkDDOT", "tkASG", "tkDCMA")
 
+                elif kind == "tkCMT":
+                    addbranch(branch)
+                    newbranch()
+                    expect("")
+
                 elif kind != "tkEOP":
                     message = "\n\n\033[1mToken\033[0m: " + kind + " = "
                     message += json.dumps(token, indent = 2).replace('"', "")
                     err(ttid, "<parent>", message)
 
             else:
+
+                if kind == "tkCMT":
+                    addtoken(ttid)
+                    i += 1
+                    continue
 
                 # Remove/add necessary tokens when parsing long flag form.
                 if "tkBRC_LB" in SCOPE:

@@ -17,6 +17,7 @@ C_RBRACE = ']'
 C_ATSIGN = '@'
 C_ASTERISK = '*'
 C_DOLLARSIGN = '$'
+C_UNDERSCORE = '_'
 
 SOT = {  # Start-of-token chars.
     "#": "tkCMT",
@@ -164,7 +165,13 @@ def tokenizer(text):
 
     # Tokenizer loop functions.
 
-    def tk_stn_var_flg():
+    def tk_stn_var():
+        if S["i"] - S["start"] > 0 and not (c.isalnum() or c == C_UNDERSCORE):
+            rollback(1)
+            S["end"] = S["i"]
+            add_token()
+
+    def tk_flg():
         if S["i"] - S["start"] > 0 and not (c.isalnum() or c == C_HYPHEN):
             rollback(1)
             S["end"] = S["i"]
@@ -229,9 +236,9 @@ def tokenizer(text):
         add_token()
 
     DISPATCH = {
-        "tkSTN": tk_stn_var_flg,
-        "tkVAR": tk_stn_var_flg,
-        "tkFLG": tk_stn_var_flg,
+        "tkSTN": tk_stn_var,
+        "tkVAR": tk_stn_var,
+        "tkFLG": tk_flg,
         "tkCMD": tk_cmd,
         "tkCMT": tk_cmt,
         "tkSTR": tk_str,

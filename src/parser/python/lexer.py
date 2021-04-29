@@ -111,7 +111,10 @@ def tokenizer(text):
                     if lkind in ("tkCMD", "tkFLG"):
                         if len(passed) > 1:
                             if passed[0] == "tkASG" and passed[1] == "tkFLG":
-                                S["kind"] = "tkFVAL"
+                                # Value must be set on same line as flag
+                                # to avoid ambiguity with command chains.
+                                if tokens[i]["line"] == S["line"]:
+                                    S["kind"] = "tkFVAL"
                         break
 
                 if S["kind"] != "tkFVAL":

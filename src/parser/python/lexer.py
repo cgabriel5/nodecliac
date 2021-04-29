@@ -78,6 +78,12 @@ def tokenizer(text):
                         in KEYWORDS):
                     tokens[-1]["kind"] = "tkKYW"
 
+            # Reset: default $("cmd-string")
+            elif (kind("tkVAR") and S["end"] - S["start"] == 0
+                and tokens[-1]["kind"] == "tkCMD"):
+                if text[tokens[-1]["start"]:tokens[-1]["end"] + 1] == "default":
+                    tokens[-1]["kind"] = "tkKYW"
+
             elif flgopts and S["kind"] == "tkFLG" and S["start"] == S["end"]:
                 S["kind"] = "tkFOPT"
 

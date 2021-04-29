@@ -115,7 +115,7 @@ def main():
             expect("tkCMD", "tkBRC_LC")
 
         def __cmd__cmd(kind):
-            expect("", "tkDDOT", "tkASG")
+            expect("", "tkDDOT", "tkASG", "tkDCMA")
 
         def __cmd__brc_lc(kind):
             addscope(kind)

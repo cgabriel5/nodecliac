@@ -136,7 +136,7 @@ def main():
             expect("", "tkDDOT", "tkASG")
 
         def __flg__dcln(kind):
-            if branch[-1]["kind"] != "tkDCLN":
+            if branch[-2]["kind"] != "tkDCLN":
                 expect("tkDCLN")
             else:
                 expect("", "tkFLGA")

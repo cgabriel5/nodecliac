@@ -229,7 +229,6 @@ def main():
                 expect("tkFVAL", "tkBRC_RP")
             else:
                 if SCOPE[-1] == "tkKYW" and "tkBRC_LB" in SCOPE:
-                    # popscope()
                     expect("tkDPPE", "tkBRC_RB")
                 else:
                     expect("", "tkDPPE", "tkBRC_RB")
@@ -255,8 +254,6 @@ def main():
 
         def __brc_lb__flg(kind):
             addscope(kind)
-            # Need the ""?
-            # expect("", "tkASG", "tkQMK", "tkDCLN",
             expect("tkASG", "tkQMK", "tkDCLN",
                 "tkFVAL", "tkDPPE", "tkBRC_RB")
 
@@ -278,14 +275,12 @@ def main():
             expect("")
 
         def __kyw__flg(kind):
-            # Need the ""?
-            # expect("", "tkASG", "tkQMK",
             expect("tkASG", "tkQMK",
                 "tkDCLN", "tkFVAL", "tkDPPE")
 
         def __kyw__kyw(kind):
             addscope(kind)
-            expect("tkSTR", "tkDLS") #######
+            expect("tkSTR", "tkDLS")
 
         def __kyw__dppe(kind):
             expect("tkFLG", "tkKYW")

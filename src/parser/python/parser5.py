@@ -109,7 +109,7 @@ def main():
 
         def __cmd__kyw(kind):
             addscope(kind)
-            expect("tkSTR")
+            expect("tkSTR", "tkDLS")
 
         def __cmd__ddot(kind):
             expect("tkCMD", "tkBRC_LC")
@@ -168,7 +168,7 @@ def main():
 
         def __flg__kyw(kind):
             addscope(kind)
-            expect("tkSTR")
+            expect("tkSTR", "tkDLS")
 
         def __flg__str(kind):
             expect("", "tkDPPE")
@@ -177,7 +177,7 @@ def main():
             expect("", "tkDPPE")
 
         def __flg__dppe(kind):
-            expect("tkFLG")
+            expect("tkFLG", "tkKYW")
 
         def __flg__brc_rb(kind):
             popscope()
@@ -225,7 +225,11 @@ def main():
             if SCOPE[-1] == "tkOPTS":
                 expect("tkFVAL", "tkBRC_RP")
             else:
-                expect("", "tkDPPE")
+                if SCOPE[-1] == "tkKYW" and "tkBRC_LB" in SCOPE:
+                    # popscope()
+                    expect("tkDPPE", "tkBRC_RB")
+                else:
+                    expect("", "tkDPPE", "tkBRC_RB")
 
         def __opts__fopt(kind):
             if branch[-2]["line"] == line:
@@ -248,17 +252,40 @@ def main():
 
         def __brc_lb__flg(kind):
             addscope(kind)
-            expect("", "tkASG", "tkQMK", "tkDCLN",
+            # Need the ""?
+            # expect("", "tkASG", "tkQMK", "tkDCLN",
+            expect("tkASG", "tkQMK", "tkDCLN",
                 "tkFVAL", "tkDPPE", "tkBRC_RB")
 
         def __brc_lb__kyw(kind):
             addscope(kind)
-            expect("tkSTR")
+            expect("tkSTR", "tkDLS", "tkBRC_RB")
 
         def __kyw__str(kind):
             popscope()
             addscope("tkFLG") # Re-use flag pathways for now.
             expect("", "tkDPPE")
+
+        def __kyw__dls(kind):
+            addscope(kind) # Build cmd-string.
+            expect("tkBRC_LP")
+
+        def __kyw__brc_rb(kind):
+            popscope()
+            expect("")
+
+        def __kyw__flg(kind):
+            # Need the ""?
+            # expect("", "tkASG", "tkQMK",
+            expect("tkASG", "tkQMK",
+                "tkDCLN", "tkFVAL", "tkDPPE")
+
+        def __kyw__kyw(kind):
+            addscope(kind)
+            expect("tkSTR", "tkDLS") #######
+
+        def __kyw__dppe(kind):
+            expect("tkFLG", "tkKYW")
 
         def __dcma__cmd(kind):
             popscope()
@@ -332,7 +359,12 @@ def main():
                 "tkKYW": __brc_lb__kyw
             },
             "tkKYW": {
-                "tkSTR": __kyw__str
+                "tkSTR": __kyw__str,
+                "tkDLS": __kyw__dls,
+                "tkFLG": __kyw__flg,
+                "tkKYW": __kyw__kyw,
+                "tkBRC_RB": __kyw__brc_rb,
+                "tkDPPE": __kyw__dppe,
             },
             "tkDCMA": {
                 "tkCMD": __dcma__cmd

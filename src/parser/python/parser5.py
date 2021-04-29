@@ -148,8 +148,11 @@ def main():
             expect("", "tkDPPE")
 
         def __flg__asg(kind):
-            expect("", "tkMTL", "tkDPPE", "tkBRC_LP",
+            expect("", "tkDCMA", "tkMTL", "tkDPPE", "tkBRC_LP",
                 "tkFVAL", "tkSTR", "tkDLS", "tkBRC_RB")
+
+        def __flg__dcma(kind):
+            expect("tkFLG", "tkKYW")
 
         def __flg__mtl(kind):
             expect("", "tkBRC_LP", "tkDPPE")
@@ -322,6 +325,7 @@ def main():
                 "tkFLGA": __flg__flga,
                 "tkQMK": __flg__qmk,
                 "tkASG": __flg__asg,
+                "tkDCMA": __flg__dcma,
                 "tkMTL": __flg__mtl,
                 "tkDLS": __flg__dls,
                 "tkBRC_LP": __flg__brc_lp,

@@ -372,7 +372,6 @@ def main():
 
         AST = []
         ttid = 0
-        ttids = []
         NEXT = []
         SCOPE = []
         branch = []
@@ -394,7 +393,6 @@ def main():
 
             if kind != "tkEOP":
                 ttid = i
-                ttids.append(i)
 
             if kind == "tkTRM":
                 addtoken(ttid)

@@ -180,7 +180,13 @@ def tokenizer(text):
 
     # Tokenizer loop functions.
 
-    def tk_stn_var():
+    def tk_stn():
+        if S["i"] - S["start"] > 0 and not (c.isalnum()):
+            rollback(1)
+            S["end"] = S["i"]
+            add_token()
+
+    def tk_var():
         if S["i"] - S["start"] > 0 and not (c.isalnum() or c == C_UNDERSCORE):
             rollback(1)
             S["end"] = S["i"]
@@ -251,8 +257,8 @@ def tokenizer(text):
         add_token()
 
     DISPATCH = {
-        "tkSTN": tk_stn_var,
-        "tkVAR": tk_stn_var,
+        "tkSTN": tk_stn,
+        "tkVAR": tk_var,
         "tkFLG": tk_flg,
         "tkCMD": tk_cmd,
         "tkCMT": tk_cmt,

@@ -396,25 +396,19 @@ def parser(tokens, ttypes):
 
             addtoken(ttid)
 
-            if kind == "tkSTN":
-                addscope(kind)
+            if kind != "tkEOP":
                 addbranch(branch)
-                expect("", "tkASG")
-
-            elif kind == "tkVAR":
-                addscope(kind)
-                addbranch(branch)
-                expect("", "tkASG")
-
-            elif kind == "tkCMD":
-                addscope(kind)
-                addbranch(branch)
-                expect("", "tkDDOT", "tkASG", "tkDCMA")
-
-            elif kind == "tkCMT":
-                addbranch(branch)
-                newbranch()
-                expect("")
+                if kind != "tkCMT":
+                    addscope(kind)
+                    if kind == "tkSTN":
+                        expect("", "tkASG")
+                    elif kind == "tkVAR":
+                        expect("", "tkASG")
+                    elif kind == "tkCMD":
+                        expect("", "tkDDOT", "tkASG", "tkDCMA")
+                else:
+                    newbranch()
+                    expect("")
 
             elif kind != "tkEOP":
                 message = "\n\n\033[1mToken\033[0m: " + kind + " = "

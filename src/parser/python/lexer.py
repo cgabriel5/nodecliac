@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 C_NL = '\n'
+C_DOT = '.'
 C_TAB = '\t'
 C_PIPE = '|'
 C_SPACE = ' '
@@ -55,6 +56,8 @@ BRCTOKENS = {
 LINESTARTS = {1: -1}
 
 KEYWORDS = ["default", "context", "filedir", "exclude"]
+# Invalid command start-of-token chars.
+XCSCOPES = [C_ATSIGN, C_DOT, C_LCURLY, C_RCURLY]
 
 def tokenizer(text):
     c = ''
@@ -63,6 +66,7 @@ def tokenizer(text):
     token_count = 0
     l = len(text)
     flgopts = False
+    cmdscope = False
     S = {"i": 0, "line": 1, "kind": ""}
     S["start"] = S["end"] = -1
 
@@ -73,14 +77,16 @@ def tokenizer(text):
         if tokens:
 
             # Keyword reset.
-            if kind("tkSTR") and tokens[-1]["kind"] == "tkCMD":
+            if (kind("tkSTR") and (tokens[-1]["kind"] == "tkCMD" or
+                (cmdscope and tokens[-1]["kind"] == "tkTBD"))):
                 if (text[tokens[-1]["start"]:tokens[-1]["end"] + 1]
                         in KEYWORDS):
                     tokens[-1]["kind"] = "tkKYW"
 
             # Reset: default $("cmd-string")
             elif (kind("tkVAR") and S["end"] - S["start"] == 0
-                and tokens[-1]["kind"] == "tkCMD"):
+                and (tokens[-1]["kind"] == "tkCMD" or (
+                cmdscope and tokens[-1]["kind"] == "tkTBD"))):
                 if text[tokens[-1]["start"]:tokens[-1]["end"] + 1] == "default":
                     tokens[-1]["kind"] = "tkKYW"
 
@@ -226,11 +232,11 @@ def tokenizer(text):
             add_token()
 
     def tk_brc():
-        nonlocal flgopts  # [https://stackoverflow.com/a/8448011]
-        if c == C_LPAREN:
-            flgopts = True
-        elif c == C_RPAREN:
-            flgopts = False
+        nonlocal flgopts, cmdscope  # [https://stackoverflow.com/a/8448011]
+        if c == C_LPAREN: flgopts = True
+        elif c == C_RPAREN: flgopts = False
+        elif c == C_LBRACE: cmdscope = True
+        elif c == C_RBRACE: cmdscope = False
         S["end"] = S["i"]
         add_token()
 
@@ -274,7 +280,8 @@ def tokenizer(text):
             S["start"] = S["i"]
             S["kind"] = SOT.get(c, "tkTBD")
             if S["kind"] == "tkTBD":
-                if c.isalnum():
+                if ((not cmdscope and c.isalnum()) or
+                    (cmdscope and c not in XCSCOPES and c.isalpha())):
                     S["kind"] = "tkCMD"
 
         DISPATCH.get(S["kind"], tk_def)()

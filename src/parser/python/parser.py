@@ -65,8 +65,8 @@ def main():
             SCOPE.pop()
 
         def addbranch(b):
-            nonlocal AST
-            AST.append(b)
+            nonlocal BRANCHES
+            BRANCHES.append(b)
 
         def newbranch():
             nonlocal branch
@@ -370,11 +370,11 @@ def main():
             }
         }
 
-        AST = []
         ttid = 0
         NEXT = []
         SCOPE = []
         branch = []
+        BRANCHES = []
 
         i = 0
         l = len(tokens)
@@ -489,8 +489,8 @@ def main():
 
         print("DONE")
 
-        print("\nAST", len(AST), "\n")
-        for branch in AST:
+        print("\nBRANCHES", len(BRANCHES), "\n")
+        for branch in BRANCHES:
             output = ""
             tids = []
             for token in branch:
@@ -502,7 +502,7 @@ def main():
                 # print(token)
 
             # print("[tids]", tids)
-            print("[LEAF] <" + output + ">")
+            print("[BRANCH] <" + output + ">")
 
             print("")
 

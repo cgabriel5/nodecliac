@@ -23,6 +23,13 @@ def parser(tokens, ttypes, text, LINESTARTS, filename):
 
         Issue().error(filename, line, index - LINESTARTS[line], f"{etype} {message}")
 
+    def warn(tid, message):
+        token = tokens[tid]
+        line = token["line"]
+        index = token["start"]
+
+        Issue().warn(filename, line, index - LINESTARTS[line], message)
+
     def completing(kind):
         return SCOPE[-1] == kind
 
@@ -81,7 +88,7 @@ def parser(tokens, ttypes, text, LINESTARTS, filename):
 
     def __cmd__brc_lb(kind):
         addscope(kind)
-        expect("tkFLG", "tkKYW")
+        expect("tkFLG", "tkKYW", "tkBRC_RB")
 
     def __cmd__brc_rb(kind):
         expect("", "tkCMD")
@@ -245,6 +252,12 @@ def parser(tokens, ttypes, text, LINESTARTS, filename):
         addscope(kind)
         expect("tkSTR", "tkDLS", "tkBRC_RB")
 
+    def __brc_lb__brc_rb(kind):
+        popscope()
+        expect("")
+
+        warn(ttids[-2], "Empty command scope")
+
     def __kyw__str(kind):
         popscope()
         addscope("tkFLG") # Re-use flag pathways for now.
@@ -339,7 +352,8 @@ def parser(tokens, ttypes, text, LINESTARTS, filename):
         },
         "tkBRC_LB": {
             "tkFLG": __brc_lb__flg,
-            "tkKYW": __brc_lb__kyw
+            "tkKYW": __brc_lb__kyw,
+            "tkBRC_RB": __brc_lb__brc_rb,
         },
         "tkKYW": {
             "tkSTR": __kyw__str,

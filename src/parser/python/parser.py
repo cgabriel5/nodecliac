@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import sys, json
+import json
+from issue import Issue
+from validation import vsetting, vvariable
 
 C_LF = 'f'
 C_LT = 't'
@@ -13,15 +15,13 @@ C_DOLLARSIGN = '$'
 C_PRIM_TBOOL = "true"
 C_PRIM_FBOOL = "false"
 
-def parser(tokens, ttypes):
+def parser(tokens, ttypes, text, LINESTARTS, filename):
     def err(tid, etype, message):
         token = tokens[tid]
         line = token["line"]
         index = token["start" if etype != "<term>" else "end"]
 
-        sys.exit("\033[1mdep.acmap:" +
-                f"{line}:{index - LINESTARTS[line]}:" +
-                f"\033[0m \033[31;1merror:\033[0m {etype} {message}")
+        Issue().error(filename, line, index - LINESTARTS[line], f"{etype} {message}")
 
     def completing(kind):
         return SCOPE[-1] == kind
@@ -405,8 +405,10 @@ def parser(tokens, ttypes):
                 if kind != "tkCMT":
                     addscope(kind)
                     if kind == "tkSTN":
+                        vsetting(token, text, LINESTARTS, filename)
                         expect("", "tkASG")
                     elif kind == "tkVAR":
+                        vvariable(token, text, LINESTARTS, filename)
                         expect("", "tkASG")
                     elif kind == "tkCMD":
                         expect("", "tkDDOT", "tkASG", "tkDCMA")

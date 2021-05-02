@@ -256,7 +256,8 @@ def parser(tokens, ttypes, text, LINESTARTS, filename):
         popscope()
         expect("")
 
-        warn(ttids[-2], "Empty command scope")
+        if ttypes[ttids[-2]] == "tkBRC_LB":
+            warn(ttids[-2], "Empty scope (command)")
 
     def __kyw__str(kind):
         popscope()

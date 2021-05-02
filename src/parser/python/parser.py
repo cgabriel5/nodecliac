@@ -154,7 +154,7 @@ def parser(tokens, ttypes, text, LINESTARTS, filename):
 
     def __flg__brc_lp(kind):
         addscope(kind)
-        expect("tkFVAL", "tkSTR", "tkFOPT")
+        expect("tkFVAL", "tkSTR", "tkFOPT", "tkBRC_RP")
 
     def __flg__flg(kind):
         expect("", "tkASG", "tkQMK",
@@ -197,6 +197,9 @@ def parser(tokens, ttypes, text, LINESTARTS, filename):
     def __brc_lp__brc_rp(kind):
         popscope()
         expect("", "tkDPPE")
+
+        if ttypes[ttids[-2]] == "tkBRC_LP":
+            warn(ttids[-2], "Empty scope (flag)")
 
     def __brc_lp__brc_rb(kind):
         popscope()

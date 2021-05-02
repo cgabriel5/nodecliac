@@ -355,6 +355,7 @@ def parser(tokens, ttypes):
     }
 
     ttid = 0
+    ttids = []
     NEXT = []
     SCOPE = []
     branch = []
@@ -377,6 +378,9 @@ def parser(tokens, ttypes):
 
         if kind != "tkEOP":
             ttid = i
+
+        if kind not in ("tkEOP", "tkCMT"):
+            ttids.append(tid)
 
         if kind == "tkTRM":
             addtoken(ttid)

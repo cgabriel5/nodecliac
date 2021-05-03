@@ -49,3 +49,20 @@ def vstring(token, text, LINESTARTS, filename):
     if token["lines"][1] == -1:
         message = f"Unclosed string"
         Issue().error(filename, line, index - LINESTARTS[line], message)
+
+def vsetting_aval(token, text, LINESTARTS, filename):
+    start = token["start"]
+    end = token["end"]
+    line = token["line"]
+    index = token["start"]
+
+    values = ["true", "false"]
+
+    value = StringBuilder()
+    for i in range(start, end + 1):
+        value.append(text[i])
+
+    # Warn if values is not a supported values.
+    if value not in values:
+        message = "Invalid setting value: '" + str(value) + "'"
+        Issue().error(filename, line, index - LINESTARTS[line], message)

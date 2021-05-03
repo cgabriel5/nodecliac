@@ -156,6 +156,9 @@ def tokenizer(text):
         tokens.append(copy)
         S["kind"] = ""
 
+        if S.get("lines", False):
+            del S["lines"]
+
         token_count += 1
 
     # Checks if token is at needed char index.
@@ -212,16 +215,20 @@ def tokenizer(text):
             add_token()
 
     def tk_str():
+        # Store initial line where string starts.
+        if "lines" not in S:
+            S["lines"] = [S["line"], -1]
+
         # Account for '\n's in string to track where string ends
         if c == C_NL:
-            S.setdefault("lines", S["line"])
-            S["lines"] += 1
+            S["line"] += 1
+
             LINESTARTS.setdefault(S["line"], S["i"]);
 
         if (not charpos(1) and c == text[S["start"]] and
                 prevchar() != C_ESCAPE):
             S["end"] = S["i"]
-            S["line_end"] = S["lines"]
+            S["lines"][1] = S["line"]
             add_token()
 
     def tk_tbd():  # Determine in parser.

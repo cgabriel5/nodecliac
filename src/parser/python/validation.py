@@ -36,12 +36,16 @@ def vvariable(token, text, LINESTARTS, filename):
 def vstring(token, text, LINESTARTS, filename):
     start = token["start"]
     end = token["end"]
-    line = token["line"]
+    line = token["lines"][0]
     index = token["start"]
 
     # Warn when string is empty.
+    # [TODO] Warn if string content is just whitespace?
+    if end - start == 1:
+        message = f"Empty string"
+        Issue().warn(filename, line, index - LINESTARTS[line], message)
 
     # Error if string is unclosed.
-    if "line_end" not in token:
+    if token["lines"][1] == -1:
         message = f"Unclosed string"
         Issue().error(filename, line, index - LINESTARTS[line], message)

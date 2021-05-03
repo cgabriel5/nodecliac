@@ -3,7 +3,7 @@
 
 import json
 from issue import Issue
-from validation import vsetting, vvariable
+from validation import vsetting, vvariable, vstring
 
 C_LF = 'f'
 C_LT = 't'
@@ -71,6 +71,8 @@ def parser(tokens, ttypes, text, LINESTARTS, filename):
     def __stn__str(kind):
         clearscope()
         newbranch()
+
+        vstring(token, text, LINESTARTS, filename)
 
     def __stn__aval(kind):
         clearscope()

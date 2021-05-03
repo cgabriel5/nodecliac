@@ -32,3 +32,16 @@ def vvariable(token, text, LINESTARTS, filename):
         message = f"Unexpected: '{text[start + 1]}'"
         message += f"\n\033[1;36mInfo\033[0m: Variable cannot begin with a number."
         Issue().error(filename, line, index - LINESTARTS[line], message)
+
+def vstring(token, text, LINESTARTS, filename):
+    start = token["start"]
+    end = token["end"]
+    line = token["line"]
+    index = token["start"]
+
+    # Warn when string is empty.
+
+    # Error if string is unclosed.
+    if "line_end" not in token:
+        message = f"Unclosed string"
+        Issue().error(filename, line, index - LINESTARTS[line], message)

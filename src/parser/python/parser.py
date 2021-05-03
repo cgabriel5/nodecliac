@@ -15,7 +15,27 @@ C_DOLLARSIGN = '$'
 C_PRIM_TBOOL = "true"
 C_PRIM_FBOOL = "false"
 
-def parser(tokens, ttypes, text, LINESTARTS, filename):
+def parser(filename, text, LINESTARTS, tokens, ttypes):
+
+    ttid = 0
+    ttids = []
+    NEXT = []
+    SCOPE = []
+    branch = []
+    BRANCHES = []
+
+    i = 0
+    l = len(tokens)
+
+    S = {
+        "tid": -1,
+        "filename": filename,
+        "text": text,
+        "LINESTARTS": LINESTARTS,
+        "tokens": tokens,
+        "ttypes": ttypes
+    }
+
     def err(tid, etype, message):
         token = tokens[tid]
         line = token["line"]
@@ -72,13 +92,13 @@ def parser(tokens, ttypes, text, LINESTARTS, filename):
         clearscope()
         newbranch()
 
-        vstring(token, text, LINESTARTS, filename)
+        vstring(S)
 
     def __stn__aval(kind):
         clearscope()
         newbranch()
 
-        vsetting_aval(token, text, LINESTARTS, filename)
+        vsetting_aval(S)
 
     def __var__asg(kind):
         expect("tkSTR")
@@ -87,7 +107,7 @@ def parser(tokens, ttypes, text, LINESTARTS, filename):
         clearscope()
         newbranch()
 
-        vstring(token, text, LINESTARTS, filename)
+        vstring(S)
 
     def __cmd__asg(kind):
         expect("tkBRC_LB", "tkFLG", "tkKYW")
@@ -378,16 +398,6 @@ def parser(tokens, ttypes, text, LINESTARTS, filename):
         }
     }
 
-    ttid = 0
-    ttids = []
-    NEXT = []
-    SCOPE = []
-    branch = []
-    BRANCHES = []
-
-    i = 0
-    l = len(tokens)
-
     while i < l:
         token = tokens[i]
         kind = token["kind"]
@@ -395,6 +405,8 @@ def parser(tokens, ttypes, text, LINESTARTS, filename):
         start = token["start"]
         end = token["end"]
         tid = token["tid"]
+
+        S["tid"] = tid
 
         if kind == "tkNL":
             i += 1
@@ -429,10 +441,10 @@ def parser(tokens, ttypes, text, LINESTARTS, filename):
                 if kind != "tkCMT":
                     addscope(kind)
                     if kind == "tkSTN":
-                        vsetting(token, text, LINESTARTS, filename)
+                        vsetting(S)
                         expect("", "tkASG")
                     elif kind == "tkVAR":
-                        vvariable(token, text, LINESTARTS, filename)
+                        vvariable(S)
                         expect("", "tkASG")
                     elif kind == "tkCMD":
                         expect("", "tkDDOT", "tkASG", "tkDCMA")

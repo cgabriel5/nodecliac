@@ -4,7 +4,8 @@
 from issue import Issue
 from string_builder import StringBuilder
 
-def vsetting(token, text, LINESTARTS, filename):
+def vsetting(S):
+    token = S["tokens"][S["tid"]]
     start = token["start"]
     end = token["end"]
     line = token["line"]
@@ -14,26 +15,28 @@ def vsetting(token, text, LINESTARTS, filename):
 
     setting = StringBuilder()
     for i in range(start + 1, end + 1):
-        setting.append(text[i])
+        setting.append(S["text"][i])
 
     # Warn if setting is not a supported setting.
     if setting not in settings:
         message = "Unknown setting: '@" + str(setting) + "'"
-        Issue().warn(filename, line, index - LINESTARTS[line], message)
+        Issue().warn(S["filename"], line, index - S["LINESTARTS"][line], message)
 
-def vvariable(token, text, LINESTARTS, filename):
+def vvariable(S):
+    token = S["tokens"][S["tid"]]
     start = token["start"]
     end = token["end"]
     line = token["line"]
     index = token["start"]
 
     # Error when variable starts with a number.
-    if text[start + 1].isdigit():
-        message = f"Unexpected: '{text[start + 1]}'"
+    if S["text"][start + 1].isdigit():
+        message = "Unexpected: '" + S["text"][start + 1] + "'"
         message += f"\n\033[1;36mInfo\033[0m: Variable cannot begin with a number."
-        Issue().error(filename, line, index - LINESTARTS[line], message)
+        Issue().error(S["filename"], line, index - S["LINESTARTS"][line], message)
 
-def vstring(token, text, LINESTARTS, filename):
+def vstring(S):
+    token = S["tokens"][S["tid"]]
     start = token["start"]
     end = token["end"]
     line = token["lines"][0]
@@ -43,14 +46,15 @@ def vstring(token, text, LINESTARTS, filename):
     # [TODO] Warn if string content is just whitespace?
     if end - start == 1:
         message = f"Empty string"
-        Issue().warn(filename, line, index - LINESTARTS[line], message)
+        Issue().warn(S["filename"], line, index - S["LINESTARTS"][line], message)
 
     # Error if string is unclosed.
     if token["lines"][1] == -1:
         message = f"Unclosed string"
-        Issue().error(filename, line, index - LINESTARTS[line], message)
+        Issue().error(S["filename"], line, index - S["LINESTARTS"][line], message)
 
-def vsetting_aval(token, text, LINESTARTS, filename):
+def vsetting_aval(S):
+    token = S["tokens"][S["tid"]]
     start = token["start"]
     end = token["end"]
     line = token["line"]
@@ -60,9 +64,9 @@ def vsetting_aval(token, text, LINESTARTS, filename):
 
     value = StringBuilder()
     for i in range(start, end + 1):
-        value.append(text[i])
+        value.append(S["text"][i])
 
     # Warn if values is not a supported values.
     if value not in values:
         message = "Invalid setting value: '" + str(value) + "'"
-        Issue().error(filename, line, index - LINESTARTS[line], message)
+        Issue().error(S["filename"], line, index - S["LINESTARTS"][line], message)

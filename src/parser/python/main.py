@@ -21,7 +21,7 @@ def main():
 
         (tokens, ttypes) = tokenizer(text)
         filename = ntpath.basename(filepath)
-        BRANCHES = parser(tokens, ttypes, text, LINESTARTS, filename)
+        BRANCHES = parser(filename, text, LINESTARTS, *tokenizer(text))
 
         print("\nBRANCHES", len(BRANCHES), "\n")
         for branch in BRANCHES:

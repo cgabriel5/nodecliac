@@ -8,8 +8,9 @@ from pathlib import Path  # [https://stackoverflow.com/a/66195538]
 def main():
     if __name__ == "__main__":
 
+        filepath = sys.argv[1]
         hdir = str(Path.home())
-        f = open(hdir + "/.nodecliac/registry/alacritty/alacritty.acmap", "r")
+        f = open(filepath)
         text = f.read()
 
         (tokens, ttypes) = tokenizer(text)

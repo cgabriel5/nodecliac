@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import sys
+
 from lexer import tokenizer, LINESTARTS
 from parser import parser
 from pathlib import Path  # [https://stackoverflow.com/a/66195538]
@@ -9,9 +11,13 @@ def main():
     if __name__ == "__main__":
 
         filepath = sys.argv[1]
-        hdir = str(Path.home())
-        f = open(filepath)
-        text = f.read()
+
+        try:
+            hdir = str(Path.home())
+            f = open(filepath)
+            text = f.read()
+        except FileNotFoundError:
+            sys.exit(f"{filepath} does not exist.")
 
         (tokens, ttypes) = tokenizer(text)
         BRANCHES = parser(tokens, ttypes)

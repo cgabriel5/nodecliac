@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import sys
+import sys, ntpath
 
 from lexer import tokenizer, LINESTARTS
 from parser import parser
@@ -20,7 +20,8 @@ def main():
             sys.exit(f"{filepath} does not exist.")
 
         (tokens, ttypes) = tokenizer(text)
-        BRANCHES = parser(tokens, ttypes)
+        filename = ntpath.basename(filepath)
+        BRANCHES = parser(tokens, ttypes, text, LINESTARTS, filename)
 
         print("\nBRANCHES", len(BRANCHES), "\n")
         for branch in BRANCHES:

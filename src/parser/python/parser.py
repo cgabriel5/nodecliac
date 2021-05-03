@@ -87,6 +87,8 @@ def parser(tokens, ttypes, text, LINESTARTS, filename):
         clearscope()
         newbranch()
 
+        vstring(token, text, LINESTARTS, filename)
+
     def __cmd__asg(kind):
         expect("tkBRC_LB", "tkFLG", "tkKYW")
 

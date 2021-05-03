@@ -480,7 +480,11 @@ def parser(tokens, ttypes, text, LINESTARTS, filename):
 
             addtoken(ttid)
 
-            DISPATCH[SCOPE[-1]][kind](kind)
+            # [TODO] Improve this error handling.
+            if kind in DISPATCH[SCOPE[-1]]:
+                DISPATCH[SCOPE[-1]][kind](kind)
+            else:
+                err(tokens[ttids[-1]]["tid"], "<term>", f"Try/catch {kind}")
 
         i += 1
 

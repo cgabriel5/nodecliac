@@ -18,7 +18,7 @@ def vsetting(S):
         setting.append(S["text"][i])
 
     # Warn if setting is not a supported setting.
-    if setting not in settings:
+    if str(setting) not in settings:
         message = "Unknown setting: '@" + str(setting) + "'"
         Issue().warn(S["filename"], line, index - S["LINESTARTS"][line], message)
 
@@ -67,6 +67,6 @@ def vsetting_aval(S):
         value.append(S["text"][i])
 
     # Warn if values is not a supported values.
-    if value not in values:
+    if str(value) not in values:
         message = "Invalid setting value: '" + str(value) + "'"
         Issue().error(S["filename"], line, index - S["LINESTARTS"][line], message)

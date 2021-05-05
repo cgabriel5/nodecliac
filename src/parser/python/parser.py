@@ -156,7 +156,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes):
         if branch[-2]["kind"] != "tkDCLN":
             expect("tkDCLN")
         else:
-            expect("", "tkFLGA")
+            expect("tkFLGA")
 
     def __flg__flga(kind):
         expect("", "tkASG", "tkQMK", "tkDPPE")

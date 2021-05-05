@@ -153,7 +153,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes):
         expect("", "tkDDOT", "tkASG")
 
     def __flg__dcln(kind):
-        if branch[-2]["kind"] != "tkDCLN":
+        if ttypes[ttids[-2]] != "tkDCLN":
             expect("tkDCLN")
         else:
             expect("tkFLGA")
@@ -204,9 +204,8 @@ def parser(filename, text, LINESTARTS, tokens, ttypes):
         expect("")
 
     def __brc_lp__fopt(kind):
-        # [TODO] Make this code robust.
-        if branch[-2]["kind"] == "tkBRC_LP":
-            if branch[-2]["line"] == line:
+        if ttypes[ttids[-2]] == "tkBRC_LP":
+            if tokens[ttids[-2]]["line"] == line:
                 print("err: Option on same line (first)")
             addscope("tkOPTS")
             expect("tkFVAL", "tkSTR", "tkDLS")
@@ -254,7 +253,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes):
                 expect("", "tkDPPE", "tkBRC_RB")
 
     def __opts__fopt(kind):
-        if branch[-2]["line"] == line:
+        if tokens[ttids[-2]]["line"] == line:
             print("err: Option on same line (nth)")
         expect("tkFVAL", "tkSTR", "tkDLS")
 

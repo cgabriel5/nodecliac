@@ -61,6 +61,7 @@ XCSCOPES = [C_ATSIGN, C_DOT, C_LCURLY, C_RCURLY]
 
 def tokenizer(text):
     c = ''
+    ttids = []
     tokens = []
     ttypes = {}
     token_count = 0
@@ -146,6 +147,8 @@ def tokenizer(text):
             S["kind"] = "tkCMD"
 
         ttypes[token_count] = S["kind"]
+        if S["kind"] not in ("tkCMT", "tkNL", "tkEOP"):
+            ttids.append(token_count)
 
         copy = dict(S)
         del copy["i"]
@@ -311,4 +314,4 @@ def tokenizer(text):
     S["end"] = -1
     add_token()
 
-    return (tokens, ttypes)
+    return (tokens, ttypes, ttids)

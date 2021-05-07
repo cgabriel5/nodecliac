@@ -15,10 +15,9 @@ C_DOLLARSIGN = '$'
 C_PRIM_TBOOL = "true"
 C_PRIM_FBOOL = "false"
 
-def parser(filename, text, LINESTARTS, tokens, ttypes):
+def parser(filename, text, LINESTARTS, tokens, ttypes, ttids):
 
     ttid = 0
-    ttids = []
     NEXT = []
     SCOPE = []
     branch = []
@@ -416,8 +415,8 @@ def parser(filename, text, LINESTARTS, tokens, ttypes):
         if kind != "tkEOP":
             ttid = i
 
-        if kind not in ("tkEOP", "tkCMT"):
-            ttids.append(tid)
+        # if kind not in ("tkEOP", "tkCMT"):
+        #     ttids.append(tid)
 
         if kind == "tkTRM":
             addtoken(ttid)

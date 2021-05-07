@@ -19,7 +19,6 @@ def main():
         except FileNotFoundError:
             sys.exit(f"{filepath} does not exist.")
 
-        (tokens, ttypes) = tokenizer(text)
         filename = ntpath.basename(filepath)
         BRANCHES = parser(filename, text, LINESTARTS, *tokenizer(text))
 

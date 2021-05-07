@@ -71,9 +71,11 @@ def parser(filename, text, LINESTARTS, tokens, ttypes):
         nonlocal SCOPE
         SCOPE.append(s)
 
-    def popscope():
+    def popscope(pops = 1):
         nonlocal SCOPE
-        SCOPE.pop()
+        while pops:
+            SCOPE.pop()
+            pops -= 1
 
     def addbranch(b):
         nonlocal BRANCHES

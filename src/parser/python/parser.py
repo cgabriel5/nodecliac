@@ -270,8 +270,8 @@ def parser(filename, text, LINESTARTS, tokens, ttypes):
         expect("tkFOPT", "tkBRC_RP")
 
     def __opts__brc_rp(kind):
-        popscope()
-        expect("", "tkBRC_RB")
+        popscope(2)
+        expect("tkFLG", "tkKYW", "tkBRC_RB")
 
     def __brc_lb__flg(kind):
         addscope(kind)

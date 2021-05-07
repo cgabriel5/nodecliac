@@ -454,7 +454,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes):
             elif kind != "tkEOP":
                 message = "\n\n\033[1mToken\033[0m: " + kind + " = "
                 message += json.dumps(token, indent = 2).replace('"', "")
-                err(ttid, "<parent>", message)
+                err(ttids[-1], "<parent>", message)
 
         else:
 
@@ -479,7 +479,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes):
 
                 else:
                     if kind == "tkEOP":
-                        token = tokens[ttid]
+                        token = tokens[ttids[-1]]
                         kind = token["kind"]
 
                     message = "\n\n\033[1mToken\033[0m: " + kind + " = "
@@ -491,7 +491,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes):
                     message += "\n\n\033[1mScopes\033[0m: "
                     for s in SCOPE:
                         message += "\n - " + s
-                    err(ttid, "<child>", message)
+                    err(ttids[-1], "<child>", message)
 
             addtoken(ttid)
 

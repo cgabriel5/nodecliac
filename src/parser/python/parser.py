@@ -404,9 +404,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         line = token["line"]
         start = token["start"]
         end = token["end"]
-        tid = token["tid"]
-
-        S["tid"] = tid
+        S["tid"] = token["tid"]
 
         if kind == "tkNL":
             i += 1

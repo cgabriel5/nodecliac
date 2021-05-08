@@ -84,6 +84,9 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         nonlocal branch
         branch = []
 
+    def prevtoken():
+        return tokens[dtids[S["tid"]]]
+
     # ============================
 
     def __stn__asg(kind):
@@ -154,7 +157,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         expect("", "tkDDOT", "tkASG")
 
     def __flg__dcln(kind):
-        if ttypes[ttids[-2]] != "tkDCLN":
+        if prevtoken()["kind"] != "tkDCLN":
             expect("tkDCLN")
         else:
             expect("tkFLGA")
@@ -205,8 +208,9 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         expect("")
 
     def __brc_lp__fopt(kind):
-        if ttypes[ttids[-2]] == "tkBRC_LP":
-            if tokens[ttids[-2]]["line"] == line:
+        prevtk = prevtoken()
+        if prevtk["kind"] == "tkBRC_LP":
+            if prevtk["line"] == line:
                 print("err: Option on same line (first)")
             addscope("tkOPTS")
             expect("tkFVAL", "tkSTR", "tkDLS")
@@ -224,8 +228,9 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         popscope()
         expect("", "tkDPPE")
 
-        if ttypes[ttids[-2]] == "tkBRC_LP":
-            warn(ttids[-2], "Empty scope (flag)")
+        prevtk = prevtoken()
+        if prevtk["kind"] == "tkBRC_LP":
+            warn(prevtk["tid"], "Empty scope (flag)")
 
     def __brc_lp__brc_rb(kind):
         popscope()
@@ -254,7 +259,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
                 expect("", "tkDPPE", "tkBRC_RB")
 
     def __opts__fopt(kind):
-        if tokens[ttids[-2]]["line"] == line:
+        if prevtoken()["line"] == line:
             print("err: Option on same line (nth)")
         expect("tkFVAL", "tkSTR", "tkDLS")
 
@@ -285,8 +290,9 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         popscope()
         expect("")
 
-        if ttypes[ttids[-2]] == "tkBRC_LB":
-            warn(ttids[-2], "Empty scope (command)")
+        prevtk = prevtoken()
+        if prevtk["kind"] == "tkBRC_LB":
+            warn(prevtk["tid"], "Empty scope (command)")
 
     def __kyw__str(kind):
         popscope()
@@ -450,7 +456,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
             elif kind != "tkEOP":
                 message = "\n\n\033[1mToken\033[0m: " + kind + " = "
                 message += json.dumps(token, indent = 2).replace('"', "")
-                err(ttids[-1], "<parent>", message)
+                err(S["tid"], "<parent>", message)
 
         else:
 
@@ -475,7 +481,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
 
                 else:
                     if kind == "tkEOP":
-                        token = tokens[ttids[-1]]
+                        token = tokens[S["tid"]]
                         kind = token["kind"]
 
                     message = "\n\n\033[1mToken\033[0m: " + kind + " = "
@@ -487,7 +493,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
                     message += "\n\n\033[1mScopes\033[0m: "
                     for s in SCOPE:
                         message += "\n - " + s
-                    err(ttids[-1], "<child>", message)
+                    err(S["tid"], "<child>", message)
 
             addtoken(ttid)
 
@@ -495,7 +501,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
             if kind in DISPATCH[SCOPE[-1]]:
                 DISPATCH[SCOPE[-1]][kind](kind)
             else:
-                err(tokens[ttids[-1]]["tid"], "<term>", f"Try/catch {kind}")
+                err(tokens[S["tid"]]["tid"], "<term>", f"Try/catch {kind}")
 
         i += 1
 

@@ -15,7 +15,7 @@ C_DOLLARSIGN = '$'
 C_PRIM_TBOOL = "true"
 C_PRIM_FBOOL = "false"
 
-def parser(filename, text, LINESTARTS, tokens, ttypes, ttids):
+def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
 
     ttid = 0
     NEXT = []

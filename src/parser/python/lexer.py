@@ -61,6 +61,7 @@ XCSCOPES = [C_ATSIGN, C_DOT, C_LCURLY, C_RCURLY]
 
 def tokenizer(text):
     c = ''
+    dtids = {}
     ttids = []
     tokens = []
     ttypes = {}
@@ -148,6 +149,8 @@ def tokenizer(text):
 
         ttypes[token_count] = S["kind"]
         if S["kind"] not in ("tkCMT", "tkNL", "tkEOP"):
+            # Track token ids to help with parsing.
+            dtids[token_count] = ttids[-1] if token_count and ttids else 0
             ttids.append(token_count)
 
         copy = dict(S)
@@ -314,4 +317,4 @@ def tokenizer(text):
     S["end"] = -1
     add_token()
 
-    return (tokens, ttypes, ttids)
+    return (tokens, ttypes, ttids, dtids)

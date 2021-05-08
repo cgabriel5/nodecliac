@@ -184,7 +184,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
 
     def __flg__brc_lp(kind):
         addscope(kind)
-        expect("tkFVAL", "tkSTR", "tkFOPT", "tkBRC_RP")
+        expect("tkFVAL", "tkSTR", "tkFOPT", "tkDLS", "tkBRC_RP")
 
     def __flg__flg(kind):
         expect("", "tkASG", "tkQMK",
@@ -216,10 +216,14 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
             expect("tkFVAL", "tkSTR", "tkDLS")
 
     def __brc_lp__fval(kind):
-        expect("tkFVAL", "tkSTR", "tkBRC_RP")
+        expect("tkFVAL", "tkSTR", "tkDLS", "tkBRC_RP")
 
     def __brc_lp__str(kind):
-        expect("tkFVAL", "tkSTR", "tkBRC_RP")
+        expect("tkFVAL", "tkSTR", "tkDLS", "tkBRC_RP")
+
+    def __brc_lp__dls(kind):
+        addscope(kind)
+        expect("tkBRC_LP")
 
     def __brc_lp__dcma(kind):
         expect("tkFVAL", "tkSTR")
@@ -249,6 +253,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         expect("tkSTR", "tkDLS")
 
     def __dls__brc_rp(kind):
+        isdls = SCOPE[-1] == "tkDLS"
         popscope()
         if SCOPE[-1] == "tkOPTS":
             expect("tkFVAL", "tkBRC_RP")
@@ -257,7 +262,10 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
                 popscope()
                 expect("tkDPPE", "tkBRC_RB")
             else:
-                expect("", "tkDPPE", "tkBRC_RB")
+                if not isdls:
+                    expect("", "tkDPPE", "tkBRC_RB")
+                else: # Handle: 'program = --flag=(1 2 $("cmd"))'
+                    expect("tkFVAL", "tkSTR", "tkDLS", "tkBRC_RP")
 
     def __opts__fopt(kind):
         if prevtoken()["line"] == line:
@@ -369,6 +377,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
             "tkFOPT": __brc_lp__fopt,
             "tkFVAL": __brc_lp__fval,
             "tkSTR": __brc_lp__str,
+            "tkDLS": __brc_lp__dls,
             "tkDCMA": __brc_lp__dcma,
             "tkBRC_RP": __brc_lp__brc_rp,
             "tkBRC_RB": __brc_lp__brc_rb

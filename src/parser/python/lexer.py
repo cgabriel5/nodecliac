@@ -76,21 +76,22 @@ def tokenizer(text):
     def add_token():
         nonlocal token_count, ttypes
 
-        if tokens:
+        if tokens and ttids:
+            prevtk = tokens[ttids[-1]]
 
             # Keyword reset.
-            if (kind("tkSTR") and (tokens[-1]["kind"] == "tkCMD" or
-                (cmdscope and tokens[-1]["kind"] == "tkTBD"))):
-                if (text[tokens[-1]["start"]:tokens[-1]["end"] + 1]
+            if (kind("tkSTR") and (prevtk["kind"] == "tkCMD" or
+                (cmdscope and prevtk["kind"] == "tkTBD"))):
+                if (text[prevtk["start"]:prevtk["end"] + 1]
                         in KEYWORDS):
-                    tokens[-1]["kind"] = "tkKYW"
+                    prevtk["kind"] = "tkKYW"
 
             # Reset: default $("cmd-string")
             elif (kind("tkVAR") and S["end"] - S["start"] == 0
-                and (tokens[-1]["kind"] == "tkCMD" or (
-                cmdscope and tokens[-1]["kind"] == "tkTBD"))):
-                if text[tokens[-1]["start"]:tokens[-1]["end"] + 1] == "default":
-                    tokens[-1]["kind"] = "tkKYW"
+                and (prevtk["kind"] == "tkCMD" or (
+                cmdscope and prevtk["kind"] == "tkTBD"))):
+                if text[prevtk["start"]:prevtk["end"] + 1] == "default":
+                    prevtk["kind"] = "tkKYW"
 
             elif flgopts and S["kind"] == "tkFLG" and S["start"] == S["end"]:
                 S["kind"] = "tkFOPT"
@@ -100,10 +101,10 @@ def tokenizer(text):
                 S["kind"] = "tkFVAL"
 
             # 'Merge' tkTBD tokens if possible.
-            elif (kind("tkTBD") and tokens[-1]["kind"] == "tkTBD" and
-                  tokens[-1]["line"] == S["line"] and
-                  S["start"] - tokens[-1]["end"] == 1):
-                tokens[-1]["end"] = S["end"]
+            elif (kind("tkTBD") and prevtk["kind"] == "tkTBD" and
+                  prevtk["line"] == S["line"] and
+                  S["start"] - prevtk["end"] == 1):
+                prevtk["end"] = S["end"]
                 S["kind"] = ""
                 return
 

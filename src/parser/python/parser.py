@@ -415,9 +415,6 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         if kind != "tkEOP":
             ttid = i
 
-        # if kind not in ("tkEOP", "tkCMT"):
-        #     ttids.append(tid)
-
         if kind == "tkTRM":
             addtoken(ttid)
 

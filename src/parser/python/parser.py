@@ -40,8 +40,9 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         token = tokens[tid]
         line = token["line"]
         index = token["start" if etype != "<term>" else "end"]
+        msg = f"{etype} {message}"
 
-        Issue().error(filename, line, index - LINESTARTS[line], f"{etype} {message}")
+        Issue().error(filename, line, index - LINESTARTS[line], msg)
 
     def warn(tid, message):
         token = tokens[tid]

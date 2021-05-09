@@ -22,6 +22,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
     SCOPE = []
     branch = []
     BRANCHES = []
+    oneliner = -1
 
     i = 0
     l = len(tokens)
@@ -463,6 +464,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
             if kind != "tkEOP":
                 addbranch(branch)
                 if kind != "tkCMT":
+                    oneliner = -1
                     addscope(kind)
                     if kind == "tkSTN":
                         vsetting(S)
@@ -519,6 +521,15 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
                     err(S["tid"], "<child>", message)
 
             addtoken(ttid)
+
+            # Oneliners must be declared on oneline, else error.
+            if branch[0]["kind"] == "tkCMD" and (
+                (("tkFLG" in SCOPE or "tkKYW" in SCOPE)
+                or kind in ("tkFLG", "tkKYW"))
+                and "tkBRC_LB" not in SCOPE):
+                if oneliner == -1: oneliner = token["line"]
+                elif token["line"] != oneliner:
+                    err(S["tid"], "<child>", "- Improper oneliner.")
 
             # [TODO] Improve this error handling.
             if kind in DISPATCH[SCOPE[-1]]:

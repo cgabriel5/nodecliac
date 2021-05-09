@@ -215,7 +215,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         prevtk = prevtoken()
         if prevtk["kind"] == "tkBRC_LP":
             if prevtk["line"] == line:
-                print("err: Option on same line (first)")
+                err(S["tid"], "<child>", "err: Option on same line (first)")
             addscope("tkOPTS")
             expect("tkFVAL", "tkSTR", "tkDLS")
 
@@ -273,7 +273,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
 
     def __opts__fopt(kind):
         if prevtoken()["line"] == line:
-            print("err: Option on same line (nth)")
+            err(S["tid"], "<child>", "err: Option on same line (nth)")
         expect("tkFVAL", "tkSTR", "tkDLS")
 
     def __opts__dls(kind):

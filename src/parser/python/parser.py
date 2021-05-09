@@ -50,6 +50,9 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
 
         Issue().warn(filename, line, index - LINESTARTS[line], message)
 
+    def tkstr(tid):
+        return "<" + text[tokens[tid]["start"]:tokens[tid]["end"] + 1] + ">"
+
     def completing(kind):
         return SCOPE[-1] == kind
 

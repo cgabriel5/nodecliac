@@ -187,10 +187,14 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         expect("tkFVAL", "tkSTR", "tkFOPT", "tkDLS", "tkBRC_RP")
 
     def __flg__flg(kind):
+        if "tkBRC_LB" in SCOPE and token["line"] == prevtoken()["line"]:
+            err(S["tid"], "<child>", "err: Flag same line (nth)")
         expect("", "tkASG", "tkQMK",
             "tkDCLN", "tkFVAL", "tkDPPE")
 
     def __flg__kyw(kind):
+        if "tkBRC_LB" in SCOPE and token["line"] == prevtoken()["line"]:
+            err(S["tid"], "<child>", "err: Keyword same line (nth)")
         addscope(kind)
         expect("tkSTR", "tkDLS")
 
@@ -287,11 +291,15 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         expect("tkFLG", "tkKYW", "tkBRC_RB")
 
     def __brc_lb__flg(kind):
+        if "tkBRC_LB" in SCOPE and token["line"] == prevtoken()["line"]:
+            err(S["tid"], "<child>", "err: Flag same line (first)")
         addscope(kind)
         expect("tkASG", "tkQMK", "tkDCLN",
             "tkFVAL", "tkDPPE", "tkBRC_RB")
 
     def __brc_lb__kyw(kind):
+        if "tkBRC_LB" in SCOPE and token["line"] == prevtoken()["line"]:
+            err(S["tid"], "<child>", "err: Keyword same line (first)")
         addscope(kind)
         expect("tkSTR", "tkDLS", "tkBRC_RB")
 

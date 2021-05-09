@@ -464,10 +464,11 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
                 if line == ltoken["line"] and ltoken["kind"] != "tkTRM":
                     err(ttid, "<parent>", "- Improper termination")
 
+            oneliner = -1
+
             if kind != "tkEOP":
-                addbranch(branch)
-                if kind != "tkCMT":
-                    oneliner = -1
+                if kind in ("tkSTN", "tkVAR", "tkCMD"):
+                    addbranch(branch)
                     addscope(kind)
                     if kind == "tkSTN":
                         vsetting(S)
@@ -478,13 +479,13 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
                     elif kind == "tkCMD":
                         expect("", "tkDDOT", "tkASG", "tkDCMA")
                 else:
-                    newbranch()
-                    expect("")
-
-            elif kind != "tkEOP":
-                message = "\n\n\033[1mToken\033[0m: " + kind + " = "
-                message += json.dumps(token, indent = 2).replace('"', "")
-                err(S["tid"], "<parent>", message)
+                    if kind == "tkCMT":
+                        newbranch()
+                        expect("")
+                    else: # Handle unexpected parent tokens.
+                        message = "\n\n\033[1mToken\033[0m: " + kind + " = "
+                        message += json.dumps(token, indent = 2).replace('"', "")
+                        err(S["tid"], "<parent>", message)
 
         else:
 

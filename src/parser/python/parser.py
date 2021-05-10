@@ -477,7 +477,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
                 expect("")
             else:
                 if NEXT and NEXT[0] != "":
-                    err(ttid, "<child>", "- Improper termination")
+                    err(ttid, "<child>", "Improper termination")
 
             i += 1
             continue
@@ -489,7 +489,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
             if BRANCHES:
                 ltoken = BRANCHES[-1][-1] # Last branch token.
                 if line == ltoken["line"] and ltoken["kind"] != "tkTRM":
-                    err(ttid, "<parent>", "- Improper termination")
+                    err(ttid, "<parent>", "Improper termination")
 
             oneliner = -1
 
@@ -510,7 +510,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
                         newbranch()
                         expect("")
                     else: # Handle unexpected parent tokens.
-                        err(S["tid"], "<parent>", "- Unexpected parent token.")
+                        err(S["tid"], "<parent>", "Unexpected parent token.")
 
         else:
 
@@ -534,7 +534,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
                     continue
 
                 else:
-                    err(S["tid"], "<child>", "- Unexpected child token.")
+                    err(S["tid"], "<child>", "Unexpected child token.")
 
             addtoken(ttid)
 
@@ -545,7 +545,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
                 and "tkBRC_LB" not in SCOPE):
                 if oneliner == -1: oneliner = token["line"]
                 elif token["line"] != oneliner:
-                    err(S["tid"], "<child>", "- Improper oneliner.")
+                    err(S["tid"], "<child>", "Improper oneliner.")
 
             # [TODO] Improve this error handling.
             if kind in DISPATCH[SCOPE[-1]]:

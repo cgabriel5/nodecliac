@@ -249,7 +249,10 @@ def tokenizer(text):
             if c not in (C_NL, C_SPACE, C_TAB):
                 rollback(1)
                 S["end"] = S["i"]
-            else: S["end"] -= 1
+            else:
+                # Let '\n' pass through to increment line count.
+                if c == C_NL: rollback(1)
+                S["end"] -= 1
             add_token()
 
     def tk_brc():

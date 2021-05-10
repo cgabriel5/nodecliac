@@ -300,7 +300,8 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
                     expect("", "tkDPPE", "tkFLG", "tkKYW")
             else:
                 # Handle: 'program = --flag=(1 2 $("cmd"))'
-                expect("tkFVAL", "tkSTR", "tkDLS", "tkBRC_RP")
+                # or: 'program = --command=$("cmd")'
+                expect("", "tkFVAL", "tkSTR", "tkDLS", "tkBRC_RP")
 
     def __opts__fopt(kind):
         if prevtoken()["line"] == line:

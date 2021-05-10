@@ -79,9 +79,6 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
     def tkstr(tid):
         return "[" + text[tokens[tid]["start"]:tokens[tid]["end"] + 1] + "]"
 
-    def completing(kind):
-        return SCOPE[-1] == kind
-
     def addtoken(i):
         nonlocal branch
         branch.append(tokens[i])

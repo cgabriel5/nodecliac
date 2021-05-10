@@ -103,6 +103,18 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
             SCOPE.pop()
             pops -= 1
 
+    def hasscope(s):
+        return s in SCOPE
+
+    def prevscope():
+        return SCOPE[-1]
+
+    def hasnext(s):
+        return s in NEXT
+
+    def nextany():
+        return NEXT[0] == ""
+
     def addbranch(b):
         nonlocal BRANCHES
         BRANCHES.append(b)
@@ -214,13 +226,13 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         expect("tkFVAL", "tkSTR", "tkFOPT", "tkDLS", "tkBRC_RP")
 
     def __flg__flg(kind):
-        if "tkBRC_LB" in SCOPE and token["line"] == prevtoken()["line"]:
+        if hasscope("tkBRC_LB") and token["line"] == prevtoken()["line"]:
             err(S["tid"], "<child>", "err: Flag same line (nth)")
         expect("", "tkASG", "tkQMK",
             "tkDCLN", "tkFVAL", "tkDPPE")
 
     def __flg__kyw(kind):
-        if "tkBRC_LB" in SCOPE and token["line"] == prevtoken()["line"]:
+        if hasscope("tkBRC_LB") and token["line"] == prevtoken()["line"]:
             err(S["tid"], "<child>", "err: Keyword same line (nth)")
         addscope(kind)
         expect("tkSTR", "tkDLS")
@@ -286,12 +298,12 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
     def __dls__brc_rp(kind):
         popscope()
 
-        if SCOPE[-1] == "tkOPTS":
+        if prevscope() == "tkOPTS":
             expect("tkFVAL", "tkBRC_RP")
         else:
-            if SCOPE[-1] == "tkKYW":
+            if prevscope() == "tkKYW":
                 popscope()
-                if "tkBRC_LB" in SCOPE:
+                if hasscope("tkBRC_LB"):
                     expect("tkDPPE", "tkBRC_RB")
                 else:
                     expect("", "tkDPPE", "tkFLG", "tkKYW")
@@ -320,14 +332,14 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         expect("tkFLG", "tkKYW", "tkBRC_RB")
 
     def __brc_lb__flg(kind):
-        if "tkBRC_LB" in SCOPE and token["line"] == prevtoken()["line"]:
+        if hasscope("tkBRC_LB") and token["line"] == prevtoken()["line"]:
             err(S["tid"], "<child>", "err: Flag same line (first)")
         addscope(kind)
         expect("tkASG", "tkQMK", "tkDCLN",
             "tkFVAL", "tkDPPE", "tkBRC_RB")
 
     def __brc_lb__kyw(kind):
-        if "tkBRC_LB" in SCOPE and token["line"] == prevtoken()["line"]:
+        if hasscope("tkBRC_LB") and token["line"] == prevtoken()["line"]:
             err(S["tid"], "<child>", "err: Keyword same line (first)")
         addscope(kind)
         expect("tkSTR", "tkDLS", "tkBRC_RB")
@@ -474,7 +486,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
                 newbranch()
                 expect("")
             else:
-                if NEXT and NEXT[0] != "":
+                if NEXT and not nextany():
                     err(ttid, "<child>", "Improper termination")
 
             i += 1
@@ -518,15 +530,15 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
                 continue
 
             # Remove/add necessary tokens when parsing long flag form.
-            if "tkBRC_LB" in SCOPE:
-                if "tkDPPE" in NEXT:
+            if hasscope("tkBRC_LB"):
+                if hasnext("tkDPPE"):
                     NEXT.remove("tkDPPE")
                     NEXT.append("tkFLG")
                     NEXT.append("tkKYW")
                     NEXT.append("tkBRC_RB")
 
-            if NEXT and kind not in NEXT:
-                if NEXT[0] == "":
+            if NEXT and not hasnext(kind):
+                if nextany():
                     clearscope()
                     newbranch()
                     continue
@@ -538,16 +550,16 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
 
             # Oneliners must be declared on oneline, else error.
             if branch[0]["kind"] == "tkCMD" and (
-                (("tkFLG" in SCOPE or "tkKYW" in SCOPE)
+                ((hasscope("tkFLG") or hasscope("tkKYW"))
                 or kind in ("tkFLG", "tkKYW"))
-                and "tkBRC_LB" not in SCOPE):
+                and not hasscope("tkBRC_LB")):
                 if oneliner == -1: oneliner = token["line"]
                 elif token["line"] != oneliner:
                     err(S["tid"], "<child>", "Improper oneliner.")
 
             # [TODO] Improve this error handling.
-            if kind in DISPATCH[SCOPE[-1]]:
-                DISPATCH[SCOPE[-1]][kind](kind)
+            if kind in DISPATCH[prevscope()]:
+                DISPATCH[prevscope()][kind](kind)
             else:
                 err(tokens[S["tid"]]["tid"], "<term>", f"Try/catch {kind}")
 

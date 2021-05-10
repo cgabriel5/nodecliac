@@ -11,7 +11,7 @@ def vsetting(S):
     line = token["line"]
     index = token["start"]
 
-    settings = ["compopt", "filedir", "disable", "placehold"]
+    settings = ["compopt", "filedir", "disable", "placehold", "test"]
 
     setting = StringBuilder()
     for i in range(start + 1, end + 1):

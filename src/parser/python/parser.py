@@ -517,6 +517,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
                         expect("", "tkDDOT", "tkASG", "tkDCMA")
                 else:
                     if kind == "tkCMT":
+                        addbranch(branch)
                         newbranch()
                         expect("")
                     else: # Handle unexpected parent tokens.

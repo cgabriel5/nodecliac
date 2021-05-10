@@ -37,6 +37,11 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
     }
 
     def err(tid, etype, message):
+        # When token ID points to end-of-parsing token,
+        # reset the id to the last true token before it.
+        if tokens[tid]["kind"] == "tkEOP":
+            tid = ttids[-1]
+
         token = tokens[tid]
         line = token["line"]
         index = token["start" if etype != "<term>" else "end"]

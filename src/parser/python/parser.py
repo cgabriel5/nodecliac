@@ -267,19 +267,20 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         expect("tkSTR", "tkDLS")
 
     def __dls__brc_rp(kind):
-        isdls = SCOPE[-1] == "tkDLS"
         popscope()
+
         if SCOPE[-1] == "tkOPTS":
             expect("tkFVAL", "tkBRC_RP")
         else:
-            if SCOPE[-1] == "tkKYW" and "tkBRC_LB" in SCOPE:
+            if SCOPE[-1] == "tkKYW":
                 popscope()
-                expect("tkDPPE", "tkBRC_RB")
+                if "tkBRC_LB" in SCOPE:
+                    expect("tkDPPE", "tkBRC_RB")
+                else:
+                    expect("", "tkDPPE", "tkFLG", "tkKYW")
             else:
-                if not isdls:
-                    expect("", "tkDPPE", "tkBRC_RB")
-                else: # Handle: 'program = --flag=(1 2 $("cmd"))'
-                    expect("tkFVAL", "tkSTR", "tkDLS", "tkBRC_RP")
+                # Handle: 'program = --flag=(1 2 $("cmd"))'
+                expect("tkFVAL", "tkSTR", "tkDLS", "tkBRC_RP")
 
     def __opts__fopt(kind):
         if prevtoken()["line"] == line:

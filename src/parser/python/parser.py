@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import json
 from issue import Issue
 from validation import vsetting, vvariable, vstring, vsetting_aval
 
@@ -46,6 +45,26 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         line = token["line"]
         index = token["start" if etype != "<term>" else "end"]
         msg = f"{etype} {message}"
+
+        # Add token debug information.
+        dbeugmsg = "\n\n\033[1mToken\033[0m: "
+        dbeugmsg += "\n - tid: " + str(token["tid"])
+        dbeugmsg += "\n - kind: " + token["kind"]
+        dbeugmsg += "\n - line: " + str(token["line"])
+        dbeugmsg += "\n - start: " + str(token["start"])
+        dbeugmsg += "\n - end: " + str(token["end"])
+
+        dbeugmsg += "\n\n\033[1mExpected\033[0m: "
+        for n in NEXT:
+            if not n: n = "\"\""
+            dbeugmsg += "\n - " + n
+        dbeugmsg += "\n\n\033[1mScopes\033[0m: "
+        for s in SCOPE:
+            dbeugmsg += "\n - " + s
+        decor = "-" * 15
+        msg += "\n\n" + decor + " TOKEN_DEBUG_INFO " + decor
+        msg += dbeugmsg
+        msg += "\n\n" + decor + " TOKEN_DEBUG_INFO " + decor
 
         Issue().error(filename, line, index - LINESTARTS[line], msg)
 
@@ -490,9 +509,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
                         newbranch()
                         expect("")
                     else: # Handle unexpected parent tokens.
-                        message = "\n\n\033[1mToken\033[0m: " + kind + " = "
-                        message += json.dumps(token, indent = 2).replace('"', "")
-                        err(S["tid"], "<parent>", message)
+                        err(S["tid"], "<parent>", "- Unexpected parent token.")
 
         else:
 
@@ -516,20 +533,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
                     continue
 
                 else:
-                    if kind == "tkEOP":
-                        token = tokens[S["tid"]]
-                        kind = token["kind"]
-
-                    message = "\n\n\033[1mToken\033[0m: " + kind + " = "
-                    message += json.dumps(token, indent = 2).replace('"', "")
-                    message += "\n\n\033[1mExpected\033[0m: "
-                    for n in NEXT:
-                        if not n: n = "\"\""
-                        message += "\n - " + n
-                    message += "\n\n\033[1mScopes\033[0m: "
-                    for s in SCOPE:
-                        message += "\n - " + s
-                    err(S["tid"], "<child>", message)
+                    err(S["tid"], "<child>", "- Unexpected child token.")
 
             addtoken(ttid)
 

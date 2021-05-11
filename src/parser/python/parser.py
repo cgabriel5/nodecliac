@@ -193,7 +193,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
 
     def __brc_lc__brc_rc(kind):
         popscope()
-        expect("", "tkDDOT", "tkASG")
+        expect("", "tkDDOT", "tkASG", "tkDCMA")
 
     def __flg__dcln(kind):
         if prevtoken()["kind"] != "tkDCLN":

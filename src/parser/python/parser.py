@@ -23,6 +23,11 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
     BRANCHES = []
     oneliner = -1
 
+    chain = []
+    CCHAINS = []
+    FLAGS = {}
+    flag = {}
+
     i = 0
     l = len(tokens)
 
@@ -126,6 +131,53 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
     def prevtoken():
         return tokens[dtids[S["tid"]]]
 
+    # Command chain/flag grouping helpers.
+    # ================================
+
+    def newgroup():
+        nonlocal chain
+        chain = []
+
+    def addtoken_group(i):
+        nonlocal chain
+        chain.append(i)
+
+    def addgroup(g):
+        nonlocal CCHAINS
+        CCHAINS.append([g])
+
+    def addtoprevgroup():
+        nonlocal chain, CCHAINS
+        newgroup()
+        CCHAINS[-1].append(chain)
+
+    def setflagprop(prop):
+        nonlocal flag
+        if prop != "values":
+            flag[prop] = S["tid"]
+        else:
+            flag[prop].append([S["tid"]])
+
+    def newflag():
+        nonlocal flag, FLAGS
+        flag = {"values": []}
+        setflagprop("tid")
+        FLAGS[len(CCHAINS) - 1] = flag
+
+    def newvaluegroup(prop):
+        nonlocal flag
+        flag[prop].append([-1])
+
+    def setflagprop(prop, prev_val_group = False):
+        nonlocal flag
+        if prop != "values":
+            flag[prop] = S["tid"]
+        else:
+            if not prev_val_group:
+                flag[prop].append([S["tid"]])
+            else:
+                flag[prop][-1].append(S["tid"])
+
     # ============================
 
     def __stn__asg(kind):
@@ -163,11 +215,15 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         expect("", "tkCMD")
 
     def __cmd__flg(kind):
+        newflag()
+
         addscope(kind)
         expect("", "tkASG", "tkQMK", "tkDCLN",
             "tkFVAL", "tkDPPE", "tkBRC_RB")
 
     def __cmd__kyw(kind):
+        newflag()
+
         addscope(kind)
         expect("tkSTR", "tkDLS")
 
@@ -175,23 +231,33 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         expect("tkCMD", "tkBRC_LC")
 
     def __cmd__cmd(kind):
+        addtoken_group(S["tid"])
+
         expect("", "tkDDOT", "tkASG", "tkDCMA")
 
     def __cmd__brc_lc(kind):
+        addtoken_group(-1)
+
         addscope(kind)
         expect("tkCMD")
 
     def __cmd__dcma(kind):
+        addtoprevgroup()
+
         addscope(kind)
         expect("tkCMD")
 
     def __brc_lc__cmd(kind):
+        addtoken_group(S["tid"])
+
         expect("tkDCMA", "tkBRC_RC")
 
     def __brc_lc__dcma(kind):
         expect("tkCMD")
 
     def __brc_lc__brc_rc(kind):
+        addtoken_group(-1)
+
         popscope()
         expect("", "tkDDOT", "tkASG", "tkDCMA")
 
@@ -202,12 +268,18 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
             expect("tkFLGA")
 
     def __flg__flga(kind):
+        setflagprop("alias")
+
         expect("", "tkASG", "tkQMK", "tkDPPE")
 
     def __flg__qmk(kind):
+        setflagprop("boolean")
+
         expect("", "tkDPPE")
 
     def __flg__asg(kind):
+        setflagprop("assignment")
+
         expect("", "tkDCMA", "tkMTL", "tkDPPE", "tkBRC_LP",
             "tkFVAL", "tkSTR", "tkDLS", "tkBRC_RB")
 
@@ -215,6 +287,8 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         expect("tkFLG", "tkKYW")
 
     def __flg__mtl(kind):
+        setflagprop("multi")
+
         expect("", "tkBRC_LP", "tkDPPE")
 
     def __flg__dls(kind):
@@ -241,6 +315,8 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         expect("", "tkDPPE")
 
     def __flg__fval(kind):
+        setflagprop("values")
+
         expect("", "tkDPPE")
 
     def __flg__dppe(kind):
@@ -259,9 +335,13 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
             expect("tkFVAL", "tkSTR", "tkDLS")
 
     def __brc_lp__fval(kind):
+        setflagprop("values")
+
         expect("tkFVAL", "tkSTR", "tkDLS", "tkBRC_RP")
 
     def __brc_lp__str(kind):
+        setflagprop("values")
+
         expect("tkFVAL", "tkSTR", "tkDLS", "tkBRC_RP")
 
     def __brc_lp__dls(kind):
@@ -284,6 +364,9 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         expect("")
 
     def __dls__brc_lp(kind):
+        newvaluegroup("values")
+        setflagprop("values", prev_val_group=True)
+
         expect("tkSTR")
 
     def __dls__dls(kind):
@@ -297,6 +380,8 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
 
     def __dls__brc_rp(kind):
         popscope()
+
+        setflagprop("values", prev_val_group=True)
 
         if prevscope() == "tkOPTS":
             expect("tkFVAL", "tkBRC_RP")
@@ -322,9 +407,13 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         expect("tkBRC_LP")
 
     def __opts__fval(kind):
+        setflagprop("values")
+
         expect("tkFOPT", "tkBRC_RP")
 
     def __opts__str(kind):
+        setflagprop("values")
+
         expect("tkFOPT", "tkBRC_RP")
 
     def __opts__brc_rp(kind):
@@ -332,6 +421,8 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         expect("tkFLG", "tkKYW", "tkBRC_RB")
 
     def __brc_lb__flg(kind):
+        newflag()
+
         if hasscope("tkBRC_LB") and token["line"] == prevtoken()["line"]:
             err(S["tid"], "<child>", "err: Flag same line (first)")
         addscope(kind)
@@ -339,6 +430,8 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
             "tkFVAL", "tkDPPE", "tkBRC_RB")
 
     def __brc_lb__kyw(kind):
+        newflag()
+
         if hasscope("tkBRC_LB") and token["line"] == prevtoken()["line"]:
             err(S["tid"], "<child>", "err: Keyword same line (first)")
         addscope(kind)
@@ -353,6 +446,8 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
             warn(prevtk["tid"], "Empty scope (command)")
 
     def __kyw__str(kind):
+        setflagprop("values")
+
         popscope()
         addscope("tkFLG") # Re-use flag pathways for now.
         expect("", "tkDPPE")
@@ -377,6 +472,8 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         expect("tkFLG", "tkKYW")
 
     def __dcma__cmd(kind):
+        addtoken_group(S["tid"])
+
         popscope()
         expect("", "tkDDOT", "tkASG", "tkDCMA")
 
@@ -514,6 +611,9 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
                         vvariable(S)
                         expect("", "tkASG")
                     elif kind == "tkCMD":
+                        addtoken_group(S["tid"])
+                        addgroup(chain)
+
                         expect("", "tkDDOT", "tkASG", "tkDCMA")
                 else:
                     if kind == "tkCMT":
@@ -542,6 +642,8 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
                 if nextany():
                     clearscope()
                     newbranch()
+
+                    newgroup()
                     continue
 
                 else:
@@ -566,4 +668,4 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
 
         i += 1
 
-    return BRANCHES
+    return (BRANCHES, CCHAINS, FLAGS, S)

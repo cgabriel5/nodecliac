@@ -303,12 +303,16 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         expect("tkFVAL", "tkSTR", "tkFOPT", "tkDLS", "tkBRC_RP")
 
     def __flg__flg(kind):
+        newflag()
+
         if hasscope("tkBRC_LB") and token["line"] == prevtoken()["line"]:
             err(S["tid"], "<child>", "err: Flag same line (nth)")
         expect("", "tkASG", "tkQMK",
             "tkDCLN", "tkFVAL", "tkDPPE")
 
     def __flg__kyw(kind):
+        newflag()
+
         if hasscope("tkBRC_LB") and token["line"] == prevtoken()["line"]:
             err(S["tid"], "<child>", "err: Keyword same line (nth)")
         addscope(kind)

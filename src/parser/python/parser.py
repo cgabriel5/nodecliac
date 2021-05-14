@@ -162,7 +162,10 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
             "values": []
         }
         setflagprop("tid")
-        FLAGS[len(CCHAINS) - 1] = flag
+        index = len(CCHAINS) - 1
+        if index not in FLAGS:
+            FLAGS[index] = []
+        FLAGS[index].append(flag)
 
     def newvaluegroup(prop):
         nonlocal flag

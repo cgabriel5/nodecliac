@@ -151,13 +151,6 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         newgroup()
         CCHAINS[-1].append(chain)
 
-    def setflagprop(prop):
-        nonlocal flag
-        if prop != "values":
-            flag[prop] = S["tid"]
-        else:
-            flag[prop].append([S["tid"]])
-
     def newflag():
         nonlocal flag, FLAGS
         flag = {"values": []}

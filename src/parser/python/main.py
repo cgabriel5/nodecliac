@@ -5,6 +5,7 @@ import sys, ntpath
 
 from lexer import tokenizer, LINESTARTS
 from parser import parser
+from acdef import acdef
 from pathlib import Path  # [https://stackoverflow.com/a/66195538]
 
 def main():
@@ -20,23 +21,6 @@ def main():
             sys.exit(f"{filepath} does not exist.")
 
         filename = ntpath.basename(filepath)
-        BRANCHES = parser(filename, text, LINESTARTS, *tokenizer(text))
-
-        print("\nBRANCHES", len(BRANCHES), "\n")
-        for branch in BRANCHES:
-            output = ""
-            tids = []
-            for token in branch:
-                start = token["start"]
-                end = token["end"]
-                tid = token["tid"]
-                output += text[start:end + 1]
-                tids.append(tid)
-                # print(token)
-
-            # print("[tids]", tids)
-            print("[BRANCH] <" + output + ">")
-
-            print("")
+        acdef(*parser(filename, text, LINESTARTS, *tokenizer(text)))
 
 main()

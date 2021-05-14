@@ -394,8 +394,8 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
             expect("tkFVAL", "tkBRC_RP")
         else:
             if prevscope() in ("tkFLG", "tkKYW"):
-                popscope()
                 if hasscope("tkBRC_LB"):
+                    popscope()
                     expect("tkDPPE", "tkBRC_RB")
                 else:
                     expect("", "tkDPPE", "tkFLG", "tkKYW")

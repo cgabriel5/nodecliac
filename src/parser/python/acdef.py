@@ -189,7 +189,7 @@ def acdef(branches, cchains, flags, S):
                 # Create missing parent chains.
                 commands = re.split(r'(?<!\\)\.', chain)
                 commands.pop() # Remove last command (already made).
-                for i in range(len(commands) - 1, -1, -1):
+                for _ in range(len(commands) - 1, -1, -1):
                     rchain = ".".join(commands) # Remainder chain.
 
                     if rchain not in oSets:

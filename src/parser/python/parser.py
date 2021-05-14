@@ -153,7 +153,14 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
 
     def newflag():
         nonlocal flag, FLAGS
-        flag = {"values": []}
+        flag = {
+            "tid": -1,
+            "alias": -1,
+            "boolean": -1,
+            "assignment": -1,
+            "multi": -1,
+            "values": []
+        }
         setflagprop("tid")
         FLAGS[len(CCHAINS) - 1] = flag
 

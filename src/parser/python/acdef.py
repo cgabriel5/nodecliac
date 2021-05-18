@@ -51,8 +51,6 @@ def acdef(branches, cchains, flags, S):
     header = "# DON'T EDIT FILE —— GENERATED: " + ctime + "\n\n"
     # if S.args.test: header = ""
 
-    print(header, end="")
-
     def tkstr(tid):
         if tid == -1: return ""
         return text[tokens[tid]["start"]:tokens[tid]["end"] + 1]
@@ -347,5 +345,9 @@ def acdef(branches, cchains, flags, S):
 
         acdef_lines.append(row)
 
+    print(header, end="")
     acdef_contents = "\n".join(mapsort(acdef_lines, asort, aobj))
     print(acdef_contents)
+    print(defaults)
+    print(filedirs)
+    print(contexts)

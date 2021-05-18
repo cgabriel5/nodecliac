@@ -10,19 +10,18 @@ from collections import OrderedDict
 
 def acdef(branches, cchains, flags, S):
 
-    tokens = S["tokens"]
     text = S["text"]
+    tokens = S["tokens"]
 
     def tkstr(tid):
         if tid == -1: return ""
         return text[tokens[tid]["start"]:tokens[tid]["end"] + 1]
 
-    oFlags = {}
-
-    # oSets = OrderedDict()
     oSets = {}
+    oFlags = {}
     oParents = {}
-    oGroups = OrderedDict()
+    wildcards = []
+    NOFLAGS = {"--": 1}
 
     oKeywords = {}
     oDefaults = {}
@@ -42,10 +41,6 @@ def acdef(branches, cchains, flags, S):
     filedirs = ""
     contexts = ""
     has_root = False
-
-    wildcards = []
-
-    NOFLAGS = {"--": 1}
 
     # Escape '+' chars in commands. [https://stackoverflow.com/a/678242]
     rcmdname = re.sub(r'\+', "\\+", os.path.splitext(S["filename"])[0])

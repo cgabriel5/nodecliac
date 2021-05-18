@@ -2,7 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import re
+import os
+import time
 import functools
+from datetime import datetime
+from collections import OrderedDict
 
 def acdef(branches, cchains, flags, S):
 
@@ -13,12 +17,38 @@ def acdef(branches, cchains, flags, S):
         if tid == -1: return ""
         return text[tokens[tid]["start"]:tokens[tid]["end"] + 1]
 
-    oSets = {}
     oFlags = {}
+
+    # oSets = OrderedDict()
+    oSets = {}
+    oParents = {}
+    oGroups = OrderedDict()
+
+    oKeywords = {}
+    oDefaults = {}
+    oFiledirs = {}
+    oExcludes = {}
+    oContexts = {}
+
+    oSettings = OrderedDict()
+    settings_count = 0
+    oPlaceholders = {}
+    omd5Hashes = {}
+    count = 0
+    acdef = ""
+    acdef_lines = []
+    config = ""
+    defaults = ""
+    filedirs = ""
+    contexts = ""
+    has_root = False
+
+    wildcards = []
 
     NOFLAGS = {"--": 1}
 
-    rcmdname = "a"
+    # Escape '+' chars in commands. [https://stackoverflow.com/a/678242]
+    rcmdname = re.sub(r'\+', "\\+", os.path.splitext(S["filename"])[0])
     r = re.compile(f"^({rcmdname}|[-_a-zA-Z0-9]+)")
 
     date = time.time()
@@ -97,62 +127,88 @@ def acdef(branches, cchains, flags, S):
     # @param  {string} command - The command chain.
     # @return {string} - Modified chain.
     def rm_fcmd(chain):
-        return re.sub(r, "", chain)
+        return chain
+        # return re.sub(r, "", chain)
+
+    def queue(gid, queue_flags, queue_keywords = {}): #, queue_keywords):
+        tid = flg["tid"]
+        assignment = tkstr(flg["assignment"])
+        boolean = tkstr(flg["boolean"])
+        flag = tkstr(tid)
+        ismulti = tkstr(flg["multi"])
+        values = flg["values"]
+
+        kind = tokens[tid]["kind"]
+
+        if kind == "tkKYW":
+            nonlocal oKeywords
+            if gid not in oKeywords:
+                oKeywords[gid] = {}
+            container = oKeywords.get(gid, {})
+
+            if len(values[0]) == 1:
+                container[flag] = tkstr(values[0][0])
+            else:
+                strs = []
+                for tid in range(values[0][1]+1, values[0][2]):
+                    if S["tokens"][tid]["kind"] in ("tkSTR", "tkDLS"):
+                        if strs and strs[-1] == "$":
+                            strs[-1] = "$" + tkstr(tid)
+                        else:
+                            strs.append(tkstr(tid))
+
+                container[flag] = "$(" + ",".join(strs) + ")"
+
+            return
+
+        # Flag with values: build each flag + value.
+        if values:
+            # Baseflag: add multi-flag indicator?
+            # Add base flag to Set (adds '--flag=' or '--flag=*').
+            queue_flags[f"{flag}={'*' if ismulti else ''}"] = 1
+            mflag = f"{flag}={'' if ismulti else '*'}"
+            if mflag in queue_flags:
+                del queue_flags[mflag]
+
+            for value in values:
+                if len(value) == 1: # Single
+                    queue_flags[flag + assignment + tkstr(value[0])] = 1
+                else: # Command-string
+                    strs = []
+                    for tid in range(value[1]+1, value[2]):
+                        if S["tokens"][tid]["kind"] in ("tkSTR", "tkDLS"):
+                            if strs and strs[-1] == "$":
+                                strs[-1] = "$" + tkstr(tid)
+                            else:
+                                strs.append(tkstr(tid))
+
+                    queue_flags[flag + assignment + "$(" + ",".join(strs) + ")"] = 1
+
+        else:
+            if not ismulti:
+                if boolean: queue_flags[flag + "?"] = 1
+                elif assignment: queue_flags[flag + "="] = 1
+                else: queue_flags[flag] = 1
+            else:
+                queue_flags[flag + "=*"] = 1
+                queue_flags[flag + "="] = 1
+
 
     for i, group in enumerate(cchains):
 
         if i in flags:
 
             queue_flags = {}
-
+            queue_keywords = {}
             for flg in flags[i]:
+                queue(i, queue_flags, queue_keywords)
 
-                tid = flg["tid"]
-                assignment = tkstr(flg["assignment"])
-                boolean = tkstr(flg["boolean"])
-                flag = tkstr(tid)
-                ismulti = tkstr(flg["multi"])
-                values = flg["values"]
-
-                if flag in ("default"):
-                    continue
-
-                # Flag with values: build each flag + value.
-                if values:
-                    # Baseflag: add multi-flag indicator?
-                    # Add base flag to Set (adds '--flag=' or '--flag=*').
-                    queue_flags[f"{flag}={'*' if ismulti else ''}"] = 1
-                    mflag = f"{flag}={'' if ismulti else '*'}"
-                    if mflag in queue_flags:
-                        del queue_flags[mflag]
-
-                    for value in values:
-                        if len(value) == 1: # Single
-                            queue_flags[flag + assignment + tkstr(value[0])] = 1
-                        else: # Command-string
-                            strs = []
-                            for tid in range(value[1]+1, value[2]):
-                                if S["tokens"][tid]["kind"] in ("tkSTR", "tkDLS"):
-                                    if strs and strs[-1] == "$":
-                                        strs[-1] = "$" + tkstr(tid)
-                                    else:
-                                        strs.append(tkstr(tid))
-
-                            queue_flags[flag + assignment + "$(" + ",".join(strs) + ")"] = 1
-
-                else:
-                    if not ismulti:
-                        if boolean: queue_flags[flag + "?"] = 1
-                        elif assignment: queue_flags[flag + "="] = 1
-                        else: queue_flags[flag] = 1
-                    else:
-                        queue_flags[flag + "=*"] = 1
-                        queue_flags[flag + "="] = 1
-
-            oFlags[i] = queue_flags
+            if queue_flags:
+                oFlags[i] = queue_flags
 
         else:
-            oFlags[i] = NOFLAGS
+            # oFlags[i] = NOFLAGS
+            oFlags[i] = {}
 
         for chain in group:
 
@@ -162,8 +218,7 @@ def acdef(branches, cchains, flags, S):
             expandables = []
             indices = []
 
-            for j, command in enumerate(chain):
-
+            for _, command in enumerate(chain):
                 if command == -1:
                     if not expand: expand = True
                     else: expand = False
@@ -197,6 +252,41 @@ def acdef(branches, cchains, flags, S):
                 chains.append(template)
 
             for chain in chains:
+
+                # Skip wildcards here, add flags post loop.
+                if chain == "*":
+                    wildcards.append(i)
+
+                    if i in oKeywords:
+                        if "exclude" in oKeywords[i]:
+                            row = oKeywords[i]["exclude"]
+                            oExcludes[row[1:-1]] = 1
+
+                    continue
+
+                if i in oFlags:
+                    if chain not in oSets:
+                        oSets[chain] = oFlags[i].copy()
+                    else:
+                        oSets[chain].update(oFlags[i])
+                else:
+                    if chain not in oSets:
+                        oSets[chain] = {}
+
+                if i in oKeywords:
+                    for row in oKeywords[i]:
+                        container = None
+                        if row == "default":
+                            container = oDefaults
+                        elif row == "filedir":
+                            container = oFiledirs
+                        elif row == "context":
+                            container = oContexts
+                        elif row == "exclude":
+                            container = oExcludes
+
+                        container[chain] = f"{row} {oKeywords[i][row]}"
+
                 # Create missing parent chains.
                 commands = re.split(r'(?<!\\)\.', chain)
                 commands.pop() # Remove last command (already made).
@@ -204,16 +294,62 @@ def acdef(branches, cchains, flags, S):
                     rchain = ".".join(commands) # Remainder chain.
 
                     if rchain not in oSets:
-                        oSets[rchain] = NOFLAGS
+                        oParents[rchain] = NOFLAGS
                     commands.pop() # Remove last command.
 
-                oSets[chain] = oFlags[i]
+    for _ in oParents:
+        if _ not in oSets:
+            oSets[_] = NOFLAGS
+
+    # Deal with any wildcard commands.
+    if wildcards:
+        for chain in oSets:
+            if chain in oExcludes: continue
+            for wid in wildcards:
+                for flg in flags[wid]:
+                    queue(wid, oSets[chain])
+
+                # [https://stackoverflow.com/a/15411146]
+                oSets[chain].pop("--", None)
+
+    # Build defaults contents.
+    defs = mapsort(list(oDefaults.keys()), asort, aobj)
+    dl = len(defs) - 1
+    for i, __def in enumerate(defs):
+        defaults += f"{rm_fcmd(__def)} {oDefaults[__def]}"
+        if i < dl: defaults += "\n"
+    if defaults: defaults = "\n\n" + defaults
+
+    # Build defaults contents.
+    fdirs = mapsort(list(oFiledirs.keys()), asort, aobj)
+    fl = len(fdirs) - 1
+    for i, __fdir in enumerate(fdirs):
+        filedirs += f"{rm_fcmd(__fdir)} {oFiledirs[__fdir]}"
+        if i < fl: filedirs += "\n"
+    if filedirs: filedirs = "\n\n" + filedirs
+
+    # Build contexts contents.
+    ctxlist = []
+    for context in oContexts: ctxlist.append(context)
+    ctxs = mapsort(list(oContexts.keys()), asort, aobj)
+    cl = len(ctxs) - 1
+    for i, __ctx in enumerate(ctxs):
+        contexts += f"{rm_fcmd(__ctx)} {oContexts[__ctx]}"
+        if i < cl: contexts += "\n"
+    if contexts: contexts = "\n\n" + contexts
 
     acdef_lines = []
     for key in oSets:
         flags = "|".join(mapsort(list(oSets[key].keys()), fsort, fobj))
+        if not flags: flags = "--"
 
         row = f"{rm_fcmd(key)} {flags}"
+
+        # Remove multiple ' --' command chains. Shouldn't be the
+        # case but happens when multiple main commands are used.
+        if row == " --" and not has_root: has_root = True
+        elif row == " --" and has_root: continue
+
         acdef_lines.append(row)
 
     acdef_contents = "\n".join(mapsort(acdef_lines, asort, aobj))

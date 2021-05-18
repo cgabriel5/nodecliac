@@ -21,6 +21,17 @@ def acdef(branches, cchains, flags, S):
     rcmdname = "a"
     r = re.compile(f"^({rcmdname}|[-_a-zA-Z0-9]+)")
 
+    date = time.time()
+    dt = datetime.fromtimestamp(date)
+    timestamp = round(date)
+    # [https://www.programiz.com/python-programming/datetime/strftime]
+    datestring = dt.strftime("%a %b %-d %Y %-H:%-M:%S")
+    ctime = datestring + " (" + str(timestamp) + ")"
+    header = "# DON'T EDIT FILE —— GENERATED: " + ctime + "\n\n"
+    # if S.args.test: header = ""
+
+    print(header, end="")
+
     def aobj(s):
         return { "val": s.lower() }
 

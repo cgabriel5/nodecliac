@@ -4,6 +4,7 @@
 import re
 import os
 import time
+import hashlib
 import functools
 from datetime import datetime
 from collections import OrderedDict
@@ -329,9 +330,21 @@ def acdef(branches, cchains, flags, S):
         if i < cl: contexts += "\n"
     if contexts: contexts = "\n\n" + contexts
 
+    placehold = "placehold" in oSettings and oSettings["placehold"] == "true"
     for key in oSets:
         flags = "|".join(mapsort(list(oSets[key].keys()), fsort, fobj))
         if not flags: flags = "--"
+
+        # Note: Placehold long flag sets to reduce the file's chars.
+        # When flag set is needed its placeholder file can be read.
+        if placehold and len(flags) >= 100:
+            if flags not in omd5Hashes:
+                # [https://stackoverflow.com/a/65613163]
+                md5hash = hashlib.md5(flag.encode()).hexdigest()[0:26]
+                oPlaceholders[md5hash] = flags
+                omd5Hashes[flags] = md5hash
+                flags = "--p#" + md5hash
+            else: flags = "--p#" + omd5Hashes[flags]
 
         row = f"{rm_fcmd(key)} {flags}"
 

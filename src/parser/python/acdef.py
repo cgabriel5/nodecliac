@@ -199,7 +199,6 @@ def acdef(branches, cchains, flags, S):
                 oFlags[i] = queue_flags
 
         else:
-            # oFlags[i] = NOFLAGS
             oFlags[i] = {}
 
         for chain in group:

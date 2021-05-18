@@ -13,10 +13,6 @@ def acdef(branches, cchains, flags, S):
     text = S["text"]
     tokens = S["tokens"]
 
-    def tkstr(tid):
-        if tid == -1: return ""
-        return text[tokens[tid]["start"]:tokens[tid]["end"] + 1]
-
     oSets = {}
     oFlags = {}
     oParents = {}
@@ -56,6 +52,10 @@ def acdef(branches, cchains, flags, S):
     # if S.args.test: header = ""
 
     print(header, end="")
+
+    def tkstr(tid):
+        if tid == -1: return ""
+        return text[tokens[tid]["start"]:tokens[tid]["end"] + 1]
 
     def aobj(s):
         return { "val": s.lower() }

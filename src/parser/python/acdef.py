@@ -329,7 +329,6 @@ def acdef(branches, cchains, flags, S):
         if i < cl: contexts += "\n"
     if contexts: contexts = "\n\n" + contexts
 
-    acdef_lines = []
     for key in oSets:
         flags = "|".join(mapsort(list(oSets[key].keys()), fsort, fobj))
         if not flags: flags = "--"

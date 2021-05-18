@@ -123,68 +123,69 @@ def acdef(branches, cchains, flags, S):
         return chain
         # return re.sub(r, "", chain)
 
-    def queue(gid, queue_flags, queue_keywords = {}): #, queue_keywords):
-        tid = flg["tid"]
-        assignment = tkstr(flg["assignment"])
-        boolean = tkstr(flg["boolean"])
-        flag = tkstr(tid)
-        ismulti = tkstr(flg["multi"])
-        values = flg["values"]
+    def queue(gid, flags, queue_flags):
+        for flg in flags:
+            tid = flg["tid"]
+            assignment = tkstr(flg["assignment"])
+            boolean = tkstr(flg["boolean"])
+            flag = tkstr(tid)
+            ismulti = tkstr(flg["multi"])
+            values = flg["values"]
 
-        kind = tokens[tid]["kind"]
+            kind = tokens[tid]["kind"]
 
-        if kind == "tkKYW":
-            nonlocal oKeywords
-            if gid not in oKeywords:
-                oKeywords[gid] = {}
-            container = oKeywords.get(gid, {})
+            if kind == "tkKYW":
+                nonlocal oKeywords
+                if gid not in oKeywords:
+                    oKeywords[gid] = {}
+                container = oKeywords.get(gid, {})
 
-            if len(values[0]) == 1:
-                container[flag] = tkstr(values[0][0])
-            else:
-                strs = []
-                for tid in range(values[0][1]+1, values[0][2]):
-                    if S["tokens"][tid]["kind"] in ("tkSTR", "tkDLS"):
-                        if strs and strs[-1] == "$":
-                            strs[-1] = "$" + tkstr(tid)
-                        else:
-                            strs.append(tkstr(tid))
-
-                container[flag] = "$(" + ",".join(strs) + ")"
-
-            return
-
-        # Flag with values: build each flag + value.
-        if values:
-            # Baseflag: add multi-flag indicator?
-            # Add base flag to Set (adds '--flag=' or '--flag=*').
-            queue_flags[f"{flag}={'*' if ismulti else ''}"] = 1
-            mflag = f"{flag}={'' if ismulti else '*'}"
-            if mflag in queue_flags:
-                del queue_flags[mflag]
-
-            for value in values:
-                if len(value) == 1: # Single
-                    queue_flags[flag + assignment + tkstr(value[0])] = 1
-                else: # Command-string
+                if len(values[0]) == 1:
+                    container[flag] = tkstr(values[0][0])
+                else:
                     strs = []
-                    for tid in range(value[1]+1, value[2]):
+                    for tid in range(values[0][1]+1, values[0][2]):
                         if S["tokens"][tid]["kind"] in ("tkSTR", "tkDLS"):
                             if strs and strs[-1] == "$":
                                 strs[-1] = "$" + tkstr(tid)
                             else:
                                 strs.append(tkstr(tid))
 
-                    queue_flags[flag + assignment + "$(" + ",".join(strs) + ")"] = 1
+                    container[flag] = "$(" + ",".join(strs) + ")"
 
-        else:
-            if not ismulti:
-                if boolean: queue_flags[flag + "?"] = 1
-                elif assignment: queue_flags[flag + "="] = 1
-                else: queue_flags[flag] = 1
+                return
+
+            # Flag with values: build each flag + value.
+            if values:
+                # Baseflag: add multi-flag indicator?
+                # Add base flag to Set (adds '--flag=' or '--flag=*').
+                queue_flags[f"{flag}={'*' if ismulti else ''}"] = 1
+                mflag = f"{flag}={'' if ismulti else '*'}"
+                if mflag in queue_flags:
+                    del queue_flags[mflag]
+
+                for value in values:
+                    if len(value) == 1: # Single
+                        queue_flags[flag + assignment + tkstr(value[0])] = 1
+                    else: # Command-string
+                        strs = []
+                        for tid in range(value[1]+1, value[2]):
+                            if S["tokens"][tid]["kind"] in ("tkSTR", "tkDLS"):
+                                if strs and strs[-1] == "$":
+                                    strs[-1] = "$" + tkstr(tid)
+                                else:
+                                    strs.append(tkstr(tid))
+
+                        queue_flags[flag + assignment + "$(" + ",".join(strs) + ")"] = 1
+
             else:
-                queue_flags[flag + "=*"] = 1
-                queue_flags[flag + "="] = 1
+                if not ismulti:
+                    if boolean: queue_flags[flag + "?"] = 1
+                    elif assignment: queue_flags[flag + "="] = 1
+                    else: queue_flags[flag] = 1
+                else:
+                    queue_flags[flag + "=*"] = 1
+                    queue_flags[flag + "="] = 1
 
 
     for i, group in enumerate(cchains):
@@ -192,9 +193,7 @@ def acdef(branches, cchains, flags, S):
         if i in flags:
 
             queue_flags = {}
-            queue_keywords = {}
-            for flg in flags[i]:
-                queue(i, queue_flags, queue_keywords)
+            queue(i, flags[i], queue_flags)
 
             if queue_flags:
                 oFlags[i] = queue_flags
@@ -299,8 +298,7 @@ def acdef(branches, cchains, flags, S):
         for chain in oSets:
             if chain in oExcludes: continue
             for wid in wildcards:
-                for flg in flags[wid]:
-                    queue(wid, oSets[chain])
+                queue(wid, flags[wid], oSets[chain])
 
                 # [https://stackoverflow.com/a/15411146]
                 oSets[chain].pop("--", None)

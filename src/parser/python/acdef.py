@@ -288,6 +288,7 @@ def acdef(branches, cchains, flags, S):
                         oParents[rchain] = NOFLAGS
                     commands.pop() # Remove last command.
 
+    # Add parent chains.
     for _ in oParents:
         if _ not in oSets:
             oSets[_] = NOFLAGS

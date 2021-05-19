@@ -133,9 +133,7 @@ def acdef(branches, cchains, flags, settings, S):
             ismulti = tkstr(flg["multi"])
             values = flg["values"]
 
-            kind = tokens[tid]["kind"]
-
-            if kind == "tkKYW":
+            if tokens[tid]["kind"] == "tkKYW":
                 nonlocal oKeywords
                 if gid not in oKeywords:
                     oKeywords[gid] = {}

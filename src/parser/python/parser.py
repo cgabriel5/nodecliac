@@ -183,6 +183,8 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         newgroup()
         CCHAINS[-1].append(chain)
 
+    # ============================
+
     def newflag():
         nonlocal flag, FLAGS
         flag = {

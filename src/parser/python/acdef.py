@@ -9,7 +9,7 @@ import functools
 from datetime import datetime
 from collections import OrderedDict
 
-def acdef(branches, cchains, flags, S):
+def acdef(branches, cchains, flags, settings, S):
 
     text = S["text"]
     tokens = S["tokens"]
@@ -188,6 +188,9 @@ def acdef(branches, cchains, flags, S):
                     queue_flags[flag + "=*"] = 1
                     queue_flags[flag + "="] = 1
 
+    # Populate settings object.
+    for setting in settings:
+        oSettings[tkstr(setting[0])[1:]] = tkstr(setting[2])
 
     for i, group in enumerate(cchains):
 
@@ -330,6 +333,13 @@ def acdef(branches, cchains, flags, S):
         if i < cl: contexts += "\n"
     if contexts: contexts = "\n\n" + contexts
 
+    # Build settings contents.
+    --settings_count
+    for setting in oSettings:
+        config += f"{setting} = {oSettings[setting]}"
+        if settings_count: config += "\n"
+        --settings_count
+
     placehold = "placehold" in oSettings and oSettings["placehold"] == "true"
     for key in oSets:
         flags = "|".join(mapsort(list(oSets[key].keys()), fsort, fobj))
@@ -361,3 +371,4 @@ def acdef(branches, cchains, flags, S):
     print(defaults)
     print(filedirs)
     print(contexts)
+    print(config)

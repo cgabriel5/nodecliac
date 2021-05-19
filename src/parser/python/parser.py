@@ -58,7 +58,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         dbeugmsg += "\n - line: " + str(token["line"])
         dbeugmsg += "\n - start: " + str(token["start"])
         dbeugmsg += "\n - end: " + str(token["end"])
-        dbeugmsg += "\n __val__: " + tkstr(tid)
+        dbeugmsg += "\n __val__: [" + tkstr(tid) + "]"
 
         dbeugmsg += "\n\n\033[1mExpected\033[0m: "
         for n in NEXT:
@@ -82,7 +82,8 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         Issue().warn(filename, line, index - LINESTARTS[line], message)
 
     def tkstr(tid):
-        return "[" + text[tokens[tid]["start"]:tokens[tid]["end"] + 1] + "]"
+        if tid == -1: return ""
+        return text[tokens[tid]["start"]:tokens[tid]["end"] + 1]
 
     def addtoken(i):
         nonlocal branch

@@ -680,7 +680,8 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
 
         if not SCOPE:
 
-            addtoken(ttid)
+            if kind != "tkEOP":
+                addtoken(ttid)
 
             if BRANCHES:
                 ltoken = BRANCHES[-1][-1] # Last branch token.

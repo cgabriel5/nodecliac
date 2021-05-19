@@ -30,6 +30,9 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
 
     setting = []
     SETTINGS = []
+    variable = []
+    VARIABLES = []
+    VARSTABLE = {}
     i = 0
     l = len(tokens)
 
@@ -205,6 +208,24 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         SETTINGS[-1].append(setting)
 
     # ============================
+
+    def newgroup_var():
+        nonlocal variable
+        variable = []
+
+    def addtoken_var_group(i):
+        nonlocal variable
+        variable.append(i)
+
+    def addgroup_var(g):
+        nonlocal VARIABLES
+        VARIABLES.append(g)
+
+    def addtoprevgroup_var():
+        nonlocal variable, VARIABLES
+        newgroup_var()
+        VARIABLES[-1].append(variable)
+
     # ============================
 
     def __stn__asg(kind):
@@ -229,9 +250,13 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         vsetting_aval(S)
 
     def __var__asg(kind):
+        addtoken_var_group(S["tid"])
+
         expect("tkSTR")
 
     def __var__str(kind):
+        addtoken_var_group(S["tid"])
+
         clearscope()
         newbranch()
 
@@ -649,6 +674,10 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
                         vsetting(S)
                         expect("", "tkASG")
                     elif kind == "tkVAR":
+                        newgroup_var()
+                        addgroup_var(variable)
+                        addtoken_var_group(S["tid"])
+
                         vvariable(S)
                         expect("", "tkASG")
                     elif kind == "tkCMD":

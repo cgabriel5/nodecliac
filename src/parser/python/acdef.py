@@ -334,7 +334,7 @@ def acdef(branches, cchains, flags, settings, S):
     # Build settings contents.
     --settings_count
     for setting in oSettings:
-        config += f"{setting} = {oSettings[setting]}"
+        config += f"@{setting} = {oSettings[setting]}"
         if settings_count: config += "\n"
         --settings_count
 

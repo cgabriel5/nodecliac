@@ -403,6 +403,8 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         expect("tkSTR", "tkDLS")
 
     def __flg__str(kind):
+        setflagprop("values")
+
         expect("", "tkDPPE")
 
     def __flg__fval(kind):

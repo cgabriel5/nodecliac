@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import re
 from issue import Issue
 from validation import vsetting, vvariable, vstring, vsetting_aval
 
@@ -13,6 +14,8 @@ C_DOLLARSIGN = '$'
 
 C_PRIM_TBOOL = "true"
 C_PRIM_FBOOL = "false"
+
+r = r"(?<!\\)\$\{\s*[^}]*\s*\}"
 
 def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
 
@@ -33,6 +36,8 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
     variable = []
     VARIABLES = []
     VARSTABLE = {}
+    vindices = {}
+
     i = 0
     l = len(tokens)
 
@@ -91,6 +96,27 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         return text[tokens[tid]["start"]:tokens[tid]["end"] + 1]
 
     def addtoken(i):
+
+        # Track variable interpolation indices for strings.
+        if tokens[i]["kind"] == "tkSTR":
+            if i not in vindices:
+                vindices[i] = []
+                # [https://stackoverflow.com/a/3519601]
+                # [https://docs.python.org/2/library/re.html#re.finditer]
+                for match in re.finditer(r, tkstr(i)):
+                    start = match.span()[0]
+                    end = len(match.group()) + start
+                    varname = match.group()[2:-1].strip()
+
+                    if varname not in VARSTABLE:
+                        # Note: Modify token index to point to
+                        # start of the variable position.
+                        tokens[S["tid"]]["start"] += start
+                        err(ttid, "<child>", "Undefined variable.")
+
+                    offset = tokens[i]["start"]
+                if not vindices[i]: del vindices[i]
+
         nonlocal branch
         branch.append(tokens[i])
 
@@ -256,6 +282,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
 
     def __var__str(kind):
         addtoken_var_group(S["tid"])
+        VARSTABLE[tkstr(branch[-3]["tid"])[1:]] = tkstr(S["tid"])
 
         clearscope()
         newbranch()
@@ -677,6 +704,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
                         newgroup_var()
                         addgroup_var(variable)
                         addtoken_var_group(S["tid"])
+                        VARSTABLE[tkstr(S["tid"])[1:]] = ""
 
                         vvariable(S)
                         expect("", "tkASG")

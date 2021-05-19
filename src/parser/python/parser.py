@@ -28,6 +28,8 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
     FLAGS = {}
     flag = {}
 
+    setting = []
+    SETTINGS = []
     i = 0
     l = len(tokens)
 
@@ -182,18 +184,45 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
             else:
                 flag[prop][-1].append(S["tid"])
 
+    # Setting/variable grouping helpers.
+    # ================================
+
+    def newgroup_stn():
+        nonlocal setting
+        setting = []
+
+    def addtoken_stn_group(i):
+        nonlocal setting
+        setting.append(i)
+
+    def addgroup_stn(g):
+        nonlocal SETTINGS
+        SETTINGS.append(g)
+
+    def addtoprevgroup_stn():
+        nonlocal setting, SETTINGS
+        newgroup_stn()
+        SETTINGS[-1].append(setting)
+
+    # ============================
     # ============================
 
     def __stn__asg(kind):
+        addtoken_stn_group(S["tid"])
+
         expect("tkSTR", "tkAVAL")
 
     def __stn__str(kind):
+        addtoken_stn_group(S["tid"])
+
         clearscope()
         newbranch()
 
         vstring(S)
 
     def __stn__aval(kind):
+        addtoken_stn_group(S["tid"])
+
         clearscope()
         newbranch()
 
@@ -613,6 +642,10 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
                     addbranch(branch)
                     addscope(kind)
                     if kind == "tkSTN":
+                        newgroup_stn()
+                        addgroup_stn(setting)
+                        addtoken_stn_group(S["tid"])
+
                         vsetting(S)
                         expect("", "tkASG")
                     elif kind == "tkVAR":
@@ -676,4 +709,4 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
 
         i += 1
 
-    return (BRANCHES, CCHAINS, FLAGS, S)
+    return (BRANCHES, CCHAINS, FLAGS, SETTINGS, S)

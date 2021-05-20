@@ -154,7 +154,7 @@ def acdef(branches, cchains, flags, settings, S):
 
                     container[flag] = "$(" + ",".join(strs) + ")"
 
-                return
+                continue
 
             # Flag with values: build each flag + value.
             if values:

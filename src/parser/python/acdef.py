@@ -351,7 +351,7 @@ def acdef(branches, cchains, flags, settings, S):
         if placehold and len(flags) >= 100:
             if flags not in omd5Hashes:
                 # [https://stackoverflow.com/a/65613163]
-                md5hash = hashlib.md5(flag.encode()).hexdigest()[0:26]
+                md5hash = hashlib.md5(flags.encode()).hexdigest()[0:26]
                 oPlaceholders[md5hash] = flags
                 omd5Hashes[flags] = md5hash
                 flags = "--p#" + md5hash

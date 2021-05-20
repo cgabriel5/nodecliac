@@ -366,9 +366,13 @@ def acdef(branches, cchains, flags, settings, S):
 
         acdef_lines.append(row)
 
-    print(header, end="")
+    # If contents exist, add newline after header.
+    sheader = re.sub(r"\n$", "", header)
     acdef_contents = "\n".join(mapsort(acdef_lines, asort, aobj))
-    print(acdef_contents)
+    acdef = header + acdef_contents if acdef_contents else sheader
+    config = header + config if config else sheader
+
+    print(acdef)
     print(defaults)
     print(filedirs)
     print(contexts)

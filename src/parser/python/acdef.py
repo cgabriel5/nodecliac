@@ -334,11 +334,12 @@ def acdef(branches, cchains, flags, settings, S):
     if contexts: contexts = "\n\n" + contexts
 
     # Build settings contents.
-    --settings_count
+    settings_count = len(oSettings)
+    settings_count -= 1
     for setting in oSettings:
         config += f"@{setting} = {oSettings[setting]}"
         if settings_count: config += "\n"
-        --settings_count
+        settings_count -= 1
 
     placehold = "placehold" in oSettings and oSettings["placehold"] == "true"
     for key in oSets:

@@ -54,6 +54,8 @@ def acdef(branches, cchains, flags, settings, S):
 
     def tkstr(tid):
         if tid == -1: return ""
+        # Return interpolated string for string tokens.
+        if tokens[tid]["kind"] == "tkSTR": return tokens[tid]["$"]
         return text[tokens[tid]["start"]:tokens[tid]["end"] + 1]
 
     def aobj(s):

@@ -596,7 +596,7 @@ $ program [subcommand ...] [-a | -b] [--a-opt <Number> | --b-opt <String>] [file
 ## Syntax
 
 <details>
-  <summary><code>acmap</code> (<b>a</b>uto-<b>c</b>ompletion <b>map</b>) is a purposefully simple syntax which <i>maps</i> a program's commands to their flags in <code>.acmap</code> files.</summary>
+  <summary><code>acmap</code> (<b>a</b>uto-<b>c</b>ompletion <b>map</b>) is a simple <a href="https://en.wikipedia.org/wiki/Domain-specific_language" target="_blank">domain-specific language</a> which <i>maps</i> a program's commands to their flags in <code>.acmap</code> files.</summary>
 
 ###### Constructs:
 
@@ -1328,7 +1328,7 @@ program.cache = --clear?
 </details>
 
 <details>
-  <summary><code>acdef</code> (<b>a</b>uto-<b>c</b>ompletion <b>def</b>inition) uses a stripped down and condensed version of <code>acmap</code> syntax. It's devoid of unnecessary comments, newlines, etc. using only relevant information from an <code>.acmap</code> file.</summary>
+  <summary><code>acdef</code> (<b>a</b>uto-<b>c</b>ompletion <b>def</b>inition) is a subset of <code>acmap</code> syntax, is auto-generated, and is used to perform Bash completion lookups.</summary>
 
 ###### Constructs:
 

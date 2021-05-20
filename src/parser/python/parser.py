@@ -93,6 +93,8 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
 
     def tkstr(tid):
         if tid == -1: return ""
+        if tokens[tid]["kind"] == "tkSTR":
+            if "$" in tokens[tid]: return tokens[tid]["$"]
         return text[tokens[tid]["start"]:tokens[tid]["end"] + 1]
 
     def addtoken(i):

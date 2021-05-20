@@ -97,13 +97,21 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
 
     def addtoken(i):
 
-        # Track variable interpolation indices for strings.
+        # Interpolate/track interpolation indices for string.
         if tokens[i]["kind"] == "tkSTR":
+
+            value = tkstr(i)
+            tokens[i]["$"] = value
+
             if i not in vindices:
+                end = 0
+                pointer = 0
+                tmpstr = ""
                 vindices[i] = []
+
                 # [https://stackoverflow.com/a/3519601]
                 # [https://docs.python.org/2/library/re.html#re.finditer]
-                for match in re.finditer(r, tkstr(i)):
+                for match in re.finditer(r, value):
                     start = match.span()[0]
                     end = len(match.group()) + start
                     varname = match.group()[2:-1].strip()
@@ -114,7 +122,16 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
                         tokens[S["tid"]]["start"] += start
                         err(ttid, "<child>", "Undefined variable.")
 
-                    offset = tokens[i]["start"]
+                    vindices[i].append([start, end])
+
+                    tmpstr += value[pointer:start]
+                    tmpstr += VARSTABLE.get(varname, "")[1:-1]
+                    pointer = end + 1
+
+                # Get tail-end of string.
+                tmpstr += value[end:]
+                tokens[i]["$"] = tmpstr
+
                 if not vindices[i]: del vindices[i]
 
         nonlocal branch

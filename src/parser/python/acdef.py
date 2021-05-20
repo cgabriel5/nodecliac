@@ -190,7 +190,8 @@ def acdef(branches, cchains, flags, settings, S):
 
     # Populate settings object.
     for setting in settings:
-        oSettings[tkstr(setting[0])[1:]] = tkstr(setting[2])
+        name = tkstr(setting[0])[1:]
+        if name != "test": oSettings[name] = tkstr(setting[2])
 
     for i, group in enumerate(cchains):
 

@@ -131,12 +131,21 @@ def acdef(branches, cchains, flags, settings, S):
             tid = flg["tid"]
             assignment = tkstr(flg["assignment"])
             boolean = tkstr(flg["boolean"])
+            alias = tkstr(flg["alias"])
             flag = tkstr(tid)
             ismulti = tkstr(flg["multi"])
             values = flg["values"]
 
+            nonlocal oKeywords
+            if alias:
+                # nonlocal oKeywords
+                if gid not in oKeywords:
+                    oKeywords[gid] = {}
+                container = oKeywords.get(gid, {})
+                container["context"] = f"\"{{{flag.strip('-')}|{alias}}}\""
+
             if tokens[tid]["kind"] == "tkKYW":
-                nonlocal oKeywords
+                # nonlocal oKeywords
                 if gid not in oKeywords:
                     oKeywords[gid] = {}
                 container = oKeywords.get(gid, {})
@@ -165,9 +174,20 @@ def acdef(branches, cchains, flags, settings, S):
                 if mflag in queue_flags:
                     del queue_flags[mflag]
 
+                if alias:
+
+                    queue_flags[f"{'-' + alias}={'*' if ismulti else ''}"] = 1
+                    mflag = f"{'-' + alias}={'' if ismulti else '*'}"
+                    if mflag in queue_flags:
+                        del queue_flags[mflag]
+
                 for value in values:
                     if len(value) == 1: # Single
                         queue_flags[flag + assignment + tkstr(value[0])] = 1
+
+                        if alias:
+                            queue_flags['-' + alias + assignment + tkstr(value[0])] = 1
+
                     else: # Command-string
                         strs = []
                         for tid in range(value[1]+1, value[2]):
@@ -179,6 +199,9 @@ def acdef(branches, cchains, flags, settings, S):
 
                         queue_flags[flag + assignment + "$(" + ",".join(strs) + ")"] = 1
 
+                        if alias:
+                            queue_flags['-' + alias + assignment + "$(" + ",".join(strs) + ")"] = 1
+
             else:
                 if not ismulti:
                     if boolean: queue_flags[flag + "?"] = 1
@@ -187,6 +210,15 @@ def acdef(branches, cchains, flags, settings, S):
                 else:
                     queue_flags[flag + "=*"] = 1
                     queue_flags[flag + "="] = 1
+
+                if alias:
+                    if not ismulti:
+                        if boolean: queue_flags['-' + alias + "?"] = 1
+                        elif assignment: queue_flags['-' + alias + "="] = 1
+                        else: queue_flags['-' + alias] = 1
+                    else:
+                        queue_flags['-' + alias + "=*"] = 1
+                        queue_flags['-' + alias + "="] = 1
 
     # Populate settings object.
     for setting in settings:

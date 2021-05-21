@@ -387,7 +387,7 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
         setflagprop("assignment")
 
         expect("", "tkDCMA", "tkMTL", "tkDPPE", "tkBRC_LP",
-            "tkFVAL", "tkTBD", "tkSTR", "tkDLS", "tkBRC_RB")
+            "tkFVAL", "tkSTR", "tkDLS", "tkBRC_RB")
 
     def __flg__dcma(kind):
         expect("tkFLG", "tkKYW")
@@ -420,12 +420,6 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
             err(S["tid"], "<child>", "err: Keyword same line (nth)")
         addscope(kind)
         expect("tkSTR", "tkDLS")
-
-    # [TODO] Find better method to handle tkTBD tokens.
-    def __flg__tbd(kind):
-        setflagprop("values")
-
-        expect("", "tkDPPE")
 
     def __flg__str(kind):
         setflagprop("values")
@@ -632,7 +626,6 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
             "tkBRC_LP": __flg__brc_lp,
             "tkFLG": __flg__flg,
             "tkKYW": __flg__kyw,
-            "tkTBD": __flg__tbd,
             "tkSTR": __flg__str,
             "tkFVAL": __flg__fval,
             "tkDPPE": __flg__dppe,

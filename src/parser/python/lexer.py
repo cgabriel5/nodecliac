@@ -130,7 +130,7 @@ def tokenizer(text):
                 if (prevtk["kind"] == "tkASG" and
                     prevtk["line"] == S["line"] and
                     passed[-1] == "tkFLG"):
-                    S["kind"] = "tkTBD"
+                    S["kind"] = "tkFVAL"
 
                 if S["kind"] != "tkFVAL":
                     lp = len(passed)

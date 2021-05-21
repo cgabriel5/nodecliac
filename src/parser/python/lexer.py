@@ -126,6 +126,12 @@ def tokenizer(text):
                                     S["kind"] = "tkFVAL"
                         break
 
+                # Handle: 'program = --flag::f=123'
+                if (prevtk["kind"] == "tkASG" and
+                    prevtk["line"] == S["line"] and
+                    passed[-1] == "tkFLG"):
+                    S["kind"] = "tkTBD"
+
                 if S["kind"] != "tkFVAL":
                     lp = len(passed)
                     # Flag alias '::' reset.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import os
+import os, sys
 
 # Get file path information (i.e. file name and directory path).
 #
@@ -37,3 +37,18 @@ def info(p):
             FileInfo["ext"] = name_parts[-1]
 
     return FileInfo
+
+# Writes contents to file.
+#
+# @param  {string} p - The path of file to read.
+# @param  {contents} contents - The data to write to file.
+# @param  {number} mode - The file's mode (permission) value.
+# @return {string} - The file contents.
+def write(p, contents, mode = 0):
+    try:
+        f = open(p, "w")
+        f.write(contents)
+        f.close()
+        if mode != 0: os.chmod(p, mode)
+    except:
+        pass

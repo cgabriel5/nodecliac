@@ -32,7 +32,7 @@ proc main =
 
     # Source must be provided.
     if source == "":
-        echo "Please provide a " &  "--source".chalk("bold") & " path."
+        echo "Please provide a " & "--source".chalk("bold") & " path."
         exit()
 
     # Breakdown path.

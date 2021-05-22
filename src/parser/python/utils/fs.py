@@ -16,8 +16,8 @@ def info(p):
     }
 
     def splitfile(p):
-        head, name = os.path.split(p)
-        fname, ext = os.path.splitext(name)
+        head, tail = os.path.split(p)
+        name, ext = os.path.splitext(tail)
         return (head, name, ext)
 
     (head, name, ext) = splitfile(p)

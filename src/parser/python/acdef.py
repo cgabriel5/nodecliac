@@ -124,8 +124,7 @@ def acdef(branches, cchains, flags, settings, S):
     # @param  {string} command - The command chain.
     # @return {string} - Modified chain.
     def rm_fcmd(chain):
-        return chain
-        # return re.sub(r, "", chain)
+        return re.sub(r, "", chain)
 
     def queue(gid, flags, queue_flags):
         for flg in flags:

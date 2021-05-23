@@ -408,7 +408,14 @@ def acdef(branches, cchains, flags, settings, S):
     config = header + config if config else sheader
 
     tests = "#!/bin/bash\n\n{}tests=(\n{}\n)".format(header, "\n".join(oTests)) if len(oTests) else ""
-    print(defaults)
-    print(filedirs)
-    print(contexts)
-    print(config)
+
+    return (
+        acdef,
+        config,
+        defaults,
+        filedirs,
+        contexts,
+        "", # formatted
+        oPlaceholders,
+        tests
+    )

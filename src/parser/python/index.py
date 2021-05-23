@@ -21,7 +21,7 @@ parser.add_argument("action", default="")
 # [https://stackoverflow.com/a/15301183]
 parser.add_argument("--indent", default="s:4")
 parser.add_argument("--source", default="")
-args, unknown = parser.parse_known_args(sys.argv)
+args, unknown = parser.parse_known_args()
 
 igc = args.igc
 test = args.test

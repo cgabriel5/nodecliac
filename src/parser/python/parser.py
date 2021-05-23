@@ -3,6 +3,7 @@
 
 import re
 from issue import Issue
+from lexer import tokenizer, LINESTARTS
 from validation import vsetting, vvariable, vstring, vsetting_aval
 
 C_LF = 'f'
@@ -37,6 +38,8 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
     VARIABLES = []
     VARSTABLE = {}
     vindices = {}
+
+    (tokens, ttypes, ttids, dtids) = tokenizer(text)
 
     i = 0
     l = len(tokens)

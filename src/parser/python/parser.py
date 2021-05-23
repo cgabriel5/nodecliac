@@ -5,6 +5,7 @@ import re
 
 from acdef import acdef
 from issue import Issue
+from utils.defvars import builtins
 from lexer import tokenizer, LINESTARTS
 from validation import vsetting, vvariable, vstring, vsetting_aval
 
@@ -38,7 +39,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
     SETTINGS = []
     variable = []
     VARIABLES = []
-    VARSTABLE = {}
+    VARSTABLE = builtins(cmdname)
     vindices = {}
 
     (tokens, ttypes, ttids, dtids) = tokenizer(text)

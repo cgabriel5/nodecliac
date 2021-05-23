@@ -95,7 +95,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         msg += dbeugmsg
         msg += "\n\n" + decor + " TOKEN_DEBUG_INFO " + decor
 
-        Issue().error(filename, line, index - LINESTARTS[line], msg)
+        Issue().error(S["filename"], line, index - LINESTARTS[line], msg)
 
     def warn(tid, message):
         token = tokens[tid]

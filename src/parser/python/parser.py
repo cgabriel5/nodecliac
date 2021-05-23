@@ -4,6 +4,7 @@
 import re
 
 from acdef import acdef
+from formatter import formatter
 from issue import Issue
 from utils.defvars import builtins
 from lexer import tokenizer, LINESTARTS
@@ -806,4 +807,5 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
 
     if action == "make":
         return acdef(BRANCHES, CCHAINS, FLAGS, SETTINGS, S)
-    # [TODO] Formatter
+    else:
+        return formatter(BRANCHES, CCHAINS, FLAGS, SETTINGS, S)

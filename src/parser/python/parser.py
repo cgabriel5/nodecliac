@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import re
+
+from acdef import acdef
 from issue import Issue
 from lexer import tokenizer, LINESTARTS
 from validation import vsetting, vvariable, vstring, vsetting_aval
@@ -18,7 +20,7 @@ C_PRIM_FBOOL = "false"
 
 r = r"(?<!\\)\$\{\s*[^}]*\s*\}"
 
-def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
+def parser(action, text, cmdname, source, fmt, trace, igc, test):
 
     ttid = 0
     NEXT = []
@@ -46,11 +48,19 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
 
     S = {
         "tid": -1,
-        "filename": filename,
+        "filename": source,
         "text": text,
         "LINESTARTS": LINESTARTS,
         "tokens": tokens,
-        "ttypes": ttypes
+        "ttypes": ttypes,
+        "args": {
+            "action": action,
+            "source": source,
+            "fmt": fmt,
+            "trace": trace,
+            "igc": igc,
+            "test": test,
+        }
     }
 
     def err(tid, etype, message):
@@ -793,4 +803,6 @@ def parser(filename, text, LINESTARTS, tokens, ttypes, ttids, dtids):
 
         i += 1
 
-    return (BRANCHES, CCHAINS, FLAGS, SETTINGS, S)
+    if action == "make":
+        return acdef(BRANCHES, CCHAINS, FLAGS, SETTINGS, S)
+    # [TODO] Formatter

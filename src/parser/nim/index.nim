@@ -88,7 +88,6 @@ proc main =
                 }) # [https://stackoverflow.com/a/54638633]
 
             # Create placeholder files if object is populated.
-            let placeholders = placeholders
             if placeholders.len > 0:
                 createDir(placeholderspaths)
 

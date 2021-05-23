@@ -12,16 +12,16 @@ if len(sys.argv) == 1: quit()
 # [https://stackoverflow.com/a/30493366]
 # [https://blender.stackexchange.com/a/8405]
 # [https://stackoverflow.com/a/12818237]
-parser = argparse.ArgumentParser()
-parser.add_argument("--igc", default=False)
-parser.add_argument("--test", default=False)
-parser.add_argument("--print", default=False)
-parser.add_argument("--trace", default="")
-parser.add_argument("action", default="")
+cliparser = argparse.ArgumentParser()
+cliparser.add_argument("--igc", default=False)
+cliparser.add_argument("--test", default=False)
+cliparser.add_argument("--print", default=False)
+cliparser.add_argument("--trace", default="")
+cliparser.add_argument("action", default="")
 # [https://stackoverflow.com/a/15301183]
-parser.add_argument("--indent", default="s:4")
-parser.add_argument("--source", default="")
-args, unknown = parser.parse_known_args()
+cliparser.add_argument("--indent", default="s:4")
+cliparser.add_argument("--source", default="")
+args, unknown = cliparser.parse_known_args()
 
 igc = args.igc
 test = args.test

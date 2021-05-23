@@ -8,6 +8,7 @@ from pathlib import Path
 def builtins(cmdname):
     return {
         "HOME": str(Path.home()),
+        # [https://stackoverflow.com/a/1857]
         "OS": platform.system().lower(),
         "COMMAND": cmdname,
         "PATH": f"~/.nodecliac/registry/{cmdname}"

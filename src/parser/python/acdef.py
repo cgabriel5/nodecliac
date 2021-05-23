@@ -142,7 +142,9 @@ def acdef(branches, cchains, flags, settings, S):
                 if gid not in oKeywords:
                     oKeywords[gid] = {}
                 container = oKeywords.get(gid, {})
-                container["context"] = f"\"{{{flag.strip('-')}|{alias}}}\""
+
+                if "context" not in container: container["context"] = []
+                container["context"].append(f"{{{flag.strip('-')}|{alias}}}")
 
             if tokens[tid]["kind"] == "tkKYW":
                 # nonlocal oKeywords
@@ -314,7 +316,12 @@ def acdef(branches, cchains, flags, settings, S):
                         elif row == "exclude":
                             container = oExcludes
 
-                        container[chain] = f"{row} {oKeywords[i][row]}"
+                        # [TODO] Find better way to do this.
+                        if row == "context":
+                            ctxs_list = ";".join(oKeywords[i][row])
+                            container[chain] = f"{row} \"{ctxs_list}\""
+                        else:
+                            container[chain] = f"{row} {oKeywords[i][row]}"
 
                 # Create missing parent chains.
                 commands = re.split(r'(?<!\\)\.', chain)

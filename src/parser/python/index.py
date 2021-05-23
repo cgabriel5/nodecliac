@@ -13,9 +13,9 @@ if len(sys.argv) == 1: quit()
 # [https://blender.stackexchange.com/a/8405]
 # [https://stackoverflow.com/a/12818237]
 parser = argparse.ArgumentParser()
-parser.add_argument("--igc", default="")
-parser.add_argument("--test", default="")
-parser.add_argument("--print", default="")
+parser.add_argument("--igc", default=False)
+parser.add_argument("--test", default=False)
+parser.add_argument("--print", default=False)
 parser.add_argument("--trace", default="")
 parser.add_argument("action", default="")
 # [https://stackoverflow.com/a/15301183]

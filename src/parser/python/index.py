@@ -18,10 +18,10 @@ def main():
         # [https://blender.stackexchange.com/a/8405]
         # [https://stackoverflow.com/a/12818237]
         cliparser = argparse.ArgumentParser()
-        cliparser.add_argument("--igc", default=False)
-        cliparser.add_argument("--test", default=False)
-        cliparser.add_argument("--print", default=False)
-        cliparser.add_argument("--trace", default="")
+        cliparser.add_argument("--igc", default=False, action="store_true")
+        cliparser.add_argument("--test", default=False, action="store_true")
+        cliparser.add_argument("--print", default=False, action="store_true")
+        cliparser.add_argument("--trace", default=False, action="store_true")
         cliparser.add_argument("action", default="")
         # [https://stackoverflow.com/a/15301183]
         cliparser.add_argument("--indent", default="s:4")

@@ -28,6 +28,7 @@ def acdef(branches, cchains, flags, settings, S):
 
     oSettings = OrderedDict()
     settings_count = 0
+    oTests = []
     oPlaceholders = {}
     omd5Hashes = {}
     count = 0
@@ -50,7 +51,7 @@ def acdef(branches, cchains, flags, settings, S):
     datestring = dt.strftime("%a %b %-d %Y %H:%M:%S")
     ctime = datestring + " (" + str(timestamp) + ")"
     header = "# DON'T EDIT FILE —— GENERATED: " + ctime + "\n\n"
-    # if S.args.test: header = ""
+    if S["args"]["test"]: header = ""
 
     def tkstr(tid):
         if tid == -1: return ""
@@ -223,7 +224,8 @@ def acdef(branches, cchains, flags, settings, S):
     # Populate settings object.
     for setting in settings:
         name = tkstr(setting[0])[1:]
-        if name != "test": oSettings[name] = tkstr(setting[2])
+        if name == "test": oTests.append(tkstr(setting[2]))
+        else: oSettings[name] = tkstr(setting[2])
 
     for i, group in enumerate(cchains):
 
@@ -405,7 +407,7 @@ def acdef(branches, cchains, flags, settings, S):
     acdef = header + acdef_contents if acdef_contents else sheader
     config = header + config if config else sheader
 
-    print(acdef)
+    tests = "#!/bin/bash\n\n{}tests=(\n{}\n)".format(header, "\n".join(oTests)) if len(oTests) else ""
     print(defaults)
     print(filedirs)
     print(contexts)

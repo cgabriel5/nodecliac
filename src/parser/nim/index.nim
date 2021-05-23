@@ -62,7 +62,7 @@ proc main =
         source, fmtinfo, trace, igc, test
     )
 
-    let testname = cmdname &  ".tests.sh"
+    let testname = cmdname & ".tests.sh"
     let savename = cmdname & ".acdef"
     let saveconfigname = "." & cmdname & ".config.acdef"
 

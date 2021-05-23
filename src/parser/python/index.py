@@ -17,7 +17,7 @@ parser.add_argument("--igc", default="")
 parser.add_argument("--test", default="")
 parser.add_argument("--print", default="")
 parser.add_argument("--trace", default="")
-parser.add_argument("--action", default="")
+parser.add_argument("action", default="")
 # [https://stackoverflow.com/a/15301183]
 parser.add_argument("--indent", default="s:4")
 parser.add_argument("--source", default="")

@@ -64,7 +64,6 @@ def formatter(tokens, text, branches, cchains, flags, settings, S):
 
         lkind = ""
         lline = -1
-        # adjacent_spacing = ""
         if i - 1 > -1:
             lbranch = branches[i - 1]
             lkind = lbranch[0]["kind"]
@@ -72,9 +71,6 @@ def formatter(tokens, text, branches, cchains, flags, settings, S):
 
         if lkind:
             if line - lline > 1 or kind != lkind:
-                # adjacent_spacing = "\n"
-
-                # if kind in ("tkSTN", "tkVAR") and lkind in ("tkSTN", "tkVAR"):
                 if kind in ("tkSTN") and lkind in ("tkSTN"):
                     pass
                 elif kind in ("tkVAR") and lkind in ("tkVAR"):

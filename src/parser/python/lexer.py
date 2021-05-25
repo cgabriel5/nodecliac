@@ -165,6 +165,9 @@ def tokenizer(text):
         if S.get("lines", False):
             del S["lines"]
 
+        if S.get("list", False):
+            del S["list"]
+
         token_count += 1
 
     # Checks if token is at needed char index.
@@ -260,10 +263,12 @@ def tokenizer(text):
             if tokens[ttids[-1]]["kind"] != "tkDLS":
                 valuelist = True
                 brcparens.append(0) # Value list.
+                S["list"] = True
             else: brcparens.append(1) # Command-string.
         elif c == C_RPAREN:
             if brcparens.pop() == 0:
                 valuelist = False
+                S["list"] = True
         elif c == C_LBRACE: cmdscope = True
         elif c == C_RBRACE: cmdscope = False
         S["end"] = S["i"]

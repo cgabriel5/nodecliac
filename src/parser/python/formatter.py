@@ -49,6 +49,9 @@ def formatter(tokens, text, branches, cchains, flags, settings, S):
                 return ttid
         return -1
 
+    def prevtk(tid):
+        for ttid in range(tid, -1, -1): return ttid
+
     cleaned = []
     bl = len(branches)
     for i, branch in enumerate(branches):
@@ -162,10 +165,27 @@ def formatter(tokens, text, branches, cchains, flags, settings, S):
                         scope_level = 1
                     cleaned.append(tkstr(leaf["tid"]))
 
-                # elif jkind == "tkDCMA":
-                #     cleaned.append(tkstr(leaf["tid"]))
-                #     if brc_lp_count < 2:
-                #         cleaned.append("_")
+                elif jkind == "tkCMT":
+                    # [TODO] Look forward to check for long form.
+                    ptk = tokens[prevtk(leaf["tid"] - 1)]["kind"]
+                    if ptk == "tkNL":
+                        cleaned.append("\n")
+                        cleaned.append(indent(jkind, scope_level))
+                        cleaned.append(tkstr(leaf["tid"]))
+                        cleaned.append("\n")
+                    else:
+                        # indentation = indent(jkind, scope_level)
+                        # if indentation:
+                        #     last = cleaned.pop()
+                        #     # cleaned.append(indentation)
+                        #     cleaned.append(last)
+
+                        cleaned.append(" ")
+                        cleaned.append(tkstr(leaf["tid"]))
+                        cleaned.append("\n")
+
+                elif kind in ("tkTRM"):
+                    pass
 
                 else:
                     cleaned.append(tkstr(leaf["tid"]))

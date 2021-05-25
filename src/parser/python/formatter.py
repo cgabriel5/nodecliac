@@ -60,6 +60,7 @@ def formatter(tokens, text, branches, cchains, flags, settings, S):
         scope_level = 0
 
         brc_lp_count = 0
+        brc_cl_count = 0
 
         lkind = ""
         lline = -1
@@ -111,6 +112,17 @@ def formatter(tokens, text, branches, cchains, flags, settings, S):
                     cleaned.append(tkstr(leaf["tid"]))
                     cleaned.append(" ")
 
+                elif jkind == "tkBRC_LC":
+                    brc_cl_count += 1
+                    cleaned.append(tkstr(leaf["tid"]))
+
+                elif jkind == "tkBRC_RC":
+                    brc_cl_count = 0
+                    cleaned.append(tkstr(leaf["tid"]))
+
+                elif jkind == "tkDCMA" and not first_assignment:
+                    cleaned.append(tkstr(leaf["tid"]))
+                    if not brc_cl_count: cleaned.append("\n")
 
                 elif jkind == "tkBRC_LB":
                     cleaned.append(tkstr(leaf["tid"]))

@@ -298,16 +298,14 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
     def __stn__str(kind):
         addtoken_stn_group(S["tid"])
 
-        clearscope()
-        newbranch()
+        expect("")
 
         vstring(S)
 
     def __stn__aval(kind):
         addtoken_stn_group(S["tid"])
 
-        clearscope()
-        newbranch()
+        expect("")
 
         vsetting_aval(S)
 
@@ -320,8 +318,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         addtoken_var_group(S["tid"])
         VARSTABLE[tkstr(branch[-3]["tid"])[1:]] = tkstr(S["tid"])
 
-        clearscope()
-        newbranch()
+        expect("")
 
         vstring(S)
 

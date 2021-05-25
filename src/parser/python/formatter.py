@@ -135,7 +135,7 @@ def formatter(tokens, text, branches, cchains, flags, settings, S):
                         # Collapse newlines in flag scopes.
                         # if scope_level > 0: cleaned.pop()
 
-                if (scope_level in (1, 2) or brc_lp_count == 1) and jkind in ("tkFVAL", "tkSTR", "tkDLS"):
+                if (scope_level in (1, 2) or brc_lp_count == 1) and jkind in ("tkFVAL", "tkSTR", "tkDLS", "tkTBD"):
                     adjtk = tokens[adjacenttk(jtid - 1)]["kind"]
 
                     if adjtk != "tkBRC_LP":

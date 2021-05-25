@@ -515,7 +515,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         setflagprop("values", prev_val_group=True)
 
         if prevscope() == "tkOPTS":
-            expect("tkFVAL", "tkBRC_RP")
+            expect("tkFOPT", "tkBRC_RP")
         else:
             if prevscope() in ("tkFLG", "tkKYW"):
                 if hasscope("tkBRC_LB"):

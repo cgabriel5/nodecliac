@@ -55,6 +55,8 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         "LINESTARTS": LINESTARTS,
         "tokens": tokens,
         "ttypes": ttypes,
+        "ttids": ttids,
+        "dtids": dtids,
         "args": {
             "action": action,
             "source": source,

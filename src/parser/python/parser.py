@@ -463,12 +463,17 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
     def __brc_lp__fval(kind):
         setflagprop("values")
 
-        expect("tkFVAL", "tkSTR", "tkDLS", "tkBRC_RP")
+        expect("tkFVAL", "tkSTR", "tkDLS", "tkBRC_RP", "tkTBD")
+
+    def __brc_lp__tbd(kind):
+        setflagprop("values")
+
+        expect("tkFVAL", "tkSTR", "tkDLS", "tkBRC_RP", "tkTBD")
 
     def __brc_lp__str(kind):
         setflagprop("values")
 
-        expect("tkFVAL", "tkSTR", "tkDLS", "tkBRC_RP")
+        expect("tkFVAL", "tkSTR", "tkDLS", "tkBRC_RP", "tkTBD")
 
     def __brc_lp__dls(kind):
         addscope(kind)
@@ -521,7 +526,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
             else:
                 # Handle: 'program = --flag=(1 2 $("cmd"))'
                 # or: 'program = --command=$("cmd")'
-                expect("", "tkFVAL", "tkSTR", "tkDLS", "tkBRC_RP")
+                expect("", "tkFVAL", "tkSTR", "tkDLS", "tkBRC_RP", "tkTBD")
 
     def __opts__fopt(kind):
         if prevtoken()["line"] == line:
@@ -595,6 +600,8 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         expect("tkSTR", "tkDLS")
 
     def __kyw__dppe(kind):
+        # [TODO] Find better way than to pop scope here.
+        if prevscope() in ("tkKYW"): popscope()
         expect("tkFLG", "tkKYW")
 
     def __dcma__cmd(kind):
@@ -648,6 +655,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         "tkBRC_LP": {
             "tkFOPT": __brc_lp__fopt,
             "tkFVAL": __brc_lp__fval,
+            "tkTBD": __brc_lp__tbd,
             "tkSTR": __brc_lp__str,
             "tkDLS": __brc_lp__dls,
             "tkDCMA": __brc_lp__dcma,

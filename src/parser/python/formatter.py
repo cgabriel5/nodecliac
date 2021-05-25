@@ -192,7 +192,7 @@ def formatter(tokens, text, branches, cchains, flags, settings, S):
                     # cleaned.append("\n")
                     cleaned.append(indent(jkind, scope_level))
                     cleaned.append(tkstr(leaf["tid"]))
-                    cleaned.append(" ")
+                    # cleaned.append(" ")
 
                 elif jkind == "tkBRC_LP":
                     brc_lp_count += 1

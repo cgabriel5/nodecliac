@@ -104,7 +104,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         line = token["line"]
         index = token["start"]
 
-        Issue().warn(filename, line, index - LINESTARTS[line], message)
+        Issue().warn(S["filename"], line, index - LINESTARTS[line], message)
 
     def tkstr(tid):
         if tid == -1: return ""

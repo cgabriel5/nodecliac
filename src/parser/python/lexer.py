@@ -67,8 +67,9 @@ def tokenizer(text):
     ttypes = {}
     token_count = 0
     l = len(text)
-    flgopts = False
     cmdscope = False
+    valuelist = False # Value list.
+    brcparens = []
     S = {"i": 0, "line": 1, "kind": ""}
     S["start"] = S["end"] = -1
 
@@ -93,11 +94,12 @@ def tokenizer(text):
                 if text[prevtk["start"]:prevtk["end"] + 1] == "default":
                     prevtk["kind"] = "tkKYW"
 
-            elif flgopts and S["kind"] == "tkFLG" and S["start"] == S["end"]:
-                S["kind"] = "tkFOPT"
+            elif valuelist and S["kind"] == "tkFLG" and S["start"] == S["end"]:
+                S["kind"] = "tkFOPT" # Hyphen.
 
-            # Reset: --flag=(option1 option2)
-            elif flgopts and S["kind"] in ("tkCMD", "tkFLG"):
+            # When parsing a value list '--flag=()', that is not a
+            # string/commang-string should be considered a value.
+            elif valuelist and S["kind"] in ("tkCMD", "tkTBD"):
                 S["kind"] = "tkFVAL"
 
             # 'Merge' tkTBD tokens if possible.
@@ -108,39 +110,30 @@ def tokenizer(text):
                 S["kind"] = ""
                 return
 
-            elif kind("tkTBD") and flgopts:
-                S["kind"] = "tkFVAL"
-
             elif kind("tkCMD") or kind("tkTBD"):
-                passed = []
+                # Reverse loop to get find first command/flag tokens.
+                lastpassed = ""
                 for i in range(token_count - 1, -1, -1):
                     lkind = ttypes[i]
-                    if lkind not in ("tkCMT", "tkNL"):
-                        passed.append(lkind)
                     if lkind in ("tkCMD", "tkFLG"):
-                        if len(passed) > 1:
-                            if passed[0] == "tkASG" and passed[1] == "tkFLG":
-                                # Value must be set on same line as flag
-                                # to avoid ambiguity with command chains.
-                                if tokens[i]["line"] == S["line"]:
-                                    S["kind"] = "tkFVAL"
+                        lastpassed = lkind
                         break
 
                 # Handle: 'program = --flag::f=123'
                 if (prevtk["kind"] == "tkASG" and
                     prevtk["line"] == S["line"] and
-                    passed[-1] == "tkFLG"):
+                    lastpassed == "tkFLG"):
                     S["kind"] = "tkFVAL"
 
                 if S["kind"] != "tkFVAL":
-                    lp = len(passed)
+                    prevtk2 = tokens[ttids[-2]]["kind"]
+
                     # Flag alias '::' reset.
-                    if (lp >= 3 and passed[0] == "tkDCLN" and passed[1] == "tkDCLN"
-                        and passed[2] == "tkFLG"):
+                    if (prevtk["kind"] == "tkDCLN" and prevtk2 == "tkDCLN"):
                         S["kind"] = "tkFLGA"
+
                     # Setting/variable value reset.
-                    if (lp >= 2 and passed[0] == "tkASG" and passed[1] in
-                        ("tkSTN", "tkVAR")):
+                    if prevtk["kind"] == "tkASG" and prevtk2 in ("tkSTN", "tkVAR"):
                         S["kind"] = "tkAVAL"
 
         # Reset when single '$'.
@@ -262,9 +255,15 @@ def tokenizer(text):
             add_token()
 
     def tk_brc():
-        nonlocal flgopts, cmdscope  # [https://stackoverflow.com/a/8448011]
-        if c == C_LPAREN: flgopts = True
-        elif c == C_RPAREN: flgopts = False
+        nonlocal cmdscope, valuelist, brcparens  # [https://stackoverflow.com/a/8448011]
+        if c == C_LPAREN:
+            if tokens[ttids[-1]]["kind"] != "tkDLS":
+                valuelist = True
+                brcparens.append(0) # Value list.
+            else: brcparens.append(1) # Command-string.
+        elif c == C_RPAREN:
+            if brcparens.pop() == 0:
+                valuelist = False
         elif c == C_LBRACE: cmdscope = True
         elif c == C_RBRACE: cmdscope = False
         S["end"] = S["i"]

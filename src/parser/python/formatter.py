@@ -139,7 +139,8 @@ def formatter(tokens, text, branches, cchains, flags, settings, S):
                     adjtk = tokens[adjacenttk(jtid - 1)]["kind"]
 
                     if adjtk != "tkBRC_LP":
-                        cleaned.append(" ")
+                        if cleaned[-1] != " ":
+                            cleaned.append(" ")
 
                     if jkind == "tkSTR" and adjtk == "tkDLS":
                         cleaned.pop()
@@ -186,6 +187,7 @@ def formatter(tokens, text, branches, cchains, flags, settings, S):
                         # cleaned.append("\n")
                         cleaned.append(indent(jkind, scope_level))
                     cleaned.append(tkstr(leaf["tid"]))
+                    cleaned.append(" ")
 
                 elif jkind == "tkFOPT":
                     scope_level = 2

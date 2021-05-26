@@ -465,10 +465,11 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
 
         expect("tkFVAL", "tkSTR", "tkDLS", "tkBRC_RP", "tkTBD")
 
-    def __brc_lp__tbd(kind):
-        setflagprop("values")
+    # Disable pathway for now.
+    # def __brc_lp__tbd(kind):
+    #     setflagprop("values")
 
-        expect("tkFVAL", "tkSTR", "tkDLS", "tkBRC_RP", "tkTBD")
+    #     expect("tkFVAL", "tkSTR", "tkDLS", "tkBRC_RP", "tkTBD")
 
     def __brc_lp__str(kind):
         setflagprop("values")
@@ -655,7 +656,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         "tkBRC_LP": {
             "tkFOPT": __brc_lp__fopt,
             "tkFVAL": __brc_lp__fval,
-            "tkTBD": __brc_lp__tbd,
+            # "tkTBD": __brc_lp__tbd,
             "tkSTR": __brc_lp__str,
             "tkDLS": __brc_lp__dls,
             "tkDCMA": __brc_lp__dcma,

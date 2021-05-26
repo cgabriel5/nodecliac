@@ -515,19 +515,35 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
 
         setflagprop("values", prev_val_group=True)
 
-        if prevscope() == "tkOPTS":
-            expect("tkFOPT", "tkBRC_RP")
-        else:
-            if prevscope() in ("tkFLG", "tkKYW"):
-                if hasscope("tkBRC_LB"):
-                    popscope()
-                    expect("tkDPPE", "tkBRC_RB")
-                else:
-                    expect("", "tkDPPE", "tkFLG", "tkKYW")
+        # Handle: 'program = --flag=$("cmd")'
+        # Handle: 'program = default $("cmd")'
+        if prevscope() in ("tkFLG", "tkKYW"):
+            if hasscope("tkBRC_LB"):
+                popscope()
+                expect("tkFLG", "tkKYW", "tkBRC_RB")
             else:
-                # Handle: 'program = --flag=(1 2 $("cmd"))'
-                # or: 'program = --command=$("cmd")'
-                expect("", "tkFVAL", "tkSTR", "tkDLS", "tkBRC_RP", "tkTBD")
+                # Handle: oneliner command-string
+                # 'program = --flag|default $("cmd", $"c", "c")'
+                # 'program = --flag::f=(1 3)|default $("cmd")|--flag'
+                # 'program = --flag::f=(1 3)|default $("cmd")|--flag'
+                # 'program = default $("cmd")|--flag::f=(1 3)'
+                # 'program = default $("cmd")|--flag::f=(1 3)|default $("cmd")'
+                expect("", "tkDPPE", "tkFLG", "tkKYW")
+
+        # Handle: 'program = --flag=(1 2 3 $("c") 4)'
+        elif prevscope() in ("tkBRC_LP"):
+            expect("tkFVAL", "tkSTR", "tkFOPT", "tkDLS", "tkBRC_RP")
+
+        # Handle: long-form
+        # 'program = [
+        #      --flag=(
+        #          - 1
+        #          - $("cmd")
+        #          - true
+        #      )
+        #  ]'
+        elif prevscope() in ("tkOPTS"):
+            expect("tkFOPT", "tkBRC_RP")
 
     def __opts__fopt(kind):
         if prevtoken()["line"] == line:

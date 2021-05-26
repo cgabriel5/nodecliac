@@ -815,4 +815,4 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
     if action == "make":
         return acdef(BRANCHES, CCHAINS, FLAGS, SETTINGS, S)
     else:
-        return formatter(BRANCHES, CCHAINS, FLAGS, SETTINGS, S)
+        return formatter(tokens, text, BRANCHES, CCHAINS, FLAGS, SETTINGS, S)

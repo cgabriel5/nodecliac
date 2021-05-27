@@ -153,7 +153,10 @@ def acdef(branches, cchains, flags, settings, S):
                 container = oKeywords.get(gid, {})
 
                 if len(values[0]) == 1:
-                    container[flag] = tkstr(values[0][0])
+                    if flag == "context":
+                        if "context" not in container: container["context"] = []
+                        container[flag].append(tkstr(values[0][0]))
+                    else: container[flag] = tkstr(values[0][0])
                 else:
                     strs = []
                     for tid in range(values[0][1]+1, values[0][2]):

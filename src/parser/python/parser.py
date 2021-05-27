@@ -617,8 +617,14 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         expect("tkSTR", "tkDLS")
 
     def __kyw__dppe(kind):
-        # [TODO] Find better way than to pop scope here.
-        if prevscope() in ("tkKYW"): popscope()
+        # [TODO] Because the flag (tkFLG) token pathways are
+        # reused for the keyword (tkKYW) pathways, the scope
+        # needs to be removed. This is fine for now but when
+        # the keyword token pathway change, the keyword
+        # pathways will need to be fleshed out in the future.
+        if prevscope() in ("tkKYW"):
+            popscope()
+            addscope("tkFLG") # Re-use flag pathways for now.
         expect("tkFLG", "tkKYW")
 
     def __dcma__cmd(kind):

@@ -600,6 +600,9 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
     def __kyw__str(kind):
         setflagprop("values")
 
+        # [TODO] This pathway re-uses the flag (tkFLG) token
+        # pathways. If the keyword syntax were to change
+        # this will need to change as it might no loner work.
         popscope()
         addscope("tkFLG") # Re-use flag pathways for now.
         expect("", "tkDPPE")

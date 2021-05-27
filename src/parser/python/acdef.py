@@ -226,7 +226,7 @@ def acdef(branches, cchains, flags, settings, S):
     for setting in settings:
         name = tkstr(setting[0])[1:]
         if name == "test": oTests.append(tkstr(setting[2]))
-        else: oSettings[name] = tkstr(setting[2])
+        else: oSettings[name] = tkstr(setting[2]) if len(setting) > 1 else ""
 
     for i, group in enumerate(cchains):
 

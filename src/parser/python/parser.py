@@ -331,8 +331,9 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         addscope(kind)
         expect("tkFLG", "tkKYW", "tkBRC_RB")
 
-    def __cmd__brc_rb(kind):
-        expect("", "tkCMD")
+    # # [TODO] Pathway needed?
+    # def __cmd__brc_rb(kind):
+    #     expect("", "tkCMD")
 
     def __cmd__flg(kind):
         newflag()
@@ -484,8 +485,9 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         addscope(kind)
         expect("tkBRC_LP")
 
-    def __brc_lp__dcma(kind):
-        expect("tkFVAL", "tkSTR")
+    # # [TODO] Pathway needed?
+    # def __brc_lp__dcma(kind):
+    #     expect("tkFVAL", "tkSTR")
 
     def __brc_lp__brc_rp(kind):
         popscope()
@@ -495,9 +497,10 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         if prevtk["kind"] == "tkBRC_LP":
             warn(prevtk["tid"], "Empty scope (flag)")
 
-    def __brc_lp__brc_rb(kind):
-        popscope()
-        expect("")
+    # # [TODO] Pathway needed?
+    # def __brc_lp__brc_rb(kind):
+    #     popscope()
+    #     expect("")
 
     def __dls__brc_lp(kind):
         newvaluegroup("values")
@@ -611,17 +614,20 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         addscope(kind) # Build cmd-string.
         expect("tkBRC_LP")
 
-    def __kyw__brc_rb(kind):
-        popscope()
-        expect("")
+    # # [TODO] Pathway needed?
+    # def __kyw__brc_rb(kind):
+    #     popscope()
+    #     expect("")
 
-    def __kyw__flg(kind):
-        expect("tkASG", "tkQMK",
-            "tkDCLN", "tkFVAL", "tkDPPE")
+    # # [TODO] Pathway needed?
+    # def __kyw__flg(kind):
+    #     expect("tkASG", "tkQMK",
+    #         "tkDCLN", "tkFVAL", "tkDPPE")
 
-    def __kyw__kyw(kind):
-        addscope(kind)
-        expect("tkSTR", "tkDLS")
+    # # [TODO] Pathway needed?
+    # def __kyw__kyw(kind):
+    #     addscope(kind)
+    #     expect("tkSTR", "tkDLS")
 
     def __kyw__dppe(kind):
         # [TODO] Because the flag (tkFLG) token pathways are
@@ -653,7 +659,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         "tkCMD": {
             "tkASG": __cmd__asg,
             "tkBRC_LB": __cmd__brc_lb,
-            "tkBRC_RB": __cmd__brc_rb,
+            # "tkBRC_RB": __cmd__brc_rb,
             "tkFLG": __cmd__flg,
             "tkKYW": __cmd__kyw,
             "tkDDOT": __cmd__ddot,
@@ -688,9 +694,9 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
             # "tkTBD": __brc_lp__tbd,
             "tkSTR": __brc_lp__str,
             "tkDLS": __brc_lp__dls,
-            "tkDCMA": __brc_lp__dcma,
-            "tkBRC_RP": __brc_lp__brc_rp,
-            "tkBRC_RB": __brc_lp__brc_rb
+            # "tkDCMA": __brc_lp__dcma,
+            "tkBRC_RP": __brc_lp__brc_rp
+            # "tkBRC_RB": __brc_lp__brc_rb
         },
         "tkDLS": {
             "tkBRC_LP": __dls__brc_lp,
@@ -714,9 +720,9 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         "tkKYW": {
             "tkSTR": __kyw__str,
             "tkDLS": __kyw__dls,
-            "tkFLG": __kyw__flg,
-            "tkKYW": __kyw__kyw,
-            "tkBRC_RB": __kyw__brc_rb,
+            # "tkFLG": __kyw__flg,
+            # "tkKYW": __kyw__kyw,
+            # "tkBRC_RB": __kyw__brc_rb,
             "tkDPPE": __kyw__dppe,
         },
         "tkDCMA": {

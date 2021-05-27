@@ -125,7 +125,7 @@ def tokenizer(text):
                     lastpassed == "tkFLG"):
                     S["kind"] = "tkFVAL"
 
-                if S["kind"] != "tkFVAL":
+                if S["kind"] != "tkFVAL" and len(ttids) > 1:
                     prevtk2 = tokens[ttids[-2]]["kind"]
 
                     # Flag alias '::' reset.

@@ -430,6 +430,10 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
     def __flg__kyw(kind):
         newflag()
 
+        # [TODO] Investigate why leaving flag scope doesn't affect
+        # parsing. For now remove it to keep scopes array clean.
+        popscope()
+
         if hasscope("tkBRC_LB") and token["line"] == prevtoken()["line"]:
             err(S["tid"], "<child>", "err: Keyword same line (nth)")
         addscope(kind)

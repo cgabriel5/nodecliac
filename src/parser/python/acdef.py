@@ -137,16 +137,18 @@ def acdef(branches, cchains, flags, settings, S):
             ismulti = tkstr(flg["multi"])
             union = flg["union"] != -1
             values = flg["values"]
+            kind = tokens[tid]["kind"]
 
             # Skip union logic on recursion.
-            if not recunion and union:
-                unions.append(flg)
-                continue
-            if not recunion and unions and not union:
-                for uflg in unions:
-                    uflg["values"] = values
-                    queue(gid, unions, queue_flags, recunion=True)
-                unions.clear()
+            if kind != "tkKYW":
+                if not recunion and union:
+                    unions.append(flg)
+                    continue
+                if not recunion and unions and not union:
+                    for uflg in unions:
+                        uflg["values"] = values
+                        queue(gid, unions, queue_flags, recunion=True)
+                    unions.clear()
 
             nonlocal oKeywords
             if alias:
@@ -158,7 +160,7 @@ def acdef(branches, cchains, flags, settings, S):
                 if "context" not in container: container["context"] = []
                 container["context"].append(f"{{{flag.strip('-')}|{alias}}}")
 
-            if tokens[tid]["kind"] == "tkKYW":
+            if kind == "tkKYW":
                 # nonlocal oKeywords
                 if gid not in oKeywords:
                     oKeywords[gid] = {}

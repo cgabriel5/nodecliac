@@ -126,7 +126,8 @@ def acdef(branches, cchains, flags, settings, S):
     def rm_fcmd(chain):
         return re.sub(r, "", chain)
 
-    def queue(gid, flags, queue_flags):
+    def queue(gid, flags, queue_flags, recunion=False):
+        unions = []
         for flg in flags:
             tid = flg["tid"]
             assignment = tkstr(flg["assignment"])
@@ -134,7 +135,18 @@ def acdef(branches, cchains, flags, settings, S):
             alias = tkstr(flg["alias"])
             flag = tkstr(tid)
             ismulti = tkstr(flg["multi"])
+            union = flg["union"] != -1
             values = flg["values"]
+
+            # Skip union logic on recursion.
+            if not recunion and union:
+                unions.append(flg)
+                continue
+            if not recunion and unions and not union:
+                for uflg in unions:
+                    uflg["values"] = values
+                    queue(gid, unions, queue_flags, recunion=True)
+                unions.clear()
 
             nonlocal oKeywords
             if alias:

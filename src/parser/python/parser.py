@@ -231,6 +231,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
             "boolean": -1,
             "assignment": -1,
             "multi": -1,
+            "union": -1,
             "values": []
         }
         setflagprop("tid")

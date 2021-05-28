@@ -152,21 +152,22 @@ def acdef(branches, cchains, flags, settings, S):
                     oKeywords[gid] = {}
                 container = oKeywords.get(gid, {})
 
-                if len(values[0]) == 1:
-                    if flag == "context":
-                        if "context" not in container: container["context"] = []
-                        container[flag].append(tkstr(values[0][0]))
-                    else: container[flag] = tkstr(values[0][0])
-                else:
-                    strs = []
-                    for tid in range(values[0][1]+1, values[0][2]):
-                        if S["tokens"][tid]["kind"] in ("tkSTR", "tkDLS"):
-                            if strs and strs[-1] == "$":
-                                strs[-1] = "$" + tkstr(tid)
-                            else:
-                                strs.append(tkstr(tid))
+                if values:
+                    if len(values[0]) == 1:
+                        if flag == "context":
+                            if "context" not in container: container["context"] = []
+                            container[flag].append(tkstr(values[0][0]))
+                        else: container[flag] = tkstr(values[0][0])
+                    else:
+                        strs = []
+                        for tid in range(values[0][1]+1, values[0][2]):
+                            if S["tokens"][tid]["kind"] in ("tkSTR", "tkDLS"):
+                                if strs and strs[-1] == "$":
+                                    strs[-1] = "$" + tkstr(tid)
+                                else:
+                                    strs.append(tkstr(tid))
 
-                    container[flag] = "$(" + ",".join(strs) + ")"
+                        container[flag] = "$(" + ",".join(strs) + ")"
 
                 continue
 

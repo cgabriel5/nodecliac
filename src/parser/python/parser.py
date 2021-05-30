@@ -33,6 +33,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
 
     chain = []
     CCHAINS = []
+    wildcards = []
     FLAGS = {}
     flag = {}
 
@@ -64,7 +65,8 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
             "trace": trace,
             "igc": igc,
             "test": test,
-        }
+        },
+        "wildcards": wildcards
     }
 
     def err(tid, etype, message):
@@ -328,6 +330,12 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         vstring(S)
 
     def __cmd__asg(kind):
+
+        # If a wildcard, store group id.
+        if S["tid"] in dtids:
+            prevtk = prevtoken()
+            if prevtk["kind"] == "tkCMD" and text[prevtk["start"]] == "*":
+                wildcards.append(len(CCHAINS) - 1)
         expect("tkBRC_LB", "tkFLG", "tkKYW")
 
     def __cmd__brc_lb(kind):
@@ -366,6 +374,12 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         expect("tkCMD")
 
     def __cmd__dcma(kind):
+
+        # If a wildcard, store group id.
+        if S["tid"] in dtids:
+            prevtk = prevtoken()
+            if prevtk["kind"] == "tkCMD" and text[prevtk["start"]] == "*":
+                wildcards.append(len(CCHAINS) - 1)
         addtoprevgroup()
 
         addscope(kind)

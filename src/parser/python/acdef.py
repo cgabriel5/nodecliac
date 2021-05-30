@@ -261,6 +261,15 @@ def acdef(branches, cchains, flags, settings, S):
 
     for i, group in enumerate(cchains):
 
+        # Handle wildcards.
+        if i not in wildcards:
+            # Add missing group flags arrays.
+            if i not in flags: flags[i] = []
+            # Add universal flags to flags array
+            for wid in wildcards:
+                for flg in flags[wid]:
+                    flags[i].append(flg)
+
         if i in flags:
 
             queue_flags = {}

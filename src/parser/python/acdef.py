@@ -369,7 +369,42 @@ def acdef(branches, cchains, flags, settings, S):
                     rchain = ".".join(commands) # Remainder chain.
 
                     if rchain not in oSets:
-                        oParents[rchain] = NOFLAGS
+                        if not wildcards:
+                            oParents[rchain] = NOFLAGS
+                        else:
+                            rflags = []
+                            oParents[rchain] = rflags
+
+                            for wid in wildcards:
+                                if wid in oFlags:
+                                    if rchain not in oSets:
+                                        oSets[rchain] = oFlags[wid].copy()
+                                    else:
+                                        oSets[rchain].update(oFlags[wid])
+                                else:
+                                    if rchain not in oSets:
+                                        oSets[rchain] = {}
+
+                                if wid in oKeywords:
+                                    for row in oKeywords[wid]:
+                                        container = None
+                                        if row == "default":
+                                            container = oDefaults
+                                        elif row == "filedir":
+                                            container = oFiledirs
+                                        elif row == "context":
+                                            container = oContexts
+                                        elif row == "exclude":
+                                            container = oExcludes
+
+                                        # [TODO] Find better way to do this.
+                                        if row == "context":
+                                            ctxs_list = ";".join(oKeywords[wid][row])
+                                            if rchain not in container: container[rchain] = []
+                                            container[rchain].append(ctxs_list)
+                                        else:
+                                            container[rchain] = f"{row} {oKeywords[wid][row]}"
+
                     commands.pop() # Remove last command.
 
     # Add parent chains.

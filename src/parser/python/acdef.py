@@ -170,8 +170,8 @@ def acdef(branches, cchains, flags, settings, S):
                     if len(values[0]) == 1:
                         if flag == "context":
                             if "context" not in container: container["context"] = []
-                            container[flag].append(tkstr(values[0][0]))
-                        else: container[flag] = tkstr(values[0][0])
+                            container[flag].append(re.sub(r"\s", "", tkstr(values[0][0])))
+                        else: container[flag] = re.sub(r"\s", "", tkstr(values[0][0]))
                     else:
                         strs = []
                         for tid in range(values[0][1]+1, values[0][2]):
@@ -243,7 +243,7 @@ def acdef(branches, cchains, flags, settings, S):
     # Populate settings object.
     for setting in settings:
         name = tkstr(setting[0])[1:]
-        if name == "test": oTests.append(tkstr(setting[2]))
+        if name == "test": oTests.append(re.sub(r";\s+", ";", tkstr(setting[2])))
         else: oSettings[name] = tkstr(setting[2]) if len(setting) > 1 else ""
 
     for i, group in enumerate(cchains):

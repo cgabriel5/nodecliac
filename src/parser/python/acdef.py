@@ -335,7 +335,8 @@ def acdef(branches, cchains, flags, settings, S):
                         # [TODO] Find better way to do this.
                         if row == "context":
                             ctxs_list = ";".join(oKeywords[i][row])
-                            container[chain] = f"{row} \"{ctxs_list}\""
+                            if chain not in container: container[chain] = []
+                            container[chain].append(ctxs_list)
                         else:
                             container[chain] = f"{row} {oKeywords[i][row]}"
 
@@ -386,7 +387,8 @@ def acdef(branches, cchains, flags, settings, S):
     ctxs = mapsort(list(oContexts.keys()), asort, aobj)
     cl = len(ctxs) - 1
     for i, __ctx in enumerate(ctxs):
-        contexts += f"{rm_fcmd(__ctx)} {oContexts[__ctx]}"
+        ctxs_list = ";".join(oContexts[__ctx])
+        contexts += f"{rm_fcmd(__ctx)} context \"{ctxs_list}\""
         if i < cl: contexts += "\n"
     if contexts: contexts = "\n\n" + contexts
 

@@ -126,6 +126,19 @@ def acdef(branches, cchains, flags, settings, S):
     def rm_fcmd(chain):
         return re.sub(r, "", chain)
 
+    # Handle wildcards.
+    if wildcards:
+        for id_, group in enumerate(cchains):
+            # Add missing group flags arrays.
+            if id_ not in wildcards:
+                if id_ not in flags:
+                    flags[id_] = []
+
+                # Add universal flags to flags array
+                for wid in wildcards:
+                    for flg in flags[wid]:
+                        flags[id_].append(flg)
+
     def queue(gid, flags, queue_flags, recunion=False):
         unions = []
         for flg in flags:
@@ -354,16 +367,6 @@ def acdef(branches, cchains, flags, settings, S):
     for _ in oParents:
         if _ not in oSets:
             oSets[_] = NOFLAGS
-
-    # Deal with any wildcard commands.
-    if wildcards:
-        for chain in oSets:
-            if chain in oExcludes: continue
-            for wid in wildcards:
-                queue(wid, flags[wid], oSets[chain])
-
-                # [https://stackoverflow.com/a/15411146]
-                oSets[chain].pop("--", None)
 
     # Build defaults contents.
     defs = mapsort(list(oDefaults.keys()), asort, aobj)

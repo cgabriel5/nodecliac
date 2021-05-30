@@ -170,7 +170,7 @@ def acdef(branches, cchains, flags, settings, S):
                     if len(values[0]) == 1:
                         if flag == "context":
                             if "context" not in container: container["context"] = []
-                            container[flag].append(re.sub(r"\s", "", tkstr(values[0][0])))
+                            container[flag].append(re.sub(r"\s", "", tkstr(values[0][0])[1:-1]))
                         else: container[flag] = re.sub(r"\s", "", tkstr(values[0][0]))
                     else:
                         strs = []

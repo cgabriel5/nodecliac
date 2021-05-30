@@ -126,19 +126,6 @@ def acdef(branches, cchains, flags, settings, S):
     def rm_fcmd(chain):
         return re.sub(r, "", chain)
 
-    # Handle wildcards.
-    if wildcards:
-        for id_, group in enumerate(cchains):
-            # Add missing group flags arrays.
-            if id_ not in wildcards:
-                if id_ not in flags:
-                    flags[id_] = []
-
-                # Add universal flags to flags array
-                for wid in wildcards:
-                    for flg in flags[wid]:
-                        flags[id_].append(flg)
-
     def queue(gid, flags, queue_flags, recunion=False):
         unions = []
         for flg in flags:

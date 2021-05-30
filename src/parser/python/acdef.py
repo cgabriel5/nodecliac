@@ -13,11 +13,11 @@ def acdef(branches, cchains, flags, settings, S):
 
     text = S["text"]
     tokens = S["tokens"]
+    wildcards = S["wildcards"]
 
     oSets = {}
     oFlags = {}
     oParents = {}
-    wildcards = []
     NOFLAGS = {"--": 1}
 
     oKeywords = {}
@@ -304,8 +304,6 @@ def acdef(branches, cchains, flags, settings, S):
 
                 # Skip wildcards here, add flags post loop.
                 if chain == "*":
-                    wildcards.append(i)
-
                     if i in oKeywords:
                         if "exclude" in oKeywords[i]:
                             row = oKeywords[i]["exclude"]

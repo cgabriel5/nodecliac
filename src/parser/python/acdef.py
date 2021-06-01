@@ -11,9 +11,9 @@ from collections import OrderedDict
 
 def acdef(branches, cchains, flags, settings, S):
 
+    ubids = S["ubids"]
     text = S["text"]
     tokens = S["tokens"]
-    wildcards = S["wildcards"]
 
     oSets = {}
     oFlags = {}
@@ -248,12 +248,12 @@ def acdef(branches, cchains, flags, settings, S):
 
     for i, group in enumerate(cchains):
 
-        # Handle wildcards.
-        if i not in wildcards:
+        # Handle universal blocks.
+        if i not in ubids:
             # Add missing group flags arrays.
             if i not in flags: flags[i] = []
             # Add universal flags to flags array
-            for wid in wildcards:
+            for wid in ubids:
                 for flg in flags[wid]:
                     flags[i].append(flg)
 
@@ -311,7 +311,7 @@ def acdef(branches, cchains, flags, settings, S):
 
             for chain in chains:
 
-                # Skip wildcards here, add flags post loop.
+                # Skip universal blocks here, add flags post loop.
                 if chain == "*":
                     if i in oKeywords:
                         if "exclude" in oKeywords[i]:
@@ -356,13 +356,13 @@ def acdef(branches, cchains, flags, settings, S):
                     rchain = ".".join(commands) # Remainder chain.
 
                     if rchain not in oSets:
-                        if not wildcards:
+                        if not ubids:
                             oParents[rchain] = NOFLAGS
                         else:
                             rflags = []
                             oParents[rchain] = rflags
 
-                            for wid in wildcards:
+                            for wid in ubids:
                                 if wid in oFlags:
                                     if rchain not in oSets:
                                         oSets[rchain] = oFlags[wid].copy()

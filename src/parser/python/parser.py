@@ -33,7 +33,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
 
     chain = []
     CCHAINS = []
-    wildcards = []
+    ubids = []
     FLAGS = {}
     flag = {}
 
@@ -66,7 +66,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
             "igc": igc,
             "test": test,
         },
-        "wildcards": wildcards
+        "ubids": ubids
     }
 
     def err(tid, etype, message):
@@ -331,11 +331,11 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
 
     def __cmd__asg(kind):
 
-        # If a wildcard, store group id.
+        # If a universal block, store group id.
         if S["tid"] in dtids:
             prevtk = prevtoken()
             if prevtk["kind"] == "tkCMD" and text[prevtk["start"]] == "*":
-                wildcards.append(len(CCHAINS) - 1)
+                ubids.append(len(CCHAINS) - 1)
         expect("tkBRC_LB", "tkFLG", "tkKYW")
 
     def __cmd__brc_lb(kind):
@@ -375,11 +375,11 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
 
     def __cmd__dcma(kind):
 
-        # If a wildcard, store group id.
+        # If a universal block, store group id.
         if S["tid"] in dtids:
             prevtk = prevtoken()
             if prevtk["kind"] == "tkCMD" and text[prevtk["start"]] == "*":
-                wildcards.append(len(CCHAINS) - 1)
+                ubids.append(len(CCHAINS) - 1)
         addtoprevgroup()
 
         addscope(kind)

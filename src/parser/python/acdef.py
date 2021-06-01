@@ -147,7 +147,7 @@ def acdef(branches, cchains, flags, settings, S):
                 if not recunion and unions and not union:
                     for uflg in unions:
                         uflg["values"] = values
-                        processflags(gid, unions, queue_flags, recunion=True)
+                        processflags(gid, [uflg], queue_flags, recunion=True)
                     unions.clear()
 
             nonlocal oKeywords

@@ -126,7 +126,7 @@ def acdef(branches, cchains, flags, settings, S):
     def rm_fcmd(chain):
         return re.sub(r, "", chain)
 
-    def queue(gid, flags, queue_flags, recunion=False):
+    def processflags(gid, flags, queue_flags, recunion=False):
         unions = []
         for flg in flags:
             tid = flg["tid"]
@@ -147,7 +147,7 @@ def acdef(branches, cchains, flags, settings, S):
                 if not recunion and unions and not union:
                     for uflg in unions:
                         uflg["values"] = values
-                        queue(gid, unions, queue_flags, recunion=True)
+                        processflags(gid, unions, queue_flags, recunion=True)
                     unions.clear()
 
             nonlocal oKeywords
@@ -260,7 +260,7 @@ def acdef(branches, cchains, flags, settings, S):
         if i in flags:
 
             queue_flags = {}
-            queue(i, flags[i], queue_flags)
+            processflags(i, flags[i], queue_flags)
 
             if queue_flags:
                 oFlags[i] = queue_flags

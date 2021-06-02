@@ -255,24 +255,29 @@ def acdef(branches, cchains, flags, settings, S):
                     container[chain].append(value)
 
     def build_keyword(kwtype, container):
-        output = ""
+        output = []
         kwlist = []
         for keyword in container: kwlist.append(keyword)
-        ctxs = mapsort(list(container.keys()), asort, aobj)
-        kl = len(ctxs) - 1
-        for i, __kwd in enumerate(ctxs):
+        kwtps = mapsort(list(container.keys()), asort, aobj)
+        kl = len(kwtps) - 1
+        # Count chains that don't have values to properly add newlines.
+        empty_chains = 0 # Maintain skipped
+        for i, __kwd in enumerate(kwtps):
             if container[__kwd]:
                 if kwtype != "context":
                     if container[__kwd]:
-                        output += f"{rm_fcmd(__kwd)} {kwtype} {container[__kwd][0]}"
-                        if i < kl: output += "\n"
+                        output.append(f"{rm_fcmd(__kwd)} {kwtype} {container[__kwd][0]}")
+                        if i - empty_chains < kl: output.append("\n")
                 else:
                     ctxs_list = ";".join(container[__kwd])
-                    output += f"{rm_fcmd(__kwd)} {kwtype} \"{ctxs_list}\""
-                    if i < kl: output += "\n"
-        if output: output = "\n\n" + output
+                    output.append(f"{rm_fcmd(__kwd)} {kwtype} \"{ctxs_list}\"")
+                    if i - empty_chains < kl: output.append("\n")
+            else:
+                kl -= 1
+                empty_chains += 1
+                if i - empty_chains == kl: output.pop()
 
-        return output
+        return "\n\n" + "".join(output) if output else ""
 
     # Start building acmap contents. -------------------------------------------
 

@@ -287,7 +287,7 @@ def acdef(branches, cchains, flags, settings, S):
 
             template = ".".join(slots)
 
-            for k, exgroup in enumerate(expandables):
+            for _, exgroup in enumerate(expandables):
                 if not chains:
                     for m, command in enumerate(exgroup):
                         chains.append(template.replace('?', command, 1))

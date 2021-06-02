@@ -294,9 +294,9 @@ def acdef(branches, cchains, flags, settings, S):
 
                 else:
                     tmp_commands = []
-                    for o, chain in enumerate(chains):
+                    for j in range(len(chains)):
                         for command in exgroup:
-                            tmp_commands.append(chains[o].replace('?', command))
+                            tmp_commands.append(chains[j].replace('?', command))
 
                     chains = tmp_commands
 

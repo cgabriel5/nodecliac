@@ -257,7 +257,6 @@ def acdef(branches, cchains, flags, settings, S):
     def build_keyword(kwtype, container):
         output = []
         kwtps = mapsort([keyword for keyword in container], asort, aobj)
-        kwtps = mapsort(list(container.keys()), asort, aobj)
         kl = len(kwtps) - 1
         template = "{} {} {}"
         # Count chains that don't have values to properly add newlines.

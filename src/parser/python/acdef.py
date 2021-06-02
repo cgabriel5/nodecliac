@@ -279,7 +279,7 @@ def acdef(branches, cchains, flags, settings, S):
                     slots.append(tkstr(command))
                 elif expand:
                     if command == -1:
-                        slots.append("?")
+                        slots.append('?')
                         expandables.append([])
                         indices.append(len(slots))
                     else:

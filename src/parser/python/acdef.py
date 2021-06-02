@@ -252,8 +252,8 @@ def acdef(branches, cchains, flags, settings, S):
             # Add missing group flags arrays.
             if i not in flags: flags[i] = []
             # Add universal flags to flags array
-            for wid in ubids:
-                for flg in flags[wid]:
+            for ubid in ubids:
+                for flg in flags[ubid]:
                     flags[i].append(flg)
 
         if i in flags:
@@ -361,18 +361,18 @@ def acdef(branches, cchains, flags, settings, S):
                             rflags = []
                             oParents[rchain] = rflags
 
-                            for wid in ubids:
-                                if wid in oFlags:
+                            for ubid in ubids:
+                                if ubid in oFlags:
                                     if rchain not in oSets:
-                                        oSets[rchain] = oFlags[wid].copy()
+                                        oSets[rchain] = oFlags[ubid].copy()
                                     else:
-                                        oSets[rchain].update(oFlags[wid])
+                                        oSets[rchain].update(oFlags[ubid])
                                 else:
                                     if rchain not in oSets:
                                         oSets[rchain] = {}
 
-                                if wid in oKeywords:
-                                    for row in oKeywords[wid]:
+                                if ubid in oKeywords:
+                                    for row in oKeywords[ubid]:
                                         container = None
                                         if row == "default":
                                             container = oDefaults
@@ -385,11 +385,11 @@ def acdef(branches, cchains, flags, settings, S):
 
                                         # [TODO] Find better way to do this.
                                         if row == "context":
-                                            ctxs_list = ";".join(oKeywords[wid][row])
+                                            ctxs_list = ";".join(oKeywords[ubid][row])
                                             if rchain not in container: container[rchain] = []
                                             container[rchain].append(ctxs_list)
                                         else:
-                                            container[rchain] = f"{row} {oKeywords[wid][row]}"
+                                            container[rchain] = f"{row} {oKeywords[ubid][row]}"
 
                     commands.pop() # Remove last command.
 

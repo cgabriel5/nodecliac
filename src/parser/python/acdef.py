@@ -256,21 +256,14 @@ def acdef(branches, cchains, flags, settings, S):
 
     def build_keyword(kwtype, container):
         output = []
-        kwtps = mapsort([keyword for keyword in container], asort, aobj)
-        kl = len(kwtps) - 1
-        template = "{} {} {}"
-        # Count chains that don't have values to properly add newlines.
-        empty_chains = 0 # Maintain skipped
-        for i, __kwd in enumerate(kwtps):
-            if container[__kwd]:
-                value = (container[__kwd][0] if kwtype != "context"
-                    else "\"" + ";".join(container[__kwd]) + "\"")
-                output.append(template.format(rm_fcmd(__kwd), kwtype, value))
-                if i - empty_chains < kl: output.append("\n")
-            else:
-                kl -= 1
-                empty_chains += 1
-                if i - empty_chains == kl: output.pop()
+        chains = mapsort([c for c in container if container[c]], asort, aobj)
+        cl = len(chains) - 1
+        tstr = "{} {} {}"
+        for i, chain in enumerate(chains):
+            value = (container[chain][0] if kwtype != "context"
+                else "\"" + ";".join(container[chain]) + "\"")
+            output.append(tstr.format(rm_fcmd(chain), kwtype, value))
+            if i < cl: output.append("\n")
 
         return "\n\n" + "".join(output) if output else ""
 

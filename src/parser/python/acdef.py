@@ -140,11 +140,11 @@ def acdef(branches, cchains, flags, settings, S):
             kind = tokens[tid]["kind"]
 
             # Skip union logic on recursion.
-            if kind != "tkKYW":
-                if not recunion and union:
+            if kind != "tkKYW" and not recunion:
+                if union:
                     unions.append(flg)
                     continue
-                if not recunion and unions and not union:
+                elif unions:
                     for uflg in unions:
                         uflg["values"] = values
                         processflags(gid, [uflg], queue_flags, recunion=True)

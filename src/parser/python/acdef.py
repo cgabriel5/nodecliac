@@ -394,39 +394,29 @@ def acdef(branches, cchains, flags, settings, S):
         if _ not in oSets:
             oSets[_] = NOFLAGS
 
-    # Build defaults contents.
-    deflist = []
-    for default in oDefaults: deflist.append(default)
-    defs = mapsort(list(oDefaults.keys()), asort, aobj)
-    dl = len(defs) - 1
-    for i, __def in enumerate(defs):
-        if oDefaults[__def]:
-            defaults += f"{rm_fcmd(__def)} default {oDefaults[__def][0]}"
-            if i < dl: defaults += "\n"
-    if defaults: defaults = "\n\n" + defaults
+    def build_keyword(kwtype, container):
+        output = ""
+        kwlist = []
+        for keyword in container: kwlist.append(keyword)
+        ctxs = mapsort(list(container.keys()), asort, aobj)
+        kl = len(ctxs) - 1
+        for i, __kwd in enumerate(ctxs):
+            if container[__kwd]:
+                if kwtype != "context":
+                    if container[__kwd]:
+                        output += f"{rm_fcmd(__kwd)} {kwtype} {container[__kwd][0]}"
+                        if i < kl: output += "\n"
+                else:
+                    ctxs_list = ";".join(container[__kwd])
+                    output += f"{rm_fcmd(__kwd)} {kwtype} \"{ctxs_list}\""
+                    if i < kl: output += "\n"
+        if output: output = "\n\n" + output
 
-    # Build filedirs contents.
-    firlist = []
-    for filedir in oFiledirs: firlist.append(filedir)
-    fils = mapsort(list(oFiledirs.keys()), asort, aobj)
-    fl = len(fils) - 1
-    for i, __fil in enumerate(fils):
-        if oFiledirs[__fil]:
-            filedirs += f"{rm_fcmd(__fil)} filedir {oFiledirs[__fil][0]}"
-            if i < fl: filedirs += "\n"
-    if filedirs: filedirs = "\n\n" + filedirs
+        return output
 
-    # Build contexts contents.
-    ctxlist = []
-    for context in oContexts: ctxlist.append(context)
-    ctxs = mapsort(list(oContexts.keys()), asort, aobj)
-    cl = len(ctxs) - 1
-    for i, __ctx in enumerate(ctxs):
-        if oContexts[__ctx]:
-            ctxs_list = ";".join(oContexts[__ctx])
-            contexts += f"{rm_fcmd(__ctx)} context \"{ctxs_list}\""
-            if i < cl: contexts += "\n"
-    if contexts: contexts = "\n\n" + contexts
+    defaults = build_keyword("default", oDefaults)
+    filedirs = build_keyword("filedir", oFiledirs)
+    contexts = build_keyword("context", oContexts)
 
     # Build settings contents.
     settings_count = len(oSettings)

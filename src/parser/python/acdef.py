@@ -152,7 +152,6 @@ def acdef(branches, cchains, flags, settings, S):
 
             nonlocal oKeywords
             if alias:
-                # nonlocal oKeywords
                 if gid not in oKeywords:
                     oKeywords[gid] = {}
                 container = oKeywords.get(gid, {})

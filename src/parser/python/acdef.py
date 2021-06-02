@@ -152,25 +152,15 @@ def acdef(branches, cchains, flags, settings, S):
                         processflags(gid, [uflg], queue_flags, recunion=True)
                     unions.clear()
 
-            nonlocal oKeywords
             if alias:
-                if gid not in oKeywords: oKeywords[gid] = {}
-                container = oKeywords.get(gid, {})
-
-                if CTX_STR not in container: container[CTX_STR] = []
-                container[CTX_STR].append(f"{{{flag.strip('-')}|{alias}}}")
+                oKeywords[gid]["context"].append(f"{{{flag.strip('-')}|{alias}}}")
 
             if kind == "tkKYW":
-                if gid not in oKeywords:
-                    oKeywords[gid] = {}
-                container = oKeywords.get(gid, {})
-
                 if values:
                     if len(values[0]) == 1:
-                        if flag == CTX_STR:
-                            if CTX_STR not in container: container[CTX_STR] = []
-                            container[flag].append(re.sub(r"\s", "", tkstr(values[0][0])[1:-1]))
-                        else: container[flag] = re.sub(r"\s", "", tkstr(values[0][0]))
+                        value = re.sub(r"\s", "", tkstr(values[0][0]))
+                        if flag == "context": value = value[1:-1]
+                        oKeywords[gid][flag].append(value)
                     else:
                         strs = []
                         for tid in range(values[0][1]+1, values[0][2]):
@@ -180,7 +170,7 @@ def acdef(branches, cchains, flags, settings, S):
                                 else:
                                     strs.append(tkstr(tid))
 
-                        container[flag] = "$(" + ",".join(strs) + ")"
+                        oKeywords[gid][flag].append("$(" + ",".join(strs) + ")")
 
                 continue
 
@@ -247,6 +237,13 @@ def acdef(branches, cchains, flags, settings, S):
 
     for i, group in enumerate(cchains):
 
+        oKeywords[i] = {
+            "default": [],
+            "filedir": [],
+            "context": [],
+            "exclude": []
+        }
+
         # Handle universal blocks.
         if i not in ubids:
             # Add missing group flags arrays.
@@ -306,11 +303,8 @@ def acdef(branches, cchains, flags, settings, S):
 
                 # Skip universal blocks here, add flags post loop.
                 if chain == "*":
-                    if i in oKeywords:
-                        if "exclude" in oKeywords[i]:
-                            row = oKeywords[i]["exclude"]
-                            oExcludes[row[1:-1]] = 1
-
+                    values = oKeywords[i]["exclude"]
+                    if values: oExcludes[values[-1][1:-1]] = 1
                     continue
 
                 if i in oFlags:
@@ -322,25 +316,29 @@ def acdef(branches, cchains, flags, settings, S):
                     if chain not in oSets:
                         oSets[chain] = {}
 
-                if i in oKeywords:
-                    for row in oKeywords[i]:
-                        container = None
-                        if row == "default":
-                            container = oDefaults
-                        elif row == "filedir":
-                            container = oFiledirs
-                        elif row == "context":
-                            container = oContexts
-                        elif row == "exclude":
-                            container = oExcludes
+                for row in oKeywords[i]:
+                    container = None
+                    if row == "default":
+                        container = oDefaults
+                    elif row == "filedir":
+                        container = oFiledirs
+                    elif row == "context":
+                        container = oContexts
+                    elif row == "exclude":
+                        container = oExcludes
 
-                        # [TODO] Find better way to do this.
-                        if row == "context":
-                            ctxs_list = ";".join(oKeywords[i][row])
+                    # [TODO] Find better way to do this.
+                    if row == "context":
+                        ctxs_list = ";".join(oKeywords[i][row])
+                        if chain not in container: container[chain] = []
+                        if ctxs_list: container[chain].append(ctxs_list)
+                    else:
+                        # Get the last value in respective keyword list.
+                        values = oKeywords[i][row]
+                        value = values[-1] if values else ""
+                        if value:
                             if chain not in container: container[chain] = []
-                            container[chain].append(ctxs_list)
-                        else:
-                            container[chain] = f"{row} {oKeywords[i][row]}"
+                            container[chain].append(value)
 
                 # Create missing parent chains.
                 commands = re.split(r'(?<!\\)\.', chain)
@@ -365,25 +363,29 @@ def acdef(branches, cchains, flags, settings, S):
                                     if rchain not in oSets:
                                         oSets[rchain] = {}
 
-                                if ubid in oKeywords:
-                                    for row in oKeywords[ubid]:
-                                        container = None
-                                        if row == "default":
-                                            container = oDefaults
-                                        elif row == "filedir":
-                                            container = oFiledirs
-                                        elif row == "context":
-                                            container = oContexts
-                                        elif row == "exclude":
-                                            container = oExcludes
+                                for row in oKeywords[ubid]:
+                                    container = None
+                                    if row == "default":
+                                        container = oDefaults
+                                    elif row == "filedir":
+                                        container = oFiledirs
+                                    elif row == "context":
+                                        container = oContexts
+                                    elif row == "exclude":
+                                        container = oExcludes
 
-                                        # [TODO] Find better way to do this.
-                                        if row == "context":
-                                            ctxs_list = ";".join(oKeywords[ubid][row])
+                                    # [TODO] Find better way to do this.
+                                    if row == "context":
+                                        ctxs_list = ";".join(oKeywords[ubid][row])
+                                        if rchain not in container: container[rchain] = []
+                                        if ctxs_list: container[rchain].append(ctxs_list)
+                                    else:
+                                        # Get the last value in respective keyword list.
+                                        values = oKeywords[ubid][row]
+                                        value = values[-1] if values else ""
+                                        if value:
                                             if rchain not in container: container[rchain] = []
-                                            container[rchain].append(ctxs_list)
-                                        else:
-                                            container[rchain] = f"{row} {oKeywords[ubid][row]}"
+                                            container[rchain].append(value)
 
                     commands.pop() # Remove last command.
 
@@ -393,19 +395,25 @@ def acdef(branches, cchains, flags, settings, S):
             oSets[_] = NOFLAGS
 
     # Build defaults contents.
+    deflist = []
+    for default in oDefaults: deflist.append(default)
     defs = mapsort(list(oDefaults.keys()), asort, aobj)
     dl = len(defs) - 1
     for i, __def in enumerate(defs):
-        defaults += f"{rm_fcmd(__def)} {oDefaults[__def]}"
-        if i < dl: defaults += "\n"
+        if oDefaults[__def]:
+            defaults += f"{rm_fcmd(__def)} default {oDefaults[__def][0]}"
+            if i < dl: defaults += "\n"
     if defaults: defaults = "\n\n" + defaults
 
-    # Build defaults contents.
-    fdirs = mapsort(list(oFiledirs.keys()), asort, aobj)
-    fl = len(fdirs) - 1
-    for i, __fdir in enumerate(fdirs):
-        filedirs += f"{rm_fcmd(__fdir)} {oFiledirs[__fdir]}"
-        if i < fl: filedirs += "\n"
+    # Build filedirs contents.
+    firlist = []
+    for filedir in oFiledirs: firlist.append(filedir)
+    fils = mapsort(list(oFiledirs.keys()), asort, aobj)
+    fl = len(fils) - 1
+    for i, __fil in enumerate(fils):
+        if oFiledirs[__fil]:
+            filedirs += f"{rm_fcmd(__fil)} filedir {oFiledirs[__fil][0]}"
+            if i < fl: filedirs += "\n"
     if filedirs: filedirs = "\n\n" + filedirs
 
     # Build contexts contents.
@@ -414,9 +422,10 @@ def acdef(branches, cchains, flags, settings, S):
     ctxs = mapsort(list(oContexts.keys()), asort, aobj)
     cl = len(ctxs) - 1
     for i, __ctx in enumerate(ctxs):
-        ctxs_list = ";".join(oContexts[__ctx])
-        contexts += f"{rm_fcmd(__ctx)} context \"{ctxs_list}\""
-        if i < cl: contexts += "\n"
+        if oContexts[__ctx]:
+            ctxs_list = ";".join(oContexts[__ctx])
+            contexts += f"{rm_fcmd(__ctx)} context \"{ctxs_list}\""
+            if i < cl: contexts += "\n"
     if contexts: contexts = "\n\n" + contexts
 
     # Build settings contents.

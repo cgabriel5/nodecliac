@@ -274,12 +274,6 @@ def acdef(branches, cchains, flags, settings, S):
 
         return output
 
-    # Populate settings object.
-    for setting in settings:
-        name = tkstr(setting[0])[1:]
-        if name == "test": oTests.append(re.sub(r";\s+", ";", tkstr(setting[2])))
-        else: oSettings[name] = tkstr(setting[2]) if len(setting) > 1 else ""
-
     # Start building acmap contents. -------------------------------------------
 
     for i, group in enumerate(cchains):
@@ -400,6 +394,12 @@ def acdef(branches, cchains, flags, settings, S):
     defaults = build_keyword("default", oDefaults)
     filedirs = build_keyword("filedir", oFiledirs)
     contexts = build_keyword("context", oContexts)
+
+    # Populate settings object.
+    for setting in settings:
+        name = tkstr(setting[0])[1:]
+        if name == "test": oTests.append(re.sub(r";\s+", ";", tkstr(setting[2])))
+        else: oSettings[name] = tkstr(setting[2]) if len(setting) > 1 else ""
 
     # Build settings contents.
     settings_count = len(oSettings)

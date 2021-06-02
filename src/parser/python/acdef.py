@@ -256,8 +256,7 @@ def acdef(branches, cchains, flags, settings, S):
 
     def build_keyword(kwtype, container):
         output = []
-        kwlist = []
-        for keyword in container: kwlist.append(keyword)
+        kwtps = mapsort([keyword for keyword in container], asort, aobj)
         kwtps = mapsort(list(container.keys()), asort, aobj)
         kl = len(kwtps) - 1
         template = "{} {} {}"

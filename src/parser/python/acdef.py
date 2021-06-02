@@ -160,7 +160,6 @@ def acdef(branches, cchains, flags, settings, S):
                 container["context"].append(f"{{{flag.strip('-')}|{alias}}}")
 
             if kind == "tkKYW":
-                # nonlocal oKeywords
                 if gid not in oKeywords:
                     oKeywords[gid] = {}
                 container = oKeywords.get(gid, {})

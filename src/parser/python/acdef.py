@@ -235,6 +235,31 @@ def acdef(branches, cchains, flags, settings, S):
         if name == "test": oTests.append(re.sub(r";\s+", ";", tkstr(setting[2])))
         else: oSettings[name] = tkstr(setting[2]) if len(setting) > 1 else ""
 
+    def populate_keyword_objs(gid, chain):
+        for row in oKeywords[gid]:
+            container = None
+            if row == "default":
+                container = oDefaults
+            elif row == "filedir":
+                container = oFiledirs
+            elif row == "context":
+                container = oContexts
+            elif row == "exclude":
+                container = oExcludes
+
+            # [TODO] Find better way to do this.
+            if row == "context":
+                ctxs_list = ";".join(oKeywords[gid][row])
+                if chain not in container: container[chain] = []
+                if ctxs_list: container[chain].append(ctxs_list)
+            else:
+                # Get the last value in respective keyword list.
+                values = oKeywords[gid][row]
+                value = values[-1] if values else ""
+                if value:
+                    if chain not in container: container[chain] = []
+                    container[chain].append(value)
+
     for i, group in enumerate(cchains):
 
         oKeywords[i] = {
@@ -316,29 +341,7 @@ def acdef(branches, cchains, flags, settings, S):
                     if chain not in oSets:
                         oSets[chain] = {}
 
-                for row in oKeywords[i]:
-                    container = None
-                    if row == "default":
-                        container = oDefaults
-                    elif row == "filedir":
-                        container = oFiledirs
-                    elif row == "context":
-                        container = oContexts
-                    elif row == "exclude":
-                        container = oExcludes
-
-                    # [TODO] Find better way to do this.
-                    if row == "context":
-                        ctxs_list = ";".join(oKeywords[i][row])
-                        if chain not in container: container[chain] = []
-                        if ctxs_list: container[chain].append(ctxs_list)
-                    else:
-                        # Get the last value in respective keyword list.
-                        values = oKeywords[i][row]
-                        value = values[-1] if values else ""
-                        if value:
-                            if chain not in container: container[chain] = []
-                            container[chain].append(value)
+                populate_keyword_objs(i, chain)
 
                 # Create missing parent chains.
                 commands = re.split(r'(?<!\\)\.', chain)
@@ -363,29 +366,7 @@ def acdef(branches, cchains, flags, settings, S):
                                     if rchain not in oSets:
                                         oSets[rchain] = {}
 
-                                for row in oKeywords[ubid]:
-                                    container = None
-                                    if row == "default":
-                                        container = oDefaults
-                                    elif row == "filedir":
-                                        container = oFiledirs
-                                    elif row == "context":
-                                        container = oContexts
-                                    elif row == "exclude":
-                                        container = oExcludes
-
-                                    # [TODO] Find better way to do this.
-                                    if row == "context":
-                                        ctxs_list = ";".join(oKeywords[ubid][row])
-                                        if rchain not in container: container[rchain] = []
-                                        if ctxs_list: container[rchain].append(ctxs_list)
-                                    else:
-                                        # Get the last value in respective keyword list.
-                                        values = oKeywords[ubid][row]
-                                        value = values[-1] if values else ""
-                                        if value:
-                                            if rchain not in container: container[rchain] = []
-                                            container[rchain].append(value)
+                                populate_keyword_objs(ubid, rchain)
 
                     commands.pop() # Remove last command.
 

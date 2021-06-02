@@ -230,29 +230,21 @@ def acdef(branches, cchains, flags, settings, S):
                         queue_flags['-' + alias + "="] = 1
 
     def populate_keyword_objs(gid, chain):
-        for row in oKeywords[gid]:
+        for kw in oKeywords[gid]:
             container = None
-            if row == "default":
-                container = oDefaults
-            elif row == "filedir":
-                container = oFiledirs
-            elif row == "context":
-                container = oContexts
-            elif row == "exclude":
-                container = oExcludes
+            if kw == "default":   container = oDefaults
+            elif kw == "filedir": container = oFiledirs
+            elif kw == "context": container = oContexts
+            elif kw == "exclude": container = oExcludes
+            else: continue
 
-            # [TODO] Find better way to do this.
-            if row == "context":
-                ctxs_list = ";".join(oKeywords[gid][row])
-                if chain not in container: container[chain] = []
-                if ctxs_list: container[chain].append(ctxs_list)
-            else:
-                # Get the last value in respective keyword list.
-                values = oKeywords[gid][row]
-                value = values[-1] if values else ""
-                if value:
-                    if chain not in container: container[chain] = []
-                    container[chain].append(value)
+            if chain not in container: container[chain] = []
+            values = oKeywords[gid][kw]
+            if not values: continue
+
+            container[chain].append(
+                ";".join(values) if kw == "context" else values[-1]
+            )
 
     def kwstr(kwtype, container):
         output = []

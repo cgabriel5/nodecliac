@@ -229,12 +229,6 @@ def acdef(branches, cchains, flags, settings, S):
                         queue_flags['-' + alias + "=*"] = 1
                         queue_flags['-' + alias + "="] = 1
 
-    # Populate settings object.
-    for setting in settings:
-        name = tkstr(setting[0])[1:]
-        if name == "test": oTests.append(re.sub(r";\s+", ";", tkstr(setting[2])))
-        else: oSettings[name] = tkstr(setting[2]) if len(setting) > 1 else ""
-
     def populate_keyword_objs(gid, chain):
         for row in oKeywords[gid]:
             container = None
@@ -259,6 +253,34 @@ def acdef(branches, cchains, flags, settings, S):
                 if value:
                     if chain not in container: container[chain] = []
                     container[chain].append(value)
+
+    def build_keyword(kwtype, container):
+        output = ""
+        kwlist = []
+        for keyword in container: kwlist.append(keyword)
+        ctxs = mapsort(list(container.keys()), asort, aobj)
+        kl = len(ctxs) - 1
+        for i, __kwd in enumerate(ctxs):
+            if container[__kwd]:
+                if kwtype != "context":
+                    if container[__kwd]:
+                        output += f"{rm_fcmd(__kwd)} {kwtype} {container[__kwd][0]}"
+                        if i < kl: output += "\n"
+                else:
+                    ctxs_list = ";".join(container[__kwd])
+                    output += f"{rm_fcmd(__kwd)} {kwtype} \"{ctxs_list}\""
+                    if i < kl: output += "\n"
+        if output: output = "\n\n" + output
+
+        return output
+
+    # Populate settings object.
+    for setting in settings:
+        name = tkstr(setting[0])[1:]
+        if name == "test": oTests.append(re.sub(r";\s+", ";", tkstr(setting[2])))
+        else: oSettings[name] = tkstr(setting[2]) if len(setting) > 1 else ""
+
+    # Start building acmap contents. -------------------------------------------
 
     for i, group in enumerate(cchains):
 
@@ -374,26 +396,6 @@ def acdef(branches, cchains, flags, settings, S):
     for _ in oParents:
         if _ not in oSets:
             oSets[_] = NOFLAGS
-
-    def build_keyword(kwtype, container):
-        output = ""
-        kwlist = []
-        for keyword in container: kwlist.append(keyword)
-        ctxs = mapsort(list(container.keys()), asort, aobj)
-        kl = len(ctxs) - 1
-        for i, __kwd in enumerate(ctxs):
-            if container[__kwd]:
-                if kwtype != "context":
-                    if container[__kwd]:
-                        output += f"{rm_fcmd(__kwd)} {kwtype} {container[__kwd][0]}"
-                        if i < kl: output += "\n"
-                else:
-                    ctxs_list = ";".join(container[__kwd])
-                    output += f"{rm_fcmd(__kwd)} {kwtype} \"{ctxs_list}\""
-                    if i < kl: output += "\n"
-        if output: output = "\n\n" + output
-
-        return output
 
     defaults = build_keyword("default", oDefaults)
     filedirs = build_keyword("filedir", oFiledirs)

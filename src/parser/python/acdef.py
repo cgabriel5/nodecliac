@@ -40,6 +40,8 @@ def acdef(branches, cchains, flags, settings, S):
     contexts = ""
     has_root = False
 
+    CTX_STR = "context"
+
     # Escape '+' chars in commands. [https://stackoverflow.com/a/678242]
     rcmdname = re.sub(r'\+', "\\+", os.path.splitext(S["filename"])[0])
     r = re.compile(f"^({rcmdname}|[-_a-zA-Z0-9]+)")
@@ -153,11 +155,10 @@ def acdef(branches, cchains, flags, settings, S):
             nonlocal oKeywords
             if alias:
                 if gid not in oKeywords: oKeywords[gid] = {}
-                    oKeywords[gid] = {}
                 container = oKeywords.get(gid, {})
 
-                if "context" not in container: container["context"] = []
-                container["context"].append(f"{{{flag.strip('-')}|{alias}}}")
+                if CTX_STR not in container: container[CTX_STR] = []
+                container[CTX_STR].append(f"{{{flag.strip('-')}|{alias}}}")
 
             if kind == "tkKYW":
                 if gid not in oKeywords:
@@ -166,8 +167,8 @@ def acdef(branches, cchains, flags, settings, S):
 
                 if values:
                     if len(values[0]) == 1:
-                        if flag == "context":
-                            if "context" not in container: container["context"] = []
+                        if flag == CTX_STR:
+                            if CTX_STR not in container: container[CTX_STR] = []
                             container[flag].append(re.sub(r"\s", "", tkstr(values[0][0])[1:-1]))
                         else: container[flag] = re.sub(r"\s", "", tkstr(values[0][0]))
                     else:

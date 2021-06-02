@@ -300,8 +300,7 @@ def acdef(branches, cchains, flags, settings, S):
 
                     chains = tmp_commands
 
-            if not expandables:
-                chains.append(template)
+            if not expandables: chains.append(template)
 
             for chain in chains:
 

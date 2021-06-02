@@ -254,7 +254,7 @@ def acdef(branches, cchains, flags, settings, S):
                     if chain not in container: container[chain] = []
                     container[chain].append(value)
 
-    def build_keyword(kwtype, container):
+    def kwstr(kwtype, container):
         output = []
         chains = mapsort([c for c in container if container[c]], asort, aobj)
         cl = len(chains) - 1
@@ -384,9 +384,9 @@ def acdef(branches, cchains, flags, settings, S):
         if _ not in oSets:
             oSets[_] = NOFLAGS
 
-    defaults = build_keyword("default", oDefaults)
-    filedirs = build_keyword("filedir", oFiledirs)
-    contexts = build_keyword("context", oContexts)
+    defaults = kwstr("default", oDefaults)
+    filedirs = kwstr("filedir", oFiledirs)
+    contexts = kwstr("context", oContexts)
 
     # Populate settings object.
     for setting in settings:

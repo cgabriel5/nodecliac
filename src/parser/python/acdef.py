@@ -152,7 +152,7 @@ def acdef(branches, cchains, flags, settings, S):
 
             nonlocal oKeywords
             if alias:
-                if gid not in oKeywords:
+                if gid not in oKeywords: oKeywords[gid] = {}
                     oKeywords[gid] = {}
                 container = oKeywords.get(gid, {})
 
@@ -256,15 +256,10 @@ def acdef(branches, cchains, flags, settings, S):
                     flags[i].append(flg)
 
         if i in flags:
-
             queue_flags = {}
             processflags(i, flags[i], queue_flags)
-
-            if queue_flags:
-                oFlags[i] = queue_flags
-
-        else:
-            oFlags[i] = {}
+            if queue_flags: oFlags[i] = queue_flags
+        else: oFlags[i] = {}
 
         for chain in group:
 

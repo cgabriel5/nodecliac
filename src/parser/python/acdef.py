@@ -177,7 +177,7 @@ def acdef(branches, cchains, flags, settings, S):
                         oKeywords[gid][flag].append(value)
                     else:
                         oKeywords[gid][flag].append(
-                            get_cmdstr(values[0][1]+1, values[0][2])
+                            get_cmdstr(values[0][1] + 1, values[0][2])
                         )
                 continue
 
@@ -194,7 +194,7 @@ def acdef(branches, cchains, flags, settings, S):
                         queue_flags[flag + assignment + tkstr(value[0])] = 1
 
                     else: # Command-string
-                        cmdstr = get_cmdstr(value[1]+1, value[2])
+                        cmdstr = get_cmdstr(value[1] + 1, value[2])
                         queue_flags[flag + assignment + cmdstr] = 1
 
             else:

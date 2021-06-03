@@ -31,7 +31,6 @@ def acdef(branches, cchains, flags, settings, S):
     oTests = []
     oPlaceholders = {}
     omd5Hashes = {}
-    count = 0
     acdef = ""
     acdef_lines = []
     config = ""
@@ -39,8 +38,6 @@ def acdef(branches, cchains, flags, settings, S):
     filedirs = ""
     contexts = ""
     has_root = False
-
-    CTX_STR = "context"
 
     # Escape '+' chars in commands. [https://stackoverflow.com/a/678242]
     rcmdname = re.sub(r'\+', "\\+", os.path.splitext(S["filename"])[0])

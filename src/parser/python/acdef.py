@@ -223,6 +223,14 @@ def acdef(branches, cchains, flags, settings, S):
                 ";".join(values) if kw == "context" else values[-1]
             )
 
+    def populate_chain_flags(gid, chain):
+        if gid in oFlags:
+            if chain not in oSets:
+                oSets[chain] = oFlags[gid].copy()
+            else: oSets[chain].update(oFlags[gid])
+        else:
+            if chain not in oSets: oSets[chain] = {}
+
     def kwstr(kwtype, container):
         output = []
         chains = mapsort([c for c in container if container[c]], asort, aobj)
@@ -310,15 +318,7 @@ def acdef(branches, cchains, flags, settings, S):
                     if values: oExcludes[values[-1][1:-1]] = 1
                     continue
 
-                if i in oFlags:
-                    if chain not in oSets:
-                        oSets[chain] = oFlags[i].copy()
-                    else:
-                        oSets[chain].update(oFlags[i])
-                else:
-                    if chain not in oSets:
-                        oSets[chain] = {}
-
+                populate_chain_flags(i, chain)
                 populate_keyword_objs(i, chain)
 
                 # Create missing parent chains.
@@ -334,17 +334,9 @@ def acdef(branches, cchains, flags, settings, S):
                             rflags = []
                             oParents[rchain] = rflags
 
-                            for ubid in ubids:
-                                if ubid in oFlags:
-                                    if rchain not in oSets:
-                                        oSets[rchain] = oFlags[ubid].copy()
-                                    else:
-                                        oSets[rchain].update(oFlags[ubid])
-                                else:
-                                    if rchain not in oSets:
-                                        oSets[rchain] = {}
-
-                                populate_keyword_objs(ubid, rchain)
+                        for ubid in ubids:
+                            populate_chain_flags(ubid, rchain)
+                            populate_keyword_objs(ubid, rchain)
 
                     commands.pop() # Remove last command.
 

@@ -275,7 +275,6 @@ def acdef(branches, cchains, flags, settings, S):
             slots = []
             expand = False
             expandables = []
-            indices = []
 
             for _, command in enumerate(chain):
                 if command == -1:
@@ -288,7 +287,6 @@ def acdef(branches, cchains, flags, settings, S):
                     if command == -1:
                         slots.append('?')
                         expandables.append([])
-                        indices.append(len(slots))
                     else:
                         expandables[-1].append(tkstr(command))
 

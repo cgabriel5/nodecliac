@@ -128,6 +128,16 @@ def acdef(branches, cchains, flags, settings, S):
     def rm_fcmd(chain):
         return re.sub(r, "", chain)
 
+    def get_cmdstr(start, stop):
+        output = []
+        allowed_tk_types = ("tkSTR", "tkDLS")
+        for tid in range(start, stop):
+            if S["tokens"][tid]["kind"] in allowed_tk_types:
+                if output and output[-1] == "$": output[-1] = "$" + tkstr(tid)
+                else: output.append(tkstr(tid))
+
+        return "$({})".format(",".join(output))
+
     def processflags(gid, flags, queue_flags, recunion=False):
         unions = []
         for flg in flags:
@@ -162,16 +172,9 @@ def acdef(branches, cchains, flags, settings, S):
                         if flag == "context": value = value[1:-1]
                         oKeywords[gid][flag].append(value)
                     else:
-                        strs = []
-                        for tid in range(values[0][1]+1, values[0][2]):
-                            if S["tokens"][tid]["kind"] in ("tkSTR", "tkDLS"):
-                                if strs and strs[-1] == "$":
-                                    strs[-1] = "$" + tkstr(tid)
-                                else:
-                                    strs.append(tkstr(tid))
-
-                        oKeywords[gid][flag].append("$(" + ",".join(strs) + ")")
-
+                        oKeywords[gid][flag].append(
+                            get_cmdstr(values[0][1]+1, values[0][2])
+                        )
                 continue
 
             # Flag with values: build each flag + value.
@@ -198,18 +201,9 @@ def acdef(branches, cchains, flags, settings, S):
                             queue_flags['-' + alias + assignment + tkstr(value[0])] = 1
 
                     else: # Command-string
-                        strs = []
-                        for tid in range(value[1]+1, value[2]):
-                            if S["tokens"][tid]["kind"] in ("tkSTR", "tkDLS"):
-                                if strs and strs[-1] == "$":
-                                    strs[-1] = "$" + tkstr(tid)
-                                else:
-                                    strs.append(tkstr(tid))
-
-                        queue_flags[flag + assignment + "$(" + ",".join(strs) + ")"] = 1
-
-                        if alias:
-                            queue_flags['-' + alias + assignment + "$(" + ",".join(strs) + ")"] = 1
+                        cmdstr = get_cmdstr(value[1]+1, value[2])
+                        queue_flags[flag + assignment + cmdstr] = 1
+                        if alias: queue_flags['-' + alias + assignment + cmdstr] = 1
 
             else:
                 if not ismulti:

@@ -271,7 +271,6 @@ def acdef(branches, cchains, flags, settings, S):
         else: oFlags[i] = {}
 
         for chain in group:
-
             chains = []
             slots = []
             expand = False
@@ -299,7 +298,6 @@ def acdef(branches, cchains, flags, settings, S):
                 if not chains:
                     for m, command in enumerate(exgroup):
                         chains.append(template.replace('?', command, 1))
-
                 else:
                     tmp_commands = []
                     for j in range(len(chains)):
@@ -311,7 +309,6 @@ def acdef(branches, cchains, flags, settings, S):
             if not expandables: chains.append(template)
 
             for chain in chains:
-
                 # Skip universal blocks here, add flags post loop.
                 if chain == "*":
                     values = oKeywords[i]["exclude"]

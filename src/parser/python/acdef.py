@@ -138,7 +138,7 @@ def acdef(branches, cchains, flags, settings, S):
 
         return "$({})".format(",".join(output))
 
-    def processflags(gid, flags, queue_flags, recunion=False):
+    def processflags(gid, flags, queue_flags, recunion=False, recalias=False):
         unions = []
         for flg in flags:
             tid = flg["tid"]
@@ -151,8 +151,11 @@ def acdef(branches, cchains, flags, settings, S):
             values = flg["values"]
             kind = tokens[tid]["kind"]
 
+            if alias and not recalias:
+                processflags(gid, [flg], queue_flags, recalias=True)
+
             # Skip union logic on recursion.
-            if kind != "tkKYW" and not recunion:
+            if not recalias and kind != "tkKYW" and not recunion:
                 if union:
                     unions.append(flg)
                     continue
@@ -162,8 +165,9 @@ def acdef(branches, cchains, flags, settings, S):
                         processflags(gid, [uflg], queue_flags, recunion=True)
                     unions.clear()
 
-            if alias:
+            if recalias:
                 oKeywords[gid]["context"].append(f"{{{flag.strip('-')}|{alias}}}")
+                flag = "-" + alias
 
             if kind == "tkKYW":
                 if values:
@@ -183,27 +187,15 @@ def acdef(branches, cchains, flags, settings, S):
                 # Add base flag to Set (adds '--flag=' or '--flag=*').
                 queue_flags[f"{flag}={'*' if ismulti else ''}"] = 1
                 mflag = f"{flag}={'' if ismulti else '*'}"
-                if mflag in queue_flags:
-                    del queue_flags[mflag]
-
-                if alias:
-
-                    queue_flags[f"{'-' + alias}={'*' if ismulti else ''}"] = 1
-                    mflag = f"{'-' + alias}={'' if ismulti else '*'}"
-                    if mflag in queue_flags:
-                        del queue_flags[mflag]
+                if mflag in queue_flags: del queue_flags[mflag]
 
                 for value in values:
                     if len(value) == 1: # Single
                         queue_flags[flag + assignment + tkstr(value[0])] = 1
 
-                        if alias:
-                            queue_flags['-' + alias + assignment + tkstr(value[0])] = 1
-
                     else: # Command-string
                         cmdstr = get_cmdstr(value[1]+1, value[2])
                         queue_flags[flag + assignment + cmdstr] = 1
-                        if alias: queue_flags['-' + alias + assignment + cmdstr] = 1
 
             else:
                 if not ismulti:
@@ -213,15 +205,6 @@ def acdef(branches, cchains, flags, settings, S):
                 else:
                     queue_flags[flag + "=*"] = 1
                     queue_flags[flag + "="] = 1
-
-                if alias:
-                    if not ismulti:
-                        if boolean: queue_flags['-' + alias + "?"] = 1
-                        elif assignment: queue_flags['-' + alias + "="] = 1
-                        else: queue_flags['-' + alias] = 1
-                    else:
-                        queue_flags['-' + alias + "=*"] = 1
-                        queue_flags['-' + alias + "="] = 1
 
     def populate_keyword_objs(gid, chain):
         for kw in oKeywords[gid]:

@@ -244,6 +244,44 @@ def acdef(branches, cchains, flags, settings, S):
 
         return "\n\n" + "".join(output) if output else ""
 
+    def make_chains(ccids):
+        chains = []
+        slots = []
+        expand = False
+        expandables = []
+
+        for _, command in enumerate(ccids):
+            if command == -1:
+                if not expand: expand = True
+                else: expand = False
+
+            if not expand and command != -1:
+                slots.append(tkstr(command))
+            elif expand:
+                if command == -1:
+                    slots.append('?')
+                    expandables.append([])
+                else:
+                    expandables[-1].append(tkstr(command))
+
+        template = ".".join(slots)
+
+        for _, exgroup in enumerate(expandables):
+            if not chains:
+                for m, command in enumerate(exgroup):
+                    chains.append(template.replace('?', command, 1))
+            else:
+                tmp_commands = []
+                for j in range(len(chains)):
+                    for command in exgroup:
+                        tmp_commands.append(chains[j].replace('?', command))
+
+                chains = tmp_commands
+
+        if not expandables: chains.append(template)
+
+        return chains
+
     # Start building acmap contents. -------------------------------------------
 
     for i, group in enumerate(cchains):
@@ -270,43 +308,8 @@ def acdef(branches, cchains, flags, settings, S):
             if queue_flags: oFlags[i] = queue_flags
         else: oFlags[i] = {}
 
-        for chain in group:
-            chains = []
-            slots = []
-            expand = False
-            expandables = []
-
-            for _, command in enumerate(chain):
-                if command == -1:
-                    if not expand: expand = True
-                    else: expand = False
-
-                if not expand and command != -1:
-                    slots.append(tkstr(command))
-                elif expand:
-                    if command == -1:
-                        slots.append('?')
-                        expandables.append([])
-                    else:
-                        expandables[-1].append(tkstr(command))
-
-            template = ".".join(slots)
-
-            for _, exgroup in enumerate(expandables):
-                if not chains:
-                    for m, command in enumerate(exgroup):
-                        chains.append(template.replace('?', command, 1))
-                else:
-                    tmp_commands = []
-                    for j in range(len(chains)):
-                        for command in exgroup:
-                            tmp_commands.append(chains[j].replace('?', command))
-
-                    chains = tmp_commands
-
-            if not expandables: chains.append(template)
-
-            for chain in chains:
+        for ccids in group:
+            for chain in make_chains(ccids):
                 # Skip universal blocks here, add flags post loop.
                 if chain == "*":
                     values = oKeywords[i]["exclude"]

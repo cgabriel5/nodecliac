@@ -245,40 +245,36 @@ def acdef(branches, cchains, flags, settings, S):
         return "\n\n" + "".join(output) if output else ""
 
     def make_chains(ccids):
-        chains = []
         slots = []
-        expand = False
-        expandables = []
+        chains = []
+        groups = []
+        grouping = False
 
-        for _, command in enumerate(ccids):
-            if command == -1:
-                if not expand: expand = True
-                else: expand = False
+        for cid in ccids:
+            if cid == -1: grouping = not grouping
 
-            if not expand and command != -1:
-                slots.append(tkstr(command))
-            elif expand:
-                if command == -1:
+            if not grouping and cid != -1:
+                slots.append(tkstr(cid))
+            elif grouping:
+                if cid == -1:
                     slots.append('?')
-                    expandables.append([])
-                else:
-                    expandables[-1].append(tkstr(command))
+                    groups.append([])
+                else: groups[-1].append(tkstr(cid))
 
-        template = ".".join(slots)
+        tstr = ".".join(slots)
 
-        for _, exgroup in enumerate(expandables):
+        for group in groups:
             if not chains:
-                for m, command in enumerate(exgroup):
-                    chains.append(template.replace('?', command, 1))
+                for command in group:
+                    chains.append(tstr.replace('?', command, 1))
             else:
-                tmp_commands = []
-                for j in range(len(chains)):
-                    for command in exgroup:
-                        tmp_commands.append(chains[j].replace('?', command))
+                tmp_cmds = []
+                for chain in chains:
+                    for command in group:
+                        tmp_cmds.append(chain.replace('?', command))
+                chains = tmp_cmds
 
-                chains = tmp_commands
-
-        if not expandables: chains.append(template)
+        if not groups: chains.append(tstr)
 
         return chains
 

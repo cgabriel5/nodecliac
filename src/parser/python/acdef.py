@@ -328,11 +328,7 @@ def acdef(branches, cchains, flags, settings, S):
                     rchain = ".".join(commands) # Remainder chain.
 
                     if rchain not in oSets:
-                        if not ubids:
-                            oParents[rchain] = NOFLAGS
-                        else:
-                            rflags = []
-                            oParents[rchain] = rflags
+                        oParents[rchain] = [] if ubids else NOFLAGS
 
                         for ubid in ubids:
                             populate_chain_flags(ubid, rchain)

@@ -14,6 +14,7 @@ def acdef(branches, cchains, flags, settings, S):
     ubids = S["ubids"]
     text = S["text"]
     tokens = S["tokens"]
+    excludes = S["excludes"]
 
     oSets = {}
     oKeywords = {}
@@ -271,7 +272,6 @@ def acdef(branches, cchains, flags, settings, S):
 
     # Start building acmap contents. -------------------------------------------
 
-    excludes = [] # [TODO] Get exclude command chains from parser.
     # Collect all universal block flags.
     ubflags = [flg for ubid in ubids for flg in flags[ubid]]
 

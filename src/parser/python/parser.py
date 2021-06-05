@@ -34,6 +34,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
     chain = []
     CCHAINS = []
     ubids = []
+    excludes = []
     FLAGS = {}
     flag = {}
 
@@ -66,7 +67,8 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
             "igc": igc,
             "test": test,
         },
-        "ubids": ubids
+        "ubids": ubids,
+        "excludes": excludes
     }
 
     def err(tid, etype, message):
@@ -619,6 +621,14 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
 
     def __kyw__str(kind):
         setflagprop("values")
+
+        # Collect exclude values for use upstream.
+        if S["tid"] in dtids:
+            prevtk = prevtoken()
+            if (prevtk["kind"] == "tkKYW" and
+                tkstr(prevtk["tid"]) == "exclude"):
+                excl_values = tkstr(S["tid"])[1:-1].split(";")
+                for exclude in excl_values: excludes.append(exclude)
 
         # [TODO] This pathway re-uses the flag (tkFLG) token
         # pathways. If the keyword syntax were to change

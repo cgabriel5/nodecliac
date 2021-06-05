@@ -627,7 +627,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
             prevtk = prevtoken()
             if (prevtk["kind"] == "tkKYW" and
                 tkstr(prevtk["tid"]) == "exclude"):
-                excl_values = tkstr(S["tid"])[1:-1].split(";")
+                excl_values = tkstr(S["tid"])[1:-1].strip().split(";")
                 for exclude in excl_values: excludes.append(exclude)
 
         # [TODO] This pathway re-uses the flag (tkFLG) token

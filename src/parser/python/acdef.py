@@ -16,14 +16,9 @@ def acdef(branches, cchains, flags, settings, S):
     tokens = S["tokens"]
 
     oSets = {}
-    oFlags = {}
-    oParents = {}
-    NOFLAGS = {"--": 1}
-
     oKeywords = {}
     oDefaults = {}
     oFiledirs = {}
-    oExcludes = {}
     oContexts = {}
 
     oSettings = OrderedDict()
@@ -163,7 +158,7 @@ def acdef(branches, cchains, flags, settings, S):
                     unions.clear()
 
             if recalias:
-                oKeywords[gid]["context"].append(f"{{{flag.strip('-')}|{alias}}}")
+                oKeywords[gid]["context"][f"{{{flag.strip('-')}|{alias}}}"] = 1
                 flag = "-" + alias
 
             if kind == "tkKYW":
@@ -171,11 +166,10 @@ def acdef(branches, cchains, flags, settings, S):
                     if len(values[0]) == 1:
                         value = re.sub(r"\s", "", tkstr(values[0][0]))
                         if flag == "context": value = value[1:-1]
-                        oKeywords[gid][flag].append(value)
+                        oKeywords[gid][flag][value] = 1
                     else:
-                        oKeywords[gid][flag].append(
-                            get_cmdstr(values[0][1] + 1, values[0][2])
-                        )
+                        value = get_cmdstr(values[0][1] + 1, values[0][2])
+                        oKeywords[gid][flag][value] = 1
                 continue
 
             # Flag with values: build each flag + value.
@@ -209,24 +203,24 @@ def acdef(branches, cchains, flags, settings, S):
             if kw == "default":   container = oDefaults
             elif kw == "filedir": container = oFiledirs
             elif kw == "context": container = oContexts
-            elif kw == "exclude": container = oExcludes
+            elif kw == "exclude": continue
             else: continue
 
             if chain not in container: container[chain] = []
-            values = oKeywords[gid][kw]
+            values = list(oKeywords[gid][kw])
             if not values: continue
 
             container[chain].append(
                 ";".join(values) if kw == "context" else values[-1]
             )
 
-    def populate_chain_flags(gid, chain):
-        if gid in oFlags:
-            if chain not in oSets:
-                oSets[chain] = oFlags[gid].copy()
-            else: oSets[chain].update(oFlags[gid])
-        else:
-            if chain not in oSets: oSets[chain] = {}
+    def populate_chain_flags(gid, chain, container):
+        if chain not in excludes:
+            processflags(gid, ubflags, container)
+
+        if chain not in oSets:
+            oSets[chain] = container
+        else: oSets[chain].update(container)
 
     def kwstr(kwtype, container):
         output = []
@@ -277,39 +271,27 @@ def acdef(branches, cchains, flags, settings, S):
 
     # Start building acmap contents. -------------------------------------------
 
+    excludes = [] # [TODO] Get exclude command chains from parser.
+    # Collect all universal block flags.
+    ubflags = [flg for ubid in ubids for flg in flags[ubid]]
+
     for i, group in enumerate(cchains):
 
         oKeywords[i] = {
-            "default": [],
-            "filedir": [],
-            "context": [],
-            "exclude": []
+            "default": OrderedDict(),
+            "filedir": OrderedDict(),
+            "context": OrderedDict(),
+            "exclude": OrderedDict()
         }
-
-        # Handle universal blocks.
-        if i not in ubids:
-            # Add missing group flags arrays.
-            if i not in flags: flags[i] = []
-            # Add universal flags to flags array
-            for ubid in ubids:
-                for flg in flags[ubid]:
-                    flags[i].append(flg)
-
-        if i in flags:
-            queue_flags = {}
-            processflags(i, flags[i], queue_flags)
-            if queue_flags: oFlags[i] = queue_flags
-        else: oFlags[i] = {}
 
         for ccids in group:
             for chain in make_chains(ccids):
-                # Skip universal blocks here, add flags post loop.
-                if chain == "*":
-                    values = oKeywords[i]["exclude"]
-                    if values: oExcludes[values[-1][1:-1]] = 1
-                    continue
+                if chain == "*": continue
 
-                populate_chain_flags(i, chain)
+                gflags = flags.get(i, [])
+                container = {}
+                processflags(i, gflags, container)
+                populate_chain_flags(i, chain, container)
                 populate_keyword_objs(i, chain)
 
                 # Create missing parent chains.
@@ -319,18 +301,11 @@ def acdef(branches, cchains, flags, settings, S):
                     rchain = ".".join(commands) # Remainder chain.
 
                     if rchain not in oSets:
-                        oParents[rchain] = [] if ubids else NOFLAGS
-
-                        for ubid in ubids:
-                            populate_chain_flags(ubid, rchain)
-                            populate_keyword_objs(ubid, rchain)
+                        container = {}
+                        populate_chain_flags(i, rchain, container)
+                        if container: populate_keyword_objs(i, rchain)
 
                     commands.pop() # Remove last command.
-
-    # Add parent chains.
-    for _ in oParents:
-        if _ not in oSets:
-            oSets[_] = NOFLAGS
 
     defaults = kwstr("default", oDefaults)
     filedirs = kwstr("filedir", oFiledirs)

@@ -17,7 +17,6 @@ def acdef(branches, cchains, flags, settings, S):
     excludes = S["excludes"]
 
     oSets = {}
-    oKeywords = {}
     oDefaults = {}
     oFiledirs = {}
     oContexts = {}
@@ -34,6 +33,8 @@ def acdef(branches, cchains, flags, settings, S):
     filedirs = ""
     contexts = ""
     has_root = False
+
+    __locals__ = locals()
 
     # Escape '+' chars in commands. [https://stackoverflow.com/a/678242]
     rcmdname = re.sub(r'\+', "\\+", os.path.splitext(S["filename"])[0])
@@ -131,7 +132,7 @@ def acdef(branches, cchains, flags, settings, S):
 
         return "$({})".format(",".join(output))
 
-    def processflags(gid, flags, queue_flags, recunion=False, recalias=False):
+    def processflags(gid, chain, flags, queue_flags, recunion=False, recalias=False):
         unions = []
         for flg in flags:
             tid = flg["tid"]
@@ -145,7 +146,7 @@ def acdef(branches, cchains, flags, settings, S):
             kind = tokens[tid]["kind"]
 
             if alias and not recalias:
-                processflags(gid, [flg], queue_flags, recalias=True)
+                processflags(gid, chain, [flg], queue_flags, recalias=True)
 
             # Skip union logic on recursion.
             if not recalias and kind != "tkKYW" and not recunion:
@@ -155,22 +156,23 @@ def acdef(branches, cchains, flags, settings, S):
                 elif unions:
                     for uflg in unions:
                         uflg["values"] = values
-                        processflags(gid, [uflg], queue_flags, recunion=True)
+                        processflags(gid, chain, [uflg], queue_flags, recunion=True)
                     unions.clear()
 
             if recalias:
-                oKeywords[gid]["context"][f"{{{flag.strip('-')}|{alias}}}"] = 1
+                oContexts[chain].append(f"{{{flag.strip('-')}|{alias}}}")
                 flag = "-" + alias
 
             if kind == "tkKYW":
-                if values:
+                if values and flag != "exclude":
                     if len(values[0]) == 1:
                         value = re.sub(r"\s", "", tkstr(values[0][0]))
                         if flag == "context": value = value[1:-1]
-                        oKeywords[gid][flag][value] = 1
                     else:
                         value = get_cmdstr(values[0][1] + 1, values[0][2])
-                        oKeywords[gid][flag][value] = 1
+
+                    __locals__[f"o{flag.capitalize()}s"][chain].append(value)
+
                 continue
 
             # Flag with values: build each flag + value.
@@ -198,32 +200,20 @@ def acdef(branches, cchains, flags, settings, S):
                     queue_flags[flag + "=*"] = 1
                     queue_flags[flag + "="] = 1
 
-    def populate_keyword_objs(gid, chain):
-        for kw in oKeywords[gid]:
-            container = None
-            if kw == "default":   container = oDefaults
-            elif kw == "filedir": container = oFiledirs
-            elif kw == "context": container = oContexts
-            elif kw == "exclude": continue
-            else: continue
-
-            if chain not in container: container[chain] = []
-            values = list(oKeywords[gid][kw])
-            if not values: continue
-
-            container[chain].append(
-                ";".join(values) if kw == "context" else values[-1]
-            )
+    def populate_keywords(chain):
+        for kdict in oKeywords:
+            if chain not in kdict: kdict[chain] = []
 
     def populate_chain_flags(gid, chain, container):
         if chain not in excludes:
-            processflags(gid, ubflags, container)
+            processflags(gid, chain, ubflags, container)
 
         if chain not in oSets:
             oSets[chain] = container
-        else: oSets[chain].update(container)
+        else:
+            oSets[chain].update(container)
 
-    def kwstr(kwtype, container):
+    def build_kwstr(kwtype, container):
         output = []
         chains = mapsort([c for c in container if container[c]], asort, aobj)
         cl = len(chains) - 1
@@ -274,25 +264,23 @@ def acdef(branches, cchains, flags, settings, S):
 
     # Collect all universal block flags.
     ubflags = [flg for ubid in ubids for flg in flags[ubid]]
+    oKeywords = [oDefaults, oFiledirs, oContexts]
 
     for i, group in enumerate(cchains):
-
-        oKeywords[i] = {
-            "default": OrderedDict(),
-            "filedir": OrderedDict(),
-            "context": OrderedDict(),
-            "exclude": OrderedDict()
-        }
-
         for ccids in group:
             for chain in make_chains(ccids):
                 if chain == "*": continue
 
-                gflags = flags.get(i, [])
+                for kdict in oKeywords:
+                    if chain not in kdict: kdict[chain] = []
+
+                for kdict in oKeywords:
+                    if chain not in kdict: kdict[chain] = []
+
                 container = {}
-                processflags(i, gflags, container)
+                populate_keywords(chain)
+                processflags(i, chain, flags.get(i, []), container)
                 populate_chain_flags(i, chain, container)
-                populate_keyword_objs(i, chain)
 
                 # Create missing parent chains.
                 commands = re.split(r'(?<!\\)\.', chain)
@@ -300,16 +288,15 @@ def acdef(branches, cchains, flags, settings, S):
                 for _ in range(len(commands) - 1, -1, -1):
                     rchain = ".".join(commands) # Remainder chain.
 
+                    populate_keywords(rchain)
                     if rchain not in oSets:
-                        container = {}
-                        populate_chain_flags(i, rchain, container)
-                        if container: populate_keyword_objs(i, rchain)
+                        populate_chain_flags(i, rchain, {})
 
                     commands.pop() # Remove last command.
 
-    defaults = kwstr("default", oDefaults)
-    filedirs = kwstr("filedir", oFiledirs)
-    contexts = kwstr("context", oContexts)
+    defaults = build_kwstr("default", oDefaults)
+    filedirs = build_kwstr("filedir", oFiledirs)
+    contexts = build_kwstr("context", oContexts)
 
     # Populate settings object.
     for setting in settings:

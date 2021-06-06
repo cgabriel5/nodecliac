@@ -271,12 +271,6 @@ def acdef(branches, cchains, flags, settings, S):
             for chain in make_chains(ccids):
                 if chain == "*": continue
 
-                for kdict in oKeywords:
-                    if chain not in kdict: kdict[chain] = []
-
-                for kdict in oKeywords:
-                    if chain not in kdict: kdict[chain] = []
-
                 container = {}
                 populate_keywords(chain)
                 processflags(i, chain, flags.get(i, []), container)

@@ -7,9 +7,14 @@ def formatter(tokens, text, branches, cchains, flags, settings, S):
 
     fmt = S["args"]["fmt"]
     igc = S["args"]["igc"]
+
     output = []
-    r = r"/^[ \t]+/g"
     alias = None
+    r = r"/^[ \t]+/g"
+
+    ttypes = S["ttypes"]
+    ttids = S["ttids"]
+    dtids = S["dtids"]
 
     # Indentation level multipliers.
     MXP = {
@@ -25,12 +30,7 @@ def formatter(tokens, text, branches, cchains, flags, settings, S):
         "tkBRC_LP": 2
     }
 
-    ttypes = S["ttypes"]
-    ttids = S["ttids"]
-    dtids = S["dtids"]
-
-    nl_count = 0 # Track consecutive newlines.
-    scopes = [] # Track command/flag scopes.
+    NO_NL_CMT = ("tkNL", "tkCMT")
 
     [ichar, iamount] = fmt;
     def indent(type_, count):
@@ -42,224 +42,173 @@ def formatter(tokens, text, branches, cchains, flags, settings, S):
         if tokens[tid]["kind"] == "tkSTR": return tokens[tid]["$"]
         return text[tokens[tid]["start"]:tokens[tid]["end"] + 1]
 
-    def adjacenttk(tid):
-        for ttid in range(tid, -1, -1):
-            if tokens[ttid]["kind"] not in ("tkNL", "tkCMT"):
+    def prevtoken(tid, skip=("tkNL")):
+        for ttid in range(tid - 1, -1, -1):
+            if tokens[ttid]["kind"] not in skip:
                 return ttid
         return -1
-
-    def adjacenttk2(tid):
-        for ttid in range(tid, -1, -1):
-            if tokens[ttid]["kind"] not in ("tkNL"):
-                return ttid
-        return -1
-
-    def prevtk(tid):
-        for ttid in range(tid, -1, -1): return ttid
 
     cleaned = []
-    bl = len(branches)
-    for i, branch in enumerate(branches):
+    for branch in branches:
 
-        kind = branch[0]["kind"]
-        line = branch[0]["line"]
+        parentkind = branch[0]["kind"]
 
         first_assignment = False
-        scope_level = 0
+        level = 0
 
         brc_lp_count = 0
-        brc_cl_count = 0
-
-        lkind = ""
-        lline = -1
-        if i - 1 > -1:
-            lbranch = branches[i - 1]
-            lkind = lbranch[0]["kind"]
-            lline = lbranch[0]["line"]
+        group_open = False
 
         for j, leaf in enumerate(branch):
-            jkind = leaf["kind"]
-            jtid = leaf["tid"]
-            jline = leaf["line"]
+            tid = leaf["tid"]
+            kind = leaf["kind"]
+            line = leaf["line"]
 
-            if kind in ("tkSTN", "tkVAR"):
-                if jkind == "tkTRM": continue
+            ## Settings / Variables
 
-                pkind = ""
-                pline = -1
-                if jtid != 0:
-                    ptk = tokens[adjacenttk2(jtid - 1)]
-                    pkind = ptk["kind"]
-                    pline = ptk["line"]
+            if parentkind in ("tkSTN", "tkVAR"):
+                if kind == "tkTRM": continue
 
-                if pkind:
-                    dline = jline - pline
-                    if jkind in ("tkASG", "tkSTR", "tkBOL", "tkAVAL"):
-                        if tokens[adjacenttk2(jtid - 1)]["kind"] == "tkCMT":
+                if tid != 0:
+                    ptk = tokens[prevtoken(tid)]
+                    dline = line - ptk["line"]
+                    if kind in ("tkASG", "tkSTR", "tkAVAL"):
+                        if ptk["kind"] == "tkCMT":
                             cleaned.append("\n")
                             if dline > 1: cleaned.append("\n")
                         cleaned.append(" ")
-                        cleaned.append(tkstr(leaf["tid"]))
                     else:
-                        if dline == 0:
-                            cleaned.append(" ")
-                            cleaned.append(tkstr(leaf["tid"]))
-                        elif dline == 1:
-                            cleaned.append("\n")
-                            cleaned.append(tkstr(leaf["tid"]))
-                        else:
-                            cleaned.append("\n")
-                            cleaned.append("\n")
-                            cleaned.append(tkstr(leaf["tid"]))
-                else:
-                    cleaned.append(tkstr(leaf["tid"]))
+                        if dline == 0:   cleaned.append(" ")
+                        elif dline == 1: cleaned.append("\n")
+                        else:            cleaned.append("\n\n")
 
-            elif kind in ("tkCMD"):
+                cleaned.append(tkstr(leaf["tid"]))
 
-                pkind = ""
-                pline = -1
-                if jtid != 0:
-                    ptk = tokens[adjacenttk2(jtid - 1)]
-                    pkind = ptk["kind"]
-                    pline = ptk["line"]
+            ## Command chains
 
-                if pkind:
-                    dline = jline - pline
-                    if dline == 1:
-                        cleaned.append("\n")
+            elif parentkind in ("tkCMD"):
+
+                if tid != 0:
+                    ptk = tokens[prevtoken(tid)]
+                    dline = line - ptk["line"]
+
+                    if dline == 1: cleaned.append("\n")
                     elif dline > 1:
                         cleaned.append("\n")
                         cleaned.append("\n")
 
-                        # Collapse newlines in flag scopes.
-                        # if scope_level > 0: cleaned.pop()
+                        # [TODO] Add format settings to customize formatting.
+                        # For example, collapse newlines in flag scopes?
+                        if level > 0: cleaned.pop()
 
-                if (scope_level in (1, 2) or brc_lp_count == 1) and jkind in ("tkFVAL", "tkSTR", "tkDLS", "tkTBD"):
-                    adjtk = tokens[adjacenttk(jtid - 1)]["kind"]
+                # When inside an indentation level or inside parenthesis,
+                # append a space before every token to space things out.
+                # However, because this is being done lazily, some token
+                # conditions must be skipped. The skippable cases are when
+                # a '$' precedes a string (""), i.e. a '$"command"'. Or
+                # when an eq-sign precedes a '$', i.e. '=$("cmd")',
+                if ((level or brc_lp_count == 1) and
+                    kind in ("tkFVAL", "tkSTR", "tkDLS", "tkTBD")):
+                    ptk = tokens[prevtoken(tid, skip=NO_NL_CMT)]
+                    pkind = ptk["kind"]
 
-                    if adjtk != "tkBRC_LP":
-                        if cleaned[-1] != " ":
-                            cleaned.append(" ")
+                    if (pkind != "tkBRC_LP" and cleaned[-1] != " " and not
+                        ((kind == "tkSTR" and pkind == "tkDLS") or
+                        (kind == "tkDLS" and pkind == "tkASG"))):
+                        cleaned.append(" ")
 
-                    if jkind == "tkSTR" and adjtk == "tkDLS":
-                        cleaned.pop()
+                if kind == "tkBRC_LC":
+                    group_open = True
+                    cleaned.append(tkstr(leaf["tid"]))
 
-                    if jkind == "tkDLS" and adjtk == "tkASG":
-                        cleaned.pop()
+                elif kind == "tkBRC_RC":
+                    group_open = False
+                    cleaned.append(tkstr(leaf["tid"]))
 
-                if jkind == "tkASG" and not first_assignment:
+                elif kind == "tkDCMA" and not first_assignment:
+                    cleaned.append(tkstr(leaf["tid"]))
+                    # Append newline after group is cloased.
+                    if not group_open: cleaned.append("\n")
+
+                elif kind == "tkASG" and not first_assignment:
                     first_assignment = True
                     cleaned.append(" ")
                     cleaned.append(tkstr(leaf["tid"]))
                     cleaned.append(" ")
 
-                elif jkind == "tkBRC_LC":
-                    brc_cl_count += 1
+                elif kind == "tkBRC_LB":
                     cleaned.append(tkstr(leaf["tid"]))
+                    level = 1
 
-                elif jkind == "tkBRC_RC":
-                    brc_cl_count = 0
-                    cleaned.append(tkstr(leaf["tid"]))
-
-                elif jkind == "tkDCMA" and not first_assignment:
-                    cleaned.append(tkstr(leaf["tid"]))
-                    if not brc_cl_count: cleaned.append("\n")
-
-                elif jkind == "tkBRC_LB":
-                    cleaned.append(tkstr(leaf["tid"]))
-                    scope_level = 1
-
-                elif jkind == "tkBRC_RB":
-                    scope_level = 0
+                elif kind == "tkBRC_RB":
+                    level = 0
                     first_assignment = False
-                    # cleaned.append("\n")
                     cleaned.append(tkstr(leaf["tid"]))
 
-                elif jkind == "tkFLG":
-                    if scope_level:
-                        # cleaned.append("\n")
-                        cleaned.append(indent(jkind, scope_level))
+                elif kind == "tkFLG":
+                    if level: cleaned.append(indent(kind, level))
                     cleaned.append(tkstr(leaf["tid"]))
 
-                elif jkind == "tkKYW":
-                    if scope_level:
-                        # cleaned.append("\n")
-                        cleaned.append(indent(jkind, scope_level))
+                elif kind == "tkKYW":
+                    if level: cleaned.append(indent(kind, level))
                     cleaned.append(tkstr(leaf["tid"]))
                     cleaned.append(" ")
 
-                elif jkind == "tkFOPT":
-                    scope_level = 2
-                    # cleaned.append("\n")
-                    cleaned.append(indent(jkind, scope_level))
+                elif kind == "tkFOPT":
+                    level = 2
+                    cleaned.append(indent(kind, level))
                     cleaned.append(tkstr(leaf["tid"]))
-                    # cleaned.append(" ")
 
-                elif jkind == "tkBRC_LP":
+                elif kind == "tkBRC_LP":
                     brc_lp_count += 1
-                    atk = tokens[adjacenttk2(jtid - 1)]["kind"]
-                    if atk not in ("tkDLS", "tkASG"):
-
-                        scope_offset = 0
-                        if atk == "tkCMT": scope_offset = 1
-
-                        cleaned.append(indent(jkind, scope_level + scope_offset))
+                    ptk = tokens[prevtoken(tid)]
+                    pkind = ptk["kind"]
+                    if pkind not in ("tkDLS", "tkASG"):
+                        scope_offset = int(pkind == "tkCMT")
+                        cleaned.append(indent(kind, level + scope_offset))
                     cleaned.append(tkstr(leaf["tid"]))
 
-                elif jkind == "tkBRC_RP":
+                elif kind == "tkBRC_RP":
                     brc_lp_count -= 1
-                    if (scope_level == 2 and not brc_lp_count and
+                    if (level == 2 and not brc_lp_count and
                            branch[j - 1]["kind"] != "tkBRC_LP"):
-                        # cleaned.append("\n")
-                        cleaned.append(indent(jkind, scope_level - 1))
-                        scope_level = 1
+                        cleaned.append(indent(kind, level - 1))
+                        level = 1
                     cleaned.append(tkstr(leaf["tid"]))
 
-                elif jkind == "tkCMT":
-                    # [TODO] Look forward to check for long form.
-                    ptk = tokens[prevtk(leaf["tid"] - 1)]["kind"]
-                    atk = tokens[adjacenttk2(jtid - 1)]["kind"]
+                elif kind == "tkCMT":
+                    ptk = tokens[prevtoken(leaf["tid"], skip=())]["kind"]
+                    atk = tokens[prevtoken(tid)]["kind"]
                     if ptk == "tkNL":
                         scope_offset = 0
                         if atk == "tkASG": scope_offset = 1
-                        # cleaned.append("\n")
-                        cleaned.append(indent(jkind, scope_level + scope_offset))
-                        cleaned.append(tkstr(leaf["tid"]))
-                        # cleaned.append("\n")
-                    else:
-                        cleaned.append(" ")
-                        cleaned.append(tkstr(leaf["tid"]))
-                        # cleaned.append("\n")
+                        cleaned.append(indent(kind, level + scope_offset))
+                    else: cleaned.append(" ")
+                    cleaned.append(tkstr(leaf["tid"]))
 
                 else:
                     cleaned.append(tkstr(leaf["tid"]))
 
-            elif kind in ("tkCMT"):
+            ## Comments
 
-                pkind = ""
-                pline = -1
-                if jtid != 0:
-                    ptk = tokens[adjacenttk2(jtid - 1)]
-                    pkind = ptk["kind"]
-                    pline = ptk["line"]
+            elif parentkind in ("tkCMT"):
 
-                if pkind:
-                    dline = jline - pline
+                if tid != 0:
+                    ptk = tokens[prevtoken(tid)]
+                    dline = line - ptk["line"]
+
                     if dline == 1:
                         cleaned.append("\n")
-                        cleaned.append(tkstr(leaf["tid"]))
                     else:
                         cleaned.append("\n")
                         cleaned.append("\n")
-                        cleaned.append(tkstr(leaf["tid"]))
-                else:
-                    cleaned.append(tkstr(leaf["tid"]))
+                cleaned.append(tkstr(leaf["tid"]))
 
             else:
-                if jkind not in ("tkTRM"):
+                if kind not in ("tkTRM"):
                     cleaned.append(tkstr(leaf["tid"]))
 
-    print("--------------\n\n<" + "".join(cleaned) + ">")
+    # Return empty values to maintain parity with acdef.py.
 
     return (
         "", # acdef,
@@ -267,7 +216,7 @@ def formatter(tokens, text, branches, cchains, flags, settings, S):
         "", # defaults,
         "", # filedirs,
         "", # contexts,
-        "", # "", # formatted
+        "".join(cleaned) + "\n", # "", # formatted
         "", # oPlaceholders,
         "", # tests
     )

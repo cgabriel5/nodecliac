@@ -99,7 +99,7 @@ def formatter(tokens, text, branches, cchains, flags, settings, S):
 
                         # [TODO] Add format settings to customize formatting.
                         # For example, collapse newlines in flag scopes?
-                        if level > 0: cleaned.pop()
+                        # if level > 0: cleaned.pop()
 
                 # When inside an indentation level or inside parenthesis,
                 # append a space before every token to space things out.

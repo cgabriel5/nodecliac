@@ -219,7 +219,7 @@ def acdef(branches, cchains, flags, settings, S):
         cl = len(chains) - 1
         tstr = "{} {} {}"
         for i, chain in enumerate(chains):
-            value = (container[chain][0] if kwtype != "context"
+            value = (container[chain][-1] if kwtype != "context"
                 else "\"" + ";".join(container[chain]) + "\"")
             output.append(tstr.format(rm_fcmd(chain), kwtype, value))
             if i < cl: output.append("\n")

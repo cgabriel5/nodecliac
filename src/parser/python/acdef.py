@@ -164,7 +164,7 @@ def acdef(branches, cchains, flags, settings, S):
                     unions.clear()
 
             if recalias:
-                oContexts[chain].append(f"{{{flag.strip('-')}|{alias}}}")
+                oContexts[chain][f"{{{flag.strip('-')}|{alias}}}"] = 1
                 flag = "-" + alias
 
             if kind == "tkKYW":
@@ -175,7 +175,7 @@ def acdef(branches, cchains, flags, settings, S):
                     else:
                         value = get_cmdstr(values[0][1] + 1, values[0][2])
 
-                    __locals__[f"o{flag.capitalize()}s"][chain].append(value)
+                    __locals__[f"o{flag.capitalize()}s"][chain][value] = 1
 
                 continue
 
@@ -206,7 +206,7 @@ def acdef(branches, cchains, flags, settings, S):
 
     def populate_keywords(chain):
         for kdict in oKeywords:
-            if chain not in kdict: kdict[chain] = []
+            if chain not in kdict: kdict[chain] = OrderedDict()
 
     def populate_chain_flags(gid, chain, container):
         if chain not in excludes:
@@ -223,8 +223,9 @@ def acdef(branches, cchains, flags, settings, S):
         cl = len(chains) - 1
         tstr = "{} {} {}"
         for i, chain in enumerate(chains):
-            value = (container[chain][-1] if kwtype != "context"
-                else "\"" + ";".join(container[chain]) + "\"")
+            values = list(container[chain])
+            value = (values[-1] if kwtype != "context"
+                else "\"" + ";".join(values) + "\"")
             output.append(tstr.format(rm_fcmd(chain), kwtype, value))
             if i < cl: output.append("\n")
 

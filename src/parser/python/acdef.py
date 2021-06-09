@@ -36,6 +36,10 @@ def acdef(branches, cchains, flags, settings, S):
 
     __locals__ = locals()
 
+    # Collect all universal block flags.
+    ubflags = [flg for ubid in ubids for flg in flags[ubid]]
+    oKeywords = [oDefaults, oFiledirs, oContexts]
+
     # Escape '+' chars in commands. [https://stackoverflow.com/a/678242]
     rcmdname = re.sub(r'\+', "\\+", os.path.splitext(S["filename"])[0])
     r = re.compile(f"^({rcmdname}|[-_a-zA-Z0-9]+)")
@@ -261,10 +265,6 @@ def acdef(branches, cchains, flags, settings, S):
         return chains
 
     # Start building acmap contents. -------------------------------------------
-
-    # Collect all universal block flags.
-    ubflags = [flg for ubid in ubids for flg in flags[ubid]]
-    oKeywords = [oDefaults, oFiledirs, oContexts]
 
     for i, group in enumerate(cchains):
         for ccids in group:

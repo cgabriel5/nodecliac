@@ -152,7 +152,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
                     sub = VARSTABLE.get(varname, "")
                     # Unquote string if quoted.
                     tmpstr += sub if sub[0] not in ("\"", "'") else sub[1:-1]
-                    pointer = end + 1
+                    pointer = end
 
                 # Get tail-end of string.
                 tmpstr += value[end:]

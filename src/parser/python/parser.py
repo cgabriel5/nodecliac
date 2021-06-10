@@ -83,26 +83,26 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         index = token["start" if etype != "<term>" else "end"]
         msg = f"{etype} {message}"
 
-        # Add token debug information.
-        dbeugmsg = "\n\n\033[1mToken\033[0m: "
-        dbeugmsg += "\n - tid: " + str(token["tid"])
-        dbeugmsg += "\n - kind: " + token["kind"]
-        dbeugmsg += "\n - line: " + str(token["line"])
-        dbeugmsg += "\n - start: " + str(token["start"])
-        dbeugmsg += "\n - end: " + str(token["end"])
-        dbeugmsg += "\n __val__: [" + tkstr(tid) + "]"
+        # # Add token debug information.
+        # dbeugmsg = "\n\n\033[1mToken\033[0m: "
+        # dbeugmsg += "\n - tid: " + str(token["tid"])
+        # dbeugmsg += "\n - kind: " + token["kind"]
+        # dbeugmsg += "\n - line: " + str(token["line"])
+        # dbeugmsg += "\n - start: " + str(token["start"])
+        # dbeugmsg += "\n - end: " + str(token["end"])
+        # dbeugmsg += "\n __val__: [" + tkstr(tid) + "]"
 
-        dbeugmsg += "\n\n\033[1mExpected\033[0m: "
-        for n in NEXT:
-            if not n: n = "\"\""
-            dbeugmsg += "\n - " + n
-        dbeugmsg += "\n\n\033[1mScopes\033[0m: "
-        for s in SCOPE:
-            dbeugmsg += "\n - " + s
-        decor = "-" * 15
-        msg += "\n\n" + decor + " TOKEN_DEBUG_INFO " + decor
-        msg += dbeugmsg
-        msg += "\n\n" + decor + " TOKEN_DEBUG_INFO " + decor
+        # dbeugmsg += "\n\n\033[1mExpected\033[0m: "
+        # for n in NEXT:
+        #     if not n: n = "\"\""
+        #     dbeugmsg += "\n - " + n
+        # dbeugmsg += "\n\n\033[1mScopes\033[0m: "
+        # for s in SCOPE:
+        #     dbeugmsg += "\n - " + s
+        # decor = "-" * 15
+        # msg += "\n\n" + decor + " TOKEN_DEBUG_INFO " + decor
+        # msg += dbeugmsg
+        # msg += "\n\n" + decor + " TOKEN_DEBUG_INFO " + decor
 
         Issue().error(S["filename"], line, index - LINESTARTS[line], msg)
 

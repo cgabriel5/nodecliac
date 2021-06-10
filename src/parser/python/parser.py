@@ -72,16 +72,15 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         "warnings": []
     }
 
-    def err(tid, etype, message):
+    def err(tid, message, pos="start", scope=""):
         # When token ID points to end-of-parsing token,
         # reset the id to the last true token before it.
-        if tokens[tid]["kind"] == "tkEOP":
-            tid = ttids[-1]
+        if tokens[tid]["kind"] == "tkEOP": tid = ttids[-1]
 
         token = tokens[tid]
         line = token["line"]
-        index = token["start" if etype != "<term>" else "end"]
-        msg = f"{etype} {message}"
+        index = token[pos]
+        msg = f"{message}"
 
         # # Add token debug information.
         # dbeugmsg = "\n\n\033[1mToken\033[0m: "
@@ -144,7 +143,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
                         # Note: Modify token index to point to
                         # start of the variable position.
                         tokens[S["tid"]]["start"] += start
-                        err(ttid, "<child>", "Undefined variable.")
+                        err(ttid, "Undefined variable.", scope="child")
 
                     vindices[i].append([start, end])
 
@@ -446,7 +445,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         newflag()
 
         if hasscope("tkBRC_LB") and token["line"] == prevtoken()["line"]:
-            err(S["tid"], "<child>", "err: Flag same line (nth)")
+            err(S["tid"], "err: Flag same line (nth)", scope="child")
         expect("", "tkASG", "tkQMK",
             "tkDCLN", "tkFVAL", "tkDPPE")
 
@@ -458,7 +457,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         popscope()
 
         if hasscope("tkBRC_LB") and token["line"] == prevtoken()["line"]:
-            err(S["tid"], "<child>", "err: Keyword same line (nth)")
+            err(S["tid"], "err: Keyword same line (nth)", scope="child")
         addscope(kind)
         expect("tkSTR", "tkDLS")
 
@@ -483,7 +482,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         prevtk = prevtoken()
         if prevtk["kind"] == "tkBRC_LP":
             if prevtk["line"] == line:
-                err(S["tid"], "<child>", "err: Option on same line (first)")
+                err(S["tid"], "err: Option on same line (first)", scope="child")
             addscope("tkOPTS")
             expect("tkFVAL", "tkSTR", "tkDLS")
 
@@ -576,7 +575,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
 
     def __opts__fopt(kind):
         if prevtoken()["line"] == line:
-            err(S["tid"], "<child>", "err: Option on same line (nth)")
+            err(S["tid"], "err: Option on same line (nth)", scope="child")
         expect("tkFVAL", "tkSTR", "tkDLS")
 
     def __opts__dls(kind):
@@ -601,7 +600,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         newflag()
 
         if hasscope("tkBRC_LB") and token["line"] == prevtoken()["line"]:
-            err(S["tid"], "<child>", "err: Flag same line (first)")
+            err(S["tid"], "err: Flag same line (first)", scope="child")
         addscope(kind)
         expect("tkASG", "tkQMK", "tkDCLN",
             "tkFVAL", "tkDPPE", "tkBRC_RB")
@@ -610,7 +609,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         newflag()
 
         if hasscope("tkBRC_LB") and token["line"] == prevtoken()["line"]:
-            err(S["tid"], "<child>", "err: Keyword same line (first)")
+            err(S["tid"], "err: Keyword same line (first)", scope="child")
         addscope(kind)
         expect("tkSTR", "tkDLS", "tkBRC_RB")
 
@@ -788,7 +787,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
                 expect("")
             else:
                 if NEXT and not nextany():
-                    err(ttid, "<child>", "Improper termination")
+                    err(ttid, "Improper termination", scope="child")
 
             i += 1
             continue
@@ -801,7 +800,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
             if BRANCHES:
                 ltoken = BRANCHES[-1][-1] # Last branch token.
                 if line == ltoken["line"] and ltoken["kind"] != "tkTRM":
-                    err(ttid, "<parent>", "Improper termination")
+                    err(ttid, "Improper termination", scope="parent")
 
             oneliner = -1
 
@@ -839,7 +838,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
                         newbranch()
                         expect("")
                     else: # Handle unexpected parent tokens.
-                        err(S["tid"], "<parent>", "Unexpected parent token.")
+                        err(S["tid"], "Unexpected parent token.", scope="parent")
 
         else:
 
@@ -865,7 +864,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
                     continue
 
                 else:
-                    err(S["tid"], "<child>", "Unexpected child token.")
+                    err(S["tid"], "Unexpected child token.", scope="child")
 
             addtoken(ttid)
 
@@ -876,13 +875,13 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
                 and not hasscope("tkBRC_LB")):
                 if oneliner == -1: oneliner = token["line"]
                 elif token["line"] != oneliner:
-                    err(S["tid"], "<child>", "Improper oneliner.")
+                    err(S["tid"], "Improper oneliner.", scope="child")
 
             # [TODO] Improve this error handling.
             if kind in DISPATCH[prevscope()]:
                 DISPATCH[prevscope()][kind](kind)
             else:
-                err(tokens[S["tid"]]["tid"], "<term>", f"Try/catch {kind}")
+                err(tokens[S["tid"]]["tid"], f"Try/catch {kind}", pos="end")
 
         i += 1
 

@@ -876,6 +876,8 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
 
         i += 1
 
+    for warning in S["warnings"]: Issue().warn(*warning)
+
     if action == "make":
         return acdef(BRANCHES, CCHAINS, FLAGS, SETTINGS, S)
     else:

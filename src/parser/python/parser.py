@@ -68,7 +68,8 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
             "test": test,
         },
         "ubids": ubids,
-        "excludes": excludes
+        "excludes": excludes,
+        "warnings": []
     }
 
     def err(tid, etype, message):
@@ -110,7 +111,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         line = token["line"]
         index = token["start"]
 
-        Issue().warn(S["filename"], line, index - LINESTARTS[line], message)
+        S["warnings"].append([S["filename"], line, index - LINESTARTS[line], message])
 
     def tkstr(tid):
         if tid == -1: return ""

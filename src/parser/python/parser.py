@@ -425,6 +425,8 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
             "tkFVAL", "tkSTR", "tkDLS", "tkBRC_RB")
 
     def __flg__dcma(kind):
+        setflagprop("union")
+
         expect("tkFLG", "tkKYW")
 
     def __flg__mtl(kind):

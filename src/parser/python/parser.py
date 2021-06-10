@@ -676,6 +676,10 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         popscope()
         expect("", "tkDDOT", "tkASG", "tkDCMA")
 
+        command = tkstr(S["tid"])
+        if command != "*" and command != cmdname:
+            warn(S["tid"], "Command mismatch.")
+
     DISPATCH = {
         "tkSTN": {
             "tkASG": __stn__asg,
@@ -825,6 +829,10 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
                         addgroup(chain)
 
                         expect("", "tkDDOT", "tkASG", "tkDCMA")
+
+                        command = tkstr(S["tid"])
+                        if command != "*" and command != cmdname:
+                            warn(S["tid"], "Command mismatch.")
                 else:
                     if kind == "tkCMT":
                         addbranch(branch)

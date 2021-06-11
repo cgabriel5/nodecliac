@@ -687,7 +687,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
 
         command = tkstr(S["tid"])
         if command != "*" and command != cmdname:
-            warn(S["tid"], "Command mismatch")
+            warn(S["tid"], f"Unexpected command: '{command}'")
 
     DISPATCH = {
         "tkSTN": {
@@ -847,7 +847,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
 
                         command = tkstr(S["tid"])
                         if command != "*" and command != cmdname:
-                            warn(S["tid"], "Command mismatch")
+                            warn(S["tid"], f"Unexpected command: '{command}'")
                 else:
                     if kind == "tkCMT":
                         addbranch(branch)

@@ -82,10 +82,9 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         token = tokens[tid]
         line = token["line"]
         index = token[pos]
-        msg = f"{message}"
+        # msg = f"{message}"
 
-        if message == "Unexpected token":
-            msg += f" '{tkstr(tid)}'"
+        if message.endswith(":"): message += f" '{tkstr(tid)}'"
 
         # # Add token debug information.
         # dbeugmsg = "\n\n\033[1mToken\033[0m: "
@@ -108,12 +107,14 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         # msg += dbeugmsg
         # msg += "\n\n" + decor + " TOKEN_DEBUG_INFO " + decor
 
-        Issue().error(S["filename"], line, index - LINESTARTS[line], msg)
+        Issue().error(S["filename"], line, index - LINESTARTS[line], message)
 
     def warn(tid, message):
         token = tokens[tid]
         line = token["line"]
         index = token["start"]
+
+        if message.endswith(":"): message += f" '{tkstr(tid)}'"
 
         S["warnings"].append([S["filename"], line, index - LINESTARTS[line], message])
 
@@ -121,6 +122,8 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         token = tokens[tid]
         line = token["line"]
         index = token["start"]
+
+        if message.endswith(":"): message += f" '{tkstr(tid)}'"
 
         Issue().hint(S["filename"], line, index - LINESTARTS[line], message)
 
@@ -690,7 +693,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
 
         command = tkstr(S["tid"])
         if command != "*" and command != cmdname:
-            warn(S["tid"], f"Unexpected command: '{command}'")
+            warn(S["tid"], f"Unexpected command:")
 
     DISPATCH = {
         "tkSTN": {
@@ -850,7 +853,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
 
                         command = tkstr(S["tid"])
                         if command != "*" and command != cmdname:
-                            warn(S["tid"], f"Unexpected command: '{command}'")
+                            warn(S["tid"], f"Unexpected command:")
                 else:
                     if kind == "tkCMT":
                         addbranch(branch)

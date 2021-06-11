@@ -902,11 +902,9 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
                 elif token["line"] != oneliner:
                     err(S["tid"], "Improper oneliner", scope="child")
 
-            # [TODO] Improve this error handling.
             if kind in DISPATCH[prevscope()]:
                 DISPATCH[prevscope()][kind](kind)
-            else:
-                err(tokens[S["tid"]]["tid"], f"Unexpected token", pos="end")
+            else: err(tokens[S["tid"]]["tid"], f"Unexpected token", pos="end")
 
         i += 1
 

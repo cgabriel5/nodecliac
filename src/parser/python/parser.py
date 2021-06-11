@@ -865,7 +865,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
                         newbranch()
                         expect("")
                     else: # Handle unexpected parent tokens.
-                        err(S["tid"], "Unexpected token", scope="parent")
+                        err(S["tid"], "Unexpected token:", scope="parent")
 
         else:
 
@@ -891,7 +891,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
                     continue
 
                 else:
-                    err(S["tid"], "Unexpected token", scope="child")
+                    err(S["tid"], "Unexpected token:", scope="child")
 
             addtoken(ttid)
 
@@ -906,7 +906,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
 
             if kind in DISPATCH[prevscope()]:
                 DISPATCH[prevscope()][kind](kind)
-            else: err(tokens[S["tid"]]["tid"], f"Unexpected token", pos="end")
+            else: err(tokens[S["tid"]]["tid"], f"Unexpected token:", pos="end")
 
         i += 1
 

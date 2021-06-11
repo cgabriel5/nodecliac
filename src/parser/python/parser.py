@@ -112,6 +112,13 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
 
         S["warnings"].append([S["filename"], line, index - LINESTARTS[line], message])
 
+    def hint(tid, message):
+        token = tokens[tid]
+        line = token["line"]
+        index = token["start"]
+
+        Issue().hint(S["filename"], line, index - LINESTARTS[line], message)
+
     def tkstr(tid):
         if tid == -1: return ""
         if tokens[tid]["kind"] == "tkSTR":

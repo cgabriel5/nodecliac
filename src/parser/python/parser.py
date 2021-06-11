@@ -42,6 +42,8 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
     SETTINGS = []
     variable = []
     VARIABLES = []
+    USED_VARS = {}
+    USER_VARS = {}
     VARSTABLE = builtins(cmdname)
     vindices = {}
 
@@ -152,6 +154,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
                         tokens[S["tid"]]["start"] += start
                         err(ttid, "Undefined variable", scope="child")
 
+                    USED_VARS[varname] = 1
                     vindices[i].append([start, end])
 
                     tmpstr += value[pointer:start]
@@ -826,7 +829,13 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
                         newgroup_var()
                         addgroup_var(variable)
                         addtoken_var_group(S["tid"])
-                        VARSTABLE[tkstr(S["tid"])[1:]] = ""
+
+                        varname = tkstr(S["tid"])[1:]
+                        VARSTABLE[varname] = ""
+
+                        if varname not in USER_VARS:
+                            USER_VARS[varname] = []
+                        USER_VARS[varname].append(S["tid"])
 
                         vvariable(S)
                         expect("", "tkASG")
@@ -891,6 +900,18 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
                 err(tokens[S["tid"]]["tid"], f"Unexpected token", pos="end")
 
         i += 1
+
+    # Check for any unused variables and give warning.
+    for uservar in USER_VARS:
+        if uservar not in USED_VARS:
+            for tid in USER_VARS[uservar]:
+                warn(tid, f"Unused variable: '{uservar}'")
+
+    # Sort to ensure unused variable warnings are properly ordered.
+    # [https://stackoverflow.com/a/4233482]
+    # [https://www.kite.com/python/answers/how-to-sort-a-multidimensional-list-by-column-in-python]
+    # [TODO] Find alternate method to avoid sort call.
+    S["warnings"] = sorted(S["warnings"], key=lambda x: (x[1], x[2]))
 
     for warning in S["warnings"]: Issue().warn(*warning)
 

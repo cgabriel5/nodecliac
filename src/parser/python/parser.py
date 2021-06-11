@@ -84,6 +84,9 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         index = token[pos]
         msg = f"{message}"
 
+        if message == "Unexpected token":
+            msg += f" '{tkstr(tid)}'"
+
         # # Add token debug information.
         # dbeugmsg = "\n\n\033[1mToken\033[0m: "
         # dbeugmsg += "\n - tid: " + str(token["tid"])

@@ -40,8 +40,10 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
 
     setting = []
     SETTINGS = []
+
     variable = []
     VARIABLES = []
+
     USED_VARS = {}
     USER_VARS = {}
     VARSTABLE = builtins(cmdname)

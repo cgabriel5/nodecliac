@@ -83,6 +83,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         line = token["line"]
         index = token[pos]
         # msg = f"{message}"
+        col = index - LINESTARTS[line]
 
         if message.endswith(":"): message += f" '{tkstr(tid)}'"
 
@@ -107,25 +108,27 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         # msg += dbeugmsg
         # msg += "\n\n" + decor + " TOKEN_DEBUG_INFO " + decor
 
-        Issue().error(S["filename"], line, index - LINESTARTS[line], message)
+        Issue().error(S["filename"], line, col, message)
 
     def warn(tid, message):
         token = tokens[tid]
         line = token["line"]
         index = token["start"]
+        col = index - LINESTARTS[line]
 
         if message.endswith(":"): message += f" '{tkstr(tid)}'"
 
-        S["warnings"].append([S["filename"], line, index - LINESTARTS[line], message])
+        S["warnings"].append([S["filename"], line, col, message])
 
     def hint(tid, message):
         token = tokens[tid]
         line = token["line"]
         index = token["start"]
+        col = index - LINESTARTS[line]
 
         if message.endswith(":"): message += f" '{tkstr(tid)}'"
 
-        Issue().hint(S["filename"], line, index - LINESTARTS[line], message)
+        Issue().hint(S["filename"], line, col, message)
 
     def tkstr(tid):
         if tid == -1: return ""

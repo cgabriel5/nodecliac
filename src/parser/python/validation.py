@@ -19,7 +19,7 @@ def vsetting(S):
 
     # Warn if setting is not a supported setting.
     if str(setting) not in settings:
-        message = "Unknown setting: '@" + str(setting) + "'"
+        message = "Unknown setting: '" + str(setting) + "'"
         S["warnings"].append([S["filename"], line, index - S["LINESTARTS"][line], message])
 
 def vvariable(S):

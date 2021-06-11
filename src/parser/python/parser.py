@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import re
+import re, operator
 
 from acdef import acdef
 from formatter import formatter
@@ -73,7 +73,9 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         },
         "ubids": ubids,
         "excludes": excludes,
-        "warnings": []
+        "warnings": {},
+        "warn_lines": set(),
+        "warn_lsort": set()
     }
 
     def err(tid, message, pos="start", scope=""):
@@ -120,7 +122,9 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
 
         if message.endswith(":"): message += f" '{tkstr(tid)}'"
 
-        S["warnings"].append([S["filename"], line, col, message])
+        if line not in S["warnings"]: S["warnings"][line] = []
+        S["warnings"][line].append([S["filename"], line, col, message])
+        S["warn_lines"].add(line)
 
     def hint(tid, message):
         token = tokens[tid]
@@ -915,14 +919,18 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         if uservar not in USED_VARS:
             for tid in USER_VARS[uservar]:
                 warn(tid, f"Unused variable: '{uservar}'")
+                S["warn_lsort"].add(tokens[tid]["line"])
 
-    # Sort to ensure unused variable warnings are properly ordered.
-    # [https://stackoverflow.com/a/4233482]
-    # [https://www.kite.com/python/answers/how-to-sort-a-multidimensional-list-by-column-in-python]
-    # [TODO] Find alternate method to avoid sort call.
-    S["warnings"] = sorted(S["warnings"], key=lambda x: (x[1], x[2]))
-
-    for warning in S["warnings"]: Issue().warn(*warning)
+    # Sort warning lines and print issues.
+    warnlines = list(S["warn_lines"])
+    warnlines.sort()
+    for warnline in warnlines:
+        # Only sort lines where unused variable warning(s) were added.
+        if warnline in S["warn_lsort"] and len(S["warnings"][warnline]) > 1:
+            # [https://stackoverflow.com/a/4233482]
+            S["warnings"][warnline].sort(key = operator.itemgetter(1, 2))
+        for warning in S["warnings"][warnline]:
+            Issue().warn(*warning)
 
     if action == "make":
         return acdef(BRANCHES, CCHAINS, FLAGS, SETTINGS, S)

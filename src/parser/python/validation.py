@@ -20,7 +20,11 @@ def vsetting(S):
     # Warn if setting is not a supported setting.
     if str(setting) not in settings:
         message = "Unknown setting: '" + str(setting) + "'"
-        S["warnings"].append([S["filename"], line, index - S["LINESTARTS"][line], message])
+
+        if line not in S["warnings"]: S["warnings"][line] = []
+        S["warnings"][line].append([S["filename"], line, index - S["LINESTARTS"][line], message])
+        S["warn_lines"].add(line)
+
 
 def vvariable(S):
     token = S["tokens"][S["tid"]]
@@ -46,7 +50,10 @@ def vstring(S):
     # [TODO] Warn if string content is just whitespace?
     if end - start == 1:
         message = f"Empty string"
-        S["warnings"].append([S["filename"], line, index - S["LINESTARTS"][line], message])
+
+        if line not in S["warnings"]: S["warnings"][line] = []
+        S["warnings"][line].append([S["filename"], line, index - S["LINESTARTS"][line], message])
+        S["warn_lines"].add(line)
 
     # Error if string is unclosed.
     if token["lines"][1] == -1:

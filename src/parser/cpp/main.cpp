@@ -8,10 +8,10 @@ int main(int argc, char **argv) {
 
 	cxxopts::Options options("", "");
 
-	options.add_options()
-		("igc", "",    cxxopts::value<bool>()->default_value("false"))
-		("test", "",   cxxopts::value<bool>()->default_value("false"))
-		("print", "",  cxxopts::value<bool>()->default_value("false"))
+	options
+		// [https://github.com/jarro2783/cxxopts/pull/105]
+		.allow_unrecognised_options()
+		.add_options()
 		("trace", "",  cxxopts::value<bool>()->default_value("false"))
 		("action", "", cxxopts::value<std::string>())
 		("indent", "", cxxopts::value<std::string>()->default_value("s:4"))

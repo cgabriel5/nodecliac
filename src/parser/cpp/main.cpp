@@ -1,6 +1,8 @@
-#include <cxxopts.hpp> // [https://github.com/jarro2783/cxxopts]
-#include <termcolor.hpp> // [https://github.com/ikalnytskyi/termcolor]
-#include <filesystem.hpp> // [https://github.com/gulrak/filesystem]
+#include "io.hpp"
+#include "path.hpp"
+#include "str.hpp"
+#include "fs.hpp"
+
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -8,114 +10,12 @@
 #include <vector>
 #include <stdlib.h>
 
+#include <cxxopts.hpp>    // [https://github.com/jarro2783/cxxopts]
+#include <termcolor.hpp>  // [https://github.com/ikalnytskyi/termcolor]
+#include <filesystem.hpp> // [https://github.com/gulrak/filesystem]
+
 using namespace std;
 namespace fs = ghc::filesystem;
-
-// [https://www.tutorialkart.com/cpp/cpp-string-equals/]
-bool eq(const string &s1, const string &s2) {
-	return s1.compare(s2) == 0;
-}
-
-// [https://www.cplusplus.com/doc/tutorial/files/]
-void write(const string &p, const string &data) {
-	ofstream f;
-	f.open(p);
-	f << data;
-	f.close();
-}
-
-// [https://www.cplusplus.com/doc/tutorial/files/]
-// [https://stackoverflow.com/a/19922123]
-// [https://stackoverflow.com/q/748014]
-void read(const string &p, string &buffer) {
-	ifstream f;
-	f.open(p);
-	stringstream strStream;
-	strStream << f.rdbuf();
-	buffer = strStream.str();
-}
-
-string abspath(const string &p) {
-	// [https://www.geeksforgeeks.org/convert-string-char-array-cpp/]
-	// [https://stackoverflow.com/a/36686269]
-	// [https://stackoverflow.com/a/2341857]
-	// [https://www.oreilly.com/library/view/c-cookbook/0596007612/ch10s18.html]
-	char path[p.length() + 1];
-	strcpy(path, p.c_str());
-	char resolved_path[PATH_MAX];
-	realpath(path, resolved_path);
-	return string(resolved_path); // [https://stackoverflow.com/a/25576379]
-}
-
-// [https://stackoverflow.com/a/11829889]
-// [https://www.oreilly.com/library/view/c-cookbook/0596007612/ch04s09.html]
-// [https://stackoverflow.com/a/40497964]
-string join(string *paths, int size, const string &delimiter) {
-	string buffer = "";
-	for (int i = 0; i < size; i++) {
-		// [https://stackoverflow.com/a/611352]
-		buffer += paths[i];
-		if (i + 1 < size) buffer += delimiter;
-	}
-	return buffer;
-}
-
-// [https://stackoverflow.com/a/44495206]
-void split(vector<string> &reflist, const string* src,
-							const string &delimiter="\n") {
-	string token;
-	size_t pos = 0;
-	string s = *src;
-	while ((pos = s.find(delimiter)) != string::npos) {
-		token = s.substr(0, pos);
-		reflist.push_back(token);
-		s.erase(0, pos + delimiter.length());
-	}
-	reflist.push_back(s);
-}
-
-struct FileInfo {
-	string name;
-	string dirname;
-	string ext;
-	string path;
-};
-
-void info(const string &p, FileInfo &refobj) {
-	// [https://stackoverflow.com/a/38463871]
-	// [https://stackoverflow.com/a/48518157]
-	fs::path path(p);
-	string head = path.parent_path();
-	string name = path.filename();
-	string ext = path.extension();
-
-	refobj.dirname = head;
-	refobj.path = p;
-
-	if (!ext.empty()) {
-		refobj.name = name;
-		ext.erase(0, 1); // Remove '.'.
-		refobj.ext = ext;
-	} else {
-		// [https://stackoverflow.com/a/65373164]
-		char sep = fs::path::preferred_separator;
-		// [https://stackoverflow.com/a/64407571]
-		string delimiter{sep}; // Char to string.
-
-		vector<string> path_parts;
-		split(path_parts, &p, delimiter);
-
-		if (!path_parts.empty()) {
-			// [https://stackoverflow.com/a/14275320]
-			name = path_parts.back();
-			size_t index = name.find_last_of('.');
-			if (index != string::npos) {
-				refobj.name = name;
-				refobj.ext = name.substr(index + 1);
-			}
-		}
-	}
-}
 
 int main(int argc, char **argv) {
 

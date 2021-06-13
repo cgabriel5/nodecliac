@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iostream>
 #include <regex>
+#include <vector>
 #include <stdlib.h>
 
 using namespace std;

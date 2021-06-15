@@ -199,3 +199,4 @@ Procfile    text
 # [https://stackoverflow.com/a/43142088]
 # [https://github.com/github/linguist#using-gitattributes]
 resources/**/* -linguist-detectable
+src/parser/cpp/libs/**/* -linguist-detectable

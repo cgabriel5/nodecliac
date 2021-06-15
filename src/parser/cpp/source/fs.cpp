@@ -31,7 +31,7 @@ void info(const string &p, FileInfo &refobj) {
 		string delimiter{sep}; // Char to string.
 
 		vector<string> path_parts;
-		split(path_parts, &p, delimiter);
+		split(path_parts, p, delimiter);
 
 		if (!path_parts.empty()) {
 			// [https://stackoverflow.com/a/14275320]

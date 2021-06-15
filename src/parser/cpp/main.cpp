@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
 			exit(1);
 		}
 		vector<string> components;
-		split(components, &indent, ":");
+		split(components, indent, ":");
 		fmtinfo.ichar = (eq(components[0], "s") ? ' ' : '\t');
 		fmtinfo.iamount = std::stoi(components[1]);
 	}

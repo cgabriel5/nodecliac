@@ -9,7 +9,7 @@ using namespace std;
 
 bool eq(const string &s1, const string &s2);
 // string join(string *paths, int size, const string &delimiter);
-void split(vector<string> &reflist, const string* src,
+void split(vector<string> &reflist, string src,
 	const string &delimiter="\n");
 
 // Use template function: [https://stackoverflow.com/a/10632266]

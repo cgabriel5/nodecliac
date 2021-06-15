@@ -23,16 +23,17 @@ bool eq(const string &s1, const string &s2) {
 // }
 
 // [https://stackoverflow.com/a/44495206]
-void split(vector<string> &reflist, const string* src,
+void split(vector<string> &reflist, string src,
 	const string &delimiter /*="\n"*/) {
+
+	// [TODO]: Re-work to avoid making source string copy.
 
 	string token;
 	size_t pos = 0;
-	string s = *src;
-	while ((pos = s.find(delimiter)) != string::npos) {
-		token = s.substr(0, pos);
+	while ((pos = src.find(delimiter)) != string::npos) {
+		token = src.substr(0, pos);
 		reflist.push_back(token);
-		s.erase(0, pos + delimiter.length());
+		src.erase(0, pos + delimiter.length());
 	}
-	reflist.push_back(s);
+	reflist.push_back(src);
 }

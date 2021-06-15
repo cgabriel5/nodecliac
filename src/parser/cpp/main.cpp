@@ -3,11 +3,12 @@
 #include "str.hpp"
 #include "fs.hpp"
 
+#include <array>
+#include <vector>
+#include <regex>
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include <regex>
-#include <vector>
 #include <stdlib.h>
 
 #include <cxxopts.hpp>    // [https://github.com/jarro2783/cxxopts]
@@ -122,16 +123,16 @@ int main(int argc, char **argv) {
 			char sep = fs::path::preferred_separator;
 			// [https://stackoverflow.com/a/64407571]
 			string delimiter{sep}; // Char to string.
-			const int size = 2;
-			string paths[2];
-			paths[0] = dirname; paths[1] = testname;
-			string testpath = join(paths, size, delimiter);
-			paths[0] = dirname; paths[1] = savename;
-			string commandpath = join(paths, size, delimiter);
-			paths[0] = dirname; paths[1] = saveconfigname;
-			string commandconfigpath = join(paths, size, delimiter);
-			paths[0] = dirname; paths[1] = "placeholders";
-			string placeholderspaths = join(paths, size, delimiter);
+
+			array<string, 2> paths = {dirname};
+			paths.at(1) = testname;
+			string testpath = join(paths, delimiter);
+			paths.at(1) = savename;
+			string commandpath = join(paths, delimiter);
+			paths.at(1) = saveconfigname;
+			string commandconfigpath = join(paths, delimiter);
+			paths.at(1) = "placeholders";
+			string placeholderspaths = join(paths, delimiter);
 
 			// [https://en.cppreference.com/w/cpp/experimental/fs/create_directory]
 			fs::create_directories(dirname);

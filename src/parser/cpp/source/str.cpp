@@ -12,15 +12,15 @@ bool eq(const string &s1, const string &s2) {
 // [https://stackoverflow.com/a/11829889]
 // [https://www.oreilly.com/library/view/c-cookbook/0596007612/ch04s09.html]
 // [https://stackoverflow.com/a/40497964]
-string join(string *paths, int size, const string &delimiter) {
-	string buffer = "";
-	for (int i = 0; i < size; i++) {
-		// [https://stackoverflow.com/a/611352]
-		buffer += paths[i];
-		if (i + 1 < size) buffer += delimiter;
-	}
-	return buffer;
-}
+// string join(string *paths, int size, const string &delimiter) {
+// 	string buffer = "";
+// 	for (int i = 0; i < size; i++) {
+// 		// [https://stackoverflow.com/a/611352]
+// 		buffer += paths[i];
+// 		if (i + 1 < size) buffer += delimiter;
+// 	}
+// 	return buffer;
+// }
 
 // [https://stackoverflow.com/a/44495206]
 void split(vector<string> &reflist, const string* src,

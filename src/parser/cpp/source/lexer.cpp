@@ -5,8 +5,24 @@
 #include <set>
 #include <iostream>
 #include <algorithm>
+#include <iterator>
 
 using namespace std;
+
+// [https://stackoverflow.com/a/28097056]
+// [https://stackoverflow.com/a/43823704]
+template <typename T, typename V>
+bool contains(T const &container, V const &value) {
+	auto it = find(container.begin(), container.end(), value);
+	return (it != container.end());
+}
+
+template <typename T, typename V>
+bool hasKey(T const &map, V const &value) {
+	// [https://stackoverflow.com/a/3136545]
+	auto it = map.find(value);
+	return (it != map.end());
+}
 
 const char C_NL = '\n';
 const char C_DOT = '.';
@@ -27,6 +43,31 @@ const char C_ASTERISK = '*';
 const char C_DOLLARSIGN = '$';
 const char C_UNDERSCORE = '_';
 
+enum tkType {
+	tkSTN,
+	tkVAR,
+	tkFLG,
+	tkCMD,
+	tkCMT,
+	tkSTR,
+	tkTBD,
+	tkBRC,
+	tkDEF
+};
+
+tkType hashit (string const &type) {
+	if (type == "tkSTN") return tkSTN;
+	if (type == "tkVAR") return tkVAR;
+	if (type == "tkFLG") return tkFLG;
+	if (type == "tkCMD") return tkCMD;
+	if (type == "tkCMT") return tkCMT;
+	if (type == "tkSTR") return tkSTR;
+	if (type == "tkTBD") return tkTBD;
+	if (type == "tkBRC") return tkBRC;
+	// if (type == "tkDEF") return tkDEF;
+	return tkDEF;
+}
+
 map<char, string> SOT { // Start-of-token chars.
 	{'#', "tkCMT"},
 	{'@', "tkSTN"},
@@ -35,7 +76,7 @@ map<char, string> SOT { // Start-of-token chars.
 	{'?', "tkQMK"},
 	{'*', "tkMTL"},
 	{'.', "tkDDOT"},
-	{'a', "tkSTR"},
+	{'"', "tkSTR"},
 	{'\'', "tkSTR"},
 	{'=', "tkASG"},
 	{'|', "tkDPPE"},
@@ -48,7 +89,7 @@ map<char, string> SOT { // Start-of-token chars.
 	{']', "tkBRC"},
 	{'{', "tkBRC"},
 	{'}', "tkBRC"},
-	{'\\', "tkNL"}
+	{'\n', "tkNL"}
 };
 
 map<char, string> BRCTOKENS {
@@ -66,44 +107,333 @@ array<string, 4> KEYWORDS = {"default", "context", "filedir", "exclude"};
 // Invalid command start-of-token chars.
 array<char, 4> XCSCOPES = {C_ATSIGN, C_DOT, C_LCURLY, C_RCURLY};
 
+// [https://stackoverflow.com/a/12333839]
+// [https://www.geeksforgeeks.org/set-in-cpp-stl/]
+const set<char> SPACES {C_SPACE, C_TAB};
+const set<char> tkCMD_TK_TYPES {C_HYPHEN, C_ESCAPE};
+const set<char> tkTBD_TK_TYPES {
+	C_SPACE, C_TAB, C_DOLLARSIGN, C_ATSIGN,
+	C_PIPE, C_LCURLY, C_RCURLY, C_LBRACE,
+	C_RBRACE, C_LPAREN, C_RPAREN, C_HYPHEN,
+	C_QMARK, C_ASTERISK
+	};
+const set<char> tkTBD_TK_TYPES2 {C_NL, C_SPACE, C_TAB};
+const set<char> tkEOP_TK_TYPES {C_SPACE, C_TAB, C_NL};
+const set<string> tkTYPES_RESET1 {"tkCMD", "tkTBD"};
+const set<string> tkTYPES_RESET2 {"tkCMD", "tkFLG"};
+const set<string> tkTYPES_RESET3 {"tkSTN", "tkVAR"};
+const set<string> tkTYPES_RESET4 {"tkCMT", "tkNL", "tkEOP"};
+
+
+struct Token {
+	string kind;
+	int line, start, end, tid;
+	array<int, 2> lines = {-1, -1};
+};
+
+char c = '\0';
+map<int, int> dtids;
+vector<int> ttids;
+vector<Token> tokens;
+map<int, string> ttypes;
+int token_count = 0;
+// int l = text.length();
+int l = 0;
+bool cmdscope = false;
+bool valuelist = false; // Value list.
+vector<int> brcparens;
+
 struct State {
 	int i, line, start, end;
 	string kind;
-	bool last;
+	bool last, list;
+	array<int, 2> lines;
 };
+
 
 // Forward loop x amount.
 void forward(State &S, int amount) {
 	S.i += amount;
 }
 
-// [https://stackoverflow.com/a/28097056]
-// [https://stackoverflow.com/a/43823704]
-template <typename T, typename V>
-bool contains(T const &container, V const &value) {
-	auto it = find(container.begin(), container.end(), value);
-	return (it != container.end());
+// Rollback loop x amount.
+void rollback(State &S, int amount) {
+	S.i -= amount;
 }
 
-template <typename T, typename V>
-bool hasKey(T const &map, V const &value) {
-	// [https://stackoverflow.com/a/3136545]
-	auto iter = map.find(value);
-	return (iter != map.end());
+	// char c = '\0';
+	// map<int, int> dtids;
+	// vector<int> ttids;
+	// vector<Token> tokens;
+	// map<int, string> ttypes;
+	// int token_count = 0;
+	// int l = text.length();
+	// bool cmdscope = false;
+	// bool valuelist = false; // Value list.
+	// vector<int> brcparens;
+
+
+// KEYWORDS
+// cmdscope
+// valuelist
+// tkTYPES_RESET1
+// token_count
+// ttypes
+// tkTYPES_RESET2
+// tkTYPES_RESET3
+// BRCTOKENS
+// tkTYPES_RESET4
+// dtids
+
+// S,
+// tokens,
+// ttids,
+// text,
+// token_count,
+// cmdscope,
+// valuelist,
+// dtids,
+// KEYWORDS,
+// ttypes,
+// tkTYPES_RESET1,
+// tkTYPES_RESET2,
+// tkTYPES_RESET3,
+// tkTYPES_RESET4,
+// BRCTOKEN
+
+bool charpos(const State &S, int pos);
+bool kind(const State &S, const string &s);
+char prevchar(const State &S);
+// void tk_eop(State &S, const char &c, const string &text
+void tk_eop(
+	State &S,
+	const char &c,
+	vector<Token> &tokens,
+	vector<int> &ttids,
+	const string &text,
+	int &token_count,
+	bool &cmdscope,
+	bool &valuelist,
+	map<int, int> &dtids,
+	array<string, 4> &KEYWORDS,
+	map<int, string> &ttypes,
+	const set<string> &tkTYPES_RESET1,
+	const set<string> &tkTYPES_RESET2,
+	const set<string> &tkTYPES_RESET3,
+	const set<string> &tkTYPES_RESET4,
+	const map<char, string> &BRCTOKENS
+
+	);
+
+// Adds the token to tokens array.
+void add_token(
+	State &S,
+	vector<Token> &tokens,
+	vector<int> &ttids,
+	const string &text,
+	int &token_count,
+	bool &cmdscope,
+	bool &valuelist,
+	map<int, int> &dtids,
+	array<string, 4> &KEYWORDS,
+	map<int, string> &ttypes,
+	const set<string> &tkTYPES_RESET1,
+	const set<string> &tkTYPES_RESET2,
+	const set<string> &tkTYPES_RESET3,
+	const set<string> &tkTYPES_RESET4,
+	const map<char, string> &BRCTOKENS
+	) {
+	// nonlocal token_count, ttypes
+
+	if (!tokens.empty() && !ttids.empty()) {
+		Token prevtk = tokens[ttids.back()];
+
+		// Keyword reset.
+		if (kind(S, "tkSTR") && (prevtk.kind == "tkCMD" ||
+			(cmdscope && prevtk.kind == "tkTBD"))) {
+			int start = prevtk.start;
+			int end = prevtk.end;
+			if (contains(KEYWORDS, text.substr(start, end - start))) {
+				prevtk.kind = "tkKYW";
+			}
+
+		// Reset: default $("cmd-string")
+		} else if (kind(S, "tkVAR") && S.end - S.start == 0
+			&& (prevtk.kind == "tkCMD" || (
+			cmdscope && prevtk.kind == "tkTBD"))) {
+			int start = prevtk.start;
+			int end = prevtk.end;
+			if (text.substr(start, end - start) == "default") {
+				prevtk.kind = "tkKYW";
+			}
+
+		} else if (valuelist && S.kind == "tkFLG" && S.start == S.end) {
+			S.kind = "tkFOPT"; // Hyphen.
+
+		// When parsing a value list '--flag=()', that is not a
+		// string/commang-string should be considered a value.
+		} else if (valuelist && contains(tkTYPES_RESET1, S.kind)) {
+			S.kind = "tkFVAL";
+
+		// 'Merge' tkTBD tokens if possible.
+		} else if ((kind(S, "tkTBD") && prevtk.kind == "tkTBD" &&
+				prevtk.line == S.line &&
+				S.start - prevtk.end == 1)) {
+			prevtk.end = S.end;
+			S.kind = "";
+			return;
+
+		} else if (kind(S, "tkCMD") || kind(S, "tkTBD")) {
+			// Reverse loop to get find first command/flag tokens.
+			string lastpassed = "";
+			for (int i = token_count - 1; i > 0; i--) {
+				auto it = ttypes.find(i);
+				string lkind = (it != ttypes.end()) ? it->second : "";
+				if (contains(tkTYPES_RESET2, lkind)) {
+					lastpassed = lkind;
+					break;
+				}
+			}
+
+			// Handle: 'program = --flag::f=123'
+			if ((prevtk.kind == "tkASG" &&
+				prevtk.line == S.line &&
+				lastpassed == "tkFLG")) {
+				S.kind = "tkFVAL";
+			}
+
+			if (S.kind != "tkFVAL" && ttids.size() > 1) {
+				string prevtk2 = tokens[ttids.end()[-2]].kind;
+
+				// Flag alias '::' reset.
+				if (prevtk.kind == "tkDCLN" && prevtk2 == "tkDCLN") {
+					S.kind = "tkFLGA";
+				}
+
+				// Setting/variable value reset.
+				if (prevtk.kind == "tkASG" &&
+					contains(tkTYPES_RESET3, prevtk2)) {
+					S.kind = "tkAVAL";
+				}
+			}
+		}
+	}
+
+	// Reset when single '$'.
+	if (kind(S, "tkVAR") && S.end - S.start == 0) {
+		S.kind = "tkDLS";
+	}
+
+	// If a brace token, reset kind to brace type.
+	if (kind(S, "tkBRC")) {
+		auto it = BRCTOKENS.find(text[S.start]);
+		S.kind = it->second;
+	}
+
+	// Universal command multi-char reset.
+	if (kind(S, "tkMTL") && (!tokens.size() || tokens.back().kind != "tkASG")) {
+		S.kind = "tkCMD";
+	}
+
+	ttypes[token_count] = S.kind;
+	if (contains(tkTYPES_RESET4, S.kind)) {
+		// Track token ids to help with parsing.
+		dtids[token_count] = (token_count && ttids.size()) ? ttids.back() : 0;
+		ttids.push_back(token_count);
+	}
+
+	Token copy;
+	copy.kind = S.kind;
+	copy.line = S.line;
+	copy.start = S.start;
+	copy.end = S.end;
+	copy.tid = S.i;
+
+	// Set string line span.
+	if (S.lines[0] != -1) {
+		copy.lines[0] = S.lines[0];
+		copy.lines[1] = S.lines[1];
+		S.lines[0] = -1;
+		S.lines[1] = -1;
+	}
+
+	if (S.last) { S.last = false; }
+	copy.tid = token_count;
+	tokens.push_back(copy);
+	S.kind = "";
+
+	if (S.list) S.list = false;
+
+	token_count += 1;
 }
 
+// Checks if token is at needed char index.
+bool charpos(const State &S, int pos) {
+	return S.i - S.start == pos - 1;
+}
+
+// Checks state object kind matches provided kind.
+bool kind(const State &S, const string &s) {
+	return S.kind == s;
+}
+
+// Get previous iteration char.
+char prevchar(const State &S, const string &text) {
+	return text[S.i - 1];
+}
+
+// void tk_eop(State &S, const char &c, const string &text) { // Determine in parser.
+void tk_eop(
+	State &S,
+	const char &c,
+	vector<Token> &tokens,
+	vector<int> &ttids,
+	const string &text,
+	int &token_count,
+	bool &cmdscope,
+	bool &valuelist,
+	map<int, int> &dtids,
+	array<string, 4> &KEYWORDS,
+	map<int, string> &ttypes,
+	const set<string> &tkTYPES_RESET1,
+	const set<string> &tkTYPES_RESET2,
+	const set<string> &tkTYPES_RESET3,
+	const set<string> &tkTYPES_RESET4,
+	const map<char, string> &BRCTOKENS
+) { // Determine in parser.
+
+	S.end = S.i;
+	if (contains(tkEOP_TK_TYPES, c)) {
+		S.end -= 1;
+	}
+	add_token(S,
+tokens,
+ttids,
+text,
+token_count,
+cmdscope,
+valuelist,
+dtids,
+KEYWORDS,
+ttypes,
+tkTYPES_RESET1,
+tkTYPES_RESET2,
+tkTYPES_RESET3,
+tkTYPES_RESET4,
+BRCTOKENS);
+}
 
 void tokenizer(const string &text) {
-	char c = '\0';
-	map<int, int> dtids;
-	vector<int> ttids;
-	// tokens = []
-	// ttypes = {}
-	int token_count = 0;
-	int l = text.length();
-	bool cmdscope = false;
-	bool valuelist = false; // Value list.
-	// brcparens = []
+	// char c = '\0';
+	// map<int, int> dtids;
+	// vector<int> ttids;
+	// vector<Token> tokens;
+	// map<int, string> ttypes;
+	// int token_count = 0;
+	l = text.length();
+	// bool cmdscope = false;
+	// bool valuelist = false; // Value list.
+	// vector<int> brcparens;
 
 	State S = {};
 	S.i = 0;
@@ -111,245 +441,18 @@ void tokenizer(const string &text) {
 	S.kind = "";
 	S.start = -1;
 	S.end = -1;
-
-	// // Adds the token to tokens array.
-	// def add_token():
-	// 	nonlocal token_count, ttypes
-
-	// 	if tokens and ttids:
-	// 		prevtk = tokens[ttids[-1]]
-
-	// 		// Keyword reset.
-	// 		if (kind("tkSTR") and (prevtk["kind"] == "tkCMD" or
-	// 			(cmdscope and prevtk["kind"] == "tkTBD"))):
-	// 			if (text[prevtk["start"]:prevtk["end"] + 1]
-	// 					in KEYWORDS):
-	// 				prevtk["kind"] = "tkKYW"
-
-	// 		// Reset: default $("cmd-string")
-	// 		elif (kind("tkVAR") and S.end - S.start == 0
-	// 			and (prevtk["kind"] == "tkCMD" or (
-	// 			cmdscope and prevtk["kind"] == "tkTBD"))):
-	// 			if text[prevtk["start"]:prevtk["end"] + 1] == "default":
-	// 				prevtk["kind"] = "tkKYW"
-
-	// 		elif valuelist and S.kind == "tkFLG" and S.start == S.end:
-	// 			S.kind = "tkFOPT" // Hyphen.
-
-	// 		// When parsing a value list '--flag=()', that is not a
-	// 		// string/commang-string should be considered a value.
-	// 		elif valuelist and S.kind in ("tkCMD", "tkTBD"):
-	// 			S.kind = "tkFVAL"
-
-	// 		// 'Merge' tkTBD tokens if possible.
-	// 		elif (kind("tkTBD") and prevtk["kind"] == "tkTBD" and
-	// 			  prevtk["line"] == S.line and
-	// 			  S.start - prevtk["end"] == 1):
-	// 			prevtk["end"] = S.end
-	// 			S.kind = ""
-	// 			return
-
-	// 		elif kind("tkCMD") or kind("tkTBD"):
-	// 			// Reverse loop to get find first command/flag tokens.
-	// 			lastpassed = ""
-	// 			for i in range(token_count - 1, -1, -1):
-	// 				lkind = ttypes[i]
-	// 				if lkind in ("tkCMD", "tkFLG"):
-	// 					lastpassed = lkind
-	// 					break
-
-	// 			// Handle: 'program = --flag::f=123'
-	// 			if (prevtk["kind"] == "tkASG" and
-	// 				prevtk["line"] == S.line and
-	// 				lastpassed == "tkFLG"):
-	// 				S.kind = "tkFVAL"
-
-	// 			if S.kind != "tkFVAL" and len(ttids) > 1:
-	// 				prevtk2 = tokens[ttids[-2]]["kind"]
-
-	// 				// Flag alias '::' reset.
-	// 				if (prevtk["kind"] == "tkDCLN" and prevtk2 == "tkDCLN"):
-	// 					S.kind = "tkFLGA"
-
-	// 				// Setting/variable value reset.
-	// 				if prevtk["kind"] == "tkASG" and prevtk2 in ("tkSTN", "tkVAR"):
-	// 					S.kind = "tkAVAL"
-
-	// 	// Reset when single '$'.
-	// 	if kind("tkVAR") and S.end - S.start == 0:
-	// 		S.kind = "tkDLS"
-
-	// 	// If a brace token, reset kind to brace type.
-	// 	if kind("tkBRC"): S.kind = BRCTOKENS.get(text[S.start])
-
-	// 	// Universal command multi-char reset.
-	// 	if kind("tkMTL") and (not tokens or tokens[-1]["kind"] != "tkASG"):
-	// 		S.kind = "tkCMD"
-
-	// 	ttypes[token_count] = S.kind
-	// 	if S.kind not in ("tkCMT", "tkNL", "tkEOP"):
-	// 		// Track token ids to help with parsing.
-	// 		dtids[token_count] = ttids[-1] if token_count and ttids else 0
-	// 		ttids.append(token_count)
-
-	// 	copy = dict(S)
-	// 	del copy["i"]
-	// 	if S.get("last", False):
-	// 		del S.last
-	// 		del copy["last"]
-	// 	copy["tid"] = token_count
-	// 	tokens.append(copy)
-	// 	S.kind = ""
-
-	// 	if S.get("lines", False):
-	// 		del S.lines
-
-	// 	if S.get("list", False):
-	// 		del S.list
-
-	// 	token_count += 1
-
-	// // Checks if token is at needed char index.
-	// def charpos(pos):
-	// 	return S.i - S.start == pos - 1
-
-	// // Checks state object kind matches provided kind.
-	// def kind(s):
-	// 	return S.kind == s
-
-	// // Forward loop x amount.
-	// void forward(int amount) {
-	// 	S.i += amount;
-	// }
-
-	// // Rollback loop x amount.
-	// def rollback(amount):
-	// 	S.i -= amount
-
-	// // Get previous iteration char.
-	// def prevchar():
-	// 	return text[S.i - 1]
-
-	// // Tokenizer loop functions.
-
-	// def tk_stn():
-	// 	if S.i - S.start > 0 and not (c.isalnum()):
-	// 		rollback(1)
-	// 		S.end = S.i
-	// 		add_token()
-
-	// def tk_var():
-	// 	if S.i - S.start > 0 and not (c.isalnum() or c == C_UNDERSCORE):
-	// 		rollback(1)
-	// 		S.end = S.i
-	// 		add_token()
-
-	// def tk_flg():
-	// 	if S.i - S.start > 0 and not (c.isalnum() or c == C_HYPHEN):
-	// 		rollback(1)
-	// 		S.end = S.i
-	// 		add_token()
-
-	// def tk_cmd():
-	// 	if not (c.isalnum() or c in (C_HYPHEN, C_ESCAPE) or
-	// 			(prevchar() == C_ESCAPE)):  // Allow escaped chars.
-	// 		rollback(1)
-	// 		S.end = S.i
-	// 		add_token()
-
-	// def tk_cmt():
-	// 	if c == C_NL:
-	// 		rollback(1)
-	// 		S.end = S.i
-	// 		add_token()
-
-	// def tk_str():
-	// 	// Store initial line where string starts.
-	// 	if "lines" not in S:
-	// 		S.lines = [S.line, -1]
-
-	// 	// Account for '\n's in string to track where string ends
-	// 	if c == C_NL:
-	// 		S.line += 1
-
-	// 		LINESTARTS.setdefault(S.line, S.i);
-
-	// 	if (not charpos(1) and c == text[S.start] and
-	// 			prevchar() != C_ESCAPE):
-	// 		S.end = S.i
-	// 		S.lines[1] = S.line
-	// 		add_token()
-
-	// def tk_tbd():  // Determine in parser.
-	// 	S.end = S.i
-	// 	if c == C_NL or (c in (
-	// 			C_SPACE, C_TAB, C_DOLLARSIGN, C_ATSIGN,
-	// 			C_PIPE, C_LCURLY, C_RCURLY, C_LBRACE,
-	// 			C_RBRACE, C_LPAREN, C_RPAREN, C_HYPHEN,
-	// 			C_QMARK, C_ASTERISK
-	// 		) and (prevchar() != C_ESCAPE)):
-	// 		if c not in (C_NL, C_SPACE, C_TAB):
-	// 			rollback(1)
-	// 			S.end = S.i
-	// 		else:
-	// 			// Let '\n' pass through to increment line count.
-	// 			if c == C_NL: rollback(1)
-	// 			S.end -= 1
-	// 		add_token()
-
-	// def tk_brc():
-	// 	nonlocal cmdscope, valuelist, brcparens  // [https://stackoverflow.com/a/8448011]
-	// 	if c == C_LPAREN:
-	// 		if tokens[ttids[-1]]["kind"] != "tkDLS":
-	// 			valuelist = True
-	// 			brcparens.append(0) // Value list.
-	// 			S.list = True
-	// 		else: brcparens.append(1) // Command-string.
-	// 	elif c == C_RPAREN:
-	// 		if brcparens.pop() == 0:
-	// 			valuelist = False
-	// 			S.list = True
-	// 	elif c == C_LBRACE: cmdscope = True
-	// 	elif c == C_RBRACE: cmdscope = False
-	// 	S.end = S.i
-	// 	add_token()
-
-	// def tk_def():
-	// 	S.end = S.i
-	// 	add_token()
-
-	// def tk_eop():  // Determine in parser.
-	// 	S.end = S.i
-	// 	if c in (C_SPACE, C_TAB, C_NL):
-	// 		S.end -= 1
-	// 	add_token()
-
-	// DISPATCH = {
-	// 	"tkSTN": tk_stn,
-	// 	"tkVAR": tk_var,
-	// 	"tkFLG": tk_flg,
-	// 	"tkCMD": tk_cmd,
-	// 	"tkCMT": tk_cmt,
-	// 	"tkSTR": tk_str,
-	// 	"tkTBD": tk_tbd,
-	// 	"tkBRC": tk_brc,
-	// 	"tkDEF": tk_def
-	// }
-
-	// [https://stackoverflow.com/a/12333839]
-	// [https://www.geeksforgeeks.org/set-in-cpp-stl/]
-	const set<char> SPACES {C_SPACE, C_TAB};
+	S.lines = {-1, -1};
+	S.last = false;
+	S.list = false;
 
 	while (S.i < l) {
 		c = text[S.i];
 
-		// cout << "i: " << S.i << " = [" << c << "]" << endl;
-
 		// Add 'last' key on last iteration.
-		if (S.i == l - 1) S.last = true;
+		if (S.i == l - 1) { S.last = true; }
 
 		if (S.kind.empty()) {
-			if (SPACES.count(c)) {
+			if (contains(SPACES, c)) {
 				forward(S, 1);
 				continue;
 			}
@@ -371,10 +474,272 @@ void tokenizer(const string &text) {
 			}
 		}
 
-		// DISPATCH.get(S.kind, tk_def)()
+		// Tokenization.
 
-		// // Run on last iteration.
-		// if S.get("last", False): tk_eop()
+		switch(hashit(S.kind)) {
+			case tkSTN:
+
+				if (S.i - S.start > 0 && !isalnum(c)) {
+					rollback(S, 1);
+					S.end = S.i;
+					add_token(S,
+tokens,
+ttids,
+text,
+token_count,
+cmdscope,
+valuelist,
+dtids,
+KEYWORDS,
+ttypes,
+tkTYPES_RESET1,
+tkTYPES_RESET2,
+tkTYPES_RESET3,
+tkTYPES_RESET4,
+BRCTOKENS);
+				}
+
+				break;
+
+			case tkVAR:
+				if (S.i - S.start > 0 && !(isalnum(c) || c == C_UNDERSCORE)) {
+					rollback(S, 1);
+					S.end = S.i;
+					add_token(S,
+tokens,
+ttids,
+text,
+token_count,
+cmdscope,
+valuelist,
+dtids,
+KEYWORDS,
+ttypes,
+tkTYPES_RESET1,
+tkTYPES_RESET2,
+tkTYPES_RESET3,
+tkTYPES_RESET4,
+BRCTOKENS);
+				}
+
+				break;
+
+			case tkFLG:
+				if (S.i - S.start > 0 && !(isalnum(c) || c == C_HYPHEN)) {
+					rollback(S, 1);
+					S.end = S.i;
+					add_token(S,
+tokens,
+ttids,
+text,
+token_count,
+cmdscope,
+valuelist,
+dtids,
+KEYWORDS,
+ttypes,
+tkTYPES_RESET1,
+tkTYPES_RESET2,
+tkTYPES_RESET3,
+tkTYPES_RESET4,
+BRCTOKENS);
+				}
+
+				break;
+
+			case tkCMD:
+				if (!(isalnum(c) || contains(tkCMD_TK_TYPES, c) ||
+						(prevchar(S, text) == C_ESCAPE))) { // Allow escaped chars.
+					rollback(S, 1);
+					S.end = S.i;
+					add_token(S,
+tokens,
+ttids,
+text,
+token_count,
+cmdscope,
+valuelist,
+dtids,
+KEYWORDS,
+ttypes,
+tkTYPES_RESET1,
+tkTYPES_RESET2,
+tkTYPES_RESET3,
+tkTYPES_RESET4,
+BRCTOKENS);
+				}
+
+				break;
+
+			case tkCMT:
+				if (c == C_NL) {
+					rollback(S, 1);
+					S.end = S.i;
+					add_token(S,
+tokens,
+ttids,
+text,
+token_count,
+cmdscope,
+valuelist,
+dtids,
+KEYWORDS,
+ttypes,
+tkTYPES_RESET1,
+tkTYPES_RESET2,
+tkTYPES_RESET3,
+tkTYPES_RESET4,
+BRCTOKENS);
+				}
+
+				break;
+
+			case tkSTR:
+				// Store initial line where string starts.
+				if (S.lines[0] == -1) {
+					S.lines[0] = S.line;
+					// S.lines[1] = -1;
+				}
+
+				// Account for '\n's in string to track where string ends
+				if (c == C_NL) {
+					S.line += 1;
+					LINESTARTS[S.line] = S.i;
+				}
+
+				if (!charpos(S, 1) && c == text[S.start] &&
+						prevchar(S, text) != C_ESCAPE) {
+					S.end = S.i;
+					S.lines[1] = S.line;
+					add_token(S,
+tokens,
+ttids,
+text,
+token_count,
+cmdscope,
+valuelist,
+dtids,
+KEYWORDS,
+ttypes,
+tkTYPES_RESET1,
+tkTYPES_RESET2,
+tkTYPES_RESET3,
+tkTYPES_RESET4,
+BRCTOKENS);
+				}
+
+				break;
+
+			case tkTBD:
+				S.end = S.i;
+				if (c == C_NL || (contains(tkTBD_TK_TYPES, c) && (prevchar(S, text) != C_ESCAPE))) {
+					if (!contains(tkTBD_TK_TYPES2, c)) {
+						rollback(S, 1);
+						S.end = S.i;
+					} else {
+						// Let '\n' pass through to increment line count.
+						if (c == C_NL) { rollback(S, 1); }
+						S.end -= 1;
+					}
+					add_token(S,
+tokens,
+ttids,
+text,
+token_count,
+cmdscope,
+valuelist,
+dtids,
+KEYWORDS,
+ttypes,
+tkTYPES_RESET1,
+tkTYPES_RESET2,
+tkTYPES_RESET3,
+tkTYPES_RESET4,
+BRCTOKENS);
+				}
+
+				break;
+
+			case tkBRC:
+				// nonlocal cmdscope, valuelist, brcparens  // [https://stackoverflow.com/a/8448011]
+				if (c == C_LPAREN) {
+					if (tokens[ttids.back()].kind != "tkDLS") {
+						valuelist = true;
+						brcparens.push_back(0); // Value list.
+						S.list = true;
+					} else { brcparens.push_back(1); } // Command-string.
+				} else if (c == C_RPAREN) {
+					int last_brcparens = brcparens.back();
+					brcparens.pop_back();
+					if (last_brcparens == 0) {
+						valuelist = false;
+						S.list = true;
+					}
+				} else if (c == C_LBRACE) {
+					cmdscope = true;
+				} else if (c == C_RBRACE) {
+					cmdscope = false;
+				}
+				S.end = S.i;
+				add_token(S,
+tokens,
+ttids,
+text,
+token_count,
+cmdscope,
+valuelist,
+dtids,
+KEYWORDS,
+ttypes,
+tkTYPES_RESET1,
+tkTYPES_RESET2,
+tkTYPES_RESET3,
+tkTYPES_RESET4,
+BRCTOKENS);
+
+				break;
+
+			case tkDEF:
+				S.end = S.i;
+				add_token(S,
+tokens,
+ttids,
+text,
+token_count,
+cmdscope,
+valuelist,
+dtids,
+KEYWORDS,
+ttypes,
+tkTYPES_RESET1,
+tkTYPES_RESET2,
+tkTYPES_RESET3,
+tkTYPES_RESET4,
+BRCTOKENS);
+
+				break;
+
+		}
+
+		// Run on last iteration.
+		if (S.last) { tk_eop(
+	S,
+	c,
+	tokens,
+	ttids,
+	text,
+	token_count,
+	cmdscope,
+	valuelist,
+	dtids,
+	KEYWORDS,
+	ttypes,
+	tkTYPES_RESET1,
+	tkTYPES_RESET2,
+	tkTYPES_RESET3,
+	tkTYPES_RESET4,
+	BRCTOKENS
+			); }
 
 		forward(S, 1);
 	}
@@ -383,12 +748,37 @@ void tokenizer(const string &text) {
 	S.kind = "tkEOP";
 	S.start = -1;
 	S.end = -1;
-	// add_token();
-
+	add_token(S,
+tokens,
+ttids,
+text,
+token_count,
+cmdscope,
+valuelist,
+dtids,
+KEYWORDS,
+ttypes,
+tkTYPES_RESET1,
+tkTYPES_RESET2,
+tkTYPES_RESET3,
+tkTYPES_RESET4,
+BRCTOKENS);
 
 	// [https://stackoverflow.com/a/26282004]
 	// for (auto const &x : LINESTARTS) {
 	// 	cout << x.first << " : " << x.second << endl;
+	// }
+
+	cout << tokens.size() << endl;
+
+	// for (auto &token : tokens) {
+	// 	cout << "tid: " << token.tid << endl;
+	// 	cout << "kind: " << token.kind << endl;
+	// 	cout << "line: " << token.line << endl;
+	// 	cout << "start: " << token.start << endl;
+	// 	cout << "end: " << token.end << endl;
+	// 	cout << "lines: " << token.lines[0] << ", " << token.lines[1] << endl;
+	// 	cout << "" << endl;
 	// }
 
 	// return (tokens, ttypes, ttids, dtids)

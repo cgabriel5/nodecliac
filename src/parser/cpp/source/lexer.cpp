@@ -176,23 +176,7 @@ char prevchar(const State &S, const string &text) {
 	return text[S.i - 1];
 }
 
-void tk_eop(
-	State &S,
-	const char &c,
-	vector<Token> &tokens,
-	vector<int> &ttids,
-	const string &text,
-	int &token_count,
-	bool &cmdscope,
-	bool &valuelist,
-	map<int, int> &dtids,
-	array<string, 4> &KEYWORDS,
-	map<int, string> &ttypes,
-	const set<string> &tkTYPES_RESET1,
-	const set<string> &tkTYPES_RESET2,
-	const set<string> &tkTYPES_RESET3,
-	const set<string> &tkTYPES_RESET4
-	);
+void tk_eop(State &S, const char &c, const string &text);
 
 // Adds the token to tokens array.
 void add_token(
@@ -336,24 +320,7 @@ void add_token(
 	token_count += 1;
 }
 
-// void tk_eop(State &S, const char &c, const string &text) { // Determine in parser.
-void tk_eop(
-	State &S,
-	const char &c,
-	vector<Token> &tokens,
-	vector<int> &ttids,
-	const string &text,
-	int &token_count,
-	bool &cmdscope,
-	bool &valuelist,
-	map<int, int> &dtids,
-	array<string, 4> &KEYWORDS,
-	map<int, string> &ttypes,
-	const set<string> &tkTYPES_RESET1,
-	const set<string> &tkTYPES_RESET2,
-	const set<string> &tkTYPES_RESET3,
-	const set<string> &tkTYPES_RESET4
-) { // Determine in parser.
+void tk_eop(State &S, const char &c, const string &text) { // Determine in parser.
 
 	S.end = S.i;
 	if (contains(tkEOP_TK_TYPES, c)) {
@@ -675,23 +642,7 @@ BRCTOKENS);
 		}
 
 		// Run on last iteration.
-		if (S.last) { tk_eop(
-	S,
-	c,
-	tokens,
-	ttids,
-	text,
-	token_count,
-	cmdscope,
-	valuelist,
-	dtids,
-	KEYWORDS,
-	ttypes,
-	tkTYPES_RESET1,
-	tkTYPES_RESET2,
-	tkTYPES_RESET3,
-	tkTYPES_RESET4
-			); }
+		if (S.last) { tk_eop(S, c, text); }
 
 		forward(S, 1);
 	}

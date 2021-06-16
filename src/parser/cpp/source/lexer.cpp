@@ -136,8 +136,6 @@ vector<int> ttids;
 vector<Token> tokens;
 map<int, string> ttypes;
 int token_count = 0;
-// int l = text.length();
-int l = 0;
 bool cmdscope = false;
 bool valuelist = false; // Value list.
 vector<int> brcparens;
@@ -309,16 +307,7 @@ void tk_eop(State &S, const char &c, const string &text) { // Determine in parse
 }
 
 void tokenizer(const string &text) {
-	// char c = '\0';
-	// map<int, int> dtids;
-	// vector<int> ttids;
-	// vector<Token> tokens;
-	// map<int, string> ttypes;
-	// int token_count = 0;
-	l = text.length();
-	// bool cmdscope = false;
-	// bool valuelist = false; // Value list.
-	// vector<int> brcparens;
+	int l = text.length();
 
 	State S = {};
 	S.i = 0;

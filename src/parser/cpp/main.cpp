@@ -2,6 +2,7 @@
 #include "path.hpp"
 #include "str.hpp"
 #include "fs.hpp"
+#include "parser.hpp"
 
 #include <array>
 #include <vector>
@@ -52,7 +53,6 @@ int main(int argc, char **argv) {
 	bool formatting = action == "format";
 
 	// [https://stackoverflow.com/a/11516847]
-	struct tabdata { char ichar; int iamount; };
 	tabdata fmtinfo = {'\t', 1}; // (char, amount)
 	// Parse/validate indentation.
 	if (formatting && indent != "") {
@@ -103,8 +103,14 @@ int main(int argc, char **argv) {
 		exit(1);
 	}
 
-	string str;
-	read(source, str);
+	string res;
+	read(source, res);
+
+	// (
+	// 	acdef, config, keywords, filedirs,
+	// 	contexts, formatted, placeholders, tests
+	// ) =
+	res = parser(action, res, cmdname, source, fmtinfo, trace, igc, test);
 
 	string testname = cmdname + ".tests.sh";
 	string savename = cmdname + ".acdef";

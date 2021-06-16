@@ -124,7 +124,6 @@ const set<string> tkTYPES_RESET2 {"tkCMD", "tkFLG"};
 const set<string> tkTYPES_RESET3 {"tkSTN", "tkVAR"};
 const set<string> tkTYPES_RESET4 {"tkCMT", "tkNL", "tkEOP"};
 
-
 struct Token {
 	string kind;
 	int line, start, end, tid;
@@ -149,7 +148,6 @@ struct State {
 	bool last, list;
 	array<int, 2> lines;
 };
-
 
 // Forward loop x amount.
 void forward(State &S, int amount) {
@@ -305,7 +303,6 @@ void add_token(State &S, const string &text) {
 }
 
 void tk_eop(State &S, const char &c, const string &text) { // Determine in parser.
-
 	S.end = S.i;
 	if (contains(tkEOP_TK_TYPES, c)) {
 		S.end -= 1;

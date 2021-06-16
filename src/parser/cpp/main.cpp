@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
 	FileInfo fi;
 	info(source, fi);
 	string extension = fi.ext;
-	std::regex e("\\." + extension + "$");
+	regex e("\\." + extension + "$");
 	string cmdname = std::regex_replace(fi.name, e, "");
 	string dirname = abspath(fi.dirname);
 

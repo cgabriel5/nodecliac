@@ -178,8 +178,6 @@ void tk_eop(State &S, const char &c, const string &text);
 
 // Adds the token to tokens array.
 void add_token(State &S, const string &text) {
-	// nonlocal token_count, ttypes
-
 	if (!tokens.empty() && !ttids.empty()) {
 		Token prevtk = tokens[ttids.back()];
 
@@ -415,7 +413,6 @@ void tokenizer(const string &text) {
 				// Store initial line where string starts.
 				if (S.lines[0] == -1) {
 					S.lines[0] = S.line;
-					// S.lines[1] = -1;
 				}
 
 				// Account for '\n's in string to track where string ends
@@ -450,7 +447,6 @@ void tokenizer(const string &text) {
 				break;
 
 			case tkBRC:
-				// nonlocal cmdscope, valuelist, brcparens  // [https://stackoverflow.com/a/8448011]
 				if (c == C_LPAREN) {
 					if (tokens[ttids.back()].kind != "tkDLS") {
 						valuelist = true;
@@ -493,23 +489,6 @@ void tokenizer(const string &text) {
 	S.start = -1;
 	S.end = -1;
 	add_token(S, text);
-
-	// [https://stackoverflow.com/a/26282004]
-	// for (auto const &x : LINESTARTS) {
-	// 	cout << x.first << " : " << x.second << endl;
-	// }
-
-	cout << tokens.size() << endl;
-
-	// for (auto &token : tokens) {
-	// 	cout << "tid: " << token.tid << endl;
-	// 	cout << "kind: " << token.kind << endl;
-	// 	cout << "line: " << token.line << endl;
-	// 	cout << "start: " << token.start << endl;
-	// 	cout << "end: " << token.end << endl;
-	// 	cout << "lines: " << token.lines[0] << ", " << token.lines[1] << endl;
-	// 	cout << "" << endl;
-	// }
 
 	// return (tokens, ttypes, ttids, dtids)
 }

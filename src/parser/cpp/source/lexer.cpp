@@ -64,7 +64,6 @@ tkType hashit (string const &type) {
 	if (type == "tkSTR") return tkSTR;
 	if (type == "tkTBD") return tkTBD;
 	if (type == "tkBRC") return tkBRC;
-	// if (type == "tkDEF") return tkDEF;
 	return tkDEF;
 }
 
@@ -352,7 +351,6 @@ void tokenizer(const string &text) {
 
 		switch(hashit(S.kind)) {
 			case tkSTN:
-
 				if (S.i - S.start > 0 && !isalnum(c)) {
 					rollback(S, 1);
 					S.end = S.i;

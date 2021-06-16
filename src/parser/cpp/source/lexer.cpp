@@ -161,9 +161,21 @@ void rollback(State &S, int amount) {
 	S.i -= amount;
 }
 
-bool charpos(const State &S, int pos);
-bool kind(const State &S, const string &s);
-char prevchar(const State &S);
+// Checks if token is at needed char index.
+bool charpos(const State &S, int pos) {
+	return S.i - S.start == pos - 1;
+}
+
+// Checks state object kind matches provided kind.
+bool kind(const State &S, const string &s) {
+	return S.kind == s;
+}
+
+// Get previous iteration char.
+char prevchar(const State &S, const string &text) {
+	return text[S.i - 1];
+}
+
 void tk_eop(
 	State &S,
 	const char &c,
@@ -322,21 +334,6 @@ void add_token(
 	if (S.list) S.list = false;
 
 	token_count += 1;
-}
-
-// Checks if token is at needed char index.
-bool charpos(const State &S, int pos) {
-	return S.i - S.start == pos - 1;
-}
-
-// Checks state object kind matches provided kind.
-bool kind(const State &S, const string &s) {
-	return S.kind == s;
-}
-
-// Get previous iteration char.
-char prevchar(const State &S, const string &text) {
-	return text[S.i - 1];
 }
 
 // void tk_eop(State &S, const char &c, const string &text) { // Determine in parser.

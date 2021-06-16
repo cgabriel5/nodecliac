@@ -179,9 +179,7 @@ void tk_eop(
 	const set<string> &tkTYPES_RESET1,
 	const set<string> &tkTYPES_RESET2,
 	const set<string> &tkTYPES_RESET3,
-	const set<string> &tkTYPES_RESET4,
-	const map<char, string> &BRCTOKENS
-
+	const set<string> &tkTYPES_RESET4
 	);
 
 // Adds the token to tokens array.
@@ -357,8 +355,7 @@ void tk_eop(
 	const set<string> &tkTYPES_RESET1,
 	const set<string> &tkTYPES_RESET2,
 	const set<string> &tkTYPES_RESET3,
-	const set<string> &tkTYPES_RESET4,
-	const map<char, string> &BRCTOKENS
+	const set<string> &tkTYPES_RESET4
 ) { // Determine in parser.
 
 	S.end = S.i;
@@ -696,8 +693,7 @@ BRCTOKENS);
 	tkTYPES_RESET1,
 	tkTYPES_RESET2,
 	tkTYPES_RESET3,
-	tkTYPES_RESET4,
-	BRCTOKENS
+	tkTYPES_RESET4
 			); }
 
 		forward(S, 1);

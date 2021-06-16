@@ -179,23 +179,7 @@ char prevchar(const State &S, const string &text) {
 void tk_eop(State &S, const char &c, const string &text);
 
 // Adds the token to tokens array.
-void add_token(
-	State &S,
-	vector<Token> &tokens,
-	vector<int> &ttids,
-	const string &text,
-	int &token_count,
-	bool &cmdscope,
-	bool &valuelist,
-	map<int, int> &dtids,
-	array<string, 4> &KEYWORDS,
-	map<int, string> &ttypes,
-	const set<string> &tkTYPES_RESET1,
-	const set<string> &tkTYPES_RESET2,
-	const set<string> &tkTYPES_RESET3,
-	const set<string> &tkTYPES_RESET4,
-	const map<char, string> &BRCTOKENS
-	) {
+void add_token(State &S, const string &text) {
 	// nonlocal token_count, ttypes
 
 	if (!tokens.empty() && !ttids.empty()) {
@@ -326,21 +310,7 @@ void tk_eop(State &S, const char &c, const string &text) { // Determine in parse
 	if (contains(tkEOP_TK_TYPES, c)) {
 		S.end -= 1;
 	}
-	add_token(S,
-tokens,
-ttids,
-text,
-token_count,
-cmdscope,
-valuelist,
-dtids,
-KEYWORDS,
-ttypes,
-tkTYPES_RESET1,
-tkTYPES_RESET2,
-tkTYPES_RESET3,
-tkTYPES_RESET4,
-BRCTOKENS);
+	add_token(S, text);
 }
 
 void tokenizer(const string &text) {
@@ -402,21 +372,7 @@ void tokenizer(const string &text) {
 				if (S.i - S.start > 0 && !isalnum(c)) {
 					rollback(S, 1);
 					S.end = S.i;
-					add_token(S,
-tokens,
-ttids,
-text,
-token_count,
-cmdscope,
-valuelist,
-dtids,
-KEYWORDS,
-ttypes,
-tkTYPES_RESET1,
-tkTYPES_RESET2,
-tkTYPES_RESET3,
-tkTYPES_RESET4,
-BRCTOKENS);
+					add_token(S, text);
 				}
 
 				break;
@@ -425,21 +381,7 @@ BRCTOKENS);
 				if (S.i - S.start > 0 && !(isalnum(c) || c == C_UNDERSCORE)) {
 					rollback(S, 1);
 					S.end = S.i;
-					add_token(S,
-tokens,
-ttids,
-text,
-token_count,
-cmdscope,
-valuelist,
-dtids,
-KEYWORDS,
-ttypes,
-tkTYPES_RESET1,
-tkTYPES_RESET2,
-tkTYPES_RESET3,
-tkTYPES_RESET4,
-BRCTOKENS);
+					add_token(S, text);
 				}
 
 				break;
@@ -448,21 +390,7 @@ BRCTOKENS);
 				if (S.i - S.start > 0 && !(isalnum(c) || c == C_HYPHEN)) {
 					rollback(S, 1);
 					S.end = S.i;
-					add_token(S,
-tokens,
-ttids,
-text,
-token_count,
-cmdscope,
-valuelist,
-dtids,
-KEYWORDS,
-ttypes,
-tkTYPES_RESET1,
-tkTYPES_RESET2,
-tkTYPES_RESET3,
-tkTYPES_RESET4,
-BRCTOKENS);
+					add_token(S, text);
 				}
 
 				break;
@@ -472,21 +400,7 @@ BRCTOKENS);
 						(prevchar(S, text) == C_ESCAPE))) { // Allow escaped chars.
 					rollback(S, 1);
 					S.end = S.i;
-					add_token(S,
-tokens,
-ttids,
-text,
-token_count,
-cmdscope,
-valuelist,
-dtids,
-KEYWORDS,
-ttypes,
-tkTYPES_RESET1,
-tkTYPES_RESET2,
-tkTYPES_RESET3,
-tkTYPES_RESET4,
-BRCTOKENS);
+					add_token(S, text);
 				}
 
 				break;
@@ -495,21 +409,7 @@ BRCTOKENS);
 				if (c == C_NL) {
 					rollback(S, 1);
 					S.end = S.i;
-					add_token(S,
-tokens,
-ttids,
-text,
-token_count,
-cmdscope,
-valuelist,
-dtids,
-KEYWORDS,
-ttypes,
-tkTYPES_RESET1,
-tkTYPES_RESET2,
-tkTYPES_RESET3,
-tkTYPES_RESET4,
-BRCTOKENS);
+					add_token(S, text);
 				}
 
 				break;
@@ -531,21 +431,7 @@ BRCTOKENS);
 						prevchar(S, text) != C_ESCAPE) {
 					S.end = S.i;
 					S.lines[1] = S.line;
-					add_token(S,
-tokens,
-ttids,
-text,
-token_count,
-cmdscope,
-valuelist,
-dtids,
-KEYWORDS,
-ttypes,
-tkTYPES_RESET1,
-tkTYPES_RESET2,
-tkTYPES_RESET3,
-tkTYPES_RESET4,
-BRCTOKENS);
+					add_token(S, text);
 				}
 
 				break;
@@ -561,21 +447,7 @@ BRCTOKENS);
 						if (c == C_NL) { rollback(S, 1); }
 						S.end -= 1;
 					}
-					add_token(S,
-tokens,
-ttids,
-text,
-token_count,
-cmdscope,
-valuelist,
-dtids,
-KEYWORDS,
-ttypes,
-tkTYPES_RESET1,
-tkTYPES_RESET2,
-tkTYPES_RESET3,
-tkTYPES_RESET4,
-BRCTOKENS);
+					add_token(S, text);
 				}
 
 				break;
@@ -601,41 +473,13 @@ BRCTOKENS);
 					cmdscope = false;
 				}
 				S.end = S.i;
-				add_token(S,
-tokens,
-ttids,
-text,
-token_count,
-cmdscope,
-valuelist,
-dtids,
-KEYWORDS,
-ttypes,
-tkTYPES_RESET1,
-tkTYPES_RESET2,
-tkTYPES_RESET3,
-tkTYPES_RESET4,
-BRCTOKENS);
+				add_token(S, text);
 
 				break;
 
 			case tkDEF:
 				S.end = S.i;
-				add_token(S,
-tokens,
-ttids,
-text,
-token_count,
-cmdscope,
-valuelist,
-dtids,
-KEYWORDS,
-ttypes,
-tkTYPES_RESET1,
-tkTYPES_RESET2,
-tkTYPES_RESET3,
-tkTYPES_RESET4,
-BRCTOKENS);
+				add_token(S, text);
 
 				break;
 
@@ -651,21 +495,7 @@ BRCTOKENS);
 	S.kind = "tkEOP";
 	S.start = -1;
 	S.end = -1;
-	add_token(S,
-tokens,
-ttids,
-text,
-token_count,
-cmdscope,
-valuelist,
-dtids,
-KEYWORDS,
-ttypes,
-tkTYPES_RESET1,
-tkTYPES_RESET2,
-tkTYPES_RESET3,
-tkTYPES_RESET4,
-BRCTOKENS);
+	add_token(S, text);
 
 	// [https://stackoverflow.com/a/26282004]
 	// for (auto const &x : LINESTARTS) {

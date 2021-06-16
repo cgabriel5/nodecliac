@@ -161,50 +161,9 @@ void rollback(State &S, int amount) {
 	S.i -= amount;
 }
 
-	// char c = '\0';
-	// map<int, int> dtids;
-	// vector<int> ttids;
-	// vector<Token> tokens;
-	// map<int, string> ttypes;
-	// int token_count = 0;
-	// int l = text.length();
-	// bool cmdscope = false;
-	// bool valuelist = false; // Value list.
-	// vector<int> brcparens;
-
-
-// KEYWORDS
-// cmdscope
-// valuelist
-// tkTYPES_RESET1
-// token_count
-// ttypes
-// tkTYPES_RESET2
-// tkTYPES_RESET3
-// BRCTOKENS
-// tkTYPES_RESET4
-// dtids
-
-// S,
-// tokens,
-// ttids,
-// text,
-// token_count,
-// cmdscope,
-// valuelist,
-// dtids,
-// KEYWORDS,
-// ttypes,
-// tkTYPES_RESET1,
-// tkTYPES_RESET2,
-// tkTYPES_RESET3,
-// tkTYPES_RESET4,
-// BRCTOKEN
-
 bool charpos(const State &S, int pos);
 bool kind(const State &S, const string &s);
 char prevchar(const State &S);
-// void tk_eop(State &S, const char &c, const string &text
 void tk_eop(
 	State &S,
 	const char &c,

@@ -421,7 +421,8 @@ void tokenizer(const string &text) {
 
 			case tkTBD:
 				S.end = S.i;
-				if (c == C_NL || (contains(tkTBD_TK_TYPES, c) && (prevchar(S, text) != C_ESCAPE))) {
+				if (c == C_NL || (contains(tkTBD_TK_TYPES, c) &&
+						(prevchar(S, text) != C_ESCAPE))) {
 					if (!contains(tkTBD_TK_TYPES2, c)) {
 						rollback(S, 1);
 						S.end = S.i;

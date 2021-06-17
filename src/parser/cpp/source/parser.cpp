@@ -7,6 +7,7 @@
 // from lexer import tokenizer, LINESTARTS
 // from validation import vsetting, vvariable, vstring, vsetting_aval
 
+#include "../headers/structs.hpp"
 #include "../headers/lexer.hpp"
 #include "../headers/parser.hpp"
 

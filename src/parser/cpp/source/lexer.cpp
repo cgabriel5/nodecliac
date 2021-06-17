@@ -1,3 +1,5 @@
+#include "../headers/structs.hpp"
+
 #include <string>
 #include <array>
 #include <vector>
@@ -123,12 +125,6 @@ const set<string> tkTYPES_RESET2 {"tkCMD", "tkFLG"};
 const set<string> tkTYPES_RESET3 {"tkSTN", "tkVAR"};
 const set<string> tkTYPES_RESET4 {"tkCMT", "tkNL", "tkEOP"};
 
-struct Token {
-	string kind;
-	int line, start, end, tid;
-	array<int, 2> lines = {-1, -1};
-};
-
 char c = '\0';
 map<int, int> dtids;
 vector<int> ttids;
@@ -138,13 +134,6 @@ int token_count = 0;
 bool cmdscope = false;
 bool valuelist = false; // Value list.
 vector<int> brcparens;
-
-struct State {
-	int i, line, start, end;
-	string kind;
-	bool last, list;
-	array<int, 2> lines;
-};
 
 // Forward loop x amount.
 void forward(State &S, int amount) {

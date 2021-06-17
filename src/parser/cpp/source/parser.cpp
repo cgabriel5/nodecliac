@@ -66,8 +66,8 @@ string parser(const string &action, const string &text,
 	// VARSTABLE = builtins(cmdname)
 	// vindices = {}
 
-	// (tokens, ttypes, ttids, dtids) = tokenizer(text)
-	tokenizer(text);
+	LexerResponse LexerData;
+	tokenizer(text, LexerData);
 
 
 	return "";

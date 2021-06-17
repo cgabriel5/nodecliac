@@ -5,6 +5,6 @@
 
 using namespace std;
 
-void tokenizer(const string &text);
+void tokenizer(const string &text, LexerResponse &LexerData);
 
 #endif

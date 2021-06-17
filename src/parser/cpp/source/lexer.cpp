@@ -294,7 +294,7 @@ void tk_eop(State &S, const char &c, const string &text) { // Determine in parse
 	add_token(S, text);
 }
 
-void tokenizer(const string &text) {
+void tokenizer(const string &text, LexerResponse &LexerData) {
 	int l = text.length();
 
 	State S = {};

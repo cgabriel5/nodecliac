@@ -467,5 +467,15 @@ void tokenizer(const string &text, LexerResponse &LexerData) {
 	S.end = -1;
 	add_token(S, text);
 
-	// return (tokens, ttypes, ttids, dtids)
+	// [http://cplusplus.bordoon.com/dontforgettoswap.html]
+	// [https://stackoverflow.com/a/644693]
+	// [https://stackoverflow.com/a/1826373]
+	// [https://stackoverflow.com/a/1575369]
+	// [https://stackoverflow.com/a/52842140]
+	// [https://www.learncpp.com/cpp-tutorial/returning-values-by-value-reference-and-address/]
+	LexerData.tokens.swap(tokens);
+	LexerData.ttypes.swap(ttypes);
+	LexerData.ttids.swap(ttids);
+	LexerData.dtids.swap(dtids);
+	LexerData.LINESTARTS.swap(LINESTARTS);
 }

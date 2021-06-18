@@ -9,7 +9,7 @@
 using namespace std;
 
 struct Token {
-	string kind;
+	string kind, $;
 	int line, start, end, tid;
 	array<int, 2> lines = {-1, -1};
 };

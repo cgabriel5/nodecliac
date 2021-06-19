@@ -2,11 +2,11 @@
 // from formatter import formatter
 // from issue import Issue
 // from utils.defvars import builtins
-// from validation import vsetting, vvariable, vstring, vsetting_aval
 
 #include "../headers/structs.hpp"
 #include "../headers/lexer.hpp"
 #include "../headers/parser.hpp"
+#include "../headers/validation.hpp"
 #include "../headers/str.hpp"
 
 #include <string>
@@ -612,7 +612,7 @@ string parser(const string &action, const string &text,
 						addgroup_stn(setting);
 						addtoken_stn_group(S.tid);
 
-						// vsetting(S);
+						vsetting(S, LexerData, text);
 						vector<string> list {"", "tkASG"};
 						expect(list);
 					} else if (kind == "tkVAR") {
@@ -629,7 +629,7 @@ string parser(const string &action, const string &text,
 						}
 						USER_VARS[varname].push_back(S.tid);
 
-						// vvariable(S);
+						vvariable(S, LexerData, text);
 						vector<string> list {"", "tkASG"};
 						expect(list);
 					} else if (kind == "tkCMD") {
@@ -720,7 +720,7 @@ string parser(const string &action, const string &text,
 							vector<string> list {""};
 							expect(list);
 
-							// vstring(S);
+							vstring(S, LexerData, text);
 
 							break;
 						}
@@ -730,7 +730,7 @@ string parser(const string &action, const string &text,
 							vector<string> list {""};
 							expect(list);
 
-							// vsetting_aval(S);
+							vsetting_aval(S, LexerData, text);
 
 							break;
 						}
@@ -757,7 +757,7 @@ string parser(const string &action, const string &text,
 							vector<string> list {""};
 							expect(list);
 
-							// vstring(S);
+							vstring(S, LexerData, text);
 
 							break;
 						}

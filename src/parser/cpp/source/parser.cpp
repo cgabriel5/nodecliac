@@ -14,6 +14,7 @@
 #include <set>
 #include <regex>
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 
@@ -494,6 +495,15 @@ void addgroup_var(vector<int> &g) {
 // 	newgroup_var();
 // 	VARIABLES.back().push_back(variable);
 // }
+
+// ============================
+
+// [https://stackoverflow.com/a/873725]
+// [https://stackoverflow.com/a/4892699]
+// [https://stackoverflow.com/a/26295515]
+bool cmp(const Warning &a, const Warning &b) {
+	return a.column < b.column;
+}
 
 // ============================
 
@@ -1385,7 +1395,13 @@ string parser(const string &action, const string &text,
 
 	// Print issues.
 	for (auto const &warnline : S.warn_lines) {
-		for (auto const &warning : S.warnings[warnline]) {
+		// Only sort lines where unused variable warning(s) were added.
+		vector<Warning>& warnings = S.warnings[warnline];
+		if (hasKey(S.warn_lsort, warnline) && warnings.size() > 1) {
+			sort(warnings.begin(), warnings.end(), cmp);
+		}
+
+		for (auto const &warning : warnings) {
 			string filename = warning.filename;
 			int line = warning.line;
 			int col = warning.column;

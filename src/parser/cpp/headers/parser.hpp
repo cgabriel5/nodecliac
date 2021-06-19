@@ -1,11 +1,11 @@
 #ifndef PARSER_HPP
 #define PARSER_HPP
 
+#include "./structs.hpp"
+
 #include <string>
 
 using namespace std;
-
-struct tabdata { char ichar; int iamount; };
 
 string parser(const string &action, const string &text,
 	const string &cmdname, const string &source,

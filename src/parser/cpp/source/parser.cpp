@@ -152,39 +152,7 @@ const set<string> tkTYPES_1 {"tkSTN", "tkVAR", "tkCMD"};
 const set<string> tkTYPES_2 {"tkFLG", "tkKYW"};
 const set<string> tkTYPES_3 {"tkFLG", "tkKYW"};
 
-struct Args {
-	string action, source;
-	tabdata fmt;
-	bool trace, igc, test;
-};
-
-struct Warning {
-	string filename, message;
-	int line, column;
-};
-
-struct StateParse {
-	int tid = -1;
-	string filename; // = source;
-	string text; // = text;
-	LexerResponse LexerData;
-	Args args;
-	vector<int> ubids;
-	vector<string> excludes;
-	map<int, vector<vector<Warning>>> warnings;
-	set<int> warn_lines;
-	set<int> warn_lsort;
-} S;
-
-struct Flag {
-	int tid = -1;
-	int alias = -1;
-	int boolean = -1;
-	int assignment = -1;
-	int multi = -1;
-	int union_ = -1;
-	vector<vector<int>> values;
-};
+StateParse S;
 
 int ttid = 0;
 vector<string> NEXT;

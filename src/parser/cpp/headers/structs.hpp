@@ -5,6 +5,7 @@
 #include <array>
 #include <vector>
 #include <map>
+#include <set>
 
 using namespace std;
 
@@ -27,6 +28,47 @@ struct State {
 	string kind;
 	bool last, list;
 	array<int, 2> lines;
+};
+
+// -----------------------------------------------------------------------------
+
+struct tabdata {
+	char ichar;
+	int iamount;
+};
+
+struct Args {
+	string action, source;
+	tabdata fmt;
+	bool trace, igc, test;
+};
+
+struct Warning {
+	string filename, message;
+	int line, column;
+};
+
+struct StateParse {
+	int tid = -1;
+	string filename; // = source;
+	string text; // = text;
+	LexerResponse LexerData;
+	Args args;
+	vector<int> ubids;
+	vector<string> excludes;
+	map<int, vector<vector<Warning>>> warnings;
+	set<int> warn_lines;
+	set<int> warn_lsort;
+};
+
+struct Flag {
+	int tid = -1;
+	int alias = -1;
+	int boolean = -1;
+	int assignment = -1;
+	int multi = -1;
+	int union_ = -1;
+	vector<vector<int>> values;
 };
 
 #endif

@@ -256,7 +256,7 @@ void add_token(State &S, const string &text) {
 	}
 
 	ttypes[token_count] = S.kind;
-	if (contains(tkTYPES_RESET4, S.kind)) {
+	if (!contains(tkTYPES_RESET4, S.kind)) {
 		// Track token ids to help with parsing.
 		dtids[token_count] = (token_count && ttids.size()) ? ttids.back() : 0;
 		ttids.push_back(token_count);

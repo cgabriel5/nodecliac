@@ -166,7 +166,7 @@ void tk_eop(State &S, const char &c, const string &text);
 // Adds the token to tokens array.
 void add_token(State &S, const string &text) {
 	if (!tokens.empty() && !ttids.empty()) {
-		Token prevtk = tokens[ttids.back()];
+		Token& prevtk = tokens[ttids.back()];
 
 		// Keyword reset.
 		if (kind(S, "tkSTR") && (prevtk.kind == "tkCMD" ||

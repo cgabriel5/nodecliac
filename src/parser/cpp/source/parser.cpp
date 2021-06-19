@@ -202,7 +202,7 @@ void err(int tid, string message, StateParse &S, LexerResponse &LexerData,
 	// reset the id to the last true token before it.
 	if (LexerData.tokens[tid].kind == "tkEOP") tid = LexerData.ttids[-1];
 
-	Token token = LexerData.tokens[tid];
+	Token& token = LexerData.tokens[tid];
 	int line = token.line;
 	int index = (pos == "start") ? token.start : token.end;
 	// msg = f"{message}";
@@ -236,7 +236,7 @@ void err(int tid, string message, StateParse &S, LexerResponse &LexerData,
 
 void warn(int tid, string message, StateParse &S, LexerResponse &LexerData,
 		const string &text) {
-	Token token = LexerData.tokens[tid];
+	Token& token = LexerData.tokens[tid];
 	int line = token.line;
 	int index = token.start;
 	int col = index - LexerData.LINESTARTS[line];
@@ -260,7 +260,7 @@ void warn(int tid, string message, StateParse &S, LexerResponse &LexerData,
 
 void hint(int tid, string message, StateParse &S, LexerResponse &LexerData,
 		const string &text) {
-	Token token = LexerData.tokens[tid];
+	Token& token = LexerData.tokens[tid];
 	int line = token.line;
 	int index = token.start;
 	int col = index - LexerData.LINESTARTS[line];
@@ -389,7 +389,7 @@ void newbranch() {
 	branch = b;
 }
 
-Token prevtoken(StateParse &S, LexerResponse &LexerData) {
+Token& prevtoken(StateParse &S, LexerResponse &LexerData) {
 	// [https://stackoverflow.com/a/3136545]
 	auto it = LexerData.dtids.find(S.tid);
 	return LexerData.tokens[it->second];
@@ -557,7 +557,7 @@ string parser(const string &action, const string &text,
 	int l = LexerData.tokens.size();
 
 	while (i < l) {
-		Token token = LexerData.tokens[i];
+		Token& token = LexerData.tokens[i];
 		string kind = token.kind;
 		int line = token.line;
 		int start = token.start;
@@ -598,7 +598,7 @@ string parser(const string &action, const string &text,
 			}
 
 			if (!BRANCHES.empty()) {
-				Token ltoken = BRANCHES.back().back(); // Last branch token.
+				Token& ltoken = BRANCHES.back().back(); // Last branch token.
 				if (line == ltoken.line && ltoken.kind != "tkTRM") {
 					err(ttid, "Improper termination", S, LexerData, text, "start", "parent");
 				}
@@ -773,7 +773,7 @@ string parser(const string &action, const string &text,
 						case tkASG: {
 							// If a universal block, store group id.
 							if (hasKey(LexerData.dtids, S.tid)) {
-								Token prevtk = prevtoken(S, LexerData);
+								Token& prevtk = prevtoken(S, LexerData);
 								if (prevtk.kind == "tkCMD" && text[prevtk.start] == '*') {
 									ubids.push_back(CCHAINS.size() - 1);
 								}
@@ -842,7 +842,7 @@ string parser(const string &action, const string &text,
 						case tkDCMA: {
 							// If a universal block, store group id.
 							if (hasKey(LexerData.dtids, S.tid)) {
-								Token prevtk = prevtoken(S, LexerData);
+								Token& prevtk = prevtoken(S, LexerData);
 								if (prevtk.kind == "tkCMD" && text[prevtk.start] == '*') {
 									ubids.push_back(CCHAINS.size() - 1);
 								}
@@ -1021,7 +1021,7 @@ string parser(const string &action, const string &text,
 				case tkBRC_LP:
 					switch(hashit2(kind)) {
 						case tkFOPT: {
-							Token prevtk = prevtoken(S, LexerData);
+							Token& prevtk = prevtoken(S, LexerData);
 							if (prevtk.kind == "tkBRC_LP") {
 								if (prevtk.line == line) {
 									err(S.tid, "Option same line (first)", S, LexerData, text, "start", "child");
@@ -1077,7 +1077,7 @@ string parser(const string &action, const string &text,
 							vector<string> list {"", "tkDPPE"};
 							expect(list);
 
-							Token prevtk = prevtoken(S, LexerData);
+							Token& prevtk = prevtoken(S, LexerData);
 							if (prevtk.kind == "tkBRC_LP") {
 								warn(prevtk.tid, "Empty scope (flag)", S, LexerData, text);
 							}
@@ -1249,7 +1249,7 @@ string parser(const string &action, const string &text,
 							vector<string> list {""};
 							expect(list);
 
-							Token prevtk = prevtoken(S, LexerData);
+							Token& prevtk = prevtoken(S, LexerData);
 							if (prevtk.kind == "tkBRC_LB") {
 								warn(prevtk.tid, "Empty scope (command)", S, LexerData, text);
 							}
@@ -1268,7 +1268,7 @@ string parser(const string &action, const string &text,
 
 							// Collect exclude values for use upstream.
 							if (hasKey(LexerData.dtids, S.tid)) {
-								Token prevtk = prevtoken(S, LexerData);
+								Token& prevtk = prevtoken(S, LexerData);
 								if (prevtk.kind == "tkKYW" and
 									tkstr(LexerData, text, prevtk.tid) == "exclude") {
 									string exvalues = tkstr(LexerData, text, prevtk.tid);

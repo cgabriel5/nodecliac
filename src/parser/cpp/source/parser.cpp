@@ -1,12 +1,12 @@
 // from acdef import acdef
 // from formatter import formatter
 // from issue import Issue
-// from utils.defvars import builtins
 
 #include "../headers/structs.hpp"
 #include "../headers/lexer.hpp"
 #include "../headers/parser.hpp"
 #include "../headers/validation.hpp"
+#include "../headers/defvars.hpp"
 #include "../headers/str.hpp"
 
 #include <string>
@@ -503,6 +503,11 @@ string parser(const string &action, const string &text,
 	const string &cmdname, const string &source,
 	const tabdata &fmt, const bool &trace,
 	const bool &igc, const bool &test) {
+
+	// Add builtin variables to variable table.
+	for (auto const &x : builtins(cmdname)) {
+		VARSTABLE[x.first] = x.second;
+	}
 
 	cout << "INSIDE PARSER FUNCTION" << endl;
 

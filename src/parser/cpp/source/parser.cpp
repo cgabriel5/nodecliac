@@ -193,7 +193,7 @@ string tkstr(LexerResponse &LexerData, const string &text, const int tid) {
 	}
 	int start = LexerData.tokens[tid].start;
 	int end = LexerData.tokens[tid].end;
-	return text.substr(start, end - start);
+	return text.substr(start, end - start + 1);
 }
 
 void err(int tid, string message, StateParse &S, LexerResponse &LexerData,

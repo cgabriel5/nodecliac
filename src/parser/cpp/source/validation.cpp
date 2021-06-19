@@ -35,7 +35,7 @@ void vsetting(StateParse &S, LexerResponse &LexerData, const string &text) {
 
 	vector<string> settings {"compopt", "filedir", "disable", "placehold", "test"};
 
-	string setting = text.substr(start, end - start);
+	string setting = text.substr(start + 1, end - start);
 
 	// Warn if setting is not a supported setting.
 	if (!contains(settings, setting)) {
@@ -119,7 +119,7 @@ void vsetting_aval(StateParse &S, LexerResponse &LexerData, const string &text) 
 
 	vector<string> values {"true", "false"};
 
-	string value = text.substr(start, end - start);
+	string value = text.substr(start, end - start + 1);
 
 	// Warn if values is not a supported values.
 	if (!contains(values, value)) {

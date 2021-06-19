@@ -173,7 +173,7 @@ void add_token(State &S, const string &text) {
 			(cmdscope && prevtk.kind == "tkTBD"))) {
 			int start = prevtk.start;
 			int end = prevtk.end;
-			if (contains(KEYWORDS, text.substr(start, end - start))) {
+			if (contains(KEYWORDS, text.substr(start, end - start + 1))) {
 				prevtk.kind = "tkKYW";
 			}
 
@@ -183,7 +183,7 @@ void add_token(State &S, const string &text) {
 			cmdscope && prevtk.kind == "tkTBD"))) {
 			int start = prevtk.start;
 			int end = prevtk.end;
-			if (text.substr(start, end - start) == "default") {
+			if (text.substr(start, end - start + 1) == "default") {
 				prevtk.kind = "tkKYW";
 			}
 

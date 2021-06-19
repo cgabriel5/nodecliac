@@ -1,4 +1,5 @@
 #include "../headers/structs.hpp"
+#include "../headers/issue.hpp"
 
 #include <string>
 #include <vector>
@@ -71,7 +72,7 @@ void vvariable(StateParse &S, LexerResponse &LexerData, const string &text) {
 		std::string chstr{S.text[start + 1]};
 		string message = "Unexpected: '" + chstr + "'";
 		message += "\n\033[1;36mInfo\033[0m: Variable cannot begin with a number.";
-		// Issue().error(S.filename, line, col, message);
+		issue_error(S.filename, line, col, message);
 	}
 }
 
@@ -108,7 +109,7 @@ void vstring(StateParse &S, LexerResponse &LexerData, const string &text) {
 	// Error if string is unclosed.
 	if (token.lines[1] == -1) {
 		string message = "Unclosed string";
-		// Issue().error(S.filename, line, col, message);
+		issue_error(S.filename, line, col, message);
 	}
 }
 
@@ -127,6 +128,6 @@ void vsetting_aval(StateParse &S, LexerResponse &LexerData, const string &text) 
 	// Warn if values is not a supported values.
 	if (!contains(values, value)) {
 		string message = "Invalid setting value: '" + value + "'";
-		// Issue().error(S.filename, line, col, message);
+		issue_error(S.filename, line, col, message);
 	}
 }

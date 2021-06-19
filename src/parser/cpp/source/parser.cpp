@@ -1,11 +1,11 @@
 // from acdef import acdef
 // from formatter import formatter
-// from issue import Issue
 
 #include "../headers/structs.hpp"
 #include "../headers/lexer.hpp"
 #include "../headers/parser.hpp"
 #include "../headers/validation.hpp"
+#include "../headers/issue.hpp"
 #include "../headers/defvars.hpp"
 #include "../headers/str.hpp"
 
@@ -231,7 +231,7 @@ void err(int tid, string message, StateParse &S, LexerResponse &LexerData,
 	// msg += dbeugmsg
 	// msg += "\n\n" + decor + " TOKEN_DEBUG_INFO " + decor
 
-	// Issue().error(S["filename"], line, col, message);
+	issue_error(S.filename, line, col, message);
 }
 
 void warn(int tid, string message, StateParse &S, LexerResponse &LexerData,
@@ -269,7 +269,7 @@ void hint(int tid, string message, StateParse &S, LexerResponse &LexerData,
 
 	if (endswith(message, ":")) message += " '" + tkstr(LexerData, text, tid) + "'";
 
-	// Issue().hint(S["filename"], line, col, message)
+	issue_hint(S.filename, line, col, message);
 }
 
 void addtoken(StateParse &S, LexerResponse &LexerData, const int i, const string &text="") {

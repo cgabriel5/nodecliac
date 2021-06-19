@@ -186,64 +186,6 @@ map<string, vector<int>> USER_VARS;
 map<string, string> VARSTABLE; // = builtins(cmdname)
 map<int, vector<vector<int>>> vindices;
 
-// def err(tid, message, pos="start", scope=""):
-// 	// When token ID points to end-of-parsing token,
-// 	// reset the id to the last true token before it.
-// 	if tokens[tid]["kind"] == "tkEOP": tid = ttids[-1]
-
-// 	token = tokens[tid]
-// 	line = token["line"]
-// 	index = token[pos]
-// 	// msg = f"{message}"
-// 	col = index - LINESTARTS[line]
-
-// 	if message.endswith(":"): message += f" '{tkstr(tid)}'"
-
-// 	// Add token debug information.
-// 	// dbeugmsg = "\n\n\033[1mToken\033[0m: "
-// 	// dbeugmsg += "\n - tid: " + str(token["tid"])
-// 	// dbeugmsg += "\n - kind: " + token["kind"]
-// 	// dbeugmsg += "\n - line: " + str(token["line"])
-// 	// dbeugmsg += "\n - start: " + str(token["start"])
-// 	// dbeugmsg += "\n - end: " + str(token["end"])
-// 	// dbeugmsg += "\n __val__: [" + tkstr(tid) + "]"
-
-// 	// dbeugmsg += "\n\n\033[1mExpected\033[0m: "
-// 	// for n in NEXT:
-// 	//     if not n: n = "\"\""
-// 	//     dbeugmsg += "\n - " + n
-// 	// dbeugmsg += "\n\n\033[1mScopes\033[0m: "
-// 	// for s in SCOPE:
-// 	//     dbeugmsg += "\n - " + s
-// 	// decor = "-" * 15
-// 	// msg += "\n\n" + decor + " TOKEN_DEBUG_INFO " + decor
-// 	// msg += dbeugmsg
-// 	// msg += "\n\n" + decor + " TOKEN_DEBUG_INFO " + decor
-
-// 	Issue().error(S["filename"], line, col, message)
-
-// def warn(tid, message):
-// 	token = tokens[tid]
-// 	line = token["line"]
-// 	index = token["start"]
-// 	col = index - LINESTARTS[line]
-
-// 	if message.endswith(":"): message += f" '{tkstr(tid)}'"
-
-// 	if line not in S["warnings"]: S["warnings"][line] = []
-// 	S["warnings"][line].append([S["filename"], line, col, message])
-// 	S["warn_lines"].add(line)
-
-// def hint(tid, message):
-// 	token = tokens[tid]
-// 	line = token["line"]
-// 	index = token["start"]
-// 	col = index - LINESTARTS[line]
-
-// 	if message.endswith(":"): message += f" '{tkstr(tid)}'"
-
-// 	Issue().hint(S["filename"], line, col, message)
-
 string tkstr(LexerResponse &LexerData, const string &text, const int tid) {
 	if (tid == -1) return "";
 	if (LexerData.tokens[tid].kind == "tkSTR") {
@@ -252,6 +194,82 @@ string tkstr(LexerResponse &LexerData, const string &text, const int tid) {
 	int start = LexerData.tokens[tid].start;
 	int end = LexerData.tokens[tid].end;
 	return text.substr(start, end - start);
+}
+
+void err(int tid, string message, StateParse &S, LexerResponse &LexerData,
+		const string &text, string pos="start", string scope="") {
+	// When token ID points to end-of-parsing token,
+	// reset the id to the last true token before it.
+	if (LexerData.tokens[tid].kind == "tkEOP") tid = LexerData.ttids[-1];
+
+	Token token = LexerData.tokens[tid];
+	int line = token.line;
+	int index = (pos == "start") ? token.start : token.end;
+	// msg = f"{message}";
+	int col = index - LexerData.LINESTARTS[line];
+
+	if (endswith(message, ":")) message += " '" + tkstr(LexerData, text, tid) + "'";
+
+	// Add token debug information.
+	// dbeugmsg = "\n\n\033[1mToken\033[0m: "
+	// dbeugmsg += "\n - tid: " + str(token["tid"])
+	// dbeugmsg += "\n - kind: " + token["kind"]
+	// dbeugmsg += "\n - line: " + str(token["line"])
+	// dbeugmsg += "\n - start: " + str(token["start"])
+	// dbeugmsg += "\n - end: " + str(token["end"])
+	// dbeugmsg += "\n __val__: [" + tkstr(tid) + "]"
+
+	// dbeugmsg += "\n\n\033[1mExpected\033[0m: "
+	// for n in NEXT:
+	//     if not n: n = "\"\""
+	//     dbeugmsg += "\n - " + n
+	// dbeugmsg += "\n\n\033[1mScopes\033[0m: "
+	// for s in SCOPE:
+	//     dbeugmsg += "\n - " + s
+	// decor = "-" * 15
+	// msg += "\n\n" + decor + " TOKEN_DEBUG_INFO " + decor
+	// msg += dbeugmsg
+	// msg += "\n\n" + decor + " TOKEN_DEBUG_INFO " + decor
+
+	// Issue().error(S["filename"], line, col, message);
+}
+
+void warn(int tid, string message, StateParse &S, LexerResponse &LexerData,
+		const string &text) {
+	Token token = LexerData.tokens[tid];
+	int line = token.line;
+	int index = token.start;
+	int col = index - LexerData.LINESTARTS[line];
+
+	if (endswith(message, ":")) message += " '" + tkstr(LexerData, text, tid) + "'";
+
+	if (!hasKey(S.warnings, line)) {
+		vector<vector<Warning>> list;
+		S.warnings[line] = list;
+	}
+
+	Warning warning;
+	warning.filename = S.filename;
+	warning.line = line;
+	warning.column = col;
+	warning.message = message;
+
+	vector<Warning> tlist;
+	tlist.push_back(warning);
+	S.warnings[line].push_back(tlist);
+	S.warn_lines.insert(line);
+}
+
+void hint(int tid, string message, StateParse &S, LexerResponse &LexerData,
+		const string &text) {
+	Token token = LexerData.tokens[tid];
+	int line = token.line;
+	int index = token.start;
+	int col = index - LexerData.LINESTARTS[line];
+
+	if (endswith(message, ":")) message += " '" + tkstr(LexerData, text, tid) + "'";
+
+	// Issue().hint(S["filename"], line, col, message)
 }
 
 void addtoken(StateParse &S, LexerResponse &LexerData, const int i, const string &text="") {

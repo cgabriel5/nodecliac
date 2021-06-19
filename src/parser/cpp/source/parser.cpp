@@ -509,8 +509,6 @@ string parser(const string &action, const string &text,
 		VARSTABLE[x.first] = x.second;
 	}
 
-	cout << "INSIDE PARSER FUNCTION" << endl;
-
 	LexerResponse LexerData;
 	tokenizer(text, LexerData);
 

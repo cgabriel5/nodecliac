@@ -231,7 +231,7 @@ void err(int tid, string message, StateParse &S, LexerResponse &LexerData,
 	// msg += dbeugmsg
 	// msg += "\n\n" + decor + " TOKEN_DEBUG_INFO " + decor
 
-	issue_error(S.filename, line, col, message);
+	// issue_error(S.filename, line, col, message);
 }
 
 void warn(int tid, string message, StateParse &S, LexerResponse &LexerData,
@@ -309,7 +309,7 @@ void addtoken(StateParse &S, LexerResponse &LexerData, const int i, const string
 						// Note: Modify token index to point to
 						// start of the variable position.
 						LexerData.tokens[S.tid].start += start;
-						// err(ttid, "Undefined variable", scope="child");
+						err(ttid, "Undefined variable", S, LexerData, text, "start", "child");
 					}
 
 					USED_VARS[varname] = 1;
@@ -583,7 +583,7 @@ string parser(const string &action, const string &text,
 				expect(list);
 			} else {
 				if (!NEXT.empty() && !nextany()) {
-					// err(ttid, "Improper termination", scope="child");
+					err(ttid, "Improper termination", S, LexerData, text, "start", "child");
 				}
 			}
 
@@ -600,7 +600,7 @@ string parser(const string &action, const string &text,
 			if (!BRANCHES.empty()) {
 				Token ltoken = BRANCHES.back().back(); // Last branch token.
 				if (line == ltoken.line && ltoken.kind != "tkTRM") {
-					// err(ttid, "Improper termination", scope="parent");
+					err(ttid, "Improper termination", S, LexerData, text, "start", "parent");
 				}
 			}
 
@@ -644,7 +644,7 @@ string parser(const string &action, const string &text,
 
 						string command = tkstr(LexerData, text, S.tid);
 						if (command != "*" && command != cmdname) {
-							// warn(S["tid"], f"Unexpected command:");
+							warn(S.tid, "Unexpected command:", S, LexerData, text);
 						}
 					}
 				} else {
@@ -654,7 +654,7 @@ string parser(const string &action, const string &text,
 						vector<string> list {""};
 						expect(list);
 					} else { // Handle unexpected parent tokens.
-						// err(S["tid"], "Unexpected token:", scope="parent");
+						err(S.tid, "Unexpected token:", S, LexerData, text, "start", "parent");
 					}
 				}
 			}
@@ -688,7 +688,7 @@ string parser(const string &action, const string &text,
 					continue;
 
 				} else {
-					// err(S["tid"], "Unexpected token:", scope="child");
+					err(S.tid, "Unexpected token:", S, LexerData, text, "start", "child");
 				}
 			}
 
@@ -702,7 +702,7 @@ string parser(const string &action, const string &text,
 				if (oneliner == -1) {
 					oneliner = token.line;
 				} else if (token.line != oneliner) {
-					// err(S["tid"], "Improper oneliner", scope="child")
+					err(S.tid, "Improper oneliner", S, LexerData, text, "start", "child");
 				}
 			}
 
@@ -960,7 +960,7 @@ string parser(const string &action, const string &text,
 							newflag();
 
 							if (hasscope("tkBRC_LB") && token.line == prevtoken(S, LexerData).line) {
-								// err(S.tid, "Flag same line (nth)", scope="child");
+								err(S.tid, "Flag same line (nth)", S, LexerData, text, "start", "child");
 							}
 							vector<string> list {"", "tkASG", "tkQMK",
 								"tkDCLN", "tkFVAL", "tkDPPE"};
@@ -976,7 +976,7 @@ string parser(const string &action, const string &text,
 							popscope();
 
 							if (hasscope("tkBRC_LB") && token.line == prevtoken(S, LexerData).line) {
-								// err(S.tid, "Keyword same line (nth)", scope="child");
+								err(S.tid, "Keyword same line (nth)", S, LexerData, text, "start", "child");
 							}
 							addscope(kind);
 							vector<string> list {"tkSTR", "tkDLS"};
@@ -1024,7 +1024,7 @@ string parser(const string &action, const string &text,
 							Token prevtk = prevtoken(S, LexerData);
 							if (prevtk.kind == "tkBRC_LP") {
 								if (prevtk.line == line) {
-									// err(S.tid, "Option same line (first)", scope="child");
+									err(S.tid, "Option same line (first)", S, LexerData, text, "start", "child");
 								}
 								addscope("tkOPTS");
 								vector<string> list {"tkFVAL", "tkSTR", "tkDLS"};
@@ -1079,7 +1079,7 @@ string parser(const string &action, const string &text,
 
 							Token prevtk = prevtoken(S, LexerData);
 							if (prevtk.kind == "tkBRC_LP") {
-								// warn(prevtk.tid, "Empty scope (flag)");
+								warn(prevtk.tid, "Empty scope (flag)", S, LexerData, text);
 							}
 
 							break;
@@ -1176,7 +1176,7 @@ string parser(const string &action, const string &text,
 					switch(hashit2(kind)) {
 						case tkFOPT: {
 							if (prevtoken(S, LexerData).line == line) {
-								// err(S.tid, "Option same line (nth)", scope="child");
+								err(S.tid, "Option same line (nth)", S, LexerData, text, "start", "child");
 							}
 							vector<string> list {"tkFVAL", "tkSTR", "tkDLS"};
 							expect(list);
@@ -1223,7 +1223,7 @@ string parser(const string &action, const string &text,
 							newflag();
 
 							if (hasscope("tkBRC_LB") && token.line == prevtoken(S, LexerData).line) {
-								// err(S["tid"], "Flag same line (first)", scope="child");
+								err(S.tid, "Flag same line (first)", S, LexerData, text, "start", "child");
 							}
 							addscope(kind);
 							vector<string> list {"tkASG", "tkQMK", "tkDCLN",
@@ -1236,7 +1236,7 @@ string parser(const string &action, const string &text,
 							newflag();
 
 							if (hasscope("tkBRC_LB") && token.line == prevtoken(S, LexerData).line) {
-								// err(S["tid"], "Keyword same line (first)", scope="child");
+								err(S.tid, "Keyword same line (first)", S, LexerData, text, "start", "child");
 							}
 							addscope(kind);
 							vector<string> list {"tkSTR", "tkDLS", "tkBRC_RB"};
@@ -1251,7 +1251,7 @@ string parser(const string &action, const string &text,
 
 							Token prevtk = prevtoken(S, LexerData);
 							if (prevtk.kind == "tkBRC_LB") {
-								// warn(prevtk["tid"], "Empty scope (command)");
+								warn(prevtk.tid, "Empty scope (command)", S, LexerData, text);
 							}
 
 							break;
@@ -1354,7 +1354,7 @@ string parser(const string &action, const string &text,
 
 							string command = tkstr(LexerData, text, S.tid);
 							if (command != "*" && command != cmdname) {
-								// warn(S.tid, f"Unexpected command:");
+								warn(S.tid, "Unexpected command:", S, LexerData, text);
 							}
 							break;
 						}
@@ -1364,9 +1364,7 @@ string parser(const string &action, const string &text,
 					break;
 
 				default:
-
-					int placeholder = 0;
-					// err(tokens[S["tid"]]["tid"], f"Unexpected token:", pos="end");
+					err(LexerData.tokens[S.tid].tid, "Unexpected token:", S, LexerData, text, "end");
 
 			}
 		}
@@ -1374,23 +1372,28 @@ string parser(const string &action, const string &text,
 		i += 1;
 	}
 
-	// // Check for any unused variables && give warning.
-	// for uservar in USER_VARS:
-	// 	if uservar not in USED_VARS:
-	// 		for tid in USER_VARS[uservar]:
-	// 			warn(tid, f"Unused variable: '{uservar}'")
-	// 			S["warn_lsort"].add(tokens[tid]["line"])
+	// Check for any unused variables && give warning.
+	for (auto const &x : USER_VARS) {
+		if (!hasKey(USED_VARS, x.first)) {
+			for (auto const &tid : USER_VARS[x.first]) {
+				warn(tid, "Unused variable: '" + x.first + "'",
+					S, LexerData, text);
+				S.warn_lsort.insert(LexerData.tokens[tid].line);
+			}
+		}
+	}
 
-	// // Sort warning lines && print issues.
-	// warnlines = list(S["warn_lines"])
-	// warnlines.sort()
-	// for warnline in warnlines:
-	// 	// Only sort lines where unused variable warning(s) were added.
-	// 	if warnline in S["warn_lsort"] && len(S["warnings"][warnline]) > 1:
-	// 		// [https://stackoverflow.com/a/4233482]
-	// 		S["warnings"][warnline].sort(key = operator.itemgetter(1, 2))
-	// 	for warning in S["warnings"][warnline]:
-	// 		Issue().warn(*warning)
+	// Print issues.
+	for (auto const &warnline : S.warn_lines) {
+		for (auto const &warning : S.warnings[warnline]) {
+			string filename = warning.filename;
+			int line = warning.line;
+			int col = warning.column;
+			string message = warning.message;
+
+			issue_warn(filename, line, col, message);
+		}
+	}
 
 	// if action == "make": return acdef(BRANCHES, CCHAINS, FLAGS, SETTINGS, S)
 	// else: return formatter(tokens, text, BRANCHES, CCHAINS, FLAGS, SETTINGS, S)

@@ -13,6 +13,7 @@ using namespace std;
 
 // [https://stackoverflow.com/a/28097056]
 // [https://stackoverflow.com/a/43823704]
+// [https://www.techiedelight.com/find-index-element-array-cpp/]
 template <typename T, typename V>
 bool contains(T const &container, V const &value) {
 	auto it = find(container.begin(), container.end(), value);
@@ -325,7 +326,6 @@ void tokenizer(const string &text, LexerResponse &LexerData) {
 			}
 
 			S.start = S.i;
-			// [https://stackoverflow.com/a/3136545]
 			auto it = SOT.find(c);
 			S.kind = (it != SOT.end()) ? it->second : "tkTBD";
 			if (S.kind == "tkTBD") {

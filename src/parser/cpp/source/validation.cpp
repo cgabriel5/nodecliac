@@ -42,7 +42,7 @@ void vsetting(StateParse &S, LexerResponse &LexerData, const string &text) {
 		string message = "Unknown setting: '" + setting + "'";
 
 		if (!hasKey(S.warnings, line)) {
-			vector<vector<Warning>> list;
+			vector<Warning> list;
 			S.warnings[line] = list;
 		}
 
@@ -52,9 +52,7 @@ void vsetting(StateParse &S, LexerResponse &LexerData, const string &text) {
 		warning.column = col;
 		warning.message = message;
 
-		vector<Warning> tlist;
-		tlist.push_back(warning);
-		S.warnings[line].push_back(tlist);
+		S.warnings[line].push_back(warning);
 		S.warn_lines.insert(line);
 	}
 }
@@ -90,7 +88,7 @@ void vstring(StateParse &S, LexerResponse &LexerData, const string &text) {
 		string message = "Empty string";
 
 		if (!hasKey(S.warnings, line)) {
-			vector<vector<Warning>> list;
+			vector<Warning> list;
 			S.warnings[line] = list;
 		}
 
@@ -100,9 +98,7 @@ void vstring(StateParse &S, LexerResponse &LexerData, const string &text) {
 		warning.column = col;
 		warning.message = message;
 
-		vector<Warning> tlist;
-		tlist.push_back(warning);
-		S.warnings[line].push_back(tlist);
+		S.warnings[line].push_back(warning);
 		S.warn_lines.insert(line);
 	}
 

@@ -244,7 +244,7 @@ void warn(int tid, string message, StateParse &S, LexerResponse &LexerData,
 	if (endswith(message, ":")) message += " '" + tkstr(LexerData, text, tid) + "'";
 
 	if (!hasKey(S.warnings, line)) {
-		vector<vector<Warning>> list;
+		vector<Warning> list;
 		S.warnings[line] = list;
 	}
 
@@ -254,9 +254,7 @@ void warn(int tid, string message, StateParse &S, LexerResponse &LexerData,
 	warning.column = col;
 	warning.message = message;
 
-	vector<Warning> tlist;
-	tlist.push_back(warning);
-	S.warnings[line].push_back(tlist);
+	S.warnings[line].push_back(warning);
 	S.warn_lines.insert(line);
 }
 

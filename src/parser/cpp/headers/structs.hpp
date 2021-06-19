@@ -56,7 +56,7 @@ struct StateParse {
 	Args args;
 	vector<int> ubids;
 	vector<string> excludes;
-	map<int, vector<vector<Warning>>> warnings;
+	map<int, vector<Warning>> warnings;
 	set<int> warn_lines;
 	set<int> warn_lsort;
 };

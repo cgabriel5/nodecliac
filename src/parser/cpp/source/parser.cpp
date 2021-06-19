@@ -172,7 +172,7 @@ vector<vector<vector<int>>> CCHAINS;
 
 vector<int> ubids;
 vector<string> excludes;
-map<int, vector<Flag>>FLAGS;
+map<int, vector<Flag>> FLAGS;
 Flag flag;
 
 vector<int> setting;

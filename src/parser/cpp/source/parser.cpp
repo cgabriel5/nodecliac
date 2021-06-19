@@ -502,6 +502,8 @@ string parser(const string &action, const string &text,
 	const tabdata &fmt, const bool &trace,
 	const bool &igc, const bool &test) {
 
+	S.filename = source;
+
 	// Add builtin variables to variable table.
 	for (auto const &x : builtins(cmdname)) {
 		VARSTABLE[x.first] = x.second;

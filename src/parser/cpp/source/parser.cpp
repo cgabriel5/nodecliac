@@ -17,6 +17,12 @@
 
 using namespace std;
 
+// [https://stackoverflow.com/a/2072890]
+inline bool endswith(string const &value, string const &ending) {
+	if (ending.size() > value.size()) return false;
+	return equal(ending.rbegin(), ending.rend(), value.rbegin());
+}
+
 // [https://www.delftstack.com/howto/cpp/how-to-trim-a-string-cpp/]
 // [https://stackoverflow.com/a/25385766]
 // [https://stackoverflow.com/a/217605]

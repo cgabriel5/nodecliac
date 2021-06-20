@@ -232,7 +232,7 @@ void err(int tid, string message, StateParse &S, LexerResponse &LexerData,
 	// msg += dbeugmsg
 	// msg += "\n\n" + decor + " TOKEN_DEBUG_INFO " + decor
 
-	// issue_error(S.filename, line, col, message);
+	issue_error(S.filename, line, col, message);
 }
 
 void warn(int tid, string message, StateParse &S, LexerResponse &LexerData,

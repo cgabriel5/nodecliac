@@ -298,10 +298,10 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         nonlocal SETTINGS
         SETTINGS.append(g)
 
-    def addtoprevgroup_stn():
-        nonlocal setting, SETTINGS
-        newgroup_stn()
-        SETTINGS[-1].append(setting)
+    # def addtoprevgroup_stn():
+    #     nonlocal setting, SETTINGS
+    #     newgroup_stn()
+    #     SETTINGS[-1].append(setting)
 
     # ============================
 
@@ -317,10 +317,10 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
         nonlocal VARIABLES
         VARIABLES.append(g)
 
-    def addtoprevgroup_var():
-        nonlocal variable, VARIABLES
-        newgroup_var()
-        VARIABLES[-1].append(variable)
+    # def addtoprevgroup_var():
+    #     nonlocal variable, VARIABLES
+    #     newgroup_var()
+    #     VARIABLES[-1].append(variable)
 
     # ============================
 

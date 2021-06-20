@@ -184,8 +184,8 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
 
                 if not vindices[i]: del vindices[i]
 
-        nonlocal branch
-        branch.append(tokens[i])
+        nonlocal BRANCHES
+        BRANCHES[-1].append(tokens[i])
 
     def expect(*args):
         nonlocal NEXT
@@ -219,9 +219,9 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
     def nextany():
         return NEXT[0] == ""
 
-    def addbranch(b):
-        nonlocal BRANCHES
-        BRANCHES.append(b)
+    def addbranch():
+        nonlocal branch, BRANCHES
+        BRANCHES.append(branch)
 
     def newbranch():
         nonlocal branch
@@ -350,7 +350,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
 
     def __var__str(kind):
         addtoken_var_group(S["tid"])
-        VARSTABLE[tkstr(branch[-3]["tid"])[1:]] = tkstr(S["tid"])
+        VARSTABLE[tkstr(BRANCHES[-1][-3]["tid"])[1:]] = tkstr(S["tid"])
 
         expect("")
 
@@ -804,13 +804,14 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
             ttid = i
 
         if kind == "tkTRM":
-            addtoken(ttid)
-
             if not SCOPE:
-                addbranch(branch)
+                addbranch()
+                addtoken(ttid)
                 newbranch()
                 expect("")
             else:
+                addtoken(ttid)
+
                 if NEXT and not nextany():
                     err(ttid, "Improper termination", scope="child")
 
@@ -819,19 +820,18 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
 
         if not SCOPE:
 
-            if kind != "tkEOP":
-                addtoken(ttid)
+            oneliner = -1
 
             if BRANCHES:
                 ltoken = BRANCHES[-1][-1] # Last branch token.
                 if line == ltoken["line"] and ltoken["kind"] != "tkTRM":
                     err(ttid, "Improper termination", scope="parent")
 
-            oneliner = -1
-
             if kind != "tkEOP":
+                addbranch()
+                addtoken(ttid)
+
                 if kind in ("tkSTN", "tkVAR", "tkCMD"):
-                    addbranch(branch)
                     addscope(kind)
                     if kind == "tkSTN":
                         newgroup_stn()
@@ -865,7 +865,6 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
                             warn(S["tid"], "Unexpected command:")
                 else:
                     if kind == "tkCMT":
-                        addbranch(branch)
                         newbranch()
                         expect("")
                     else: # Handle unexpected parent tokens.
@@ -900,7 +899,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
             addtoken(ttid)
 
             # Oneliners must be declared on oneline, else error.
-            if branch[0]["kind"] == "tkCMD" and (
+            if BRANCHES[-1][0]["kind"] == "tkCMD" and (
                 ((hasscope("tkFLG") or hasscope("tkKYW"))
                 or kind in ("tkFLG", "tkKYW"))
                 and not hasscope("tkBRC_LB")):

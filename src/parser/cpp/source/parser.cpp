@@ -381,7 +381,7 @@ bool nextany() {
 	return NEXT[0] == "";
 }
 
-void addbranch(StateParse &S, LexerResponse &LexerData, const vector<Token> b) {
+void addbranch(const vector<Token> &b) {
 	BRANCHES.push_back(b);
 }
 
@@ -587,7 +587,7 @@ string parser(const string &action, const string &text,
 			addtoken(S, LexerData, ttid, text);
 
 			if (SCOPE.empty()) {
-				addbranch(S, LexerData, branch);
+				addbranch(branch);
 				newbranch();
 				vector<string> list {""};
 				expect(list);
@@ -618,7 +618,7 @@ string parser(const string &action, const string &text,
 
 			if (kind != "tkEOP") {
 				if (contains(tkTYPES_1, kind)) {
-					addbranch(S, LexerData, branch);
+					addbranch(branch);
 					addscope(kind);
 					if (kind == "tkSTN") {
 						newgroup_stn();
@@ -659,7 +659,7 @@ string parser(const string &action, const string &text,
 					}
 				} else {
 					if (kind == "tkCMT") {
-						addbranch(S, LexerData, branch);
+						addbranch(branch);
 						newbranch();
 						vector<string> list {""};
 						expect(list);

@@ -342,7 +342,7 @@ void addtoken(StateParse &S, LexerResponse &LexerData, const int i, const string
 		}
 	}
 
-	branch.push_back(LexerData.tokens[i]);
+	BRANCHES.back().push_back(LexerData.tokens[i]);
 }
 
 void expect(vector<string> &list) {
@@ -381,8 +381,8 @@ bool nextany() {
 	return NEXT[0] == "";
 }
 
-void addbranch(const vector<Token> &b) {
-	BRANCHES.push_back(b);
+void addbranch() {
+	BRANCHES.push_back(branch);
 }
 
 void newbranch() {
@@ -584,14 +584,15 @@ string parser(const string &action, const string &text,
 		}
 
 		if (kind == "tkTRM") {
-			addtoken(S, LexerData, ttid, text);
-
 			if (SCOPE.empty()) {
-				addbranch(branch);
+				addbranch();
+				addtoken(S, LexerData, ttid, text);
 				newbranch();
 				vector<string> list {""};
 				expect(list);
 			} else {
+				addtoken(S, LexerData, ttid, text);
+
 				if (!NEXT.empty() && !nextany()) {
 					err(ttid, "Improper termination", S, LexerData, text, "start", "child");
 				}
@@ -603,9 +604,7 @@ string parser(const string &action, const string &text,
 
 		if (SCOPE.empty()) {
 
-			if (kind != "tkEOP") {
-				addtoken(S, LexerData, ttid, text);
-			}
+			oneliner = -1;
 
 			if (!BRANCHES.empty()) {
 				Token& ltoken = BRANCHES.back().back(); // Last branch token.
@@ -614,11 +613,13 @@ string parser(const string &action, const string &text,
 				}
 			}
 
-			oneliner = -1;
+			if (kind != "tkEOP") {
+				addbranch();
+				addtoken(S, LexerData, ttid, text);
+			}
 
 			if (kind != "tkEOP") {
 				if (contains(tkTYPES_1, kind)) {
-					addbranch(branch);
 					addscope(kind);
 					if (kind == "tkSTN") {
 						newgroup_stn();
@@ -659,7 +660,6 @@ string parser(const string &action, const string &text,
 					}
 				} else {
 					if (kind == "tkCMT") {
-						addbranch(branch);
 						newbranch();
 						vector<string> list {""};
 						expect(list);
@@ -705,7 +705,7 @@ string parser(const string &action, const string &text,
 			addtoken(S, LexerData, ttid, text);
 
 			// Oneliners must be declared on oneline, else error.
-			if (branch[0].kind == "tkCMD" && (
+			if (BRANCHES.back()[0].kind == "tkCMD" && (
 				((hasscope("tkFLG") || hasscope("tkKYW"))
 				|| contains(tkTYPES_2, kind))
 				&& !hasscope("tkBRC_LB"))) {
@@ -763,8 +763,8 @@ string parser(const string &action, const string &text,
 						}
 						case tkSTR: {
 							addtoken_var_group(S.tid);
-							int size = branch.size();
-							VARSTABLE[tkstr(LexerData, text, branch[size - 3].tid).substr(1)]
+							int size = BRANCHES.back().size();
+							VARSTABLE[tkstr(LexerData, text, BRANCHES.back()[size - 3].tid).substr(1)]
 							= tkstr(LexerData, text, S.tid);
 
 							vector<string> list {""};

@@ -2,6 +2,7 @@
 // from formatter import formatter
 
 #include "../headers/structs.hpp"
+#include "../headers/acdef.hpp"
 #include "../headers/lexer.hpp"
 #include "../headers/parser.hpp"
 #include "../headers/validation.hpp"
@@ -1411,7 +1412,9 @@ string parser(const string &action, const string &text,
 		}
 	}
 
-	// if action == "make": return acdef(BRANCHES, CCHAINS, FLAGS, SETTINGS, S)
+	if (action == "make") {
+		acdef(BRANCHES, CCHAINS, FLAGS, SETTINGS, S, LexerData, cmdname);
+	}
 	// else: return formatter(tokens, text, BRANCHES, CCHAINS, FLAGS, SETTINGS, S)
 
 	return "";

@@ -10,6 +10,7 @@
 #include <chrono>
 #include <cstdint>
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 
@@ -29,6 +30,105 @@ string tkstr2(LexerResponse &LexerData, const string &text, const int tid) {
 	return text.substr(start, end - start + 1);
 }
 
+// [https://stackoverflow.com/a/2072890]
+inline bool endswith2(string const &value, string const &ending) {
+	if (ending.size() > value.size()) return false;
+	return equal(ending.rbegin(), ending.rend(), value.rbegin());
+}
+
+struct Cobj {
+    int i, m;
+    string val, orig;
+    bool single;
+};
+
+Cobj aobj(string s) {
+	// [https://stackoverflow.com/a/3403868]
+	transform(s.begin(), s.end(), s.begin(), ::tolower);
+    Cobj o;
+    o.val = s;
+    return o;
+}
+
+bool asort(const Cobj &a, const Cobj &b) {
+	int result = 0;
+
+    if (a.val != b.val) {
+        if (a.val < b.val) result = -1;
+        else result = 1;
+    } else { result = 0; }
+
+    if (result == 0 && a.single and b.single) {
+        if (a.orig < b.orig) result = 1;
+        else result = 0;
+    }
+
+    return result;
+}
+
+// compare function: Gives precedence to flags ending with '=*' else
+//     falls back to sorting alphabetically.
+//
+// @param  {string} a - Item a.
+// @param  {string} b - Item b.
+// @return {number} - Sort result.
+//
+// Give multi-flags higher sorting precedence:
+// @resource [https://stackoverflow.com/a/9604891]
+// @resource [https://stackoverflow.com/a/24292023]
+// @resource [http://www.javascripttutorial.net/javascript-array-sort/]
+// let sort = (a, b) => ~~b.endsWith("=*") - ~~a.endsWith("=*") || asort(a, b)
+bool fsort(const Cobj &a, const Cobj &b) {
+    int result = b.m - a.m;
+    if (result == 0) result = asort(a, b);
+    return result;
+}
+
+const char C_HYPHEN = '-';
+
+Cobj fobj(string s) {
+    Cobj o;
+    o.orig = s;
+    o.val = s;
+	transform(o.val.begin(), o.val.end(), o.val.begin(), ::tolower);
+    o.m = endswith2(s, "=*");
+    if (s[1] != C_HYPHEN) {
+        o.orig = s;
+        o.single = true;
+    }
+    return o;
+}
+
+// Uses map sorting to reduce redundant preprocessing on array items.
+//
+// @param  {array} A - The source array.
+// @param  {function} comp - The comparator function to use.
+// @return {array} - The resulted sorted array.
+//
+// @resource [https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort]
+vector<string> mapsort(vector<string> &A,
+		bool (*comp)(const Cobj &a, const Cobj &b),
+		const string &cobj_type) {
+
+	vector<Cobj> T; // Temp array.
+	vector<string> R; // Result array.
+	R.reserve(A.size());
+	Cobj obj;
+	int i = 0;
+	for (auto const &a : A) {
+		if (cobj_type == "aobj") obj = aobj(a);
+		else obj = fobj(a);
+		obj.i = i;
+		T.push_back(obj);
+		i++;
+	}
+	sort(T.begin(), T.end(), comp);
+	i = 0;
+	for (auto const &item : T) {
+		R[i] = A[T[i].i];
+	}
+	return R;
+}
 
 void acdef(vector<vector<Token>> &branches,
 		vector<vector<vector<int>>> &cchains,
@@ -94,64 +194,6 @@ void acdef(vector<vector<Token>> &branches,
     string header = "# DON'T EDIT FILE —— GENERATED: " + ctime + "\n\n";
     cout << header << endl;
     // if S["args"]["test"]: header = ""
-
-    // def aobj(s):
-    //     return { "val": s.lower() }
-
-    // def asort(a, b):
-    //     if a["val"] != b["val"]:
-    //         if a["val"] < b["val"]: result = -1
-    //         else: result = 1
-    //     else: result = 0
-
-    //     if result == 0 and a.get("single", False) and b.get("single", False):
-    //         if a["orig"] < b["orig"]: result = 1
-    //         else: result = 0
-    //     return result
-
-    // // compare function: Gives precedence to flags ending with '=*' else
-    // //     falls back to sorting alphabetically.
-    // #
-    // // @param  {string} a - Item a.
-    // // @param  {string} b - Item b.
-    // // @return {number} - Sort result.
-    // #
-    // // Give multi-flags higher sorting precedence:
-    // // @resource [https://stackoverflow.com/a/9604891]
-    // // @resource [https://stackoverflow.com/a/24292023]
-    // // @resource [http://www.javascripttutorial.net/javascript-array-sort/]
-    // // let sort = (a, b) => ~~b.endsWith("=*") - ~~a.endsWith("=*") || asort(a, b)
-    // def fsort(a, b):
-    //     result = b["m"] - a["m"]
-    //     if result == 0: result = asort(a, b)
-    //     return result
-
-    // def fobj(s):
-    //     o = { "val": s.lower(), "m": int(s.endswith("=*")) }
-    //     if s[1] != '-':
-    //         o["orig"] = s
-    //         o["single"] = True
-    //     return o
-
-    // // Uses map sorting to reduce redundant preprocessing on array items.
-    // #
-    // // @param  {array} A - The source array.
-    // // @param  {function} comp - The comparator function to use.
-    // // @return {array} - The resulted sorted array.
-    // #
-    // // @resource [https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort]
-    // def mapsort(A, comp, comp_obj):
-    //     T = [] // Temp array.
-    //     // [https://stackoverflow.com/a/10712044]
-    //     R = [None] * len(A) // Result array.
-    //     for i, a in enumerate(A):
-    //         obj = comp_obj(a)
-    //         obj["i"] = i
-    //         T.append(obj)
-    //     // [https://stackoverflow.com/a/46320068]
-    //     T.sort(key=functools.cmp_to_key(comp))
-    //     for i in range(len(T)): R[i] = A[T[i]["i"]]
-    //     return R
 
     // // Removes first command in command chain. However, when command name
     // // is not the main command in (i.e. in a test file) just remove the

@@ -1,8 +1,11 @@
 #include "../headers/structs.hpp"
+#include "../headers/str.hpp"
 
+#include <tuple>
 #include <string>
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <set>
 #include <regex>
 #include <iostream>
@@ -12,7 +15,40 @@
 #include <iostream>
 #include <algorithm>
 
+#include <ordered_map.h> // [https://github.com/Tessil/ordered-map]
+#include "../libs/md5.h" // [http://www.zedwood.com/article/cpp-md5-function]
+
 using namespace std;
+
+vector<int> ubids2; // = S.ubids;
+string text2; // = S.text;
+vector<Token> tokens2; // = LexerData.tokens;
+vector<string> excludes2; // = S.excludes;
+
+map<string, map<string, int>> oSets;
+// [https://stackoverflow.com/a/44700641]
+map<string, tsl::ordered_map<string, int>> oDefaults;
+map<string, tsl::ordered_map<string, int>> oFiledirs;
+map<string, tsl::ordered_map<string, int>> oContexts;
+
+vector<map<string, tsl::ordered_map<string, int>>> oKeywords {oDefaults, oFiledirs, oContexts};
+
+vector<Flag> ubflags;
+
+tsl::ordered_map<string, string> oSettings;
+int settings_count = 0;
+vector<string> oTests;
+map<string, string> oPlaceholders;
+map<string, string> omd5Hashes;
+string acdef_ = "";
+vector<string> acdef_lines;
+string config = "";
+string defaults = "";
+string filedirs = "";
+string contexts = "";
+bool has_root = false;
+
+regex rrr;
 
 // [https://stackoverflow.com/a/56107709]
 uint64_t timeSinceEpochMillisec() {
@@ -36,34 +72,52 @@ inline bool endswith2(string const &value, string const &ending) {
 	return equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 
+const string HYPHEN_STR = "-";
+string& ltrim2(string &str)  {
+	str.erase(0, str.find_first_not_of(HYPHEN_STR));
+	return str;
+}
+
 struct Cobj {
-    int i, m;
-    string val, orig;
-    bool single;
+	int i, m;
+	string val, orig;
+	bool single = 0;
 };
 
 Cobj aobj(string s) {
 	// [https://stackoverflow.com/a/3403868]
 	transform(s.begin(), s.end(), s.begin(), ::tolower);
-    Cobj o;
-    o.val = s;
-    return o;
+	Cobj o;
+	o.val = s;
+	return o;
+}
+
+const char C_HYPHEN = '-';
+
+Cobj fobj(string s) {
+	Cobj o;
+	o.orig = s;
+	o.val = s;
+	transform(o.val.begin(), o.val.end(), o.val.begin(), ::tolower);
+	o.m = endswith2(s, "=*");
+	if (s[1] != C_HYPHEN) {
+		o.orig = s;
+		o.single = true;
+	}
+
+	return o;
 }
 
 bool asort(const Cobj &a, const Cobj &b) {
-	int result = 0;
+	// Resort to string length.
+	bool result = b.val > a.val;
 
-    if (a.val != b.val) {
-        if (a.val < b.val) result = -1;
-        else result = 1;
-    } else { result = 0; }
+	// Finally, resort to singleton.
+	if (!result && a.single && b.single) {
+		result = a.orig < b.orig;
+	}
 
-    if (result == 0 && a.single and b.single) {
-        if (a.orig < b.orig) result = 1;
-        else result = 0;
-    }
-
-    return result;
+	return result;
 }
 
 // compare function: Gives precedence to flags ending with '=*' else
@@ -79,24 +133,19 @@ bool asort(const Cobj &a, const Cobj &b) {
 // @resource [http://www.javascripttutorial.net/javascript-array-sort/]
 // let sort = (a, b) => ~~b.endsWith("=*") - ~~a.endsWith("=*") || asort(a, b)
 bool fsort(const Cobj &a, const Cobj &b) {
-    int result = b.m - a.m;
-    if (result == 0) result = asort(a, b);
-    return result;
-}
+	// [https://stackoverflow.com/a/16894796]
+	// [https://www.cplusplus.com/articles/NhA0RXSz/]
+	// [https://stackoverflow.com/a/6771418]
+	bool result = false;
 
-const char C_HYPHEN = '-';
+	// Give multi-flags precedence.
+	if (a.m || b.m) {
+		result = b.m < a.m;
+	} else {
+		result = asort(a, b);
+	}
 
-Cobj fobj(string s) {
-    Cobj o;
-    o.orig = s;
-    o.val = s;
-	transform(o.val.begin(), o.val.end(), o.val.begin(), ::tolower);
-    o.m = endswith2(s, "=*");
-    if (s[1] != C_HYPHEN) {
-        o.orig = s;
-        o.single = true;
-    }
-    return o;
+	return result;
 }
 
 // Uses map sorting to reduce redundant preprocessing on array items.
@@ -106,76 +155,331 @@ Cobj fobj(string s) {
 // @return {array} - The resulted sorted array.
 //
 // @resource [https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort]
+// [https://www.codingame.com/playgrounds/15869/c-runnable-snippets/passing-a-function-as-parameter]
 vector<string> mapsort(vector<string> &A,
 		bool (*comp)(const Cobj &a, const Cobj &b),
-		const string &cobj_type) {
+		Cobj (*comp_obj)(string s)) {
 
 	vector<Cobj> T; // Temp array.
-	vector<string> R; // Result array.
-	R.reserve(A.size());
+	// [https://stackoverflow.com/a/31009108]
+	vector<string> R(A.size()); // Result array.
+
+	// Short-circuit when source array is empty.
+	if (A.empty()) return R;
+
 	Cobj obj;
 	int i = 0;
 	for (auto const &a : A) {
-		if (cobj_type == "aobj") obj = aobj(a);
-		else obj = fobj(a);
+		obj = comp_obj(a);
 		obj.i = i;
 		T.push_back(obj);
 		i++;
 	}
+	// [https://stackoverflow.com/a/873725]
+	// [https://stackoverflow.com/a/1380496]
 	sort(T.begin(), T.end(), comp);
+
 	i = 0;
 	for (auto const &item : T) {
 		R[i] = A[T[i].i];
+		i++;
 	}
 	return R;
 }
 
-void acdef(vector<vector<Token>> &branches,
+// Removes first command in command chain. However, when command name
+// is not the main command in (i.e. in a test file) just remove the
+// first command name in the chain.
+//
+// @param  {string} command - The command chain.
+// @return {string} - Modified chain.
+string rm_fcmd(string chain, const regex r) {
+	return regex_replace(chain, r, "");
+}
+
+// [https://stackoverflow.com/a/28097056]
+// [https://stackoverflow.com/a/43823704]
+// [https://stackoverflow.com/a/1701083]
+template <typename T, typename V>
+bool contains(T const &container, V const &value) {
+	auto it = find(container.begin(), container.end(), value);
+	return (it != container.end());
+}
+
+template <typename T, typename V>
+bool hasKey(T const &map, V const &value) {
+	// [https://stackoverflow.com/a/3136545]
+	auto it = map.find(value);
+	return (it != map.end());
+}
+
+// [https://stackoverflow.com/a/10632266]
+string joinv(vector<string> &v, const string &delimiter) {
+	string buffer = "";
+	int size = v.size();
+	for (int i = 0; i < size; i++) {
+		buffer += v[i];
+		// [https://stackoverflow.com/a/611352]
+		if (i + 1 < size) buffer += delimiter;
+	}
+	return buffer;
+}
+
+string get_cmdstr(int start, int stop, LexerResponse &LexerData, const string &text) {
+	vector<string> output;
+	const set<string> allowed_tk_types {"tkSTR", "tkDLS"};
+	for (int tid = start; tid < stop; tid++) {
+		if (contains(allowed_tk_types, LexerData.tokens[tid].kind)) {
+			if (!output.empty() && output.back() == "$") {
+				output.back() = "$" + tkstr2(LexerData, text, tid);
+			} else {
+				output.push_back(tkstr2(LexerData, text, tid));
+			}
+		}
+	}
+	return "$(" + joinv(output, ",") + ")";
+}
+
+string strreplace(string s, string sub, string replacement) {
+	// [https://stackoverflow.com/a/2340309]
+	// [https://www.cplusplus.com/reference/string/string/replace/]
+	int index = s.find(sub);
+	if (index != std::string::npos) {
+		s.replace(index, sub.length(), replacement);
+	}
+	return s;
+}
+
+void processflags(int gid,
+	const string &chain,
+	const vector<Flag> &flags,
+	map<string, int> &queue_flags,
+	LexerResponse &LexerData,
+	const string &text,
+	bool recunion=false,
+	bool recalias=false
+	) {
+
+	vector<Flag> unions;
+	for (auto const &flg : flags) {
+		int tid = flg.tid;
+		string assignment = tkstr2(LexerData, text, flg.assignment);
+		string boolean = tkstr2(LexerData, text, flg.boolean);
+		string alias = tkstr2(LexerData, text, flg.alias);
+		string flag = tkstr2(LexerData, text, tid);
+		string ismulti = tkstr2(LexerData, text, flg.multi);
+		bool union_ = flg.union_ != -1;
+		vector<vector<int>> values = flg.values;
+
+		string kind = LexerData.tokens[tid].kind;
+
+		if (!alias.empty() && !recalias) {
+			vector<Flag> list {flg};
+			processflags(gid, chain, list, queue_flags,
+				LexerData, text,
+				/*recunion=*/false, /*recalias=*/true);
+		}
+
+		// Skip union logic on recursion.
+		if (!recalias && kind != "tkKYW" && !recunion) {
+			if (union_) {
+				unions.push_back(flg);
+				continue;
+			} else if (!unions.empty()) {
+				for (auto &uflg : unions) {
+					uflg.values = values;
+					vector<Flag> list {uflg};
+					processflags(gid, chain, list, queue_flags,
+						LexerData, text,
+						/*recunion=*/true, /*recalias=*/false);
+				}
+				unions.clear();
+			}
+		}
+
+		if (recalias) {
+			oContexts[chain]["{" + ltrim2(flag) + "|" + alias + "}"] = 1;
+			flag = "-" + alias;
+		}
+
+		if (kind == "tkKYW") {
+			if (!values.empty() && flag != "exclude") {
+				string value = "";
+				if (values[0].size() == 1) {
+					value = regex_replace(tkstr2(LexerData, text, values[0][0]), regex("\\s"), "");
+					if (flag == "context") value = value.substr(1, value.length() - 1);
+				} else {
+					value = get_cmdstr(values[0][1] + 1, values[0][2], LexerData, text);
+				}
+
+				if      (flag == "default") oDefaults[chain][value] = 1;
+				else if (flag == "context") oContexts[chain][value] = 1;
+				else if (flag == "filedir") oFiledirs[chain][value] = 1;
+			}
+
+			continue;
+		}
+
+		// Flag with values: build each flag + value.
+		if (!values.empty()) {
+			// Baseflag: add multi-flag indicator?
+			// Add base flag to Set (adds '--flag=' or '--flag=*').
+			queue_flags[flag + "=" + (!ismulti.empty() ? "*" : "") ] = 1;
+			string mflag = flag + "=" + (!ismulti.empty() ? "" : "*");
+			if (hasKey(queue_flags, mflag)) queue_flags.erase(mflag);
+
+			for (auto &value : values) {
+				if (value.size() == 1) { // Single
+					queue_flags[flag + assignment + tkstr2(LexerData, text, value[0])] = 1;
+
+				} else { // Command-string
+					string cmdstr = get_cmdstr(value[1] + 1, value[2], LexerData, text);
+					queue_flags[flag + assignment + cmdstr] = 1;
+				}
+			}
+
+		} else {
+			if (ismulti.empty()) {
+				if (!boolean.empty()) queue_flags[flag + "?"] = 1;
+				else if (!assignment.empty()) queue_flags[flag + "="] = 1;
+				else queue_flags[flag] = 1;
+			} else {
+				queue_flags[flag + "=*"] = 1;
+				queue_flags[flag + "="] = 1;
+			}
+		}
+	}
+}
+
+void populate_keywords(const string &chain) {
+	for (auto &kdict : oKeywords) {
+		tsl::ordered_map<string, int> orderedmap;
+		if (!hasKey(kdict, chain)) kdict[chain] = orderedmap;
+	}
+}
+
+void populate_chain_flags(int gid, const string &chain, map<string, int> &container, LexerResponse &LexerData, const string &text) {
+	// if (!contains(excludes, chain)) {
+	if (true) {
+		processflags(gid, chain, ubflags, container,
+			LexerData, text,
+			/*recunion=*/false, /*recalias=*/false);
+	}
+
+	if (!hasKey(oSets, chain)) {
+		oSets[chain] = container;
+	} else {
+		// [https://stackoverflow.com/a/22220891]
+		for(auto &it : oSets[chain]) {
+			container[it.first] = it.second;
+		}
+	}
+}
+
+string build_kwstr(const string &kwtype,
+		map<string, tsl::ordered_map<string, int>> &container) {
+
+	vector<string> output;
+
+	vector<string> chains;
+	for (auto const &it : container) {
+		if (it.second.size()) {
+			chains.push_back(it.first);
+		}
+	}
+	// chains = mapsort(chains, asort, aobj);
+
+	int cl = chains.size() - 1;
+	int i = 0;
+	for (auto const &chain : chains) {
+		vector<string> values;
+		for (auto const &it : container) {
+			values.push_back(it.first);
+		}
+
+		string value = (kwtype != "context" ? values.back() :
+			"\"" + joinv(values, ";") + "\"");
+		output.push_back(rm_fcmd(chain, rrr) + " " + kwtype + " " + value);
+		if (i < cl) output.push_back("\n");
+		i++;
+	}
+
+	return (!output.empty() ? "\n\n" + joinv(output, "") : "");
+}
+
+vector<string> make_chains(vector<int> &ccids,
+	LexerResponse &LexerData, const string &text) {
+	vector<string> slots;
+	vector<string> chains;
+	vector<vector<string>> groups;
+	bool grouping = false;
+
+	for (auto const &cid : ccids) {
+		if (cid == -1) grouping = !grouping;
+
+		if (!grouping && cid != -1) {
+			slots.push_back(tkstr2(LexerData, text, cid));
+		} else if (grouping) {
+			if (cid == -1) {
+				slots.push_back("?");
+				vector<string> list;
+				groups.push_back(list);
+			} else {
+				groups.back().push_back(tkstr2(LexerData, text, cid));
+			}
+		}
+	}
+
+	string tstr = joinv(slots, ".");
+
+	for (auto const &group : groups) {
+		if (chains.empty()) {
+			for (auto const &command : group) {
+				chains.push_back(strreplace(tstr, "?", command));
+			}
+		} else {
+			vector<string> tmp_cmds;
+			for (auto const &chain : chains) {
+				for (auto const &command : group) {
+					tmp_cmds.push_back(strreplace(chain, "?", command));
+				}
+			}
+			chains = tmp_cmds;
+		}
+	}
+
+	if (groups.empty()) chains.push_back(tstr);
+
+	return chains;
+}
+
+tuple <string, string, string, string, string, string, map<string, string>, string>
+	acdef(vector<vector<Token>> &branches,
 		vector<vector<vector<int>>> &cchains,
 		map<int, vector<Flag>> &flags,
 		vector<vector<int>> &settings,
 		StateParse &S,
 		LexerResponse &LexerData,
-		string const &cmdname
+		string const &cmdname,
+		string const &text
 	) {
 
-    vector<int> &ubids = S.ubids;
-    string &text = S.text;
-    vector<Token> &tokens = LexerData.tokens;
-    vector<string> &excludes = S.excludes;
+	vector<int> &ubids = S.ubids;
+	// string &text = S.text;
+	vector<Token> &tokens = LexerData.tokens;
+	vector<string> &excludes = S.excludes;
 
-    map<string, map<string, int>> oSets;
-    map<string, set<string>> oDefaults;
-    map<string, set<string>> oFiledirs;
-    map<string, set<string>> oContexts;
-
-    map<string, string> oSettings;
-    int settings_count = 0;
-    vector<string> oTests;
-    map<string, string> oPlaceholders;
-    map<string, string> omd5Hashes;
-    string acdef = "";
-    vector<string> acdef_lines;
-    string config = "";
-    string defaults = "";
-    string filedirs = "";
-    string contexts = "";
-    bool has_root = false;
-
-    // __locals__ = locals()
-
-    // Collect all universal block flags.
-	vector<Flag> ubflags;
+	// Collect all universal block flags.
+	// vector<Flag> ubflags;
 	for (auto const &ubid : ubids) {
 		for (auto const &flag : flags[ubid]) {
 			ubflags.push_back(flag);
 		}
 	}
-    vector<map<string, set<string>>> oKeywords {oDefaults, oFiledirs, oContexts};
 
 	// Escape '+' chars in commands.
 	string rcmdname = regex_replace(cmdname, regex("\\+"), "\\+");
-	regex r("^(" + rcmdname + "|[-_a-zA-Z0-9]+)");
+	rrr = regex("^(" + rcmdname + "|[-_a-zA-Z0-9]+)");
 
 	time_t curr_time;
 	tm *curr_tm;
@@ -186,247 +490,125 @@ void acdef(vector<vector<Token>> &branches,
 	// [https://www.geeksforgeeks.org/strftime-function-in-c/]
 	strftime(datestring, 50, "%a %b %-d %Y %H:%M:%S", curr_tm);
 	uint64_t timestamp = timeSinceEpochMillisec();
-    // [https://stackoverflow.com/a/2242779]
-    // [https://stackoverflow.com/a/26781537]
-    // [https://stackoverflow.com/a/5591169]
-    // [https://stackoverflow.com/a/24128004]
-    string ctime = string(datestring) + " (" + to_string(timestamp) + ")";
-    string header = "# DON'T EDIT FILE —— GENERATED: " + ctime + "\n\n";
-    cout << header << endl;
-    // if S["args"]["test"]: header = ""
+	// [https://stackoverflow.com/a/2242779]
+	// [https://stackoverflow.com/a/26781537]
+	// [https://stackoverflow.com/a/5591169]
+	// [https://stackoverflow.com/a/24128004]
+	string ctime = string(datestring) + " (" + to_string(timestamp) + ")";
+	string header = "# DON'T EDIT FILE —— GENERATED: " + ctime + "\n\n";
+	if (S.args.test) header = "";
 
-    // // Removes first command in command chain. However, when command name
-    // // is not the main command in (i.e. in a test file) just remove the
-    // // first command name in the chain.
-    // #
-    // // @param  {string} command - The command chain.
-    // // @return {string} - Modified chain.
-    // def rm_fcmd(chain):
-    //     return re.sub(r, "", chain)
+    // Start building acmap contents. -------------------------------------------
 
-    // def get_cmdstr(start, stop):
-    //     output = []
-    //     allowed_tk_types = ("tkSTR", "tkDLS")
-    //     for tid in range(start, stop):
-    //         if S["tokens"][tid]["kind"] in allowed_tk_types:
-    //             if output and output[-1] == "$": output[-1] = "$" + tkstr(tid)
-    //             else: output.append(tkstr(tid))
+	int i = 0;
+	for (auto &group : cchains) {
+		for (auto &ccids : group) {
+        	for (auto const &chain : make_chains(ccids, LexerData, text)) {
+                if (chain == "*") continue;
 
-    //     return "$({})".format(",".join(output))
+                map<string, int> container;
+                populate_keywords(chain);
 
-    // def processflags(gid, chain, flags, queue_flags, recunion=False, recalias=False):
-    //     unions = []
-    //     for flg in flags:
-    //         tid = flg["tid"]
-    //         assignment = tkstr(flg["assignment"])
-    //         boolean = tkstr(flg["boolean"])
-    //         alias = tkstr(flg["alias"])
-    //         flag = tkstr(tid)
-    //         ismulti = tkstr(flg["multi"])
-    //         union = flg["union"] != -1
-    //         values = flg["values"]
-    //         kind = tokens[tid]["kind"]
+				vector<Flag> list;
+				if (hasKey(flags, i)) list = flags[i];
+				processflags(i, chain, list, container,
+					LexerData, text,
+					/*recunion=*/false, /*recalias=*/false);
 
-    //         if alias and not recalias:
-    //             processflags(gid, chain, [flg], queue_flags, recalias=True)
+                populate_chain_flags(i, chain, container, LexerData, text);
 
-    //         // Skip union logic on recursion.
-    //         if not recalias and kind != "tkKYW" and not recunion:
-    //             if union:
-    //                 unions.append(flg)
-    //                 continue
-    //             elif unions:
-    //                 for uflg in unions:
-    //                     uflg["values"] = values
-    //                     processflags(gid, chain, [uflg], queue_flags, recunion=True)
-    //                 unions.clear()
+                // Create missing parent chains.
+                // commands = re.split(r'(?<!\\)\.', chain);
+                vector<string> commands;
+                split(commands, chain, ".");
 
-    //         if recalias:
-    //             oContexts[chain][f"{{{flag.strip('-')}|{alias}}}"] = 1
-    //             flag = "-" + alias
+                commands.pop_back(); // Remove last command (already made).
+                for (int l = commands.size() - 1; l > -1; l--) {
+                    string rchain = joinv(commands, "."); // Remainder chain.
 
-    //         if kind == "tkKYW":
-    //             if values and flag != "exclude":
-    //                 if len(values[0]) == 1:
-    //                     value = re.sub(r"\s", "", tkstr(values[0][0]))
-    //                     if flag == "context": value = value[1:-1]
-    //                 else:
-    //                     value = get_cmdstr(values[0][1] + 1, values[0][2])
+                    populate_keywords(rchain);
+                    if (!hasKey(oSets, rchain)) {
+		                map<string, int> container;
+                        populate_chain_flags(i, rchain, container, LexerData, text);
+                    }
 
-    //                 __locals__[f"o{flag.capitalize()}s"][chain][value] = 1
+                    commands.pop_back(); // Remove last command.
+				}
+			}
+		}
+		i++;
+	}
 
-    //             continue
+    string defaults = build_kwstr("default", oDefaults);
+    string filedirs = build_kwstr("filedir", oFiledirs);
+    string contexts = build_kwstr("context", oContexts);
 
-    //         // Flag with values: build each flag + value.
-    //         if values:
-    //             // Baseflag: add multi-flag indicator?
-    //             // Add base flag to Set (adds '--flag=' or '--flag=*').
-    //             queue_flags[f"{flag}={'*' if ismulti else ''}"] = 1
-    //             mflag = f"{flag}={'' if ismulti else '*'}"
-    //             if mflag in queue_flags: del queue_flags[mflag]
+    // Populate settings object.
+	for (auto const &setting : settings) {
+        string name = tkstr2(LexerData, text, setting[0]).substr(1);
+        if (name == "test") oTests.push_back(regex_replace(tkstr2(LexerData, text, setting[2]), regex(";\\s+"), ";"));
+        else (setting.size() > 1) ? oSettings[name] = tkstr2(LexerData, text, setting[2]) : "";
+	}
 
-    //             for value in values:
-    //                 if len(value) == 1: // Single
-    //                     queue_flags[flag + assignment + tkstr(value[0])] = 1
+    // Build settings contents.
+    int settings_count = oSettings.size();
+    settings_count--;
+    for (auto const &it : oSettings) {
+        config += "@" + it.first + " = " + it.second;
+        if (settings_count) config += "\n";
+        settings_count--;
+	}
 
-    //                 else: // Command-string
-    //                     cmdstr = get_cmdstr(value[1] + 1, value[2])
-    //                     queue_flags[flag + assignment + cmdstr] = 1
+    bool placehold = (hasKey(oSettings, "placehold") && oSettings["placehold"] == "true");
+    for (auto const &it : oSets) {
+    	// [https://stackoverflow.com/a/9693232]
+    	vector<string> keys;
+    	for (auto const &itt : it.second) {
+			keys.push_back(itt.first);
+    	}
+    	keys = mapsort(keys, fsort, fobj);
+        string flags = joinv(keys, "|");
+        if (flags.empty()) flags = "--";
 
-    //         else:
-    //             if not ismulti:
-    //                 if boolean: queue_flags[flag + "?"] = 1
-    //                 elif assignment: queue_flags[flag + "="] = 1
-    //                 else: queue_flags[flag] = 1
-    //             else:
-    //                 queue_flags[flag + "=*"] = 1
-    //                 queue_flags[flag + "="] = 1
+        // Note: Placehold long flag sets to reduce the file's chars.
+        // When flag set is needed its placeholder file can be read.
+        if (placehold && flags.length() >= 100) {
+            if (!hasKey(omd5Hashes, flags)) {
+            	// [http://www.zedwood.com/article/cpp-md5-function]
+            	// [https://ofstack.com/C++/20865/c-and-c++-md5-algorithm-implementation-code.html]
+                string md5hash = md5(flags).substr(26);
+                oPlaceholders[md5hash] = flags;
+                omd5Hashes[flags] = md5hash;
+                flags = "--p#" + md5hash;
+            } else { flags = "--p#" + omd5Hashes[flags]; }
+		}
 
-    // def populate_keywords(chain):
-    //     for kdict in oKeywords:
-    //         if chain not in kdict: kdict[chain] = OrderedDict()
+        string row = rm_fcmd(it.first, rrr) + " " + flags;
 
-    // def populate_chain_flags(gid, chain, container):
-    //     if chain not in excludes:
-    //         processflags(gid, chain, ubflags, container)
+        // Remove multiple ' --' command chains. Shouldn't be the
+        // case but happens when multiple main commands are used.
+        if (row == " --" && !has_root) has_root = true;
+        else if (row == " --" && has_root) continue;
 
-    //     if chain not in oSets:
-    //         oSets[chain] = container
-    //     else:
-    //         oSets[chain].update(container)
+        acdef_lines.push_back(row);
+	}
 
-    // def build_kwstr(kwtype, container):
-    //     output = []
-    //     chains = mapsort([c for c in container if container[c]], asort, aobj)
-    //     cl = len(chains) - 1
-    //     tstr = "{} {} {}"
-    //     for i, chain in enumerate(chains):
-    //         values = list(container[chain])
-    //         value = (values[-1] if kwtype != "context"
-    //             else "\"" + ";".join(values) + "\"")
-    //         output.append(tstr.format(rm_fcmd(chain), kwtype, value))
-    //         if i < cl: output.append("\n")
+    // If contents exist, add newline after header.
+    string sheader = regex_replace(header, regex("\n$"), "");
+    // acdef_lines = mapsort(acdef_lines, asort, aobj);
+    string acdef_contents = joinv(acdef_lines, "\n");
+    acdef_ = (!acdef_contents.empty()) ? header + acdef_contents : sheader;
+    config = (!config.empty()) ? header + config : sheader;
 
-    //     return "\n\n" + "".join(output) if output else ""
+    string tests = "";
+    if (!oTests.empty()) {
+	    tests = "#!/bin/bash\n\n" + header + "tests=(\n" + joinv(oTests, "\n") + "\n)";
+    }
 
-    // def make_chains(ccids):
-    //     slots = []
-    //     chains = []
-    //     groups = []
-    //     grouping = False
+	string formatted = "";
 
-    //     for cid in ccids:
-    //         if cid == -1: grouping = not grouping
+	tuple <string, string, string, string, string, string, map<string, string>, string> data;
+	data = make_tuple(acdef_, config, defaults, filedirs, contexts, formatted, oPlaceholders, tests);
 
-    //         if not grouping and cid != -1:
-    //             slots.append(tkstr(cid))
-    //         elif grouping:
-    //             if cid == -1:
-    //                 slots.append('?')
-    //                 groups.append([])
-    //             else: groups[-1].append(tkstr(cid))
-
-    //     tstr = ".".join(slots)
-
-    //     for group in groups:
-    //         if not chains:
-    //             for command in group:
-    //                 chains.append(tstr.replace('?', command, 1))
-    //         else:
-    //             tmp_cmds = []
-    //             for chain in chains:
-    //                 for command in group:
-    //                     tmp_cmds.append(chain.replace('?', command))
-    //             chains = tmp_cmds
-
-    //     if not groups: chains.append(tstr)
-
-    //     return chains
-
-    // // Start building acmap contents. -------------------------------------------
-
-    // for i, group in enumerate(cchains):
-    //     for ccids in group:
-    //         for chain in make_chains(ccids):
-    //             if chain == "*": continue
-
-    //             container = {}
-    //             populate_keywords(chain)
-    //             processflags(i, chain, flags.get(i, []), container)
-    //             populate_chain_flags(i, chain, container)
-
-    //             // Create missing parent chains.
-    //             commands = re.split(r'(?<!\\)\.', chain)
-    //             commands.pop() // Remove last command (already made).
-    //             for _ in range(len(commands) - 1, -1, -1):
-    //                 rchain = ".".join(commands) // Remainder chain.
-
-    //                 populate_keywords(rchain)
-    //                 if rchain not in oSets:
-    //                     populate_chain_flags(i, rchain, {})
-
-    //                 commands.pop() // Remove last command.
-
-    // defaults = build_kwstr("default", oDefaults)
-    // filedirs = build_kwstr("filedir", oFiledirs)
-    // contexts = build_kwstr("context", oContexts)
-
-    // // Populate settings object.
-    // for setting in settings:
-    //     name = tkstr(setting[0])[1:]
-    //     if name == "test": oTests.append(re.sub(r";\s+", ";", tkstr(setting[2])))
-    //     else: oSettings[name] = tkstr(setting[2]) if len(setting) > 1 else ""
-
-    // // Build settings contents.
-    // settings_count = len(oSettings)
-    // settings_count -= 1
-    // for setting in oSettings:
-    //     config += f"@{setting} = {oSettings[setting]}"
-    //     if settings_count: config += "\n"
-    //     settings_count -= 1
-
-    // placehold = "placehold" in oSettings and oSettings["placehold"] == "true"
-    // for key in oSets:
-    //     flags = "|".join(mapsort(list(oSets[key].keys()), fsort, fobj))
-    //     if not flags: flags = "--"
-
-    //     // Note: Placehold long flag sets to reduce the file's chars.
-    //     // When flag set is needed its placeholder file can be read.
-    //     if placehold and len(flags) >= 100:
-    //         if flags not in omd5Hashes:
-    //             // [https://stackoverflow.com/a/65613163]
-    //             md5hash = hashlib.md5(flags.encode()).hexdigest()[26:]
-    //             oPlaceholders[md5hash] = flags
-    //             omd5Hashes[flags] = md5hash
-    //             flags = "--p#" + md5hash
-    //         else: flags = "--p#" + omd5Hashes[flags]
-
-    //     row = f"{rm_fcmd(key)} {flags}"
-
-    //     // Remove multiple ' --' command chains. Shouldn't be the
-    //     // case but happens when multiple main commands are used.
-    //     if row == " --" and not has_root: has_root = True
-    //     elif row == " --" and has_root: continue
-
-    //     acdef_lines.append(row)
-
-    // // If contents exist, add newline after header.
-    // sheader = re.sub(r"\n$", "", header)
-    // acdef_contents = "\n".join(mapsort(acdef_lines, asort, aobj))
-    // acdef = header + acdef_contents if acdef_contents else sheader
-    // config = header + config if config else sheader
-
-    // tests_tstr = "#!/bin/bash\n\n{}tests=(\n{}\n)"
-    // tests = tests_tstr.format(header, "\n".join(oTests)) if oTests else ""
-
-    // return (
-    //     acdef,
-    //     config,
-    //     defaults,
-    //     filedirs,
-    //     contexts,
-    //     "", // formatted
-    //     oPlaceholders,
-    //     tests
-    // )
+	return data;
 }

@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
 			("print", "",  cxxopts::value<bool>()->default_value("false"))
 			("trace", "",  cxxopts::value<bool>()->default_value("false"))
 			("action", "", cxxopts::value<string>())
-			("indent", "", cxxopts::value<string>()->default_value("s:4"))
+			("indent", "", cxxopts::value<string>()->default_value("t:1"))
 			("source", "", cxxopts::value<string>()->default_value(""))
 			("positional", "", cxxopts::value<vector<string>>());
 	options.parse_positional({"action", "positional"});

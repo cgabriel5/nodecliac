@@ -1,3 +1,4 @@
+#include "../headers/templates.hpp"
 #include "../headers/structs.hpp"
 
 #include <tuple>
@@ -9,22 +10,6 @@
 #include <iostream>
 
 using namespace std;
-
-// [https://stackoverflow.com/a/28097056]
-// [https://stackoverflow.com/a/43823704]
-// [https://stackoverflow.com/a/1701083]
-template <typename T, typename V>
-bool contains3(T const &container, V const &value) {
-	auto it = find(container.begin(), container.end(), value);
-	return (it != container.end());
-}
-
-template <typename T, typename V>
-bool hasKey(T const &map, V const &value) {
-	// [https://stackoverflow.com/a/3136545]
-	auto it = map.find(value);
-	return (it != map.end());
-}
 
 string indent(const string &type_, const int &count,
 	const char &ichar, const int &iamount,
@@ -47,7 +32,7 @@ string tkstr3(LexerResponse &LexerData, const string &text, const int tid) {
 // int prevtoken(LexerResponse &LexerData, const int &tid, set<string> &skip={"tkNL"}) {
 int prevtoken(LexerResponse &LexerData, const int &tid, set<string> &skip) {
 	for (int ttid = tid - 1; ttid > -1; ttid--) {
-        if (!contains3(skip, LexerData.tokens[ttid].kind)) {
+        if (!contains(skip, LexerData.tokens[ttid].kind)) {
             return ttid;
         }
     }
@@ -131,13 +116,13 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 
             //// Settings / Variables
 
-            if (contains3(ft_tkTYPES_1, parentkind)) {
+            if (contains(ft_tkTYPES_1, parentkind)) {
                 if (kind == "tkTRM") continue;
 
                 if (tid != 0) {
                     Token& ptk = LexerData.tokens[prevtoken(LexerData, tid, ft_tkTYPES_0)];
                     int dline = line - ptk.line;
-                    if (contains3(ft_tkTYPES_2, kind)) {
+                    if (contains(ft_tkTYPES_2, kind)) {
                         if (ptk.kind == "tkCMT") {
                             cleaned.push_back("\n");
                             if (dline > 1) cleaned.push_back("\n");
@@ -179,7 +164,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
                 // a '$' precedes a string (""), i.e. a '$"command"'. Or
                 // when an eq-sign precedes a '$', i.e. '=$("cmd")',
                 if ((level || brc_lp_count == 1) &&
-                    contains3(ft_tkTYPES_3, kind)) {
+                    contains(ft_tkTYPES_3, kind)) {
                     Token& ptk = tokens[prevtoken(LexerData, tid, NO_NL_CMT)];
                     string pkind = ptk.kind;
 
@@ -236,7 +221,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
                     brc_lp_count += 1;
                     Token& ptk = tokens[prevtoken(LexerData, tid, ft_tkTYPES_0)];
                     string pkind = ptk.kind;
-                    if (!contains3(ft_tkTYPES_4, pkind)) {
+                    if (!contains(ft_tkTYPES_4, pkind)) {
                         int scope_offset = int(pkind == "tkCMT");
                         cleaned.push_back(indent(kind, level + scope_offset, ichar, iamount, MXP));
 					}

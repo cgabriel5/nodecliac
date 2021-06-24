@@ -1,3 +1,4 @@
+#include "../headers/templates.hpp"
 #include "../headers/structs.hpp"
 #include "../headers/str.hpp"
 
@@ -195,22 +196,6 @@ vector<string> mapsort(vector<string> &A,
 // @return {string} - Modified chain.
 string rm_fcmd(string chain, const regex r) {
 	return regex_replace(chain, r, "");
-}
-
-// [https://stackoverflow.com/a/28097056]
-// [https://stackoverflow.com/a/43823704]
-// [https://stackoverflow.com/a/1701083]
-template <typename T, typename V>
-bool contains(T const &container, V const &value) {
-	auto it = find(container.begin(), container.end(), value);
-	return (it != container.end());
-}
-
-template <typename T, typename V>
-bool hasKey(T const &map, V const &value) {
-	// [https://stackoverflow.com/a/3136545]
-	auto it = map.find(value);
-	return (it != map.end());
 }
 
 // [https://stackoverflow.com/a/10632266]

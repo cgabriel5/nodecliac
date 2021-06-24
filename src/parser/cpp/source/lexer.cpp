@@ -1,3 +1,4 @@
+#include "../headers/templates.hpp"
 #include "../headers/structs.hpp"
 
 #include <string>
@@ -10,22 +11,6 @@
 #include <iterator>
 
 using namespace std;
-
-// [https://stackoverflow.com/a/28097056]
-// [https://stackoverflow.com/a/43823704]
-// [https://www.techiedelight.com/find-index-element-array-cpp/]
-template <typename T, typename V>
-bool contains(T const &container, V const &value) {
-	auto it = find(container.begin(), container.end(), value);
-	return (it != container.end());
-}
-
-template <typename T, typename V>
-bool hasKey(T const &map, V const &value) {
-	// [https://stackoverflow.com/a/3136545]
-	auto it = map.find(value);
-	return (it != map.end());
-}
 
 const char C_NL = '\n';
 const char C_DOT = '.';

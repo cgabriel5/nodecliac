@@ -177,31 +177,31 @@ int main(int argc, char **argv) {
 		if (!formatting) {
 			if (!acdef.empty()) {
 				cout << "[" << termcolor::bold << cmdname + ".acdef"
-					<< termcolor::reset << "]" << endl;
-				cout << (acdef + keywords + filedirs + contexts);
-				if (config.empty()) { cout << endl; }
+					<< termcolor::reset << "]\n" << endl;
+				cout << (acdef + keywords + filedirs + contexts) << endl;
+				if (config.empty()) { cout << "" << endl; }
 			}
 			if (!config.empty()) {
 				cout << "\n[" << termcolor::bold
 					<<  "." + cmdname + ".config.acdef"
-					<< termcolor::reset << "]" << endl;
+					<< termcolor::reset << "]\n" << endl;
 				cout << config << endl;
 			}
-		} else { cout << formatted; }
+		} else { cout << formatted << endl; }
 	}
 
 	// Test (--test) purposes.
 	if (test) {
 		if (!formatting) {
 			if (!acdef.empty()) {
-				cout << (acdef + keywords + filedirs + contexts);
-				if (config.empty()) { cout << endl; }
+				cout << (acdef + keywords + filedirs + contexts) << endl;
+				if (config.empty()) { cout << "" << endl; }
 			}
 			if (!config.empty()) {
-				if (!acdef.empty()) { cout << endl; }
-				cout << config;
+				if (!acdef.empty()) { cout << "" << endl; }
+				cout << config << endl;
 			}
-		} else { cout << formatted; }
+		} else { cout << formatted << endl; }
 	}
 
 	return 0;

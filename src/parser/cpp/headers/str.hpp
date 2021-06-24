@@ -43,4 +43,6 @@ string& trim(string &str, const string &charlist=WS_CHARS);
 // [https://rules.sonarsource.com/cpp/RSPEC-5945]
 #include "str.tcc"
 
+string join(const vector<string> &container, const string &delimiter);
+
 #endif

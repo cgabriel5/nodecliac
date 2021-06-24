@@ -56,3 +56,14 @@ void split(vector<string> &reflist, string src,
 	}
 	reflist.push_back(src);
 }
+
+string join(const vector<string> &container, const string &delimiter) {
+	string buffer = "";
+	int size = container.size();
+	for (int i = 0; i < size; i++) {
+		buffer += container[i];
+		// [https://stackoverflow.com/a/611352]
+		if (i + 1 < size) buffer += delimiter;
+	}
+	return buffer;
+}

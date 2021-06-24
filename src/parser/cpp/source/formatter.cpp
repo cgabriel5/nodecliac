@@ -1,5 +1,6 @@
 #include "../headers/templates.hpp"
 #include "../headers/structs.hpp"
+#include "../headers/str.hpp"
 #include "../headers/parsetools.hpp"
 
 #include <tuple>
@@ -27,18 +28,6 @@ int prevtoken(LexerResponse &LexerData, const int &tid, set<string> &skip) {
         }
     }
     return -1;
-}
-
-// [https://stackoverflow.com/a/10632266]
-string joinx(vector<string> &v, const string &delimiter) {
-	string buffer = "";
-	int size = v.size();
-	for (int i = 0; i < size; i++) {
-		buffer += v[i];
-		// [https://stackoverflow.com/a/611352]
-		if (i + 1 < size) buffer += delimiter;
-	}
-	return buffer;
 }
 
 tuple <string, string, string, string, string, string, map<string, string>, string>
@@ -268,7 +257,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 
     // Return empty values to maintain parity with acdef.py.
 
-	string formatted = joinx(cleaned, "") + "\n";
+	string formatted = join(cleaned, "") + "\n";
 
 	tuple <string, string, string, string, string, string, map<string, string>, string> data;
 	map<string, string> placeholders;

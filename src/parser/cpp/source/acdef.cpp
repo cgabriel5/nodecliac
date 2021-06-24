@@ -177,18 +177,6 @@ string rm_fcmd(string chain, const regex r) {
 	return regex_replace(chain, r, "");
 }
 
-// [https://stackoverflow.com/a/10632266]
-string joinv(vector<string> &v, const string &delimiter) {
-	string buffer = "";
-	int size = v.size();
-	for (int i = 0; i < size; i++) {
-		buffer += v[i];
-		// [https://stackoverflow.com/a/611352]
-		if (i + 1 < size) buffer += delimiter;
-	}
-	return buffer;
-}
-
 string get_cmdstr(int start, int stop, LexerResponse &LexerData, const string &text) {
 	vector<string> output;
 	const set<string> allowed_tk_types {"tkSTR", "tkDLS"};
@@ -201,7 +189,7 @@ string get_cmdstr(int start, int stop, LexerResponse &LexerData, const string &t
 			}
 		}
 	}
-	return "$(" + joinv(output, ",") + ")";
+	return "$(" + join(output, ",") + ")";
 }
 
 string strreplace(string s, string sub, string replacement) {
@@ -362,13 +350,13 @@ string build_kwstr(const string &kwtype,
 		}
 
 		string value = (kwtype != "context" ? values.back() :
-			"\"" + joinv(values, ";") + "\"");
+			"\"" + join(values, ";") + "\"");
 		output.push_back(rm_fcmd(chain, rrr) + " " + kwtype + " " + value);
 		if (i < cl) output.push_back("\n");
 		i++;
 	}
 
-	return (!output.empty() ? "\n\n" + joinv(output, "") : "");
+	return (!output.empty() ? "\n\n" + join(output, "") : "");
 }
 
 vector<string> make_chains(vector<int> &ccids,
@@ -394,7 +382,7 @@ vector<string> make_chains(vector<int> &ccids,
 		}
 	}
 
-	string tstr = joinv(slots, ".");
+	string tstr = join(slots, ".");
 
 	for (auto const &group : groups) {
 		if (chains.empty()) {
@@ -488,7 +476,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 
                 commands.pop_back(); // Remove last command (already made).
                 for (int l = commands.size() - 1; l > -1; l--) {
-                    string rchain = joinv(commands, "."); // Remainder chain.
+                    string rchain = join(commands, "."); // Remainder chain.
 
                     populate_keywords(rchain);
                     if (!hasKey(oSets, rchain)) {
@@ -531,7 +519,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 			keys.push_back(itt.first);
     	}
     	keys = mapsort(keys, fsort, fobj);
-        string flags = joinv(keys, "|");
+        string flags = join(keys, "|");
         if (flags.empty()) flags = "--";
 
         // Note: Placehold long flag sets to reduce the file's chars.
@@ -560,13 +548,13 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
     // If contents exist, add newline after header.
     string sheader = regex_replace(header, regex("\n$"), "");
     // acdef_lines = mapsort(acdef_lines, asort, aobj);
-    string acdef_contents = joinv(acdef_lines, "\n");
+    string acdef_contents = join(acdef_lines, "\n");
     acdef_ = (!acdef_contents.empty()) ? header + acdef_contents : sheader;
     config = (!config.empty()) ? header + config : sheader;
 
     string tests = "";
     if (!oTests.empty()) {
-	    tests = "#!/bin/bash\n\n" + header + "tests=(\n" + joinv(oTests, "\n") + "\n)";
+	    tests = "#!/bin/bash\n\n" + header + "tests=(\n" + join(oTests, "\n") + "\n)";
     }
 
 	string formatted = "";

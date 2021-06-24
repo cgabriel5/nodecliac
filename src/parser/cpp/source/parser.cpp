@@ -33,7 +33,7 @@ const char C_DOLLARSIGN = '$';
 const string C_PRIM_TBOOL = "true";
 const string C_PRIM_FBOOL = "false";
 
-enum tkType {
+enum tkType_Parser {
 	tkSTN,
 	tkVAR,
 	tkCMD,
@@ -51,7 +51,6 @@ enum tkType {
 	tkAVAL,
 	tkDDOT,
 	tkBRC_RC,
-	//
 	tkDCLN,
 	tkFLGA,
 	tkQMK,
@@ -59,44 +58,46 @@ enum tkType {
 	tkFVAL,
 	tkDPPE,
 	tkBRC_RB,
-	//
 	tkFOPT,
 	tkTBD,
-	tkBRC_RP
+	tkBRC_RP,
+	tkDEF
+};
+
+const map<string, tkType_Parser> sw_pcases {
+	{"tkSTN", tkSTN},
+	{"tkVAR", tkVAR},
+	{"tkCMD", tkCMD},
+	{"tkBRC_LC", tkBRC_LC},
+	{"tkFLG", tkFLG},
+	{"tkBRC_LP", tkBRC_LP},
+	{"tkDLS", tkDLS},
+	{"tkOPTS", tkOPTS},
+	{"tkBRC_LB", tkBRC_LB},
+	{"tkKYW", tkKYW},
+	{"tkDCMA", tkDCMA},
+	//
+	{"tkASG", tkASG},
+	{"tkSTR", tkSTR},
+	{"tkAVAL", tkAVAL},
+	{"tkDDOT", tkDDOT},
+	{"tkBRC_RC", tkBRC_RC},
+	{"tkDCLN", tkDCLN},
+	{"tkFLGA", tkFLGA},
+	{"tkQMK", tkQMK},
+	{"tkMTL", tkMTL},
+	{"tkFVAL", tkFVAL},
+	{"tkDPPE", tkDPPE},
+	{"tkBRC_RB", tkBRC_RB},
+	{"tkFOPT", tkFOPT},
+	{"tkTBD", tkTBD},
+	{"tkBRC_RP", tkBRC_RP}
 };
 
 // [https://stackoverflow.com/a/650307]
-tkType hashit2 (string const &type) {
-	if (type == "tkSTN") return tkSTN;
-	if (type == "tkVAR") return tkVAR;
-	if (type == "tkCMD") return tkCMD;
-	if (type == "tkBRC_LC") return tkBRC_LC;
-	if (type == "tkFLG") return tkFLG;
-	if (type == "tkBRC_LP") return tkBRC_LP;
-	if (type == "tkDLS") return tkDLS;
-	if (type == "tkOPTS") return tkOPTS;
-	if (type == "tkBRC_LB") return tkBRC_LB;
-	if (type == "tkKYW") return tkKYW;
-
-	if (type == "tkASG") return tkASG;
-	if (type == "tkSTR") return tkSTR;
-	if (type == "tkAVAL") return tkAVAL;
-	if (type == "tkDDOT") return tkDDOT;
-	if (type == "tkBRC_RC") return tkBRC_RC;
-
-	if (type == "tkDCLN") return tkDCLN;
-	if (type == "tkFLGA") return tkFLGA;
-	if (type == "tkQMK") return tkQMK;
-	if (type == "tkMTL") return tkMTL;
-	if (type == "tkFVAL") return tkFVAL;
-	if (type == "tkDPPE") return tkDPPE;
-	if (type == "tkBRC_RB") return tkBRC_RB;
-
-	if (type == "tkFOPT") return tkFOPT;
-	if (type == "tkTBD") return tkTBD;
-	if (type == "tkBRC_RP") return tkBRC_RP;
-
-	return tkDCMA;
+tkType_Parser enumval(string const &type) {
+	map<string, tkType_Parser>::const_iterator it = sw_pcases.find(type);
+	return (it != sw_pcases.end()) ? it->second : tkDEF;
 }
 
 // [https://www.boost.org/users/download/]
@@ -666,9 +667,9 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 				}
 			}
 
-			switch(hashit2(prevscope())) {
+			switch(enumval(prevscope())) {
 				case tkSTN:
-					switch(hashit2(kind)) {
+					switch(enumval(kind)) {
 						case tkASG: {
 							addtoken_stn_group(S.tid);
 
@@ -702,7 +703,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 					break;
 
 				case tkVAR:
-					switch(hashit2(kind)) {
+					switch(enumval(kind)) {
 						case tkASG: {
 							addtoken_var_group(S.tid);
 
@@ -729,7 +730,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 					break;
 
 				case tkCMD:
-					switch(hashit2(kind)) {
+					switch(enumval(kind)) {
 						case tkASG: {
 							// If a universal block, store group id.
 							if (hasKey(LexerData.dtids, S.tid)) {
@@ -820,7 +821,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 					break;
 
 				case tkBRC_LC:
-					switch(hashit2(kind)) {
+					switch(enumval(kind)) {
 						case tkCMD: {
 							addtoken_group(S.tid);
 
@@ -849,7 +850,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 					break;
 
 				case tkFLG:
-					switch(hashit2(kind)) {
+					switch(enumval(kind)) {
 						case tkDCLN: {
 							if (prevtoken(S, LexerData).kind != "tkDCLN") {
 								vector<string> list {"tkDCLN"};
@@ -979,7 +980,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 					break;
 
 				case tkBRC_LP:
-					switch(hashit2(kind)) {
+					switch(enumval(kind)) {
 						case tkFOPT: {
 							Token& prevtk = prevtoken(S, LexerData);
 							if (prevtk.kind == "tkBRC_LP") {
@@ -1057,7 +1058,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 					break;
 
 				case tkDLS:
-					switch(hashit2(kind)) {
+					switch(enumval(kind)) {
 						case tkBRC_LP: {
 							newvaluegroup("values");
 							setflagprop("values", true);
@@ -1133,7 +1134,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 					break;
 
 				case tkOPTS:
-					switch(hashit2(kind)) {
+					switch(enumval(kind)) {
 						case tkFOPT: {
 							if (prevtoken(S, LexerData).line == line) {
 								err(S.tid, "Option same line (nth)", S, LexerData, text, "start", "child");
@@ -1178,7 +1179,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 					break;
 
 				case tkBRC_LB:
-					switch(hashit2(kind)) {
+					switch(enumval(kind)) {
 						case tkFLG: {
 							newflag();
 
@@ -1222,7 +1223,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 					break;
 
 				case tkKYW:
-					switch(hashit2(kind)) {
+					switch(enumval(kind)) {
 						case tkSTR: {
 							setflagprop("values");
 
@@ -1304,7 +1305,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 					break;
 
 				case tkDCMA:
-					switch(hashit2(kind)) {
+					switch(enumval(kind)) {
 						case tkCMD: {
 							addtoken_group(S.tid);
 

@@ -393,7 +393,7 @@ string build_kwstr(const string &kwtype,
 	int i = 0;
 	for (auto const &chain : chains) {
 		vector<string> values;
-		for (auto const &it : container) {
+		for (auto const &it : container[chain]) {
 			values.push_back(it.first);
 		}
 

@@ -307,7 +307,7 @@ void processflags(int gid,
 				string value = "";
 				if (values[0].size() == 1) {
 					value = regex_replace(tkstr2(LexerData, text, values[0][0]), regex("\\s"), "");
-					if (flag == "context") value = value.substr(1, value.length() - 1);
+					if (flag == "context") value = value.substr(1, value.length() - 2);
 				} else {
 					value = get_cmdstr(values[0][1] + 1, values[0][2], LexerData, text);
 				}

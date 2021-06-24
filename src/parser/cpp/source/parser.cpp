@@ -323,7 +323,7 @@ void addtoken(StateParse &S, LexerResponse &LexerData, const int i, const string
 					string sub = (itv != VARSTABLE.end()) ? itv->second : "";
 
 					// Unquote string if quoted.
-					tmpstr += (sub[0] != '"' || sub[0] != '\'') ? sub : sub.substr(1, sub.length() - 1);
+					tmpstr += (sub[0] != '"' || sub[0] != '\'') ? sub : sub.substr(1, sub.length() - 2);
 					pointer = end_;
 
 					// cout << "capture submatch #" << i << ": " << match[i] << endl;
@@ -1283,7 +1283,7 @@ string parser(const string &action, const string &text,
 								if (prevtk.kind == "tkKYW" and
 									tkstr(LexerData, text, prevtk.tid) == "exclude") {
 									string exvalues = tkstr(LexerData, text, prevtk.tid);
-									exvalues = exvalues.substr(1, exvalues.length() - 1);
+									exvalues = exvalues.substr(1, exvalues.length() - 2);
 									trim(exvalues);
 									vector<string> excl_values;
 									split(excl_values, exvalues, ";");

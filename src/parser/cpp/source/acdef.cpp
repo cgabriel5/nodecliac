@@ -1,6 +1,7 @@
 #include "../headers/templates.hpp"
 #include "../headers/structs.hpp"
 #include "../headers/str.hpp"
+#include "../headers/parsetools.hpp"
 
 #include <tuple>
 #include <string>
@@ -55,16 +56,6 @@ regex rrr;
 uint64_t timeSinceEpochMillisec() {
   using namespace std::chrono;
   return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-}
-
-string tkstr2(LexerResponse &LexerData, const string &text, const int tid) {
-	if (tid == -1) return "";
-	if (LexerData.tokens[tid].kind == "tkSTR") {
-		if (!LexerData.tokens[tid].$.empty()) return LexerData.tokens[tid].$;
-	}
-	int start = LexerData.tokens[tid].start;
-	int end = LexerData.tokens[tid].end;
-	return text.substr(start, end - start + 1);
 }
 
 struct Cobj {
@@ -204,9 +195,9 @@ string get_cmdstr(int start, int stop, LexerResponse &LexerData, const string &t
 	for (int tid = start; tid < stop; tid++) {
 		if (contains(allowed_tk_types, LexerData.tokens[tid].kind)) {
 			if (!output.empty() && output.back() == "$") {
-				output.back() = "$" + tkstr2(LexerData, text, tid);
+				output.back() = "$" + tkstr(LexerData, text, tid);
 			} else {
-				output.push_back(tkstr2(LexerData, text, tid));
+				output.push_back(tkstr(LexerData, text, tid));
 			}
 		}
 	}
@@ -236,11 +227,11 @@ void processflags(int gid,
 	vector<Flag> unions;
 	for (auto const &flg : flags) {
 		int tid = flg.tid;
-		string assignment = tkstr2(LexerData, text, flg.assignment);
-		string boolean = tkstr2(LexerData, text, flg.boolean);
-		string alias = tkstr2(LexerData, text, flg.alias);
-		string flag = tkstr2(LexerData, text, tid);
-		string ismulti = tkstr2(LexerData, text, flg.multi);
+		string assignment = tkstr(LexerData, text, flg.assignment);
+		string boolean = tkstr(LexerData, text, flg.boolean);
+		string alias = tkstr(LexerData, text, flg.alias);
+		string flag = tkstr(LexerData, text, tid);
+		string ismulti = tkstr(LexerData, text, flg.multi);
 		bool union_ = flg.union_ != -1;
 		vector<vector<int>> values = flg.values;
 
@@ -279,7 +270,7 @@ void processflags(int gid,
 			if (!values.empty() && flag != "exclude") {
 				string value = "";
 				if (values[0].size() == 1) {
-					value = regex_replace(tkstr2(LexerData, text, values[0][0]), regex("\\s"), "");
+					value = regex_replace(tkstr(LexerData, text, values[0][0]), regex("\\s"), "");
 					if (flag == "context") value = value.substr(1, value.length() - 2);
 				} else {
 					value = get_cmdstr(values[0][1] + 1, values[0][2], LexerData, text);
@@ -303,7 +294,7 @@ void processflags(int gid,
 
 			for (auto &value : values) {
 				if (value.size() == 1) { // Single
-					queue_flags[flag + assignment + tkstr2(LexerData, text, value[0])] = 1;
+					queue_flags[flag + assignment + tkstr(LexerData, text, value[0])] = 1;
 
 				} else { // Command-string
 					string cmdstr = get_cmdstr(value[1] + 1, value[2], LexerData, text);
@@ -391,14 +382,14 @@ vector<string> make_chains(vector<int> &ccids,
 		if (cid == -1) grouping = !grouping;
 
 		if (!grouping && cid != -1) {
-			slots.push_back(tkstr2(LexerData, text, cid));
+			slots.push_back(tkstr(LexerData, text, cid));
 		} else if (grouping) {
 			if (cid == -1) {
 				slots.push_back("?");
 				vector<string> list;
 				groups.push_back(list);
 			} else {
-				groups.back().push_back(tkstr2(LexerData, text, cid));
+				groups.back().push_back(tkstr(LexerData, text, cid));
 			}
 		}
 	}
@@ -518,9 +509,9 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 
     // Populate settings object.
 	for (auto const &setting : settings) {
-        string name = tkstr2(LexerData, text, setting[0]).substr(1);
-        if (name == "test") oTests.push_back(regex_replace(tkstr2(LexerData, text, setting[2]), regex(";\\s+"), ";"));
-        else (setting.size() > 1) ? oSettings[name] = tkstr2(LexerData, text, setting[2]) : "";
+        string name = tkstr(LexerData, text, setting[0]).substr(1);
+        if (name == "test") oTests.push_back(regex_replace(tkstr(LexerData, text, setting[2]), regex(";\\s+"), ";"));
+        else (setting.size() > 1) ? oSettings[name] = tkstr(LexerData, text, setting[2]) : "";
 	}
 
     // Build settings contents.

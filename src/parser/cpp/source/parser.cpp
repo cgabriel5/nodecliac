@@ -11,6 +11,7 @@
 #include "../headers/issue.hpp"
 #include "../headers/defvars.hpp"
 #include "../headers/str.hpp"
+#include "../headers/parsetools.hpp"
 
 #include <tuple>
 #include <string>
@@ -138,16 +139,6 @@ map<string, int> USED_VARS;
 map<string, vector<int>> USER_VARS;
 map<string, string> VARSTABLE; // = builtins(cmdname)
 map<int, vector<vector<int>>> vindices;
-
-string tkstr(LexerResponse &LexerData, const string &text, const int tid) {
-	if (tid == -1) return "";
-	if (LexerData.tokens[tid].kind == "tkSTR") {
-		if (!LexerData.tokens[tid].$.empty()) return LexerData.tokens[tid].$;
-	}
-	int start = LexerData.tokens[tid].start;
-	int end = LexerData.tokens[tid].end;
-	return text.substr(start, end - start + 1);
-}
 
 void err(int tid, string message, StateParse &S, LexerResponse &LexerData,
 		const string &text, string pos="start", string scope="") {

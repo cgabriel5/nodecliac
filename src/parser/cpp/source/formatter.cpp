@@ -1,5 +1,6 @@
 #include "../headers/templates.hpp"
 #include "../headers/structs.hpp"
+#include "../headers/parsetools.hpp"
 
 #include <tuple>
 #include <string>
@@ -16,17 +17,6 @@ string indent(const string &type_, const int &count,
 	map<string, int> &MXP) {
 	// [https://stackoverflow.com/a/167810]
 	return std::string(((count || MXP[type_]) * iamount), ichar);
-}
-
-string tkstr3(LexerResponse &LexerData, const string &text, const int tid) {
-	if (tid == -1) return "";
-	// Return interpolated string for string tokens.
-	if (LexerData.tokens[tid].kind == "tkSTR") {
-		if (!LexerData.tokens[tid].$.empty()) return LexerData.tokens[tid].$;
-	}
-	int start = LexerData.tokens[tid].start;
-	int end = LexerData.tokens[tid].end;
-	return text.substr(start, end - start + 1);
 }
 
 // int prevtoken(LexerResponse &LexerData, const int &tid, set<string> &skip={"tkNL"}) {
@@ -135,7 +125,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
                    	}
 				}
 
-                cleaned.push_back(tkstr3(LexerData, text, leaf.tid));
+                cleaned.push_back(tkstr(LexerData, text, leaf.tid));
 
             //// Command chains
 
@@ -177,45 +167,45 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 
                 if (kind == "tkBRC_LC") {
                     group_open = true;
-                    cleaned.push_back(tkstr3(LexerData, text, leaf.tid));
+                    cleaned.push_back(tkstr(LexerData, text, leaf.tid));
 
                 } else if (kind == "tkBRC_RC") {
                     group_open = false;
-                    cleaned.push_back(tkstr3(LexerData, text, leaf.tid));
+                    cleaned.push_back(tkstr(LexerData, text, leaf.tid));
 
                 } else if (kind == "tkDCMA" && !first_assignment) {
-                    cleaned.push_back(tkstr3(LexerData, text, leaf.tid));
+                    cleaned.push_back(tkstr(LexerData, text, leaf.tid));
                     // Append newline after group is cloased.
                     if (!group_open) cleaned.push_back("\n");
 
                 } else if (kind == "tkASG" && !first_assignment) {
                     first_assignment = true;
                     cleaned.push_back(" ");
-                    cleaned.push_back(tkstr3(LexerData, text, leaf.tid));
+                    cleaned.push_back(tkstr(LexerData, text, leaf.tid));
                     cleaned.push_back(" ");
 
                 } else if (kind == "tkBRC_LB") {
-                    cleaned.push_back(tkstr3(LexerData, text, leaf.tid));
+                    cleaned.push_back(tkstr(LexerData, text, leaf.tid));
                     level = 1;
 
                 } else if (kind == "tkBRC_RB") {
                     level = 0;
                     first_assignment = false;
-                    cleaned.push_back(tkstr3(LexerData, text, leaf.tid));
+                    cleaned.push_back(tkstr(LexerData, text, leaf.tid));
 
                 } else if (kind == "tkFLG") {
                     if (level) cleaned.push_back(indent(kind, level, ichar, iamount, MXP));
-                    cleaned.push_back(tkstr3(LexerData, text, leaf.tid));
+                    cleaned.push_back(tkstr(LexerData, text, leaf.tid));
 
                 } else if (kind == "tkKYW") {
                     if (level) cleaned.push_back(indent(kind, level, ichar, iamount, MXP));
-                    cleaned.push_back(tkstr3(LexerData, text, leaf.tid));
+                    cleaned.push_back(tkstr(LexerData, text, leaf.tid));
                     cleaned.push_back(" ");
 
                 } else if (kind == "tkFOPT") {
                     level = 2;
                     cleaned.push_back(indent(kind, level, ichar, iamount, MXP));
-                    cleaned.push_back(tkstr3(LexerData, text, leaf.tid));
+                    cleaned.push_back(tkstr(LexerData, text, leaf.tid));
 
                 } else if (kind == "tkBRC_LP") {
                     brc_lp_count += 1;
@@ -225,7 +215,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
                         int scope_offset = int(pkind == "tkCMT");
                         cleaned.push_back(indent(kind, level + scope_offset, ichar, iamount, MXP));
 					}
-                    cleaned.push_back(tkstr3(LexerData, text, leaf.tid));
+                    cleaned.push_back(tkstr(LexerData, text, leaf.tid));
 
                 } else if (kind == "tkBRC_RP") {
                     brc_lp_count -= 1;
@@ -234,7 +224,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
                         cleaned.push_back(indent(kind, level - 1, ichar, iamount, MXP));
                         level = 1;
 					}
-                    cleaned.push_back(tkstr3(LexerData, text, leaf.tid));
+                    cleaned.push_back(tkstr(LexerData, text, leaf.tid));
 
                 } else if (kind == "tkCMT") {
                     string ptk = tokens[prevtoken(LexerData, leaf.tid, ft_tkTYPES_NONE)].kind;
@@ -244,10 +234,10 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
                         if (atk == "tkASG") scope_offset = 1;
                         cleaned.push_back(indent(kind, level + scope_offset, ichar, iamount, MXP));
                     } else cleaned.push_back(" ");
-                    cleaned.push_back(tkstr3(LexerData, text, leaf.tid));
+                    cleaned.push_back(tkstr(LexerData, text, leaf.tid));
 
                 } else {
-                    cleaned.push_back(tkstr3(LexerData, text, leaf.tid));
+                    cleaned.push_back(tkstr(LexerData, text, leaf.tid));
                 }
 
             //// Comments
@@ -264,11 +254,11 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
                         cleaned.push_back("\n");
 					}
 				}
-                cleaned.push_back(tkstr3(LexerData, text, leaf.tid));
+                cleaned.push_back(tkstr(LexerData, text, leaf.tid));
 
             } else {
                 if (kind != "tkTRM") {
-                    cleaned.push_back(tkstr3(LexerData, text, leaf.tid));
+                    cleaned.push_back(tkstr(LexerData, text, leaf.tid));
                 }
             }
 

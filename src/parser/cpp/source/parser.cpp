@@ -3,6 +3,7 @@
 
 #include "../headers/structs.hpp"
 #include "../headers/acdef.hpp"
+#include "../headers/formatter.hpp"
 #include "../headers/lexer.hpp"
 #include "../headers/parser.hpp"
 #include "../headers/validation.hpp"
@@ -1424,8 +1425,9 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 
 	if (action == "make") {
 		data = acdef(BRANCHES, CCHAINS, FLAGS, SETTINGS, S, LexerData, cmdname, text);
+	} else {
+		data = formatter(LexerData.tokens, text, BRANCHES, CCHAINS, FLAGS, SETTINGS, S, LexerData);
 	}
-	// else: return formatter(tokens, text, BRANCHES, CCHAINS, FLAGS, SETTINGS, S)
 
 	return data;
 

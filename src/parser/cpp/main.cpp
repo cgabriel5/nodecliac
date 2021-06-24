@@ -161,15 +161,16 @@ int main(int argc, char **argv) {
 					fs::perm_options::add);
 			}
 
-			// // Create placeholder files if object is populated.
-			// // placeholders = placeholders
-			// if (!placeholders.empty()) {
-			// 	fs::create_directories(placeholderspaths);
+			// Create placeholder files if object is populated.
+			// placeholders = placeholders
+			if (placeholders.size()) {
+				fs::create_directories(placeholderspaths);
 
-			// 	for key in placeholders:
-			// 		p = placeholderspaths + os.path.sep + key
-			// 		write(p, placeholders[key])
-			// }
+				for (auto const &it : placeholders) {
+					string p = placeholderspaths + sep + it.first;
+					write(p, placeholders[it.first]);
+				}
+			}
 		}
 	}
 

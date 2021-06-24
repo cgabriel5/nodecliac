@@ -268,12 +268,11 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 
     // Return empty values to maintain parity with acdef.py.
 
-	cout << "[" << formatted << "]" << endl;
-
 	string formatted = joinx(cleaned, "") + "\n";
+
 	tuple <string, string, string, string, string, string, map<string, string>, string> data;
 	map<string, string> placeholders;
-	data = make_tuple("", "", "", "", "", "", placeholders, "");
+	data = make_tuple("", "", "", "", "", formatted, placeholders, "");
 
 	return data;
 }

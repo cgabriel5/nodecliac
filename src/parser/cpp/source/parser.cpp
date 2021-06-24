@@ -10,6 +10,7 @@
 #include "../headers/defvars.hpp"
 #include "../headers/str.hpp"
 
+#include <tuple>
 #include <string>
 #include <vector>
 #include <set>
@@ -508,7 +509,8 @@ bool cmp(const Warning &a, const Warning &b) {
 
 // ============================
 
-string parser(const string &action, const string &text,
+tuple <string, string, string, string, string, string, map<string, string>, string>
+	parser(const string &action, const string &text,
 	const string &cmdname, const string &source,
 	const tabdata &fmt, const bool &trace,
 	const bool &igc, const bool &test) {
@@ -1418,11 +1420,13 @@ string parser(const string &action, const string &text,
 		}
 	}
 
+	tuple <string, string, string, string, string, string, map<string, string>, string> data;
+
 	if (action == "make") {
-		acdef(BRANCHES, CCHAINS, FLAGS, SETTINGS, S, LexerData, cmdname);
+		data = acdef(BRANCHES, CCHAINS, FLAGS, SETTINGS, S, LexerData, cmdname, text);
 	}
 	// else: return formatter(tokens, text, BRANCHES, CCHAINS, FLAGS, SETTINGS, S)
 
-	return "";
+	return data;
 
 }

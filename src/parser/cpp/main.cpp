@@ -4,6 +4,7 @@
 #include "fs.hpp"
 #include "parser.hpp"
 
+#include <tuple>
 #include <array>
 #include <vector>
 #include <regex>
@@ -106,18 +107,16 @@ int main(int argc, char **argv) {
 	string res;
 	read(source, res);
 
-	// (
-	// 	acdef, config, keywords, filedirs,
-	// 	contexts, formatted, placeholders, tests
-	// ) =
-	res = parser(action, res, cmdname, source, fmtinfo, trace, igc, test);
+	string acdef, config, keywords, filedirs, contexts, formatted, tests;
+	map<string, string> placeholders;
+
+	tuple <string, string, string, string, string, string, map<string, string>, string> data;
+	data = parser(action, res, cmdname, source, fmtinfo, trace, igc, test);
+	tie(acdef, config, keywords, filedirs, contexts, formatted, placeholders, tests) = data;
 
 	string testname = cmdname + ".tests.sh";
 	string savename = cmdname + ".acdef";
 	string saveconfigname = "." + cmdname + ".config.acdef";
-
-	// Placeholder empty strings.
-	string acdef, config, keywords, filedirs, contexts, formatted, tests;
 
 	// Only save files to disk when not testing.
 	if (!test) {

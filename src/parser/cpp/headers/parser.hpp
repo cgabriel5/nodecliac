@@ -3,11 +3,13 @@
 
 #include "./structs.hpp"
 
+#include <tuple>
 #include <string>
 
 using namespace std;
 
-string parser(const string &action, const string &text,
+tuple <string, string, string, string, string, string, map<string, string>, string>
+	parser(const string &action, const string &text,
 	const string &cmdname, const string &source,
 	const tabdata &fmt, const bool &trace,
 	const bool &igc, const bool &test);

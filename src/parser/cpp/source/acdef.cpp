@@ -67,12 +67,6 @@ string tkstr2(LexerResponse &LexerData, const string &text, const int tid) {
 	return text.substr(start, end - start + 1);
 }
 
-const string HYPHEN_STR = "-";
-string& ltrim2(string &str)  {
-	str.erase(0, str.find_first_not_of(HYPHEN_STR));
-	return str;
-}
-
 struct Cobj {
 	int i, m;
 	string val, orig;
@@ -277,7 +271,7 @@ void processflags(int gid,
 		}
 
 		if (recalias) {
-			oContexts[chain]["{" + ltrim2(flag) + "|" + alias + "}"] = 1;
+			oContexts[chain]["{" + ltrim(flag, "-") + "|" + alias + "}"] = 1;
 			flag = "-" + alias;
 		}
 

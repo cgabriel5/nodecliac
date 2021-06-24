@@ -23,9 +23,13 @@ inline bool endswith(string const &value, string const &ending) {
 // [https://stackoverflow.com/a/217605]
 // [https://stackoverflow.com/a/29892589]
 // [https://www.techiedelight.com/trim-string-cpp-remove-leading-trailing-spaces/]
-string& ltrim(string &str);
-string& rtrim(string &str);
-string& trim(string &str);
+const string WS_CHARS = " \t\n\r\f\v";
+// string& ltrim(string &str, const string &charlist);
+string& ltrim(string &str, const string &charlist=WS_CHARS);
+// string& rtrim(string &str, const string &charlist);
+string& rtrim(string &str, const string &charlist=WS_CHARS);
+// string& trim(string &str, const string &charlist);
+string& trim(string &str, const string &charlist=WS_CHARS);
 
 // Use template function: [https://stackoverflow.com/a/10632266]
 // [https://www.techiedelight.com/pass-array-by-value-to-function/]

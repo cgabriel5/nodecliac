@@ -41,8 +41,6 @@ string& trim(string &str, const string &charlist=WS_CHARS);
 // [https://stackoverflow.com/a/17156297]
 // [https://www.learncpp.com/cpp-tutorial/an-introduction-to-stdarray/]
 // [https://rules.sonarsource.com/cpp/RSPEC-5945]
-template<size_t N>
-void appendA(array<string, N> &arr);
 #include "str.tcc"
 
 #endif

@@ -67,12 +67,6 @@ string tkstr2(LexerResponse &LexerData, const string &text, const int tid) {
 	return text.substr(start, end - start + 1);
 }
 
-// [https://stackoverflow.com/a/2072890]
-inline bool endswith2(string const &value, string const &ending) {
-	if (ending.size() > value.size()) return false;
-	return equal(ending.rbegin(), ending.rend(), value.rbegin());
-}
-
 const string HYPHEN_STR = "-";
 string& ltrim2(string &str)  {
 	str.erase(0, str.find_first_not_of(HYPHEN_STR));
@@ -100,7 +94,7 @@ Cobj fobj(string s) {
 	o.orig = s;
 	o.val = s;
 	transform(o.val.begin(), o.val.end(), o.val.begin(), ::tolower);
-	o.m = endswith2(s, "=*");
+	o.m = endswith(s, "=*");
 	if (s[1] != C_HYPHEN) {
 		o.orig = s;
 		o.single = true;

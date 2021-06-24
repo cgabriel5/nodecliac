@@ -12,6 +12,21 @@ bool eq(const string &s1, const string &s2);
 void split(vector<string> &reflist, string src,
 	const string &delimiter="\n");
 
+// [https://stackoverflow.com/a/2072890]
+inline bool endswith(string const &value, string const &ending) {
+	if (ending.size() > value.size()) return false;
+	return equal(ending.rbegin(), ending.rend(), value.rbegin());
+}
+
+// [https://www.delftstack.com/howto/cpp/how-to-trim-a-string-cpp/]
+// [https://stackoverflow.com/a/25385766]
+// [https://stackoverflow.com/a/217605]
+// [https://stackoverflow.com/a/29892589]
+// [https://www.techiedelight.com/trim-string-cpp-remove-leading-trailing-spaces/]
+string& ltrim(string &str);
+string& rtrim(string &str);
+string& trim(string &str);
+
 // Use template function: [https://stackoverflow.com/a/10632266]
 // [https://www.techiedelight.com/pass-array-by-value-to-function/]
 // [https://stackoverflow.com/a/21444760]

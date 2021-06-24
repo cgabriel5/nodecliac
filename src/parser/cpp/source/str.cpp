@@ -22,6 +22,26 @@ bool eq(const string &s1, const string &s2) {
 // 	return buffer;
 // }
 
+// [https://www.delftstack.com/howto/cpp/how-to-trim-a-string-cpp/]
+// [https://stackoverflow.com/a/25385766]
+// [https://stackoverflow.com/a/217605]
+// [https://stackoverflow.com/a/29892589]
+// [https://www.techiedelight.com/trim-string-cpp-remove-leading-trailing-spaces/]
+const string WHITE_SPACE_CHARS = " \t\n\r\f\v";
+string& ltrim(string &str)  {
+	str.erase(0, str.find_first_not_of(WHITE_SPACE_CHARS));
+	return str;
+}
+
+string& rtrim(string &str) {
+	str.erase(str.find_last_not_of(WHITE_SPACE_CHARS) + 1);
+	return str;
+}
+
+string& trim(string &str) {
+	return ltrim(rtrim(str));
+}
+
 // [https://stackoverflow.com/a/44495206]
 void split(vector<string> &reflist, string src,
 	const string &delimiter /*="\n"*/) {

@@ -1,6 +1,3 @@
-// from acdef import acdef
-// from formatter import formatter
-
 #include "../headers/templates.hpp"
 #include "../headers/structs.hpp"
 #include "../headers/acdef.hpp"
@@ -101,9 +98,6 @@ tkType_Parser enumval(string const &type) {
 }
 
 // [https://www.boost.org/users/download/]
-// std::string r(R"((?<!\\)\$\{\s*[^}]*\s*\})");
-// std::string r(R"((?<=^|[^\\])\$\{\s*[^}]*\s*\})");
-// std::string r(R"((?:^|[^\\])\$\{\s*[^}]*\s*\})");
 std::string re(R"((^|[^\\])(\$\{\s*[^}]*\s*\}))");
 std::regex r(re);
 
@@ -237,13 +231,6 @@ void addtoken(StateParse &S, LexerResponse &LexerData, const int i, const string
 				smatch match;
 				match = *it;
 
-				// cout << "size: " << it->size() << endl;
-				// cout << "expression match #" << 0 << ": " << match[0] << endl;
-
-				// cout << "\nMatched  string is = " << match.str(0)
-					// << "\nand it is found at position "
-					// << match.position(0) << endl;
-
 				for(int i = 1; i < it->size(); ++i) {
 					int start = match.position(1) + 1;
 					end_ = start + match[i].length() - 1;
@@ -268,12 +255,6 @@ void addtoken(StateParse &S, LexerResponse &LexerData, const int i, const string
 					// Unquote string if quoted.
 					tmpstr += (sub[0] != '"' || sub[0] != '\'') ? sub : sub.substr(1, sub.length() - 2);
 					pointer = end_;
-
-					// cout << "capture submatch #" << i << ": " << match[i] << endl;
-					// cout << "points (" << start << ", " << end_ << ")" << endl;
-					// cout << "VARNAME [" << varname << "]" << endl;
-					// cout << "Capture " << match.str(1)
-					// 	<< " at position " << match.position(1) << endl;
 				}
 				++it;
 			}
@@ -472,45 +453,6 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 
 	LexerResponse LexerData;
 	tokenizer(text, LexerData);
-
-	// cout << "LexerData.tokens-2:" << &LexerData.tokens << endl;
-
-	// [https://stackoverflow.com/a/12702604]
-	// [https://stackoverflow.com/a/26282004]
-	// cout << LexerData.tokens.size() << endl;
-	// for (auto &token : LexerData.tokens) {
-	// 	cout << "tid: " << token.tid << endl;
-	// 	cout << "kind: " << token.kind << endl;
-	// 	cout << "line: " << token.line << endl;
-	// 	cout << "start: " << token.start << endl;
-	// 	cout << "end: " << token.end << endl;
-	// 	cout << "lines: " << token.lines[0] << ", " << token.lines[1] << endl;
-	// 	cout << "" << endl;
-	// }
-
-	// cout << LexerData.tokens.size() << endl;
-	// for (auto &linestart : LexerData.LINESTARTS) {
-	// 	cout << "tid: " << token.tid << endl;
-	// 	cout << "line: " << linestart.lines[0] << ", " << token.lines[1] << endl;
-	// 	cout << "" << endl;
-	// }
-
-	// cout << "LexerData.LINESTARTS-2:" << &LexerData.LINESTARTS << endl;
-
-	// // [https://stackoverflow.com/a/26282004]
-	// for (auto const &x : LexerData.LINESTARTS) {
-	// 	cout << x.first << " : " << x.second << endl;
-	// }
-
-	// // [https://stackoverflow.com/a/26282004]
-	// for (auto const &x : LexerData.ttypes) {
-	// 	cout << x.first << " : " << x.second << endl;
-	// }
-
-	// // [https://stackoverflow.com/a/26282004]
-	// for (auto const &x : LexerData.dtids) {
-	// 	cout << x.first << " : " << x.second << endl;
-	// }
 
 	// =========================================================================
 

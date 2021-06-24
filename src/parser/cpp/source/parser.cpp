@@ -514,6 +514,12 @@ string parser(const string &action, const string &text,
 	const bool &igc, const bool &test) {
 
 	S.filename = source;
+	S.args.action = action;
+	S.args.source = source;
+	S.args.fmt = fmt;
+	S.args.trace = trace;
+	S.args.igc = igc;
+	S.args.test = test;
 
 	// Add builtin variables to variable table.
 	for (auto const &x : builtins(cmdname)) {

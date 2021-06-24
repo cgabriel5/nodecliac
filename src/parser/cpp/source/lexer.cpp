@@ -31,7 +31,8 @@ const char C_ASTERISK = '*';
 const char C_DOLLARSIGN = '$';
 const char C_UNDERSCORE = '_';
 
-enum tkType {
+// [https://stackoverflow.com/a/650307]
+enum tkType_Lexer {
 	tkSTN,
 	tkVAR,
 	tkFLG,
@@ -43,17 +44,16 @@ enum tkType {
 	tkDEF
 };
 
-tkType hashit (string const &type) {
-	if (type == "tkSTN") return tkSTN;
-	if (type == "tkVAR") return tkVAR;
-	if (type == "tkFLG") return tkFLG;
-	if (type == "tkCMD") return tkCMD;
-	if (type == "tkCMT") return tkCMT;
-	if (type == "tkSTR") return tkSTR;
-	if (type == "tkTBD") return tkTBD;
-	if (type == "tkBRC") return tkBRC;
-	return tkDEF;
-}
+const map<string, tkType_Lexer> sw_lcases {
+	{"tkSTN", tkSTN},
+	{"tkVAR", tkVAR},
+	{"tkFLG", tkFLG},
+	{"tkCMD", tkCMD},
+	{"tkCMT", tkCMT},
+	{"tkSTR", tkSTR},
+	{"tkTBD", tkTBD},
+	{"tkBRC", tkBRC}
+};
 
 map<char, string> SOT { // Start-of-token chars.
 	{'#', "tkCMT"},
@@ -323,7 +323,9 @@ void tokenizer(const string &text, LexerResponse &LexerData) {
 
 		// Tokenization.
 
-		switch(hashit(S.kind)) {
+		map<string, tkType_Lexer>::const_iterator it;
+		it = sw_lcases.find(S.kind);
+		switch(it != sw_lcases.end() ? it->second : tkDEF) {
 			case tkSTN:
 				if (S.i - S.start > 0 && !isalnum(c)) {
 					rollback(S, 1);

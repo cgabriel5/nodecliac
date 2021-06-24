@@ -13,6 +13,7 @@ void split(vector<string> &reflist, string src,
 	const string &delimiter="\n");
 
 // [https://stackoverflow.com/a/2072890]
+// [https://stackoverflow.com/a/1421730]
 inline bool endswith(string const &value, string const &ending) {
 	if (ending.size() > value.size()) return false;
 	return equal(ending.rbegin(), ending.rend(), value.rbegin());

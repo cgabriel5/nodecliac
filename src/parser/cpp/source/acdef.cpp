@@ -311,8 +311,7 @@ void populate_keywords(const string &chain) {
 }
 
 void populate_chain_flags(int gid, const string &chain, map<string, int> &container, LexerResponse &LexerData, const string &text) {
-	// if (!contains(excludes, chain)) {
-	if (true) {
+	if (!contains(excludes2, chain)) {
 		processflags(gid, chain, ubflags, container,
 			LexerData, text,
 			/*recunion=*/false, /*recalias=*/false);

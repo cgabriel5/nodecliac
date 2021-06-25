@@ -547,7 +547,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 
     // If contents exist, add newline after header.
     string sheader = regex_replace(header, regex("\n$"), "");
-    // acdef_lines = mapsort(acdef_lines, asort, aobj);
+    acdef_lines = mapsort(acdef_lines, asort, aobj);
     string acdef_contents = join(acdef_lines, "\n");
     acdef_ = (!acdef_contents.empty()) ? header + acdef_contents : sheader;
     config = (!config.empty()) ? header + config : sheader;

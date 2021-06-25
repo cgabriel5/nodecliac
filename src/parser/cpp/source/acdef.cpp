@@ -321,8 +321,9 @@ void populate_chain_flags(int gid, const string &chain, map<string, int> &contai
 		oSets[chain] = container;
 	} else {
 		// [https://stackoverflow.com/a/22220891]
-		for(auto &it : oSets[chain]) {
-			container[it.first] = it.second;
+		map<string, int> &src_container = oSets[chain];
+		for(auto &it : container) {
+			src_container[it.first] = it.second;
 		}
 	}
 }

@@ -119,7 +119,6 @@ int oneliner = -1;
 vector<int> chain;
 vector<vector<vector<int>>> CCHAINS;
 
-vector<int> ubids;
 vector<string> excludes;
 map<int, vector<Flag>> FLAGS;
 Flag flag;
@@ -678,7 +677,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 							if (hasKey(LexerData.dtids, S.tid)) {
 								Token& prevtk = prevtoken(S, LexerData);
 								if (prevtk.kind == "tkCMD" && text[prevtk.start] == '*') {
-									ubids.push_back(CCHAINS.size() - 1);
+									S.ubids.push_back(CCHAINS.size() - 1);
 								}
 							}
 							vector<string> list {"tkBRC_LB", "tkFLG", "tkKYW"};
@@ -747,7 +746,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 							if (hasKey(LexerData.dtids, S.tid)) {
 								Token& prevtk = prevtoken(S, LexerData);
 								if (prevtk.kind == "tkCMD" && text[prevtk.start] == '*') {
-									ubids.push_back(CCHAINS.size() - 1);
+									S.ubids.push_back(CCHAINS.size() - 1);
 								}
 							}
 							addtoprevgroup();

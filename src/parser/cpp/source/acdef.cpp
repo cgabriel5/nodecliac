@@ -50,7 +50,9 @@ string filedirs = "";
 string contexts = "";
 bool has_root = false;
 
-regex rrr;
+regex re_cmdname;
+regex re_space("\\s");
+regex re_space_cl(";\\s+");
 
 // [https://stackoverflow.com/a/56107709]
 uint64_t timeSinceEpochMillisec() {
@@ -258,7 +260,7 @@ void processflags(int gid,
 			if (!values.empty() && flag != "exclude") {
 				string value = "";
 				if (values[0].size() == 1) {
-					value = regex_replace(tkstr(LexerData, text, values[0][0]), regex("\\s"), "");
+					value = regex_replace(tkstr(LexerData, text, values[0][0]), re_space, "");
 					if (flag == "context") value = value.substr(1, value.length() - 2);
 				} else {
 					value = get_cmdstr(values[0][1] + 1, values[0][2], LexerData, text);
@@ -351,7 +353,7 @@ string build_kwstr(const string &kwtype,
 
 		string value = (kwtype != "context" ? values.back() :
 			"\"" + join(values, ";") + "\"");
-		output.push_back(rm_fcmd(chain, rrr) + " " + kwtype + " " + value);
+		output.push_back(rm_fcmd(chain, re_cmdname) + " " + kwtype + " " + value);
 		if (i < cl) output.push_back("\n");
 		i++;
 	}
@@ -431,7 +433,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 
 	// Escape '+' chars in commands.
 	string rcmdname = regex_replace(cmdname, regex("\\+"), "\\+");
-	rrr = regex("^(" + rcmdname + "|[-_a-zA-Z0-9]+)");
+	re_cmdname = regex("^(" + rcmdname + "|[-_a-zA-Z0-9]+)");
 
 	time_t curr_time;
 	tm *curr_tm;
@@ -498,7 +500,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
     // Populate settings object.
 	for (auto const &setting : settings) {
         string name = tkstr(LexerData, text, setting[0]).substr(1);
-        if (name == "test") oTests.push_back(regex_replace(tkstr(LexerData, text, setting[2]), regex(";\\s+"), ";"));
+        if (name == "test") oTests.push_back(regex_replace(tkstr(LexerData, text, setting[2]), re_space_cl, ";"));
         else (setting.size() > 1) ? oSettings[name] = tkstr(LexerData, text, setting[2]) : "";
 	}
 
@@ -535,7 +537,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
             } else { flags = "--p#" + omd5Hashes[flags]; }
 		}
 
-        string row = rm_fcmd(it.first, rrr) + " " + flags;
+        string row = rm_fcmd(it.first, re_cmdname) + " " + flags;
 
         // Remove multiple ' --' command chains. Shouldn't be the
         // case but happens when multiple main commands are used.

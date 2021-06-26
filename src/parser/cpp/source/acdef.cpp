@@ -482,7 +482,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 	for (auto const &setting : settings) {
         string name = tkstr(S, setting[0]).substr(1);
         if (name == "test") oTests.push_back(regex_replace(tkstr(S, setting[2]), re_space_cl, ";"));
-        else (setting.size() > 1) ? oSettings[name] = tkstr(S, setting[2]) : "";
+        else oSettings[name] = (setting.size() > 1) ? tkstr(S, setting[2]) : "";
 	}
 
     // Build settings contents.

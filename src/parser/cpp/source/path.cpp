@@ -14,6 +14,7 @@ string abspath(const string &p) {
 	char path[p.length() + 1];
 	strcpy(path, p.c_str());
 	char resolved_path[PATH_MAX];
-	realpath(path, resolved_path);
+	// [https://stackoverflow.com/a/1563237]
+	char *res = realpath(path, resolved_path);
 	return string(resolved_path); // [https://stackoverflow.com/a/25576379]
 }

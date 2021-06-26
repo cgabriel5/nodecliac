@@ -179,8 +179,8 @@ int main(int argc, char **argv) {
 			if (!acdef.empty()) {
 				cout << "[" << termcolor::bold << cmdname + ".acdef"
 					<< termcolor::reset << "]\n" << endl;
-				cout << (acdef + keywords + filedirs + contexts) << endl;
-				if (config.empty()) { cout << "" << endl; }
+				cout << (acdef + keywords + filedirs + contexts);
+				if (config.empty()) { cout << endl; }
 			}
 			if (!config.empty()) {
 				cout << "\n[" << termcolor::bold

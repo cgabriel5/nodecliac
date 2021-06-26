@@ -7,10 +7,11 @@ using namespace std;
 string tkstr(LexerResponse &LexerData, const string &text, const int tid) {
 	if (tid == -1) return "";
 	// Return interpolated string for string tokens.
-	if (LexerData.tokens[tid].kind == "tkSTR") {
-		if (!LexerData.tokens[tid].$.empty()) return LexerData.tokens[tid].$;
+	Token &tk = S.LexerData.tokens[tid];
+	if (tk.kind == "tkSTR") {
+		if (!tk.$.empty()) return tk.$;
 	}
-	int start = LexerData.tokens[tid].start;
-	int end = LexerData.tokens[tid].end;
-	return text.substr(start, end - start + 1);
+	int start = tk.start;
+	int end = tk.end;
+	return S.text.substr(start, end - start + 1);
 }

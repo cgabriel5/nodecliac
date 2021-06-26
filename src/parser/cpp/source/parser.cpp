@@ -134,19 +134,18 @@ map<string, vector<int>> USER_VARS;
 map<string, string> VARSTABLE; // = builtins(cmdname)
 map<int, vector<vector<int>>> vindices;
 
-void err(int tid, string message, StateParse &S, LexerResponse &LexerData,
-		const string &text, string pos="start", string scope="") {
+void err(StateParse &S, int tid, string message, string pos="start", string scope="") {
 	// When token ID points to end-of-parsing token,
 	// reset the id to the last true token before it.
-	if (LexerData.tokens[tid].kind == "tkEOP") tid = LexerData.ttids[-1];
+	if (S.LexerData.tokens[tid].kind == "tkEOP") tid = S.LexerData.ttids[-1];
 
-	Token& token = LexerData.tokens[tid];
+	Token& token = S.LexerData.tokens[tid];
 	int line = token.line;
 	int index = (pos == "start") ? token.start : token.end;
 	// msg = f"{message}";
-	int col = index - LexerData.LINESTARTS[line];
+	int col = index - S.LexerData.LINESTARTS[line];
 
-	if (endswith(message, ":")) message += " '" + tkstr(LexerData, text, tid) + "'";
+	if (endswith(message, ":")) message += " '" + tkstr(S, tid) + "'";
 
 	// Add token debug information.
 	// dbeugmsg = "\n\n\033[1mToken\033[0m: "
@@ -172,14 +171,13 @@ void err(int tid, string message, StateParse &S, LexerResponse &LexerData,
 	issue_error(S.filename, line, col, message);
 }
 
-void warn(int tid, string message, StateParse &S, LexerResponse &LexerData,
-		const string &text) {
-	Token& token = LexerData.tokens[tid];
+void warn(StateParse &S, int tid, string message) {
+	Token& token = S.LexerData.tokens[tid];
 	int line = token.line;
 	int index = token.start;
-	int col = index - LexerData.LINESTARTS[line];
+	int col = index - S.LexerData.LINESTARTS[line];
 
-	if (endswith(message, ":")) message += " '" + tkstr(LexerData, text, tid) + "'";
+	if (endswith(message, ":")) message += " '" + tkstr(S, tid) + "'";
 
 	if (!hasKey(S.warnings, line)) {
 		vector<Warning> list;
@@ -196,23 +194,22 @@ void warn(int tid, string message, StateParse &S, LexerResponse &LexerData,
 	S.warn_lines.insert(line);
 }
 
-void hint(int tid, string message, StateParse &S, LexerResponse &LexerData,
-		const string &text) {
-	Token& token = LexerData.tokens[tid];
+void hint(StateParse &S, int tid, string message) {
+	Token& token = S.LexerData.tokens[tid];
 	int line = token.line;
 	int index = token.start;
-	int col = index - LexerData.LINESTARTS[line];
+	int col = index - S.LexerData.LINESTARTS[line];
 
-	if (endswith(message, ":")) message += " '" + tkstr(LexerData, text, tid) + "'";
+	if (endswith(message, ":")) message += " '" + tkstr(S, tid) + "'";
 
 	issue_hint(S.filename, line, col, message);
 }
 
-void addtoken(StateParse &S, LexerResponse &LexerData, const int i, const string &text="") {
+void addtoken(StateParse &S, const int i) {
 	// Interpolate/track interpolation indices for string.
-	if (LexerData.tokens[i].kind == "tkSTR") {
-		string value = tkstr(LexerData, text, i);
-		LexerData.tokens[i].$ = value;
+	if (S.LexerData.tokens[i].kind == "tkSTR") {
+		string value = tkstr(S, i);
+		S.LexerData.tokens[i].$ = value;
 
 		if (!hasKey(vindices, i)) {
 			int end_ = 0;
@@ -239,8 +236,8 @@ void addtoken(StateParse &S, LexerResponse &LexerData, const int i, const string
 					if (!hasKey(VARSTABLE, varname)) {
 						// Note: Modify token index to point to
 						// start of the variable position.
-						LexerData.tokens[S.tid].start += start;
-						err(ttid, "Undefined variable", S, LexerData, text, "start", "child");
+						S.LexerData.tokens[S.tid].start += start;
+						err(S, ttid, "Undefined variable", "start", "child");
 					}
 
 					USED_VARS[varname] = 1;
@@ -260,13 +257,13 @@ void addtoken(StateParse &S, LexerResponse &LexerData, const int i, const string
 
 			// Get tail-end of string.
 			tmpstr += value.substr(end_);
-			LexerData.tokens[i].$ = tmpstr;
+			S.LexerData.tokens[i].$ = tmpstr;
 
 			if (vindices[i].empty()) { vindices.erase(i); }
 		}
 	}
 
-	BRANCHES.back().push_back(LexerData.tokens[i]);
+	BRANCHES.back().push_back(S.LexerData.tokens[i]);
 }
 
 void expect(vector<string> &list) {
@@ -314,10 +311,10 @@ void newbranch() {
 	branch = b;
 }
 
-Token& prevtoken(StateParse &S, LexerResponse &LexerData) {
+Token& prevtoken(StateParse &S) {
 	// [https://stackoverflow.com/a/3136545]
-	auto it = LexerData.dtids.find(S.tid);
-	return LexerData.tokens[it->second];
+	auto it = S.LexerData.dtids.find(S.tid);
+	return S.LexerData.tokens[it->second];
 }
 
 // Command chain/flag grouping helpers.
@@ -432,11 +429,12 @@ bool cmp(const Warning &a, const Warning &b) {
 // ============================
 
 tuple <string, string, string, string, string, string, map<string, string>, string>
-	parser(const string &action, const string &text,
+	parser(const string &action, string &text,
 	const string &cmdname, const string &source,
 	const tabdata &fmt, const bool &trace,
 	const bool &igc, const bool &test) {
 
+	S.text.swap(text);
 	S.filename = source;
 	S.args.action = action;
 	S.args.source = source;
@@ -450,16 +448,15 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 		VARSTABLE[x.first] = x.second;
 	}
 
-	LexerResponse LexerData;
-	tokenizer(text, LexerData);
+	tokenizer(S.text, S.LexerData);
 
 	// =========================================================================
 
 	int i = 0;
-	int l = LexerData.tokens.size();
+	int l = S.LexerData.tokens.size();
 
 	while (i < l) {
-		Token& token = LexerData.tokens[i];
+		Token& token = S.LexerData.tokens[i];
 		string kind = token.kind;
 		int line = token.line;
 		int start = token.start;
@@ -478,15 +475,15 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 		if (kind == "tkTRM") {
 			if (SCOPE.empty()) {
 				addbranch();
-				addtoken(S, LexerData, ttid, text);
+				addtoken(S, ttid);
 				newbranch();
 				vector<string> list {""};
 				expect(list);
 			} else {
-				addtoken(S, LexerData, ttid, text);
+				addtoken(S, ttid);
 
 				if (!NEXT.empty() && !nextany()) {
-					err(ttid, "Improper termination", S, LexerData, text, "start", "child");
+					err(S, ttid, "Improper termination", "start", "child");
 				}
 			}
 
@@ -501,13 +498,13 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 			if (!BRANCHES.empty()) {
 				Token& ltoken = BRANCHES.back().back(); // Last branch token.
 				if (line == ltoken.line && ltoken.kind != "tkTRM") {
-					err(ttid, "Improper termination", S, LexerData, text, "start", "parent");
+					err(S, ttid, "Improper termination", "start", "parent");
 				}
 			}
 
 			if (kind != "tkEOP") {
 				addbranch();
-				addtoken(S, LexerData, ttid, text);
+				addtoken(S, ttid);
 			}
 
 			if (kind != "tkEOP") {
@@ -518,7 +515,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 						addgroup_stn(setting);
 						addtoken_stn_group(S.tid);
 
-						vsetting(S, LexerData, text);
+						vsetting(S);
 						vector<string> list {"", "tkASG"};
 						expect(list);
 					} else if (kind == "tkVAR") {
@@ -526,7 +523,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 						addgroup_var(variable);
 						addtoken_var_group(S.tid);
 
-						string varname = tkstr(LexerData, text, S.tid).substr(1);
+						string varname = tkstr(S, S.tid).substr(1);
 						VARSTABLE[varname] = "";
 
 						if (!hasKey(USER_VARS, varname)) {
@@ -535,7 +532,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 						}
 						USER_VARS[varname].push_back(S.tid);
 
-						vvariable(S, LexerData, text);
+						vvariable(S);
 						vector<string> list {"", "tkASG"};
 						expect(list);
 					} else if (kind == "tkCMD") {
@@ -545,9 +542,9 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 						vector<string> list {"", "tkDDOT", "tkASG", "tkDCMA"};
 						expect(list);
 
-						string command = tkstr(LexerData, text, S.tid);
+						string command = tkstr(S, S.tid);
 						if (command != "*" && command != cmdname) {
-							warn(S.tid, "Unexpected command:", S, LexerData, text);
+							warn(S, S.tid, "Unexpected command:");
 						}
 					}
 				} else {
@@ -556,7 +553,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 						vector<string> list {""};
 						expect(list);
 					} else { // Handle unexpected parent tokens.
-						err(S.tid, "Unexpected token:", S, LexerData, text, "start", "parent");
+						err(S, S.tid, "Unexpected token:", "start", "parent");
 					}
 				}
 			}
@@ -564,7 +561,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 		} else {
 
 			if (kind == "tkCMT") {
-				addtoken(S, LexerData, ttid, text);
+				addtoken(S, ttid);
 				i += 1;
 				continue;
 			}
@@ -590,11 +587,11 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 					continue;
 
 				} else {
-					err(S.tid, "Unexpected token:", S, LexerData, text, "start", "child");
+					err(S, S.tid, "Unexpected token:", "start", "child");
 				}
 			}
 
-			addtoken(S, LexerData, ttid, text);
+			addtoken(S, ttid);
 
 			// Oneliners must be declared on oneline, else error.
 			if (BRANCHES.back()[0].kind == "tkCMD" && (
@@ -604,7 +601,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 				if (oneliner == -1) {
 					oneliner = token.line;
 				} else if (token.line != oneliner) {
-					err(S.tid, "Improper oneliner", S, LexerData, text, "start", "child");
+					err(S, S.tid, "Improper oneliner", "start", "child");
 				}
 			}
 
@@ -625,7 +622,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 							vector<string> list {""};
 							expect(list);
 
-							vstring(S, LexerData, text);
+							vstring(S);
 
 							break;
 						}
@@ -635,7 +632,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 							vector<string> list {""};
 							expect(list);
 
-							vsetting_aval(S, LexerData, text);
+							vsetting_aval(S);
 
 							break;
 						}
@@ -656,13 +653,13 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 						case tkSTR: {
 							addtoken_var_group(S.tid);
 							int size = BRANCHES.back().size();
-							VARSTABLE[tkstr(LexerData, text, BRANCHES.back()[size - 3].tid).substr(1)]
-							= tkstr(LexerData, text, S.tid);
+							VARSTABLE[tkstr(S, BRANCHES.back()[size - 3].tid).substr(1)]
+							= tkstr(S, S.tid);
 
 							vector<string> list {""};
 							expect(list);
 
-							vstring(S, LexerData, text);
+							vstring(S);
 
 							break;
 						}
@@ -674,9 +671,9 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 					switch(enumval(kind)) {
 						case tkASG: {
 							// If a universal block, store group id.
-							if (hasKey(LexerData.dtids, S.tid)) {
-								Token& prevtk = prevtoken(S, LexerData);
-								if (prevtk.kind == "tkCMD" && text[prevtk.start] == '*') {
+							if (hasKey(S.LexerData.dtids, S.tid)) {
+								Token& prevtk = prevtoken(S);
+								if (prevtk.kind == "tkCMD" && S.text[prevtk.start] == '*') {
 									S.ubids.push_back(CCHAINS.size() - 1);
 								}
 							}
@@ -743,9 +740,9 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 						}
 						case tkDCMA: {
 							// If a universal block, store group id.
-							if (hasKey(LexerData.dtids, S.tid)) {
-								Token& prevtk = prevtoken(S, LexerData);
-								if (prevtk.kind == "tkCMD" && text[prevtk.start] == '*') {
+							if (hasKey(S.LexerData.dtids, S.tid)) {
+								Token& prevtk = prevtoken(S);
+								if (prevtk.kind == "tkCMD" && S.text[prevtk.start] == '*') {
 									S.ubids.push_back(CCHAINS.size() - 1);
 								}
 							}
@@ -793,7 +790,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 				case tkFLG:
 					switch(enumval(kind)) {
 						case tkDCLN: {
-							if (prevtoken(S, LexerData).kind != "tkDCLN") {
+							if (prevtoken(S).kind != "tkDCLN") {
 								vector<string> list {"tkDCLN"};
 								expect(list);
 							} else {
@@ -861,8 +858,8 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 						case tkFLG: {
 							newflag();
 
-							if (hasscope("tkBRC_LB") && token.line == prevtoken(S, LexerData).line) {
-								err(S.tid, "Flag same line (nth)", S, LexerData, text, "start", "child");
+							if (hasscope("tkBRC_LB") && token.line == prevtoken(S).line) {
+								err(S, S.tid, "Flag same line (nth)", "start", "child");
 							}
 							vector<string> list {"", "tkASG", "tkQMK",
 								"tkDCLN", "tkFVAL", "tkDPPE"};
@@ -877,8 +874,8 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 							// parsing. For now remove it to keep scopes array clean.
 							popscope();
 
-							if (hasscope("tkBRC_LB") && token.line == prevtoken(S, LexerData).line) {
-								err(S.tid, "Keyword same line (nth)", S, LexerData, text, "start", "child");
+							if (hasscope("tkBRC_LB") && token.line == prevtoken(S).line) {
+								err(S, S.tid, "Keyword same line (nth)", "start", "child");
 							}
 							addscope(kind);
 							vector<string> list {"tkSTR", "tkDLS"};
@@ -923,10 +920,10 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 				case tkBRC_LP:
 					switch(enumval(kind)) {
 						case tkFOPT: {
-							Token& prevtk = prevtoken(S, LexerData);
+							Token& prevtk = prevtoken(S);
 							if (prevtk.kind == "tkBRC_LP") {
 								if (prevtk.line == line) {
-									err(S.tid, "Option same line (first)", S, LexerData, text, "start", "child");
+									err(S, S.tid, "Option same line (first)", "start", "child");
 								}
 								addscope("tkOPTS");
 								vector<string> list {"tkFVAL", "tkSTR", "tkDLS"};
@@ -979,9 +976,9 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 							vector<string> list {"", "tkDPPE"};
 							expect(list);
 
-							Token& prevtk = prevtoken(S, LexerData);
+							Token& prevtk = prevtoken(S);
 							if (prevtk.kind == "tkBRC_LP") {
-								warn(prevtk.tid, "Empty scope (flag)", S, LexerData, text);
+								warn(S, prevtk.tid, "Empty scope (flag)");
 							}
 
 							break;
@@ -1077,8 +1074,8 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 				case tkOPTS:
 					switch(enumval(kind)) {
 						case tkFOPT: {
-							if (prevtoken(S, LexerData).line == line) {
-								err(S.tid, "Option same line (nth)", S, LexerData, text, "start", "child");
+							if (prevtoken(S).line == line) {
+								err(S, S.tid, "Option same line (nth)", "start", "child");
 							}
 							vector<string> list {"tkFVAL", "tkSTR", "tkDLS"};
 							expect(list);
@@ -1124,8 +1121,8 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 						case tkFLG: {
 							newflag();
 
-							if (hasscope("tkBRC_LB") && token.line == prevtoken(S, LexerData).line) {
-								err(S.tid, "Flag same line (first)", S, LexerData, text, "start", "child");
+							if (hasscope("tkBRC_LB") && token.line == prevtoken(S).line) {
+								err(S, S.tid, "Flag same line (first)", "start", "child");
 							}
 							addscope(kind);
 							vector<string> list {"tkASG", "tkQMK", "tkDCLN",
@@ -1137,8 +1134,8 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 						case tkKYW: {
 							newflag();
 
-							if (hasscope("tkBRC_LB") && token.line == prevtoken(S, LexerData).line) {
-								err(S.tid, "Keyword same line (first)", S, LexerData, text, "start", "child");
+							if (hasscope("tkBRC_LB") && token.line == prevtoken(S).line) {
+								err(S, S.tid, "Keyword same line (first)", "start", "child");
 							}
 							addscope(kind);
 							vector<string> list {"tkSTR", "tkDLS", "tkBRC_RB"};
@@ -1151,9 +1148,9 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 							vector<string> list {""};
 							expect(list);
 
-							Token& prevtk = prevtoken(S, LexerData);
+							Token& prevtk = prevtoken(S);
 							if (prevtk.kind == "tkBRC_LB") {
-								warn(prevtk.tid, "Empty scope (command)", S, LexerData, text);
+								warn(S, prevtk.tid, "Empty scope (command)");
 							}
 
 							break;
@@ -1169,18 +1166,18 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 							setflagprop("values");
 
 							// Collect exclude values for use upstream.
-							if (hasKey(LexerData.dtids, S.tid)) {
-								Token& prevtk = prevtoken(S, LexerData);
+							if (hasKey(S.LexerData.dtids, S.tid)) {
+								Token& prevtk = prevtoken(S);
 								if (prevtk.kind == "tkKYW" and
-									tkstr(LexerData, text, prevtk.tid) == "exclude") {
-									string exvalues = tkstr(LexerData, text, prevtk.tid);
+									tkstr(S, prevtk.tid) == "exclude") {
+									string exvalues = tkstr(S, prevtk.tid);
 									exvalues = exvalues.substr(1, exvalues.length() - 2);
 									trim(exvalues);
 									vector<string> excl_values;
 									split(excl_values, exvalues, ";");
 
 									for (auto &exvalue : excl_values) {
-										excludes.push_back(exvalue);
+										S.excludes.push_back(exvalue);
 									}
 								}
 							}
@@ -1254,9 +1251,9 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 							vector<string> list {"", "tkDDOT", "tkASG", "tkDCMA"};
 							expect(list);
 
-							string command = tkstr(LexerData, text, S.tid);
+							string command = tkstr(S, S.tid);
 							if (command != "*" && command != cmdname) {
-								warn(S.tid, "Unexpected command:", S, LexerData, text);
+								warn(S, S.tid, "Unexpected command:");
 							}
 							break;
 						}
@@ -1266,7 +1263,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 					break;
 
 				default:
-					err(LexerData.tokens[S.tid].tid, "Unexpected token:", S, LexerData, text, "end");
+					err(S, S.LexerData.tokens[S.tid].tid, "Unexpected token:", "end");
 
 			}
 		}
@@ -1278,9 +1275,8 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 	for (auto const &x : USER_VARS) {
 		if (!hasKey(USED_VARS, x.first)) {
 			for (auto const &tid : USER_VARS[x.first]) {
-				warn(tid, "Unused variable: '" + x.first + "'",
-					S, LexerData, text);
-				S.warn_lsort.insert(LexerData.tokens[tid].line);
+				warn(S, tid, "Unused variable: '" + x.first + "'");
+				S.warn_lsort.insert(S.LexerData.tokens[tid].line);
 			}
 		}
 	}
@@ -1306,9 +1302,9 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 	tuple <string, string, string, string, string, string, map<string, string>, string> data;
 
 	if (action == "make") {
-		data = acdef(BRANCHES, CCHAINS, FLAGS, SETTINGS, S, LexerData, cmdname, text);
+		data = acdef(S, BRANCHES, CCHAINS, FLAGS, SETTINGS, cmdname);
 	} else {
-		data = formatter(LexerData.tokens, text, BRANCHES, CCHAINS, FLAGS, SETTINGS, S, LexerData);
+		data = formatter(S, BRANCHES, CCHAINS, FLAGS, SETTINGS);
 	}
 
 	return data;

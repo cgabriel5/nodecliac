@@ -4,7 +4,7 @@
 
 using namespace std;
 
-string tkstr(LexerResponse &LexerData, const string &text, const int tid) {
+string tkstr(StateParse &S, const int &tid) {
 	if (tid == -1) return "";
 	// Return interpolated string for string tokens.
 	Token &tk = S.LexerData.tokens[tid];

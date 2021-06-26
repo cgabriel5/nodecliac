@@ -25,17 +25,17 @@ bool hasKey(T const &map, V const &value) {
 	return (it != map.end());
 }
 
-void vsetting(StateParse &S, LexerResponse &LexerData, const string &text) {
-	Token token = LexerData.tokens[S.tid];
+void vsetting(StateParse &S) {
+	Token token = S.LexerData.tokens[S.tid];
 	int start = token.start;
 	int end = token.end;
 	int line = token.line;
 	int index = token.start;
-	int col = index - LexerData.LINESTARTS[line];
+	int col = index - S.LexerData.LINESTARTS[line];
 
 	vector<string> settings {"compopt", "filedir", "disable", "placehold", "test"};
 
-	string setting = text.substr(start + 1, end - start);
+	string setting = S.text.substr(start + 1, end - start);
 
 	// Warn if setting is not a supported setting.
 	if (!contains(settings, setting)) {
@@ -57,13 +57,13 @@ void vsetting(StateParse &S, LexerResponse &LexerData, const string &text) {
 	}
 }
 
-void vvariable(StateParse &S, LexerResponse &LexerData, const string &text) {
-	Token token = LexerData.tokens[S.tid];
+void vvariable(StateParse &S) {
+	Token token = S.LexerData.tokens[S.tid];
 	int start = token.start;
 	int end = token.end;
 	int line = token.line;
 	int index = token.start;
-	int col = index - LexerData.LINESTARTS[line];
+	int col = index - S.LexerData.LINESTARTS[line];
 
 	// Error when variable starts with a number.
 	if (isdigit(S.text[start + 1])) {
@@ -74,13 +74,13 @@ void vvariable(StateParse &S, LexerResponse &LexerData, const string &text) {
 	}
 }
 
-void vstring(StateParse &S, LexerResponse &LexerData, const string &text) {
-	Token token = LexerData.tokens[S.tid];
+void vstring(StateParse &S) {
+	Token token = S.LexerData.tokens[S.tid];
 	int start = token.start;
 	int end = token.end;
 	int line = token.lines[0];
 	int index = token.start;
-	int col = index - LexerData.LINESTARTS[line];
+	int col = index - S.LexerData.LINESTARTS[line];
 
 	// Warn when string is empty.
 	// [TODO] Warn if string content is just whitespace?
@@ -109,17 +109,17 @@ void vstring(StateParse &S, LexerResponse &LexerData, const string &text) {
 	}
 }
 
-void vsetting_aval(StateParse &S, LexerResponse &LexerData, const string &text) {
-	Token token = LexerData.tokens[S.tid];
+void vsetting_aval(StateParse &S) {
+	Token token = S.LexerData.tokens[S.tid];
 	int start = token.start;
 	int end = token.end;
 	int line = token.line;
 	int index = token.start;
-	int col = index - LexerData.LINESTARTS[line];
+	int col = index - S.LexerData.LINESTARTS[line];
 
 	vector<string> values {"true", "false"};
 
-	string value = text.substr(start, end - start + 1);
+	string value = S.text.substr(start, end - start + 1);
 
 	// Warn if values is not a supported values.
 	if (!contains(values, value)) {

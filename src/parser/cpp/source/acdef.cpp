@@ -179,15 +179,15 @@ string rm_fcmd(string chain, const regex r) {
 	return regex_replace(chain, r, "");
 }
 
-string get_cmdstr(int start, int stop, LexerResponse &LexerData, const string &text) {
+string get_cmdstr(StateParse &S, int start, int stop) {
 	vector<string> output;
 	const set<string> allowed_tk_types {"tkSTR", "tkDLS"};
 	for (int tid = start; tid < stop; tid++) {
-		if (contains(allowed_tk_types, LexerData.tokens[tid].kind)) {
+		if (contains(allowed_tk_types, S.LexerData.tokens[tid].kind)) {
 			if (!output.empty() && output.back() == "$") {
-				output.back() = "$" + tkstr(LexerData, text, tid);
+				output.back() = "$" + tkstr(S, tid);
 			} else {
-				output.push_back(tkstr(LexerData, text, tid));
+				output.push_back(tkstr(S, tid));
 			}
 		}
 	}
@@ -204,12 +204,10 @@ string strreplace(string s, string sub, string replacement) {
 	return s;
 }
 
-void processflags(int gid,
+void processflags(StateParse &S, int gid,
 	const string &chain,
 	const vector<Flag> &flags,
 	map<string, int> &queue_flags,
-	LexerResponse &LexerData,
-	const string &text,
 	bool recunion=false,
 	bool recalias=false
 	) {
@@ -217,20 +215,19 @@ void processflags(int gid,
 	vector<Flag> unions;
 	for (auto const &flg : flags) {
 		int tid = flg.tid;
-		string assignment = tkstr(LexerData, text, flg.assignment);
-		string boolean = tkstr(LexerData, text, flg.boolean);
-		string alias = tkstr(LexerData, text, flg.alias);
-		string flag = tkstr(LexerData, text, tid);
-		string ismulti = tkstr(LexerData, text, flg.multi);
+		string assignment = tkstr(S, flg.assignment);
+		string boolean = tkstr(S, flg.boolean);
+		string alias = tkstr(S, flg.alias);
+		string flag = tkstr(S, tid);
+		string ismulti = tkstr(S, flg.multi);
 		bool union_ = flg.union_ != -1;
 		vector<vector<int>> values = flg.values;
 
-		string kind = LexerData.tokens[tid].kind;
+		string kind = S.LexerData.tokens[tid].kind;
 
 		if (!alias.empty() && !recalias) {
 			vector<Flag> list {flg};
-			processflags(gid, chain, list, queue_flags,
-				LexerData, text,
+			processflags(S, gid, chain, list, queue_flags,
 				/*recunion=*/false, /*recalias=*/true);
 		}
 
@@ -243,8 +240,7 @@ void processflags(int gid,
 				for (auto &uflg : unions) {
 					uflg.values = values;
 					vector<Flag> list {uflg};
-					processflags(gid, chain, list, queue_flags,
-						LexerData, text,
+					processflags(S, gid, chain, list, queue_flags,
 						/*recunion=*/true, /*recalias=*/false);
 				}
 				unions.clear();
@@ -260,10 +256,10 @@ void processflags(int gid,
 			if (!values.empty() && flag != "exclude") {
 				string value = "";
 				if (values[0].size() == 1) {
-					value = regex_replace(tkstr(LexerData, text, values[0][0]), re_space, "");
+					value = regex_replace(tkstr(S, values[0][0]), re_space, "");
 					if (flag == "context") value = value.substr(1, value.length() - 2);
 				} else {
-					value = get_cmdstr(values[0][1] + 1, values[0][2], LexerData, text);
+					value = get_cmdstr(S, values[0][1] + 1, values[0][2]);
 				}
 
 				if      (flag == "default") oDefaults[chain][value] = 1;
@@ -284,10 +280,10 @@ void processflags(int gid,
 
 			for (auto &value : values) {
 				if (value.size() == 1) { // Single
-					queue_flags[flag + assignment + tkstr(LexerData, text, value[0])] = 1;
+					queue_flags[flag + assignment + tkstr(S, value[0])] = 1;
 
 				} else { // Command-string
-					string cmdstr = get_cmdstr(value[1] + 1, value[2], LexerData, text);
+					string cmdstr = get_cmdstr(S, value[1] + 1, value[2]);
 					queue_flags[flag + assignment + cmdstr] = 1;
 				}
 			}
@@ -312,10 +308,9 @@ void populate_keywords(const string &chain) {
 	}
 }
 
-void populate_chain_flags(int gid, const string &chain, map<string, int> &container, LexerResponse &LexerData, const string &text) {
-	if (!contains(excludes2, chain)) {
-		processflags(gid, chain, ubflags, container,
-			LexerData, text,
+void populate_chain_flags(StateParse &S, int gid, const string &chain, map<string, int> &container) {
+	if (!contains(S.excludes, chain)) {
+		processflags(S, gid, chain, ubflags, container,
 			/*recunion=*/false, /*recalias=*/false);
 	}
 
@@ -361,8 +356,7 @@ string build_kwstr(const string &kwtype,
 	return (!output.empty() ? "\n\n" + join(output, "") : "");
 }
 
-vector<string> make_chains(vector<int> &ccids,
-	LexerResponse &LexerData, const string &text) {
+vector<string> make_chains(StateParse &S, vector<int> &ccids) {
 	vector<string> slots;
 	vector<string> chains;
 	vector<vector<string>> groups;
@@ -372,14 +366,14 @@ vector<string> make_chains(vector<int> &ccids,
 		if (cid == -1) grouping = !grouping;
 
 		if (!grouping && cid != -1) {
-			slots.push_back(tkstr(LexerData, text, cid));
+			slots.push_back(tkstr(S, cid));
 		} else if (grouping) {
 			if (cid == -1) {
 				slots.push_back("?");
 				vector<string> list;
 				groups.push_back(list);
 			} else {
-				groups.back().push_back(tkstr(LexerData, text, cid));
+				groups.back().push_back(tkstr(S, cid));
 			}
 		}
 	}
@@ -408,14 +402,12 @@ vector<string> make_chains(vector<int> &ccids,
 }
 
 tuple <string, string, string, string, string, string, map<string, string>, string>
-	acdef(vector<vector<Token>> &branches,
+	acdef(StateParse &S,
+		vector<vector<Token>> &branches,
 		vector<vector<vector<int>>> &cchains,
 		map<int, vector<Flag>> &flags,
 		vector<vector<int>> &settings,
-		StateParse &S,
-		LexerResponse &LexerData,
-		string const &cmdname,
-		string const &text
+		string const &cmdname
 	) {
 
 	vector<int> &ubids = S.ubids;
@@ -425,7 +417,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 
 	// Collect all universal block flags.
 	// vector<Flag> ubflags;
-	for (auto const &ubid : ubids) {
+	for (auto const &ubid : S.ubids) {
 		for (auto const &flag : flags[ubid]) {
 			ubflags.push_back(flag);
 		}
@@ -457,7 +449,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 	int i = 0;
 	for (auto &group : cchains) {
 		for (auto &ccids : group) {
-        	for (auto const &chain : make_chains(ccids, LexerData, text)) {
+        	for (auto const &chain : make_chains(S, ccids)) {
                 if (chain == "*") continue;
 
                 map<string, int> container;
@@ -465,11 +457,10 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 
 				vector<Flag> list;
 				if (hasKey(flags, i)) list = flags[i];
-				processflags(i, chain, list, container,
-					LexerData, text,
+				processflags(S, i, chain, list, container,
 					/*recunion=*/false, /*recalias=*/false);
 
-                populate_chain_flags(i, chain, container, LexerData, text);
+                populate_chain_flags(S, i, chain, container);
 
                 // Create missing parent chains.
                 // commands = re.split(r'(?<!\\)\.', chain);
@@ -483,7 +474,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
                     populate_keywords(rchain);
                     if (!hasKey(oSets, rchain)) {
 		                map<string, int> container;
-                        populate_chain_flags(i, rchain, container, LexerData, text);
+                        populate_chain_flags(S, i, rchain, container);
                     }
 
                     commands.pop_back(); // Remove last command.
@@ -499,9 +490,9 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 
     // Populate settings object.
 	for (auto const &setting : settings) {
-        string name = tkstr(LexerData, text, setting[0]).substr(1);
-        if (name == "test") oTests.push_back(regex_replace(tkstr(LexerData, text, setting[2]), re_space_cl, ";"));
-        else (setting.size() > 1) ? oSettings[name] = tkstr(LexerData, text, setting[2]) : "";
+        string name = tkstr(S, setting[0]).substr(1);
+        if (name == "test") oTests.push_back(regex_replace(tkstr(S, setting[2]), re_space_cl, ";"));
+        else (setting.size() > 1) ? oSettings[name] = tkstr(S, setting[2]) : "";
 	}
 
     // Build settings contents.

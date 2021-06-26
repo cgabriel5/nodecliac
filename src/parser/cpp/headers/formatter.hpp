@@ -11,13 +11,10 @@
 using namespace std;
 
 tuple <string, string, string, string, string, string, map<string, string>, string>
-	formatter(vector<Token> &tokens,
-	const string &text,
+	formatter(StateParse &S,
 	vector<vector<Token>> &BRANCHES,
 	vector<vector<vector<int>>> &cchains,
 	map<int, vector<Flag>> &flags,
-	vector<vector<int>> &settings,
-	StateParse &S,
-	LexerResponse &LexerData);
+	vector<vector<int>> &settings);
 
 #endif

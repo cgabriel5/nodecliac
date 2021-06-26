@@ -7,6 +7,6 @@
 
 using namespace std;
 
-string tkstr(LexerResponse &LexerData, const string &text, const int tid);
+string tkstr(StateParse &S, const int &tid);
 
 #endif

@@ -7,9 +7,9 @@
 
 using namespace std;
 
-void vsetting(StateParse &S, LexerResponse &LexerData, const string &text);
-void vvariable(StateParse &S, LexerResponse &LexerData, const string &text);
-void vstring(StateParse &S, LexerResponse &LexerData, const string &text);
-void vsetting_aval(StateParse &S, LexerResponse &LexerData, const string &text);
+void vsetting(StateParse &S);
+void vvariable(StateParse &S);
+void vstring(StateParse &S);
+void vsetting_aval(StateParse &S);
 
 #endif

@@ -119,7 +119,6 @@ int oneliner = -1;
 vector<int> chain;
 vector<vector<vector<int>>> CCHAINS;
 
-vector<string> excludes;
 map<int, vector<Flag>> FLAGS;
 Flag flag;
 

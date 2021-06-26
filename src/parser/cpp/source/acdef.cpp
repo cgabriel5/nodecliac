@@ -22,11 +22,6 @@
 
 using namespace std;
 
-vector<int> ubids2; // = S.ubids;
-string text2; // = S.text;
-vector<Token> tokens2; // = LexerData.tokens;
-vector<string> excludes2; // = S.excludes;
-
 map<string, map<string, int>> oSets;
 // [https://stackoverflow.com/a/44700641]
 map<string, tsl::ordered_map<string, int>> oDefaults;
@@ -409,11 +404,6 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 		vector<vector<int>> &settings,
 		string const &cmdname
 	) {
-
-	vector<int> &ubids = S.ubids;
-	// string &text = S.text;
-	vector<Token> &tokens = LexerData.tokens;
-	vector<string> &excludes = S.excludes;
 
 	// Collect all universal block flags.
 	// vector<Flag> ubflags;

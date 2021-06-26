@@ -170,7 +170,7 @@ vector<string> mapsort(vector<string> &A,
 //
 // @param  {string} command - The command chain.
 // @return {string} - Modified chain.
-string rm_fcmd(string chain, const regex r) {
+string rm_fcmd(string chain, const regex &r) {
 	return regex_replace(chain, r, "");
 }
 
@@ -216,9 +216,9 @@ void processflags(StateParse &S, int gid,
 		string flag = tkstr(S, tid);
 		string ismulti = tkstr(S, flg.multi);
 		bool union_ = flg.union_ != -1;
-		vector<vector<int>> values = flg.values;
+		const vector<vector<int>> &values = flg.values;
 
-		string kind = S.LexerData.tokens[tid].kind;
+		string &kind = S.LexerData.tokens[tid].kind;
 
 		if (!alias.empty() && !recalias) {
 			vector<Flag> list {flg};

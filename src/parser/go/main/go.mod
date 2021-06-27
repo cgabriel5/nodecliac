@@ -1,4 +1,4 @@
-module nodecliac
+module github.com/cgabriel5/compiler
 
 go 1.16
 

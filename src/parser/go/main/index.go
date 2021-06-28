@@ -3,7 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/cgabriel5/compiler/utils/args"
+	"github.com/cgabriel5/compiler/utils/debug"
 	"github.com/cgabriel5/compiler/utils/fs"
+	"github.com/cgabriel5/compiler/utils/slices"
 	"github.com/fatih/color"
 	"io/ioutil"
 	"os"
@@ -12,27 +15,6 @@ import (
 	"strconv"
 	"strings"
 )
-
-// [https://stackoverflow.com/a/46381939]
-func Usage() {
-
-}
-
-// [https://stackoverflow.com/a/62951339]
-func X(x ...interface{}) {}
-
-// [https://freshman.tech/snippets/go/check-if-slice-contains-element/]
-// https://play.golang.org/p/Qg_uv_inCek
-// [https://stackoverflow.com/a/10485970]
-// contains checks if a string is present in a slice
-func contains(s []string, str string) bool {
-	for _, v := range s {
-		if v == str {
-			return true
-		}
-	}
-	return false
-}
 
 func main() {
 
@@ -46,14 +28,14 @@ func main() {
 	}
 
 	action := os.Args[1]
-	if !contains([]string{"make", "format"}, action) {
+	if !slices.Contains([]string{"make", "format"}, action) {
 		bold := color.New(color.Bold).SprintFunc()
 		fmt.Println("Unknown command " + bold(action) + ".")
 		os.Exit(0)
 	}
 
 	flagset := flag.NewFlagSet("make", flag.ContinueOnError)
-	flagset.Usage = Usage // Override default usage function.
+	flagset.Usage = args.Usage // Override default usage function.
 
 	// [https://www.rapid7.com/blog/post/2016/08/04/build-a-simple-cli-tool-with-golang/]
 	// [https://gobyexample.com/command-line-flags]
@@ -145,6 +127,6 @@ func main() {
 	// if err != nil { panic(err) }
 	res := string(data)
 
-	X(res, dirname, cmdname, igc, test, print, trace)
+	debug.X(res, dirname, cmdname, igc, test, print, trace)
 
 }

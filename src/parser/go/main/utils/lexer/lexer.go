@@ -262,7 +262,8 @@ var cmdscope = false
 var valuelist = false // Value list.
 var brcparens []int
 
-func Tokenizer(text string) {
+func Tokenizer(text string) (
+	[]Token, map[int]string, []int, map[int]int, map[int]int) {
 	l := len(text)
 
 	var S = State{
@@ -421,4 +422,6 @@ func Tokenizer(text string) {
 	S.Start = -1
 	S.End = -1
 	add_token(&S, text)
+
+	return tokens, ttypes, ttids, dtids, LINESTARTS
 }

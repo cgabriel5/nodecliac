@@ -7,6 +7,7 @@ import (
 	"github.com/cgabriel5/compiler/utils/debug"
 	"github.com/cgabriel5/compiler/utils/fs"
 	"github.com/cgabriel5/compiler/utils/slices"
+	"github.com/cgabriel5/compiler/utils/structs"
 	"github.com/fatih/color"
 	"io/ioutil"
 	"os"
@@ -15,6 +16,8 @@ import (
 	"strconv"
 	"strings"
 )
+
+type TabData = structs.TabData
 
 func main() {
 
@@ -57,12 +60,7 @@ func main() {
 	// if err := flagset.Parse(os.Args[2:]); err != nil {}
 	// flagset.Args() // Positional arguments.
 
-	// [https://www.callicoder.com/golang-basic-types-operators-type-conversion/]
-	type tabdata struct {
-		ichar   byte
-		iamount int
-	}
-	fmtinfo := tabdata{'\t', 1}
+	fmtinfo := TabData{'\t', 1}
 
 	// Parse/validate indentation.
 	if formatting && *indent != "" {
@@ -73,15 +71,15 @@ func main() {
 		}
 		components := strings.Split(*indent, ":")
 		if components[0] == "s" {
-			fmtinfo.ichar = ' '
+			fmtinfo.Ichar = ' '
 		} else {
-			fmtinfo.ichar = '\t'
+			fmtinfo.Ichar = '\t'
 		}
 		// [https://stackoverflow.com/a/4279644]
 		i, err := strconv.Atoi(components[1])
 		if err == nil {
 			os.Exit(2)
-			fmtinfo.iamount = i
+			fmtinfo.Iamount = i
 		}
 	}
 

@@ -12,3 +12,11 @@ func Contains(s []string, str string) bool {
 	}
 	return false
 }
+
+// [https://stackoverflow.com/a/52550607]
+func Pop(s *[]int) int {
+	l := len(*s)
+	last := (*s)[l-1]
+	*s = append((*s)[:l-1])
+	return last
+}

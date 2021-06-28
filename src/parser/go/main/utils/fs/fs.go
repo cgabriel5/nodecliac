@@ -12,7 +12,7 @@ import (
 // [https://stackoverflow.com/a/39491635]
 // [https://stackoverflow.com/a/63636447]
 // import t "github.com/cgabriel5/parser/utils/structs"
-type FileInfo structs.FileInfo
+type FileInfo = structs.FileInfo
 
 func Info(p string) FileInfo {
 	var fi = FileInfo{}

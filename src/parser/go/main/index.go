@@ -7,6 +7,7 @@ import (
 	"github.com/cgabriel5/compiler/utils/debug"
 	"github.com/cgabriel5/compiler/utils/fs"
 	"github.com/cgabriel5/compiler/utils/slices"
+	"github.com/cgabriel5/compiler/utils/parser"
 	"github.com/cgabriel5/compiler/utils/structs"
 	"github.com/fatih/color"
 	"io/ioutil"
@@ -124,6 +125,8 @@ func main() {
 	data, err := ioutil.ReadFile(*source)
 	// if err != nil { panic(err) }
 	res := string(data)
+
+	parser.Parser(action, res, cmdname, *source, fmtinfo, *trace, *igc, *test)
 
 	debug.X(res, dirname, cmdname, igc, test, print, trace)
 

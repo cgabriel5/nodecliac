@@ -6,6 +6,7 @@ import (
 	"github.com/cgabriel5/compiler/utils/debug"
 	"github.com/cgabriel5/compiler/utils/slices"
 	"github.com/cgabriel5/compiler/utils/defvars"
+	"github.com/cgabriel5/compiler/utils/issue"
 	"strings"
 	"regexp"
 )
@@ -14,6 +15,7 @@ type TabData = structs.TabData
 type Token = structs.Token
 type StateParse = structs.StateParse
 type Flag = structs.Flag
+type Warning = structs.Warning
 
 // [https://stackoverflow.com/a/25096729]
 var r = regexp.MustCompile(`(^|[^\\])(\$\{\s*[^}]*\s*\})`)
@@ -61,6 +63,83 @@ func tkstr(S *StateParse, tid int) string {
 	return S.Text[start:end + 1]
 }
 
+func err(S *StateParse, tid int, message string, pos string, scope string) {
+	// When token ID points to end-of-parsing token,
+	// reset the id to the last true token before it.
+	if S.LexerData.Tokens[tid].Kind == "tkEOP" {
+		tid = S.LexerData.Ttids[len(S.LexerData.Ttids) - 1]
+	}
+
+	token := &(S.LexerData.Tokens[tid])
+	line := token.Line
+	var index int
+	if pos == "start" {
+		index = token.Start
+	} else {
+		index = token.End
+	}
+	col := index - S.LexerData.LINESTARTS[line]
+
+	if strings.HasSuffix(message, ":") { message += " '" + tkstr(S, tid) + "'" }
+
+	// Add token debug information.
+	// dbeugmsg = "\n\n\033[1mToken\033[0m: "
+	// dbeugmsg += "\n - tid: " + str(token["tid"])
+	// dbeugmsg += "\n - kind: " + token["kind"]
+	// dbeugmsg += "\n - line: " + str(token["line"])
+	// dbeugmsg += "\n - start: " + str(token["start"])
+	// dbeugmsg += "\n - end: " + str(token["end"])
+	// dbeugmsg += "\n __val__: [" + tkstr(tid) + "]"
+
+	// dbeugmsg += "\n\n\033[1mExpected\033[0m: "
+	// for n in NEXT:
+	//     if not n: n = "\"\""
+	//     dbeugmsg += "\n - " + n
+	// dbeugmsg += "\n\n\033[1mScopes\033[0m: "
+	// for s in SCOPE:
+	//     dbeugmsg += "\n - " + s
+	// decor = "-" * 15
+	// msg += "\n\n" + decor + " TOKEN_DEBUG_INFO " + decor
+	// msg += dbeugmsg
+	// msg += "\n\n" + decor + " TOKEN_DEBUG_INFO " + decor
+
+	issue.Issue_error(S.Filename, line, col, message)
+}
+
+func warn(S *StateParse, tid int, message string) {
+	token := &(S.LexerData.Tokens[tid])
+	line := token.Line
+	index := token.Start
+	col := index - S.LexerData.LINESTARTS[line]
+
+	if strings.HasSuffix(message, ":") { message += " '" + tkstr(S, tid) + "'" }
+
+	if _, exists := S.Warnings[line]; !exists {
+		S.Warnings[line] = []Warning{}
+	}
+
+	var warning = Warning{
+		Filename: S.Filename,
+		Line: line,
+		Column: col,
+		Message: message,
+	}
+
+	S.Warnings[line] = append(S.Warnings[line], warning)
+	S.Warn_lines.Insert(line)
+}
+
+func hint(S *StateParse, tid int, message string) {
+	token := &(S.LexerData.Tokens[tid])
+	line := token.Line
+	index := token.Start
+	col := index - S.LexerData.LINESTARTS[line]
+
+	if strings.HasSuffix(message, ":") { message += " '" + tkstr(S, tid) + "'" }
+
+	issue.Issue_hint(S.Filename, line, col, message)
+}
+
 func addtoken(S *StateParse, i int) {
 	// Interpolate/track interpolation indices for string.
 	if S.LexerData.Tokens[i].Kind == "tkSTR" {
@@ -86,7 +165,7 @@ func addtoken(S *StateParse, i int) {
 					// Note: Modify token index to point to
 					// start of the variable position.
 					S.LexerData.Tokens[S.Tid].Start += start
-					// err(S, ttid, "Undefined variable", "start", "child")
+					err(S, ttid, "Undefined variable", "start", "child")
 				}
 
 				USED_VARS[varname] = 1
@@ -342,7 +421,7 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 				addtoken(&S, ttid)
 
 				if len(NEXT) > 0 && !nextany() {
-					// err(S, ttid, "Improper termination", "start", "child")
+					err(&S, ttid, "Improper termination", "start", "child")
 				}
 			}
 
@@ -358,7 +437,7 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 				lbranch := &BRANCHES[len(BRANCHES)-1]
 				ltoken := (*lbranch)[len(*lbranch)-1] // Last branch token.
 				if line == ltoken.Line && ltoken.Kind != "tkTRM" {
-					// err(S, ttid, "Improper termination", "start", "parent")
+					err(&S, ttid, "Improper termination", "start", "parent")
 				}
 			}
 
@@ -403,7 +482,7 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 
 						command := tkstr(&S, S.Tid)
 						if (command != "*" && command != cmdname) {
-							// warn(S, S.Tid, "Unexpected command:")
+							warn(&S, S.Tid, "Unexpected command:")
 						}
 					}
 				} else {
@@ -412,7 +491,7 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 						list := []string{""}
 						expect(&list)
 					} else { // Handle unexpected parent tokens.
-						// err(S, S.Tid, "Unexpected token:", "start", "parent")
+						err(&S, S.Tid, "Unexpected token:", "start", "parent")
 					}
 				}
 			}
@@ -447,7 +526,7 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 					continue
 
 				} else {
-					// err(S, S.Tid, "Unexpected token:", "start", "child")
+					err(&S, S.Tid, "Unexpected token:", "start", "child")
 				}
 			}
 
@@ -461,7 +540,7 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 				if oneliner == -1 {
 					oneliner = token.Line
 				} else if token.Line != oneliner {
-					// err(S, S.Tid, "Improper oneliner", "start", "child")
+					err(&S, S.Tid, "Improper oneliner", "start", "child")
 				}
 			}
 
@@ -662,7 +741,7 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 							newflag()
 
 							if hasscope("tkBRC_LB") && token.Line == prevtoken(&S).Line {
-								// err(S, S.Tid, "Flag same line (nth)", "start", "child")
+								err(&S, S.Tid, "Flag same line (nth)", "start", "child")
 							}
 							list := []string{"", "tkASG", "tkQMK",
 								"tkDCLN", "tkFVAL", "tkDPPE"}
@@ -676,7 +755,7 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 							popscope(1)
 
 							if hasscope("tkBRC_LB") && token.Line == prevtoken(&S).Line {
-								// err(S, S.Tid, "Keyword same line (nth)", "start", "child")
+								err(&S, S.Tid, "Keyword same line (nth)", "start", "child")
 							}
 							addscope(kind)
 							list := []string{"tkSTR", "tkDLS"}
@@ -712,7 +791,7 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 							prevtk := prevtoken(&S)
 							if prevtk.Kind == "tkBRC_LP" {
 								if prevtk.Line == line {
-									// err(S, S.Tid, "Option same line (first)", "start", "child")
+									err(&S, S.Tid, "Option same line (first)", "start", "child")
 								}
 								addscope("tkOPTS")
 								list := []string{"tkFVAL", "tkSTR", "tkDLS"}
@@ -755,7 +834,7 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 
 							prevtk := prevtoken(&S)
 							if prevtk.Kind == "tkBRC_LP" {
-								// warn(S, prevtk.tid, "Empty scope (flag)")
+								warn(&S, prevtk.Tid, "Empty scope (flag)")
 							}
 						}
 						// // [TODO] Pathway needed?
@@ -834,7 +913,7 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 					switch kind {
 						case "tkFOPT": {
 							if prevtoken(&S).Line == line {
-								// err(S, S.Tid, "Option same line (nth)", "start", "child")
+								err(&S, S.Tid, "Option same line (nth)", "start", "child")
 							}
 							list := []string{"tkFVAL", "tkSTR", "tkDLS"}
 							expect(&list)
@@ -869,7 +948,7 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 							newflag()
 
 							if hasscope("tkBRC_LB") && token.Line == prevtoken(&S).Line {
-								// err(S, S.Tid, "Flag same line (first)", "start", "child")
+								err(&S, S.Tid, "Flag same line (first)", "start", "child")
 							}
 							addscope(kind)
 							list := []string{"tkASG", "tkQMK", "tkDCLN",
@@ -880,7 +959,7 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 							newflag()
 
 							if hasscope("tkBRC_LB") && token.Line == prevtoken(&S).Line {
-								// err(S, S.Tid, "Keyword same line (first)", "start", "child")
+								err(&S, S.Tid, "Keyword same line (first)", "start", "child")
 							}
 							addscope(kind)
 							list := []string{"tkSTR", "tkDLS", "tkBRC_RB"}
@@ -893,7 +972,7 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 
 							prevtk := prevtoken(&S)
 							if prevtk.Kind == "tkBRC_LB" {
-								// warn(S, prevtk.tid, "Empty scope (command)")
+								warn(&S, prevtk.Tid, "Empty scope (command)")
 							}
 						}
 					}
@@ -976,17 +1055,14 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 
 							command := tkstr(&S, S.Tid)
 							if (command != "*" && command != cmdname) {
-							// 	warn(S, S.Tid, "Unexpected command:")
+								warn(&S, S.Tid, "Unexpected command:")
 							}
 						}
 
 					}
 
 				default:
-					favnum := 1334
-					debug.X(favnum)
-					// err(S, S.LexerData.tokens[S.Tid].tid, "Unexpected token:", "end")
-
+					err(&S, S.LexerData.Tokens[S.Tid].Tid, "Unexpected token:", "end", "")
 			}
 
 		}

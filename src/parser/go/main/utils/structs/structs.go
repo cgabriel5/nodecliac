@@ -1,5 +1,9 @@
 package structs
 
+import (
+	"k8s.io/apimachinery/pkg/util/sets"
+)
+
 type Token struct {
 	Kind, Str_rep string
 	Line, Start, End, Tid int
@@ -49,8 +53,8 @@ type StateParse struct {
 	Ubids []int
 	Excludes []string
 	Warnings map[int][]Warning
-	Warn_lines []int // set?
-	Warn_lsort []int // set?
+	Warn_lines sets.Int
+	Warn_lsort sets.Int
 }
 
 type Flag struct {

@@ -8,8 +8,10 @@ import (
 	"github.com/cgabriel5/compiler/utils/defvars"
 	"github.com/cgabriel5/compiler/utils/issue"
 	"github.com/cgabriel5/compiler/utils/validation"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"strings"
 	"regexp"
+	"sort"
 )
 
 type TabData = structs.TabData
@@ -383,6 +385,12 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 	S.LexerData.Ttids = ttids
 	S.LexerData.Dtids = dtids
 	S.LexerData.LINESTARTS = LINESTARTS
+
+	// [https://medium.com/@KeithAlpichi/go-gotcha-nil-maps-66b851c50475]
+	S.Warnings = make(map[int][]Warning)
+	// [https://play.golang.org/p/c0QmcLhxKk4]
+	S.Warn_lines = make(sets.Int)
+	S.Warn_lsort = make(sets.Int)
 
 	// Add builtin variables to variable table.
 	for key, value := range defvars.Builtins(cmdname) {
@@ -1072,5 +1080,33 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 		debug.X(S.Tid, kind, line, start, end)
 
 		i += 1
+	}
+
+	// Check for any unused variables and give warning.
+	for uservar, value := range USER_VARS {
+	    if _, exists := USED_VARS[uservar]; !exists {
+	        for _, tid := range value {
+	            warn(&S, tid, "Unused variable: " + "'" + uservar + "'")
+	            S.Warn_lsort.Insert(tokens[tid].Line)
+			}
+		}
+	}
+
+	// Sort warning lines and print issues.
+	warnlines := S.Warn_lines.List()
+	for _, warnline := range warnlines {
+	    // Only sort lines where unused variable warning(s) were added.
+	    if _, exists := S.Warn_lsort[warnline]; exists && len(S.Warnings[warnline]) > 1 {
+			warnings := S.Warnings[warnline]
+			// [https://stackoverflow.com/a/42872183]
+			// [https://yourbasic.org/golang/how-to-sort-in-go/]
+			sort.Slice(warnings, func(a, b int) bool {
+				return warnings[a].Column < warnings[b].Column
+			})
+		}
+	    for _, warning := range S.Warnings[warnline] {
+	        issue.Issue_warn(warning.Filename, warning.Line,
+	        	warning.Column, warning.Message)
+		}
 	}
 }

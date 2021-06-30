@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"github.com/cgabriel5/compiler/utils/debug"
 	"github.com/cgabriel5/compiler/utils/defvars"
 	"github.com/cgabriel5/compiler/utils/issue"
 	"github.com/cgabriel5/compiler/utils/lexer"
@@ -1132,7 +1131,6 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 						popscope(1)
 						list := []string{"", "tkDDOT", "tkASG", "tkDCMA"}
 						expect(&list)
-						debug.X(list)
 
 						command := tkstr(&S, S.Tid)
 						if command != "*" && command != cmdname {
@@ -1147,9 +1145,6 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 			}
 
 		}
-
-		// fmt.Println(S.Tid, kind, line, start, end)
-		debug.X(S.Tid, kind, line, start, end)
 
 		i += 1
 	}

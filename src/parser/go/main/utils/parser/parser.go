@@ -590,9 +590,9 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 						}
 						case "tkSTR": {
 							addtoken_var_group(S.Tid)
-							// int size = BRANCHES.back().size()
-							// VARSTABLE[tkstr(S, BRANCHES.back()[size - 3].tid).substr(1)]
-							// = tkstr(S, S.Tid)
+							lbranch := &BRANCHES[len(BRANCHES)-1] // Last branch token.
+							size := len(*lbranch)
+							VARSTABLE[tkstr(&S, (*lbranch)[size - 3].Tid)[1:]] = tkstr(&S, S.Tid)
 
 							list := []string{""}
 							expect(&list)

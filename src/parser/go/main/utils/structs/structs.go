@@ -36,8 +36,8 @@ type Args struct {
 }
 
 type Warning struct {
-	filename, message string
-	line, column int
+	Filename, Message string
+	Line, Column int
 }
 
 type StateParse struct {
@@ -48,9 +48,9 @@ type StateParse struct {
 	Args Args
 	Ubids []int
 	Excludes []string
-	warnings map[int][]Warning
-	warn_lines []int // set?
-	warn_lsort []int // set?
+	Warnings map[int][]Warning
+	Warn_lines []int // set?
+	Warn_lsort []int // set?
 }
 
 type Flag struct {

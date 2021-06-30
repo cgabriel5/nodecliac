@@ -424,8 +424,8 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 		token := &tokens[i]
 		kind := token.Kind
 		line := token.Line
-		start := token.Start
-		end := token.End
+		// start := token.Start
+		// end := token.End
 		S.Tid = token.Tid
 
 		if kind == "tkNL" {

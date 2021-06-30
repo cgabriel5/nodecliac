@@ -7,6 +7,7 @@ import (
 	"github.com/cgabriel5/compiler/utils/slices"
 	"github.com/cgabriel5/compiler/utils/defvars"
 	"github.com/cgabriel5/compiler/utils/issue"
+	"github.com/cgabriel5/compiler/utils/validation"
 	"strings"
 	"regexp"
 )
@@ -454,7 +455,7 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 						addgroup_stn(&setting)
 						addtoken_stn_group(S.Tid)
 
-						// vsetting(S)
+						validation.Vsetting(&S)
 						list := []string{"", "tkASG"}
 						expect(&list)
 					} else if kind == "tkVAR" {
@@ -470,7 +471,7 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 						}
 						USER_VARS[varname] = append(USER_VARS[varname], S.Tid)
 
-						// vvariable(S)
+						validation.Vvariable(&S)
 						list := []string{"", "tkASG"}
 						expect(&list)
 					} else if kind == "tkCMD" {
@@ -559,7 +560,7 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 							list := []string{""}
 							expect(&list)
 
-							// vstring(S)
+							validation.Vstring(&S)
 						}
 						case "tkAVAL": {
 							addtoken_stn_group(S.Tid)
@@ -567,7 +568,7 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 							list := []string{""}
 							expect(&list)
 
-							// vsetting_aval(S)
+							validation.Vsetting_aval(&S)
 						}
 					}
 				case "tkVAR":
@@ -588,7 +589,7 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 							list := []string{""}
 							expect(&list)
 
-							// vstring(S)
+							validation.Vstring(&S)
 						}
 					}
 

@@ -5,6 +5,9 @@ import (
 	"github.com/cgabriel5/compiler/utils/lexer"
 	"github.com/cgabriel5/compiler/utils/debug"
 	"github.com/cgabriel5/compiler/utils/slices"
+	"github.com/cgabriel5/compiler/utils/defvars"
+	"strings"
+	"regexp"
 )
 
 type TabData = structs.TabData
@@ -12,8 +15,8 @@ type Token = structs.Token
 type StateParse = structs.StateParse
 type Flag = structs.Flag
 
-// std::string re(R"((^|[^\\])(\$\{\s*[^}]*\s*\}))")
-// std::regex r(re)
+// [https://stackoverflow.com/a/25096729]
+var r = regexp.MustCompile(`(^|[^\\])(\$\{\s*[^}]*\s*\})`)
 
 var tkTYPES_1 = []string{"tkSTN", "tkVAR", "tkCMD"}
 var tkTYPES_2 = []string{"tkFLG", "tkKYW"}
@@ -40,68 +43,75 @@ var SETTINGS = [][]int{}
 var variable []int
 var VARIABLES = [][]int{}
 
-var USED_VARS map[string]int
-var USER_VARS map[string][]int
-var VARSTABLE map[string]string // = builtins(cmdname)
-var vindices map[int][][]int
+var USED_VARS = make(map[string]int)
+var USER_VARS = make(map[string][]int)
+var VARSTABLE = make(map[string]string) // = builtins(cmdname)
+// [https://stackoverflow.com/a/15178302]
+var vindices = make(map[int][][]int)
+
+func tkstr(S *StateParse, tid int) string {
+	if tid == -1 { return "" }
+	// Return interpolated string for string tokens.
+	tk := &(S.LexerData.Tokens[tid])
+	if tk.Kind == "tkSTR" {
+		if tk.Str_rep != "" { return tk.Str_rep }
+	}
+	start := tk.Start
+	end := tk.End
+	return S.Text[start:end + 1]
+}
 
 func addtoken(S *StateParse, i int) {
-	// // Interpolate/track interpolation indices for string.
-	// if (S.LexerData.tokens[i].kind == "tkSTR") {
-	// 	string value = tkstr(S, i)
-	// 	S.LexerData.tokens[i].$ = value
+	// Interpolate/track interpolation indices for string.
+	if S.LexerData.Tokens[i].Kind == "tkSTR" {
+		value := tkstr(S, i)
+		S.LexerData.Tokens[i].Str_rep = value
 
-	// 	if (!hasKey(vindices, i)) {
-	// 		int end_ = 0
-	// 		int pointer = 0
-	// 		string tmpstr = ""
+		if _, exists := vindices[i]; !exists {
+			end_ := 0
+			pointer := 0
+			tmpstr := ""
 
-	// 		vector<vector<int>> vindice_data
-	// 		vindices[i] = vindice_data
+			vindices[i] = [][]int{}
 
-	// 		// [https://stackoverflow.com/a/32553718]
-	// 		// [https://www.geeksforgeeks.org/program-to-find-all-match-of-a-regex-in-a-string/]
-	// 		sregex_iterator it(value.begin(), value.end(), r)
-	// 		sregex_iterator end
-	// 		while(it != end) {
-	// 			smatch match
-	// 			match = *it
+			// [https://stackoverflow.com/a/43795154]
+			// [https://stackoverflow.com/q/31976346]
+			matches := r.FindAllStringIndex(value, -1)
+			for _, match := range matches {
+				start := match[0] + 1
+				end_ := match[1]
+				varname := strings.TrimSpace(value[start + 2 : end_ - 1])
 
-	// 			for(int i = 1; i < it->size(); ++i) {
-	// 				int start = match.position(1) + 1
-	// 				end_ = start + match[i].length() - 1
-	// 				string varname = match.str(0).substr(3, match.str(0).length() - 4)
-	// 				trim(varname)
+				if _, exists := VARSTABLE[varname]; !exists {
+					// Note: Modify token index to point to
+					// start of the variable position.
+					S.LexerData.Tokens[S.Tid].Start += start
+					// err(S, ttid, "Undefined variable", "start", "child")
+				}
 
-	// 				if (!hasKey(VARSTABLE, varname)) {
-	// 					// Note: Modify token index to point to
-	// 					// start of the variable position.
-	// 					S.LexerData.tokens[S.Tid].start += start
-	// 					err(S, ttid, "Undefined variable", "start", "child")
-	// 				}
+				USED_VARS[varname] = 1
+				vindices[i] = append(vindices[i], []int{start, end_})
 
-	// 				USED_VARS[varname] = 1
-	// 				vector<int> list {start, end_}
-	// 				vindices[i].push_back(list)
+				tmpstr += value[pointer:start]
+				sub, _ := VARSTABLE[varname]
+				if sub != "" {
+					if (sub[0] != '"' || sub[1] != '\'') {
+						tmpstr += sub
+					} else {
+						// Unquote string if quoted.
+						tmpstr += sub[1:len(sub) - 2]
+					}
+				}
+				pointer = end_
+			}
 
-	// 				tmpstr += value.substr(pointer, start - pointer)
-	// 				auto itv = VARSTABLE.find(varname)
-	// 				string sub = (itv != VARSTABLE.end()) ? itv->second : ""
+			// Get tail-end of string.
+			tmpstr += value[:end_]
+			S.LexerData.Tokens[i].Str_rep = tmpstr
 
-	// 				// Unquote string if quoted.
-	// 				tmpstr += (sub[0] != '"' || sub[0] != '\'') ? sub : sub.substr(1, sub.length() - 2)
-	// 				pointer = end_
-	// 			}
-	// 			++it
-	// 		}
-
-	// 		// Get tail-end of string.
-	// 		tmpstr += value.substr(end_)
-	// 		S.LexerData.tokens[i].$ = tmpstr
-
-	// 		if (vindices[i].empty()) { vindices.erase(i); }
-	// 	}
-	// }
+			if len(vindices[i]) == 0 { delete(vindices, i) }
+		}
+	}
 
 	BRANCHES[len(BRANCHES)-1] = append(BRANCHES[len(BRANCHES)-1], S.LexerData.Tokens[i])
 }
@@ -207,11 +217,8 @@ func setflagprop(prop string, prev_val_group bool) {
 		if !prev_val_group {
 			*values = append(*values, []int{S.Tid})
 		} else {
-			// [TODO] Why is this check needed?
-            if len(*values) > 0 {
-	            lval := &(*values)[len(*values) - 1]
-	            *lval = append(*lval, S.Tid)
-	        }
+			lval := &(*values)[len(*values) - 1]
+			*lval = append(*lval, S.Tid)
 		}
 	}
 }
@@ -297,6 +304,11 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 	S.LexerData.Dtids = dtids
 	S.LexerData.LINESTARTS = LINESTARTS
 
+	// Add builtin variables to variable table.
+	for key, value := range defvars.Builtins(cmdname) {
+		VARSTABLE[key] = value
+	}
+
 	// =========================================================================
 
 	i := 0
@@ -371,14 +383,13 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 						addgroup_var(&variable)
 						addtoken_var_group(S.Tid)
 
-						// string varname = tkstr(S, S.Tid).substr(1)
-						// VARSTABLE[varname] = ""
+						varname := tkstr(&S, S.Tid)[1:]
+						VARSTABLE[varname] = ""
 
-						// if (!hasKey(USER_VARS, varname)) {
-						// 	vector<int> list
-						// 	USER_VARS[varname] = list
-						// }
-						// USER_VARS[varname].push_back(S.Tid)
+						if _, exists := USER_VARS[varname]; !exists {
+							USER_VARS[varname] = []int{}
+						}
+						USER_VARS[varname] = append(USER_VARS[varname], S.Tid)
 
 						// vvariable(S)
 						list := []string{"", "tkASG"}
@@ -390,10 +401,10 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 						list := []string{"", "tkDDOT", "tkASG", "tkDCMA"}
 						expect(&list)
 
-						// string command = tkstr(S, S.Tid)
-						// if (command != "*" && command != cmdname) {
-						// 	warn(S, S.Tid, "Unexpected command:")
-						// }
+						command := tkstr(&S, S.Tid)
+						if (command != "*" && command != cmdname) {
+							// warn(S, S.Tid, "Unexpected command:")
+						}
 					}
 				} else {
 					if kind == "tkCMT" {
@@ -418,11 +429,11 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 			if hasscope("tkBRC_LB") {
 				if hasnext("tkDPPE") {
 					// [https://stackoverflow.com/a/18203895]
-				    index := slices.Index(len(NEXT), func(i int) bool {
-				    	return NEXT[i] == "tkDPPE"
-				    })
-				    // [https://stackoverflow.com/a/63735707]
-				    if index > -1 { NEXT = append(NEXT[:index], NEXT[index+1:]...) }
+					index := slices.Index(len(NEXT), func(i int) bool {
+						return NEXT[i] == "tkDPPE"
+					})
+					// [https://stackoverflow.com/a/63735707]
+					if index > -1 { NEXT = append(NEXT[:index], NEXT[index+1:]...) }
 					NEXT = append(NEXT, "tkFLG", "tkKYW", "tkBRC_RB")
 				}
 			}
@@ -892,22 +903,20 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 						case "tkSTR": {
 							setflagprop("values", false)
 
-							// // Collect exclude values for use upstream.
-							// if _, exists := S.LexerData.Dtids[S.Tid]; exists {
-							// 	prevtk := prevtoken(&S)
-							// 	if prevtk.Kind == "tkKYW" &&
-							// 		tkstr(S, prevtk.tid) == "exclude") {
-							// 		string exvalues = tkstr(S, prevtk.tid)
-							// 		exvalues = exvalues.substr(1, exvalues.length() - 2)
-							// 		trim(exvalues)
-							// 		vector<string> excl_values
-							// 		split(excl_values, exvalues, ";")
+							// Collect exclude values for use upstream.
+							if _, exists := S.LexerData.Dtids[S.Tid]; exists {
+								prevtk := prevtoken(&S)
+								if prevtk.Kind == "tkKYW" &&
+									tkstr(&S, prevtk.Tid) == "exclude" {
+									exvalues := tkstr(&S, prevtk.Tid)
+									exvalues = strings.TrimSpace(exvalues[1:len(exvalues)-2])
+									excl_values := strings.Split(exvalues, ";")
 
-							// 		for (auto &exvalue : excl_values) {
-							// 			S.Excludes.push_back(exvalue)
-							// 		}
-							// 	}
-							// }
+									for _, exvalue := range excl_values {
+										S.Excludes = append(S.Excludes, exvalue)
+									}
+								}
+							}
 
 							// [TODO] This pathway re-uses the flag (tkFLG) token
 							// pathways. If the keyword syntax were to change
@@ -965,10 +974,10 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 							expect(&list)
 							debug.X(list)
 
-							// string command = tkstr(S, S.Tid)
-							// if (command != "*" && command != cmdname) {
+							command := tkstr(&S, S.Tid)
+							if (command != "*" && command != cmdname) {
 							// 	warn(S, S.Tid, "Unexpected command:")
-							// }
+							}
 						}
 
 					}

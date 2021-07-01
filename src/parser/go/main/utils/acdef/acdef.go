@@ -458,7 +458,8 @@ func Acdef(S *StateParse,
 	cchains *[][][]int,
 	flags *map[int][]Flag,
 	settings *[][]int,
-	cmdname string) (string, string, string, string, string, string, map[string]string, string) {
+	cmdname string) (string, string, string, string,
+		string, string, map[string]string, string) {
 
 	// Collect all universal block flags.
 	for _, ubid := range S.Ubids {

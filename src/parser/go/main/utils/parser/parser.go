@@ -8,7 +8,7 @@ import (
 	"github.com/cgabriel5/compiler/utils/slices"
 	"github.com/cgabriel5/compiler/utils/structs"
 	"github.com/cgabriel5/compiler/utils/validation"
-	"github.com/cgabriel5/compiler/utils/debug"
+	ps "github.com/cgabriel5/compiler/utils/parsetools"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"regexp"
 	"sort"
@@ -56,22 +56,6 @@ var VARSTABLE = make(map[string]string) // = builtins(cmdname)
 // [https://stackoverflow.com/a/15178302]
 var vindices = make(map[int][][]int)
 
-func tkstr(S *StateParse, tid int) string {
-	if tid == -1 {
-		return ""
-	}
-	// Return interpolated string for string tokens.
-	tk := &(S.LexerData.Tokens[tid])
-	if tk.Kind == "tkSTR" {
-		if tk.Str_rep != "" {
-			return tk.Str_rep
-		}
-	}
-	start := tk.Start
-	end := tk.End
-	return S.Text[start : end+1]
-}
-
 func err(S *StateParse, tid int, message string, pos string, scope string) {
 	// When token ID points to end-of-parsing token,
 	// reset the id to the last true token before it.
@@ -90,7 +74,7 @@ func err(S *StateParse, tid int, message string, pos string, scope string) {
 	col := index - S.LexerData.LINESTARTS[line]
 
 	if strings.HasSuffix(message, ":") {
-		message += " '" + tkstr(S, tid) + "'"
+		message += " '" + ps.Tkstr(S, tid) + "'"
 	}
 
 	// Add token debug information.
@@ -100,7 +84,7 @@ func err(S *StateParse, tid int, message string, pos string, scope string) {
 	// dbeugmsg += "\n - line: " + str(token["line"])
 	// dbeugmsg += "\n - start: " + str(token["start"])
 	// dbeugmsg += "\n - end: " + str(token["end"])
-	// dbeugmsg += "\n __val__: [" + tkstr(tid) + "]"
+	// dbeugmsg += "\n __val__: [" + ps.Tkstr(tid) + "]"
 
 	// dbeugmsg += "\n\n\033[1mExpected\033[0m: "
 	// for n in NEXT:
@@ -124,7 +108,7 @@ func warn(S *StateParse, tid int, message string) {
 	col := index - S.LexerData.LINESTARTS[line]
 
 	if strings.HasSuffix(message, ":") {
-		message += " '" + tkstr(S, tid) + "'"
+		message += " '" + ps.Tkstr(S, tid) + "'"
 	}
 
 	if _, exists := S.Warnings[line]; !exists {
@@ -149,7 +133,7 @@ func hint(S *StateParse, tid int, message string) {
 	col := index - S.LexerData.LINESTARTS[line]
 
 	if strings.HasSuffix(message, ":") {
-		message += " '" + tkstr(S, tid) + "'"
+		message += " '" + ps.Tkstr(S, tid) + "'"
 	}
 
 	issue.Issue_hint(S.Filename, line, col, message)
@@ -158,7 +142,7 @@ func hint(S *StateParse, tid int, message string) {
 func addtoken(S *StateParse, i int) {
 	// Interpolate/track interpolation indices for string.
 	if S.LexerData.Tokens[i].Kind == "tkSTR" {
-		value := tkstr(S, i)
+		value := ps.Tkstr(S, i)
 		S.LexerData.Tokens[i].Str_rep = value
 
 		if _, exists := vindices[i]; !exists {
@@ -491,7 +475,7 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 						addgroup_var(&variable)
 						addtoken_var_group(S.Tid)
 
-						varname := tkstr(&S, S.Tid)[1:]
+						varname := ps.Tkstr(&S, S.Tid)[1:]
 						VARSTABLE[varname] = ""
 
 						if _, exists := USER_VARS[varname]; !exists {
@@ -509,7 +493,7 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 						list := []string{"", "tkDDOT", "tkASG", "tkDCMA"}
 						expect(&list)
 
-						command := tkstr(&S, S.Tid)
+						command := ps.Tkstr(&S, S.Tid)
 						if command != "*" && command != cmdname {
 							warn(&S, S.Tid, "Unexpected command:")
 						}
@@ -619,7 +603,7 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 						addtoken_var_group(S.Tid)
 						lbranch := &BRANCHES[len(BRANCHES)-1] // Last branch token.
 						size := len(*lbranch)
-						VARSTABLE[tkstr(&S, (*lbranch)[size-3].Tid)[1:]] = tkstr(&S, S.Tid)
+						VARSTABLE[ps.Tkstr(&S, (*lbranch)[size-3].Tid)[1:]] = ps.Tkstr(&S, S.Tid)
 
 						list := []string{""}
 						expect(&list)
@@ -1066,8 +1050,8 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 						if _, exists := S.LexerData.Dtids[S.Tid]; exists {
 							prevtk := prevtoken(&S)
 							if prevtk.Kind == "tkKYW" &&
-								tkstr(&S, prevtk.Tid) == "exclude" {
-								exvalues := tkstr(&S, prevtk.Tid)
+								ps.Tkstr(&S, prevtk.Tid) == "exclude" {
+								exvalues := ps.Tkstr(&S, prevtk.Tid)
 								exvalues = strings.TrimSpace(exvalues[1 : len(exvalues)-2])
 								excl_values := strings.Split(exvalues, ";")
 
@@ -1135,7 +1119,7 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 						list := []string{"", "tkDDOT", "tkASG", "tkDCMA"}
 						expect(&list)
 
-						command := tkstr(&S, S.Tid)
+						command := ps.Tkstr(&S, S.Tid)
 						if command != "*" && command != cmdname {
 							warn(&S, S.Tid, "Unexpected command:")
 						}

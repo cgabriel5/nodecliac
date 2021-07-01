@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"github.com/cgabriel5/compiler/utils/slices"
 	"github.com/cgabriel5/compiler/utils/structs"
+	ps "github.com/cgabriel5/compiler/utils/parsetools"
 	"github.com/elliotchance/orderedmap"
 	"regexp"
 	"sort"
@@ -43,22 +44,6 @@ var has_root = false
 var re_cmdname *regexp.Regexp
 var re_space = regexp.MustCompile("\\s")
 var re_space_cl = regexp.MustCompile(";\\s+")
-
-func tkstr(S *StateParse, tid int) string {
-	if tid == -1 {
-		return ""
-	}
-	// Return interpolated string for string tokens.
-	tk := &(S.LexerData.Tokens[tid])
-	if tk.Kind == "tkSTR" {
-		if tk.Str_rep != "" {
-			return tk.Str_rep
-		}
-	}
-	start := tk.Start
-	end := tk.End
-	return S.Text[start : end+1]
-}
 
 type Cobj struct {
 	i, m      int
@@ -202,9 +187,9 @@ func get_cmdstr(S *StateParse, start int, stop int) string {
 		if S.LexerData.Tokens[tid].Kind == allowed_tk_types[0] ||
 			S.LexerData.Tokens[tid].Kind == allowed_tk_types[1] {
 			if len(output) > 0 && output[len(output)-1] == "$" {
-				output[len(output)-1] = "$" + tkstr(S, tid)
+				output[len(output)-1] = "$" + ps.Tkstr(S, tid)
 			} else {
-				output = append(output, tkstr(S, tid))
+				output = append(output, ps.Tkstr(S, tid))
 			}
 		}
 	}
@@ -221,11 +206,11 @@ func processflags(S *StateParse, gid int,
 	var unions []Flag
 	for _, flg := range *flags {
 		tid := flg.Tid
-		assignment := tkstr(S, flg.Assignment)
-		boolean := tkstr(S, flg.Boolean)
-		alias := tkstr(S, flg.Alias)
-		flag := tkstr(S, tid)
-		ismulti := tkstr(S, flg.Multi)
+		assignment := ps.Tkstr(S, flg.Assignment)
+		boolean := ps.Tkstr(S, flg.Boolean)
+		alias := ps.Tkstr(S, flg.Alias)
+		flag := ps.Tkstr(S, tid)
+		ismulti := ps.Tkstr(S, flg.Multi)
 		union_ := flg.Union_ != -1
 		values := &(flg.Values)
 
@@ -262,7 +247,7 @@ func processflags(S *StateParse, gid int,
 			if len(*values) > 0 && flag != "exclude" {
 				value := ""
 				if len((*values)[0]) == 1 {
-					value = re_space.ReplaceAllString(tkstr(S, (*values)[0][0]), "")
+					value = re_space.ReplaceAllString(ps.Tkstr(S, (*values)[0][0]), "")
 					if flag == "context" {
 						value = value[1 : len(value)-1]
 					}
@@ -305,7 +290,7 @@ func processflags(S *StateParse, gid int,
 			for _, value := range *values {
 				// for (auto &value : values) {
 				if len(value) == 1 { // Single
-					(*queue_flags)[flag+assignment+tkstr(S, value[0])] = 1
+					(*queue_flags)[flag+assignment+ps.Tkstr(S, value[0])] = 1
 
 				} else { // Command-string
 					cmdstr := get_cmdstr(S, value[1]+1, value[2])
@@ -412,14 +397,14 @@ func make_chains(S *StateParse, ccids *[]int) []string {
 		}
 
 		if !grouping && cid != -1 {
-			slots = append(slots, tkstr(S, cid))
+			slots = append(slots, ps.Tkstr(S, cid))
 		} else if grouping {
 			if cid == -1 {
 				slots = append(slots, "?")
 				var list = []string{}
 				groups = append(groups, list)
 			} else {
-				groups[len(groups)-1] = append(groups[len(groups)-1], tkstr(S, cid))
+				groups[len(groups)-1] = append(groups[len(groups)-1], ps.Tkstr(S, cid))
 			}
 		}
 	}
@@ -539,12 +524,12 @@ func Acdef(S *StateParse,
 
 	// Populate settings object.
 	for _, setting := range *settings {
-		name := tkstr(S, setting[0])[1:]
+		name := ps.Tkstr(S, setting[0])[1:]
 		if name == "test" {
-			oTests = append(oTests, re_space_cl.ReplaceAllString(tkstr(S, setting[2]), ";"))
+			oTests = append(oTests, re_space_cl.ReplaceAllString(ps.Tkstr(S, setting[2]), ";"))
 		} else {
 			if len(setting) > 1 {
-				oSettings.Set(name, tkstr(S, setting[2]))
+				oSettings.Set(name, ps.Tkstr(S, setting[2]))
 			} else {
 				oSettings.Set(name, "")
 			}

@@ -478,7 +478,7 @@ func Acdef(S *StateParse,
 	datestring := now.Format("Mon Jan 02 2006 15:04:05")
 	ctime := datestring + " (" + strconv.Itoa(int(timestamp)) + ")"
 	header := "# DON'T EDIT FILE —— GENERATED: " + ctime + "\n\n"
-	// if (S.args.test) header = "";
+	if S.Args.Test { header = "" }
 
 	// Start building acmap contents. -------------------------------------------
 

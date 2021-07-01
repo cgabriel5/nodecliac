@@ -3,7 +3,6 @@ package acdef
 import (
 	"github.com/elliotchance/orderedmap"
 	"github.com/cgabriel5/compiler/utils/structs"
-	"github.com/cgabriel5/compiler/utils/debug"
 	"github.com/cgabriel5/compiler/utils/slices"
 	"regexp"
 	"strings"
@@ -228,8 +227,6 @@ func processflags(S *StateParse, gid int,
 		union_ := flg.Union_ != -1;
 		values := &(flg.Values)
 
-		debug.X(assignment, boolean, flag, ismulti)
-
 		kind := S.LexerData.Tokens[tid].Kind
 
 		if alias != "" && !recalias {
@@ -359,7 +356,6 @@ func build_kwstr(kwtype string,
 			chains = append(chains, key)
 		}
 	}
-	debug.X(output)
 	chains = mapsort(&chains, asort, aobj)
 
 	cl := len(chains) - 1
@@ -463,7 +459,6 @@ func Acdef(S *StateParse,
 	datestring := now.Format("Mon Jan 02 2006 15:04:05")
 	ctime := datestring + " (" + strconv.Itoa(int(timestamp)) + ")"
 	header := "# DON'T EDIT FILE —— GENERATED: " + ctime + "\n\n"
-	debug.X(header)
 	// if (S.args.test) header = "";
 
     // Start building acmap contents. -------------------------------------------

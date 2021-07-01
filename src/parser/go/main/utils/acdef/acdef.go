@@ -352,7 +352,7 @@ func populate_chain_flags(S *StateParse, gid int, chain string, container *map[s
 	} else {
 		// [https://stackoverflow.com/a/22220891]
 		for key, value := range *container {
-			src_container[key] = value
+			oSets[chain][key] = value
 		}
 	}
 }

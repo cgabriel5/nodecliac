@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"strings"
 	"strconv"
-	// "sort"
+	"sort"
 	"time"
 	"crypto/md5"
 	"encoding/hex"
@@ -101,30 +101,21 @@ func fobj(s string) Cobj {
 	return o
 }
 
-// func asort(a, b Cobj) bool {
-// 	// Resort to string length.
-// 	result := b.val > a.val
+func asort(s []Cobj) (func(int, int) bool) {
+	// [https://stackoverflow.com/a/52412444]
+	// [https://www.codegrepper.com/code-examples/go/golang+sort+array+of+structs]
+    return func(i, j int) bool {
+		// Resort to string length.
+		result := s[j].val > s[i].val
 
-// 	// Finally, resort to singleton.
-// 	if !result && a.single && b.single {
-// 		result = a.orig < b.orig
-// 	}
+		// Finally, resort to singleton.
+		if !result && s[i].single && s[j].single {
+			result = s[i].orig < s[j].orig
+		}
 
-// 	return result
-// }
-
-
-// func asort(i, j int) bool {
-// 	// Resort to string length.
-// 	result := T[1].val > T[0].val
-
-// 	// Finally, resort to singleton.
-// 	if !result && T[0].single && T[1].single {
-// 		result = T[0].orig < T[1].orig
-// 	}
-
-// 	return result
-// }
+		return result
+    }
+}
 
 // compare function: Gives precedence to flags ending with '=*' else
 //     falls back to sorting alphabetically.
@@ -138,37 +129,25 @@ func fobj(s string) Cobj {
 // @resource [https://stackoverflow.com/a/24292023]
 // @resource [http://www.javascripttutorial.net/javascript-array-sort/]
 // let sort = (a, b) => ~~b.endsWith("=*") - ~~a.endsWith("=*") || asort(a, b)
-// func fsort(a, b Cobj) bool {
-// 	// [https://stackoverflow.com/a/16894796]
-// 	// [https://www.cplusplus.com/articles/NhA0RXSz/]
-// 	// [https://stackoverflow.com/a/6771418]
-// 	result := false
+func fsort(s []Cobj) (func(int, int) bool) {
+	// [https://stackoverflow.com/a/52412444]
+	// [https://www.codegrepper.com/code-examples/go/golang+sort+array+of+structs]
+    return func(i, j int) bool {
+		// [https://stackoverflow.com/a/16894796]
+		// [https://www.cplusplus.com/articles/NhA0RXSz/]
+		// [https://stackoverflow.com/a/6771418]
+		result := false
 
-// 	// Give multi-flags precedence.
-// 	if a.m == 1 || b.m == 1 {
-// 		result = b.m < a.m
-// 	} else {
-// 		result = asort(a, b)
-// 	}
+		// Give multi-flags precedence.
+		if s[i].m == 1 || s[j].m == 1 {
+			result = s[j].m < s[i].m
+		} else {
+			result = asort(s)(i, j)
+		}
 
-// 	return result;
-// }
-
-// func fsort(i, j int) bool {
-// 	// [https://stackoverflow.com/a/16894796]
-// 	// [https://www.cplusplus.com/articles/NhA0RXSz/]
-// 	// [https://stackoverflow.com/a/6771418]
-// 	result := false
-
-// 	// Give multi-flags precedence.
-// 	if T[i].m == 1 || T[j].m == 1 {
-// 		result = T[j].m < T[i].m
-// 	} else {
-// 		result = asort(T[i], T[j])
-// 	}
-
-// 	return result;
-// }
+		return result
+    }
+}
 
 // Uses map sorting to reduce redundant preprocessing on array items.
 //
@@ -180,16 +159,20 @@ func fobj(s string) Cobj {
 // [https://www.codingame.com/playgrounds/15869/c-runnable-snippets/passing-a-function-as-parameter]
 func mapsort(A *[]string,
 		// [https://golangbyexample.com/func-as-func-argument-go/]
-		// comp func(a, b Cobj) bool,
-		comp func(i, j int) bool,
+		comp func(s []Cobj) (func(int, int) bool),
 		comp_obj func(s string) Cobj) []string {
+
+	l := len(*A)
 
 	T := []Cobj{} // Temp array.
 	// [https://stackoverflow.com/a/31009108]
-	R := []string{} // Result array.
+	// [https://tour.golang.org/moretypes/13]
+	// [https://stackoverflow.com/a/45423692]
+	// [https://stackoverflow.com/a/46346226]
+	R := make([]string, l, l) // Result array.
 
 	// Short-circuit when source array is empty.
-	if len(*A) == 0 { return R }
+	if l == 0 { return R }
 
 	var obj Cobj
 	i := 0
@@ -199,20 +182,11 @@ func mapsort(A *[]string,
 		T = append(T, obj)
 		i++
 	}
-	// comp(&T)
+	sort.Slice(T, comp(T))
 
-	// sort.Slice(T, comp)
-
-	// sort.Slice(T, func(i, j int) bool { return T[i].key < T[j].key })
-
-	// i = 0
-	// for (auto const &item : T) {
-	// for i, val := range T {
-	// 	// R[i] = A[T[i].i]
-	// 	// R[i] = A[T[i].i]
-	// 	// fmt.Println(">>>", i, val)
-	// 	// i++
-	// }
+	for i, val := range T {
+		R[i] = (*A)[val.i]
+	}
 	return R
 }
 

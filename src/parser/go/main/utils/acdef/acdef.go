@@ -529,7 +529,7 @@ func Acdef(S *StateParse,
 					commands = commands[:len(commands)-1]
 				}
 				var rchain = ""
-                for l := len(commands) - 1; l > 0; l-- {
+                for l := len(commands) - 1; l > -1; l-- {
                     rchain = strings.Join(commands, ",") // Remainder chain.
 
                     populate_keywords(rchain)

@@ -95,6 +95,10 @@ func main() {
 	fi := fs.Info(*source)
 	extension := fi.Ext
 	dirname := fi.Dirname
+	if !filepath.IsAbs(dirname) {
+		res, _ := filepath.Abs(dirname)
+		dirname = res
+	}
 
 	// [https://gobyexample.com/regular-expressions]
 	r, _ := regexp.Compile("\\." + extension + "$")

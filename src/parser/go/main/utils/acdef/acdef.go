@@ -351,11 +351,7 @@ func populate_chain_flags(S *StateParse, gid int, chain string, container *map[s
 		oSets[chain] = *container
 	} else {
 		// [https://stackoverflow.com/a/22220891]
-		// var src_container *map[string]int = &(oSets[chain])
-		// [TODO] Why is reference not working here?
-		src_container := oSets[chain]
-		// var oSets map[string]map[string]int
-		for key, value := range src_container {
+		for key, value := range *container {
 			src_container[key] = value
 		}
 	}

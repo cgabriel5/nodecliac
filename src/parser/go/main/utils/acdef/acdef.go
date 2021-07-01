@@ -367,7 +367,7 @@ func build_kwstr(kwtype string,
 		}
 	}
 	debug.X(output)
-	// chains = mapsort(chains, asort, aobj);
+	chains = mapsort(&chains, asort, aobj)
 
 	cl := len(chains) - 1
 	i := 0
@@ -560,7 +560,7 @@ func Acdef(S *StateParse,
     	for  key2, _ := range value {
 			keys = append(keys, key2)
     	}
-    	// keys := mapsort(keys, fsort, fobj)
+    	keys = mapsort(&keys, fsort, fobj)
         flags := strings.Join(keys, "|")
         if len(flags) == 0 { flags = "--" }
 
@@ -590,7 +590,7 @@ func Acdef(S *StateParse,
     // If contents exist, add newline after header.
     re_trailing_nl := regexp.MustCompile("\n$")
     sheader := re_trailing_nl.ReplaceAllString(header, "")
-    // acdef_lines = mapsort(acdef_lines, asort, aobj);
+    acdef_lines = mapsort(&acdef_lines, asort, aobj);
     acdef_contents := strings.Join(acdef_lines, "\n")
     if len(acdef_contents) > 0 {
     	acdef_ = header + acdef_contents

@@ -1,16 +1,16 @@
 package acdef
 
 import (
-	"github.com/elliotchance/orderedmap"
-	"github.com/cgabriel5/compiler/utils/structs"
-	"github.com/cgabriel5/compiler/utils/slices"
-	"regexp"
-	"strings"
-	"strconv"
-	"sort"
-	"time"
 	"crypto/md5"
 	"encoding/hex"
+	"github.com/cgabriel5/compiler/utils/slices"
+	"github.com/cgabriel5/compiler/utils/structs"
+	"github.com/elliotchance/orderedmap"
+	"regexp"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
 )
 
 type Flag = structs.Flag
@@ -61,9 +61,9 @@ func tkstr(S *StateParse, tid int) string {
 }
 
 type Cobj struct {
-	i, m int
+	i, m      int
 	val, orig string
-	single bool
+	single    bool
 }
 
 func aobj(s string) Cobj {
@@ -77,7 +77,7 @@ const C_HYPHEN = '-'
 func fobj(s string) Cobj {
 	var o = Cobj{
 		orig: s,
-		val: strings.ToLower(s),
+		val:  strings.ToLower(s),
 	}
 	// Use if/else as no bool to int conversion.
 	if strings.HasSuffix(s, "=*") {
@@ -93,10 +93,10 @@ func fobj(s string) Cobj {
 	return o
 }
 
-func asort(s []Cobj) (func(int, int) bool) {
+func asort(s []Cobj) func(int, int) bool {
 	// [https://stackoverflow.com/a/52412444]
 	// [https://www.codegrepper.com/code-examples/go/golang+sort+array+of+structs]
-    return func(i, j int) bool {
+	return func(i, j int) bool {
 		// Resort to string length.
 		result := s[j].val > s[i].val
 
@@ -106,7 +106,7 @@ func asort(s []Cobj) (func(int, int) bool) {
 		}
 
 		return result
-    }
+	}
 }
 
 // compare function: Gives precedence to flags ending with '=*' else
@@ -121,10 +121,10 @@ func asort(s []Cobj) (func(int, int) bool) {
 // @resource [https://stackoverflow.com/a/24292023]
 // @resource [http://www.javascripttutorial.net/javascript-array-sort/]
 // let sort = (a, b) => ~~b.endsWith("=*") - ~~a.endsWith("=*") || asort(a, b)
-func fsort(s []Cobj) (func(int, int) bool) {
+func fsort(s []Cobj) func(int, int) bool {
 	// [https://stackoverflow.com/a/52412444]
 	// [https://www.codegrepper.com/code-examples/go/golang+sort+array+of+structs]
-    return func(i, j int) bool {
+	return func(i, j int) bool {
 		// [https://stackoverflow.com/a/16894796]
 		// [https://www.cplusplus.com/articles/NhA0RXSz/]
 		// [https://stackoverflow.com/a/6771418]
@@ -138,7 +138,7 @@ func fsort(s []Cobj) (func(int, int) bool) {
 		}
 
 		return result
-    }
+	}
 }
 
 // Uses map sorting to reduce redundant preprocessing on array items.
@@ -150,9 +150,9 @@ func fsort(s []Cobj) (func(int, int) bool) {
 // @resource [https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort]
 // [https://www.codingame.com/playgrounds/15869/c-runnable-snippets/passing-a-function-as-parameter]
 func mapsort(A *[]string,
-		// [https://golangbyexample.com/func-as-func-argument-go/]
-		comp func(s []Cobj) (func(int, int) bool),
-		comp_obj func(s string) Cobj) []string {
+	// [https://golangbyexample.com/func-as-func-argument-go/]
+	comp func(s []Cobj) func(int, int) bool,
+	comp_obj func(s string) Cobj) []string {
 
 	l := len(*A)
 
@@ -164,7 +164,9 @@ func mapsort(A *[]string,
 	R := make([]string, l, l) // Result array.
 
 	// Short-circuit when source array is empty.
-	if l == 0 { return R }
+	if l == 0 {
+		return R
+	}
 
 	var obj Cobj
 	i := 0
@@ -206,7 +208,7 @@ func get_cmdstr(S *StateParse, start int, stop int) string {
 			}
 		}
 	}
-	return "$(" + strings.Join(output, ",") + ")";
+	return "$(" + strings.Join(output, ",") + ")"
 }
 
 func processflags(S *StateParse, gid int,
@@ -224,7 +226,7 @@ func processflags(S *StateParse, gid int,
 		alias := tkstr(S, flg.Alias)
 		flag := tkstr(S, tid)
 		ismulti := tkstr(S, flg.Multi)
-		union_ := flg.Union_ != -1;
+		union_ := flg.Union_ != -1
 		values := &(flg.Values)
 
 		kind := S.LexerData.Tokens[tid].Kind
@@ -232,7 +234,7 @@ func processflags(S *StateParse, gid int,
 		if alias != "" && !recalias {
 			list := []Flag{flg}
 			processflags(S, gid, chain, &list, queue_flags,
-				/*recunion=*/false, /*recalias=*/true)
+				/*recunion=*/ false /*recalias=*/, true)
 		}
 
 		// Skip union logic on recursion.
@@ -245,14 +247,14 @@ func processflags(S *StateParse, gid int,
 					uflg.Values = *values
 					list := []Flag{uflg}
 					processflags(S, gid, chain, &list, queue_flags,
-						/*recunion=*/true, /*recalias=*/false)
+						/*recunion=*/ true /*recalias=*/, false)
 				}
 				unions = nil
 			}
 		}
 
 		if recalias {
-			oContexts[chain].Set("{" + strings.TrimLeft(flag, "-") + "|" + alias + "}", 1)
+			oContexts[chain].Set("{"+strings.TrimLeft(flag, "-")+"|"+alias+"}", 1)
 			flag = "-" + alias
 		}
 
@@ -261,14 +263,20 @@ func processflags(S *StateParse, gid int,
 				value := ""
 				if len((*values)[0]) == 1 {
 					value := re_space.ReplaceAllString(tkstr(S, (*values)[0][0]), "")
-					if flag == "context" { value = value[1:len(value) - 2] }
+					if flag == "context" {
+						value = value[1 : len(value)-2]
+					}
 				} else {
-					value = get_cmdstr(S, (*values)[0][1] + 1, (*values)[0][2])
+					value = get_cmdstr(S, (*values)[0][1]+1, (*values)[0][2])
 				}
 
-				if      flag == "default" { oDefaults[chain].Set(value, 1)
-				} else if flag == "context" { oContexts[chain].Set(value, 1)
-				} else if flag == "filedir" { oFiledirs[chain].Set(value, 1) }
+				if flag == "default" {
+					oDefaults[chain].Set(value, 1)
+				} else if flag == "context" {
+					oContexts[chain].Set(value, 1)
+				} else if flag == "filedir" {
+					oFiledirs[chain].Set(value, 1)
+				}
 			}
 
 			continue
@@ -279,11 +287,15 @@ func processflags(S *StateParse, gid int,
 			// Baseflag: add multi-flag indicator?
 			// Add base flag to Set (adds '--flag=' or '--flag=*').
 			var mflag_ = "*"
-			if ismulti == "" { mflag_ = "" }
-			(*queue_flags)[flag + "=" + mflag_ ] = 1;
+			if ismulti == "" {
+				mflag_ = ""
+			}
+			(*queue_flags)[flag+"="+mflag_] = 1
 
 			var mflag_c1 = "*"
-			if ismulti != "" { mflag_c1 = "" }
+			if ismulti != "" {
+				mflag_c1 = ""
+			}
 			mflag := flag + "=" + mflag_c1
 
 			if _, exists := (*queue_flags)[mflag]; exists {
@@ -291,24 +303,28 @@ func processflags(S *StateParse, gid int,
 			}
 
 			for _, value := range *values {
-			// for (auto &value : values) {
+				// for (auto &value : values) {
 				if len(value) == 1 { // Single
-					(*queue_flags)[flag + assignment + tkstr(S, value[0])] = 1
+					(*queue_flags)[flag+assignment+tkstr(S, value[0])] = 1
 
 				} else { // Command-string
-					cmdstr := get_cmdstr(S, value[1] + 1, value[2])
-					(*queue_flags)[flag + assignment + cmdstr] = 1
+					cmdstr := get_cmdstr(S, value[1]+1, value[2])
+					(*queue_flags)[flag+assignment+cmdstr] = 1
 				}
 			}
 
 		} else {
 			if ismulti == "" {
-				if boolean != "" { (*queue_flags)[flag + "?"] = 1
-				} else if assignment != "" { (*queue_flags)[flag + "="] = 1
-				} else { (*queue_flags)[flag] = 1 }
+				if boolean != "" {
+					(*queue_flags)[flag+"?"] = 1
+				} else if assignment != "" {
+					(*queue_flags)[flag+"="] = 1
+				} else {
+					(*queue_flags)[flag] = 1
+				}
 			} else {
-				(*queue_flags)[flag + "=*"] = 1
-				(*queue_flags)[flag + "="] = 1
+				(*queue_flags)[flag+"=*"] = 1
+				(*queue_flags)[flag+"="] = 1
 			}
 		}
 	}
@@ -328,7 +344,7 @@ func populate_chain_flags(S *StateParse, gid int, chain string, container *map[s
 	})
 	if index == -1 {
 		processflags(S, gid, chain, &ubflags, container,
-			/*recunion=*/false, /*recalias=*/false)
+			/*recunion=*/ false /*recalias=*/, false)
 	}
 
 	if _, exists := oSets[chain]; !exists {
@@ -346,12 +362,12 @@ func populate_chain_flags(S *StateParse, gid int, chain string, container *map[s
 }
 
 func build_kwstr(kwtype string,
-		container *map[string]*orderedmap.OrderedMap) string {
+	container *map[string]*orderedmap.OrderedMap) string {
 
 	var output []string
 
 	var chains []string
-	for key, value := range *container  {
+	for key, value := range *container {
 		if value.Len() > 0 {
 			chains = append(chains, key)
 		}
@@ -374,8 +390,10 @@ func build_kwstr(kwtype string,
 		} else {
 			value = "\"" + strings.Join(values, ";") + "\""
 		}
-		output = append(output, rm_fcmd(chain, re_cmdname) + " " + kwtype + " " + value)
-		if i < cl { output = append(output, "\n") }
+		output = append(output, rm_fcmd(chain, re_cmdname)+" "+kwtype+" "+value)
+		if i < cl {
+			output = append(output, "\n")
+		}
 		i++
 	}
 
@@ -393,7 +411,9 @@ func make_chains(S *StateParse, ccids *[]int) []string {
 	grouping := false
 
 	for _, cid := range *ccids {
-		if cid == -1 { grouping = !grouping }
+		if cid == -1 {
+			grouping = !grouping
+		}
 
 		if !grouping && cid != -1 {
 			slots = append(slots, tkstr(S, cid))
@@ -426,17 +446,19 @@ func make_chains(S *StateParse, ccids *[]int) []string {
 		}
 	}
 
-	if len(groups) == 0 { chains = append(chains, tstr) }
+	if len(groups) == 0 {
+		chains = append(chains, tstr)
+	}
 
 	return chains
 }
 
 func Acdef(S *StateParse,
-		branches *[][]Token,
-		cchains *[][][]int,
-		flags *map[int][]Flag,
-		settings *[][]int,
-		cmdname string) (string, string, string, string, string, string, map[string]string, string) {
+	branches *[][]Token,
+	cchains *[][][]int,
+	flags *map[int][]Flag,
+	settings *[][]int,
+	cmdname string) (string, string, string, string, string, string, map[string]string, string) {
 
 	// Collect all universal block flags.
 	for _, ubid := range S.Ubids {
@@ -450,8 +472,8 @@ func Acdef(S *StateParse,
 	rcmdname := re_plussign.ReplaceAllString(cmdname, "") // [TODO] `replace`
 	re_cmdname = regexp.MustCompile("^(" + rcmdname + "|[-_a-zA-Z0-9]+)")
 
-    // [https://yourbasic.org/golang/current-time/]
-    // [https://www.golangprograms.com/get-current-date-and-time-in-various-format-in-golang.html]
+	// [https://yourbasic.org/golang/current-time/]
+	// [https://www.golangprograms.com/get-current-date-and-time-in-various-format-in-golang.html]
 	now := time.Now()
 	timestamp := now.Unix()
 	// timestamp_ms := now.UnixNano()
@@ -461,47 +483,51 @@ func Acdef(S *StateParse,
 	header := "# DON'T EDIT FILE —— GENERATED: " + ctime + "\n\n"
 	// if (S.args.test) header = "";
 
-    // Start building acmap contents. -------------------------------------------
+	// Start building acmap contents. -------------------------------------------
 
 	i := 0
 	for _, group := range *cchains {
 		for _, ccids := range group {
 			chains := make_chains(S, &ccids)
 			for _, chain := range chains {
-                if chain == "*" { continue }
+				if chain == "*" {
+					continue
+				}
 
-                var container = make(map[string]int)
-                populate_keywords(chain)
+				var container = make(map[string]int)
+				populate_keywords(chain)
 
 				list := []Flag{}
-				if _, exists := (*flags)[i]; exists { list = (*flags)[i] }
+				if _, exists := (*flags)[i]; exists {
+					list = (*flags)[i]
+				}
 				processflags(S, i, chain, &list, &container,
-					/*recunion=*/false, /*recalias=*/false)
+					/*recunion=*/ false /*recalias=*/, false)
 
-                populate_chain_flags(S, i, chain, &container)
+				populate_chain_flags(S, i, chain, &container)
 
-                // Create missing parent chains.
-                // commands = re.split(r'(?<!\\)\.', chain);
-                var commands = strings.Split(chain, ".")
+				// Create missing parent chains.
+				// commands = re.split(r'(?<!\\)\.', chain);
+				var commands = strings.Split(chain, ".")
 
 				// [TODO] Check needed?
 				if len(commands) > 0 {
-	                // Remove last command (already made).
+					// Remove last command (already made).
 					commands = commands[:len(commands)-1]
 				}
 				var rchain = ""
-                for l := len(commands) - 1; l > -1; l-- {
-                    rchain = strings.Join(commands, ",") // Remainder chain.
+				for l := len(commands) - 1; l > -1; l-- {
+					rchain = strings.Join(commands, ",") // Remainder chain.
 
-                    populate_keywords(rchain)
-                    if _, exists := oSets[rchain]; !exists {
-		                var container = make(map[string]int)
-                        populate_chain_flags(S, i, rchain, &container)
-                    }
+					populate_keywords(rchain)
+					if _, exists := oSets[rchain]; !exists {
+						var container = make(map[string]int)
+						populate_chain_flags(S, i, rchain, &container)
+					}
 
 					// [TODO] Check needed?
 					if len(commands) > 0 {
-		                // Remove last command.
+						// Remove last command.
 						commands = commands[:len(commands)-1]
 					}
 				}
@@ -510,88 +536,97 @@ func Acdef(S *StateParse,
 		i++
 	}
 
-    defaults := build_kwstr("default", &oDefaults)
-    filedirs := build_kwstr("filedir", &oFiledirs)
-    contexts := build_kwstr("context", &oContexts)
+	defaults := build_kwstr("default", &oDefaults)
+	filedirs := build_kwstr("filedir", &oFiledirs)
+	contexts := build_kwstr("context", &oContexts)
 
-    // Populate settings object.
+	// Populate settings object.
 	for _, setting := range *settings {
-        name := tkstr(S, setting[0])[1:]
-        if name == "test" {
-        	oTests = append(oTests, re_space_cl.ReplaceAllString(tkstr(S, setting[2]), ";"))
-        } else {
-        	if len(setting) > 1 {
-        		oSettings.Set(name, tkstr(S, setting[2]))
-        	} else {
-	        	oSettings.Set(name, "")
-	        }
-        }
+		name := tkstr(S, setting[0])[1:]
+		if name == "test" {
+			oTests = append(oTests, re_space_cl.ReplaceAllString(tkstr(S, setting[2]), ";"))
+		} else {
+			if len(setting) > 1 {
+				oSettings.Set(name, tkstr(S, setting[2]))
+			} else {
+				oSettings.Set(name, "")
+			}
+		}
 	}
 
-    // Build settings contents.
-    settings_count := oSettings.Len()
-    settings_count--
+	// Build settings contents.
+	settings_count := oSettings.Len()
+	settings_count--
 	for el := oSettings.Front(); el != nil; el = el.Next() {
-        config += "@" + el.Key.(string) + " = " + el.Value.(string)
-        if settings_count > 0 { config += "\n" }
-        settings_count--
+		config += "@" + el.Key.(string) + " = " + el.Value.(string)
+		if settings_count > 0 {
+			config += "\n"
+		}
+		settings_count--
 	}
 
 	var placehold_val = oSettings.GetOrDefault("placehold", "").(string)
-    var placehold = len(placehold_val) > 0 && placehold_val == "true"
+	var placehold = len(placehold_val) > 0 && placehold_val == "true"
 	for key, value := range oSets {
-    	// [https://stackoverflow.com/a/9693232]
-    	var keys = []string{}
-    	for  key2, _ := range value {
+		// [https://stackoverflow.com/a/9693232]
+		var keys = []string{}
+		for key2, _ := range value {
 			keys = append(keys, key2)
-    	}
-    	keys = mapsort(&keys, fsort, fobj)
-        flags := strings.Join(keys, "|")
-        if len(flags) == 0 { flags = "--" }
+		}
+		keys = mapsort(&keys, fsort, fobj)
+		flags := strings.Join(keys, "|")
+		if len(flags) == 0 {
+			flags = "--"
+		}
 
-        // Note: Placehold long flag sets to reduce the file's chars.
-        // When flag set is needed its placeholder file can be read.
-        if placehold && len(flags) >= 100 {
-            if _, exists := omd5Hashes[flags]; !exists {
+		// Note: Placehold long flag sets to reduce the file's chars.
+		// When flag set is needed its placeholder file can be read.
+		if placehold && len(flags) >= 100 {
+			if _, exists := omd5Hashes[flags]; !exists {
 				// [https://stackoverflow.com/a/25286918]
 				hash := md5.Sum([]byte(flags))
 				md5hash := hex.EncodeToString(hash[:])[26:]
-                oPlaceholders[md5hash] = flags
-                omd5Hashes[flags] = md5hash
-                flags = "--p#" + md5hash
-            } else { flags = "--p#" + omd5Hashes[flags] }
+				oPlaceholders[md5hash] = flags
+				omd5Hashes[flags] = md5hash
+				flags = "--p#" + md5hash
+			} else {
+				flags = "--p#" + omd5Hashes[flags]
+			}
 		}
 
-        row := rm_fcmd(key, re_cmdname) + " " + flags
+		row := rm_fcmd(key, re_cmdname) + " " + flags
 
-        // Remove multiple ' --' command chains. Shouldn't be the
-        // case but happens when multiple main commands are used.
-        if row == " --" && !has_root { has_root = true
-        } else if row == " --" && has_root { continue }
+		// Remove multiple ' --' command chains. Shouldn't be the
+		// case but happens when multiple main commands are used.
+		if row == " --" && !has_root {
+			has_root = true
+		} else if row == " --" && has_root {
+			continue
+		}
 
-        acdef_lines = append(acdef_lines, row)
+		acdef_lines = append(acdef_lines, row)
 	}
 
-    // If contents exist, add newline after header.
-    re_trailing_nl := regexp.MustCompile("\n$")
-    sheader := re_trailing_nl.ReplaceAllString(header, "")
-    acdef_lines = mapsort(&acdef_lines, asort, aobj);
-    acdef_contents := strings.Join(acdef_lines, "\n")
-    if len(acdef_contents) > 0 {
-    	acdef_ = header + acdef_contents
-    } else {
-    	acdef_ = sheader
-    }
-    if len(config) > 0 {
-    	config = header + config
-    } else {
-    	config = sheader
-    }
+	// If contents exist, add newline after header.
+	re_trailing_nl := regexp.MustCompile("\n$")
+	sheader := re_trailing_nl.ReplaceAllString(header, "")
+	acdef_lines = mapsort(&acdef_lines, asort, aobj)
+	acdef_contents := strings.Join(acdef_lines, "\n")
+	if len(acdef_contents) > 0 {
+		acdef_ = header + acdef_contents
+	} else {
+		acdef_ = sheader
+	}
+	if len(config) > 0 {
+		config = header + config
+	} else {
+		config = sheader
+	}
 
-    tests := ""
-    if len(oTests) > 0 {
-	    tests = "#!/bin/bash\n\n" + header + "tests=(\n" + strings.Join(oTests, "\n") + "\n)"
-    }
+	tests := ""
+	if len(oTests) > 0 {
+		tests = "#!/bin/bash\n\n" + header + "tests=(\n" + strings.Join(oTests, "\n") + "\n)"
+	}
 
 	formatted := ""
 

@@ -495,7 +495,8 @@ func Acdef(S *StateParse,
 	now := time.Now()
 	timestamp := now.Unix()
 	// timestamp_ms := now.UnixNano()
-	datestring := now.Format("Mon Jan 02 2006 03:04:05")
+	// [https://yourbasic.org/golang/format-parse-string-time-date-example/]
+	datestring := now.Format("Mon Jan 02 2006 15:04:05")
 	ctime := datestring + " (" + strconv.Itoa(int(timestamp)) + ")"
 	header := "# DON'T EDIT FILE —— GENERATED: " + ctime + "\n\n"
 	debug.X(header)

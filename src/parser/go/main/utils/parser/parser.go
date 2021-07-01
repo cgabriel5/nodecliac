@@ -1170,8 +1170,8 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 			warnings := S.Warnings[warnline]
 			// [https://stackoverflow.com/a/42872183]
 			// [https://yourbasic.org/golang/how-to-sort-in-go/]
-			sort.Slice(warnings, func(a, b int) bool {
-				return warnings[a].Column < warnings[b].Column
+			sort.Slice(warnings, func(i, j int) bool {
+				return warnings[i].Column < warnings[j].Column
 			})
 		}
 		for _, warning := range S.Warnings[warnline] {

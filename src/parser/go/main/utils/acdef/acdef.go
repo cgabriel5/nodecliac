@@ -416,13 +416,11 @@ func build_kwstr(kwtype string,
 		i++
 	}
 
-	return ""
-
-	// if len(output) > 0 {
-	// 	return "\n\n" + strings.Join(output, "")
-	// } else {
-	// 	return ""
-	// }
+	if len(output) > 0 {
+		return "\n\n" + strings.Join(output, "")
+	} else {
+		return ""
+	}
 }
 
 func make_chains(S *StateParse, ccids *[]int) []string {

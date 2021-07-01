@@ -262,7 +262,7 @@ func processflags(S *StateParse, gid int,
 			if len(*values) > 0 && flag != "exclude" {
 				value := ""
 				if len((*values)[0]) == 1 {
-					value := re_space.ReplaceAllString(tkstr(S, (*values)[0][0]), "")
+					value = re_space.ReplaceAllString(tkstr(S, (*values)[0][0]), "")
 					if flag == "context" {
 						value = value[1 : len(value)-2]
 					}

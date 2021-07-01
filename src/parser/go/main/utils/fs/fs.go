@@ -43,3 +43,25 @@ func Info(p string) FileInfo {
 
 	return fi
 }
+
+func Write(p string, data *string, mode int) {
+	// [TODO] Improve error handling.
+
+	// [https://zetcode.com/golang/writefile/]
+	// [https://gobyexample.com/writing-files]
+	f, err := os.Create(p)
+	if err != nil { /*log.Fatal(err)*/ }
+	defer f.Close()
+	_, err2 := f.WriteString(*data)
+	if err2 != nil { /*log.Fatal(err2)*/ }
+
+	// [https://golangbyexample.com/change-file-permissions-golang/]
+	if mode != -1 {
+		// [https://stackoverflow.com/q/48123541]
+		// [https://stackoverflow.com/a/28969523]
+		// [https://www.socketloop.com/tutorials/golang-change-file-read-or-write-permission-example]
+		// [https://golang.hotexamples.com/examples/os/FileMode/-/golang-filemode-class-examples.html]
+		err = os.Chmod(p, os.FileMode(mode))
+		if err != nil { /*log.Fatal(err)*/ }
+	}
+}

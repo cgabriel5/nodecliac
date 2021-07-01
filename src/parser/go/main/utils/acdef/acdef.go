@@ -264,7 +264,7 @@ func processflags(S *StateParse, gid int,
 				if len((*values)[0]) == 1 {
 					value = re_space.ReplaceAllString(tkstr(S, (*values)[0][0]), "")
 					if flag == "context" {
-						value = value[1 : len(value)-2]
+						value = value[1 : len(value)-1]
 					}
 				} else {
 					value = get_cmdstr(S, (*values)[0][1]+1, (*values)[0][2])

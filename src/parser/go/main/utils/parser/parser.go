@@ -1,15 +1,18 @@
 package parser
 
 import (
+	"github.com/cgabriel5/compiler/utils/acdef"
 	"github.com/cgabriel5/compiler/utils/defvars"
 	"github.com/cgabriel5/compiler/utils/issue"
 	"github.com/cgabriel5/compiler/utils/lexer"
 	"github.com/cgabriel5/compiler/utils/slices"
 	"github.com/cgabriel5/compiler/utils/structs"
 	"github.com/cgabriel5/compiler/utils/validation"
+	"github.com/cgabriel5/compiler/utils/debug"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"regexp"
 	"sort"
+	"fmt"
 	"strings"
 )
 
@@ -1176,4 +1179,12 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 				warning.Column, warning.Message)
 		}
 	}
+
+	acdef_, config, defaults, filedirs,
+	contexts, formatted, oPlaceholders, tests := acdef.Acdef(
+		&S, &BRANCHES, &CCHAINS, &FLAGS, &SETTINGS, cmdname)
+
+	debug.X(acdef_, config, defaults, filedirs, contexts, formatted, oPlaceholders, tests)
+
+	fmt.Println(">>>>>>>> [" + acdef_ + "]")
 }

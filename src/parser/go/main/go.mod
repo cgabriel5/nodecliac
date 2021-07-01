@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/docker/spdystream v0.0.0-20160310174837-449fdfce4d96 // indirect
+	github.com/elliotchance/orderedmap v1.4.0 // indirect
 	github.com/fatih/color v1.12.0 // indirect
 	github.com/ghodss/yaml v0.0.0-20150909031657-73d445a93680 // indirect
 	k8s.io/apimachinery v0.21.2 // indirect

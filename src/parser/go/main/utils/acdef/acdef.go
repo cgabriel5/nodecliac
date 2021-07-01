@@ -1,8 +1,6 @@
 package acdef
 
 import (
-	// "fmt"
-	// "reflect"
 	"github.com/elliotchance/orderedmap"
 	"github.com/cgabriel5/compiler/utils/structs"
 	"github.com/cgabriel5/compiler/utils/debug"
@@ -21,15 +19,10 @@ type StateParse = structs.StateParse
 type Token = structs.Token
 
 var oSets = make(map[string]map[string]int)
-// var oDefaults = orderedmap.NewOrderedMap()
-// var oFiledirs = orderedmap.NewOrderedMap()
-// var oContexts = orderedmap.NewOrderedMap()
 var oDefaults = make(map[string]*orderedmap.OrderedMap)
 var oFiledirs = make(map[string]*orderedmap.OrderedMap)
 var oContexts = make(map[string]*orderedmap.OrderedMap)
-// var vindices = make(map[int][][]int)
 
-// var oKeywords = [3]*orderedmap.OrderedMap{oDefaults, oFiledirs, oContexts}
 var oKeywords = [3]map[string]*orderedmap.OrderedMap{oDefaults, oFiledirs, oContexts}
 
 var ubflags []Flag
@@ -442,7 +435,6 @@ func make_chains(S *StateParse, ccids *[]int) []string {
 	return chains
 }
 
-// tuple <string, string, string, string, string, string, map<string, string>, string>
 func Acdef(S *StateParse,
 		branches *[][]Token,
 		cchains *[][][]int,
@@ -552,8 +544,6 @@ func Acdef(S *StateParse,
 
 	var placehold_val = oSettings.GetOrDefault("placehold", "").(string)
     var placehold = len(placehold_val) > 0 && placehold_val == "true"
-
-	// var oSets = make(map[string]map[string]int)
 	for key, value := range oSets {
     	// [https://stackoverflow.com/a/9693232]
     	var keys = []string{}

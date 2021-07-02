@@ -157,7 +157,7 @@ func addtoken(S *StateParse, i int) {
 			matches := r.FindAllStringIndex(value, -1)
 			for _, match := range matches {
 				start := match[0] + 1
-				end_ := match[1]
+				end_ = match[1]
 				varname := strings.TrimSpace(value[start+2 : end_-1])
 
 				if _, exists := VARSTABLE[varname]; !exists {
@@ -184,7 +184,7 @@ func addtoken(S *StateParse, i int) {
 			}
 
 			// Get tail-end of string.
-			tmpstr += value[:end_]
+			tmpstr += value[end_:]
 			S.LexerData.Tokens[i].Str_rep = tmpstr
 
 			if len(vindices[i]) == 0 {

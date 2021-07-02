@@ -160,6 +160,7 @@ func add_token(S *State, text string) {
 		} else if kind(S, "tkCMD") || kind(S, "tkTBD") {
 			// Reverse loop to get find first command/flag tokens.
 			var lastpassed string
+			// [https://stackoverflow.com/a/13191474]
 			for i := token_count - 1; i > 0; i-- {
 				var lkind string
 				if val, exists := ttypes[i]; exists {

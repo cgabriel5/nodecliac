@@ -145,7 +145,7 @@ func addtoken(S *StateParse, i int) {
 		value := ps.Tkstr(S, i)
 		S.LexerData.Tokens[i].Str_rep = value
 
-		if _, exists := vindices[i]; !exists {
+		if _, exists := vindices[i]; !exists && S.Args.Action != "format" {
 			end_ := 0
 			pointer := 0
 			tmpstr := ""

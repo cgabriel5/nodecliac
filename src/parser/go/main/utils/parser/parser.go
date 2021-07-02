@@ -2,6 +2,7 @@ package parser
 
 import (
 	"github.com/cgabriel5/compiler/utils/acdef"
+	"github.com/cgabriel5/compiler/utils/formatter"
 	"github.com/cgabriel5/compiler/utils/defvars"
 	"github.com/cgabriel5/compiler/utils/issue"
 	"github.com/cgabriel5/compiler/utils/lexer"
@@ -369,7 +370,10 @@ func addgroup_var(g *[]int) {
 
 // ============================
 
-func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, test bool) {
+func Parser(action, text, cmdname, source string,
+		fmtinfo TabData,
+		trace, igc, test bool) (string, string, string, string,
+		string, string, map[string]string, string) {
 
 	// [https://gist.github.com/shockalotti/6cbfc0aee8825bad168a]
 	S.Text = text
@@ -1163,11 +1167,9 @@ func Parser(action, text, cmdname, source string, fmtinfo TabData, trace, igc, t
 		}
 	}
 
-	acdef_, config, defaults, filedirs,
-	contexts, formatted, oPlaceholders, tests := acdef.Acdef(
-		&S, &BRANCHES, &CCHAINS, &FLAGS, &SETTINGS, cmdname)
-
-	debug.X(acdef_, config, defaults, filedirs, contexts, formatted, oPlaceholders, tests)
-
-	fmt.Println(">>>>>>>> [" + acdef_ + "]")
+	if action == "make" {
+		return acdef.Acdef(&S, &BRANCHES, &CCHAINS, &FLAGS, &SETTINGS, cmdname)
+	} else {
+		return formatter.Formatter(&S, &BRANCHES, &CCHAINS, &FLAGS, &SETTINGS)
+	}
 }

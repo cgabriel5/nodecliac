@@ -150,7 +150,7 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
             value = tkstr(i)
             tokens[i]["$"] = value
 
-            if i not in vindices:
+            if action != "format" and i not in vindices:
                 end = 0
                 pointer = 0
                 tmpstr = ""

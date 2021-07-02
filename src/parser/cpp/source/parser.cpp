@@ -210,7 +210,7 @@ void addtoken(StateParse &S, const int i) {
 		string value = tkstr(S, i);
 		S.LexerData.tokens[i].$ = value;
 
-		if (!hasKey(vindices, i)) {
+		if (S.args.action != "format" && !hasKey(vindices, i)) {
 			int end_ = 0;
 			int pointer = 0;
 			string tmpstr = "";

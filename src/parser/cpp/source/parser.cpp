@@ -226,31 +226,36 @@ void addtoken(StateParse &S, const int i) {
 				smatch match;
 				match = *it;
 
-				for(int i = 1; i < it->size(); ++i) {
-					int start = match.position(1) + 1;
-					end_ = start + match[i].length() - 1;
-					string varname = match.str(0).substr(3, match.str(0).length() - 4);
-					trim(varname);
+				// +1 to avoid first captured character.
+				int start = match.position(1) + 1;
+				end_ = start + match[2].length();
+				string rawmatch = (*it)[2]; // match.str(0).substr(3, match.str(0).length() - 4);
+				string varname = rawmatch.substr(2, rawmatch.length()-3);
+				trim(varname);
 
-					if (!hasKey(VARSTABLE, varname)) {
-						// Note: Modify token index to point to
-						// start of the variable position.
-						S.LexerData.tokens[S.tid].start += start;
-						err(S, ttid, "Undefined variable", "start", "child");
-					}
-
-					USED_VARS[varname] = 1;
-					vector<int> list {start, end_};
-					vindices[i].push_back(list);
-
-					tmpstr += value.substr(pointer, start - pointer);
-					auto itv = VARSTABLE.find(varname);
-					string sub = (itv != VARSTABLE.end()) ? itv->second : "";
-
-					// Unquote string if quoted.
-					tmpstr += (sub[0] != '"' || sub[0] != '\'') ? sub : sub.substr(1, sub.length() - 2);
-					pointer = end_;
+				if (!hasKey(VARSTABLE, varname)) {
+					// Note: Modify token index to point to
+					// start of the variable position.
+					S.LexerData.tokens[S.tid].start += start;
+					err(S, ttid, "Undefined variable", "start", "child");
 				}
+
+				USED_VARS[varname] = 1;
+				vector<int> list {start, end_};
+				vindices[i].push_back(list);
+
+				tmpstr += value.substr(pointer, start - pointer);
+				auto itv = VARSTABLE.find(varname);
+				string sub = (itv != VARSTABLE.end()) ? itv->second : "";
+
+				// Unquote string if quoted.
+				if (!(sub[0] == '"' || sub[0] == '\'')) {
+					tmpstr += sub;
+				} else {
+					tmpstr += sub.substr(1, sub.length() - 2);
+				}
+				pointer = end_;
+
 				++it;
 			}
 

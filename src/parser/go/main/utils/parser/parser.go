@@ -177,7 +177,7 @@ func addtoken(S *StateParse, i int) {
 						tmpstr += sub
 					} else {
 						// Unquote string if quoted.
-						tmpstr += sub[1 : len(sub)-2]
+						tmpstr += sub[1 : len(sub)-1]
 					}
 				}
 				pointer = end_

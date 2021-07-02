@@ -173,7 +173,7 @@ func addtoken(S *StateParse, i int) {
 				tmpstr += value[pointer:start]
 				sub, _ := VARSTABLE[varname]
 				if sub != "" {
-					if sub[0] != '"' || sub[1] != '\'' {
+					if !(sub[0] == 34 || sub[1] == 39) { // 34 => " , 39 => '
 						tmpstr += sub
 					} else {
 						// Unquote string if quoted.

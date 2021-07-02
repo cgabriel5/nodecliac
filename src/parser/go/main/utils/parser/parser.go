@@ -12,7 +12,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"regexp"
 	"sort"
-	"fmt"
 	"strings"
 )
 

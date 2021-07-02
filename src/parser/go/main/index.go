@@ -78,7 +78,6 @@ func main() {
 		// [https://stackoverflow.com/a/4279644]
 		i, err := strconv.Atoi(components[1])
 		if err == nil {
-			os.Exit(2)
 			fmtinfo.Iamount = i
 		}
 	}

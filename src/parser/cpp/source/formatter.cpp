@@ -144,7 +144,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
                     string pkind = ptk.kind;
 
                     if (pkind != "tkBRC_LP" && cleaned.back() != " " && not
-                        ((kind == "tkSTR" && pkind == "tkDLS") or
+                        ((kind == "tkSTR" && pkind == "tkDLS") ||
                         (kind == "tkDLS" && pkind == "tkASG"))) {
                         cleaned.push_back(" ");
 		            }

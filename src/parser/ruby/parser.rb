@@ -153,7 +153,7 @@ def newbranch()
 end
 
 def prevtoken(s)
-	return s[:tokens][:dtids][s[:tid]]
+	return s[:lexerdata][:tokens][s[:lexerdata][:dtids][s[:tid]]]
 end
 
 # # Command chain/flag grouping helpers.

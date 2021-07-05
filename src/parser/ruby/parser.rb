@@ -4,6 +4,7 @@ require "set"
 
 require "./lexer"
 require "./defvars"
+require "./validation"
 
 R = /(?<!\\)\$\{\s*[^}]*\s*\}/
 
@@ -344,7 +345,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 						addgroup_stn($setting)
 						addtoken_stn_group($s[:tid])
 
-						# vsetting(S)
+						vsetting($s)
 						expect("", "tkASG")
 					elsif kind == "tkVAR"
 						newgroup_var()
@@ -359,7 +360,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 						end
 						$user_vars[varname].append($s[:tid])
 
-						# vvariable(S)
+						vvariable($s)
 						expect("", "tkASG")
 					elsif kind == "tkCMD"
 						addtoken_group($s[:tid])
@@ -439,13 +440,13 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 
 					expect("")
 
-					# validation.Vstring(&S)
+					vstring($s)
 				when "tkAVAL"
 					addtoken_stn_group($s[:tid])
 
 					expect("")
 
-					# validation.Vsetting_aval(&S)
+					vsetting_aval($s)
 				end
 			when "tkVAR"
 				case kind
@@ -459,7 +460,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 
 					expect("")
 
-					# validation.Vstring(&S)
+					vstring($s)
 				end
 			when "tkCMD"
 				case kind

@@ -3,6 +3,7 @@
 require "set"
 
 require "./lexer"
+require "./defvars"
 
 R = /(?<!\\)\$\{\s*[^}]*\s*\}/
 
@@ -36,7 +37,7 @@ $variables = []
 
 $used_vars = {}
 $user_vars = {}
-$varstable = {} # = builtins(cmdname)
+$varstable = {}
 $vindices = {}
 
 def tkstr(s, tid)
@@ -283,6 +284,8 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 			"dtids": dtids
 		}
 	}
+
+	$varstable = builtins(cmdname)
 
 	while i < l
 		token = tokens[i]

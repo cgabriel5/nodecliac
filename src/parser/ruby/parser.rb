@@ -171,10 +171,9 @@ def addgroup(g)
 	$cchains.append([g])
 end
 
-# def addtoprevgroup():
-#     nonlocal chain, CCHAINS
-#     newgroup()
-#     CCHAINS[-1].append(chain)
+def addtoprevgroup()
+	$cchains[-1].append($chain)
+end
 
 # ============================
 
@@ -349,12 +348,13 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 						addgroup_var($variable)
 						addtoken_var_group($s[:tid])
 
-						# varname = tkstr(S["tid"])[1:]
-						# VARSTABLE[varname] = ""
+						varname = tkstr($s, $s[:tid])[1..-1]
+						$varstable[varname] = ""
 
-						# if varname not in USER_VARS:
-						#   USER_VARS[varname] = []
-						# USER_VARS[varname].append(S["tid"])
+						if !$user_vars.key?(varname)
+							$user_vars[varname] = []
+						end
+						$user_vars[varname].append($s[:tid])
 
 						# vvariable(S)
 						expect("", "tkASG")
@@ -364,16 +364,16 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 
 						expect("", "tkDDOT", "tkASG", "tkDCMA")
 
-						# command = tkstr(s[:tid])
-						# if command != "*" && command != cmdname
-						#   warn(S["tid"], "Unexpected command:")
+						command = tkstr($s, $s[:tid])
+						if command != "*" && command != cmdname
+							# warn(S["tid"], "Unexpected command:")
+						end
 					end
 				else
 					if kind == "tkCMT"
 						newbranch()
 						expect("")
 					else # Handle unexpected parent tokens.
-						placeholder = 12
 						# err(S["tid"], "Unexpected token:", scope="parent")
 					end
 				end
@@ -406,25 +406,23 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 					next
 
 				else
-					placeholder = 12
 					# err(S["tid"], "Unexpected token:", scope="child")
 				end
 			end
 
 			addtoken($s, $ttid)
 
-			# # Oneliners must be declared on oneline, else error.
-			# if $branches[-1][0][:kind] == "tkCMD" && (
-			# 	((hasscope("tkFLG") or hasscope("tkKYW")) ||
-			# 	Set["tkFLG", "tkKYW"].include?(kind)) &&
-			# 	!hasscope("tkBRC_LB"))
-			# 	if oneliner == -1
-			# 		oneliner = token[:line]
-			# 	elsif token[:line] != oneliner
-			# 		# err(S["tid"], "Improper oneliner", scope="child")
-			# 		placeholder = 12
-			# 	end
-			# end
+			# Oneliners must be declared on oneline, else error.
+			if $branches[-1][0][:kind] == "tkCMD" && (
+				((hasscope("tkFLG") || hasscope("tkKYW")) ||
+				Set["tkFLG", "tkKYW"].include?(kind)) &&
+				!hasscope("tkBRC_LB"))
+				if oneliner == -1
+					oneliner = token[:line]
+				elsif token[:line] != oneliner
+					# err(S["tid"], "Improper oneliner", scope="child")
+				end
+			end
 
 			case prevscope()
 			when "tkSTN"
@@ -454,9 +452,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 					expect("tkSTR")
 				when "tkSTR"
 					addtoken_var_group($s[:tid])
-					# lbranch := &BRANCHES[len(BRANCHES)-1] # Last branch token.
-					# size := len(*lbranch)
-					# VARSTABLE[ps.Tkstr(&S, (*lbranch)[size-3].Tid)[1:]] = ps.Tkstr(&S, S.Tid)
+					$varstable[tkstr($s, $branches[-1][-3][:tid])[1..-1]] = tkstr($s, $s[:tid])
 
 					expect("")
 
@@ -465,23 +461,20 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 			when "tkCMD"
 				case kind
 				when "tkASG"
-					# # If a universal block, store group id.
-					# if _, exists := S.LexerData.Dtids[S.Tid]; exists {
-					# 	prevtk := prevtoken(&S)
-					# 	if prevtk.Kind == "tkCMD" && S.Text[prevtk.Start] == '*' {
-					# 		S.Ubids = append(S.Ubids, len(CCHAINS)-1)
-					# 	}
-					# }
+					# If a universal block, store group id.
+					if $s[:lexerdata][:dtids].key?($s[:tid])
+						prevtk = prevtoken($s)
+						if prevtk[:kind] == "tkCMD" and $s[:text][prevtk[:start]] == "*"
+							$s[:ubids].append($cchains.length - 1)
+						end
+					end
 					expect("tkBRC_LB", "tkFLG", "tkKYW")
 				when "tkBRC_LB"
 					addscope(kind)
 					expect("tkFLG", "tkKYW", "tkBRC_RB")
 				# # [TODO] Pathway needed?
 				# when "tkBRC_RB":
-				# 	list := []string{"", "tkCMD"}
-				# 	expect(&list)
-				#
-				# }
+				# 	expect("", "tkCMD")
 				when "tkFLG"
 					newflag()
 
@@ -505,12 +498,12 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 					expect("tkCMD")
 				when "tkDCMA"
 					# If a universal block, store group id.
-					# if _, exists := S.LexerData.Dtids[S.Tid]; exists {
-					# 	prevtk := prevtoken(&S)
-					# 	if prevtk.Kind == "tkCMD" && S.Text[prevtk.Start] == '*' {
-					# 		S.Ubids = append(S.Ubids, len(CCHAINS)-1)
-					# 	}
-					# }
+					if $s[:lexerdata][:dtids].key?($s[:tid])
+						prevtk = prevtoken($s)
+						if prevtk[:kind] == "tkCMD" and $s[:text][prevtk[:start]] == "*"
+							$s[:ubids].append($cchains.length - 1)
+						end
+					end
 
 					addtoprevgroup()
 
@@ -623,9 +616,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 				# when "tkTBD":
 				# 	setflagprop("values", false)
 
-				# 	list := []string{"tkFVAL", "tkSTR", "tkDLS", "tkBRC_RP", "tkTBD"}
-				# 	expect(&list)
-				# }
+				# 	expect("tkFVAL", "tkSTR", "tkDLS", "tkBRC_RP", "tkTBD")
 				when "tkSTR"
 					setflagprop("values", false)
 
@@ -635,8 +626,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 					expect("tkBRC_LP")
 				# # [TODO] Pathway needed?
 				# when "tkDCMA":
-				# 	list := []string{"tkFVAL", "tkSTR"}
-				# 	expect(&list)
+				# 	expect("tkFVAL", "tkSTR")
 				when "tkBRC_RP"
 					popscope(1)
 					expect("", "tkDPPE")
@@ -648,8 +638,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 					# # [TODO] Pathway needed?
 					# when "tkBRC_RB":
 					# 	popscope(1)
-					# 	list := []string{""}
-					# 	expect(&list)
+					# 	expect("")
 				end
 
 			when "tkDLS"
@@ -761,20 +750,18 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 				when "tkSTR"
 					setflagprop("values", false)
 
-					# # Collect exclude values for use upstream.
-					# if _, exists := S.LexerData.Dtids[S.Tid]; exists {
-					# 	prevtk := prevtoken(&S)
-					# 	if prevtk.Kind == "tkKYW" &&
-					# 		ps.Tkstr(&S, prevtk.Tid) == "exclude" {
-					# 		exvalues := ps.Tkstr(&S, prevtk.Tid)
-					# 		exvalues = strings.TrimSpace(exvalues[1 : len(exvalues)-2])
-					# 		excl_values := strings.Split(exvalues, ";")
-
-					# 		for _, exvalue := range excl_values {
-					# 			S.Excludes = append(S.Excludes, exvalue)
-					# 		}
-					# 	}
-					# }
+					# Collect exclude values for use upstream.
+					if $s[:lexerdata][:dtids].key?($s[:tid])
+						prevtk = prevtoken($s)
+						if (prevtk[:kind] == "tkKYW" and
+							tkstr($s, prevtk[:tid]) == "exclude")
+							excl_values = tkstr($s, $s[:tid])[1..-1].strip().split(";")
+							# for exclude in excl_values: $s[:excludes].append(exclude)
+							excl_values.each { |exclude|
+								$s[:excludes].append(exclude)
+							}
+						end
+					end
 
 					# [TODO] This pathway re-uses the flag (tkFLG) token
 					# pathways. If the keyword syntax were to change
@@ -788,21 +775,15 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 				# # [TODO] Pathway needed?
 				# when "tkBRC_RB":
 				# 	popscope(1)
-				# 	list := []string{""}
-				# 	expect(&list)
-				# }
+				# 	expect("")
 				# # [TODO] Pathway needed?
 				# when "tkFLG":
-				# 	list := []string{"tkASG", "tkQMK"
-				# 		"tkDCLN", "tkFVAL", "tkDPPE"}
-				# 	expect(&list)
-				# }
+				# 	expect("tkASG", "tkQMK"
+				# 		"tkDCLN", "tkFVAL", "tkDPPE")
 				# # [TODO] Pathway needed?
 				# when "tkKYW":
 				# 	addscope(kind)
-				# 	list := []string{"tkSTR", "tkDLS"}
-				# 	expect(&list)
-				# }
+				# 	expect("tkSTR", "tkDLS")
 				when "tkDPPE"
 					# [TODO] Because the flag (tkFLG) token pathways are
 					# reused for the keyword (tkKYW) pathways, the scope
@@ -824,14 +805,13 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 					popscope(1)
 					expect("", "tkDDOT", "tkASG", "tkDCMA")
 
-					# command := ps.Tkstr(&S, S.Tid)
-					# if command != "*" && command != cmdname
-					# 	warn(&S, S.Tid, "Unexpected command:")
-					# end
+					command = tkstr($s, $s[:tid])
+					if command != "*" && command != cmdname
+						# warn(S["tid"], "Unexpected command:")
+					end
 				end
 
 			else
-				placeholder  = 11
 				# err(&S, S.LexerData.Tokens[S.Tid].Tid, "Unexpected token:", "end", "")
 			end
 

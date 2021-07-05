@@ -311,7 +311,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 			else
 				addtoken($s, $ttid)
 
-				if !next_.empty? && !nextany()
+				if !$next_.empty? && !nextany()
 					# err(s, $ttid, "Improper termination", "start", "child")
 				end
 			end
@@ -340,7 +340,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 					if kind == "tkSTN"
 						newgroup_stn()
 						addgroup_stn($setting)
-						addtoken_stn_group(s[:tid])
+						addtoken_stn_group($s[:tid])
 
 						# vsetting(S)
 						expect("", "tkASG")
@@ -536,7 +536,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 			when "tkFLG"
 				case kind
 				when "tkDCLN"
-					if prevtoken(s)[:kind] != "tkDCLN"
+					if prevtoken($s)[:kind] != "tkDCLN"
 						expect("tkDCLN")
 					else
 						expect("tkFLGA")
@@ -571,7 +571,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 				when "tkFLG"
 					newflag()
 
-					if hasscope("tkBRC_LB") && token[:line] == prevtoken(s)[:line]
+					if hasscope("tkBRC_LB") && token[:line] == prevtoken($s)[:line]
 						# err(&S, S.Tid, "Flag same line (nth)", "start", "child")
 					end
 					expect("", "tkASG", "tkQMK",
@@ -583,7 +583,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 					# parsing. For now remove it to keep scopes array clean.
 					popscope(1)
 
-					if hasscope("tkBRC_LB") && token[:line] == prevtoken(s)[:line]
+					if hasscope("tkBRC_LB") && token[:line] == prevtoken($s)[:line]
 						# err(&S, S.Tid, "Keyword same line (nth)", "start", "child")
 					end
 					addscope(kind)
@@ -607,7 +607,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 			when "tkBRC_LP"
 				case kind
 				when "tkFOPT"
-					prevtk = prevtoken(s)
+					prevtk = prevtoken($s)
 					if prevtk[:kind] == "tkBRC_LP"
 						if prevtk[:line] == line
 							# err(&S, S.Tid, "Option same line (first)", "start", "child")
@@ -641,7 +641,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 					popscope(1)
 					expect("", "tkDPPE")
 
-					prevtk = prevtoken(s)
+					prevtk = prevtoken($s)
 					if prevtk[:kind] == "tkBRC_LP"
 						# warn(&S, prevtk.Tid, "Empty scope (flag)")
 					end
@@ -706,7 +706,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 			when "tkOPTS"
 				case kind
 				when "tkFOPT"
-					if prevtoken(s)[:line] == line
+					if prevtoken($s)[:line] == line
 						# err(&S, S.Tid, "Option same line (nth)", "start", "child")
 					end
 					expect("tkFVAL", "tkSTR", "tkDLS")
@@ -731,7 +731,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 				when "tkFLG"
 					newflag()
 
-					if hasscope("tkBRC_LB") && token[:line] == prevtoken(&S)[:line]
+					if hasscope("tkBRC_LB") && token[:line] == prevtoken($s)[:line]
 						# err(&S, S.Tid, "Flag same line (first)", "start", "child")
 					end
 					addscope(kind)
@@ -741,7 +741,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 					newflag()
 
 
-					if hasscope("tkBRC_LB") && token[:line] == prevtoken(&S)[:line]
+					if hasscope("tkBRC_LB") && token[:line] == prevtoken($s)[:line]
 						# err(&S, S.Tid, "Keyword same line (first)", "start", "child")
 					end
 					addscope(kind)
@@ -750,7 +750,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 					popscope(1)
 					expect("")
 
-					prevtk = prevtoken(s)
+					prevtk = prevtoken($s)
 					if prevtk[:kind] == "tkBRC_LB"
 						# warn(s, prevtk[:Tid], "Empty scope (command)")
 					end

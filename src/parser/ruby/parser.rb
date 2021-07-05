@@ -156,15 +156,15 @@ def prevtoken(s)
 	return s[:lexerdata][:tokens][s[:lexerdata][:dtids][s[:tid]]]
 end
 
-# # Command chain/flag grouping helpers.
-# # ================================
+# Command chain/flag grouping helpers.
+# ================================
 
 def newgroup()
   $chain = []
 end
 
 def addtoken_group(i)
-    $chain.append(i)
+	$chain.append(i)
 end
 
 def addgroup(g)
@@ -178,7 +178,7 @@ end
 # ============================
 
 def newvaluegroup(prop)
-    $flag[prop.to_sym].append([-1])
+	$flag[prop.to_sym].append([-1])
 end
 
 def setflagprop(prop, prev_val_group = false)

@@ -36,7 +36,7 @@ $variables = []
 
 $used_vars = {}
 $user_vars = {}
-# $VARSTABLE = builtins(cmdname)
+$varstable = {} # = builtins(cmdname)
 $vindices = {}
 
 def tkstr(s, tid)
@@ -57,52 +57,52 @@ def addtoken(s, i)
 		value = tkstr(s, i)
 		s[:lexerdata][:tokens][i][:"$"] = value
 
-		# if s[:args][:action] != "format" && !vindices.include?(i)
-		#   end_ = 0
-		#   pointer = 0
-		#   tmpstr = ""
+		if s[:args][:action] != "format" && !vindices.include?(i)
+			end_ = 0
+			pointer = 0
+			tmpstr = ""
+			$vindices[i] = []
 
-		#   vindices[i] = []
+			# [https://stackoverflow.com/a/4274503]
+			# [https://stackoverflow.com/a/5241843]
+			# [https://stackoverflow.com/a/7846484]
+			value.to_enum(:scan, R).map do |m,|
+				start = $`.size
+				end_ = $`.size + m.length - 1
+				varname = value[start + 2 .. end_ - 1].strip
 
-		#   # [https://stackoverflow.com/a/43795154]
-		#   # [https://stackoverflow.com/q/31976346]
-		#   matches := r.FindAllStringIndex(value, -1)
-		#   for _, match := range matches
-		#       start := match[0] + 1
-		#       end_ = match[1]
-		#       varname := strings.TrimSpace(value[start+2 : end_-1])
+				if !$varstable.key?(varname)
+					# Note: Modify token index to point to
+					# start of the variable position.
+					# $s.LexerData.Tokens[S.Tid].Start += start
+					$s[:lexerdata][:tokens][$s[:tid]][:start] += start
+					# err(S, ttid, "Undefined variable", "start", "child")
+				end
 
-		#       if _, exists := VARSTABLE[varname]; !exists {
-		#           # Note: Modify token index to point to
-		#           # start of the variable position.
-		#           S.LexerData.Tokens[S.Tid].Start += start
-		#           err(S, ttid, "Undefined variable", "start", "child")
-		#       end
+				$used_vars[varname.to_sym] = 1
+				$vindices[i].append([start, end_])
 
-		#       USED_VARS[varname] = 1
-		#       vindices[i] = append(vindices[i], []int{start, end_})
+				tmpstr += value[pointer .. start]
+				sub = $varstable.fetch(varname.to_sym, "")
+				if sub != ""
+					if !(sub[0] == '"' || sub[1] == '\'')
+						tmpstr += sub
+					else
+						# Unquote string if quoted.
+						tmpstr += sub[1 .. sub.length() - 1]
+					end
+				end
+				pointer = end_
+			end
 
-		#       tmpstr += value[pointer:start]
-		#       sub, _ := VARSTABLE[varname]
-		#       if sub != "" {
-		#           if !(sub[0] == 34 || sub[1] == 39) { # 34 => " , 39 => '
-		#               tmpstr += sub
-		#           } else {
-		#               # Unquote string if quoted.
-		#               tmpstr += sub[1 : len(sub)-1]
-		#           end
-		#       end
-		#       pointer = end_
-		#   end
+			# Get tail-end of string.
+			tmpstr += value[end_ ..]
+			$s[:lexerdata][:tokens][i][:"$"] = tmpstr
 
-		#   # Get tail-end of string.
-		#   tmpstr += value[end_:]
-		#   S.LexerData.Tokens[i].Str_rep = tmpstr
-
-		#   if len(vindices[i]) == 0 {
-		#       delete(vindices, i)
-		#   end
-		# end
+			if $vindices[i].length() == 0
+				$vindices.delete(i)
+			end
+		end
 	end
 
 	$branches[-1].append($tokens[i])

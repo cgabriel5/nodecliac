@@ -109,6 +109,7 @@ def addtoken(s, i)
 end
 
 def expect(*args)
+	$next_.clear()
 	args.each { |a| $next_.append(a) }
 end
 

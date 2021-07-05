@@ -430,17 +430,17 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 			when "tkSTN"
 				case kind
 				when "tkASG"
-					addtoken_stn_group($s.tid)
+					addtoken_stn_group($s[:tid])
 
 					expect("tkSTR", "tkAVAL")
 				when "tkSTR"
-					addtoken_stn_group($s.tid)
+					addtoken_stn_group($s[:tid])
 
 					expect("")
 
 					# validation.Vstring(&S)
 				when "tkAVAL"
-					addtoken_stn_group($s.tid)
+					addtoken_stn_group($s[:tid])
 
 					expect("")
 

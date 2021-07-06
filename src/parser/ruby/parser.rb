@@ -131,7 +131,7 @@ def addtoken(s, i)
 		value = tkstr(s, i)
 		s[:lexerdata][:tokens][i][:"$"] = value
 
-		if s[:args][:action] != "format" && !vindices.include?(i)
+		if s[:args][:action] != "format" && !$vindices.include?(i)
 			end_ = 0
 			pointer = 0
 			tmpstr = ""

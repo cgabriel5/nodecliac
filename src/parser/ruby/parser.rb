@@ -62,7 +62,7 @@ def err(tid, message, pos = "start", scope = "")
 
 		token = $s[:lexerdata][:tokens][tid]
 		line = token[:line]
-		index = token[pos]
+		index = token[pos.to_sym]
 		# msg = message
 		col = index - $s[:lexerdata][:linestarts][line]
 
@@ -145,7 +145,7 @@ def addtoken(s, i)
 				end_ = $`.size + m.length - 1
 				varname = value[start + 2 .. end_ - 1].strip
 
-				if !$varstable.key?(varname)
+				if !$varstable.key?(varname.to_sym)
 					# Note: Modify token index to point to
 					# start of the variable position.
 					# $s.LexerData.Tokens[S.Tid].Start += start
@@ -528,7 +528,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 					expect("tkSTR")
 				when "tkSTR"
 					addtoken_var_group($s[:tid])
-					$varstable[tkstr($s, $branches[-1][-3][:tid])[1..-1]] = tkstr($s, $s[:tid])
+					$varstable[tkstr($s, $branches[-1][-3][:tid])[1..-1].to_sym] = tkstr($s, $s[:tid])
 
 					expect("")
 

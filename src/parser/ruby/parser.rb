@@ -53,6 +53,78 @@ def tkstr(s, tid)
 	return s[:text][s[:lexerdata][:tokens][tid][:start] .. s[:lexerdata][:tokens][tid][:end]]
 end
 
+def err(tid, message, pos = "start", scope = "")
+		# When token ID points to end-of-parsing token,
+		# reset the id to the last true token before it.
+		if $s[:lexerdata][:tokens][tid][:kind] == "tkEOP"
+			tid = $s[:lexerdata][:ttids][-1]
+		end
+
+		token = $s[:lexerdata][:tokens][tid]
+		line = token[:line]
+		index = token[pos]
+		# msg = message
+		col = index - $s[:lexerdata][:linestarts][line]
+
+		if message.end_with?(":")
+			message += " '" + tkstr($s, tid) + "'"
+		end
+
+		# # Add token debug information.
+		# dbeugmsg = "\n\n\033[1mToken\033[0m: "
+		# dbeugmsg += "\n - tid: " + str(token["tid"])
+		# dbeugmsg += "\n - kind: " + token["kind"]
+		# dbeugmsg += "\n - line: " + str(token["line"])
+		# dbeugmsg += "\n - start: " + str(token["start"])
+		# dbeugmsg += "\n - end: " + str(token["end"])
+		# dbeugmsg += "\n __val__: [" + tkstr(tid) + "]"
+
+		# dbeugmsg += "\n\n\033[1mExpected\033[0m: "
+		# for n in NEXT:
+		#     if not n: n = "\"\""
+		#     dbeugmsg += "\n - " + n
+		# dbeugmsg += "\n\n\033[1mScopes\033[0m: "
+		# for s in SCOPE:
+		#     dbeugmsg += "\n - " + s
+		# decor = "-" * 15
+		# msg += "\n\n" + decor + " TOKEN_DEBUG_INFO " + decor
+		# msg += dbeugmsg
+		# msg += "\n\n" + decor + " TOKEN_DEBUG_INFO " + decor
+
+		issue_error($s[:filename], line, col, message)
+end
+
+def warn(tid, message)
+		token = $s[:lexerdata][:tokens][tid]
+		line = token[:line]
+		index = token[:start]
+		col = index - $s[:lexerdata][:linestarts][line]
+
+		if message.end_with?(":")
+			message += " '" + tkstr($s, tid) + "'"
+		end
+
+		if !$s[:warnings].key?(line)
+			$s[:warnings][line] = []
+		end
+
+		$s[:warnings][line].append([$s[:filename], line, col, message])
+		$s[:warn_lines].add(line)
+end
+
+def hint(tid, message)
+		token = $s[:lexerdata][:tokens][tid]
+		line = token[:line]
+		index = token[:start]
+		col = index - $s[:lexerdata][:linestarts][line]
+
+		if message.endswith(":")
+			message += " '" + tkstr($s, tid) + "'"
+		end
+
+		issue_hint($s[:filename], line, col, message)
+end
+
 def addtoken(s, i)
 	# Interpolate/track interpolation indices for string.
 	if s[:lexerdata][:tokens][i][:kind] == "tkSTR"
@@ -78,7 +150,7 @@ def addtoken(s, i)
 					# start of the variable position.
 					# $s.LexerData.Tokens[S.Tid].Start += start
 					$s[:lexerdata][:tokens][$s[:tid]][:start] += start
-					# err(S, ttid, "Undefined variable", "start", "child")
+					err($ttid, "Undefined variable", "start", "child")
 				end
 
 				$used_vars[varname.to_sym] = 1
@@ -315,7 +387,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 				addtoken($s, $ttid)
 
 				if !$next_.empty? && !nextany()
-					# err(s, $ttid, "Improper termination", "start", "child")
+					err($ttid, "Improper termination", "start", "child")
 				end
 			end
 
@@ -330,7 +402,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 			if !$branches.empty?
 				ltoken = $branches[-1][-1] # Last branch token.
 				if line == ltoken[:line] && ltoken[:kind] != "tkTRM"
-					# err(ttid, "Improper termination", scope="parent")
+					err($ttid, "Improper termination", scope="parent")
 				end
 			end
 
@@ -370,7 +442,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 
 						command = tkstr($s, $s[:tid])
 						if command != "*" && command != cmdname
-							# warn(S["tid"], "Unexpected command:")
+							warn($s[:tid], "Unexpected command:")
 						end
 					end
 				else
@@ -378,7 +450,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 						newbranch()
 						expect("")
 					else # Handle unexpected parent tokens.
-						# err(S["tid"], "Unexpected token:", scope="parent")
+						err($s[:tid], "Unexpected token:", scope="parent")
 					end
 				end
 			end
@@ -410,7 +482,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 					next
 
 				else
-					# err(S["tid"], "Unexpected token:", scope="child")
+					err($s[:tid], "Unexpected token:", scope="child")
 				end
 			end
 
@@ -424,7 +496,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 				if oneliner == -1
 					oneliner = token[:line]
 				elsif token[:line] != oneliner
-					# err(S["tid"], "Improper oneliner", scope="child")
+					err($s[:tid], "Improper oneliner", scope="child")
 				end
 			end
 
@@ -569,7 +641,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 					newflag()
 
 					if hasscope("tkBRC_LB") && token[:line] == prevtoken($s)[:line]
-						# err(&S, S.Tid, "Flag same line (nth)", "start", "child")
+						err($s[:tid], "Flag same line (nth)", "start", "child")
 					end
 					expect("", "tkASG", "tkQMK",
 						"tkDCLN", "tkFVAL", "tkDPPE")
@@ -581,7 +653,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 					popscope(1)
 
 					if hasscope("tkBRC_LB") && token[:line] == prevtoken($s)[:line]
-						# err(&S, S.Tid, "Keyword same line (nth)", "start", "child")
+						err($s[:tid], "Keyword same line (nth)", "start", "child")
 					end
 					addscope(kind)
 					expect("tkSTR", "tkDLS")
@@ -607,7 +679,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 					prevtk = prevtoken($s)
 					if prevtk[:kind] == "tkBRC_LP"
 						if prevtk[:line] == line
-							# err(&S, S.Tid, "Option same line (first)", "start", "child")
+							err($s[:tid], "Option same line (first)", "start", "child")
 						end
 						addscope("tkOPTS")
 						expect("tkFVAL", "tkSTR", "tkDLS")
@@ -637,7 +709,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 
 					prevtk = prevtoken($s)
 					if prevtk[:kind] == "tkBRC_LP"
-						# warn(&S, prevtk.Tid, "Empty scope (flag)")
+						warn(prevtk[:tid], "Empty scope (flag)")
 					end
 					# # [TODO] Pathway needed?
 					# when "tkBRC_RB":
@@ -700,7 +772,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 				case kind
 				when "tkFOPT"
 					if prevtoken($s)[:line] == line
-						# err(&S, S.Tid, "Option same line (nth)", "start", "child")
+						err($s[:tid], "Option same line (nth)", "start", "child")
 					end
 					expect("tkFVAL", "tkSTR", "tkDLS")
 				when "tkDLS"
@@ -725,7 +797,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 					newflag()
 
 					if hasscope("tkBRC_LB") && token[:line] == prevtoken($s)[:line]
-						# err(&S, S.Tid, "Flag same line (first)", "start", "child")
+						err($s[:tid], "Flag same line (first)", "start", "child")
 					end
 					addscope(kind)
 					expect("tkASG", "tkQMK", "tkDCLN",
@@ -735,7 +807,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 
 
 					if hasscope("tkBRC_LB") && token[:line] == prevtoken($s)[:line]
-						# err(&S, S.Tid, "Keyword same line (first)", "start", "child")
+						err($s[:tid], "Keyword same line (first)", "start", "child")
 					end
 					addscope(kind)
 					expect("tkSTR", "tkDLS", "tkBRC_RB")
@@ -745,7 +817,7 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 
 					prevtk = prevtoken($s)
 					if prevtk[:kind] == "tkBRC_LB"
-						# warn(s, prevtk[:Tid], "Empty scope (command)")
+						warn(prevtk[:tid], "Empty scope (command)")
 					end
 				end
 
@@ -811,12 +883,12 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 
 					command = tkstr($s, $s[:tid])
 					if command != "*" && command != cmdname
-						# warn(S["tid"], "Unexpected command:")
+						warn($s[:tid], "Unexpected command:")
 					end
 				end
 
 			else
-				# err(&S, S.LexerData.Tokens[S.Tid].Tid, "Unexpected token:", "end", "")
+				err($s[:lexerdata][:tokens][$s[:tid]].tid, "Unexpected token:", "end", "")
 			end
 
 		end

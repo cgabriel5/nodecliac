@@ -11,7 +11,7 @@ def vsetting(s)
 
 	settings = ["compopt", "filedir", "disable", "placehold", "test"]
 
-	setting = s[:text][start .. end_]
+	setting = s[:text][start + 1 .. end_]
 
 	# Warn if setting is not a supported setting.
 	if !settings.include?(setting)

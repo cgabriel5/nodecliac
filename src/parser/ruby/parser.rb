@@ -895,4 +895,14 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 
 		i += 1
 	end
+
+	# Check for any unused variables and give warning.
+	$user_vars.each { |uservar, value|
+		if !$used_vars.key?(uservar)
+			$user_vars[uservar].each { |tid|
+				warn(tid, "Unused variable: '" + uservar + "'")
+				$s[:warn_lsort].add($s[:lexerdata][:tokens][tid][:line])
+			}
+		end
+	}
 end

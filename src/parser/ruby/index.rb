@@ -4,6 +4,7 @@
 
 require "pathname"
 require "paint" # [https://github.com/janlelis/paint]
+require "./parser"
 
 def main
 	igc = false
@@ -56,7 +57,9 @@ def main
 	f = File.open(source)
 	res = f.read
 	f.close
-	puts res
+
+	cmdname = "debug" # Placeholder.
+	parser(action, res, cmdname, source, fmtinfo, trace, igc, test)
 end
 
 main

@@ -2,8 +2,8 @@
 
 # [https://www.rubyguides.com/2018/12/ruby-argv/]
 
-require 'pathname'
-require 'paint' # [https://github.com/janlelis/paint]
+require "pathname"
+require "paint" # [https://github.com/janlelis/paint]
 
 def main
 	igc = false

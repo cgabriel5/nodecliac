@@ -407,4 +407,7 @@ def tokenizer(text)
 	s[:start] = -1
 	s[:end] = -1
 	add_token(s, text)
+
+	return $tokens, $ttypes, $ttids, $dtids, $linestarts
+
 end

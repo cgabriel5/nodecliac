@@ -234,7 +234,7 @@ end
 # ================================
 
 def newgroup()
-  $chain = []
+	$chain = []
 end
 
 def addtoken_group(i)
@@ -306,7 +306,7 @@ end
 #   $settings[-1].append($setting)
 # end
 
-# # ============================
+# ============================
 
 def newgroup_var()
 	$variable = []
@@ -320,10 +320,10 @@ def addgroup_var(g)
 	$variables.append(g)
 end
 
-# # void addtoprevgroup_var() {
-# #     newgroup_var()
-# #     VARIABLES.back().push_back(variable)
-# # }
+# void addtoprevgroup_var() {
+#     newgroup_var()
+#     VARIABLES.back().push_back(variable)
+# }
 
 def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 

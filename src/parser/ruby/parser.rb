@@ -905,4 +905,17 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 			}
 		end
 	}
+
+	# Sort warning lines and print issues.
+	warnlines = $s[:warn_lines].to_a
+	warnlines.sort!
+	warnlines.each { |warnline|
+		# Only sort lines where unused variable warning(s) were added.
+		if $s[:warn_lsort].include?(warnline) && $s[:warnings][warnline].length() > 1
+			$s[:warnings][warnline].sort_by! { |w| w[2] }
+		end
+		$s[:warnings][warnline].each { |warning|
+			issue_warn(*warning)
+		}
+	}
 end

@@ -246,6 +246,7 @@ def addgroup(g)
 end
 
 def addtoprevgroup()
+	newgroup()
 	$cchains[-1].append($chain)
 end
 

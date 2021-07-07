@@ -26,7 +26,7 @@ $flag = {
 	"boolean": -1,
 	"assignment": -1,
 	"multi": -1,
-	"union_": -1,
+	"union": -1,
 	"values": []
 }
 
@@ -276,7 +276,7 @@ def newflag()
 	"boolean": -1,
 	"assignment": -1,
 	"multi": -1,
-	"union_": -1,
+	"union": -1,
 	"values": []
 	}
 	index = $cchains.length() - 1

@@ -211,7 +211,7 @@ def prevscope()
 end
 
 def hasnext(s)
-	$next_.include?(s)
+	return $next_.include?(s)
 end
 
 def nextany()

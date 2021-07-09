@@ -919,4 +919,11 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 			issue_warn(*warning)
 		}
 	}
+
+	if action == "make"
+		return acdef($branches, $cchains, $flags, $settings, $s, cmdname)
+	elsif action == "format"
+		return formatter($s[:lexerdata][:tokens], $s[:text], $branches, $cchains, $flags, $settings, $s)
+	end
+
 end

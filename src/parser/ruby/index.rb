@@ -5,6 +5,7 @@
 require "pathname"
 require "paint" # [https://github.com/janlelis/paint]
 require "./parser"
+require "./fs"
 
 def main
 	igc = false
@@ -35,6 +36,15 @@ def main
 	if source.empty?
 		puts "Please provide a " + Paint["--source", :bold] + " path."
 		exit
+	end
+
+	# Breakdown path.
+	fi = info(source)
+	extension = fi[:ext]
+	cmdname = fi[:name].sub(/\.#{extension}$/, "") # [TODO] `replace`
+	dirname = fi[:dirname]
+	if not (Pathname.new dirname).absolute?
+		dirname = Pathname.new(dirname).realpath.to_s
 	end
 
 	# Make path absolute.

@@ -25,7 +25,6 @@ def vsetting(S):
         S["warnings"][line].append([S["filename"], line, index - S["LINESTARTS"][line], message])
         S["warn_lines"].add(line)
 
-
 def vvariable(S):
     token = S["tokens"][S["tid"]]
     start = token["start"]

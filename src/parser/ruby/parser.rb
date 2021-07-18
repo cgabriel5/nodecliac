@@ -5,6 +5,8 @@ require "set"
 require "./lexer"
 require "./defvars"
 require "./validation"
+require "./acdef"
+require "./formatter"
 
 R = /(?<!\\)\$\{\s*[^}]*\s*\}/
 

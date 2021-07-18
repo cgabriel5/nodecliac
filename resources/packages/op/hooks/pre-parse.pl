@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# When runninh returns repo scripts to add to ACDEF and the modified CLI input.
+# When running, returns repo scripts to add to ACDEF and the modified CLI input.
 
 # use strict;
 # use warnings;

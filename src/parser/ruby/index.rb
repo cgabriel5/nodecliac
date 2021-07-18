@@ -10,7 +10,7 @@ require "./fs"
 def main
 	igc = false
 	test = false
-	print = false
+	print_ = true
 	trace = false
 	action = "format"
 	indent = "s:4"
@@ -75,6 +75,45 @@ def main
 	cmdname = "debug" # Placeholder.
 	acdef, config, keywords, filedirs, contexts, formatted, placeholders, tests =
 	parser(action, res, cmdname, source, fmtinfo, trace, igc, test)
+	if print_
+		if !formatting
+			if !acdef.empty?
+				puts("[" + Paint[cmdname + ".acdef", :bold] + "]\n\n")
+				puts(acdef + keywords + filedirs + contexts)
+				if config.empty?
+					puts("")
+				end
+			end
+			if !config.empty?
+				msg = "\n[" + Paint["." + cmdname + ".config.acdef", :bold] + "]\n\n"
+				puts(msg)
+				puts(config)
+			end
+		else
+			puts(formatted)
+		end
+	end
+
+	# Test (--test) purposes.
+	if test
+		if !formatting
+			if !acdef.empty?
+				puts(acdef + keywords + filedirs + contexts)
+				if config.empty?
+					puts("")
+				end
+			end
+			if !config.empty?
+				if !acdef.empty?
+					puts("")
+				end
+				puts(config)
+			end
+		else
+			puts(formatted)
+		end
+	end
+
 end
 
 main

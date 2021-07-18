@@ -1,0 +1,25 @@
+# DON'T EDIT FILE —— GENERATED: Sat Jul 17 2021 19:11:06 (1626574266)
+
+ --help|--version|-h|-V
+.add --help|--registry=|-h
+.build --p#0ae9d6
+.config --delete=|--edit?|--get=|--help|--json?|--set=|-d=|-e?|-g=|-h|-s=
+.create --p#6a8231
+.info --help|-h
+.inspect --help|--mode=|--plugin=|--plugins?|--rule=|--rules?|--verbose?|-h|-v?
+.invoke --help|--registry=|-h
+.serve --copy?|--help|--open?|-c?|-h|-o?
+.ui --dev?|--headless?|--help|--host=|--port=|--quiet?|-D?|-h|-H=|-p=
+.upgrade --help|-h
+
+ context "{version|V};{help|h}"
+.add context "{help|h}"
+.build context "{target|t};{name|n};{dest|d};{help|h}"
+.config context "{get|g};{set|s};{delete|d};{edit|e};{help|h}"
+.create context "{preset|p};{default|d};{inlinePreset|i};{packageManager|m};{registry|r};{git|g};{no-git|n};{force|f};{clone|c};{proxy|x};{bare|b};{help|h}"
+.info context "{help|h}"
+.inspect context "{verbose|v};{help|h}"
+.invoke context "{help|h}"
+.serve context "{open|o};{copy|c};{help|h}"
+.ui context "{host|H};{port|p};{dev|D};{help|h}"
+.upgrade context "{help|h}"

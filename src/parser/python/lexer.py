@@ -115,7 +115,7 @@ def tokenizer(text):
                 lastpassed = ""
                 for i in range(token_count - 1, -1, -1):
                     lkind = ttypes[i]
-                    if lkind in ("tkCMD", "tkFLG"):
+                    if lkind in ("tkCMD", "tkFLG", "tkSTN", "tkVAR"):
                         lastpassed = lkind
                         break
 

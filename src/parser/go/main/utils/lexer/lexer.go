@@ -81,7 +81,7 @@ var tkTBD_TK_TYPES = []byte{
 var tkTBD_TK_TYPES2 = []byte{C_NL, C_SPACE, C_TAB}
 var tkEOP_TK_TYPES = []byte{C_SPACE, C_TAB, C_NL}
 var tkTYPES_RESET1 = []string{"tkCMD", "tkTBD"}
-var tkTYPES_RESET2 = []string{"tkCMD", "tkFLG"}
+var tkTYPES_RESET2 = []string{"tkCMD", "tkFLG", "tkSTN", "tkVAR"}
 var tkTYPES_RESET3 = []string{"tkSTN", "tkVAR"}
 var tkTYPES_RESET4 = []string{"tkCMT", "tkNL", "tkEOP"}
 

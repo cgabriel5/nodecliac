@@ -107,7 +107,7 @@ const set<char> tkTBD_TK_TYPES {
 const set<char> tkTBD_TK_TYPES2 {C_NL, C_SPACE, C_TAB};
 const set<char> tkEOP_TK_TYPES {C_SPACE, C_TAB, C_NL};
 const set<string> tkTYPES_RESET1 {"tkCMD", "tkTBD"};
-const set<string> tkTYPES_RESET2 {"tkCMD", "tkFLG"};
+const set<string> tkTYPES_RESET2 {"tkCMD", "tkFLG", "tkSTN", "tkVAR"};
 const set<string> tkTYPES_RESET3 {"tkSTN", "tkVAR"};
 const set<string> tkTYPES_RESET4 {"tkCMT", "tkNL", "tkEOP"};
 

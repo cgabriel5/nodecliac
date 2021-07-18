@@ -1172,7 +1172,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 							// Collect exclude values for use upstream.
 							if (hasKey(S.LexerData.dtids, S.tid)) {
 								Token& prevtk = prevtoken(S);
-								if (prevtk.kind == "tkKYW" and
+								if (prevtk.kind == "tkKYW" &&
 									tkstr(S, prevtk.tid) == "exclude") {
 									string exvalues = tkstr(S, prevtk.tid);
 									exvalues = exvalues.substr(1, exvalues.length() - 2);

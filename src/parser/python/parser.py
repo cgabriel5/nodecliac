@@ -262,25 +262,25 @@ def parser(action, text, cmdname, source, fmt, trace, igc, test):
             "union": -1,
             "values": []
         }
-        setflagprop("tid")
         index = len(CCHAINS) - 1
         if index not in FLAGS:
             FLAGS[index] = []
         FLAGS[index].append(flag)
+        setflagprop("tid")
 
     def newvaluegroup(prop):
         nonlocal flag
         flag[prop].append([-1])
 
     def setflagprop(prop, prev_val_group = False):
-        nonlocal flag
+        index = len(CCHAINS) - 1
         if prop != "values":
-            flag[prop] = S["tid"]
+            FLAGS[index][-1][prop] = S["tid"]
         else:
             if not prev_val_group:
-                flag[prop].append([S["tid"]])
+                FLAGS[index][-1][prop].append([S["tid"]])
             else:
-                flag[prop][-1].append(S["tid"])
+                FLAGS[index][-1][prop][-1].append(S["tid"])
 
     # Setting/variable grouping helpers.
     # ================================

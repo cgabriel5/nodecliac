@@ -330,7 +330,7 @@ void newgroup() {
 }
 
 void addtoken_group(int i) {
-	chain.push_back(i);
+	CCHAINS.back().back().push_back(i);
 }
 
 void addgroup(vector<int> &g) {
@@ -347,37 +347,40 @@ void addtoprevgroup() {
 // ============================
 
 void newvaluegroup(const string &prop) {
+	int index = CCHAINS.size() - 1;
 	vector<int> values {-1};
-	flag.values.push_back(values);
+	FLAGS[index].back().values.push_back(values);
 }
 
 void setflagprop(const string &prop, const bool &prev_val_group=false) {
+	int index = CCHAINS.size() - 1;
+
 	if (prop != "values") {
-		if (prop == "tid")             flag.tid =        S.tid;
-		else if (prop == "alias")      flag.alias =      S.tid;
-		else if (prop == "boolean")    flag.boolean =    S.tid;
-		else if (prop == "assignment") flag.assignment = S.tid;
-		else if (prop == "multi")      flag.multi =      S.tid;
-		else if (prop == "union")      flag.union_ =     S.tid;
+		if (prop == "tid")             FLAGS[index].back().tid =        S.tid;
+		else if (prop == "alias")      FLAGS[index].back().alias =      S.tid;
+		else if (prop == "boolean")    FLAGS[index].back().boolean =    S.tid;
+		else if (prop == "assignment") FLAGS[index].back().assignment = S.tid;
+		else if (prop == "multi")      FLAGS[index].back().multi =      S.tid;
+		else if (prop == "union")      FLAGS[index].back().union_ =     S.tid;
 	} else {
 		if (!prev_val_group) {
 			vector<int> list {S.tid};
-			flag.values.push_back(list);
+			FLAGS[index].back().values.push_back(list);
 		} else {
-			flag.values.back().push_back(S.tid);
+			FLAGS[index].back().values.back().push_back(S.tid);
 		}
 	}
 }
 
 void newflag() {
 	Flag flag;
-	setflagprop("tid");
 	int index = CCHAINS.size() - 1;
 	if (!hasKey(FLAGS, index)) {
 		vector<Flag> list;
 		FLAGS[index] = list;
 	}
 	FLAGS[index].push_back(flag);
+	setflagprop("tid");
 }
 
 // Setting/variable grouping helpers.
@@ -389,7 +392,7 @@ void newgroup_stn() {
 }
 
 void addtoken_stn_group(const int i) {
-	setting.push_back(i);
+	SETTINGS.back().push_back(i);
 }
 
 void addgroup_stn(vector<int> &g) {
@@ -409,7 +412,7 @@ void newgroup_var() {
 }
 
 void addtoken_var_group(const int i) {
-	variable.push_back(i);
+	VARIABLES.back().push_back(i);
 }
 
 void addgroup_var(vector<int> &g) {
@@ -540,8 +543,8 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
 						vector<string> list {"", "tkASG"};
 						expect(list);
 					} else if (kind == "tkCMD") {
-						addtoken_group(S.tid);
 						addgroup(chain);
+						addtoken_group(S.tid);
 
 						vector<string> list {"", "tkDDOT", "tkASG", "tkDCMA"};
 						expect(list);

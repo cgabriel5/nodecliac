@@ -82,6 +82,9 @@ int main(int argc, char **argv) {
 	regex e("\\." + extension + "$");
 	string cmdname = std::regex_replace(fi.name, e, "");
 	string dirname = abspath(fi.dirname);
+	// [TODO] Make path absolute.
+	// const fs::path path_d(dirname);
+	// if (!path_d.is_absolute()) { dirname = abspath(dirname); }
 
 	// Make path absolute.
 	// [https://stackoverflow.com/a/43278300]

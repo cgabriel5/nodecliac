@@ -1,0 +1,43 @@
+# DON'T EDIT FILE —— GENERATED: Sat Jul 17 2021 19:08:31 (1626574111)
+
+ --help|--version|-h|-V
+.add --help|--registry=|-h
+.build --p#aaeff9
+.config --delete=|--edit|--get=|--help|--json?|--set=|-d=|-e|-g=|-h|-s=
+.create --p#6a8231
+.info --help|-h
+.init --help|-h
+.init.browserify --clone?|--help|--offline|-c?|-h
+.init.browserify-simple --clone?|--help|--offline|-c?|-h
+.init.pwa --clone?|--help|--offline|-c?|-h
+.init.simple --clone?|--help|--offline|-c?|-h
+.init.webpack --clone?|--help|--offline|-c?|-h
+.init.webpack-simple --clone?|--help|--offline|-c?|-h
+.inspect --help|--mode=|--plugin=|--plugins?|--rule=|--rules?|--verbose?|-h|-v?
+.invoke --help|--registry=|-h
+.migrate --from=|--help|-f=|-h
+.outdated --help|--next?|-h
+.serve --copy?|--help|--open?|--port=|-c?|-h|-o?|-p=
+.ui --dev?|--headless?|--help|--host=|--port=|--quiet?|-D?|-h|-H=|-p=
+.upgrade --all?|--from=|--help|--next?|--registry=|--to=|-f=|-h|-r=|-t=
+
+ context "{version|V};{help|h}"
+.add context "{help|h}"
+.build context "{target|t};{name|n};{dest|d};{help|h}"
+.config context "{get|g};{set|s};{delete|d};{edit|e};{help|h}"
+.create context "{preset|p};{default|d};{inlinePreset|i};{packageManager|m};{registry|r};{git|g};{no-git|n};{force|f};{clone|c};{proxy|x};{bare|b};{help|h}"
+.info context "{help|h}"
+.init context "{help|h}"
+.init.browserify context "{clone|c};{help|h}"
+.init.browserify-simple context "{clone|c};{help|h}"
+.init.pwa context "{clone|c};{help|h}"
+.init.simple context "{clone|c};{help|h}"
+.init.webpack context "{clone|c};{help|h}"
+.init.webpack-simple context "{clone|c};{help|h}"
+.inspect context "{verbose|v};{help|h}"
+.invoke context "{help|h}"
+.migrate context "{from|f};{help|h}"
+.outdated context "{help|h}"
+.serve context "{open|o};{copy|c};{port|p};{help|h}"
+.ui context "{host|H};{port|p};{dev|D};{help|h}"
+.upgrade context "{to|t};{from|f};{registry|r};{help|h}"

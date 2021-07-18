@@ -1,0 +1,112 @@
+# Experimental vue cli acmap.
+
+# [https://github.com/Bash-it/bash-it/pull/1303/files]
+
+# Options:
+#   -V, --version                              output the version number
+#   -h, --help                                 output usage information
+
+# Commands:
+#   create [options] <app-name>                create a new project powered by vue-cli-service
+#   add [options] <plugin> [pluginOptions]     install a plugin and invoke its generator in an already created project
+#   invoke [options] <plugin> [pluginOptions]  invoke the generator of a plugin in an already created project
+#   inspect [options] [paths...]               inspect the webpack config in a project with vue-cli-service
+#   serve [options] [entry]                    serve a .js or .vue file in development mode with zero config
+#   build [options] [entry]                    build a .js or .vue file in production mode with zero config
+#   ui [options]                               start and open the vue-cli ui
+#   init [options] <template> <app-name>       generate a project from a remote template (legacy API, requires @vue/cli-init)
+#   config [options] [value]                   inspect and modify the config
+#   outdated [options]                         (experimental) check for outdated vue cli service / plugins
+#   upgrade [options] [plugin-name]            (experimental) upgrade vue cli service / plugins
+#   migrate [options] [plugin-name]            (experimental) run migrator for an already-installed cli plugin
+#   info                                       print debugging information about your environment
+
+#   Run vue <command> --help for detailed usage of given command.
+
+@placehold = true
+
+# Universal/shared flags.
+* = --help::h
+
+vue = --version::V
+
+vue.{add,invoke} = [
+	--registry=
+]
+
+vue.build = [
+	--target::t=(app lib wc wc-async)
+	--name::n=
+	--dest::d=
+]
+
+vue.config = [
+	--get::g=
+	--set::s=
+	--delete::d=
+	--edit::e
+	--json?
+]
+
+vue.create = [
+	--preset::p=
+	--default::d?
+	--inlinePreset::i=
+	--packageManager::m=
+	--registry::r=
+	--git::g=
+	--no-git::n?
+	--force::f?
+	--clone::c?
+	--proxy::x?
+	--bare::b?
+	--skipGetStarted?
+]
+
+vue.info
+
+# [https://github.com/vuejs/vue-cli/issues/399]
+# [https://github.com/vuejs-templates]
+vue.init.{webpack,webpack-simple,pwa,simple,browserify,browserify-simple} = [
+	--clone::c?
+	--offline
+]
+
+vue.upgrade = [
+	--to::t=
+	--from::f=
+	--registry::r=
+	--all?
+	--next?
+]
+
+vue.inspect = [
+	--mode=
+	--rule=
+	--plugin=
+	--rules?
+	--plugins?
+	--verbose::v?
+]
+
+vue.migrate = [
+	--from::f=
+]
+
+vue.outdated = [
+	--next?
+]
+
+vue.serve = [
+	--open::o?
+	--copy::c?
+	--port::p=
+]
+
+vue.ui= [
+	--host::H=
+	--port::p=
+	--dev::D?
+	--quiet?
+	--headless?
+]

@@ -73,6 +73,7 @@ def main
 	f.close
 
 	cmdname = "debug" # Placeholder.
+	acdef, config, keywords, filedirs, contexts, formatted, placeholders, tests =
 	parser(action, res, cmdname, source, fmtinfo, trace, igc, test)
 end
 

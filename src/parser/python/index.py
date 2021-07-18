@@ -128,7 +128,7 @@ def main():
                 if config:
                     msg = "\n[" + chalk("." + cmdname + ".config.acdef", "bold") + "]\n"
                     print(msg)
-                    print(config + "\n")
+                    print(config)
             else: print(formatted)
 
         # Test (--test) purposes.

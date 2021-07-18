@@ -20,15 +20,15 @@
 
 using namespace std;
 
-const char C_LF = 'f';
-const char C_LT = 't';
+// const char C_LF = 'f';
+// const char C_LT = 't';
 
-const char C_ATSIGN = '@';
-const char C_HYPHEN = '-';
-const char C_DOLLARSIGN = '$';
+// const char C_ATSIGN = '@';
+// const char C_HYPHEN = '-';
+// const char C_DOLLARSIGN = '$';
 
-const string C_PRIM_TBOOL = "true";
-const string C_PRIM_FBOOL = "false";
+// const string C_PRIM_TBOOL = "true";
+// const string C_PRIM_FBOOL = "false";
 
 enum tkType_Parser {
 	tkSTN,

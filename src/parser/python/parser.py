@@ -10,15 +10,15 @@ from utils.defvars import builtins
 from lexer import tokenizer, LINESTARTS
 from validation import vsetting, vvariable, vstring, vsetting_aval
 
-C_LF = 'f'
-C_LT = 't'
+# C_LF = 'f'
+# C_LT = 't'
 
-C_ATSIGN = '@'
-C_HYPHEN = '-'
-C_DOLLARSIGN = '$'
+# C_ATSIGN = '@'
+# C_HYPHEN = '-'
+# C_DOLLARSIGN = '$'
 
-C_PRIM_TBOOL = "true"
-C_PRIM_FBOOL = "false"
+# C_PRIM_TBOOL = "true"
+# C_PRIM_FBOOL = "false"
 
 r = r"(?<!\\)\$\{\s*[^}]*\s*\}"
 

@@ -6,9 +6,6 @@ def formatter(*args)
 	fmt = $s[:args][:fmt]
 	igc = $s[:args][:igc]
 
-	output = []
-	r = "/^[ \t]+/g"
-
 	ttypes = $s[:ttypes]
 	ttids = $s[:ttids]
 	dtids = $s[:dtids]

@@ -8,10 +8,6 @@ def formatter(tokens, text, branches, cchains, flags, settings, S):
     fmt = S["args"]["fmt"]
     igc = S["args"]["igc"]
 
-    output = []
-    alias = None
-    r = r"/^[ \t]+/g"
-
     ttypes = S["ttypes"]
     ttids = S["ttids"]
     dtids = S["dtids"]

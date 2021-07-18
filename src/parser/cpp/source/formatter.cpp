@@ -39,8 +39,8 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
     tabdata fmt = S.args.fmt;
     bool igc = S.args.igc;
 
-    vector<string> output;
-    regex r("^[ \\t]+");
+    // vector<string> output;
+    // regex r("^[ \\t]+");
 
 	vector<Token> &tokens = S.LexerData.tokens;
 	map<int, string> &ttypes = S.LexerData.ttypes;

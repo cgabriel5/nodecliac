@@ -193,7 +193,7 @@ def tokenizer(text):
     # Tokenizer loop functions.
 
     def tk_stn():
-        if S["i"] - S["start"] > 0 and not (c.isalnum()):
+        if S["i"] - S["start"] > 0 and not c.isalnum():
             rollback(1)
             S["end"] = S["i"]
             add_token()

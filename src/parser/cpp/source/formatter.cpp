@@ -123,12 +123,14 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
                     if (dline == 1) {
                     	cleaned.push_back("\n");
                     } else if (dline > 1) {
-                        cleaned.push_back("\n");
-                        cleaned.push_back("\n");
+                    	if (!group_open) {
+	                        cleaned.push_back("\n");
+	                        cleaned.push_back("\n");
 
-                        // [TODO] Add format settings to customize formatting.
-                        // For example, collapse newlines in flag scopes?
-                        // if level > 0: cleaned.pop()
+	                        // [TODO] Add format settings to customize formatting.
+	                        // For example, collapse newlines in flag scopes?
+	                        // if level > 0: cleaned.pop()
+						}
 					}
 				}
 

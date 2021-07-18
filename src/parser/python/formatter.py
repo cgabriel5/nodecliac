@@ -90,8 +90,9 @@ def formatter(tokens, text, branches, cchains, flags, settings, S):
 
                     if dline == 1: cleaned.append("\n")
                     elif dline > 1:
-                        cleaned.append("\n")
-                        cleaned.append("\n")
+                        if not group_open:
+                            cleaned.append("\n")
+                            cleaned.append("\n")
 
                         # [TODO] Add format settings to customize formatting.
                         # For example, collapse newlines in flag scopes?

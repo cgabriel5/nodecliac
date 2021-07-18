@@ -113,13 +113,13 @@ def formatter(*args)
 						if !group_open
 							cleaned.append("\n")
 							cleaned.append("\n")
-						end
 
-						# [TODO] Add format settings to customize formatting.
-						# For example, collapse newlines in flag scopes?
-						# if level > 0
-						# 	cleaned.pop()
-						# end
+							# [TODO] Add format settings to customize formatting.
+							# For example, collapse newlines in flag scopes?
+							# if level > 0
+							# 	cleaned.pop()
+							# end
+						end
 					end
 				end
 

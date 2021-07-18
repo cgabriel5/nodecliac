@@ -35,7 +35,7 @@ def vvariable(S):
     # Error when variable starts with a number.
     if S["text"][start + 1].isdigit():
         message = "Unexpected: '" + S["text"][start + 1] + "'"
-        message += f"\n\033[1;36mInfo\033[0m: Variable cannot begin with a number."
+        message += "\n\033[1;36mInfo\033[0m: Variable cannot begin with a number."
         Issue().error(S["filename"], line, index - S["LINESTARTS"][line], message)
 
 def vstring(S):
@@ -48,7 +48,7 @@ def vstring(S):
     # Warn when string is empty.
     # [TODO] Warn if string content is just whitespace?
     if end - start == 1:
-        message = f"Empty string"
+        message = "Empty string"
 
         if line not in S["warnings"]: S["warnings"][line] = []
         S["warnings"][line].append([S["filename"], line, index - S["LINESTARTS"][line], message])
@@ -56,7 +56,7 @@ def vstring(S):
 
     # Error if string is unclosed.
     if token["lines"][1] == -1:
-        message = f"Unclosed string"
+        message = "Unclosed string"
         Issue().error(S["filename"], line, index - S["LINESTARTS"][line], message)
 
 def vsetting_aval(S):

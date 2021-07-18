@@ -44,6 +44,9 @@ def acdef(branches, cchains, flags, settings, S, cmdname):
     rcmdname = re.sub(r'\+', "\\+", cmdname)
     r = re.compile(f"^({rcmdname}|[-_a-zA-Z0-9]+)")
 
+    re_space = re.compile(r"\s")
+    re_space_cl = re.compile(r";\s+")
+
     date = time.time()
     dt = datetime.fromtimestamp(date)
     timestamp = round(date)
@@ -170,7 +173,7 @@ def acdef(branches, cchains, flags, settings, S, cmdname):
             if kind == "tkKYW":
                 if values and flag != "exclude":
                     if len(values[0]) == 1:
-                        value = re.sub(r"\s", "", tkstr(values[0][0]))
+                        value = re.sub(re_space, "", tkstr(values[0][0]))
                         if flag == "context": value = value[1:-1]
                     else:
                         value = get_cmdstr(values[0][1] + 1, values[0][2])
@@ -296,7 +299,7 @@ def acdef(branches, cchains, flags, settings, S, cmdname):
     # Populate settings object.
     for setting in settings:
         name = tkstr(setting[0])[1:]
-        if name == "test": oTests.append(re.sub(r";\s+", ";", tkstr(setting[2])))
+        if name == "test": oTests.append(re.sub(re_space_cl, ";", tkstr(setting[2])))
         else: oSettings[name] = tkstr(setting[2]) if len(setting) > 1 else ""
 
     # Build settings contents.

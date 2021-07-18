@@ -25,7 +25,7 @@ def main():
         cliparser.add_argument("--trace", default=False, action="store_true")
         cliparser.add_argument("action", default="")
         # [https://stackoverflow.com/a/15301183]
-        cliparser.add_argument("--indent", default="s:4")
+        cliparser.add_argument("--indent", default="t:1")
         cliparser.add_argument("--source", default="")
         args, unknown = cliparser.parse_known_args()
 

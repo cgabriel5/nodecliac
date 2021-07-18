@@ -26,7 +26,8 @@
 		"install:local": "sudo echo > /dev/null 2>&1 && bash -c \"bash <(cat ./install.sh) --installer=\\$0 --branch=\\$1 && source ~/.bashrc\"",
 		"install:remote": "sudo echo > /dev/null 2>&1 && bash -c \"bash <(curl -Ls https://raw.githubusercontent.com/cgabriel5/nodecliac/\\$1/install.sh) --installer=\\$0 --branch=\\$1 && source ~/.bashrc\"",
 		"checksum": "./src/scripts/main/checksum.sh",
-		"build": "SPPID=\"$PPID\" ./src/scripts/main/build.sh $1"
+		"build": "SPPID=\"$PPID\" ./src/scripts/main/build.sh $1",
+		"cpp": "g++ -std=c++11 -I ./headers -I ./libs main.cpp -o main.bin ./source/lexer.cpp ./source/parser.cpp ./source/str.cpp ./source/io.cpp ./source/path.cpp ./source/fs.cpp ./source/validation.cpp ./source/defvars.cpp ./source/issue.cpp ./source/acdef.cpp ./source/formatter.cpp ./libs/md5.cpp ./source/parsetools.cpp  && time ./main.bin make --source /opt/lampp/htdocs/projects/nodecliac/src/parser/python/debug.acmap --print --trace --testx --indent \"s:4\"; rm main.bin"
 	},
 	"dependencies": {
 		"chalk": "^4.1.0",

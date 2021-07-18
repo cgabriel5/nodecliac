@@ -176,7 +176,7 @@ void add_token(State &S, const string &text) {
 			S.kind = "tkFOPT"; // Hyphen.
 
 		// When parsing a value list '--flag=()', that is not a
-		// string/commang-string should be considered a value.
+		// string/command-string should be considered a value.
 		} else if (valuelist && contains(tkTYPES_RESET1, S.kind)) {
 			S.kind = "tkFVAL";
 

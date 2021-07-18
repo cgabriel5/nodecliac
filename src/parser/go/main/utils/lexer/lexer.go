@@ -145,7 +145,7 @@ func add_token(S *State, text string) {
 			S.Kind = "tkFOPT" // Hyphen.
 
 			// When parsing a value list '--flag=()', that is not a
-			// string/commang-string should be considered a value.
+			// string/command-string should be considered a value.
 		} else if valuelist && slices.Contains(tkTYPES_RESET1, S.Kind) {
 			S.Kind = "tkFVAL"
 

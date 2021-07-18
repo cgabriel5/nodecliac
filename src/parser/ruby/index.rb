@@ -50,7 +50,11 @@ def main
 	# Make path absolute.
 	if not (Pathname.new source).absolute?
 		# [https://stackoverflow.com/a/1906886]
-		source = Pathname.new(source).realpath.to_s
+		begin # [https://blog.bearer.sh/handle-ruby-exceptions/]
+			source = Pathname.new(source).realpath.to_s
+			# [https://airbrake.io/blog/ruby-exception-handling/systemcallerror]
+			rescue Errno::ENOENT => e # [TODO] Handle this better.
+		end
 	end
 
 	# [https://stackoverflow.com/a/10115630]

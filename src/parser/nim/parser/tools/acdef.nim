@@ -72,11 +72,11 @@ proc acdef*(S: State, cmdname: string): tuple =
 
     proc fobj(s: string): Cobj =
         new(result)
-        result.orig = s
+        result.orig = s # [TODO] Duplicate below?
         result.val = s.toLower()
         result.m = s.endsWith("=*").int
         if s[1] != C_HYPHEN:
-            result.orig = s
+            result.orig = s  # [TODO] Duplicate above?
             result.single = true
 
     proc asort(a, b: Cobj): int =

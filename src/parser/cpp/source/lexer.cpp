@@ -208,6 +208,7 @@ void add_token(State &S, const string &text) {
 			}
 
 			if (S.kind != "tkFVAL" && ttids.size() > 1) {
+				// [https://stackoverflow.com/a/18540244]
 				string prevtk2 = tokens[ttids.end()[-2]].kind;
 
 				// Flag alias '::' reset.

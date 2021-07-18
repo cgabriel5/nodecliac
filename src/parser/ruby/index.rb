@@ -5,6 +5,7 @@
 require "pathname"
 require "paint" # [https://github.com/janlelis/paint]
 require "./parser"
+require "fileutils"
 require "./fs"
 
 def main
@@ -75,6 +76,46 @@ def main
 	cmdname = "debug" # Placeholder.
 	acdef, config, keywords, filedirs, contexts, formatted, placeholders, tests =
 	parser(action, res, cmdname, source, fmtinfo, trace, igc, test)
+
+	testname = cmdname + ".tests.sh"
+	savename = cmdname + ".acdef"
+	saveconfigname = "." + cmdname + ".config.acdef"
+
+	# Only save files to disk when not testing.
+	if !test
+		if formatting
+			# [https://stackoverflow.com/a/19337403]
+			File.write(source, formatted)
+		else
+			testpath = File.join(dirname, testname)
+			commandpath = File.join(dirname, savename)
+			commandconfigpath = File.join(dirname, saveconfigname)
+			placeholderspaths = File.join(dirname, "placeholders")
+
+			# [https://stackoverflow.com/a/11464127]
+			FileUtils.mkdir_p(dirname)
+			File.write(commandpath, acdef + keywords + filedirs + contexts)
+			File.write(commandconfigpath, config)
+
+			# Save test file if tests were provided.
+			if !tests.empty?
+				File.write(testpath, tests)
+				# [https://makandracards.com/makandra/1388-change-file-permissions-with-ruby]
+				File.chmod(0o775, testpath)  # 775 permissions
+			end
+
+			# Create placeholder files if object is populated.
+			if placeholders
+				FileUtils.mkdir_p(placeholderspaths)
+
+				placeholders.each { |key,value|
+					p = placeholderspaths + File::SEPARATOR + key
+					File.write(p, value)
+				}
+			end
+		end
+	end
+
 	if print_
 		if !formatting
 			if !acdef.empty?

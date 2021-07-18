@@ -9,7 +9,7 @@ import functools
 from datetime import datetime
 from collections import OrderedDict
 
-def acdef(branches, cchains, flags, settings, S):
+def acdef(branches, cchains, flags, settings, S, cmdname):
 
     ubids = S["ubids"]
     text = S["text"]
@@ -41,7 +41,7 @@ def acdef(branches, cchains, flags, settings, S):
     oKeywords = [oDefaults, oFiledirs, oContexts]
 
     # Escape '+' chars in commands. [https://stackoverflow.com/a/678242]
-    rcmdname = re.sub(r'\+', "\\+", os.path.splitext(S["filename"])[0])
+    rcmdname = re.sub(r'\+', "\\+", cmdname)
     r = re.compile(f"^({rcmdname}|[-_a-zA-Z0-9]+)")
 
     date = time.time()

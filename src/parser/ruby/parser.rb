@@ -913,6 +913,9 @@ def parser(action, text, cmdname, source, fmtinfo, trace, igc, test)
 	warnlines.each { |warnline|
 		# Only sort lines where unused variable warning(s) were added.
 		if $s[:warn_lsort].include?(warnline) && $s[:warnings][warnline].length() > 1
+			# [https://stackoverflow.com/a/7033750]
+			# [https://stackoverflow.com/a/12921818]
+			# [https://stackoverflow.com/a/12921818]
 			$s[:warnings][warnline].sort_by! { |w| w[2] }
 		end
 		$s[:warnings][warnline].each { |warning|

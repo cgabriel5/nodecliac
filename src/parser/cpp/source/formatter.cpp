@@ -163,7 +163,7 @@ tuple <string, string, string, string, string, string, map<string, string>, stri
                 } else if (kind == "tkDCMA" && !first_assignment) {
                     cleaned.push_back(tkstr(S, leaf.tid));
                     // Append newline after group is cloased.
-                    if (!group_open) cleaned.push_back("\n");
+                    // if (!group_open) cleaned.push_back("\n");
 
                 } else if (kind == "tkASG" && !first_assignment) {
                     first_assignment = true;

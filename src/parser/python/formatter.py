@@ -125,7 +125,7 @@ def formatter(tokens, text, branches, cchains, flags, settings, S):
                 elif kind == "tkDCMA" and not first_assignment:
                     cleaned.append(tkstr(leaf["tid"]))
                     # Append newline after group is cloased.
-                    if not group_open: cleaned.append("\n")
+                    # if not group_open: cleaned.append("\n")
 
                 elif kind == "tkASG" and not first_assignment:
                     first_assignment = True

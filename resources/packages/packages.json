@@ -1,34 +1,145 @@
 [
 	{
 		"name": "balena",
-		"repo": "https://github.com/cgabriel5/nodecliac-packages",
-		"scheme": "cgabriel5/nodecliac-packages#master/trunk/balena",
-		"method": "git",
 		"description": "nodecliac completion package for balena command.",
 		"license": "MIT",
+		"repo": "cgabriel5/nodecliac-packages#master/trunk/balena",
 		"tags": []
 	},
 	{
 		"name": "nimble",
-		"repo": "https://github.com/cgabriel5/nodecliac-packages",
-		"scheme": "cgabriel5/nodecliac-packages#master/trunk/nimble",
-		"method": "git",
 		"description": "nodecliac completion package for nimble command.",
 		"license": "MIT",
-		"tags": [
-			"app",
-			"binary",
-			"package",
-			"manager"
-		]
+		"repo": "cgabriel5/nodecliac-packages#master/trunk/nimble",
+		"tags": ["app", "binary", "package", "manager"],
+		"web": "https://github.com/nim-lang/nimble"
 	},
 	{
 		"name": "nodecliac",
-		"repo": "https://github.com/cgabriel5/nodecliac-packages",
-		"scheme": "cgabriel5/nodecliac-packages#master/trunk/nodecliac",
-		"method": "git",
 		"description": "nodecliac completion package for nodecliac command.",
 		"license": "MIT",
-		"tags": []
+		"repo": "cgabriel5/nodecliac-packages#master/trunk/nodecliac",
+		"tags": [],
+		"web": "https://github.com/cgabriel5/nodecliac"
+	},
+	{
+		"name": "yarn",
+		"description": "yarn completion package for nodecliac command.",
+		"license": "MIT",
+		"repo": "cgabriel5/yarn-packages#master/trunk/yarn",
+		"tags": [],
+		"web": "https://github.com/cgabriel5/nodecliac"
+	},
+	{
+		"name": "alacritty",
+		"description": "nodecliac completion package for alacritty command.",
+		"license": "MIT",
+		"repo": "cgabriel5/nodecliac-packages#master/trunk/alacritty",
+		"tags": [],
+		"web": "https://github.com/cgabriel5/nodecliac"
+	},
+	{
+		"name": "clone-repo",
+		"description": "nodecliac completion package for clone-repo command.",
+		"license": "MIT",
+		"repo": "cgabriel5/nodecliac-packages#master/trunk/clone-repo",
+		"tags": [],
+		"web": "https://github.com/cgabriel5/nodecliac"
+	},
+	{
+		"name": "datica",
+		"description": "nodecliac completion package for datica command.",
+		"license": "MIT",
+		"repo": "cgabriel5/nodecliac-packages#master/trunk/datica",
+		"tags": [],
+		"web": "https://github.com/cgabriel5/nodecliac"
+	},
+	{
+		"name": "github-linguist",
+		"description": "nodecliac completion package for github-linguist command.",
+		"license": "MIT",
+		"repo": "cgabriel5/nodecliac-packages#master/trunk/github-linguist",
+		"tags": [],
+		"web": "https://github.com/cgabriel5/nodecliac"
+	},
+	{
+		"name": "m-cli",
+		"description": "nodecliac completion package for m-cli command.",
+		"license": "MIT",
+		"repo": "cgabriel5/nodecliac-packages#master/trunk/m-cli",
+		"tags": [],
+		"web": "https://github.com/cgabriel5/nodecliac"
+	},
+	{
+		"name": "nim",
+		"description": "nodecliac completion package for nim command.",
+		"license": "MIT",
+		"repo": "cgabriel5/nodecliac-packages#master/trunk/nim",
+		"tags": [],
+		"web": "https://github.com/cgabriel5/nodecliac"
+	},
+	{
+		"name": "npm",
+		"description": "nodecliac completion package for npm command.",
+		"license": "MIT",
+		"repo": "cgabriel5/nodecliac-packages#master/trunk/npm",
+		"tags": [],
+		"web": "https://github.com/cgabriel5/nodecliac"
+	},
+	{
+		"name": "op",
+		"description": "nodecliac completion package for op command.",
+		"license": "MIT",
+		"repo": "cgabriel5/nodecliac-packages#master/trunk/op",
+		"tags": [],
+		"web": "https://github.com/cgabriel5/nodecliac"
+	},
+	{
+		"name": "prettier-cli-watcher",
+		"description": "nodecliac completion package for prettier-cli-watcher command.",
+		"license": "MIT",
+		"repo": "cgabriel5/nodecliac-packages#master/trunk/prettier-cli-watcher",
+		"tags": [],
+		"web": "https://github.com/cgabriel5/nodecliac"
+	},
+	{
+		"name": "smerge",
+		"description": "nodecliac completion package for smerge command.",
+		"license": "MIT",
+		"repo": "cgabriel5/nodecliac-packages#master/trunk/smerge",
+		"tags": [],
+		"web": "https://github.com/cgabriel5/nodecliac"
+	},
+	{
+		"name": "subl",
+		"description": "nodecliac completion package for subl command.",
+		"license": "MIT",
+		"repo": "cgabriel5/nodecliac-packages#master/trunk/subl",
+		"tags": [],
+		"web": "https://github.com/cgabriel5/nodecliac"
+	},
+	{
+		"name": "svelte",
+		"description": "nodecliac completion package for svelte command.",
+		"license": "MIT",
+		"repo": "cgabriel5/nodecliac-packages#master/trunk/svelte",
+		"tags": [],
+		"web": "https://github.com/cgabriel5/nodecliac"
+	},
+	{
+		"name": "testapp",
+		"description": "nodecliac completion package for testapp command.",
+		"license": "MIT",
+		"repo": "cgabriel5/nodecliac-packages#master/trunk/testapp",
+		"tags": [],
+		"web": "https://github.com/cgabriel5/nodecliac"
+	},
+	{
+		"name": "vue",
+		"description": "nodecliac completion package for vue command.",
+		"license": "MIT",
+		"repo": "cgabriel5/nodecliac-packages#master/trunk/vue",
+		"tags": [],
+		"web": "https://github.com/cgabriel5/nodecliac"
 	}
 ]

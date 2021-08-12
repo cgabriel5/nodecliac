@@ -233,6 +233,7 @@ _Complete details/events are oversimplified and condensed to get the main points
   - [`unlink`](#cli-command-unlink)
   - [`enable`](#cli-command-enable)
   - [`disable`](#cli-command-disable)
+  - [`refresh`](#cli-command-refresh)
 
 ---
 
@@ -550,6 +551,22 @@ $ nodecliac enable --all # Enables all disabled packages.
 ```sh
 $ nodecliac disable # Disables enabled package(s).
 $ nodecliac disable --all # Disables all enabled packages.
+```
+
+---
+
+<a name="cli-command-refresh"></a>
+
+<b><i>refresh</i></b>
+
+> Fetches and updates the list of nodecliac completion packages.
+
+- _No arguments_
+
+###### Usage
+
+```sh
+$ nodecliac refresh
 ```
 
 ---

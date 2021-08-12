@@ -16,14 +16,54 @@ const { aexec, shrink, ispath_abs } = toolbox;
 const hdir = require("os").homedir();
 
 module.exports = async (args) => {
-	let { registrypath } = paths;
-	let { force, "skip-val": skipval, path: p, repo = "" } = args;
+	let { registrypath, ncliacdir } = paths;
+	let {
+		"allow-size": allowsize,
+		"allow-structure": allowstructure,
+		"allow-overwrite": allowoverwrite,
+		force,
+		path: p,
+		repo = "" } = args;
+	let positional = args._;
+
+	// Handle '$ nodecliac add nodecliac'.
+	if (positional.length > 1) {
+		let pkg_name = positional[1];
+		let packageslist = path.join(ncliacdir, "packages.json");
+		let [err, res] = await flatry(fe(packageslist));
+		let localpkglist = chalk.bold(packageslist);
+		if (res) {
+			let pkgd;
+			let packages = require(packageslist);
+			for (let i = 0, l = packages.length; i < l; i++) {
+				let pkg = packages[i];
+				if (pkg.name === pkg_name) {
+					pkgd = pkg;
+					repo = pkg.repo;
+					break;
+				}
+			}
+			// Error if package not in list.
+			if (!pkgd) {
+				exit([`${chalk.red("Error:")} Package ${chalk.bold(pkg_name)} not found in local ${localpkglist}.`]);
+			}
+		} else {
+			// [TODO] Handle when packages.json doesn't exist.
+			exit([`${chalk.red("Error:")} Local ${localpkglist} not found.`]);
+		}
+	}
 
 	if (p) if (!ispath_abs(p)) p = path.resolve(p);
 
 	let sub = "";
+	let url = false;
 	if (repo && !p) {
-		if (-~repo.indexOf("/trunk/")) {
+		if (repo.startsWith("https://") || repo.startsWith("git@")) {
+			if (!repo.endsWith(".git")) {
+				exit([`${chalk.red("Error:")} Repo URL is invalid.`]);
+			}
+			url = true;
+		} else if (-~repo.indexOf("/trunk/")) {
 			let parts = repo.split(/\/trunk\//);
 			if (parts.length > 1) {
 				repo = parts.shift();
@@ -51,20 +91,20 @@ module.exports = async (args) => {
 		// If package exists error.
 		let [err, res] = await flatry(de(pkgpath));
 		if (err) process.exit();
-		if (res) {
+		if (res && !(force || allowoverwrite)) {
 			let type = (await lstats(pkgpath)).is.symlink ? "Symlink " : "";
-			let msg = `${type}?/ exists in registry. Remove it and try again.`;
+			let msg = `${type}?/ exists in registry. Remove it and try again or install with ${chalk.bold("--allow-overwrite")}.`;
 			exit([fmt(msg, chalk.bold(dirname))]);
 		}
 
 		// Validate package base structure.
-		if (!skipval && !(await check(dirname, cwd))) exit([]);
+		if (!(force || allowstructure) && !(await check(dirname, cwd))) exit([]);
 
-		// Skip size check when --force is provided.
-		if (!force) {
+		// Skip size check when --allow-size is provided.
+		if (!(force || allowsize)) {
 			// Anything larger than 10MB must be force added.
 			if ((await du(cwd)) / 1000 > 10000) {
-				let msg = `?/ exceeds 10MB. Use --force to add package anyway.`;
+				let msg = `?/ exceeds 10MB. Use ${chalk.bold("--allow-size")} to add package anyway.`;
 				exit([fmt(msg, chalk.bold(dirname))]);
 			}
 		}
@@ -80,30 +120,31 @@ module.exports = async (args) => {
 		let uri, cmd, err, res;
 		let opts = { silent: true, async: true };
 		let rname = repo.split(path.sep)[1];
+		if (url) rname = repo.match(/([^/]+)\.git$/)[1];
+		if (sub) rname = sub.split(path.sep).pop();
 		let output = `${hdir}/Downloads/${rname}-${Date.now()}`;
-
-		// Reset rname if subdirectory is provided.
-		if (sub) {
-			let parts = sub.split(path.sep);
-			rname = parts.pop();
-		}
 
 		// If package exists error.
 		let pkgpath = `${registrypath}/${rname}`;
 		[err, res] = await flatry(de(pkgpath));
 		if (err) exit([]);
-		if (res) {
+		if (res && !(force || allowoverwrite)) {
 			let type = (await lstats(pkgpath)).is.symlink ? "Symlink " : "";
-			let msg = `${type}?/ exists in registry. Remove it and try again.`;
+			let msg = `${type}?/ exists in registry. Remove it and try again or install with ${chalk.bold("--allow-overwrite")}.`;
 			exit([fmt(msg, chalk.bold(rname))]);
 		}
 
+		if (url) {
+			// [https://stackoverflow.com/a/42932348]
+			cmd = `git clone ${repo} ${output}`;
+			[err, res] = await flatry(aexec(cmd, opts));
+
 		// Use git: [https://stackoverflow.com/a/60254704]
-		if (!sub) {
+		} else if (!sub) {
 			// Ensure repo exists.
 			uri = `https://api.github.com/repos/${repo}/branches/${branch}`;
 			[err, res] = await flatry(download.str(uri));
-			if (err || res.err) exit(["Provided URL does not exist."]);
+			if (err || res.err) exit(["URL does not exist."]);
 
 			// Download repo with git.
 			uri = `git@github.com:${repo}.git`;
@@ -126,10 +167,10 @@ module.exports = async (args) => {
 			[err, res] = await flatry(aexec(cmd, opts));
 
 			// prettier-ignore
-			if (/svn: E\d{6}:/.test(err)) exit([`${chalk.red("Error:")} Provided repo URL does not exist.`]);
+			if (/svn: E\d{6}:/.test(err)) exit([`${chalk.red("Error:")} Repo URL does not exist.`]);
 
 			// Use `svn ls` output here to validate package base structure.
-			if (!skipval && !(await check(rname, res, true))) exit([]);
+			if (!(force || allowstructure) && !(await check(rname, res, true))) exit([]);
 
 			// Use svn to download provided sub directory.
 			cmd = `svn export ${uri} ${output}`;
@@ -137,7 +178,7 @@ module.exports = async (args) => {
 		}
 
 		// Validate package base structure.
-		if (!skipval && !(await check(rname, output))) exit([]);
+		if (!(force || allowstructure) && !(await check(rname, output))) exit([]);
 
 		// Move repo to registry.
 		[err, res] = await flatry(de(registrypath));

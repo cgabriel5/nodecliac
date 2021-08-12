@@ -12,7 +12,7 @@ let [action] = args._;
 // Allowed actions.
 const ac_main = ["make", "format", "test", "debug", "bin", "init"];
 const ac_mis = ["print", "setup", "status", "registry", "uninstall", "cache"];
-const ac_pkg = ["add", "remove", "link", "unlink", "enable", "disable"];
+const ac_pkg = ["add", "remove", "link", "unlink", "enable", "disable", "refresh"];
 const actions = ac_main.concat(ac_mis, ac_pkg);
 
 if (action) {

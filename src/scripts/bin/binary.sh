@@ -162,6 +162,7 @@ RED="\033[0;31m"
 GREEN="\033[0;32m"
 YELLOW="\033[0;33m"
 MAGENTA="\033[0;35m"
+CYAN="\033[0;36m"
 # Bold colors.
 BOLD="\033[1m"
 ITALIC="\033[3m"
@@ -187,8 +188,10 @@ force=""
 setlevel=0
 all=""
 path=""
-skipval=""
 repo=""
+allowsize=""
+allowstructure=""
+allowoverwrite=""
 
 # [https://medium.com/@Drew_Stokes/bash-argument-parsing-54f3b81a6a8f]
 # [http://tldp.org/LDP/Bash-Beginners-Guide/html/sect_09_07.html]
@@ -197,6 +200,7 @@ paramsargs=()
 args=() # ("${@}")
 
 # Paths.
+ncliacdir=~/.nodecliac
 registrypath=~/.nodecliac/registry
 
 while (( "$#" )); do
@@ -265,7 +269,9 @@ while (( "$#" )); do
 
 		# `add` command flags.
 		--force) force="1"; shift ;;
-		--skip-val) skipval="1"; shift ;;
+		--allow-size) allowsize="1"; shift ;;
+		--allow-structure) allowstructure="1"; shift ;;
+		--allow-overwrite) allowoverwrite="1"; shift ;;
 		--repo=*)
 			flag="${1%%=*}"; value="${1#*=}"
 			if [[ -n "$value" ]]; then repo="$value"; fi; shift ;;
@@ -717,7 +723,7 @@ END
 
 				# If a single item is provided a folder contents
 				# check is performed.
-				if [[ "${#@}" == 2 ]]; then
+				if [[ "${#args[@]}" == 2 ]]; then
 					local command="$1"
 					local dir="$2"
 					# Validate repo's basic package structure: Must
@@ -741,7 +747,7 @@ END
 					contents="$(trim "$contents")"
 
 					re="svn: E[[:digit:]]{6}:" # [https://stackoverflow.com/a/32607896]
-					[[ "$contents" =~ $re ]] && echo "Provided URL does not exist." > /dev/tty
+					[[ "$contents" =~ $re ]] && echo "Repo URL does not exist." > /dev/tty
 
 					local ini="package.ini"
 					local acmap="$command.acmap"
@@ -757,11 +763,44 @@ END
 				echo "$result"
 			}
 
+		# Handle '$ nodecliac add nodecliac'.
+		if [[ "${#args[@]}" > 1 ]]; then
+			pkg_name="${args[1]}"
+			packageslist="$ncliacdir/packages.json"
+			localpkglist="${BOLD}${packageslist}${NC}"
+			if [[ -f "$packageslist" ]]; then
+				# [https://dzone.com/articles/perl-as-a-better-grep]
+				# Slurp packages.json content and search for the package repo.
+				# [https://stackoverflow.com/a/19031736]
+				pkg_repo=$(perl -0777 -nle 'while(/(?<={)([^}]+)(?=})/gm) { my $match = $1; if ($match =~ m/\s*\"name\"\s*:\s*\"'"$pkg_name"'\"/) { if ($match =~ m/\s*\"repo\"\s*:\s*\"(.*?)\"/) { print "$1" }}}' "$packageslist")
+				# Error if package not in list.
+				if [[ -z "$pkg_repo" ]]; then
+					echo -e "${RED}Error:${NC} Package ${BOLD}$pkg_name${NC} not found in local $localpkglist."
+					exit
+				else
+					# repo="https://github.com/cgabriel5/nodecliac-packages"
+					repo="$pkg_repo"
+				fi
+			else
+				# [TODO] Handle when packages.json doesn't exist.
+				echo -e "${RED}Error:${NC} Local $localpkglist not found."
+				exit
+			fi
+		fi
+
 		[[ -n "$path" && "$path" != /* ]] && path="$(resolve "$path")"
 
 		sub=""
+		url=0
 		if [[ -n "$repo" && -z "$path" ]]; then
-			if [[ "$repo" == *"/trunk/"* ]]; then
+
+		if [[ "$repo" == "https://"* || "$repo" == "git@"* ]]; then
+			if [[ "$repo" != *".git" ]]; then
+				echo -e "${RED}Error:${NC} Repo URL is invalid."
+				exit
+			fi
+			url=1
+		elif [[ "$repo" == *"/trunk/"* ]]; then
 				# [https://superuser.com/a/1001979]
 				# [https://stackoverflow.com/a/20348190]
 				needle="/trunk/"
@@ -789,19 +828,20 @@ END
 			dirname=$(basename "$cwd") # Get package name.
 			pkgpath="$registrypath/$dirname"
 
+			# [https://www.baeldung.com/linux/bash-script-negate-if]
 			# If package exists error.
-			if [[ -d "$pkgpath" ]]; then
+			if [[ -d "$pkgpath" ]] && ! [[ -n "$force" || -n "$allowoverwrite" ]]; then
 				# Check if folder is a symlink.
 				type=$([ -L "$pkgpath" ] && echo "Symlink " || echo "")
-				echo -e "$type${BOLD}$dirname${NC}/ exists in registry. Remove it and try again."
+				echo -e "$type${BOLD}$dirname${NC}/ exists in registry. Remove it and try again or install with ${BOLD}--allow-overwrite${NC}."
 				exit
 			fi
 
 			# Validate package base structure.
-			[[ -z "$skipval" && "$(check "$dirname" "$cwd")" == 0 ]] && exit
+			! [[ -n "$force" || -n "$allowstructure" ]] && [[ "$(check "$dirname" "$cwd")" == 0 ]] && exit
 
 			# Skip size check when --force is provided.
-			if [[ -z "$force" ]]; then
+			if ! [[ -n "$force" || -n "$allowsize" ]]; then
 				if [[ "$(platform)" == "macosx" ]]; then
 					# [https://serverfault.com/a/913506]
 					size=$(du -skL "$cwd" | grep -oE '[0-9]+' | head -n1)
@@ -811,12 +851,13 @@ END
 				fi
 				# Anything larger than 10MB must be force added.
 				[[ -n "$(perl -e 'print int('"$size"') > 10000')" ]] &&
-				echo -e "${BOLD}$dirname${NC}/ exceeds 10MB. Use --force to add package anyway." && exit
+				echo -e "${BOLD}$dirname${NC}/ exceeds 10MB. Use ${BOLD}--allow-size${NC} to add package anyway." && exit
 			fi
 
 			mkdir -p "$pkgpath"
 			cp -r "$cwd" "$registrypath" # [https://stackoverflow.com/a/14922600]
 
+		# Install via git/svn.
 		else
 
 			uri=""; cmd=""; err=""; res=""
@@ -824,24 +865,29 @@ END
 			timestamp="$(perl -MTime::HiRes=time -e 'print int(time() * 1000);')"
 			output="$HOME/Downloads/$rname-$timestamp"
 
+			[[ -n "$url" ]] && rname="$(perl -ne 'print $1 if /([^\/]+)\.git$/' <<< "$repo")"
 			# Reset rname if subdirectory is provided.
 			[[ -n "$sub" ]] && rname="${sub##*/}"
 
 			# If package exists error.
 			pkgpath="$registrypath/$rname"
-			if [[ -d "$pkgpath" ]]; then
+			if [[ -d "$pkgpath" ]] && ! [[ -n "$force" || -n "$allowoverwrite" ]]; then
 				# Check if folder is a symlink.
 				type=$([ -L "$pkgpath" ] && echo "Symlink " || echo "")
-				echo -e "$type${BOLD}$rname${NC}/ exists in registry. Remove it and try again."
+				echo -e "$type${BOLD}$rname${NC}/ exists in registry. Remove it and try again or install with ${BOLD}--allow-overwrite${NC}."
 				exit
 			fi
 
+			if [[ -n "$url" ]]; then
+				# [https://stackoverflow.com/a/42932348]
+				git clone "$repo" "$output" > /dev/null 2>&1
+
 			# Use git: [https://stackoverflow.com/a/60254704]
-			if [[ -z "$sub" ]]; then
+			elif [[ -z "$sub" ]]; then
 				# Ensure repo exists.
 				uri="https://api.github.com/repos/$repo/branches/${branch}"
 				res="$(download "$uri")"
-				[[ -z "$res" ]] && echo "Provided URL does not exist." && exit
+				[[ -z "$res" ]] && echo "URL does not exist." && exit
 
 				# Download repo with git.
 				uri="git@github.com:$repo.git"
@@ -855,21 +901,21 @@ END
 
 				# Check that repo exists.
 				uri="https://github.com/$repo/trunk/$sub"
-				if [[ "$branch" != "master" ]]; uri="https://github.com/${repo}/branches/${branch}/${sub}"
+				[[ "$branch" != "master" ]] && uri="https://github.com/${repo}/branches/${branch}/${sub}"
 				res="$(svn ls "$uri")"
 
 				# Use `svn ls` output here to validate package base structure.
 				[[ -z "$skipval" && "$(check "$rname" "$res" "0")" == 0 ]] && exit
 
 				re="svn: E[[:digit:]]{6}:" # [https://stackoverflow.com/a/32607896]
-				[[ "$res" =~ $re ]] && echo "Provided repo URL does not exist." && exit
+				[[ "$res" =~ $re ]] && echo "Repo URL does not exist." && exit
 
 				# Use svn to download provided sub directory.
 				svn export "$uri" "$output" > /dev/null 2>&1
 			fi
 
 			# Validate package base structure.
-			[[ -z "$skipval" && "$(check "$rname" "$output")" == 0 ]] && exit
+			! [[ -n "$force" || -n "$allowstructure" ]] && [[ "$(check "$rname" "$output")" == 0 ]] && exit
 
 			# Move repo to registry.
 			[[ ! -d "$registrypath" ]] && echo -e "nodecliac registry ${BOLD}$registrypath${NC} doesn't exist." && exit

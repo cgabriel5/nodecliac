@@ -21,6 +21,7 @@ module.exports = async (args) => {
 	let { ncliacdir, bashrcpath, mainscriptname, registrypath } = paths;
 	let { acmapssource, resourcespath, resourcessrcs, setupfilepath } = paths;
 	let { testsrcpath } = paths;
+	let packageslist = resourcespath;
 	if (rcfile) bashrcpath = rcfile; // Use provided path.
 
 	if ((await de(ncliacdir)) && !(force || update)) {
@@ -150,6 +151,12 @@ module.exports = async (args) => {
 				if (!/\.(sh|pl)$/.test(path.extname(src))) return null;
 				return transform();
 			}
+		}).on(copydir.events.COPY_FILE_COMPLETE, cmode),
+		// Copy nodecliac packages list.
+		copydir(packageslist, ncliacdir + "/", {
+			overwrite: true,
+			dot: true,
+			filter: (filename) => filename === "packages.json",
 		}).on(copydir.events.COPY_FILE_COMPLETE, cmode)
 	]);
 

@@ -321,6 +321,8 @@ if [[ " binary manual " == *" $installer "* ]]; then
 	else # Only copy nodecliac completion package.
 		cp -pr "$outputdir"/resources/packages/nodecliac ~/.nodecliac/registry
 	fi
+	# Copy nodecliac packages list.
+	cp -pr "$outputdir/resources/packages/packages.json" ~/.nodecliac
 	nimbin="$outputdir/src/parser/nim/nodecliac.$os"
 	[[ -e "$nimbin" ]] && cp -pr "$nimbin" "$dest/bin"
 	acbin="$binpath/ac.$os"; [[ -e "$acbin" ]] && cp -pr "$acbin" "$dest/bin"

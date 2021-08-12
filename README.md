@@ -441,28 +441,38 @@ $ nodecliac registry # Print packages in registry.
 > Adds package to registry.
 
 - `--path`: Path to completion package.
-- `--repo`: GitHub repo to install completion package from.
-  - Repo only (`master`): `<username>/<repo_name>`
-  - Repo branch (default: `master`): `<username>/<repo_name><#branch_name>`
-  - Repo sub-directory: `<username>/<repo_name>/trunk/<sub_directory_path>`
-  - Repo branch + sub-directory: `<username>/<repo_name><#branch_name>/trunk/<sub_directory_path>`
-- `--skip-val`: Skips package validation (caution: not recommended, for dev purposes).
-- `--force`: If local completion package is more than `10MB` this flag is needed to install.
+- `--repo`: Repo to install completion package from.
+  - Github: Repo only (`master`): `<username>/<repo_name>`
+  - Github: Repo branch (default: `master`): `<username>/<repo_name><#branch_name>`
+  - Github: Repo sub-directory: `<username>/<repo_name>/trunk/<sub_directory_path>`
+  - Github: Repo branch + sub-directory: `<username>/<repo_name><#branch_name>/trunk/<sub_directory_path>`
+  - Or GitHub, GitLab, or BitBucket URL to completion package: `<repo_url>`
+    - URL must start with `git@` or `htttp://` and end with `.git`.
+- `--allow-size`: Disables local repo package `10MB` size check, letting for any size.
   - Meant as a safeguard to prevent accidentally copying large folders.
+- `--allow-structure`: Disables valid base completion package structure checks.
+- `--allow-overwrite`: Disables overwrite warning of same name package in registry.
+- `--force`: Skip all guards/checks (size, structure, overwrite).
+  - `size`: Size of local repo is no longer checked when copying to registry.
+  - `structure`: Basic completion package structure checks are disabled.
+  - `overwrite`: Same name completion package overwriting is allowed.
 
 ###### Usage
 
 ```sh
 $ nodecliac add # Copies cwd folder (completion package) to registry.
-$ nodecliac add --force # Copies cwd folder and forces install if package is over 10MB.
 $ nodecliac add --path ~/Desktop/subl # Installs completion package at specified path.
+
 $ nodecliac add --repo cgabriel5/nodecliac # Install completion package from a GitHub repo.
-# Install completion package from a specific directory in a GitHub repo.
-$ nodecliac add --repo cgabriel5/nodecliac/trunk/resources/packages/yarn
 # Install completion package from a specific branch (defaults to master branch).
 $ nodecliac add --repo cgabriel5/nodecliac#master
+# Install completion package from a specific directory in a GitHub repo.
+$ nodecliac add --repo cgabriel5/nodecliac/trunk/resources/packages/yarn
 # Install completion package from a specific directory + branch (defaults to master branch).
 $ nodecliac add --repo cgabriel5/nodecliac#dev/trunk/resources/packages/yarn
+
+# Install completion package via GitHub, GitLab, BitBucket URL.
+$ nodecliac add --repo <repo_url>
 ```
 
 ---

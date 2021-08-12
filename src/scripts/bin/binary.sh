@@ -302,7 +302,7 @@ if [[ -z "$command" && "$version" == "1" && -f "$setupfilepath" ]]; then
 fi
 
 # Allowed commands.
-commands=" bin init make format print registry setup status uninstall add remove link unlink enable disable cache test debug "
+commands=" bin init make format print registry setup status uninstall add remove link unlink enable disable cache test debug refresh "
 
 # Exit if invalid command.
 if [[ "$commands" != *"$command"* ]]; then
@@ -1004,6 +1004,18 @@ END
 			else
 				getsetting cache
 			fi
+		fi
+
+		;;
+
+	refresh)
+
+		# Check that project directory exists.
+		if [[ -d "$ncliacdir" ]]; then
+			echo -e "${CYAN}${BOLD}Downloading${NC} Official package list"
+			url="https://raw.githubusercontent.com/cgabriel5/nodecliac/master/resources/packages/packages.json"
+			echo "$(download "$url")" > "$ncliacdir/packages.json"
+			echo -e "    ${GREEN}${BOLD}Success${NC} Package list updated"
 		fi
 
 		;;

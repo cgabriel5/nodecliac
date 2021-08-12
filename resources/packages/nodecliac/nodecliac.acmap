@@ -15,8 +15,8 @@ nodecliac.registry
 nodecliac.print = --command=$('${commands}')
 
 # Package commands:
-nodecliac.add = --force?
-nodecliac.link
+nodecliac.add = --force?|--allow-size?|--allow-structure?|--allow-overwrite?
+nodecliac.{link,refresh}
 nodecliac.{remove,unlink,enable,disable} = --all|default $('${names}')
 nodecliac.test = default $('${names}')
 nodecliac.debug = [

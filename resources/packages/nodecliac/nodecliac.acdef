@@ -1,7 +1,7 @@
-# DON'T EDIT FILE —— GENERATED: Sat Oct 10 2020 17:45:15 (1602377115)
+# DON'T EDIT FILE —— GENERATED: Thu Aug 12 2021 09:46:35 (1628786795)
 
  --version?
-.add --force?
+.add --allow-overwrite?|--allow-size?|--allow-structure?|--force?
 .bin --
 .cache --clear?|--level=|--level=0|--level=1|--level=2
 .debug --disable?|--enable?|--script=|--script=nim|--script=perl
@@ -11,6 +11,7 @@
 .link --
 .make --print?|--source
 .print --command=|--command=$('for f in ~/.nodecliac/registry/*; do echo "$(basename -- $f)"; done')
+.refresh --
 .registry --
 .remove --all
 .setup --force?|--rcfile|--yes?

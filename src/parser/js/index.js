@@ -2,172 +2,137 @@
 
 "use strict";
 
-// require "pathname"
-// require "paint" // [https://github.com/janlelis/paint]
-// require "./parser"
-// require "fileutils"
-// require "./fs"
-
-// const path = require("path");
-// const chalk = require("chalk");
-// const flatry = require("flatry");
-// const fe = require("file-exists");
-// const mkdirp = require("make-dir");
-// const de = require("directory-exists");
+const path = require("path");
+const chalk = require("chalk");
+const flatry = require("flatry");
+const fe = require("file-exists");
+const mkdirp = require("make-dir");
+const de = require("directory-exists");
 const toolbox = require("../../utils/toolbox.js");
-const { read } = toolbox;
+const { fmt, exit, read, write, info, ispath_abs, hasProp } = toolbox;
 
+const minimist = require("minimist");
+const args = minimist(process.argv.slice(2));
+
+// module.exports = async (args) => {
 async function main() {
-	// module.exports = async (args) => {
-	let igc = false;
-	let test = false;
-	let print_ = true;
-	let trace = false;
-	let action = "make";
-	let indent = "s:4";
-	let source = "../python/debug.acmap";
-	let formatting = action == "format";
+	let { source, print } = args;
+	let { trace, test } = args;
+	let { "strip-comments": igc, indent } = args;
+	let [action] = args._;
+	let formatting = action === "format";
 
 	let fmtinfo = ["\t", 1]; // (char, amount)
-	// // Parse/validate indentation.
-	// if formatting && indent != ""
-	// 	// [https://www.rubyguides.com/2015/06/ruby-regex/]
-	// 	if not indent.match(/^(s|t):\d+$/)
-	// 		puts "Invalid indentation string."
-	// 		exit
-	// 	end
-	// 	components = indent.split(":", 2)
-	// 	components = indent.split(/:/, 2)
-	// 	fmtinfo[0] = if components[0] == 's' then ' ' else '\t' end
-	// 	fmtinfo[1] = components[1].to_i(10)
-	// end
+	// Parse/validate indentation.
+	if (formatting && indent) {
+		let r = /^(s|t):\d+$/;
+		if (!r.test(indent)) exit([`Invalid indentation string.`]);
+		fmtinfo = indent.split(":", 2);
+		fmtinfo[0] = fmtinfo[0] === "s" ? " " : "\t";
+	}
 
-	// // Source must be provided.
-	// // [https://www.rubyguides.com/2019/02/ruby-booleans/]
-	// if source.empty?
-	// 	puts "Please provide a " + Paint["--source", :bold] + " path."
-	// 	exit
-	// end
+	// Source must be provided.
+	let tstring = "Please provide a ? path.";
+	if (typeof source !== "string") source = "";
+	if (!source) exit([fmt(tstring, chalk.bold("--source"))]);
 
-	// // Breakdown path.
-	// fi = info(source)
-	// extension = fi[:ext]
-	// cmdname = fi[:name].sub(/\.#{extension}$/, "") // [TODO] `replace`
-	// dirname = fi[:dirname]
-	// if not (Pathname.new dirname).absolute?
-	// 	dirname = Pathname.new(dirname).realpath.to_s
-	// end
+	// Breakdown path.
+	let fi = info(source);
+	let extension = fi.ext;
+	let cmdname = fi.name.replace(new RegExp(`\\.${extension}$`), "");
+	let dirname = fi.dirname;
 
-	// // Make path absolute.
-	// if not (Pathname.new source).absolute?
-	// 	// [https://stackoverflow.com/a/1906886]
-	// 	begin // [https://blog.bearer.sh/handle-ruby-exceptions/]
-	// 		source = Pathname.new(source).realpath.to_s
-	// 		// [https://airbrake.io/blog/ruby-exception-handling/systemcallerror]
-	// 		rescue Errno::ENOENT => e // [TODO] Handle this better.
-	// 	end
-	// end
+	// Make path absolute.
+	if (!ispath_abs(source)) source = path.resolve(source);
 
-	// // [https://stackoverflow.com/a/10115630]
-	// if File.directory?(source)
-	// 	puts "Directory provided but .acmap file path needed."
-	// 	exit
-	// end
-	// if not File.file?(source)
-	// 	puts "Path " + Paint[source, :bold] + " doesn't exist."
-	// 	exit
-	// end
+	let [err, res] = await flatry(de(source));
+	if (err || res) exit(["Directory provided but .acmap file path needed."]);
+	[err, res] = await flatry(fe(source));
+	if (err || !res) exit([fmt("Path ? doesn't exist.", chalk.bold(source))]);
 
-	// // [https://www.rubyguides.com/2015/05/working-with-files-ruby/]
-	// f = File.open(source)
-	// res = f.read
-	// f.close
+	res = await read(source);
+	let [acdef, config, keywords, filedirs, contexts, formatted, placeholders, tests] =
+	await require("./parser.js")(action, res, cmdname, source, fmtinfo, trace, igc, test);
 
-	let res = await read(source);
-	let cmdname = "debug";
-	let parser = require("./parser.js")(action, res, cmdname, source, fmtinfo, trace, igc, test);
 
-	// cmdname = "debug" // Placeholder.
-	// acdef, config, keywords, filedirs, contexts, formatted, placeholders, tests =
-	// parser(action, res, cmdname, source, fmtinfo, trace, igc, test)
+	let testname = cmdname + ".tests.sh";
+	let savename = cmdname + ".acdef";
+	let saveconfigname = "." + cmdname + ".config.acdef";
 
-	// testname = cmdname + ".tests.sh"
-	// savename = cmdname + ".acdef"
-	// saveconfigname = "." + cmdname + ".config.acdef"
+	// Only save files to disk when not testing.
+	if (!test) {
+		if (formatting) {
+			// [https://stackoverflow.com/a/19337403]
+			await write(source, formatted);
+		} else {
+			let testpath = path.join(dirname, testname);
+			let commandpath = path.join(dirname, savename);
+			let commandconfigpath = path.join(dirname, saveconfigname);
+			let placeholderspaths = path.join(dirname, "placeholders");
 
-	// // Only save files to disk when not testing.
-	// if !test
-	// 	if formatting
-	// 		// [https://stackoverflow.com/a/19337403]
-	// 		File.write(source, formatted)
-	// 	else
-	// 		testpath = File.join(dirname, testname)
-	// 		commandpath = File.join(dirname, savename)
-	// 		commandconfigpath = File.join(dirname, saveconfigname)
-	// 		placeholderspaths = File.join(dirname, "placeholders")
+			// [https://stackoverflow.com/a/11464127]
+			await mkdirp(dirname);
+			await write(commandpath, acdef + keywords + filedirs + contexts);
+			await write(commandconfigpath, config);
 
-	// 		// [https://stackoverflow.com/a/11464127]
-	// 		FileUtils.mkdir_p(dirname)
-	// 		File.write(commandpath, acdef + keywords + filedirs + contexts)
-	// 		File.write(commandconfigpath, config)
+			// Save test file if tests were provided.
+			if (tests) {
+				await write(testpath, tests, 0o775);
+			}
 
-	// 		// Save test file if tests were provided.
-	// 		if !tests.empty?
-	// 			File.write(testpath, tests)
-	// 			// [https://makandracards.com/makandra/1388-change-file-permissions-with-ruby]
-	// 			File.chmod(0o775, testpath)  // 775 permissions
-	// 		end
+			// Create placeholder files if object is populated.
+			if (placeholders) {
+				await mkdirp(placeholderspaths);
 
-	// 		// Create placeholder files if object is populated.
-	// 		if placeholders
-	// 			FileUtils.mkdir_p(placeholderspaths)
+				// Create promises.
+				for (let key in placeholders) {
+					if (hasProp(placeholders, key)) {
+						let p = `${placeholderspaths}/${key}`;
+						promises.push(write(p, placeholders[key]));
+					}
+				}
 
-	// 			placeholders.each { |key,value|
-	// 				p = placeholderspaths + File::SEPARATOR + key
-	// 				File.write(p, value)
-	// 			}
-	// 		end
-	// 	end
-	// end
+				await Promise.all(promises);
+			}
+		}
+	}
 
-	// if print_
-	// 	if !formatting
-	// 		if !acdef.empty?
-	// 			puts("[" + Paint[cmdname + ".acdef", :bold] + "]\n\n")
-	// 			puts(acdef + keywords + filedirs + contexts)
-	// 			if config.empty?
-	// 				puts("")
-	// 			end
-	// 		end
-	// 		if !config.empty?
-	// 			msg = "\n[" + Paint["." + cmdname + ".config.acdef", :bold] + "]\n\n"
-	// 			puts(msg)
-	// 			puts(config)
-	// 		end
-	// 	else
-	// 		puts(formatted)
-	// 	end
-	// end
+	if (print) {
+		if (!formatting) {
+			if (acdef) {
+				console.log(`[${chalk.bold(`${cmdname}.acdef`)}]\n\n`);
+				console.log(acdef + keywords + filedirs + contexts);
+				if (!config) console.log();
+			}
+			if (config) {
+				let msg = `\n[${chalk.bold(`.${cmdname}.config.acdef`)}]\n`;
+				console.log(msg);
+				console.log(config);
+			}
+		} else console.log(formatted);
 
-	// // Test (--test) purposes.
-	// if test
-	// 	if !formatting
-	// 		if !acdef.empty?
-	// 			puts(acdef + keywords + filedirs + contexts)
-	// 			if config.empty?
-	// 				puts("")
-	// 			end
-	// 		end
-	// 		if !config.empty?
-	// 			if !acdef.empty?
-	// 				puts("")
-	// 			end
-	// 			puts(config)
-	// 		end
-	// 	else
-	// 		puts(formatted)
-	// 	end
-	// end
+		// // Time in seconds: [https://stackoverflow.com/a/41443682]
+		// // [https://stackoverflow.com/a/18031945]
+		// // [https://stackoverflow.com/a/1975103]
+		// // [https://blog.abelotech.com/posts/measure-execution-time-nodejs-javascript/]
+		// const duration = ((time[0] * 1e3 + time[1] / 1e6) / 1e3).toFixed(3);
+		// console.log(`Completed in ${chalk.green(duration + "s")}.`);
+		// // hrtime wrapper: [https://github.com/seriousManual/hirestime]
+	}
+
+	// Test (--test) purposes.
+	if (test) {
+		if (!formatting) {
+			if (acdef) {
+				console.log(acdef + keywords + filedirs + contexts);
+				if (!config) console.log();
+			}
+			if (config) {
+				if (acdef) console.log();
+				console.log(config);
+			}
+		} else console.log(formatted);
+	}
 }
 
 main();

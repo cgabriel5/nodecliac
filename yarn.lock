@@ -75,6 +75,14 @@
     core-js-pure "^3.0.0"
     regenerator-runtime "^0.13.4"
 
+"@babel/runtime-corejs3@^7.14.9":
+  version "7.15.3"
+  resolved "https://registry.yarnpkg.com/@babel/runtime-corejs3/-/runtime-corejs3-7.15.3.tgz#28754263988198f2a928c09733ade2fb4d28089d"
+  integrity sha512-30A3lP+sRL6ml8uhoJSs+8jwpKzbw8CqBvDc1laeptxPm5FahumJxirigcbD2qTs71Sonvj1cyZB0OKGAmxQ+A==
+  dependencies:
+    core-js-pure "^3.16.0"
+    regenerator-runtime "^0.13.4"
+
 "@babel/runtime@^7.10.2", "@babel/runtime@^7.11.2":
   version "7.13.10"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.13.10.tgz#47d42a57b6095f4468da440388fdbad8bebf0d7d"
@@ -449,6 +457,11 @@ core-js-pure@^3.0.0:
   version "3.9.1"
   resolved "https://registry.yarnpkg.com/core-js-pure/-/core-js-pure-3.9.1.tgz#677b322267172bd490e4464696f790cbc355bec5"
   integrity sha512-laz3Zx0avrw9a4QEIdmIblnVuJz8W51leY9iLThatCsFawWxC3sE4guASC78JbCin+DkwMpCdp1AVAuzL/GN7A==
+
+core-js-pure@^3.16.0:
+  version "3.16.1"
+  resolved "https://registry.yarnpkg.com/core-js-pure/-/core-js-pure-3.16.1.tgz#b997df2669c957a5b29f06e95813a171f993592e"
+  integrity sha512-TyofCdMzx0KMhi84mVRS8rL1XsRk2SPUNz2azmth53iRN0/08Uim9fdhQTaZTG1LqaXHYVci4RDHka6WrXfnvg==
 
 cosmiconfig@^7.0.0:
   version "7.0.0"
@@ -2345,6 +2358,13 @@ wrappy@1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/wrappy/-/wrappy-1.0.2.tgz#b5243d8f3ec1aa35f1364605bc0d1036e30ab69f"
   integrity sha1-tSQ9jz7BqjXxNkYFvA0QNuMKtp8=
+
+xregexp@^5.1.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/xregexp/-/xregexp-5.1.0.tgz#c87e7ae5ffa5fdc520f898a467dcba02b0d391e9"
+  integrity sha512-PynwUWtXnSZr8tpQlDPMZfPTyv78EYuA4oI959ukxcQ0a9O/lvndLVKy5wpImzzA26eMxpZmnAXJYiQA13AtWA==
+  dependencies:
+    "@babel/runtime-corejs3" "^7.14.9"
 
 yallist@^2.1.2:
   version "2.1.2"

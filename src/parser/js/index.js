@@ -82,6 +82,7 @@ async function main() {
 
 			// Create placeholder files if object is populated.
 			if (placeholders) {
+				let promises = [];
 				await mkdirp(placeholderspaths);
 
 				// Create promises.

@@ -452,7 +452,7 @@ module.exports = async (branches, cchains, flags, settings, S, cmdname) => {
 
 	let tests = oTests.length ? `#!/bin/bash\n\n${header}tests=(\n${oTests.join("\n")}\n)` : "";
 
-	return [
+	return Promise.resolve([
 		acdef,
 		config,
 		defaults,
@@ -461,5 +461,5 @@ module.exports = async (branches, cchains, flags, settings, S, cmdname) => {
 		"", // formatted
 		oPlaceholders,
 		tests
-	];
+	]);
 };

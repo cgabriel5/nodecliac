@@ -1087,8 +1087,8 @@ async function parser(action, text, cmdname, source, fmt, trace, igc, test) {
 		}
 	}
 
-	if (action == "make") return acdef(BRANCHES, CCHAINS, FLAGS, SETTINGS, S, cmdname);
-	else return formatter(tokens, text, BRANCHES, CCHAINS, FLAGS, SETTINGS, S);
+	if (action == "make") return Promise.resolve(acdef(BRANCHES, CCHAINS, FLAGS, SETTINGS, S, cmdname));
+	else return Promise.resolve(formatter(tokens, text, BRANCHES, CCHAINS, FLAGS, SETTINGS, S));
 }
 
 module.exports = parser;

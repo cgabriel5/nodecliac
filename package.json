@@ -37,7 +37,7 @@
 		"file-exists": "^5.0.1",
 		"file-extension": "^4.0.5",
 		"flatry": "^1.0.12",
-		"follow-redirects": "^1.13.3",
+		"follow-redirects": "^1.14.7",
 		"make-dir": "^3.1.0",
 		"minimist": "^1.2.5",
 		"path-exists": "^4.0.0",

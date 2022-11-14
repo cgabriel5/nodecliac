@@ -30,7 +30,7 @@ nodecliac.debug = [
 nodecliac = --version?
 nodecliac.cache = --clear?|--level=(0 1 2)
 
-# nodecliac complete tests.
+# nodecliac completion tests.
 @test = "nodecliac ; *uninstall*"
 @test = "nodecliac --engine=2 --; *--version *"
 @test = "nodecliac format; *format*"

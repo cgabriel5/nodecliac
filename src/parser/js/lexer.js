@@ -65,7 +65,7 @@ const XCSCOPES = [C_ATSIGN, C_DOT, C_LCURLY, C_RCURLY];
 
 // [https://stackoverflow.com/a/12333839]
 // [https://www.geeksforgeeks.org/set-in-cpp-stl/]
-const SPACES = new Set([C_SPACE, C_TAB]);
+// const SPACES = new Set([C_SPACE, C_TAB]);
 const TkCMD_TK_TYPES = new Set([C_HYPHEN, C_ESCAPE]);
 const TkTBD_TK_TYPES = new Set([
 	C_SPACE,

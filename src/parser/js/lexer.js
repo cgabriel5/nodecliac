@@ -214,7 +214,7 @@ function tokenizer(text) {
 		}
 
 		// Universal command multi-char reset.
-		if (kind(S, "tkMTL") && (!tokens || lastn(tokens).kind !== "tkASG")) {
+		if (kind(S, "tkMTL") && (!tokens.length || lastn(tokens).kind !== "tkASG")) {
 			S.kind = "tkCMD";
 		}
 

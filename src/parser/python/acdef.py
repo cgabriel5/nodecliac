@@ -51,7 +51,7 @@ def acdef(branches, cchains, flags, settings, S, cmdname):
     dt = datetime.fromtimestamp(date)
     timestamp = round(date)
     # [https://www.programiz.com/python-programming/datetime/strftime]
-    datestring = dt.strftime("%a %b %-d %Y %H:%M:%S")
+    datestring = dt.strftime("%a %b %d %Y %H:%M:%S")
     ctime = datestring + " (" + str(timestamp) + ")"
     header = "# DON'T EDIT FILE —— GENERATED: " + ctime + "\n\n"
     if S["args"]["test"]: header = ""

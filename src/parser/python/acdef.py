@@ -336,7 +336,7 @@ def acdef(branches, cchains, flags, settings, S, cmdname):
         acdef_lines.append(row)
 
     # If contents exist, add newline after header.
-    sheader = re.sub(r"\n$", "", header)
+    sheader = header.rstrip() # re.sub(r"\n$", "", header)
     acdef_contents = "\n".join(mapsort(acdef_lines, asort, aobj))
     acdef = header + acdef_contents if acdef_contents else sheader
     config = header + config if config else sheader

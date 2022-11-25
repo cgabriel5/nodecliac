@@ -446,7 +446,7 @@ module.exports = async (branches, cchains, flags, settings, S, cmdname) => {
 	}
 
 	// If contents exist, add newline after header.
-	let sheader = header.replace(/\n$/, "");
+	let sheader = header.replace(/\n{1,}$/, ""); // header.trimEnd();
 	let acdef_contents = mapsort(acdef_lines, asort, aobj).join("\n");
 	acdef = acdef_contents ? header + acdef_contents : sheader;
 	config = config ? header + config : sheader;

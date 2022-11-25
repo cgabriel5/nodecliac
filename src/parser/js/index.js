@@ -101,7 +101,7 @@ async function main() {
 	if (print) {
 		if (!formatting) {
 			if (acdef) {
-				console.log(`[${chalk.bold(`${cmdname}.acdef`)}]\n\n`);
+				console.log(`[${chalk.bold(`${cmdname}.acdef`)}]\n`);
 				console.log(acdef + keywords + filedirs + contexts);
 				if (!config) console.log();
 			}

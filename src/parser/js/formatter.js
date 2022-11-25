@@ -75,7 +75,10 @@ module.exports = async (tokens, text, branches, cchains, flags, settings, S) => 
 			//# Settings / Variables
 
 			if (new Set(["tkSTN", "tkVAR"]).has(parentkind)) {
-				if (kind === "tkTRM") continue;
+				if (kind === "tkTRM") {
+					cleaned.push(tkstr(leaf.tid));
+					continue;
+				}
 
 				if (tid !== 0) {
 					let ptk = tokens[prevtoken(tid)];

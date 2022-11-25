@@ -63,7 +63,9 @@ def formatter(tokens, text, branches, cchains, flags, settings, S):
             ## Settings / Variables
 
             if parentkind in ("tkSTN", "tkVAR"):
-                if kind == "tkTRM": continue
+                if kind == "tkTRM":
+                    cleaned.append(tkstr(leaf["tid"]))
+                    continue
 
                 if tid != 0:
                     ptk = tokens[prevtoken(tid)]

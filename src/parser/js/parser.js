@@ -478,9 +478,10 @@ async function parser(action, text, cmdname, source, fmt, trace, igc, test) {
 
 			// Oneliners must be declared on oneline, else error.
 			if (
-				lastn(BRANCHES)[0].kind === "tkCMD" &&
-				(hasscope("tkFLG") || hasscope("tkKYW") || new Set(["tkFLG", "tkKYW"]).has(kind)) &&
-				!hasscope("tkBRC_LB")
+				lastn(BRANCHES)[0].kind === "tkCMD" && (
+				((hasscope("tkFLG") || hasscope("tkKYW"))
+				|| new Set(["tkFLG", "tkKYW"]).has(kind))
+				&& !hasscope("tkBRC_LB"))
 			) {
 				if (oneliner === -1) {
 					oneliner = token.line;

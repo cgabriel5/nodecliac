@@ -162,7 +162,7 @@ def formatter(tokens, text, branches, cchains, flags, settings, S):
                     brc_lp_count += 1
                     ptk = tokens[prevtoken(tid)]
                     pkind = ptk["kind"]
-                    if pkind not in ("tkDLS", "tkASG"):
+                    if pkind not in ("tkDLS", "tkASG", "tkMTL"):
                         scope_offset = int(pkind == "tkCMT")
                         cleaned.append(indent(kind, level + scope_offset))
                     cleaned.append(tkstr(leaf["tid"]))

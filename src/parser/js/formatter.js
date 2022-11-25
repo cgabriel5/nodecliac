@@ -174,7 +174,7 @@ module.exports = async (tokens, text, branches, cchains, flags, settings, S) => 
 					brc_lp_count += 1;
 					let ptk = tokens[prevtoken(tid)];
 					let pkind = ptk.kind;
-					if (!["tkDLS", "tkASG"].includes(pkind)) {
+					if (!["tkDLS", "tkASG", "tkMTL"].includes(pkind)) {
 						let scope_offset = (pkind === "tkCMT") | 0;
 						cleaned.push(indent(kind, level + scope_offset));
 					}

@@ -18,6 +18,7 @@ const args = minimist(process.argv.slice(2));
 async function main() {
 	let { source, print } = args;
 	let { trace, test } = args;
+	let { tokens, branches } = args;
 	let { "strip-comments": igc, indent } = args;
 	let [action] = args._;
 	let formatting = action === "format";
@@ -52,8 +53,8 @@ async function main() {
 
 	res = await read(source);
 	let [acdef, config, keywords, filedirs, contexts, formatted, placeholders, tests] =
-	await require("./parser.js")(action, res, cmdname, source, fmtinfo, trace, igc, test);
-
+	await require("./parser.js")(action, res, cmdname, source, fmtinfo, trace,
+		igc, test, tokens, branches);
 
 	let testname = cmdname + ".tests.sh";
 	let savename = cmdname + ".acdef";

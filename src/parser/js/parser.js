@@ -7,12 +7,13 @@ const { vsetting, vvariable, vstring, vsetting_aval } = require("./validation.js
 const { builtins } = require("./defvars.js");
 const { issue_hint, issue_warn, issue_error } = require("./issue.js");
 const { hasProp } = require("../../utils/toolbox.js");
+const dbugger = require("./debugger.js");
 const acdef = require("./acdef.js");
 const formatter = require("./formatter.js");
 
 const R = /(?<!\\)\$\{\s*[^}]*\s*\}/g;
 
-async function parser(action, text, cmdname, source, fmt, trace, igc, test) {
+async function parser(action, text, cmdname, source, fmt, trace, igc, test, tks, brs) {
 	let ttid = 0;
 	let NEXT = [];
 	let SCOPE = [];
@@ -52,7 +53,9 @@ async function parser(action, text, cmdname, source, fmt, trace, igc, test) {
 			fmt: fmt,
 			trace: trace,
 			igc: igc,
-			test: test
+			test: test,
+			tokens: tks,
+			branches: brs
 		},
 		ubids: ubids,
 		excludes: [],
@@ -1087,8 +1090,11 @@ async function parser(action, text, cmdname, source, fmt, trace, igc, test) {
 		}
 	}
 
-	if (action == "make") return Promise.resolve(acdef(BRANCHES, CCHAINS, FLAGS, SETTINGS, S, cmdname));
-	else return Promise.resolve(formatter(tokens, text, BRANCHES, CCHAINS, FLAGS, SETTINGS, S));
+	switch(action) {
+		case "make": return Promise.resolve(acdef(BRANCHES, CCHAINS, FLAGS, SETTINGS, S, cmdname)); break;
+		case "format": return Promise.resolve(formatter(tokens, text, BRANCHES, CCHAINS, FLAGS, SETTINGS, S)); break;
+		default: /* debug */ return Promise.resolve(dbugger(tokens, BRANCHES, text, action, LINESTARTS, tks, brs))
+	}
 }
 
 module.exports = parser;

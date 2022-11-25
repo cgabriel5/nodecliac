@@ -369,8 +369,9 @@ module.exports = async (branches, cchains, flags, settings, S, cmdname) => {
 		for (let j = 0, l = group.length; j < l; j++) {
 			let ccids = group[j];
 
-			for (let k = 0, l = make_chains(ccids).length; k < l; k++) {
-				let chain = make_chains(ccids)[k];
+			let xchains = make_chains(ccids);
+			for (let k = 0, l = xchains.length; k < l; k++) {
+				let chain = xchains[k];
 
 				if (chain === "*") continue;
 

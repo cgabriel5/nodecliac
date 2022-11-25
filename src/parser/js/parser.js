@@ -248,7 +248,7 @@ async function parser(action, text, cmdname, source, fmt, trace, igc, test) {
 		branch = [];
 	}
 
-	function prevtoken(s) {
+	function prevtoken() {
 		return S.lexerdata.tokens[S.lexerdata.dtids[S.tid]];
 	}
 

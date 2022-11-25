@@ -390,7 +390,7 @@ async function parser(action, text, cmdname, source, fmt, trace, igc, test) {
 			if (BRANCHES.length) {
 				let ltoken = lastn(lastn(BRANCHES)); // Last branch token.
 				if (line === ltoken.line && ltoken.kind !== "tkTRM") {
-					err(ttid, "Improper termination", (scope = "parent"));
+					err(ttid, "Improper termination", "start", "parent");
 				}
 			}
 
@@ -439,7 +439,7 @@ async function parser(action, text, cmdname, source, fmt, trace, igc, test) {
 						expect("");
 					} else {
 						// Handle unexpected parent tokens.
-						err(S.tid, "Unexpected token:", (scope = "parent"));
+						err(S.tid, "Unexpected token:", "start", "parent");
 					}
 				}
 			}
@@ -470,7 +470,7 @@ async function parser(action, text, cmdname, source, fmt, trace, igc, test) {
 					// i += 1;
 					continue;
 				} else {
-					err(S.tid, "Unexpected token:", (scope = "child"));
+					err(S.tid, "Unexpected token:", "start", "child");
 				}
 			}
 
@@ -485,7 +485,7 @@ async function parser(action, text, cmdname, source, fmt, trace, igc, test) {
 				if (oneliner === -1) {
 					oneliner = token.line;
 				} else if (token.line !== oneliner) {
-					err(S.tid, "Improper oneliner", (scope = "child"));
+					err(S.tid, "Improper oneliner", "start", "child");
 				}
 			}
 

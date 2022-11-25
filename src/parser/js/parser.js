@@ -76,7 +76,7 @@ async function parser(action, text, cmdname, source, fmt, trace, igc, test) {
 	}
 
 	function err(tid, message, pos = "start", scope = "") {
-		// When token ID points to }-of-parsing token,
+		// When token ID points to end-of-parsing token,
 		// reset the id to the last true token before it.
 		if (S.lexerdata.tokens[tid].kind === "tkEOP") {
 			tid = lastn(S.lexerdata.ttids);

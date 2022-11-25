@@ -981,10 +981,9 @@ async function parser(action, text, cmdname, source, fmt, trace, igc, test) {
 								let prevtk = prevtoken(S);
 								if (prevtk.kind === "tkKYW" && tkstr(S, prevtk.tid) === "exclude") {
 									let excl_values = tkstr(S, S.tid).slice(1, -1).trim().split(";");
-									// for exclude in excl_values: S.excludes.push(exclude)
-									// excl_values.each { |exclude|
-									// 	S.excludes.push(exclude)
-									// }
+									for (let i = 0, l = excl_values.length; i < l; i++) {
+										S.excludes.push(excl_values[i]);
+									}
 								}
 							}
 

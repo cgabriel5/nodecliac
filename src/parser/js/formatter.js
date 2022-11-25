@@ -33,7 +33,7 @@ module.exports = async (tokens, text, branches, cchains, flags, settings, S) => 
 
 	let [ichar, iamount] = fmt;
 	function indent(type_, count) {
-		return ichar * ((count || MXP[type_]) * iamount);
+		return ichar.repeat(((count || MXP[type_]) * iamount))
 	}
 
 	function tkstr(tid) {

@@ -817,8 +817,8 @@ async function parser(action, text, cmdname, source, fmt, trace, igc, test) {
 
 						// // [TODO] Pathway needed?
 						// when "tkBRC_RB":
-						// 	popscope(1)
-						// 	expect("")
+						// 	popscope(1);
+						// 	expect("");
 						// 	break;
 					}
 
@@ -1001,7 +1001,7 @@ async function parser(action, text, cmdname, source, fmt, trace, igc, test) {
 							expect("tkBRC_LP");
 							// // [TODO] Pathway needed?
 							// when "tkBRC_RB":
-							// 	popscope(1)
+							// 	popscope(1);
 							// 	expect("")
 							// // [TODO] Pathway needed?
 							// when "tkFLG":
@@ -1009,7 +1009,7 @@ async function parser(action, text, cmdname, source, fmt, trace, igc, test) {
 							// 		"tkDCLN", "tkFVAL", "tkDPPE")
 							// // [TODO] Pathway needed?
 							// when "tkKYW":
-							// 	addscope(kind)
+							// 	addscope(kind);
 							// 	expect("tkSTR", "tkDLS")
 
 							break;

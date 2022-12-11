@@ -59,6 +59,8 @@ for ((i=${#shells[@]}-1; i>=0; i--)); do # [https://unix.stackexchange.com/a/274
 
 	# [https://stackoverflow.com/a/9450628]
 	version=$(perl -ne 'if (/ version ([\.\d]{3,})/) { print "$1"; }' <<< "$("$path" --version)")
+	# /usr/local/bin/bash -c 'echo "${BASH_VERSINFO:-0}"'
+	# /bin/bash -c 'echo "${BASH_VERSINFO:-0}"'
 
 	# Validate version number (must be >= 4.3).
 	if [[ $(perl -ne 'print 1 if $_ =~ /^([4-9]\.([3-9])|[5-9]\.\d).*$/' <<< "$version") ]]; then

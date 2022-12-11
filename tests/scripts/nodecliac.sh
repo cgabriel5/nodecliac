@@ -497,7 +497,7 @@ if [[ $(isset "$PRINT") ]]; then
 			-iname "*.linux" -or \
 			-iname "*.macosx" \
 		\) \
-		! -executable
+		! $([ "$os" != "macosx" ] && echo "-executable" || echo "-perm -111") # macOS/BSD doesn't have -executable flag [https://stackoverflow.com/a/29039160]
 		)"
 	if [[ -n "$files" ]]; then
 		hlen="${#HOME}"

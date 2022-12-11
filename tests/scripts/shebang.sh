@@ -95,6 +95,11 @@ if [[ -n "$valid_bash" ]]; then
 		! -path '*.gif' # | cut -c3-
 	)"
 
+	# Loop over found shell scripts and list their respective shebang line.
+	# for f in ${files[*]}; do
+	# 	echo "$(head -n 1 "$f") => ${f}" # [https://stackoverflow.com/a/2439587]
+	# done
+
 	# EROOTDIR=${ROOTDIR//\//\\/} # Escape '/' in path.
 	# [https://stackoverflow.com/a/20528931]
 	# files="$(perl -pe "s/^/$EROOTDIR\//" <<< "$files")"

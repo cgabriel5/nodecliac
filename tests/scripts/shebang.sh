@@ -77,6 +77,7 @@ if [[ -n "$valid_bash" ]]; then
 	# Get list of files to run shebang change on.
 	files="$(
 		find "$ROOTDIR" -type f \
+		-name '*.sh' \
 		! -path '*/\.*' \
 		! -path '*/bin/*' \
 		! -path '*/config*/*' \

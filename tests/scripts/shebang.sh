@@ -58,6 +58,8 @@ if [[ -n "$bashpath" ]]; then
 	files="$(
 		find "$ROOTDIR" -type f \
 		-name '*.sh' \
+		! -name 'shebang.sh' \
+		! -name 'postinstall.sh' \
 		! -path '*/\.*' \
 		! -path '*/bin/*' \
 		! -path '*/config*/*' \

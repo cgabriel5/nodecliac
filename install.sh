@@ -334,6 +334,12 @@ if [[ " binary manual " == *" $installer "* ]]; then
 	cp -pr "$mainpath"/config.pl "$dest/main"
 	cp -pr "$testspath"/scripts/nodecliac.sh "$dest/main/test.sh"
 	cp -pr "$binpath"/binary.sh "$dest/bin"
+
+	# Re-write shebangs to current system Bash binary path.
+	while IFS= read shfile; do
+		perl -i -ne "if (\$. == 1 and /^#!\/.*\/bash$/) { print \"#!$bashpath\\n\" } else { print \$_ }; $. = 0 if eof" "$shfile"
+	done <<< "$(find "$dest" -type f -name '*.sh')" # ~/.nodecliac/(main/{init|test}.sh|bin/binary.sh)
+
 	if [[ -n "$packages" ]]; then
 		# cp -pr "$outputdir"/resources/packages/* ~/.nodecliac/registry
 		# Ignore .git folder and root files. Only copy completion packages.

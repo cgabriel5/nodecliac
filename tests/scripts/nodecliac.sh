@@ -385,7 +385,10 @@ function xtest {
 		if [[ "$item" == "#"* ]]; then
 			op="${item:2:2}"
 			n="${item:4:${#item}}"
-			readarray -t completions <<< "$(trim "$output")"
+			completions=()
+			while IFS= read completion; do
+				completions+=("$completion")
+			done <<< "$(trim "$output")"
 			c="${#completions[@]}"
 			case "$op" in
 				eq) r=$([ "$c" == "$n" ] && echo 1 || echo 0) ;;
@@ -397,17 +400,20 @@ function xtest {
 			esac
 		else
 			if [[ -n "$cindex" ]]; then
-				readarray -t completions <<< "$(trim "$output")"
 				if [[ "$cindex" == "*" ]]; then
-					for completion in "${completions[@]}"; do
+					while IFS= read completion; do
 						r="$(xlogic "$completion" "$item" "$tlogic")"
 						[[ "$r" == 1 ]] && break
-					done
+					done <<< "$(trim "$output")"
 				else
-					completion="${completions[$cindex]}"
-					if [[ -n "$completion" ]]; then
-						r="$(xlogic "$completion" "$item" "$tlogic")"
-					fi
+					i=0
+					while IFS= read completion; do
+						if [[ "$cindex" == "$i" && -n "$completion" ]]; then
+							r="$(xlogic "$completion" "$item" "$tlogic")"
+							break
+						fi
+						((++i))
+					done <<< "$(trim "$output")"
 				fi
 			else
 				r="$(xlogic "$output" "$item" "$tlogic")"
@@ -431,12 +437,11 @@ function xtest {
 		if [[ $(isset "$PRINT") ]]; then
 			echo -e "(-) ${BOLD}Ignored (No Tests)${NC}\n${lpad}[?] [$teststring_og]${NC} (${t}s)"
 			echo -e "${lpad}${BPURPLE}Output${NC}"
-			readarray -t completions <<< "$(trim "$output")"
-			l="${#completions[@]}"
-			for ((i = 0 ; i < $l ; i++)); do
-				c="${completions[$i]}"
-				echo -e "${lpad}[$i] => [$c]"
-			done
+			i=0
+			while IFS= read completion; do
+				echo -e "${lpad}[$i] => [$completion]"
+				((++i))
+			done <<< "$(trim "$output")"
 		fi
 	else
 		if [[ "$suite_status" == 1 ]]; then
@@ -469,12 +474,10 @@ function xtest {
 				done
 				
 				echo -e "${lpad}${BPURPLE}Output${NC}"
-				readarray -t completions <<< "$(trim "$output")"
-				l="${#completions[@]}"
-				for ((i = 0 ; i < $l ; i++)); do
-					c="${completions[$i]}"
-					echo -e "${lpad}[$i] => [$c]"
-				done
+				while IFS= read completion; do
+					echo -e "${lpad}[$i] => [$completion]"
+					((++i))
+				done <<< "$(trim "$output")"
 				[[ -z "$TDEBUG" ]] && echo ""
 			fi
 		fi

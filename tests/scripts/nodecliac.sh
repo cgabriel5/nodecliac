@@ -488,7 +488,7 @@ if [[ $(isset "$PRINT") ]]; then
 	# [http://codeprairie.net/blogs/chrisortman/archive/2008/06/14/using-the-find-command-to-find-non-executable-files.aspx]
 	# [https://stackoverflow.com/a/36129599]
 	# [https://www.cyberciti.biz/faq/find-command-exclude-ignore-files/] 
-	files="$(find ~/.nodecliac/ \
+	files="$(find ~/.nodecliac \
 		-not -path '*/\._*' \
 		-type f \( \
 			-iname "*.sh" -or \

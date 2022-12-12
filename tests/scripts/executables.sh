@@ -47,7 +47,7 @@ if [[ $(isset "$PRINT") ]]; then
 fi
 
 # Get list of staged files. [https://stackoverflow.com/a/33610683]
-STAGED_FILES=$(git diff --name-only --cached)
+STAGED_FILES="$(git diff --name-only --cached)"
 
 # If no files are staged then exit.
 if [[ -z "$STAGED_FILES" ]]; then
@@ -63,14 +63,11 @@ if [[ -z "$STAGED_FILES" ]]; then
 	exit 0
 fi
 
-# Read staged files list into an array.
-readarray -t list <<< "$STAGED_FILES" # [https://stackoverflow.com/a/19772067]
-
 # Declare empty array to contain unexecutable binaries.
 declare -a binaries # [https://stackoverflow.com/a/41108078]
 
 # Loop over files list.
-for file in "${list[@]}"; do # [https://www.cyberciti.biz/faq/bash-for-loop-array/]
+while IFS= read file; do
 	# If file is macOS/Linux binary check that's executable.
 	# [https://unix.stackexchange.com/a/340485]
 	if [[ "$file" =~ \.(macosx|linux)$ ]]; then
@@ -82,7 +79,7 @@ for file in "${list[@]}"; do # [https://www.cyberciti.biz/faq/bash-for-loop-arra
 			binaries+=($(basename "$file")) # [https://stackoverflow.com/a/1951523]
 		fi
 	fi
-done
+done <<< "$(echo "$STAGED_FILES")"
 
 # If array is populated there are errors.
 if [[ ${#binaries[@]} -ne 0 ]]; then # [https://serverfault.com/a/477506]

@@ -59,6 +59,25 @@ function success() {
 	cline && echo -e " $CHECK_MARK $1" && sleep 0.1 && cline
 }
 
+# Attempts to find all installed Bash shells and returns the first Bash
+# shell that is version 4.3+. If none are found, an empty string is returned.
+#
+# @return - Bin path of 4.3+ Bash shell.
+bashpath () {
+	binpath=""
+
+	while IFS= read path; do
+		# [https://stackoverflow.com/a/9450628]
+		# [https://stackoverflow.com/a/1336245]
+		version="$("$path" -c 'IFS=".";echo "${BASH_VERSINFO[*]:0:2}"')"
+		# Validate version number (must be >= 4.3).
+		[[ "$version" =~ ^([4-9]\.([3-9])|[5-9]\.[0-9]{1,})$ ]] && \
+			binpath="$path" && break
+	done <<< "$(grep "/bin/bash$" <<< cat /etc/shells)" # [[https://stackoverflow.com/a/58270646]]
+
+	echo "$binpath"
+}
+
 # ANSI colors: [https://stackoverflow.com/a/5947802]
 GREEN="\033[0;32m"
 BOLD="\033[1m"
@@ -154,9 +173,12 @@ cp -a "$rcfile" "$HOME/.bashrc_ncliac.bk" # Backup rcfile.
 perl_majorv="$(perl -ne 'print $1 if /\(v([^.]).*\)/' <<< $(perl --version))"
 [[ "$((perl_majorv + 0))" -lt 5 ]] && err "Perl 5 is needed."
 
-bversion="${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]}"
-pcommand=$'print 1 if /^([4]\.([3-9]+|3)|([5-9]|\d{2,})\.\d{1,})/'
-[[ ! "$(perl -ne "$pcommand" <<< "$bversion")" ]] && err "Bash 4.3+ is needed."
+[[ -z "$bashpath" ]] && err "Bash 4.3+ is needed."
+# [[ ! "$(perl -ne "$pcommand" <<< "$bversion")" ]] && err "Bash 4.3+ is needed."
+
+# bversion="${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]}"
+# pcommand=$'print 1 if /^([4]\.([3-9]+|3)|([5-9]|\d{2,})\.\d{1,})/'
+# [[ ! "$(perl -ne "$pcommand" <<< "$bversion")" ]] && err "Bash 4.3+ is needed."
 
 # ---------------------------------------------------------------BASH-COMPLETION
 

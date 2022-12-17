@@ -77,6 +77,9 @@ coptions=()
 	done
  done <<< "$(trim "$CFLAGS")"
 
+# [https://stackoverflow.com/a/34531699]
+# Starting ':' silences errors on unsupported options. ':' after flag
+# requires a flag value.
 while getopts ':i:c:o:n:s:dpr' flag; do
 	case "$flag" in
 		c) gencommand="$OPTARG" ;;

@@ -1,0 +1,37 @@
+# DON'T EDIT FILE —— GENERATED: Sun Jul 03 2022 11:12:36 (1656871957)
+
+ --p#0e1c8c
+ --p#3a8092
+ --p#3a8092
+ --p#acccbb
+ --p#be9c03
+ --p#c54eb5
+.APPLE --p#0e1c8c
+.command --p#3a8092
+.GOOGLE --p#0e1c8c
+.sub1 --p#3a8092
+.sub2 --p#3a8092
+
+ default $("cmd",$"cmd","cmd")
+ default ""
+.command default $("cmd",$"cmd","cmd")
+ default $("cmd",$"cmd","cmd")
+.sub1 default $("cmd",$"cmd","cmd")
+.sub2 default $("cmd",$"cmd","cmd")
+ default $("cmd",$"cmd","cmd")
+ default $("")
+ default $("cmd",$"cmd","cmd")
+.APPLE default $("cmd",$"cmd","cmd")
+.GOOGLE default $("cmd",$"cmd","cmd")
+
+ context "{help|h};!help:#fge1"
+ context "{flag|f};{help|h};!help:#fge1"
+.command context "{help|h};!help:#fge1"
+ context "{help|h};!help:#fge1"
+.sub1 context "{help|h};!help:#fge1"
+.sub2 context "{help|h};!help:#fge1"
+ context "{help|h};!help:#fge1"
+ context "{help|h};!help:#fge1;{flag|f}"
+ context "{help|h};!help:#fge1"
+.APPLE context "{help|h};!help:#fge1"
+.GOOGLE context "{help|h};!help:#fge1"

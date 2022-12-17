@@ -1,0 +1,275 @@
+# comment
+
+
+
+
+
+# comment 2
+# comment 3
+
+
+
+#comment 4
+
+
+@srtting; ;;;;# comment
+		@setting
+
+		=     true
+
+
+@setting =
+
+
+"sfsdf"
+@var
+# comment after variable name
+=
+
+# comment after variable assignment
+
+
+
+
+true
+
+# comment
+
+
+
+# comment
+
+
+
+$name = ">>>>>>"
+$name_20 = ">>>>>>"
+$name_21 = ">>>>>>" ; $SECOND_IN_LINE = ">>>>>>" ; $name_22 = ">>>>>>"
+$name_23 = ">>>>>>"
+$name_24 = ">>>>>>"
+
+program = --flag|default $("cm${name}d", $"c", "c")
+
+
+program,second.{APPLE,GOOGLE},last = [
+
+
+
+	--flag=(1 2 3 "string" $("cmd", $"d", ""))
+
+
+	--flag=$("cmd", $"c",   "sds") # comment
+
+
+
+
+
+
+	--flag=
+
+# comment
+
+
+
+	( # comment
+		- option
+		- 12 # comment
+		- $("cmd", $"c",   "sds")
+	)
+
+	default "command" 			# comment
+
+
+
+	default $("command"  	, $"comamd",   "final")
+]
+
+
+
+
+
+
+
+@placehold = true
+@filedir = "@(nim)"
+@disable = false
+
+$mainscript = "${PATH}/${COMMAND}/${COMMAND}.acmap"
+
+debug = --flag::f=(1 3)
+debug = --flag::f=(1 3)|default "cmd"|--flag
+debug = --flag::f=(1 3)|default $("cmd")|--flag
+
+*,debug.command,last.{sub1,sub2} = [
+	default "cmd"
+	default $("cmd", $"cmd", "cmd")
+	--flag
+	--flag?
+	--flag=
+	--flag=*
+	--flag=(1 2 3 "string" $("cmd", $"cmd", ""))
+	--flag=(1 2 3 "string" $("cmd", $"cmd", "") 123) # fails
+	--flag=(
+		- 1
+		- "2"
+		- $("cmd", "param", $'run-cmd')
+		- false
+	)
+]
+
+@setting = ""
+$var = "" # trailing comment
+program # trailing comment
+
+
+
+
+@setting = "" # trailing comment
+@setting = true # trailing comment
+$var = "" # trailing comment
+# comment
+program # trailing comment
+
+
+program = [
+	--flag=
+]
+
+debug = --flag::f=(1 3)|default $("cmd")|--flag
+debug = --flag::f=(1 3)|default "cmd"|--flag
+debug = --flag::f=(1 3)|default "cmd"
+debug = default "cmd"|--flag::f=(1 3)|default "cmd"
+debug = default "cmd"|--flag::f=(1 3)
+debug = default $("cmd")|--flag::f=(1 3)
+debug = default $("cmd")|--flag::f=(1 3)|default $("cmd")
+
+
+# program = --flag=$("command")
+program = --flag=(option1 option2)
+program = --flag=(1 2 3 $("cmd") 124 $("cmd"))
+
+
+program = --flag::f=123
+
+
+
+
+
+
+program = [
+	--flag=$("cmd")
+	--flag
+	--flag=(1 2 3 $("c") 4)
+	--flag=(
+		- 1
+		- $("cmd")
+		- true
+	)
+	default $("cmd")
+]
+
+
+program = --flag=$("cmd")
+program = --flag=(1 2 3 $("c") 4)
+program = [
+	--flag=(
+		- 1
+		- $("cmd")
+		- true
+	)
+	default $("cmd")
+]
+program = default $("cmd")
+
+program = --flag=*()
+program = --flag=()
+program = --flag=$("")
+
+program = --flag|default $("cmd", $"c", "c")
+debug = --flag::f=(1 3)|default $("cmd")|--flag
+debug = --flag::f=(1 3)|default $("cmd")|--flag
+debug = default $("cmd")|--flag::f=(1 3)
+debug = default $("cmd")|--flag::f=(1 3)|default $("cmd")
+
+
+
+
+
+debug = --flag::f=(1 3)|default $("cmd")|--flag
+debug = --flag::f=(1 3)|default $("cmd")|--flag
+debug = default $("cmd")|--flag::f=(1 3)
+debug = default $("cmd")|--flag::f=(1 3)|default $("cmd")
+debug = --flag::f=(1 3)|default $("cmd")|--flag
+debug = --flag::f=(1 3)|default $("cmd")|--flag
+debug = default $("cmd")|--flag::f=(1 3)
+debug = default $("cmd")|--flag::f=(1 3)|default $("cmd")
+debug = --flag=|--flag::f=(1 3)
+
+debug = --flag=|--flag::f=(1 3)
+debug = default "s"|default "s"
+
+
+
+
+debug = default $("cmd")|--flag
+debug = default "s"|--flag
+debug = --flag|--flag
+debug = --flag|--flag="string"
+debug = --flag|default ""
+
+
+program = default "s"|default $("")
+program = default "s"|--flag|default $("")
+program = [
+	default "s"
+	--flag
+	default $("")
+]
+
+
+* = [
+	exclude "program.cache"
+	--help::h?
+	context "!help: #fge1"
+]
+
+op
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Experimental datica nodecliac bash-completion.
+
+* = [
+	--help?
+	context "!help: #fge1"
+]
+
+datica = [
+	--email
+]
+
+
+datica = --email
+
+
+
+* = [
+	--help::h?
+	context "!help:
+
+
+
+
+	#fge1"
+]
+
+op

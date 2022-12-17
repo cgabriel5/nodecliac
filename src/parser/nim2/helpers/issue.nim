@@ -1,4 +1,4 @@
-import utils/[chalk]
+import ../utils/[chalk]
 
 # \033: [https://stackoverflow.com/a/10170631]
 

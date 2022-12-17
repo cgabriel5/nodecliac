@@ -1,9 +1,8 @@
-import ./helpers/[types]
-import utils/[chalk]
+import tables, sets, strutils
+
+import ./types
+import ../utils/[chalk]
 import issue
-import tables
-import sets
-import strutils
 # from sets import incl
 
 proc vsetting*(S: ParseState) =

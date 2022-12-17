@@ -1,7 +1,7 @@
 import std/[md5, tables, sets]
 
-import ./helpers/[types]
-# import ./utils/types as t
+import ../helpers/[types]
+# import ../utils/types as t
 
 proc formatter*(tokens: seq[Token], text: string,
     branches: seq[seq[Token]],

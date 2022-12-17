@@ -2,11 +2,11 @@ import std/[tables, sets, re, strutils, sequtils, algorithm]
 
 # from std/sequtils import toSeq
 
-import ./helpers/[types]
+import ./helpers/[types, defvars, issue, validation]
 # import ./utils/types as t
 import ./utils/regex
-import lexer, defvars, issue
-import validation, acdef, formatter, debugger
+import lexer
+import ./tools/[acdef, formatter, debugger]
 
 let R = re"(?<!\\)\$\{\s*[^}]*\s*\}"
 

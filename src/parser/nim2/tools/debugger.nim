@@ -2,9 +2,9 @@
 
 import std/[tables, strutils, strformat, sequtils, nre, json, os, enumerate]
 
-import ./helpers/[types]
-import utils/[chalk, exit, fs]
-import utils/types as t
+import ../helpers/[types]
+import ../utils/[chalk, exit, fs]
+import ../utils/types as t
 
 const CSV_DELIMITER = ';'
 const TB_LABELS = ["tid", "kind", "line", "column", "start", "end", "lines", "$", "list", "value"]

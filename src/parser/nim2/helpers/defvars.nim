@@ -1,6 +1,6 @@
 import std/[os, tables]
 
-import utils/[osutils]
+import ../utils/[osutils]
 
 # Builtin variables.
 proc builtins*(cmdname: string): Table[string, string] =

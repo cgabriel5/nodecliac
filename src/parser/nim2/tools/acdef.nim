@@ -1,7 +1,7 @@
 import std/[md5, algorithm, sequtils, unicode, re]
 import std/[strutils, times, strtabs, sets, tables]
 
-import ./helpers/[types, charsets]
+import ../helpers/[types, charsets]
 # import ./utils/types as t
 
 proc acdef*(branches: seq[seq[Token]],

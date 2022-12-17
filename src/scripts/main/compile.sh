@@ -272,8 +272,8 @@ index=0
 for x in "${args[@]}"; do
 	decor=$([ $index == $((count-1))  ] && echo "└──" || echo "├──")
 	spacing=" "
-	[[ "${x:1:1}" != "-" ]] && spacing="  "
-	echo " ${decor}${spacing}${x}"
+	[[ "${x:1:1}" != "-" ]] && spacing=" ${RED}${BOLD}[INPUT]${NC} <- "
+	echo -e " ${decor}${spacing}${x}"
 	index=$((index+1))
 done
 

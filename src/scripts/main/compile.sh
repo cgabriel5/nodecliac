@@ -10,6 +10,7 @@
 # -p: Compile production binary.
 # -n: Optional binary file name.
 # -s: OS to generate cross-compilation script for.
+# -r: Reset name/output paths for ac/parser files.
 # -c: Type of code to generate: default 'c' (c|cpp|oc|js).
 #
 # Examples:
@@ -65,6 +66,7 @@ ext=""
 name=""
 oname=""
 genscript=""
+renamefiles=""
 gencommand="c"
 
 # Parse any provided compiler flags via CFLAGS env.
@@ -75,7 +77,7 @@ coptions=()
 	done
  done <<< "$(trim "$CFLAGS")"
 
-while getopts ':i:c:o:n:s:dp' flag; do
+while getopts ':i:c:o:n:s:dpr' flag; do
 	case "$flag" in
 		c) gencommand="$OPTARG" ;;
 		i) INPUT_PATH="$OPTARG" ;;
@@ -95,6 +97,7 @@ while getopts ':i:c:o:n:s:dp' flag; do
 		;;
 		n) oname="$OPTARG" ;;
 		s) USER_OS="$OPTARG"; genscript="1" ;;
+		r) renamefiles="1" ;;
 		d) COMPILE_DEV="true"; COMPILE_PROD="" ;;
 		p) COMPILE_PROD="true"; COMPILE_DEV="" ;;
 	esac
@@ -132,7 +135,7 @@ OUTPUT_PATH+="/$oname" # Append output file name.
 
 
 # Reset name/output paths for ac/parser files.
-if [[ " ac ac_debug index " == *" $name "* ]]; then
+if [[ "$renamefiles" == "1" &&  " ac ac_debug index " == *" $name "* ]]; then
 	oldname="$name"
 	case "$INPUT_PATH" in
 		*"nodecliac/src/scripts/ac"*)

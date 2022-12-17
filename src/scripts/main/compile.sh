@@ -131,7 +131,8 @@ if [[ -z "$OUTPUT_PATH" ]]; then
 	name="${file%.*}" # File name.
 	if [[ -z "$oname" ]]; then oname="$name.$USER_OS"; fi
 fi
-OUTPUT_PATH+="/$oname" # Append output file name.
+# [TODO]: Should a slash need to be pre-pended to oname?
+OUTPUT_PATH+="$oname" # Append output file name.
 
 
 # Reset name/output paths for ac/parser files.

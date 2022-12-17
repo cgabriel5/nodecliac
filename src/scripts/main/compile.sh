@@ -15,9 +15,9 @@
 # Examples:
 #
 # Build production binary:
-# 	$ ./compile -i ~/Desktop/file.nim -o ~/Desktop/ -p
+# 	$ ./compile.sh -i ~/Desktop/file.nim -o ~/Desktop/ -p
 # Build development binary:
-# 	$ ./compile -i ~/Desktop/file.nim -o ~/Desktop/ -d
+# 	$ ./compile.sh -i ~/Desktop/file.nim -o ~/Desktop/ -d
 
 # Trim string whitespace.
 #

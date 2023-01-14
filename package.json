@@ -30,25 +30,25 @@
 		"cpp": "g++ -std=c++11 -I ./headers -I ./libs main.cpp -o main.bin ./source/lexer.cpp ./source/parser.cpp ./source/str.cpp ./source/io.cpp ./source/path.cpp ./source/fs.cpp ./source/validation.cpp ./source/defvars.cpp ./source/issue.cpp ./source/acdef.cpp ./source/formatter.cpp ./libs/md5.cpp ./source/parsetools.cpp  && time ./main.bin make --source /opt/lampp/htdocs/projects/nodecliac/src/parser/python/debug.acmap --print --trace --testx --indent \"s:4\"; rm main.bin"
 	},
 	"dependencies": {
-		"chalk": "^4.1.0",
+		"chalk": "4.1.2",
 		"deepcopy": "^2.1.0",
 		"directory-exists": "^2.0.1",
 		"du": "^1.0.0",
 		"file-exists": "^5.0.1",
 		"file-extension": "^4.0.5",
 		"flatry": "^1.0.12",
-		"follow-redirects": "^1.13.3",
+		"follow-redirects": "1.15.2",
 		"make-dir": "^3.1.0",
-		"minimist": "^1.2.5",
+		"minimist": "1.2.7",
 		"path-exists": "^4.0.0",
 		"prompt-sync": "^4.2.0",
-		"recursive-copy": "^2.0.11",
-		"rimraf": "^3.0.2",
-		"shelljs": "^0.8.4",
-		"strip-ansi": "^6.0.0",
-		"symlink-dir": "^4.1.0",
+		"recursive-copy": "2.0.14",
+		"rimraf": "3.0.2",
+		"shelljs": "0.8.5",
+		"strip-ansi": "6.0.1",
+		"symlink-dir": "4.2.0",
 		"through2": "^4.0.2",
-		"xregexp": "^5.1.0"
+		"xregexp": "5.1.1"
 	},
 	"author": "Carlos Gabriel",
 	"license": "MIT",
@@ -64,10 +64,10 @@
 	},
 	"devDependencies": {
 		"cross-env": "^7.0.3",
-		"eslint": "^7.22.0",
+		"eslint": "7.32.0",
 		"eslint-config-simple": "*",
 		"eslint-formatter-simple": "*",
-		"prettier": "^2.2.1",
+		"prettier": "^2.8.3",
 		"prettier-cli-watcher": "*"
 	},
 	"files": [

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/local/bin/bash
 
 vmajor=${BASH_VERSINFO[0]}
 vminor=${BASH_VERSINFO[1]}

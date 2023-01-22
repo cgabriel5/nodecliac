@@ -20,5 +20,5 @@ if (action) {
 	if (!actions.includes(action)) exit([fmt(tstring, chalk.bold(action))]);
 	require(`./actions/${action}.js`)(args);
 } else {
-	if (args.version) console.log(require("../package.json").version);
+	if (args.version) console.log(require("../../../package.json").version);
 }

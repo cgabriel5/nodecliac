@@ -7,7 +7,7 @@
 const path = require("path");
 const chalk = require("chalk");
 const stripansi = require("strip-ansi");
-const { hasProp, write } = require("../../utils/toolbox.js");
+const { hasProp, write } = require("../utils/toolbox.js");
 const CSV_DELIMITER = ";";
 const TB_LABELS = ["tid", "kind", "line", "column", "start", "end", "lines", "$", "list", "value"];
 

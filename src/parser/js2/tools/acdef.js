@@ -2,7 +2,7 @@
 
 "use strict";
 
-const { md5, hasProp } = require("../../utils/toolbox.js");
+const { md5, hasProp } = require("../utils/toolbox.js");
 
 module.exports = async (branches, cchains, flags, settings, S, cmdname) => {
 	let ubids = S.ubids;

@@ -2,14 +2,14 @@
 
 "use strict";
 
-const lexer = require("./lexer");
-const { vsetting, vvariable, vstring, vsetting_aval } = require("./validation.js");
-const { builtins } = require("./defvars.js");
-const { issue_hint, issue_warn, issue_error } = require("./issue.js");
-const { hasProp } = require("../../utils/toolbox.js");
-const dbugger = require("./debugger.js");
-const acdef = require("./acdef.js");
-const formatter = require("./formatter.js");
+const lexer = require("./helpers/lexer.js");
+const { vsetting, vvariable, vstring, vsetting_aval } = require("./helpers/validation.js");
+const { builtins } = require("./helpers/defvars.js");
+const { issue_hint, issue_warn, issue_error } = require("./helpers/issue.js");
+const { hasProp } = require("./utils/toolbox.js");
+const dbugger = require("./tools/debugger.js");
+const acdef = require("./tools/acdef.js");
+const formatter = require("./tools/formatter.js");
 
 const R = /(?<!\\)\$\{\s*[^}]*\s*\}/g;
 

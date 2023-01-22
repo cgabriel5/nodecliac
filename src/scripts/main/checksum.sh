@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/local/bin/bash
 
 # Script generates a sha256 checksum of the install.sh script.
 

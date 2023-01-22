@@ -45,7 +45,7 @@ module.exports = async (args) => {
 	if (err || !res) exit([fmt("Path ? doesn't exist.", chalk.bold(source))]);
 
 	res = await read(source);
-	let parser = require(`../parser/index.js`);
+	let parser = require(`../parser.js`);
 	let pres = await parser(
 		action,
 		res,

@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 "use strict";
 
 const path = require("path");
@@ -8,22 +6,17 @@ const flatry = require("flatry");
 const fe = require("file-exists");
 const mkdirp = require("make-dir");
 const de = require("directory-exists");
-const toolbox = require("../../utils/toolbox.js");
+const toolbox = require("../utils/toolbox.js");
 const { fmt, exit, read, write, info, ispath_abs, hasProp } = toolbox;
 
-const minimist = require("minimist");
-const args = minimist(process.argv.slice(2));
-
-// module.exports = async (args) => {
-async function main() {
+module.exports = async (args) => {
 	let { source, print } = args;
 	let { trace, test } = args;
-	let { tokens, branches } = args;
 	let { "strip-comments": igc, indent } = args;
 	let [action] = args._;
 	let formatting = action === "format";
 
-	let fmtinfo = ["\t", 1]; // (char, amount)
+	let fmtinfo = ["\t", 1];
 	// Parse/validate indentation.
 	if (formatting && indent) {
 		let r = /^(s|t):\d+$/;
@@ -52,37 +45,42 @@ async function main() {
 	if (err || !res) exit([fmt("Path ? doesn't exist.", chalk.bold(source))]);
 
 	res = await read(source);
-	let [acdef, config, keywords, filedirs, contexts, formatted, placeholders, tests] =
-	await require("./parser.js")(action, res, cmdname, source, fmtinfo, trace,
-		igc, test, tokens, branches);
-
-	let testname = cmdname + ".tests.sh";
-	let savename = cmdname + ".acdef";
-	let saveconfigname = "." + cmdname + ".config.acdef";
+	let parser = require(`../parser.js`);
+	let pres = await parser(
+		action,
+		res,
+		cmdname,
+		source,
+		fmtinfo,
+		trace,
+		igc,
+		test
+	);
+	let { acdef, config, keywords, filedirs } = pres;
+	let { contexts, placeholders, formatted, tests } = pres;
+	let testname = `${cmdname}.tests.sh`;
+	let savename = `${cmdname}.acdef`;
+	let saveconfigname = `.${cmdname}.config.acdef`;
 
 	// Only save files to disk when not testing.
 	if (!test) {
-		if (formatting) {
-			// [https://stackoverflow.com/a/19337403]
-			await write(source, formatted);
-		} else {
+		if (formatting) await write(source, formatted);
+		else {
 			let testpath = path.join(dirname, testname);
 			let commandpath = path.join(dirname, savename);
 			let commandconfigpath = path.join(dirname, saveconfigname);
 			let placeholderspaths = path.join(dirname, "placeholders");
 
-			// [https://stackoverflow.com/a/11464127]
 			await mkdirp(dirname);
-			await write(commandpath, acdef + keywords + filedirs + contexts);
+			let content = acdef + keywords + filedirs + contexts;
+			await write(commandpath, content);
 			await write(commandconfigpath, config);
 
 			// Save test file if tests were provided.
-			if (tests) {
-				await write(testpath, tests, 0o775);
-			}
+			if (tests) await write(testpath, tests, 0o775);
 
 			// Create placeholder files if object is populated.
-			if (placeholders) {
+			if (Object.keys(placeholders).length) {
 				let promises = [];
 				await mkdirp(placeholderspaths);
 
@@ -109,7 +107,7 @@ async function main() {
 			if (config) {
 				let msg = `\n[${chalk.bold(`.${cmdname}.config.acdef`)}]\n`;
 				console.log(msg);
-				console.log(config);
+				console.log(config + "\n");
 			}
 		} else console.log(formatted);
 
@@ -135,6 +133,4 @@ async function main() {
 			}
 		} else console.log(formatted);
 	}
-}
-
-main();
+};

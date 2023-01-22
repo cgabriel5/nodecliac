@@ -2,7 +2,7 @@
 
 "use strict";
 
-const { md5, hasProp } = require("../../utils/toolbox.js");
+const { md5, hasProp } = require("../utils/toolbox.js");
 
 let lastn = (list, offset = -1) => list[list.length + offset];
 // let strfrmpts = (s, start, end) => s.substring(start, end + 1);

@@ -4,7 +4,7 @@
 
 const xregexp = require("xregexp");
 
-const { hasProp } = require("../../utils/toolbox.js");
+const { hasProp } = require("../utils/toolbox.js");
 const { issue_hint, issue_warn, issue_error } = require("./issue.js");
 
 function vsetting(S) {

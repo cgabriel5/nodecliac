@@ -1,8 +1,8 @@
 "use strict";
 
 const fe = require("file-exists");
-const { lstats } = require("../utils/toolbox.js");
-const { paths, write, read } = require("../utils/toolbox.js");
+const { lstats } = require("./toolbox.js");
+const { paths, write, read } = require("./toolbox.js");
 const root = paths.ncliacdir;
 const config = `${root}/.config`;
 const lookup = { status: 0, cache: 1, debug: 2, singletons: 3 };

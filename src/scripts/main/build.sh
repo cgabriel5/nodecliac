@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/local/bin/bash
 
 # Compiles Nim project file through the Nim compiler.
 #

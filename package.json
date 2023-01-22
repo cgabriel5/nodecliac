@@ -2,9 +2,9 @@
 	"name": "nodecliac",
 	"version": "0.0.1",
 	"description": "Add Bash auto completion to your CLI app.",
-	"main": "./src/index.js",
+	"main": "./src/parser/js2/index.js",
 	"bin": {
-		"nodecliac": "./src/index.js"
+		"nodecliac": "./src/parser/js2/index.js"
 	},
 	"bugs": {
 		"url": "https://github.com/cgabriel5/nodecliac/issues"

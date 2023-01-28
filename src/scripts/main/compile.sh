@@ -15,10 +15,15 @@
 #
 # Examples:
 #
-# Build production binary:
-# 	$ ./compile.sh -i ~/Desktop/file.nim -o ~/Desktop/ -p
-# Build development binary:
-# 	$ ./compile.sh -i ~/Desktop/file.nim -o ~/Desktop/ -d
+### Build production binary:
+# 	$ ./compile.sh -i ~/Desktop/project.nim -o ~/Desktop/ -p
+### Build development binary:
+# 	$ ./compile.sh -i ~/Desktop/project.nim -o ~/Desktop/ -d
+### Build development binary + name of output file:
+# 	$ ./compile.sh -i ~/Desktop/project.nim -o ~/Desktop/ -d -n main.macosx
+###  Generate a production ready cross-compilation bundle on macOS for ARM64
+#	 Linux and save the bundle to the desktop.
+# 	$ ./compile.sh -i ~/Desktop/project.nim -o ~/Desktop/ -s linux:arm64 -p
 
 # Trim string whitespace.
 #

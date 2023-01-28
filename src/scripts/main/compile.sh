@@ -66,6 +66,7 @@ COMPILE_DEV="true" # Default.
 COMPILE_PROD=""
 COMPILE_TYPE=""
 CONVERSION=""
+CROSS_COMP=""
 file=""
 ext=""
 name=""
@@ -268,6 +269,7 @@ else # Generate platform specific cross-compilation script.
 		"--genScript:on"
 		"--nimcache:$genscript"
 	)
+	CROSS_COMP=" -> ${BPURPLE}CROSS-COMP${NC}"
 fi
 
 args+=("$INPUT_PATH")
@@ -280,7 +282,7 @@ case "$gencommand" in
 	js) gencommand="js" ;;
 esac
 
-echo -e "nim $gencommand / ${GREEN}${BOLD}[${COMPILE_TYPE}]${NC}${CONVERSION}"
+echo -e "nim $gencommand / [${GREEN}${BOLD}${COMPILE_TYPE}${NC}${CROSS_COMP}]${CONVERSION}"
 count="${#args[@]}"
 index=0
 for x in "${args[@]}"; do

@@ -229,7 +229,7 @@ elif [[ -n "$COMPILE_DEV" ]]; then
 		"--showAllMismatches:on"
 	)
 elif [[ -n "$COMPILE_PROD" ]]; then
-	COMPILE_TYPE="RELEASE"
+	COMPILE_TYPE="REL"
 	args+=(
 		"-d:release"
 		"-d:danger"

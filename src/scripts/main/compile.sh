@@ -283,12 +283,13 @@ case "$gencommand" in
 esac
 
 echo -e "nim $gencommand / [${GREEN}${BOLD}${COMPILE_TYPE}${NC}${CROSS_COMP}]${CONVERSION}"
-count="${#args[@]}"
 index=0
+l="${#args[@]}"
+count="${#args[@]}"
 for x in "${args[@]}"; do
 	decor=$([ $index == $((count-1))  ] && echo "└──" || echo "├──")
 	spacing=" "
-	[[ "${x:1:1}" != "-" ]] && spacing=" ${RED}${BOLD}[INPUT]${NC} <- "
+	[[ "$((index+1))" == "$count" ]] && spacing=" [${RED}${BOLD}INPUT${NC}] <- "
 	echo -e " ${decor}${spacing}${x}"
 	index=$((index+1))
 done

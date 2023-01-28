@@ -173,7 +173,7 @@ cp -a "$rcfile" "$HOME/.bashrc_ncliac.bk" # Backup rcfile.
 perl_majorv="$(perl -ne 'print $1 if /\(v([^.]).*\)/' <<< $(perl --version))"
 [[ "$((perl_majorv + 0))" -lt 5 ]] && err "Perl 5 is needed."
 
-[[ -z "$bashpath" ]] && err "Bash 4.3+ is needed."
+[[ -z "$(bashpath)" ]] && err "Bash 4.3+ is needed."
 # [[ ! "$(perl -ne "$pcommand" <<< "$bversion")" ]] && err "Bash 4.3+ is needed."
 
 # bversion="${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]}"
@@ -337,7 +337,7 @@ if [[ " binary manual " == *" $installer "* ]]; then
 
 	# Re-write shebangs to current system Bash binary path.
 	while IFS= read shfile; do
-		perl -i -ne "if (\$. == 1 and /^#!\/.*\/bash$/) { print \"#!$bashpath\\n\" } else { print \$_ }; $. = 0 if eof" "$shfile"
+		perl -i -ne "if (\$. == 1 and /^#!\/.*\/bash$/) { print \"#!$(bashpath)\\n\" } else { print \$_ }; $. = 0 if eof" "$shfile"
 	done <<< "$(find "$dest" -type f -name '*.sh')" # ~/.nodecliac/(main/{init|test}.sh|bin/binary.sh)
 
 	if [[ -n "$packages" ]]; then

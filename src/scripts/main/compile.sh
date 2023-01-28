@@ -190,7 +190,7 @@ args=(
 
 # Only add when compiling for Linux as clang on macosx complains about the
 # flag ("clang: warning: argument unused during compilation: '-no-pie'").
-[[ "$USER_OS" == "linux" ]] && echo "sfsdfdsfsdfsd" && args+=("--passL:\"-no-pie\"")
+[[ "$USER_OS" == "linux" ]] && args+=("--passL:\"-no-pie\"")
 
 if [[ "$INPUT_PATH" == *"/gui/"* ]]; then
 	COMPILE_TYPE="GUI"

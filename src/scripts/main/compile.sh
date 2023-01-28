@@ -73,6 +73,7 @@ oname=""
 genscript=""
 renamefiles=""
 gencommand="c"
+CPU=""
 
 # Parse any provided compiler flags via CFLAGS env.
 coptions=()
@@ -104,7 +105,11 @@ while getopts ':i:c:o:n:s:dpr' flag; do
 			# fname="$(basename "$INPUT_PATH")"
 		;;
 		n) oname="$OPTARG" ;;
-		s) USER_OS="$OPTARG"; genscript="1" ;;
+		s)
+			# Script generation value must be in the format: '<OS>:<CPU>'
+			USER_OS="${OPTARG%%:*}";
+			CPU="${OPTARG#*:}"
+			genscript="1" ;;
 		r) renamefiles="1" ;;
 		d) COMPILE_DEV="true"; COMPILE_PROD="" ;;
 		p) COMPILE_PROD="true"; COMPILE_DEV="" ;;

@@ -67,7 +67,7 @@ $ bash <(wget -qO- git.io/nodecliac) && source ~/.bashrc
 
 **Checksum Install**: If desired, the install script file's integrity can be verified before running.
 
-[install.sh](https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install.sh) `sha256sum` checksum: `3943ce1b44854aad1e26646bba05e07498237c6e2ccd806acef69dc3fc1f71a6`
+[install.sh](https://raw.githubusercontent.com/cgabriel5/nodecliac/master/install.sh) `sha256sum` checksum: `97826dbf43dec925c81fe9a8f9a615325271b68820beefb28545fd6d4d6e4af4`
 
 Create an executable shell file called `install.sh`, add the following, and run it.
 
@@ -82,7 +82,7 @@ install() {
     url="git.io/nodecliac"
     is="$([[ "$(command -v curl)" ]] && sudo curl -Ls "$url" || sudo wget -qO- "$url")"
     x=($([[ "$OSTYPE" == "darwin"* ]] && shasum -a 256 <<< "$is" || sha256sum <<< "$is"))
-    c="3943ce1b44854aad1e26646bba05e07498237c6e2ccd806acef69dc3fc1f71a6"
+    c="97826dbf43dec925c81fe9a8f9a615325271b68820beefb28545fd6d4d6e4af4"
     err="\033[1;31mError\033[0m: Verification failed: checksums don't match."
     [[ "$c" == "$x" ]] && bash <(echo "$is") \
         --installer= \

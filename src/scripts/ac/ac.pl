@@ -574,12 +574,20 @@ sub __lookup {
 				$flag_list = do{local(@ARGV,$/)="$hdir/.nodecliac/registry/$maincommand/placeholders/$1";<>};
 			}
 
-			if ($flag_list eq '--') { return; }
-
 			# Split by unescaped pipe '|' characters:
 			# [https://www.perlmonks.org/bare/?node_id=319761]
 			# my @flags = split(/(?:\\\\\|)|(?:(?<!\\)\|)/, $flag_list);
 			my @flags = split(/(?<!\\)\|/, $flag_list);
+
+            # Note: A trailing '--' is used to denote 'no flags' in an
+            # .acdef row. Therefore, when a command chain has no flags
+            # this must be accounted for. As the flags array still contains
+            # the empty '--'. Or else when a [Tab][Tab] is performed,
+            # say 'nodecliac bin -' for example, the '-' will be completed
+            # to '--'. Which is what we do not want. Again, this is the
+            # case as there is technically one flag in the flags array
+            # (i.e. ["--"]).
+			if ($flag_list eq '--') { return; }
 
 			# Context string logic: start --------------------------------------
 

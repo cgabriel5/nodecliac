@@ -41,6 +41,8 @@ tests=(
 'nodecliac NONEXISTANTCOMMAND for; !*format*'
 'nodecliac . ; !*format*'
 'nodecliac . -; 1:*--version*'
+"nodecliac bin -; flag\\:-+"
+"nodecliac bin --; flag\\:--+"
 
 # [test-suite: prettier-cli-watcher]
 "prettier-cli-watcher ; command\\:+"

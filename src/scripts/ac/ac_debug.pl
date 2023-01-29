@@ -1087,6 +1087,14 @@ sub __lookup {
 				if (exists($parsedflags{$key}) && ($last_value ne '' || substr($last, -1) ne '=')) {
 					push(@completions, $item);
 				}
+
+				if ($DEBUGMODE) {
+					__dline(__dvar("last_value") . "$pstart$last_value$pend\n");
+					__dline(__dvar("key") . "$pstart$key$pend\n");
+					__dline(__dvar("item") . "$pstart$item$pend\n");
+					__dline(__dvar("parsedflags") . $pstart . Dumper(\@parsedflags) . "$pend\n");
+				}
+
 			} else {
 				# Note: If the last word (the flag in this case) is an options
 				# flag (i.e. --flag=val) we need to remove the possibly already

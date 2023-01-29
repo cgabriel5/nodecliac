@@ -1519,6 +1519,13 @@ proc main() =
                     let item = if not strset(last_value): last else: last_value
                     if key in parsedflags and (strset(last_value) or not last.endsWith(C_EQUALSIGN)):
                         completions.add(item)
+
+                    when DEBUGMODE:
+                        dline(dvar("last_value") & fmt"{pstart}{last_value}{pend}")
+                        dline(dvar("key") & fmt"{pstart}{key}{pend}")
+                        dline(dvar("item") & fmt"{pstart}{item}{pend}")
+                        dline(dvar("parsedflags") & fmt"{pstart}{parsedflags}{pend}")
+
                 else:
                     # Note: If the last word (the flag in this case) is an options
                     # flag (i.e. --flag=val) we need to remove the possibly already

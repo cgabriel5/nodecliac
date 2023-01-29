@@ -992,7 +992,7 @@ program.command = [
 
 - This method should be used when the flag value list can be kept to a single line.
 - **Note**: Values must be delimited with spaces.
-- **Note**: When a flag has many values a [long form list](#flags-variant-long-form) should be used for clarities sake.
+- **Note**: When a flag has many values a [long form list](#flags-variant-long-form) should be used for clarity's sake.
 
 ```acmap
 program.command = [

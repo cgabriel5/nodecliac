@@ -453,9 +453,9 @@ $ nodecliac registry # Print packages in registry.
 - `--allow-structure`: Disables valid base completion package structure checks.
 - `--allow-overwrite`: Disables overwrite warning of same name package in registry.
 - `--force`: Skip all guards/checks (size, structure, overwrite).
-  - `size`: Size of local repo is no longer checked when copying to registry.
-  - `structure`: Basic completion package structure checks are disabled.
-  - `overwrite`: Same name completion package overwriting is allowed.
+  - `--size`: Size of local repo is no longer checked when copying to registry.
+  - `--structure`: Basic completion package structure checks are disabled.
+  - `--overwrite`: Same name completion package overwriting is allowed.
 
 ###### Usage
 

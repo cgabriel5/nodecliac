@@ -1162,9 +1162,6 @@ proc main() =
                             maincommand & "/placeholders/" &
                             acdef[frange[0] + 4 .. frange[1]], C_PIPE)
 
-                    if flags.len == 1 and eq(flags[0], C_STR_DHYPHEN):
-                        return C_STR_EMPTY
-
                 else:
                     if l == 2 and acdef[frange[0]] == C_HYPHEN and
                         acdef[frange[0] + 1] == C_HYPHEN: return C_STR_EMPTY
@@ -1172,6 +1169,17 @@ proc main() =
                     flags = acdef.splitundeliter(frange[0], frange[1], C_PIPE)
 
                 when DEBUGMODE: dline(dvar("flags") & fmt"{pstart}{flags}{pend}")
+
+                # Note: A trailing '--' is used to denote 'no flags' in an
+                # .acdef row. Therefore, when a command chain has no flags
+                # this must be accounted for. As the flags array still contains
+                # the empty '--'. Or else when a [Tab][Tab] is performed,
+                # say 'nodecliac bin -' for example, the '-' will be completed
+                # to '--'. Which is what we do not want. Again, this is the
+                # case as there is technically one flag in the flags array
+                # (i.e. @["--"]).
+                if flags.len == 1 and eq(flags[0], C_STR_DHYPHEN):
+                    return C_STR_EMPTY
 
                 # Context string logic: start ----------------------------------
 

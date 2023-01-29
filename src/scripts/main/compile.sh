@@ -46,6 +46,9 @@ BBLUE="\033[1;34m"
 BPURPLE="\033[1;35m"
 NC="\033[0m"
 
+CHECK_MARK="${GREEN}\xE2\x9C\x94${NC}"
+X_MARK="${RED}\xe2\x9c\x98${NC}"
+
 # Nim has to be intalled to proceed.
 if [[ -z "$(command -v nim)" ]]; then
 	echo -e "${RED}Error:${NC} Nim is not installed."
@@ -75,6 +78,8 @@ genscript=""
 renamefiles=""
 gencommand="c"
 CPU=""
+CLANG_CPU=""
+GCC_CPU=""
 
 # Parse any provided compiler flags via CFLAGS env.
 coptions=()
@@ -171,8 +176,34 @@ if [[ "$ext" != "nim" ]]; then
 	exit 1
 fi
 
-CPU_ARCHITECTURE="i386" # Default to 32 bit. [https://askubuntu.com/a/93196]
-if [[ "$(uname -m)" == "x86_64" ]]; then CPU_ARCHITECTURE="amd64"; fi
+# Get C gcc/clang compiler cpu targets (if they exist).
+if [[ "$(command -v clang)" ]]; then
+	case "$(clang --version | grep -i "Target")" in
+		*x86_64*) CLANG_CPU="amd64" ;;
+		*arm64*) CLANG_CPU="arm64" ;;
+		*) CLANG_CPU="" ;;
+	esac
+fi
+if [[ "$(command -v gcc)" ]]; then
+	case "$(gcc --version | grep -i "Target")" in
+		*x86_64*) GCC_CPU="amd64" ;;
+		*arm64*) GCC_CPU="arm64" ;;
+		*) GCC_CPU="" ;;
+	esac
+fi
+
+# When cross-compiling ignore user hardware CPU information.
+if [[ -z "$genscript" ]]; then
+	cpu_="$(uname -m)" # -i is only linux, -m is linux and apple
+	sysinfo="$(uname -a)"
+	CPU="i386" # Default to 32 bit. [https://askubuntu.com/a/93196]
+	[[ "$cpu_" == "x86_64" ]] && CPU="amd64"
+	# Macs running Rosetta might return x86_64 so also check for ARM64 value.
+	# [https://stackoverflow.com/questions/65259300/detect-apple-silicon-from-command-line]
+	# [https://nim-lang.org/docs/nimc.html#crossminuscompilation-for-android]
+	# [https://stackoverflow.com/a/68148776]
+	[[ "$CPU" == "amd64" ]] && [[ "$sysinfo" == *ARM64* ]] && CPU="arm64"
+fi
 
 # Compile with '-no-pie' to generated an executable and not shared library:
 # [https://forum.openframeworks.cc/t/ubuntu-18-04-mistaking-executable-as-shared-library/30873]
@@ -184,9 +215,9 @@ if [[ "$(uname -m)" == "x86_64" ]]; then CPU_ARCHITECTURE="amd64"; fi
 # [https://nim-lang.org/docs/manual.html#implementation-specific-pragmas-passl-pragma]
 
 args=(
-	"--cpu:$CPU_ARCHITECTURE"
+	"--cpu:$CPU" # Values: {DOS|Windows|OS2|Linux|MorphOS|SkyOS|Solaris|Irix|NetBSD|FreeBSD|OpenBSD|DragonFly|CROSSOS|AIX|PalmOS|QNX|Amiga|Atari|Netware|MacOSMacOSX|iOS|Haiku|Android|VxWorks|Genode|JS|NimVM|Standalone|NintendoSwitch|FreeRTOS|Zephyr|Any}
 	"--os:$USER_OS"
-	# "--forceBuild:on"
+	"--forceBuild:on"
 )
 
 # Only add when compiling for Linux as clang on macosx complains about the
@@ -290,6 +321,15 @@ for x in "${args[@]}"; do
 	decor=$([ $index == $((count-1))  ] && echo "└──" || echo "├──")
 	spacing=" "
 	[[ "$((index+1))" == "$count" ]] && spacing=" [${RED}${BOLD}INPUT${NC}] <- "
+	# Print detected gcc/clang compiler target CPUs. Checkmark means the
+	# CPU and installed C compilers share same target CPU. This for example,
+	# might differ on M1 Macs running Rosetta.
+	# [https://forum.nim-lang.org/t/2387#14721]
+	if [[ "$x" == *cpu* ]]; then # && [[ -z "$genscript" ]]; then
+		cpu_check="$CHECK_MARK"
+		[[ " $CLANG_CPU $GCC_CPU " != *"$CPU"* ]] && cpu_check="$X_MARK"
+		x+=" ${cpu_check} (gcc:$GCC_CPU, clang:$CLANG_CPU)"
+	fi
 	echo -e " ${decor}${spacing}${x}"
 	index=$((index+1))
 done

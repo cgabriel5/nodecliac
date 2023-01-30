@@ -143,6 +143,8 @@ fi
 # If output path isn't given, save to dir of source file.
 if [[ -z "$OUTPUT_PATH" ]]; then
 	OUTPUT_PATH="$(dirname "$INPUT_PATH")"
+	# Append trailing slash if not already present.
+	[[ "$OUTPUT_PATH" != *"/" ]] && OUTPUT_PATH+="/"
 
 	# [https://stackoverflow.com/a/965072]
 	file=$(basename -- "$INPUT_PATH")

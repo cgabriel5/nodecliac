@@ -99,7 +99,7 @@ while getopts ':i:c:o:n:s:dpr' flag; do
 		o)
 			OUTPUT_PATH="$OPTARG"
 			# Append trailing slash if not already present.
-			if [[ "$OUTPUT_PATH" != *"/" ]]; then OUTPUT_PATH+="/"; fi
+			[[ "$OUTPUT_PATH" != *"/" ]] && OUTPUT_PATH+="/"
 
 			# [https://stackoverflow.com/a/965072]
 			file=$(basename -- "$INPUT_PATH")

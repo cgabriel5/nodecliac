@@ -67,6 +67,7 @@ args=("-i" "$path")
 getname=""
 getscript=""
 codegen=""
+getdest=""
 for i in "${@}"; do
 	# [[ "$i" == "-x"* ]] && echo "<$i>" && args+=("$i")
 	[[ "$i" == "--prod" ]] && args+=("-p") && continue
@@ -77,6 +78,8 @@ for i in "${@}"; do
 	[[ -n "$getscript" ]] && args+=("-s" "$i") && getscript="" && continue
 	[[ "$i" == "--gen" ]] && codegen="1" && continue
 	[[ -n "$codegen" ]] && args+=("-c" "$i") && codegen="" && continue
+	[[ "$i" == "--dest" ]] && getdest="1" && continue
+	[[ -n "$getdest" ]] && args+=("-o" "$i") && getdest="" && continue
 done
 
 CFLAGS="$CFLAGS" "$(pwd)/src/scripts/main/compile.sh" "${args[@]}"

@@ -68,8 +68,10 @@ getname=""
 getscript=""
 codegen=""
 getdest=""
+printargs=""
 for i in "${@}"; do
 	# [[ "$i" == "-x"* ]] && echo "<$i>" && args+=("$i")
+	[[ "$i" == "--args" ]] && printargs="1" && continue
 	[[ "$i" == "--prod" ]] && args+=("-p") && continue
 	[[ "$i" == "--dev" ]] && args+=("-d") && continue
 	[[ "$i" == "--name" ]] && getname="1" && continue
@@ -82,6 +84,7 @@ for i in "${@}"; do
 	[[ -n "$getdest" ]] && args+=("-o" "$i") && getdest="" && continue
 done
 
+[[ -n "$printargs" ]] && echo -e "[\033[48;5;221mcompile.sh${NC} \033[38;5;247m${args[@]}${NC}]"
 CFLAGS="$CFLAGS" "$(pwd)/src/scripts/main/compile.sh" "${args[@]}"
 
 # Move scripts to src/scripts/bin/ destination?

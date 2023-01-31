@@ -30,7 +30,22 @@ NC="\033[0m"
 # Get parent shell path: [https://askubuntu.com/a/1012236]
 # [https://stackoverflow.com/a/46918581]
 # [https://github.com/npm/npm/pull/10958]
-path="$(ls -l /proc/$SPPID/cwd | perl -ne 'print $1 if / -> (\/.*?)$/')/${1}"
+if [[ "$OSTYPE" == "darwin"* ]]; then
+	# [https://stackoverflow.com/a/1727031]
+	# [https://apple.stackexchange.com/q/426347]
+	path="$(perl -ne 'print $1 if /n(.*?)$/' <<< "$(lsof -a -p $SPPID -d cwd -Fn -w)")"
+else
+	# [TODO]: Test on Linux to ensure same behavior as lsof.
+	path="$(ls -l /proc/$PPID/cwd | perl -ne 'print $1 if / -> (\/.*?)$/')/${1}"
+fi
+
+# Note: For the time being use Perl to resolve relative paths as macOS does
+# not have readlink/realpath binaries.
+# macOS Ventura:[https://apple.stackexchange.com/a/450116]
+# [https://stackoverflow.com/a/10382170], [https://stackoverflow.com/a/24572274]
+path=$(cd "$path" && echo "$(perl -MCwd -e 'print Cwd::abs_path shift' "$1")")
+# [https://stackoverflow.com/a/30795461]
+# path=$(perl -e 'use Cwd "abs_path"; print abs_path(@ARGV[0])' -- "$0")
 
 if [[ $# -eq 0 ]]; then
 	echo -e "${RED}Error:${NC} No arguments provided." && exit

@@ -19,15 +19,15 @@
 # Examples:
 #
 ### Build production binary:
-# 	$ yarn run build main.nim --prod
+# 	$ yarn run build project.nim --prod
 ### Build development binary (default):
-# 	$ yarn run build main.nim --dev
-### Build development binary with compiler options via ENV var:
-# 	$ CFLAGS="--opt:size" yarn run build main.nim --dev
+# 	$ yarn run build project.nim --dev
+### Build development binary with compiler options via CFLAGS ENV var:
+# 	$ CFLAGS="--opt:size" yarn run build project.nim --dev
 ### Build development binary and name created binary:
-# 	$ yarn run build main.nim --dev --name nodecliac.linux
+# 	$ yarn run build project.nim --dev --name nodecliac.linux
 #
-###  Relative or absolute file path can be supplied.
+### Relative or absolute file path can be supplied.
 # 	$ yarn run build project.nim --prod
 # 	$ yarn run build ./project.nim --prod
 # 	$ yarn run build ./folder/project.nim --prod
@@ -35,16 +35,20 @@
 # 	$ yarn run build "$(pwd)"/project.nim --prod
 # 	$ yarn run build /absolute/path/to/project.nim --prod
 #
-### Cross-compilation script.
-# The following examples will generate cross-compilation ARM64 or AMD64
-# scripts for Linux. Copy the generated folder over to the target machine,
-# cd into the folder, and run the 'compile_<PROJECT_NAME>.sh' file to
+### Cross-compilation.
+# Copy the generated folder to the target machine, cd into said folder,
+# make the 'compile_<PROJECT_NAME>.sh' file executable, and run it to
 # generate the binary for that platform.
 #
-# 	$ yarn run build project.nim -o ~/Desktop --script linux:arm64
-# 	$ yarn run build project.nim -o ~/Desktop --script linux:arm64 --prod
-# 	$ yarn run build project.nim -o ~/Desktop --script linux:arm64 --dev
-# 	$ yarn run build project.nim -o ~/Desktop --script linux:amd64 --prod
+# The following examples will generate ARM64 or AMD64 scripts for Linux.
+# 	$ yarn run build project.nim --dest ~/Desktop --script linux:arm64 --prod
+# 	$ yarn run build project.nim --dest ~/Desktop --script linux:arm64 --dev
+# 	$ yarn run build project.nim --dest ~/Desktop --script linux:amd64 --prod
+#
+# The following examples will generate ARM64 or AMD64 scripts for macOS.
+# 	$ yarn run build project.nim --dest ~/Desktop --script macosx:arm64 --prod
+# 	$ yarn run build project.nim --dest ~/Desktop --script macosx:arm64 --dev
+# 	$ yarn run build project.nim --dest ~/Desktop --script macosx:amd64 --prod
 
 RED="\033[0;31m"
 # Bold colors.

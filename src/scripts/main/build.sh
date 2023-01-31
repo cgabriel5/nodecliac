@@ -6,21 +6,45 @@
 #
 # --dev: Compile development binary.
 # --prod: Compile production binary.
-# --script: Generate cross-compilation script (linux|macosx).
+# --script: Generate cross-compilation script.
+# 	- Value format: '<OS>:<CPU>'
+# 	- <OS> values: (linux|macosx)
+# 	- <CPU> values: (amd64|arm64)
+# 	- Examples: 'linux:arm64', 'macosx:amd64'
 # --name: Rename output binary to provided name.
 # --gen: Type of code to generate: default 'c' (c|cpp|oc|js).
+# --args: Prints arguments passed to compile.sh script. Use when debugging.
 # CFLAGS: ENV var to pass options to compiler.
 #
 # Examples:
 #
-# Build production binary:
-# 	$ yarn run build "$(pwd)"/main.nim --prod
-# Build development binary (default):
-# 	$ yarn run build "$(pwd)"/main.nim --dev
-# Build development binary with compiler options via ENV var:
-# 	$ CFLAGS="--opt:size" yarn run build "$(pwd)"/main.nim --dev
-# Build development binary and name created binary:
-# 	$ yarn run build "$(pwd)"/main.nim --dev --name nodecliac.linux
+### Build production binary:
+# 	$ yarn run build main.nim --prod
+### Build development binary (default):
+# 	$ yarn run build main.nim --dev
+### Build development binary with compiler options via ENV var:
+# 	$ CFLAGS="--opt:size" yarn run build main.nim --dev
+### Build development binary and name created binary:
+# 	$ yarn run build main.nim --dev --name nodecliac.linux
+#
+###  Relative or absolute file path can be supplied.
+# 	$ yarn run build project.nim --prod
+# 	$ yarn run build ./project.nim --prod
+# 	$ yarn run build ./folder/project.nim --prod
+# 	$ yarn run build ../folder/project.nim --prod
+# 	$ yarn run build "$(pwd)"/project.nim --prod
+# 	$ yarn run build /absolute/path/to/project.nim --prod
+#
+### Cross-compilation script.
+# The following examples will generate cross-compilation ARM64 or AMD64
+# scripts for Linux. Copy the generated folder over to the target machine,
+# cd into the folder, and run the 'compile_<PROJECT_NAME>.sh' file to
+# generate the binary for that platform.
+#
+# 	$ yarn run build project.nim -o ~/Desktop --script linux:arm64
+# 	$ yarn run build project.nim -o ~/Desktop --script linux:arm64 --prod
+# 	$ yarn run build project.nim -o ~/Desktop --script linux:arm64 --dev
+# 	$ yarn run build project.nim -o ~/Desktop --script linux:amd64 --prod
 
 RED="\033[0;31m"
 # Bold colors.
